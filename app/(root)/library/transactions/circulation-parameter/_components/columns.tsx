@@ -32,10 +32,10 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus }: Co
         },
         {
             id: 'categoryOrType',
-            accessorFn: (row) => (row.lmB_BookTypeflag === 'NBP' ? row.lmB_BookType : row.lmC_CategoryName),
+            accessorFn: (row) => (row.lmB_BookTypeflag === 'BP' ? row.lmB_BookType : row.lmC_CategoryName),
             header: ({ column }) => <DataTableColumnHeader column={column} title='Book Type/Category' />,
             cell: ({ row }) => (
-                <div>{row.original.lmB_BookTypeflag === 'NBP' ? row.original.lmB_BookType : row.original.lmC_CategoryName}</div>
+                <div>{row.original.lmB_BookTypeflag === 'BP' ? row.original.lmB_BookType : row.original.lmC_CategoryName}</div>
             )
         },
         {

@@ -81,12 +81,38 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
         name: 'asmaY_RegularFeeFDate'
     });
 
-    // Auto-generate asmaY_Year like "2024-2025"
+    // Auto-generate asmaY_Year like "2024-2025" and populate dates
     useEffect(() => {
-        if (academicFromYear && academicToYear) {
+        if (academicFromYear && academicFromYear.length === 4 && !Number.isNaN(Number(academicFromYear)) &&
+            academicToYear && academicToYear.length === 4 && !Number.isNaN(Number(academicToYear))) {
+            
+            const fromYear = Number(academicFromYear);
+            const toYear = Number(academicToYear);
+
             setValue('asmaY_Year', `${academicFromYear}-${academicToYear}`, {
                 shouldValidate: true
             });
+
+            // Populate Start Date (June 1st of From Year)
+            const startDate = new Date(fromYear, 5, 1); // June is index 5
+            setValue('asmaY_From_Date', startDate.toISOString(), { shouldValidate: true });
+
+            // Populate End Date (May 31st of To Year)
+            const endDate = new Date(toYear, 4, 31); // May is index 4
+            setValue('asmaY_To_Date', endDate.toISOString(), { shouldValidate: true });
+
+            // Populate Pre Admission Start Date (January 1st of From Year)
+            const preAdmStartDate = new Date(fromYear, 0, 1); // January is index 0
+            setValue('asmaY_PreAdm_F_Date', preAdmStartDate.toISOString(), { shouldValidate: true });
+
+            // Populate Pre Admission End Date (May 31st of To Year)
+            setValue('asmaY_PreAdm_T_Date', endDate.toISOString(), { shouldValidate: true });
+
+            // Populate Cut-off Date (June 1st of From Year)
+            setValue('asmaY_Cut_Of_Date', startDate.toISOString(), { shouldValidate: true });
+
+            // Populate Academic Year Code with From Year if empty
+            setValue('asmaY_AcademicYearCode', academicFromYear, { shouldValidate: true });
         } else {
             setValue('asmaY_Year', '');
         }
@@ -266,7 +292,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 10, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -308,8 +335,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : undefined}
-                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
+                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : (academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined)}
+                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 10, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -356,7 +383,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={academicFromDate ? new Date(academicFromDate) : (academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 10, 11, 31))}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -400,8 +428,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : undefined}
-                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
+                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : (academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined)}
+                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 10, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -482,7 +510,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 10, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>

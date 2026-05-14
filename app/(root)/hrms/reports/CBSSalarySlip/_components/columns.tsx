@@ -15,8 +15,11 @@ export interface EmployeeSalarySlipDisplay {
 interface SalarySlipColumnsProps {
     onSelectAll: (checked: boolean) => void;
     onSelectEmployee: (employeeId: number, checked: boolean) => void;
+    selectedEmployeeIds: Set<number>;
+    isAllSelected: boolean;
+    isSomeSelected: boolean;
 }
-export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     
     {
         accessorKey: 'id',
@@ -51,9 +54,8 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySl
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                checked={isAllSelected ? true : (isSomeSelected ? 'indeterminate' : false)}
                 onCheckedChange={(value) => {
-                    table.toggleAllPageRowsSelected(!!value);
                     onSelectAll(!!value);
                 }}
                 aria-label='Select all'
@@ -61,7 +63,7 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySl
         ),
         cell: ({ row }) => (
             <Checkbox
-                checked={row.original.isSelected}
+                checked={selectedEmployeeIds.has(row.original.id)}
                 onCheckedChange={(value) => onSelectEmployee(row.original.id, !!value)}
                 aria-label='Select row'
             />

@@ -1,4 +1,5 @@
 import {
+    getCirculationData,
     getCirculationParameterDetails,
     getCirculationParameterTypeChange,
     saveCirculationParameter,
@@ -7,12 +8,21 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export const useCirculationParameterDetails = (categoryName: string) => {
+export const useCirculationParameterDetails = (payload: { MI_Id: number; IVRMUL_Id: number }) => {
     return useQuery({
-        queryKey: ['circulationParameterDetails', categoryName],
-        queryFn: () => getCirculationParameterDetails({ LMC_CategoryName: categoryName }),
+        queryKey: ['circulationParameterDetails', payload.MI_Id, payload.IVRMUL_Id],
+        queryFn: () => getCirculationParameterDetails(payload),
         meta: {
             errorMessage: 'Failed to load circulation parameter details'
+        }
+    });
+};
+
+export const useCirculationData = () => {
+    return useMutation({
+        mutationFn: getCirculationData,
+        onError: (error: any) => {
+            toast.error(error?.message || 'Failed to fetch circulation data');
         }
     });
 };
@@ -31,15 +41,14 @@ export const useSaveCirculationParameter = () => {
 
     return useMutation({
         mutationFn: saveCirculationParameter,
-        onSuccess: (data) => {
-            if (data.data?.returnval === true) {
+        onSuccess: (data: any) => {
+            if (data?.returnval === true) {
                 toast.success('Record Saved Successfully');
-            } else if (data.data?.returnval === false) {
+            } else if (data?.returnval === false) {
                 toast.error('Failed to save record');
-            } else if (data.data?.duplicate) {
+            } else if (data?.duplicate) {
                 toast.error('Record already exists');
             }
-            // Depending on the exact API response flag properties
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },
         onError: (error: any) => {
@@ -53,7 +62,7 @@ export const useToggleCirculationParameterStatus = () => {
 
     return useMutation({
         mutationFn: toggleCirculationParameterStatus,
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             toast.success('Status Updated Successfully');
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },

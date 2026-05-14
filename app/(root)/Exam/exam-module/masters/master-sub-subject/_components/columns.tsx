@@ -30,6 +30,11 @@ export const subSubjectColumns: ColumnDef<IMasterSubSubject>[] = [
         cell: ({ row }) => <div>{row.getValue('emsS_SubSubjectCode')}</div>
     },
     {
+        accessorKey: 'emsS_Order',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Order' />,
+        cell: ({ row }) => <div>{row.getValue('emsS_Order')}</div>
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,

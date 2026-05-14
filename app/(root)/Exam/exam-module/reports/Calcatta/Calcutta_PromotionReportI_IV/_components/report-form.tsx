@@ -12,7 +12,7 @@ import {
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getTermsCalcutta } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -42,7 +42,7 @@ export default function CalcuttaPromotionReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [terms, setTerms] = useState<{ empG_GroupName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_Id: number; studentName: string }[]>([]);
+    const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
@@ -126,42 +126,37 @@ export default function CalcuttaPromotionReportForm({
             try {
                 setLoadingTerms(true);
                 setLoadingStudents(true);
-                
+
                 // Fetch Students
                 const studentRes = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
                     selectedSection
                 );
-                
-                // Fetch Terms
-                const termRes = await getTermsCalcutta({
-                    ASMAY_Id: selectedYear,
-                    ASMCL_Id: selectedClass,
-                    ASMS_Id: selectedSection,
-                    Left_Flag: true,
-                    Deactive_Flag: true
-                });
 
-                if (!studentRes.data || (Array.isArray(studentRes.data) && studentRes.data.length === 0)) {
+                // Fetch Terms
+                try {
+                    const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
+                    setTerms(Array.isArray(termsData) ? termsData : []);
+                } catch (e) {
+                    setTerms([]);
+                }
+
+                const valid = Array.isArray(studentRes.data)
+                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
+                    : [];
+
+                const formattedStudents = valid.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                if (formattedStudents.length === 0) {
                     toast.info('No students found');
                 }
 
-                const formattedStudents = Array.isArray(studentRes.data)
-                    ? studentRes.data.map((item: any) => ({
-                          amsT_Id: item.amsT_Id,
-                          studentName:
-                              item.studentName ||
-                              `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim()
-                      }))
-                    : [];
                 setStudents(formattedStudents);
-                
-                if (termRes.subjectwisetotal && Array.isArray(termRes.subjectwisetotal)) {
-                    setTerms(termRes.subjectwisetotal);
-                } else {
-                    setTerms([]);
-                }
 
                 setValue('empG_GroupName', '');
                 setValue('studentList', []);
@@ -184,7 +179,7 @@ export default function CalcuttaPromotionReportForm({
             EMPG_GroupName: data.empG_GroupName || '',
             flag: "4"
         };
-        
+
         if (onSuccess) {
             await onSuccess(payload);
         }
@@ -345,9 +340,9 @@ export default function CalcuttaPromotionReportForm({
                                                             No Terms found
                                                         </SelectItem>
                                                     ) : (
-                                                        terms.map((t, idx) => (
-                                                            <SelectItem key={idx} value={t.empG_GroupName}>
-                                                                {t.empG_GroupName}
+                                                        terms.map((t: any, idx) => (
+                                                            <SelectItem key={idx} value={String(t.empG_GroupName)}>
+                                                                {t.empG_DisplayName || t.empG_GroupName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -385,8 +380,8 @@ export default function CalcuttaPromotionReportForm({
                                         name='studentList'
                                         render={({ field, fieldState }) => (
                                             <CustomMultiSelectBox
-                                                options={students.map((s) => ({
-                                                    label: `${s.studentName?.trim() || 'Unknown'}`,
+                                                options={students.map((s: any) => ({
+                                                    label: `${s.studentName?.trim() || 'Unknown'} - ${s.amsT_AdmNo || 'N/A'}`.trim(),
                                                     value: s.amsT_Id.toString()
                                                 }))}
                                                 onChange={(selectedValues) => {

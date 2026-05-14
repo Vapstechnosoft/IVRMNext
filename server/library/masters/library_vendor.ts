@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 
 export async function getMasterVendorList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmV_VendorName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmV_VendorName,lmV_EMailId,lmV_MobileNo,lmV_Address');
     const url = `/MasterVendor/get-master-vendor-list?${urlParams}`;
     return await api.get<IMasterVendorList[]>('library', url);
 }

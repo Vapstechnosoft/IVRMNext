@@ -3,49 +3,38 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { use, useEffect } from 'react';
 import AddInterviewerFeedbackForm from './_components/add-form';
 import { interviewerFeedbackColumns } from './_components/columns';
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function InterviewerFeedbackPage(props: {
-    searchParams: SearchParams;
-}) {
-    const _searchParams = use(props.searchParams);
-    // Mock data for now - replace with actual API call
-    const response = { data: [], totalItems: 0, isLoading: false, error: null };
-    const refetchAll = () => {};
+import { useGetInterviewerFeedbackGridData } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+export default function InterviewerFeedbackPage() {
+    
+    const {data:response,refetch:refetchAll, isLoading:isLoading} = useGetInterviewerFeedbackGridData();
+    console.log("response",response);
     return (
         <FormProvider<any>>
-            <InterviewerFeedbackPageContent response={response} isLoading={false} error={null} refetch={refetchAll} />
+            <InterviewerFeedbackPageContent response={response} isLoading={isLoading} refetch={refetchAll} />
         </FormProvider>
     );
 }
 function InterviewerFeedbackPageContent({
     response,
     isLoading,
-    error,
     refetch
 }: {
     response: any;
     isLoading: boolean;
-    error: any;
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
-    const session = useSession();
-    useEffect(() => {
-        if (session?.data?.role === undefined) {
-            window.location.reload();
-        }
-    }, [session?.data?.role]);
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
                 {/* Header */}
-                {/* <div className='flex justify-end'>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -53,7 +42,7 @@ function InterviewerFeedbackPageContent({
                         <Plus className='h-4 w-4' />
                         Add Interviewer Feedback
                     </Button>
-                </div> */}
+                </div>
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -64,7 +53,6 @@ function InterviewerFeedbackPageContent({
                         {...tableProps}
                         columns={interviewerFeedbackColumns}
                         isLoading={isLoading}
-                        error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading feedback...'

@@ -5,7 +5,7 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
 import CandidateReportForm from './_components/report-form';
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 interface Candidate {
     id: number;
     firstName: string;
@@ -20,10 +20,8 @@ interface Candidate {
     expectedCTC?: string;
     resumeCV?: string;
 }
-export default function CandidateReportPage(props: {
-    searchParams: SearchParams;
-}) {
-    const _searchParams = use(props.searchParams);
+export default function CandidateReportPage() {
+    
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const handleGenerateReport = async (_filters: { institution: string; candidateId: string }) => {
@@ -58,12 +56,6 @@ function CandidateReportPageContent({
     isLoading: boolean;
     onGenerateReport: (filters: { institution: string; candidateId: string }) => void;
 }) {
-    const session = useSession();
-    useEffect(() => {
-        if (session?.data?.role === undefined) {
-            window.location.reload();
-        }
-    }, [session?.data?.role]);
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>

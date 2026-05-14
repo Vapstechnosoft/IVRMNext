@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Trophy, Sparkles, Clock, CheckCircle2, 
     PlayCircle, ArrowRight, BarChart3, AlertCircle,
-    Brain, ChevronRight, X, FileText, ChevronLeft
+    Brain, ChevronRight, X, FileText, ChevronLeft,
+    TrendingUp, TrendingDown, Target, Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,19 +32,29 @@ export default function StudentOnlineMcqQuizPage() {
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionResult, setSubmissionResult] = useState<any>(null);
+    const [detailedAnalysis, setDetailedAnalysis] = useState<any>(null);
+    const [isFetchingAnalysis, setIsFetchingAnalysis] = useState(false);
+    const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
     // Initial Fetch
     useEffect(() => {
         const loadDashboard = async () => {
             setLoading(true);
             try {
-                // 1. Load Published Quizzes (From teacher's session storage for demo persistence across tabs)
+                // 1. Load Published Quizzes
                 const saved = localStorage.getItem('ai_published_quizzes');
-                const quizzes = saved ? JSON.parse(saved) : [
-                    // Mocked active quiz if none exists yet
-                    { id: 1, title: 'Cell Biology Fundamentals', duration: '30', questionsCount: 5, date: 'Today' }
-                ];
-                setAvailableQuizzes(quizzes);
+                const quizzes = saved ? JSON.parse(saved) : [];
+                
+                // Filter by availability window (Only show if current time is within [activeFrom, activeTo])
+                const now = new Date();
+                const filteredQuizzes = quizzes.filter((quiz: any) => {
+                    if (!quiz.activeFrom || !quiz.activeTo) return true; // Show if no window specified
+                    const from = new Date(quiz.activeFrom);
+                    const to = new Date(quiz.activeTo);
+                    return now >= from && now <= to;
+                });
+                
+                setAvailableQuizzes(filteredQuizzes);
 
                 // 2. Load Student Analytics (To check attempts)
                 const res = await fetch(`/api/exam/student-analytics/${studentId}`);
@@ -59,15 +70,33 @@ export default function StudentOnlineMcqQuizPage() {
             }
         };
         loadDashboard();
+        
+        // Refresh filter every minute
+        const interval = setInterval(loadDashboard, 60000);
+        return () => clearInterval(interval);
     }, [studentId]);
 
     const handleStartQuiz = async (quiz: any) => {
-        // 1. Check if already answered (Mock check)
-        // In real app, we'd check studentAnalytics.attempts list
-        const hasAttempted = false; // Mock
+        // 1. Check if already answered
+        const attempts = Array.isArray(studentAnalytics?.attempts) ? studentAnalytics.attempts : [];
+        const hasAttempted = attempts.some((a: any) => a.exam_id === quiz.id);
 
         if (hasAttempted) {
-            toast.info('You have already completed this assessment');
+            toast.error('You have already attended this assessment');
+            return;
+        }
+
+        // 2. Strict Availability Window Check
+        const now = new Date();
+        if (quiz.activeTo && now > new Date(quiz.activeTo)) {
+            toast.error('This assessment window has closed and is no longer accessible.');
+            // Re-filter list
+            setAvailableQuizzes(prev => prev.filter(q => q.id !== quiz.id));
+            return;
+        }
+
+        if (quiz.activeFrom && now < new Date(quiz.activeFrom)) {
+            toast.error('This assessment is not yet active.');
             return;
         }
 
@@ -119,6 +148,21 @@ export default function StudentOnlineMcqQuizPage() {
             toast.error('Submission failed: ' + err.message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleGetDetailedAnalysis = async () => {
+        setIsFetchingAnalysis(true);
+        try {
+            const res = await fetch(`/api/exam/student-analytics/${studentId}`);
+            if (!res.ok) throw new Error('Failed to fetch detailed analytics');
+            const data = await res.json();
+            setDetailedAnalysis(data);
+            setShowAnalysisModal(true);
+        } catch (err: any) {
+            toast.error(err.message || 'Analysis unavailable at the moment');
+        } finally {
+            setIsFetchingAnalysis(false);
         }
     };
 
@@ -218,17 +262,23 @@ export default function StudentOnlineMcqQuizPage() {
                                                         </div>
                                                         
                                                         {isAnswered ? (
-                                                            <Button 
-                                                                onClick={() => {
-                                                                    setSubmissionResult(attempt);
-                                                                    setViewMode('result');
-                                                                }}
-                                                                variant="outline"
-                                                                className="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all"
-                                                            >
-                                                                View Results
-                                                                <BarChart3 className="ml-2 w-4 h-4" />
-                                                            </Button>
+                                                            <div className="space-y-3">
+                                                                <div className="flex items-center gap-2 text-emerald-600 font-black text-xs uppercase tracking-widest bg-emerald-50 p-3 rounded-xl justify-center">
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                    Already Attended
+                                                                </div>
+                                                                <Button 
+                                                                    onClick={() => {
+                                                                        setSubmissionResult(attempt);
+                                                                        setViewMode('result');
+                                                                    }}
+                                                                    variant="outline"
+                                                                    className="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-2xl h-14 font-black uppercase tracking-widest text-xs transition-all"
+                                                                >
+                                                                    View Results
+                                                                    <BarChart3 className="ml-2 w-4 h-4" />
+                                                                </Button>
+                                                            </div>
                                                         ) : (
                                                             <Button 
                                                                 onClick={() => handleStartQuiz(quiz)}
@@ -398,7 +448,7 @@ export default function StudentOnlineMcqQuizPage() {
                                         <div className="space-y-2">
                                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Performance</p>
                                             <p className="text-6xl font-black text-emerald-500 tracking-tighter">
-                                                {submissionResult?.score}<span className="text-slate-200 text-3xl font-light">/</span>{submissionResult?.total_questions || '5'}
+                                                {submissionResult?.correct_answers || '0'}<span className="text-slate-200 text-3xl font-light">/</span>{submissionResult?.total_questions || '5'}
                                             </p>
                                         </div>
                                         <div className="space-y-2">
@@ -410,15 +460,135 @@ export default function StudentOnlineMcqQuizPage() {
                                         </div>
                                     </div>
 
-                                    <Button 
-                                        onClick={() => setViewMode('dashboard')}
-                                        className="w-full h-20 bg-slate-900 hover:bg-black text-white rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95"
-                                    >
-                                        Return to Portal Dashboard
-                                    </Button>
+                                    <div className="flex flex-col gap-4">
+                                        <Button 
+                                            onClick={handleGetDetailedAnalysis}
+                                            disabled={isFetchingAnalysis}
+                                            className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] text-lg font-black uppercase tracking-widest shadow-xl transition-all"
+                                        >
+                                            {isFetchingAnalysis ? "Analyzing..." : "Get detailed performance analysis"}
+                                            {!isFetchingAnalysis && <Brain className="ml-2 w-5 h-5" />}
+                                        </Button>
+
+                                        <Button 
+                                            onClick={() => setViewMode('dashboard')}
+                                            variant="ghost"
+                                            className="w-full h-16 text-slate-400 hover:text-slate-900 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all"
+                                        >
+                                            Return to Portal Dashboard
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Detailed Analysis Modal */}
+                <AnimatePresence>
+                    {showAnalysisModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden"
+                            >
+                                <div className="p-8 bg-slate-900 text-white flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-3 bg-indigo-500/20 rounded-2xl border border-indigo-500/30">
+                                            <Brain className="w-6 h-6 text-indigo-400" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black">AI Performance Report</h3>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Student ID: {studentId}</p>
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        variant="ghost" 
+                                        onClick={() => setShowAnalysisModal(false)}
+                                        className="h-12 w-12 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </Button>
+                                </div>
+
+                                <div className="p-10 space-y-8">
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="p-6 bg-emerald-50 rounded-[2rem] space-y-1">
+                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Average Score</p>
+                                            <p className="text-3xl font-black text-emerald-700">{detailedAnalysis?.average_score?.toFixed(1)}%</p>
+                                        </div>
+                                        <div className="p-6 bg-indigo-50 rounded-[2rem] space-y-1">
+                                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Total Attempts</p>
+                                            <p className="text-3xl font-black text-indigo-700">{detailedAnalysis?.attempts}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Topics Analysis */}
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <h4 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-widest">
+                                                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                                                Strong Proficiency
+                                            </h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {detailedAnalysis?.strong_topics?.length > 0 ? (
+                                                    detailedAnalysis.strong_topics.map((topic: string, i: number) => (
+                                                        <Badge key={i} className="bg-emerald-100 text-emerald-700 border-none px-4 py-2 rounded-xl font-bold">
+                                                            {topic}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-xs font-bold text-slate-400 italic">No strong topics identified yet.</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h4 className="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-widest">
+                                                <TrendingDown className="w-4 h-4 text-rose-500" />
+                                                Improvement Areas
+                                            </h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {detailedAnalysis?.weak_topics?.length > 0 ? (
+                                                    detailedAnalysis.weak_topics.map((topic: string, i: number) => (
+                                                        <Badge key={i} className="bg-rose-100 text-rose-700 border-none px-4 py-2 rounded-xl font-bold">
+                                                            {topic}
+                                                        </Badge>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-xs font-bold text-slate-400 italic">No significant gaps found. Keep it up!</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <div className="bg-slate-50 p-6 rounded-[2rem] flex items-start gap-4">
+                                            <div className="p-2 bg-white rounded-xl shadow-sm">
+                                                <Target className="w-5 h-5 text-indigo-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">AI Recommendation</p>
+                                                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                                                    Based on your performance, we recommend focusing on <span className="text-indigo-600 font-bold">{detailedAnalysis?.weak_topics?.[0] || 'general revision'}</span>. 
+                                                    Your proficiency in {detailedAnalysis?.strong_topics?.[0] || 'core concepts'} is excellent.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <Button 
+                                        onClick={() => setShowAnalysisModal(false)}
+                                        className="w-full h-16 bg-slate-900 hover:bg-black text-white rounded-[1.5rem] font-black uppercase tracking-widest"
+                                    >
+                                        Close Report
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
             </div>

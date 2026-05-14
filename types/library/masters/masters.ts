@@ -34,7 +34,7 @@ export interface IMasterPublisherList {
     lmP_MobileNo: string;
     lmP_Address: string;
     lmP_EMailId: string;
-    lmP_PhoneNo: string;
+    lmP_PhoneNo?: string;
     lmP_ActiveFlg: boolean;
 }
 

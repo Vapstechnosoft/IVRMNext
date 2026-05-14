@@ -78,7 +78,7 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Category' htmlFor='imcC_CategoryCode'>
+                            <Label className='font-bold' aria-label='Category' htmlFor='imcC_CategoryCode'>
                                 Category Code <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -91,7 +91,7 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                                             field.onChange(value);
                                         }}
                                         value={field.value?.toString() || ''}>
-                                        <SelectTrigger className='w-full'>
+                                        <SelectTrigger className='w-full font-normal'>
                                             <SelectValue placeholder='Select a category' />
                                         </SelectTrigger>
                                         <SelectContent>
