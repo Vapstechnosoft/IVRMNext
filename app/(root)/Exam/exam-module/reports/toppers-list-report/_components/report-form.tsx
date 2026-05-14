@@ -293,7 +293,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             console.log(result);
             console.log(institutionRes);
             if (!result?.data || (Array.isArray(result.data) && result.data.length === 0)) {
-                toast.info(result?.message || 'No records found');
+                toast.error(result?.message || 'No records found');
                 return;
             }
             if (result.success) {

@@ -2727,7 +2727,8 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         { id: 21018, name: 'GMVNB_Marks Cumulative Report', icon: 'BookOpen', url: '/Exam/exam-module/reports/GMVNB/MarksCumulativeReport', title: 'GMVNB_Marks Cumulative Report', description: 'GMVNB_Marks Cumulative Report' },
                                         { id: 21019, name: 'GMVNB_Progress Card Report GMVPS', icon: 'BookOpen', url: '/Exam/exam-module/reports/GMVNB/ProgressCardReportGMVPS', title: 'GMVNB_Progress Card Report GMVPS', description: 'GMVNB_Progress Card Report GMVPS' },
-                                        { id: 21518, name: 'GMVNB_Performance Analysis Report', icon: 'BookOpen', url: '/Exam/exam-module/reports/GMVNB/AnalysisReport', title: 'GMVNB Performance Analysis Report', description: 'GMVNB Performance Analysis Report - G M Vidyaniketan Public School Brahmavar' }
+                                        { id: 21518, name: 'GMVNB_Performance Analysis Report', icon: 'BookOpen', url: '/Exam/exam-module/reports/GMVNB/AnalysisReport', title: 'GMVNB Performance Analysis Report', description: 'GMVNB Performance Analysis Report - G M Vidyaniketan Public School Brahmavar' },
+                                        { id: 21519, name: 'GMVP Pre-Primary Report', icon: 'BookOpen', url: '/Exam/exam-module/reports/GMVNB/GMVP_PrePrimaryReport', title: 'GMVP Pre-Primary Report', description: 'GMVP Pre-Primary Report - G M Vidyaniketan Public School' }
                                     ]
                                 },
                                 // ==================== GMGS ====================
