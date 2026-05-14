@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
-        const { questionCount, difficulty } = formFields;
+        const { questionCount, difficulty, topic } = formFields;
 
         // --- STEP 1: Upload PDF to get Extracted Text ---
         console.log('Step 1: Uploading PDF to Render...');
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
             },
             body: JSON.stringify({
                 extracted_text: extractedText,
-                topics: ["General Knowledge"],
+                topics: topic ? [topic] : ["General Knowledge"],
                 question_count: parseInt(questionCount) || 5,
                 difficulty: difficulty.toLowerCase()
             }),
