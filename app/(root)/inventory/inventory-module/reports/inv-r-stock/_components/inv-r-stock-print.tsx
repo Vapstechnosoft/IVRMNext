@@ -20,7 +20,7 @@ export const InvRStockPrint = React.forwardRef<HTMLDivElement, InvRStockPrintPro
         }
 
         const optionflag = payload.optionflag || 'All';
-        const overallflag = payload.overallflag || false;
+        const isOverall = payload.overallflag === 'Overall';
 
         const renderTableHead = () => {
             return (
@@ -28,8 +28,8 @@ export const InvRStockPrint = React.forwardRef<HTMLDivElement, InvRStockPrintPro
                     <th className='w-16 text-center'>Sl.No</th>
                     {optionflag !== 'Item' && <th>Item</th>}
                     <th className='text-right'>Opening Balance</th>
-                    {!overallflag && <th className='text-right'>Rate</th>}
-                    {!overallflag && <th className='text-right'>OB Amount</th>}
+                    {!isOverall && <th className='text-right'>Rate</th>}
+                    {!isOverall && <th className='text-right'>OB Amount</th>}
                     <th className='text-right'>Sale Qty</th>
                     <th className='text-right'>Item Cons.</th>
                     <th className='text-right'>Checked Out</th>
@@ -60,8 +60,8 @@ export const InvRStockPrint = React.forwardRef<HTMLDivElement, InvRStockPrintPro
                         {slNo}
                         {optionflag !== 'Item' && itemName}
                         {obQty}
-                        {!overallflag && rate}
-                        {!overallflag && obAmt}
+                        {!isOverall && rate}
+                        {!isOverall && obAmt}
                         {saleQty}
                         {itemCons}
                         {checkedOut}
@@ -173,7 +173,7 @@ export const InvRStockPrint = React.forwardRef<HTMLDivElement, InvRStockPrintPro
                                     <tbody>
                                         {renderTableBody()}
                                         <tr className='bg-gray-100 font-bold'>
-                                            <td colSpan={optionflag !== 'Item' ? (!overallflag ? 10 : 8) : (!overallflag ? 9 : 7)} className='text-right px-4'>
+                                            <td colSpan={optionflag !== 'Item' ? (!isOverall ? 10 : 8) : (!isOverall ? 9 : 7)} className='text-right px-4'>
                                                 Total Records: {data.length}
                                             </td>
                                             <td colSpan={1} className='text-right px-4 text-green-700 font-bold'>

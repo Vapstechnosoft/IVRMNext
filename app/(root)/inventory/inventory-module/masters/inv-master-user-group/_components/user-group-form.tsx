@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 
 import { type InvMasterUserGroupType, invMasterUserGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
-import { deactivateInvMasterGroup, saveInvMasterUserGroup } from '@/server/inventory/masters/inv-master-group';
+import { deactivateInvMasterGroup } from '@/server/inventory/masters/inv-master-group';
+import { saveMasterUserGroup } from '@/server/inventory/masters/user-group';
 import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,16 +19,19 @@ import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { useInvMainGroupDropdown } from '@/hooks/inventory/masters/use-inv-master-user-group';
+
 interface UserGroupFormProps {
     onSuccess: () => void;
     initialData?: IInvMasterUserGroup;
     mode: 'add' | 'edit';
-    mainGroupOptions: { label: string; value: string }[];
 }
 
-function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserGroupFormProps) {
+function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
     const queryClient = useQueryClient();
     const [resetKey, setResetKey] = useState(0);
+
+    const { mainGroupOptions, isLoading: isDropdownLoading } = useInvMainGroupDropdown();
 
     const {
         control,
@@ -67,17 +71,16 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
 
     const onSubmit: SubmitHandler<InvMasterUserGroupType> = async (data) => {
         try {
-            const result = await saveInvMasterUserGroup(data);
+            const result = await saveMasterUserGroup(data);
             if (result.success || result.returnval) {
-                toast.success(mode === 'add' ? 'User Group Saved Successfully' : 'User Group Updated Successfully');
-                queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
+                toast.success(result.message);
                 onSuccess();
                 if (mode === 'add') reset();
             } else {
-                toast.error(result.message || (result.returnduplicatestatus as string) || 'Failed to save User Group');
+                toast.error(result.message);
             }
         } catch (error: any) {
-            toast.error(error.message || 'An unexpected error occurred');
+            toast.error(error.message);
         }
     };
 
@@ -107,10 +110,10 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
                         render={({ field }) => (
                             <Select key={resetKey} onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                 <SelectTrigger className={errors.invmG_ParentId ? 'border-destructive' : ''}>
-                                    <SelectValue placeholder='Select Main Group' />
+                                    <SelectValue placeholder={isDropdownLoading ? 'Loading...' : 'Select Main Group'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {mainGroupOptions.map((option) => (
+                                    {mainGroupOptions.map((option: { label: string; value: string }) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
@@ -173,22 +176,19 @@ function UserGroupForm({ onSuccess, initialData, mode, mainGroupOptions }: UserG
 }
 
 export function AddUserGroupForm({
-    onSuccess,
-    mainGroupOptions
-}: { onSuccess: () => void; mainGroupOptions: { label: string; value: string }[] }) {
-    return <UserGroupForm onSuccess={onSuccess} mode='add' mainGroupOptions={mainGroupOptions} />;
+    onSuccess
+}: { onSuccess: () => void }) {
+    return <UserGroupForm onSuccess={onSuccess} mode='add' />;
 }
 
 export function UpdateUserGroupForm({
     selectedRow,
-    onSuccess,
-    mainGroupOptions
+    onSuccess
 }: {
     selectedRow: IInvMasterUserGroup;
     onSuccess: () => void;
-    mainGroupOptions: { label: string; value: string }[];
 }) {
-    return <UserGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' mainGroupOptions={mainGroupOptions} />;
+    return <UserGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' />;
 }
 
 interface ToggleUserGroupFormProps {

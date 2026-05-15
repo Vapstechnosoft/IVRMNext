@@ -71,6 +71,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
                             label='Document Name'
+                            placeholder='Enter Document Name'
                             required
                             id='amsmD_DocumentName'
                             {...register('amsmD_DocumentName')}
@@ -80,9 +81,9 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
 
                         <InputTextarea
                             label='Description'
+                            placeholder='Enter Description'
                             required
                             id='amsmD_Description'
-                            placeholder='Enter description'
                             {...register('amsmD_Description')}
                             error={errors.amsmD_Description?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

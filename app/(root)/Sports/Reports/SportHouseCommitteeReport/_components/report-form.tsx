@@ -1,11 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { RefreshCcw, FileText } from 'lucide-react';
 import { sportHouseCommitteeReportSchema, type SportHouseCommitteeReportFormData } from '../schema';
 import { useSportHouseCommitteeReport } from '@/hooks/sports/useSportHouseCommitteeReport';
@@ -30,6 +31,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
             selectedhouselist: [],
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedYear = form.watch('asmaY_Id');
 
@@ -89,55 +96,56 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
                             {/* Academic Year */}
-                            <FormField
-                                control={form.control}
-                                name="asmaY_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">Academic Year <span className="text-destructive">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(value) => field.onChange(Number(value))}
-                                            value={field.value?.toString()}
-                                            disabled={initialData.isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                                <Controller
+                                    control={control}
+                                    name="asmaY_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                                disabled={initialData.isLoading}
+                                            >
+                                                <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                     <SelectValue placeholder="Select Year" />
                                                 </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.data?.asmay_list?.map((year) => (
-                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                        {year.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                                <SelectContent>
+                                                    {initialData.data?.asmay_list?.map((year) => (
+                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                            {year.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* House Multi-select */}
-                            <FormField
-                                control={form.control}
-                                name="selectedhouselist"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold">House <span className="text-destructive">*</span></FormLabel>
-                                        <FormControl>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House</Label>
+                                <Controller
+                                    control={control}
+                                    name="selectedhouselist"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
                                             <MultiSelect
                                                 options={houseList.map(h => ({ value: h.spccmH_Id.toString(), label: h.spccmH_HouseName }))}
                                                 onValueChange={(vals) => field.onChange(vals.map(Number))}
                                                 defaultValue={field.value?.map(String) || []}
                                                 placeholder="Select Houses"
                                                 disabled={!watchedYear || houseMutation.isPending}
+                                                className={errors.selectedhouselist ? 'border-destructive ring-destructive/20' : ''}
                                             />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            {errors.selectedhouselist && <span className="text-xs font-medium text-destructive">{errors.selectedhouselist.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* Buttons */}
                             <div className="flex gap-4">

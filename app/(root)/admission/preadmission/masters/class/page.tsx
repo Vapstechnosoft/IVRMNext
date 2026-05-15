@@ -7,12 +7,13 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassColumns } from './_components/columns';
 import ReorderClassForm from './_components/reorder-form';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
+import { useRouter } from 'next/navigation';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,7 +23,7 @@ export default function MasterClassPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterClassList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterClassPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
         </FormProvider>
     );
 }
@@ -30,14 +31,26 @@ export default function MasterClassPage(props: { searchParams: SearchParams }) {
 function MasterClassPageContent({
     response,
     isLoading,
-    error
+    error,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    searchParams: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterClassList>();
+    const { openAddForm, openEditForm, isEditFormOpen } = useFormContext<IMasterClassList>();
     const tableProps = useDataTableProps(response);
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+    useEffect(() => {
+        if (!isLoading && response?.data && searchParams?.asmcl_id) {
+            const record = response.data.find((r: IMasterClassList) => String(r.asmcL_Id) === String(searchParams.asmcl_id));
+            if (record && !isEditFormOpen) {
+                openEditForm(record);
+            }
+        }
+    }, [isLoading, response, searchParams, openEditForm]);
 
     return (
         <div className='min-h-screen'>
@@ -96,6 +109,13 @@ function FormSections() {
         editFormRef
     } = useFormContext<IMasterClassList>();
 
+    const router = useRouter();
+
+    const handleCloseEdit = () => {
+        closeEditForm();
+        router.replace(window.location.pathname);
+    };
+
     return (
         <>
             {/* Add Form */}
@@ -135,13 +155,13 @@ function FormSections() {
                         <div className='relative'>
                             <Button
                                 type='button'
-                                onClick={closeEditForm}
+                                onClick={handleCloseEdit}
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={handleCloseEdit} />
                         </div>
                     </CollapsibleSection>
                 </div>

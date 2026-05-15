@@ -10,7 +10,6 @@ export const invRSalesSchema = z.object({
     enddate: z.date().optional(),
 
     // Filters
-    searchSingleStudent: z.string().optional(), // For single student select
     singleStudentId: z.number().optional(),
     singleStaffId: z.number().optional(),
     singleCustomerId: z.number().optional(),
@@ -65,14 +64,10 @@ export const invRSalesSchema = z.object({
             }
         }
         if (data.optionflag === 'Student') {
-            // Complex Student Validation
+            // Class or Class/Section Mode
             if (!data.individualflag) {
-                // Default Single Student Search
-                if (!data.singleStudentId) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please select a Student", path: ["singleStudentId"] });
-                }
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please select a Student Selection Mode", path: ["individualflag"] });
             } else {
-                // Class or Class/Section Mode
                 if (!data.classId) {
                     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Please select a Class", path: ["classId"] });
                 } else {

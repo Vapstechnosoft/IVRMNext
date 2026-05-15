@@ -56,6 +56,7 @@ export default function RequestAcceptList({
                 toast.success(action === 'Accept' ? 'Friend requests accepted successfully' : 'Requests canceled successfully');
                 setSelectedRows([]);
                 onRefresh();
+                window.location.reload();
             } else {
                 toast.error(res.message || 'Action failed');
             }

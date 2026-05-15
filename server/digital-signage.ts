@@ -275,12 +275,23 @@ export async function uploadAndSchedule(formData: FormData) {
     try {
         const file = formData.get('file') as File | null;
         const displayId = formData.get('display_id') as string | null;
-        const startDate = formData.get('start_date') as string | null;
-        const endDate = formData.get('end_date') as string | null;
+        const startDateRaw = formData.get('start_date') as string | null;
+        const endDateRaw = formData.get('end_date') as string | null;
 
-        if (!file || !displayId || !startDate || !endDate) {
+        if (!file || !displayId || !startDateRaw || !endDateRaw) {
             return { success: false, message: 'Missing required fields: file, display_id, start_date, end_date' };
         }
+
+        // --- Step 0: Format Dates for Xibo ---
+        // Xibo CMS typically expects "YYYY-MM-DD HH:mm:ss".
+        // HTML datetime-local usually gives "YYYY-MM-DDTHH:mm".
+        const formatXiboDate = (d: string) => {
+            const withSpace = d.replace('T', ' ');
+            return withSpace.length === 16 ? `${withSpace}:00` : withSpace;
+        };
+
+        const startDate = formatXiboDate(startDateRaw);
+        const endDate = formatXiboDate(endDateRaw);
 
         // --- Step 1: upload media ---
         const uploadResult = await uploadMedia(file);
@@ -288,16 +299,21 @@ export async function uploadAndSchedule(formData: FormData) {
             return { success: false, message: `Upload failed: ${uploadResult.message}` };
         }
 
-        // Xibo returns the new media object(s) inside a list; grab the first id
+        // --- Step 2: Extract Media ID ---
+        // Xibo returns the new media object(s) in various formats depending on version/endpoint:
+        // 1. { files: [ { mediaId: 123, ... } ] }
+        // 2. [ { mediaId: 123, ... } ]
+        // 3. { mediaId: 123, ... }
         const mediaData = uploadResult.data as any;
-        const mediaId: number | undefined = mediaData?.files?.[0]?.mediaId ?? mediaData?.[0]?.mediaId ?? mediaData?.mediaId;
+        const mediaId = mediaData?.files?.[0]?.mediaId || mediaData?.[0]?.mediaId || mediaData?.mediaId || mediaData?.id;
 
         if (!mediaId) {
+            console.error('[uploadAndSchedule] No mediaId found in response:', mediaData);
             return { success: false, message: 'Upload succeeded but no mediaId was returned' };
         }
 
-        // --- Step 2: create schedule ---
-        const scheduleResult = await createSchedule(mediaId, Number(displayId), startDate, endDate);
+        // --- Step 3: create schedule ---
+        const scheduleResult = await createSchedule(Number(mediaId), Number(displayId), startDate, endDate);
 
         if (!scheduleResult.success) {
             return { success: false, message: `Schedule creation failed: ${scheduleResult.message}` };
@@ -305,7 +321,7 @@ export async function uploadAndSchedule(formData: FormData) {
 
         return { success: true, data: { mediaId, schedule: scheduleResult.data } };
     } catch (error: any) {
-        console.error('[uploadAndSchedule]', error);
+        console.error('[uploadAndSchedule] Error:', error);
         return { success: false, message: error?.message || 'Upload and schedule failed' };
     }
 }

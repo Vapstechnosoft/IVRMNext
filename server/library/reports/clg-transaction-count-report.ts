@@ -1,3 +1,5 @@
+'use server';
+
 import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
 import type {
@@ -36,11 +38,10 @@ export async function getCLGTransactionCountReportSearch(data: ICLGTransactionCo
 
     const payload = {
         ...data,
-        MI_Id: session.mi_id,
-        IVRMUL_Id: session.roleId || 0
+        mI_Id: session.mi_id,
     };
 
-    const url = `${FACADE}/get-transaction-count-report`; // shared with school report usually
+    const url = `${FACADE}/CLGget_report`;
     const response = await api.post<any>('library', url, payload);
     const responseData = response.data || response;
 

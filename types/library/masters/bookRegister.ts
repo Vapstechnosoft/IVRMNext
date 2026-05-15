@@ -78,6 +78,12 @@ export interface AccessionDTO {
     lmbanO_AvialableStatus?: string;
 }
 
+export interface AttachmentDTO {
+    lmbA_Id?: number;
+    lmbA_FileName: string;
+    lmbA_FilePath: string;
+}
+
 export interface BookRegisterPayload {
     lmB_Id?: number;
     mI_Id?: number;
@@ -139,6 +145,10 @@ export interface BookRegisterPayload {
     lmaC_Id?: number;
 
     accessionList?: AccessionDTO[];
+    attachementList?: AttachmentDTO[];
     mB_ActiveFlag?: boolean;
     lmB_StudentPhoto?: string;
+    lmB_FirstSummary?: string;
+    lmB_SecondSummary?: string;
+    lmB_ThirdSummary?: string | number;
 }
