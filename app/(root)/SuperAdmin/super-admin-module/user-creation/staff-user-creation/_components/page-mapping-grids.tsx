@@ -562,6 +562,11 @@ export default function PageMappingGrids({
                                                 <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.checked} onCheckedChange={(v) => handleSavedCheck(idx, 'checked', !!v)} className="border-red-500 data-[state=checked]:bg-red-500" /></div></TableCell>
                                             </TableRow>
                                         ))}
+                                        {savedGrid.length === 0 && (
+                                            <TableRow>
+                                                <TableCell colSpan={showInstitution ? 10 : 9} className="text-center py-4 text-gray-500">No pages found.</TableCell>
+                                            </TableRow>
+                                        )}
                                     </TableBody>
                                 </Table>
                             )}
