@@ -2066,11 +2066,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 522,
-                                            name: 'Fee Trail Audit Reoport ST JAMES',
+                                            name: 'Fee Trail Audit Report ST JAMES',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feetrailauditreport',
-                                            title: 'Fee Trail Audit Reoport ST JAMES',
-                                            description: 'Manage Fee Trail Audit Reoport ST JAMES'
+                                            title: 'Fee Trail Audit Report ST JAMES',
+                                            description: 'Manage Fee Trail Audit Report ST JAMES'
                                         },
                                         {
                                             id: 524,
@@ -2104,14 +2104,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee PreAdmission Transaction ST Marys',
                                             description: 'Manage Fee PreAdmission Transaction ST Marys'
                                         },
-                                        {
-                                            id: 528,
-                                            name: 'Mess Attendance Entry Vishwadarshana',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/messattendanceentryvishwa',
-                                            title: 'Mess Attendance Entry Vishwadarshana',
-                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
-                                        },
+                                        // {
+                                        //     id: 528,
+                                        //     name: 'Mess Attendance Entry Vishwadarshana',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/messattendanceentryvishwa',
+                                        //     title: 'Mess Attendance Entry Vishwadarshana',
+                                        //     description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        // },
                                         {
                                             id: 529,
                                             name: 'Fee Collection Sophia',
@@ -2127,6 +2127,30 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feereceiptdeletereportnagarjuna',
                                             title: 'Fee Receipt Delete Report Nagarjuna',
                                             description: 'Manage Fee Receipt Delete Report Nagarjuna'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'Fee Collection Statement Report Nagarjuna',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feecollectionstatementreportnagarjuna',
+                                            title: 'Fee Collection Statement Report Nagarjuna',
+                                            description: 'Manage Fee Collection Statement Report Nagarjuna'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'Daily Fee Collection Report St Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/dailyfeeCollectionreportstmarys',
+                                            title: 'Daily Fee Collection Report St Marys',
+                                            description: 'Manage Daily Fee Collection Report St Marys'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'College Fee Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/collegefeetransaction',
+                                            title: 'College Fee Transaction',
+                                            description: 'College Fee Transaction'
                                         }
                                     ]
                                 }
