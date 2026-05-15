@@ -2,13 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 export interface LeaveReportFilters {
     selectedTypes: number[];
     selectedDepartments: number[];
@@ -84,17 +83,17 @@ export function LeaveReportFilters({
                                     label: type.name,
                                     value: type.id.toString()
                                 }))}
-                                defaultValue={(filters.selectedTypes || []).filter(id => id != null).map((id) => id.toString())}
+                                defaultValue={(filters.selectedTypes || []).filter((id) => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedTypes',
-                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
+                                        values.filter((v) => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
                                 placeholder='Select group types'
                             />
                         )}
-                        {errors.selectedTypes && <p className='text-xs text-red-500'>{errors.selectedTypes}</p>}
+                        {errors.selectedTypes && <p className='text-red-500 text-xs'>{errors.selectedTypes}</p>}
                     </div>
                     {/* Department */}
                     <div className='space-y-2'>
@@ -111,17 +110,17 @@ export function LeaveReportFilters({
                                     label: dept.name,
                                     value: dept.id.toString()
                                 }))}
-                                defaultValue={(filters.selectedDepartments || []).filter(id => id != null).map((id) => id.toString())}
+                                defaultValue={(filters.selectedDepartments || []).filter((id) => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedDepartments',
-                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
+                                        values.filter((v) => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
                                 placeholder='Select departments'
                             />
                         )}
-                        {errors.selectedDepartments && <p className='text-xs text-red-500'>{errors.selectedDepartments}</p>}
+                        {errors.selectedDepartments && <p className='text-red-500 text-xs'>{errors.selectedDepartments}</p>}
                     </div>
                     {/* Designation */}
                     <div className='space-y-2'>
@@ -138,17 +137,17 @@ export function LeaveReportFilters({
                                     label: desg.name,
                                     value: desg.id.toString()
                                 }))}
-                                defaultValue={(filters.selectedDesignations || []).filter(id => id != null).map((id) => id.toString())}
+                                defaultValue={(filters.selectedDesignations || []).filter((id) => id != null).map((id) => id.toString())}
                                 onValueChange={(values) =>
                                     onFilterChange(
                                         'selectedDesignations',
-                                        values.filter(v => v != null && v !== '').map((v) => Number.parseInt(v))
+                                        values.filter((v) => v != null && v !== '').map((v) => Number.parseInt(v))
                                     )
                                 }
                                 placeholder='Select designations'
                             />
                         )}
-                        {errors.selectedDesignations && <p className='text-xs text-red-500'>{errors.selectedDesignations}</p>}
+                        {errors.selectedDesignations && <p className='text-red-500 text-xs'>{errors.selectedDesignations}</p>}
                     </div>
                 </div>
                 {/* Employee Section - Hide when Employee Leave Balance is checked */}
@@ -214,7 +213,7 @@ export function LeaveReportFilters({
                                         </SelectContent>
                                     </Select>
                                 )}
-                                {errors.selectedEmployeeId && <p className='text-xs text-red-500'>{errors.selectedEmployeeId}</p>}
+                                {errors.selectedEmployeeId && <p className='text-red-500 text-xs'>{errors.selectedEmployeeId}</p>}
                             </div>
                         )}
                     </>
@@ -226,7 +225,9 @@ export function LeaveReportFilters({
                             Leave <span className='text-red-500'>*</span>
                         </Label>
                         <Select value={filters.leave} onValueChange={(value) => onFilterChange('leave', value)}>
-                            <SelectTrigger id='leave-select' className={!filters.leave || filters.leave.length === 0 ? ' font-medium text-gray-500' : ''}>
+                            <SelectTrigger
+                                id='leave-select'
+                                className={!filters.leave || filters.leave.length === 0 ? ' font-medium text-gray-500' : ''}>
                                 <SelectValue placeholder={isLoadingLeaves ? 'Loading...' : 'Please select'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -238,7 +239,7 @@ export function LeaveReportFilters({
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.leave && <p className='text-xs text-red-500'>{errors.leave}</p>}
+                        {errors.leave && <p className='text-red-500 text-xs'>{errors.leave}</p>}
                     </div>
                     <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
                         <div className='space-y-2'>
@@ -250,7 +251,7 @@ export function LeaveReportFilters({
                                 setDate={(date) => onFilterChange('fromDate', date ? date.toISOString().split('T')[0] : '')}
                                 placeholder='Select from date'
                             />
-                            {errors.fromDate && <p className='text-xs text-red-500'>{errors.fromDate}</p>}
+                            {errors.fromDate && <p className='text-red-500 text-xs'>{errors.fromDate}</p>}
                         </div>
                         <div className='space-y-2'>
                             <Label htmlFor='to-date-input' className='font-medium text-sm'>
@@ -261,7 +262,7 @@ export function LeaveReportFilters({
                                 setDate={(date) => onFilterChange('toDate', date ? date.toISOString().split('T')[0] : '')}
                                 placeholder='Select to date'
                             />
-                            {errors.toDate && <p className='text-xs text-red-500'>{errors.toDate}</p>}
+                            {errors.toDate && <p className='text-red-500 text-xs'>{errors.toDate}</p>}
                         </div>
                     </div>
                     {/* Employee Leave Balance Checkbox */}

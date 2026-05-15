@@ -281,6 +281,23 @@ export function createExamCustomStringSchema(field: string, min: number, max: nu
             message: `${field} cannot contain only numbers`
         });
 }
+
+export function createAlphaNumericSchema(field: string, min: number, max: number) {
+    return z
+        .string({ message: `${field} is required` })
+        .min(min, {
+            message: `Minimum ${min} characters required for ${field}`
+        })
+        .max(max, {
+            message: `Maximum ${max} characters allowed for ${field}`
+        })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        })
+        .refine((value) => /^[A-Za-z0-9\s]+$/.test(value), {
+            message: `${field} should contain only alphanumeric characters`
+        });
+}
 export function createOptionalAlphaNumericSchema(field: string, min: number, max: number) {
     return z
         .union([

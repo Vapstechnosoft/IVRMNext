@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -14,13 +14,42 @@ import {
 } from '@/schemas/sports/transactions/sport-venuewise-participation-report';
 import { type ISportVenueWiseParticipationReportPayload, type SportVenuewiseReportData } from '@/types/sports/reports/venue-wise-participation-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useState, use, useMemo } from 'react';
+import { Controller, useForm, FormProvider } from 'react-hook-form';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
-export default function SportVenuewiseParticipationReportPage() {
-    const { initialData, detailsData, sectionsData, reportData } = useSportVenuewiseParticipationReport();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function SportVenuewiseParticipationReportPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useSportVenuewiseParticipationReport(searchParams);
+
+    return (
+        <FormProvider {...useForm<SportVenuewiseParticipationReportFormData>({
+            resolver: zodResolver(sportVenuewiseParticipationReportSchema),
+            defaultValues: {
+                type: 'House',
+                asmaY_Id: undefined,
+                spccmeV_Id: [],
+                spccmH_Id: [],
+                asmcL_Id: undefined,
+                asmS_Id: []
+            }
+        })}>
+            <SportVenuewiseParticipationReportPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+                searchParams={searchParams}
+            />
+        </FormProvider>
+    );
+}
+
+function SportVenuewiseParticipationReportPageContent({ response, isLoading, error, refetchAll, searchParams }: any) {
+    const { detailsData, sectionsData, reportData } = useSportVenuewiseParticipationReport(searchParams);
     const [houseOptions, setHouseOptions] = useState<{ label: string; value: string }[]>([]);
     const [venueOptions, setVenueOptions] = useState<{ label: string; value: string }[]>([]);
     const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
@@ -31,7 +60,6 @@ export default function SportVenuewiseParticipationReportPage() {
         control,
         handleSubmit,
         watch,
-        setValue,
         reset,
         formState: { errors }
     } = useForm<SportVenuewiseParticipationReportFormData>({
@@ -50,7 +78,6 @@ export default function SportVenuewiseParticipationReportPage() {
     const watchAcademicYear = watch('asmaY_Id');
     const watchClass = watch('asmcL_Id');
 
-    // Fetch details (Classes, Houses, Venues) when Academic Year changes
     useEffect(() => {
         if (watchAcademicYear) {
             detailsData.mutate(
@@ -72,7 +99,6 @@ export default function SportVenuewiseParticipationReportPage() {
         }
     }, [watchAcademicYear]);
 
-    // Fetch sections when Class changes
     useEffect(() => {
         if (watchAcademicYear && watchClass) {
             sectionsData.mutate(
@@ -115,31 +141,33 @@ export default function SportVenuewiseParticipationReportPage() {
         setSectionOptions([]);
     };
 
-    const columns: ColumnDef<SportVenuewiseReportData>[] = [
-        { accessorKey: 'id', header: 'SL. No.', cell: ({ row }) => <div>{row.index + 1}</div> },
-        { accessorKey: 'spccmH_HouseName', header: 'House Name' },
-        { accessorKey: 'spccmeV_EventVenue', header: 'Venue' },
-        { accessorKey: 'amsT_Name', header: 'Student Name' },
-        { accessorKey: 'amsT_AdmNo', header: 'Adm. No.' },
-        { accessorKey: 'asmcL_ClassName', header: 'Class' },
-        { accessorKey: 'asmC_SectionName', header: 'Section' },
-        { accessorKey: 'spccmE_EventName', header: 'Event' },
-        { accessorKey: 'spccmscc_SportsCCName', header: 'Sports Name' },
-        { accessorKey: 'spccE_StartDate', header: 'Event Date' }
-    ];
+    const columns = useMemo(() => [
+        { id: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
+        { accessorKey: 'spccmH_HouseName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='House Name' />, enableSorting: true },
+        { accessorKey: 'spccmeV_EventVenue', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Venue' />, enableSorting: true },
+        { accessorKey: 'amsT_Name', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' />, enableSorting: true },
+        { accessorKey: 'amsT_AdmNo', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Adm. No.' />, enableSorting: true },
+        { accessorKey: 'asmcL_ClassName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' />, enableSorting: true },
+        { accessorKey: 'asmC_SectionName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' />, enableSorting: true },
+        { accessorKey: 'spccmE_EventName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event' />, enableSorting: true },
+        { accessorKey: 'spccmscc_SportsCCName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Sports Name' />, enableSorting: true },
+        { accessorKey: 'spccE_StartDate', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event Date' />, enableSorting: true }
+    ], []);
 
-    if (initialData.isLoading) {
+    const academicYears = response?.data?.yearlist?.map((y: any) => ({
+        id: y.asmaY_Id,
+        label: y.asmaY_Year
+    })) || [];
+
+    const tableProps = useDataTableProps(reportData.data?.data || []);
+
+    if (isLoading) {
         return (
             <div className='flex h-full items-center justify-center'>
                 <Loader2 className='animate-spin' />
             </div>
         );
     }
-
-    const academicYears = initialData.data?.data?.yearlist?.map(y => ({
-        id: y.asmaY_Id,
-        label: y.asmaY_Year
-    })) || [];
 
     return (
         <div className='space-y-6'>
@@ -182,7 +210,7 @@ export default function SportVenuewiseParticipationReportPage() {
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((year) => (
+                                                {academicYears.map((year: any) => (
                                                     <SelectItem key={year.id} value={year.id.toString()}>
                                                         {year.label}
                                                     </SelectItem>
@@ -211,7 +239,7 @@ export default function SportVenuewiseParticipationReportPage() {
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classOptions.map((cls) => (
+                                                        {classOptions.map((cls: any) => (
                                                             <SelectItem key={cls.value} value={cls.value}>
                                                                 {cls.label}
                                                             </SelectItem>
@@ -305,14 +333,18 @@ export default function SportVenuewiseParticipationReportPage() {
             {showReport && (
                 <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                        <CardTitle>Venue Wise Participation Report</CardTitle>
+                        <CardTitle>Venue Wise Participation Report List</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <DataTable
+                        <GenericDataTable<any>
+                            {...tableProps}
                             columns={columns}
-                            data={reportData.data?.data || []}
-                            totalItems={reportData.data?.data?.length || 0}
-                        //manualPagination={false}
+                            isLoading={reportData.isPending}
+                            error={reportData.error}
+                            manualPagination={true}
+                            manualSorting={true}
+                            manualFiltering={true}
+                            showSearchColumns={true}
                         />
                         <div className='mt-4 flex justify-end space-x-2'>
                             <Button onClick={() => window.print()}>Print</Button>

@@ -9,20 +9,20 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown, useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
 import {
-    useReportGroupTypes,
+    useLeaveStatusReport,
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByGroupTypeDeptAndDesignation,
-    useLeaveStatusReport
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { Download, Loader2, Printer, Search } from 'lucide-react';
-import { useMemo, useState, useRef } from 'react';
+import { X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
 import { columns } from './_components/columns';
-import { printLeaveStatusReport } from './_components/leave-status-print';
 import { exportLeaveStatusReport } from './_components/leave-status-export';
+import { printLeaveStatusReport } from './_components/leave-status-print';
 interface FilterFormValues {
     year: string;
     groupType: string[];
@@ -58,8 +58,6 @@ function LeaveStatusReportContent() {
     const watchedDesignation = watch('designation');
     const watchedYear = watch('year');
 
-
-
     // Mapped ID arrays for hook dependencies
     const groupTypeIds = useMemo(() => watchedGroupType.map(Number).filter(Boolean), [watchedGroupType]);
     const deptIds = useMemo(() => watchedDepartment.map(Number).filter(Boolean), [watchedDepartment]);
@@ -90,7 +88,7 @@ function LeaveStatusReportContent() {
                 id: gt.key || gt.hrmgT_Id,
                 name: gt.value || gt.hrmgT_EmployeeGroupType
             })) || []
-        ).filter((d: any) => d.id != null)
+        ).filter((d: any) => d.id != null);
     }, [groupTypesData]);
 
     const departmentsDataTransformed = useMemo(() => {
@@ -117,8 +115,17 @@ function LeaveStatusReportContent() {
 
         return list
             .map((emp: any) => {
-                const id = emp.hrmE_Id || emp.id;
-                if (!id) return null;
+                const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
+                if (id == null) return null;
+
+                const firstName = (emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '').trim();
+                const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
+                const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
+
+                const employeeName =
+                    [firstName, middleName, lastName].filter(Boolean).join(' ') || emp.value || emp.employeeName || 'Unknown Employee';
+
+                const employeeCode = emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || emp.employeeCode || id.toString();
 
                 return {
                     id: Number(id),
@@ -135,7 +142,13 @@ function LeaveStatusReportContent() {
     const [isPending, setIsPending] = useState(false);
 
     const onSubmit = async (data: FilterFormValues) => {
-        if (!data.year || data.department.length === 0 || data.designation.length === 0 || data.employees.length === 0 || data.leaves.length === 0) {
+        if (
+            !data.year ||
+            data.department.length === 0 ||
+            data.designation.length === 0 ||
+            data.employees.length === 0 ||
+            data.leaves.length === 0
+        ) {
             toast.error('Please select Year, Department, Designation, Employees, and Leaves');
             return;
         }
@@ -177,7 +190,6 @@ function LeaveStatusReportContent() {
             return;
         }
         printLeaveStatusReport(reportData);
-
     };
 
     const handleExport = () => {
@@ -193,7 +205,6 @@ function LeaveStatusReportContent() {
             toast.error('Failed to export report');
         }
     };
-
 
     const resetHandler = () => {
         reset({
@@ -216,22 +227,20 @@ function LeaveStatusReportContent() {
             <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-
                         {/* Group Type */}
                         <div className='space-y-2'>
-                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Group Type <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='groupType'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-
-                                            groupTypesDataTransformed.map((gt: any) => ({
-                                                label: gt.name,
-                                                value: String(gt.id)
-                                            }))
-                                        }
+                                        options={groupTypesDataTransformed.map((gt: any) => ({
+                                            label: gt.name,
+                                            value: String(gt.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={groupTypesLoading ? 'Loading Group Types...' : 'Select Group Types'}
@@ -247,18 +256,18 @@ function LeaveStatusReportContent() {
 
                         {/* Department */}
                         <div className='space-y-2'>
-                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Department <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='department'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            departmentsDataTransformed.map((dept: any) => ({
-                                                label: dept.name,
-                                                value: String(dept.id)
-                                            }))
-                                        }
+                                        options={departmentsDataTransformed.map((dept: any) => ({
+                                            label: dept.name,
+                                            value: String(dept.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={departmentsLoading ? 'Loading Departments...' : 'Select Departments'}
@@ -273,18 +282,18 @@ function LeaveStatusReportContent() {
 
                         {/* Designation */}
                         <div className='space-y-2'>
-                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Designation <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='designation'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            designationsDataTransformed.map((desg: any) => ({
-                                                label: desg.name,
-                                                value: String(desg.id)
-                                            }))
-                                        }
+                                        options={designationsDataTransformed.map((desg: any) => ({
+                                            label: desg.name,
+                                            value: String(desg.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={designationsLoading ? 'Loading Designations...' : 'Select Designations'}
@@ -299,18 +308,18 @@ function LeaveStatusReportContent() {
 
                         {/* Employees */}
                         <div className='space-y-2 '>
-                            <Label>Employees <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Employees <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='employees'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            employeesDataTransformed.map((emp: any) => ({
-                                                label: `${emp.employeeName} - [${emp.employeeCode}]`,
-                                                value: String(emp.id)
-                                            }))
-                                        }
+                                        options={employeesDataTransformed.map((emp: any) => ({
+                                            label: `${emp.employeeName} - [${emp.employeeCode}]`,
+                                            value: String(emp.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={employeesLoading ? 'Loading Employees...' : 'Select Employees'}
@@ -325,23 +334,24 @@ function LeaveStatusReportContent() {
 
                         {/* Leaves */}
                         <div className='space-y-2'>
-                            <Label>Leaves <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Leaves <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='leaves'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value.toString()} >
-                                        <SelectTrigger className={!field.value || field.value.length === 0 ? 'text-muted-foreground font-medium' : ''}>
+                                    <Select onValueChange={field.onChange} value={field.value.toString()}>
+                                        <SelectTrigger
+                                            className={!field.value || field.value.length === 0 ? 'font-medium text-muted-foreground' : ''}>
                                             <SelectValue placeholder='Select Leave Types' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {
-                                                leavesDataTransformed.map((lv: any) => (
-                                                    <SelectItem key={lv.id} value={String(lv.id)}>
-                                                        {lv.name}
-                                                    </SelectItem>
-                                                ))
-                                            }
+                                            {leavesDataTransformed.map((lv: any) => (
+                                                <SelectItem key={lv.id} value={String(lv.id)}>
+                                                    {lv.name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -350,14 +360,15 @@ function LeaveStatusReportContent() {
 
                         {/* Year */}
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='year'
                                 control={control}
-
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value} key={field.value ?? 'empty'}>
-                                        <SelectTrigger className={!field.value ? 'text-muted-foreground font-medium' : ''}>
+                                        <SelectTrigger className={!field.value ? 'font-medium text-muted-foreground' : ''}>
                                             <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -371,7 +382,6 @@ function LeaveStatusReportContent() {
                                 )}
                             />
                         </div>
-
                     </div>
 
                     <div className='flex justify-center gap-4'>
@@ -387,16 +397,13 @@ function LeaveStatusReportContent() {
                             onClick={(e) => {
                                 e.preventDefault();
                                 resetHandler();
-                            }}
-                        >
+                            }}>
                             <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                     </div>
                 </form>
             </CollapsibleSection>
-
-
 
             {reportData?.length > 0 && (
                 <CollapsibleSection

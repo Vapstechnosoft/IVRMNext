@@ -1,13 +1,12 @@
 'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
-    FormField,
     FormItem,
     FormLabel,
     FormMessage,
@@ -28,6 +27,7 @@ import { StudentAgeReportSchema, type StudentAgeReportFormSchema, type IStudentA
 import { useStudentAgeCalculationReport } from "@/hooks/sports/useStudentAgeCalculationReport";
 import { getClassesForYear, getSectionsForClass } from "@/server/sports/reports/student-age-calculation";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ReportFormProps {
     onReportGenerated: (data: IStudentAgeReport[], payload: IReportRequest) => void;
@@ -56,6 +56,12 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
             selectedhouselist: [],
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedType = useWatch({ control: form.control, name: 'type' });
     const watchedYear = useWatch({ control: form.control, name: 'asmaY_Id' });
@@ -165,12 +171,12 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                 </div>
 
                 {/* Type Selection */}
-                <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                        <FormItem className="space-y-3">
-                            <FormControl>
+                <div className="space-y-3">
+                    <Controller
+                        control={control}
+                        name="type"
+                        render={({ field }) => (
+                            <div className="flex flex-col gap-2">
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
@@ -189,215 +195,219 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                                         </label>
                                     </div>
                                 </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                            </div>
+                        )}
+                    />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Column */}
                     <div className="space-y-6">
                         {/* Academic Year */}
-                        <FormField
-                            control={form.control}
-                            name="asmaY_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value?.toString()}
-                                        disabled={initialData.isLoading}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Academic Year"} />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {initialData.data?.yearlist?.map((item) => (
-                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                    {item.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Competition Category (Hidden if not used in legacy form, but keeping if it exists in data) */}
-                        {initialData.data?.categoryList && initialData.data.categoryList.length > 0 && (
-                            <FormField
-                                control={form.control}
-                                name="spccmcC_Id"
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                            <Controller
+                                control={control}
+                                name="asmaY_Id"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Competition Category</FormLabel>
+                                    <div className="flex flex-col gap-1">
                                         <Select
                                             onValueChange={(val) => field.onChange(Number(val))}
                                             value={field.value?.toString()}
                                             disabled={initialData.isLoading}
                                         >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Category"} />
-                                                </SelectTrigger>
-                                            </FormControl>
+                                            <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Academic Year"} />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {initialData.data?.categoryList?.map((item) => (
-                                                    <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
-                                                        {item.spccmcC_CompitionCategory}
+                                                {initialData.data?.yearlist?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormMessage />
-                                    </FormItem>
+                                        {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                    </div>
                                 )}
                             />
+                        </div>
+
+                        {/* Competition Category (Hidden if not used in legacy form, but keeping if it exists in data) */}
+                        {initialData.data?.categoryList && initialData.data.categoryList.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                                <Label>Competition Category</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmcC_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                                value={field.value?.toString()}
+                                                disabled={initialData.isLoading}
+                                            >
+                                                <SelectTrigger className={errors.spccmcC_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder={initialData.isLoading ? "Loading..." : "Select Category"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {initialData.data?.categoryList?.map((item) => (
+                                                        <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
+                                                            {item.spccmcC_CompitionCategory}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.spccmcC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcC_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
                         )}
 
                         {/* Class (CS Only) */}
                         {watchedType === 'CS' && (
-                            <FormField
-                                control={form.control}
-                                name="asmcL_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Class <span className="text-red-500">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={(field.value && field.value !== 0) ? field.value.toString() : ""}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Class</Label>
+                                <Controller
+                                    control={control}
+                                    name="asmcL_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                                value={(field.value && field.value !== 0) ? field.value.toString() : ""}
+                                            >
+                                                <SelectTrigger className={errors.asmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                     <SelectValue placeholder="Select Class" />
                                                 </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {classList?.map((item) => (
-                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                        {item.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                                <SelectContent>
+                                                    {classList?.map((item) => (
+                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.asmcL_Id && <span className="text-xs font-medium text-destructive">{errors.asmcL_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
                         )}
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-6">
                         {/* House Selection */}
-                        <FormField
-                            control={form.control}
-                            name="selectedhouselist"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>House Name <span className="text-red-500">*</span></FormLabel>
-                                    <div className="border rounded-md p-2 bg-background">
-                                        <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
-                                            <Checkbox
-                                                id="select-all-houses"
-                                                checked={houseList && houseList.length > 0 && field.value?.length === houseList.length}
-                                                onCheckedChange={(checked) => toggleAll(houseList || [], 'spccmH_Id', 'selectedhouselist', !!checked)}
-                                            />
-                                            <label htmlFor="select-all-houses" className="text-sm font-medium">All</label>
-                                            <div className="relative ml-auto w-1/2">
-                                                <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
-                                                <Input
-                                                    placeholder="Search..."
-                                                    className="h-7 pl-8 text-xs"
-                                                    value={houseFilter}
-                                                    onChange={(e) => setHouseFilter(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <ScrollArea className="h-[150px] w-full p-2">
-                                            {filteredHouses.length > 0 ? filteredHouses.map((item) => (
-                                                <div key={item.spccmH_Id} className="flex items-center space-x-3 mb-2">
-                                                    <Checkbox
-                                                        id={`house-${item.spccmH_Id}`}
-                                                        checked={field.value?.some(val => val.spccmH_Id === item.spccmH_Id)}
-                                                        onCheckedChange={(checked) => {
-                                                            const current = field.value || [];
-                                                            if (checked) {
-                                                                field.onChange([...current, { spccmH_Id: item.spccmH_Id }]);
-                                                            } else {
-                                                                field.onChange(current.filter(val => val.spccmH_Id !== item.spccmH_Id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <label htmlFor={`house-${item.spccmH_Id}`} className="text-sm cursor-pointer hover:text-primary">
-                                                        {item.spccmH_HouseName}
-                                                    </label>
-                                                </div>
-                                            )) : <div className="text-muted-foreground text-sm p-4 text-center">No houses found</div>}
-                                        </ScrollArea>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Section Selection (CS Only) */}
-                        {watchedType === 'CS' && (
-                            <FormField
-                                control={form.control}
-                                name="selectedSectionlist"
+                        <div className="flex flex-col gap-2">
+                            <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">House Name</Label>
+                            <Controller
+                                control={control}
+                                name="selectedhouselist"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Section Name <span className="text-red-500">*</span></FormLabel>
-                                        <div className="border rounded-md p-2 bg-background">
+                                    <div className="flex flex-col gap-1">
+                                        <div className={`border rounded-md p-2 bg-background ${errors.selectedhouselist ? 'border-destructive' : ''}`}>
                                             <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
                                                 <Checkbox
-                                                    id="select-all-sections"
-                                                    checked={sectionList && sectionList.length > 0 && field.value?.length === sectionList.length}
-                                                    onCheckedChange={(checked) => toggleAll(sectionList || [], 'asmS_Id', 'selectedSectionlist', !!checked)}
+                                                    id="select-all-houses"
+                                                    checked={houseList && houseList.length > 0 && field.value?.length === houseList.length}
+                                                    onCheckedChange={(checked) => toggleAll(houseList || [], 'spccmH_Id', 'selectedhouselist', !!checked)}
                                                 />
-                                                <label htmlFor="select-all-sections" className="text-sm font-medium">All</label>
+                                                <label htmlFor="select-all-houses" className="text-sm font-medium">All</label>
                                                 <div className="relative ml-auto w-1/2">
                                                     <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
                                                     <Input
                                                         placeholder="Search..."
                                                         className="h-7 pl-8 text-xs"
-                                                        value={sectionFilter}
-                                                        onChange={(e) => setSectionFilter(e.target.value)}
+                                                        value={houseFilter}
+                                                        onChange={(e) => setHouseFilter(e.target.value)}
                                                     />
                                                 </div>
                                             </div>
                                             <ScrollArea className="h-[150px] w-full p-2">
-                                                {filteredSections.length > 0 ? filteredSections.map((item) => (
-                                                    <div key={item.asmS_Id} className="flex items-center space-x-3 mb-2">
+                                                {filteredHouses.length > 0 ? filteredHouses.map((item) => (
+                                                    <div key={item.spccmH_Id} className="flex items-center space-x-3 mb-2">
                                                         <Checkbox
-                                                            id={`section-${item.asmS_Id}`}
-                                                            checked={field.value?.some(val => val.asmS_Id === item.asmS_Id)}
+                                                            id={`house-${item.spccmH_Id}`}
+                                                            checked={field.value?.some(val => val.spccmH_Id === item.spccmH_Id)}
                                                             onCheckedChange={(checked) => {
                                                                 const current = field.value || [];
                                                                 if (checked) {
-                                                                    field.onChange([...current, { asmS_Id: item.asmS_Id }]);
+                                                                    field.onChange([...current, { spccmH_Id: item.spccmH_Id }]);
                                                                 } else {
-                                                                    field.onChange(current.filter(val => val.asmS_Id !== item.asmS_Id));
+                                                                    field.onChange(current.filter(val => val.spccmH_Id !== item.spccmH_Id));
                                                                 }
                                                             }}
                                                         />
-                                                        <label htmlFor={`section-${item.asmS_Id}`} className="text-sm cursor-pointer hover:text-primary">
-                                                            {item.asmC_SectionName}
+                                                        <label htmlFor={`house-${item.spccmH_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                            {item.spccmH_HouseName}
                                                         </label>
                                                     </div>
-                                                )) : <div className="text-muted-foreground text-sm p-4 text-center">No sections found</div>}
+                                                )) : <div className="text-muted-foreground text-sm p-4 text-center">No houses found</div>}
                                             </ScrollArea>
                                         </div>
-                                        <FormMessage />
-                                    </FormItem>
+                                        {errors.selectedhouselist && <span className="text-xs font-medium text-destructive">{errors.selectedhouselist.message}</span>}
+                                    </div>
                                 )}
                             />
+                        </div>
+
+                        {/* Section Selection (CS Only) */}
+                        {watchedType === 'CS' && (
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Section Name</Label>
+                                <Controller
+                                    control={control}
+                                    name="selectedSectionlist"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <div className={`border rounded-md p-2 bg-background ${errors.selectedSectionlist ? 'border-destructive' : ''}`}>
+                                                <div className="flex items-center space-x-2 p-2 border-b bg-muted/30">
+                                                    <Checkbox
+                                                        id="select-all-sections"
+                                                        checked={sectionList && sectionList.length > 0 && field.value?.length === sectionList.length}
+                                                        onCheckedChange={(checked) => toggleAll(sectionList || [], 'asmS_Id', 'selectedSectionlist', !!checked)}
+                                                    />
+                                                    <label htmlFor="select-all-sections" className="text-sm font-medium">All</label>
+                                                    <div className="relative ml-auto w-1/2">
+                                                        <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-muted-foreground" />
+                                                        <Input
+                                                            placeholder="Search..."
+                                                            className="h-7 pl-8 text-xs"
+                                                            value={sectionFilter}
+                                                            onChange={(e) => setSectionFilter(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <ScrollArea className="h-[150px] w-full p-2">
+                                                    {filteredSections.length > 0 ? filteredSections.map((item) => (
+                                                        <div key={item.asmS_Id} className="flex items-center space-x-3 mb-2">
+                                                            <Checkbox
+                                                                id={`section-${item.asmS_Id}`}
+                                                                checked={field.value?.some(val => val.asmS_Id === item.asmS_Id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current = field.value || [];
+                                                                    if (checked) {
+                                                                        field.onChange([...current, { asmS_Id: item.asmS_Id }]);
+                                                                    } else {
+                                                                        field.onChange(current.filter(val => val.asmS_Id !== item.asmS_Id));
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <label htmlFor={`section-${item.asmS_Id}`} className="text-sm cursor-pointer hover:text-primary">
+                                                                {item.asmC_SectionName}
+                                                            </label>
+                                                        </div>
+                                                    )) : <div className="text-muted-foreground text-sm p-4 text-center">No sections found</div>}
+                                                </ScrollArea>
+                                            </div>
+                                            {errors.selectedSectionlist && <span className="text-xs font-medium text-destructive">{errors.selectedSectionlist.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>

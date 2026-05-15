@@ -18,7 +18,7 @@ export async function getMasterSportsCCNameUOMs(searchParams?: ApiSearchparams) 
     }
     const urlParams = getSearchParamsUrl(params);
     const url = `/MasterSportsCCNameUOM_/getDetails?${urlParams}`;
-    return await api.post<IMasterSportsCCNameUOMResponse>(BASE_URL, url, params || {});
+    return await api.post<IMasterSportsCCNameUOMResponse>(BASE_URL, url, {});
 }
 
 export async function saveMasterSportsCCNameUOM(data: any) {

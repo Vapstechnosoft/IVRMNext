@@ -116,15 +116,7 @@ export default function FeeStudentRouteMappingReportPage() {
     };
 
     const handleCancel = () => {
-        form.reset({
-            asmaY_Id: '',
-            asmcL_Id: '',
-            asmS_Id: '',
-            trmR_Id: ''
-        });
-        setReportData([]);
-        setSelectedRows([]);
-        setRouteName('');
+        window.location.reload();
     };
 
     // Filter Logic
@@ -194,8 +186,8 @@ export default function FeeStudentRouteMappingReportPage() {
                             </thead>
                             <tbody>
                                 ${selectedItems
-                                    .map(
-                                        (item, index) => `
+                    .map(
+                        (item, index) => `
                                     <tr>
                                         <td>${index + 1}</td>
                                         <td>${item.studentName}</td>
@@ -205,8 +197,8 @@ export default function FeeStudentRouteMappingReportPage() {
                                         <td>${item.transportation_Fee}</td>
                                     </tr>
                                 `
-                                    )
-                                    .join('')}
+                    )
+                    .join('')}
                                 <tr class="footer-row">
                                     <td colspan="3">Total</td>
                                     <td>${totalRoute}</td>

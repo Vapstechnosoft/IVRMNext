@@ -6,8 +6,8 @@ import type { IBookRegisterReportInitialData, IBookRegisterReportRequest } from 
 const MODULE_URL = 'BookRegisterReport';
 
 export async function getBookRegisterReportInitialData() {
-    const response = await api.get<IBookRegisterReportInitialData>('library', `${MODULE_URL}/getdetails/2`);
-    return response.data;
+    const response = await api.get<any>('library', `${MODULE_URL}/Book-Regester-getdetails`);
+    return response.data || response;
 }
 
 export async function getBookRegisterReportSearch(data: IBookRegisterReportRequest) {
