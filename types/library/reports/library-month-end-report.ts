@@ -2,7 +2,8 @@ export interface ILibraryMonthEndReportRequest {
     ASMAY_Id: number;
     IVRM_Month_Id: number;
     year: string;
-    LMRA_Id: number;
+    LMRA_Id?: number;
+    IE_Name?: string;
 }
 
 export interface ILibraryMonthEndReportGridData {

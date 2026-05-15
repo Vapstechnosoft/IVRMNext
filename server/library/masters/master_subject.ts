@@ -9,7 +9,7 @@ import { auth } from '@/lib/auth';
 export async function getMasterSubjectList(searchParams?: ApiSearchparams) {
     const session = await auth();
     const urlParams = getSearchParamsUrl({ ...searchParams, mI_Id: session?.mi_id }, 'lmS_SubjectName');
-    const url = `/api/MasterSubject/master-subject-list?${urlParams}`;
+    const url = `/MasterSubject/master-subject-list?${urlParams}`;
     return await api.get<IMasterSubjectList[]>('library', url);
 }
 
