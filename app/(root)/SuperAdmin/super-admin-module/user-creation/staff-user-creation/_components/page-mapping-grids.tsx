@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Trash2, Loader2 } from 'lucide-react';
 import { Dispatch, SetStateAction, useState, useEffect } from 'react';
 import type { PageDTO, MobilePageDTO, SavedMobilePageDTO, SavedPageDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 import type { ApiSearchparams } from '@/types';
@@ -96,21 +96,48 @@ export default function PageMappingGrids({
 
     const handleWebCheck = (index: number, field: keyof PageDTO, value: boolean) => {
         const updated = [...webPages];
-        const page = updated[index];
+        console.log("webpages",webPages);
+        const page = { ...updated[index] };
         (page as any)[field] = value;
+
+        const isInStaged = stagedWebPages.some(p => p.pageMappingId === page.pageMappingId);
 
         if (field === 'checked') {
             if (value) {
-                // Add to staged if not already there
-                if (!stagedWebPages.some(p => p.pageMappingId === page.pageMappingId)) {
-                    onStagedWebPageUpdate([...stagedWebPages, { ...page }]);
+                updated[index] = page;
+                onWebPageUpdate(updated);
+                if (!isInStaged) {
+                    onStagedWebPageUpdate([...stagedWebPages, page]);
                 }
             } else {
-                // Remove from staged
-                onStagedWebPageUpdate(stagedWebPages.filter(p => p.pageMappingId !== page.pageMappingId));
+                updated[index] = page;
+                onWebPageUpdate(updated);
+                if (isInStaged) {
+                    onStagedWebPageUpdate(stagedWebPages.filter(p => p.pageMappingId !== page.pageMappingId));
+                }
+            }
+        } else {
+            // Privilege flag clicked
+            if (value) {
+                // Auto-check 'checked' if privilege is granted
+                page.checked = true;
+                updated[index] = page;
+                onWebPageUpdate(updated);
+
+                if (!isInStaged) {
+                    onStagedWebPageUpdate([...stagedWebPages, page]);
+                } else {
+                    onStagedWebPageUpdate(stagedWebPages.map(p => p.pageMappingId === page.pageMappingId ? page : p));
+                }
+            } else {
+                updated[index] = page;
+                onWebPageUpdate(updated);
+                // Privilege revoked, update in staged if present
+                if (isInStaged) {
+                    onStagedWebPageUpdate(stagedWebPages.map(p => p.pageMappingId === page.pageMappingId ? page : p));
+                }
             }
         }
-        onWebPageUpdate(updated);
     };
 
     const handleStagedCheck = (index: number, field: keyof PageDTO, value: boolean) => {
@@ -336,14 +363,14 @@ export default function PageMappingGrids({
                                     <TableHeader className="bg-gray-50/50">
                                         <TableRow>
                                             <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
-                                            {showInstitution && (
+                                            {/* {showInstitution && (
                                                 <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('institutionName', 'web')}>
                                                     Institution {currentWebPageParams.sort_column === 'institutionName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                                 </TableHead>
                                             )}
                                             <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('moduleName', 'web')}>
                                                 Module {currentWebPageParams.sort_column === 'moduleName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
-                                            </TableHead>
+                                            </TableHead> */}
                                             <TableHead className="text-[10px] font-bold uppercase cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'web')}>
                                                 Page Name {currentWebPageParams.sort_column === 'pageName' && (currentWebPageParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
@@ -369,12 +396,12 @@ export default function PageMappingGrids({
                                     </TableHeader>
                                     <TableBody>
                                         {filteredWeb.map((page, idx) => (
-                                            <TableRow key={page.pageMappingId} className="hover:bg-blue-50/30 transition-colors">
+                                            <TableRow key={page.pageMappingId + idx} className="hover:bg-blue-50/30 transition-colors">
                                                 <TableCell className="text-center text-xs py-2">
                                                     {(currentWebPageParams.page! - 1) * currentWebPageParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                {showInstitution && <TableCell className="text-xs py-2">{page.institutionName}</TableCell>}
-                                                <TableCell className="text-xs py-2">{page.moduleName}</TableCell>
+                                                {/* {showInstitution && <TableCell className="text-xs py-2">{page.institutionName}</TableCell>}
+                                                <TableCell className="text-xs py-2">{page.moduleName}</TableCell> */}
                                                 <TableCell className="text-xs py-2 font-medium">{page.pageName}</TableCell>
                                                 <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.addFlag} onCheckedChange={(v) => handleWebCheck(idx, 'addFlag', !!v)} /></div></TableCell>
                                                 <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.deleteFlag} onCheckedChange={(v) => handleWebCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
@@ -425,10 +452,10 @@ export default function PageMappingGrids({
                                         <TableHeader className="bg-gray-50/50">
                                             <TableRow>
                                                 <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SNO</TableHead>
-                                                {showInstitution && (
+                                                {/* {showInstitution && (
                                                     <TableHead className="text-[10px] font-bold uppercase px-4">Institution</TableHead>
                                                 )}
-                                                <TableHead className="text-[10px] font-bold uppercase px-4">Module</TableHead>
+                                                <TableHead className="text-[10px] font-bold uppercase px-4">Module</TableHead> */}
                                                 <TableHead className="text-[10px] font-bold uppercase px-4">Page Name</TableHead>
                                                 <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Add</TableHead>
                                                 <TableHead className="w-16 text-center text-[10px] font-bold uppercase">Delete</TableHead>
@@ -444,8 +471,8 @@ export default function PageMappingGrids({
                                                     <TableCell className="text-center text-xs py-2">
                                                         {(stagedPage - 1) * stagedPageSize + idx + 1}
                                                     </TableCell>
-                                                    {showInstitution && <TableCell className="text-xs py-2 px-4 italic text-gray-400">{page.institutionName}</TableCell>}
-                                                    <TableCell className="text-xs py-2 px-4">{page.moduleName}</TableCell>
+                                                    {/* {showInstitution && <TableCell className="text-xs py-2 px-4 italic text-gray-400">{page.institutionName}</TableCell>}
+                                                    <TableCell className="text-xs py-2 px-4">{page.moduleName}</TableCell> */}
                                                     <TableCell className="text-xs py-2 px-4 font-medium">{page.pageName}</TableCell>
                                                     <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.addFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'addFlag', !!v)} /></div></TableCell>
                                                     <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.deleteFlag} onCheckedChange={(v) => handleStagedCheck(idx, 'deleteFlag', !!v)} /></div></TableCell>
@@ -499,14 +526,14 @@ export default function PageMappingGrids({
                                     <TableHeader className="bg-gray-50/50">
                                         <TableRow>
                                             <TableHead className="w-12 text-center text-[10px] font-bold uppercase">SL.NO</TableHead>
-                                            {showInstitution && (
+                                            {/* {showInstitution && (
                                                 <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('institution', 'saved')}>
                                                     Institution {currentSavedGridParams.sort_column === 'institution' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
                                                 </TableHead>
                                             )}
                                             <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('module', 'saved')}>
                                                 Module {currentSavedGridParams.sort_column === 'module' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
-                                            </TableHead>
+                                            </TableHead> */}
                                             <TableHead className="text-[10px] font-bold uppercase px-4 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('pageName', 'saved')}>
                                                 Page Name {currentSavedGridParams.sort_column === 'pageName' && (currentSavedGridParams.sort_direction === 'asc' ? '▲' : '▼')}
                                             </TableHead>
@@ -524,8 +551,8 @@ export default function PageMappingGrids({
                                                 <TableCell className="text-center text-xs py-2">
                                                     {(currentSavedGridParams.page! - 1) * currentSavedGridParams.page_size! + idx + 1}
                                                 </TableCell>
-                                                {showInstitution && <TableCell className="text-xs py-2 px-4"></TableCell>}
-                                                <TableCell className="text-xs py-2 px-4"></TableCell>
+                                                {/* {showInstitution && <TableCell className="text-xs py-2 px-4"></TableCell>}
+                                                <TableCell className="text-xs py-2 px-4"></TableCell> */}
                                                 <TableCell className="text-xs py-2 px-4 font-medium">{page.ivrmmP_PageName}</TableCell>
                                                 <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_AddFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_AddFlag', !!v)} /></div></TableCell>
                                                 <TableCell className="text-center py-2"><div className="flex justify-center"><Checkbox checked={page.ivrmrP_DeleteFlag} onCheckedChange={(v) => handleSavedCheck(idx, 'ivrmrP_DeleteFlag', !!v)} /></div></TableCell>
@@ -539,13 +566,20 @@ export default function PageMappingGrids({
                                 </Table>
                             )}
                         </ScrollArea>
-                        <PaginationControls
-                            total={savedGridTotal}
-                            params={currentSavedGridParams}
-                            setParams={onSavedGridParamsChange}
-                            totalPages={totalPagesSaved}
-                            isLoading={isSavedGridLoading}
-                        />
+                        <div className="relative">
+                            {isSavedGridLoading && (
+                                <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+                                    <Loader2 className="h-5 w-5 animate-spin text-green-600" />
+                                </div>
+                            )}
+                            <PaginationControls
+                                total={savedGridTotal}
+                                params={currentSavedGridParams}
+                                setParams={onSavedGridParamsChange}
+                                totalPages={totalPagesSaved}
+                                isLoading={isSavedGridLoading}
+                            />
+                        </div>
                     </div>
                 </TabsContent>
 

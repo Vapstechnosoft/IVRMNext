@@ -84,7 +84,7 @@ export default function UserDetails({
             {/* Selection Lists */}
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                 {/* Categories */}
-                <div className='space-y-2'>
+                {/* <div className='space-y-2'>
                     <Label className='flex items-center justify-between font-semibold text-sm'>
                         Select Category:
                         <span onClick={onSelectAllCategories} className='cursor-pointer text-[10px] text-primary hover:underline'>
@@ -107,7 +107,7 @@ export default function UserDetails({
                             ))}
                         </ScrollArea>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Modules */}
                 <div className='space-y-2'>
@@ -119,6 +119,9 @@ export default function UserDetails({
                     </Label>
                     <div className='rounded-md border bg-gray-50 p-2'>
                         <ScrollArea className='h-40'>
+                            {modules.length === 0 && (
+                                <p className='text-center text-gray-500'>Please Select Staff to view modules.</p>
+                            )}
                             {modules.map((mod) => (
                                 <div
                                     key={mod.ivrmM_Id}
