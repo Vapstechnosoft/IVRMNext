@@ -43,6 +43,16 @@ export async function deactivateBookRegister(data: { LMB_Id: number; LMB_BookTit
     }
 }
 
+export async function getLanguageDropdown() {
+    try {
+        const url = 'BookRegister/language-dropdown';
+        const response = await api.get<any>('library', url);
+        return response?.data || response;
+    } catch (error) {
+        return [];
+    }
+}
+
 export async function getInitialData() {
     try {
         // Fetch main load data (contains most dropdowns)
@@ -61,11 +71,15 @@ export async function getInitialData() {
         const departmentUrl = `/BookRegister/department-dropdown`;
         const departmentResponse = await api.get<any>('library', departmentUrl);
 
+        // Fetch language list
+        const languageResponse = await getLanguageDropdown();
+
         return {
             ...(mainLoadResponse || {}),
             categorylist: categoryResponse?.data || mainLoadResponse?.categorylist || [],
             subjectlist: subjectResponse?.subjectlist || subjectResponse?.subjectList || subjectResponse?.data || mainLoadResponse?.subjectlist || [],
-            deptlist: departmentResponse?.deptlist || departmentResponse?.deptList || departmentResponse?.data || mainLoadResponse?.deptlist || []
+            deptlist: departmentResponse?.deptlist || departmentResponse?.deptList || departmentResponse?.data || mainLoadResponse?.deptlist || [],
+            langlist: Array.isArray(languageResponse) ? languageResponse : languageResponse?.data || []
         };
     } catch (error) {
         return { success: false, message: 'Failed to fetch initial data' };

@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 
 export const MasterSubjectColumns: ColumnDef<IMasterSubjectList>[] = [
     {
-        accessorKey: 'lmaL_Id',
+        accessorKey: 'lmS_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -62,7 +62,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubjectList }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onToggle={handleToggle}
             onEdit={handleEdit}
-            toggleConditionKey='lmaL_ActiveFlag'
+            toggleConditionKey='lmS_ActiveFlg'
         />
     );
 }

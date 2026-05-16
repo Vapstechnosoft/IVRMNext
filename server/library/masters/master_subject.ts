@@ -4,8 +4,11 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterSubjectList, IParentSubjectDropdownList } from '@/types/library/masters/masters';
 
+import { auth } from '@/lib/auth';
+
 export async function getMasterSubjectList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmS_SubjectName');
+    const session = await auth();
+    const urlParams = getSearchParamsUrl({ ...searchParams, mI_Id: session?.mi_id }, 'lmS_SubjectName');
     const url = `/MasterSubject/master-subject-list?${urlParams}`;
     return await api.get<IMasterSubjectList[]>('library', url);
 }
