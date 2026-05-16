@@ -37,7 +37,8 @@ export const useInvRGRNReportQuery = (payload: IInvRGRNPayload | null, searchPar
             // Inject search parameters into payload as some backend methods expect them there
             const enhancedPayload = {
                 ...payload,
-                search_query: searchParams.search_query || ''
+                search_query: searchParams.search_query || '',
+                search_column: searchParams.search_column || 'All'
             };
             return getInvRGRNReport(enhancedPayload, searchParams);
         },

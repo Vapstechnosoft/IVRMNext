@@ -68,23 +68,37 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [searchColumn] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('All')
+    );
 
     const [printData, setPrintData] = useState<IInvRGRNReportData[]>([]);
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery });
+    const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery, search_column: searchColumn });
 
-    const reportData = useMemo(() => {
-        if (!reportResult?.data) return [];
-        if (Array.isArray(reportResult.data)) return reportResult.data;
-        if (reportResult.data?.$values) return reportResult.data.$values;
-        if (reportResult.data?.get_grnreport) {
-            return Array.isArray(reportResult.data.get_grnreport)
-                ? reportResult.data.get_grnreport
-                : reportResult.data.get_grnreport?.$values || [];
+    const extractReportData = (result: any) => {
+        if (!result?.data) return [];
+        
+        // 1. data is directly an array
+        if (Array.isArray(result.data)) return result.data;
+        
+        // 2. data.$values is an array
+        if (result.data.$values && Array.isArray(result.data.$values)) return result.data.$values;
+        
+        // 3. get_grnreport is an array
+        if (Array.isArray(result.data.get_grnreport)) return result.data.get_grnreport;
+        
+        // 4. get_grnreport.$values is an array
+        if (result.data.get_grnreport?.$values && Array.isArray(result.data.get_grnreport.$values)) {
+            return result.data.get_grnreport.$values;
         }
+
         return [];
-    }, [reportResult]);
+    };
+
+    const reportData = extractReportData(reportResult);
 
     const totalRecords = reportResult?.total || 0;
 
@@ -140,18 +154,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                 { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' }
             );
 
-            const allData = (() => {
-                const d = response?.data;
-                if (!d) return [];
-                if (Array.isArray(d)) return d;
-                if (d?.$values) return d.$values;
-                if (d?.get_grnreport) {
-                    return Array.isArray(d.get_grnreport)
-                        ? d.get_grnreport
-                        : d.get_grnreport?.$values || [];
-                }
-                return [];
-            })();
+            const allData = extractReportData(response);
 
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
@@ -300,12 +303,13 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                         </div>
 
                         <div className="space-y-4">
-                            <GenericDataTable
+                             <GenericDataTable
                                 data={reportData}
                                 columns={columns}
                                 isLoading={isFetching}
                                 totalItems={totalRecords}
                                 isSearchRequired={true}
+                                manualFiltering={totalRecords > reportData.length}
                                 noDataTitle="No GRN Found"
                                 noDataDescription="No records found matching your search criteria."
                             />
