@@ -97,6 +97,7 @@ export default function StaffUserCreationPage() {
     const [machineIp] = useState<string>('127.0.0.1');
     const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
     const [staffMobileNo, setStaffMobileNo] = useState<string>('');
+    const [lastSelectedStaffId, setLastSelectedStaffId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isOnloadLoading, setIsOnloadLoading] = useState(false);
     const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
@@ -380,39 +381,43 @@ export default function StaffUserCreationPage() {
         methods
     ]);
 
+    const effectiveStaffId = watchFilterData === 'Single' 
+        ? (watchStaffId ? Number(watchStaffId) : null)
+        : lastSelectedStaffId;
+
     useEffect(() => {
-        if (watchStaffId && watchInstitution && watchRoleType && watchFilterData === 'Single') {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchMasterPages(webPageParams);
         }
-    }, [webPageParams, watchStaffId, watchInstitution, watchRoleType, watchFilterData]);
+    }, [webPageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (watchStaffId && watchInstitution && watchRoleType && watchFilterData === 'Single') {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchMobileMasterPages(mobilePageParams);
         }
-    }, [mobilePageParams, watchStaffId, watchInstitution, watchRoleType, watchFilterData]);
+    }, [mobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (watchStaffId && watchInstitution && watchRoleType && watchFilterData === 'Single') {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchSavedMobilePages(savedMobilePageParams);
         }
-    }, [savedMobilePageParams, watchStaffId, watchInstitution, watchRoleType, watchFilterData]);
+    }, [savedMobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (watchStaffId && watchInstitution && watchRoleType && watchFilterData === 'Single') {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchSavedListPages(savedGridParams);
         }
-    }, [savedGridParams, watchStaffId, watchInstitution, watchRoleType, watchFilterData]);
+    }, [savedGridParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     const fetchMasterPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsWebPageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getMasterPageListGridOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -448,14 +453,14 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchMobileMasterPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsMobilePageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getMobileAppMasterPageListOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -475,14 +480,14 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchSavedMobilePages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedMobilePageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getSavedMobileAppPageListOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -501,14 +506,14 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchSavedListPages = async (params: ApiSearchparams) => {
-        if (!watchStaffId || !watchInstitution || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedGridLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Saved List for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Saved List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getSavedListGridOnChangeOfStaff(
-                Number(watchStaffId),
+                effectiveStaffId,
                 Number(watchInstitution),
                 Number(watchRoleType),
                 params
@@ -547,6 +552,12 @@ export default function StaffUserCreationPage() {
     const handleStaffCheckboxChange = (id: number, checked: boolean) => {
         const updated = staffList.map((s) => (s.hrmE_Id === id ? { ...s, Selected: checked } : s));
         setStaffList(updated);
+        if (checked) {
+            setLastSelectedStaffId(id);
+        } else if (lastSelectedStaffId === id) {
+            const firstSelected = updated.find(s => s.Selected);
+            setLastSelectedStaffId(firstSelected ? firstSelected.hrmE_Id : null);
+        }
     };
 
     const handleSelectAllInstitutions = () => {
@@ -629,6 +640,7 @@ export default function StaffUserCreationPage() {
             staffId: data.filterData === 'Single' ? Number(data.staffId) : 0,
             userName: data.userName || '',
             mode: data.filterData,
+            multipleStaff: data.filterData === 'Multiple' ? staffList.filter(s => s.Selected).map(s => ({ ivrmstauL_Id: s.hrmE_Id })) : [],
             machineIp: machineIp || '127.0.0.1',
             roleTypeId: Number(data.roleType),
             userId: userId || 0,
@@ -645,12 +657,12 @@ export default function StaffUserCreationPage() {
                     ivrmstauP_Id: p.ivrmstauP_Id
                 })),
             savetmpdata: stagedWebPages.map((p) => ({
-                ivrmrP_AddFlag: p.addFlag,
-                ivrmrP_DeleteFlag: p.deleteFlag,
-                ivrmrP_UpdateFlag: p.updateFlag,
-                ivrmrP_ProcessFlag: p.processFlag,
-                ivrmrP_ReportFlag: p.reportFlag,
-                ivrmimP_Id: p.pageMappingId,
+                IVRMRP_AddFlag: p.addFlag,
+                IVRMRP_DeleteFlag: p.deleteFlag,
+                IVRMRP_UpdateFlag: p.updateFlag,
+                IVRMRP_ProcessFlag: p.processFlag,
+                IVRMRP_ReportFlag: p.reportFlag,
+                IVRMIMP_Id: p.pageMappingId,
                 ivrmP_Id: 0 // Default or if available
             })),
             deletesaved: savedGrid
@@ -689,9 +701,23 @@ export default function StaffUserCreationPage() {
         setIsSaving(true);
         try {
             const result = await saveStaffUser(payload);
+
+            console.log("reponse final ", result);
             if (result.success) {
                 toast.success(result.message || 'Saved successfully');
-                // Optionally refresh or reset
+                // Clear form fields
+                methods.setValue('userName', '');
+                methods.setValue('staffId', '');
+                methods.setValue('roleType', '');
+                methods.setValue('trust', '');
+                methods.setValue('institution', '');
+                
+                // Uncheck all staff in Multiple mode
+                setStaffList(staffList.map(s => ({ ...s, Selected: false })));
+                setLastSelectedStaffId(null);
+                
+                // Clear grids
+                clearGrids();
             } else {
                 toast.error(result.message || 'Failed to save staff user privileges');
             }
@@ -766,6 +792,11 @@ export default function StaffUserCreationPage() {
 
                 setWebPages(mappedPages);
                 setWebPageTotal(typeof result.total === 'number' ? result.total : mappedPages.length);
+
+                if (result.savedGrid) {
+                    setSavedGrid(result.savedGrid.map((p: any) => ({ ...p, checked: false })));
+                    setSavedGridTotal(result.savedGrid.length);
+                }
             } else {
                 setWebPages([]);
                 setWebPageTotal(0);
@@ -827,10 +858,11 @@ export default function StaffUserCreationPage() {
                                 onSelectAllModules={handleSelectAllModules}
                                 isUserNameDisabled={isUserNameDisabled}
                                 onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                isStaffDataLoading={isStaffDataLoading}
                             />
 
                             {/* Conditional Rendering of Mapping Grids */}
-                            {isUserNameDisabled && watchFilterData === 'Single' && (
+                            {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some(s => s.Selected)) && (
                                 <PageMappingGrids
                                     webPages={webPages}
                                     onWebPageUpdate={setWebPages}
