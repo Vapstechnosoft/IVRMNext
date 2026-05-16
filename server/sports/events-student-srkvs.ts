@@ -181,6 +181,13 @@ export async function getEventsStudentSRKVSList(): Promise<ApiResponse<IEventsSt
     try {
         const response = await api.get<any>('sports', 'EventsStudentRecord/EventsStudentGridSRKVS');
         console.log("Grid Response:", JSON.stringify(response, null, 2));
+
+        // Handle case where backend returns success:false but still provides data
+        // e.g. { success: false, message: "UOMList not found", data: [...records] }
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            return { success: true, message: "Data fetched successfully", data: response.data };
+        }
+
         if (response.success && response.data) {
             const data = Array.isArray(response.data) ? response.data : [];
             return { success: true, message: "Data fetched successfully", data: data };

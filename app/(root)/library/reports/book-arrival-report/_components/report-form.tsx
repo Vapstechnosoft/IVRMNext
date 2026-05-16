@@ -1,40 +1,39 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBookArrivalReportInitialData } from '@/hooks/library/reports/useBookArrivalReport';
 import type { IBookArrivalReportRequest } from '@/types/library/reports/book-arrival-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X, FileText, Download } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 const reportFormSchema = z
     .object({
-        LMAL_Id: z.coerce.number().min(1, 'Library is required'),
-        Type: z.string().min(1, 'Book Type is required'),
-        Type2: z.string().min(1, 'Source Type is required'),
-        LMD_Id: z.coerce.number().optional(), // 0 = ALL
+        p_lmal_id: z.coerce.number().min(1, 'Library is required'),
+        p_type: z.string().min(1, 'Book Type is required'),
+        p_type2: z.string().min(1, 'Source Type is required'),
+        p_lmd_id: z.coerce.string().default('0'), // 0 = ALL
         datewised: z.boolean().default(false),
-        Fromdate: z.date().optional(),
-        ToDate: z.date().optional()
+        p_fromdate: z.date().optional(),
+        p_todate: z.date().optional()
     })
     .refine(
         (data) => {
             if (data.datewised) {
-                return !!data.Fromdate && !!data.ToDate;
+                return !!data.p_fromdate && !!data.p_todate;
             }
             return true;
         },
         {
             message: 'Both dates are required when date filter is enabled',
-            path: ['Fromdate']
+            path: ['p_fromdate']
         }
     );
 
@@ -43,27 +42,28 @@ type ReportFormValues = z.infer<typeof reportFormSchema>;
 interface ReportFormProps {
     onSearch: (data: IBookArrivalReportRequest) => void;
     isLoading: boolean;
+    hasData: boolean;
+    onPrint?: () => void;
+    onExport?: () => void;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: ReportFormProps) => {
     const { data: initialDataWrapper } = useBookArrivalReportInitialData();
-    // Assuming ApiResponse wrapper structure: data?.data?.lib_list
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
 
     const {
         control,
         handleSubmit,
         watch,
-        setValue,
         reset,
         formState: { errors }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            Type: 'ALL',
-            Type2: 'ALL',
+            p_type: 'ALL',
+            p_type2: 'ALL',
             datewised: false,
-            LMD_Id: 0
+            p_lmd_id: '0'
         }
     });
 
@@ -71,12 +71,14 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
     const onSubmit = (data: ReportFormValues) => {
         const payload: IBookArrivalReportRequest = {
-            LMAL_Id: data.LMAL_Id,
-            Type: data.Type,
-            Type2: data.Type2,
-            LMD_Id: data.LMD_Id || 0,
-            Fromdate: data.datewised ? data.Fromdate?.toISOString() : undefined,
-            ToDate: data.datewised ? data.ToDate?.toISOString() : undefined
+            p_lmal_id: data.p_lmal_id,
+            p_type: data.p_type,
+            p_type2: data.p_type2,
+            p_lmd_id: data.p_lmd_id,
+            p_fromdate: data.datewised && data.p_fromdate ? format(data.p_fromdate, 'yyyy-MM-dd') : undefined,
+            p_todate: data.datewised && data.p_todate ? format(data.p_todate, 'yyyy-MM-dd') : undefined,
+            subjectsthomos: false,
+            stthomosSubject: []
         };
         onSearch(payload);
     };
@@ -92,7 +94,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <div className='flex-1'>
                         <Controller
                             control={control}
-                            name='LMAL_Id'
+                            name='p_lmal_id'
                             render={({ field }) => (
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -109,7 +111,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 </Select>
                             )}
                         />
-                        {errors.LMAL_Id && <p className='text-xs text-destructive mt-1'>{errors.LMAL_Id.message}</p>}
+                        {errors.p_lmal_id && <p className='text-xs text-destructive mt-1'>{errors.p_lmal_id.message}</p>}
                     </div>
                 </div>
             </div>
@@ -122,7 +124,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                 <div className='border rounded-md p-4 bg-gray-50/30'>
                     <Controller
                         control={control}
-                        name='Type'
+                        name='p_type'
                         render={({ field }) => (
                             <RadioGroup
                                 onValueChange={field.onChange}
@@ -171,7 +173,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                 <div className='border rounded-md p-4 bg-gray-50/30'>
                     <Controller
                         control={control}
-                        name='Type2'
+                        name='p_type2'
                         render={({ field }) => (
                             <RadioGroup
                                 onValueChange={field.onChange}
@@ -205,9 +207,9 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <div className='flex-1'>
                         <Controller
                             control={control}
-                            name='LMD_Id'
+                            name='p_lmd_id'
                             render={({ field }) => (
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
                                         <SelectValue placeholder='Select' />
                                     </SelectTrigger>
@@ -223,7 +225,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 </Select>
                             )}
                         />
-                        {errors.LMD_Id && <p className='text-xs text-destructive mt-1'>{errors.LMD_Id.message}</p>}
+                        {errors.p_lmd_id && <p className='text-xs text-destructive mt-1'>{errors.p_lmd_id.message}</p>}
                     </div>
                 </div>
             </div>
@@ -258,7 +260,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='Fromdate'
+                                name='p_fromdate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -274,7 +276,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='ToDate'
+                                name='p_todate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -289,9 +291,9 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     </div>
                 </div>
             </div>
-            {errors.Fromdate && (
+            {errors.p_fromdate && (
                 <div className='flex justify-center'>
-                    <p className='text-xs text-destructive'>{errors.Fromdate.message}</p>
+                    <p className='text-xs text-destructive'>{errors.p_fromdate.message}</p>
                 </div>
             )}
 
@@ -314,6 +316,26 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+                {hasData && (
+                    <>
+                        <Button
+                            type='button'
+                            className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-sm rounded-sm'
+                            onClick={onPrint}
+                        >
+                            <FileText className='mr-1.5 h-3.5 w-3.5' />
+                            PRINT
+                        </Button>
+                        <Button
+                            type='button'
+                            className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#eab308] hover:bg-[#ca8a04] text-white shadow-sm rounded-sm'
+                            onClick={onExport}
+                        >
+                            <Download className='mr-1.5 h-3.5 w-3.5' />
+                            EXPORT TO EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );

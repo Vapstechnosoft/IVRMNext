@@ -103,13 +103,13 @@ import { z } from 'zod';
 
 export const SportPointsAndRecordReportSchema = z.object({
     qualification_type: z.enum(['eca', 'cca', 'ih', 'others']),
-    asmaY_Id: z.number().min(1, 'Academic Year is required'),
+    asmaY_Id: z.number({ required_error: 'Select Academic Year', invalid_type_error: 'Select Academic Year' }).min(1, 'Select Academic Year'),
     asmcL_Id: z.number().optional(),
     asmS_Id: z.number().optional(),
-    spccmH_Id: z.number().min(1, 'House Name is required'),
-    spccE_Id: z.number().min(1, 'Program Master is required'),
-    spccmE_Id: z.number().min(1, 'Event Name is required'),
-    spccmD_Id: z.number().min(1, 'Division Name is required'),
+    spccmH_Id: z.number({ required_error: 'Select House Name', invalid_type_error: 'Select House Name' }).min(1, 'Select House Name'),
+    spccE_Id: z.number({ required_error: 'Select Program Name', invalid_type_error: 'Select Program Name' }).min(1, 'Select Program Name'),
+    spccmE_Id: z.number({ required_error: 'Select Event Name', invalid_type_error: 'Select Event Name' }).min(1, 'Select Event Name'),
+    spccmD_Id: z.number({ required_error: 'Select Division Name', invalid_type_error: 'Select Division Name' }).min(1, 'Select Division Name'),
 });
 
 export type SportPointsAndRecordReportFormSchema = z.infer<typeof SportPointsAndRecordReportSchema>;

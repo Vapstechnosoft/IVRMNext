@@ -25,7 +25,11 @@ export const AlumniGalleryColumns: ColumnDef<IAlumniGallery>[] = [
     {
         accessorKey: 'algA_GalleryName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Gallery Name' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('algA_GalleryName')}</div>,
+        cell: ({ row }) => (
+            <div className='max-w-[300px] truncate font-medium' title={row.getValue('algA_GalleryName')}>
+                {row.getValue('algA_GalleryName')}
+            </div>
+        ),
         enableSorting: true
     },
     {

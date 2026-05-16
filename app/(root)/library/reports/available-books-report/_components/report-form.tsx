@@ -62,8 +62,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            Type: 'all',
-            Type2: 'all',
+            Type: 'ALL',
+            Type2: 'ALL',
             statuscount: true,
             LMD_Id: 0
         }
@@ -73,14 +73,15 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
     const onSubmit = (data: ReportFormValues) => {
         const payload: IAvailableBooksReportRequest = {
-            lmaL_Id: data.LMAL_Id,
-            type: data.Type,
-            type2: data.Type2,
-            lmD_Id: data.LMD_Id || 0,
+            LMAL_Id: data.LMAL_Id,
+            Type: data.Type,
+            Type2: data.Type2,
+            LMD_Id: data.LMD_Id || 0,
             statuscount: data.statuscount,
-            fromdate: data.statuscount ? data.IssueFromDate?.toISOString() : undefined,
-            toDate: data.statuscount ? data.IssueToDate?.toISOString() : undefined,
-            subjectsthomos: false
+            Fromdate: data.statuscount && data.IssueFromDate ? data.IssueFromDate.toISOString().split('T')[0] : "2024-01-01",
+            ToDate: data.statuscount && data.IssueToDate ? data.IssueToDate.toISOString().split('T')[0] : "2025-12-31",
+            subjectsthomos: false,
+            stthomosSubject: []
         };
         onSearch(payload);
     };
@@ -137,7 +138,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                         className='grid grid-cols-3 gap-y-4 gap-x-2'
                                     >
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='all' id='bt_all' />
+                                            <RadioGroupItem value='ALL' id='bt_all' />
                                             <Label htmlFor='bt_all' className='text-[10px] font-normal cursor-pointer'>ALL</Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
@@ -182,7 +183,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                         className='flex justify-around'
                                     >
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='all' id='st_all' />
+                                            <RadioGroupItem value='ALL' id='st_all' />
                                             <Label htmlFor='st_all' className='text-[10px] font-normal cursor-pointer'>ALL</Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>

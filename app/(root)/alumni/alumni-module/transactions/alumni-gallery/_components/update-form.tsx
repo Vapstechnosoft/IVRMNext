@@ -87,7 +87,9 @@ export default function UpdateAlumniGalleryForm({ selectedRow, className = '' }:
                                 viewData.map((item, index) => (
                                     <tr key={index} className='transition-colors hover:bg-muted/30'>
                                         <td className='border-b p-2'>{index + 1}</td>
-                                        <td className='border-b p-2'>{item.algA_GalleryName}</td>
+                                        <td className='max-w-[200px] truncate border-b p-2' title={item.algA_GalleryName}>
+                                            {item.algA_GalleryName}
+                                        </td>
                                         <td className='border-b p-2'>
                                             {item.algA_Date ? format(new Date(item.algA_Date), 'dd/MM/yyyy') : ''}
                                         </td>

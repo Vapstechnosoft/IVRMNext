@@ -39,8 +39,8 @@ function MasterRackDetailsPageContent({
 }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterRackDetails>();
 
-    const tableData = response?.data?.rackDetails || [];
-    const tableProps = useDataTableProps(tableData);
+    const tableProps = useDataTableProps(response?.data, { dataKey: 'rackDetails' });
+    const tableData = tableProps.data || [];
     const subjectList = response?.data?.subjects || [];
 
     return (
@@ -89,6 +89,9 @@ function MasterRackDetailsPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
+                        showSearchColumns={true}
+                        showViewOptions={true}
+                        manualFiltering={false}
                         loadingMessage='Loading rack details...'
                         noDataTitle='No Rack Details Found'
                         noDataDescription='Get started by creating your first rack entry'
