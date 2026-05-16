@@ -1,43 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from 'date-fns';
 import {
     getEmployeePunchAttendanceInitialData,
     getEmployeePunchAttendanceReport,
 } from '@/server/staff-portal/biometric-report/employee-punch-attendance.actions';
 import {
     IEmployeeDetails,
-    IPunchDetail,
 } from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
 
-const formSchema = z.object({
-    fromdate: z.string({
-        required_error: 'From date is required.',
-    }),
-    todate: z.string({
-        required_error: 'To date is required.',
-    }),
-});
 
-export type EmployeePunchAttendanceFormValues = z.infer<typeof formSchema>;
 
-export const useEmployeePunchAttendance = () => {
+export const useEmployeePunchAttendanceOnload = () => {
     const [employeeDetails, setEmployeeDetails] = useState<IEmployeeDetails | null>(
         null
     );
-    const [reportData, setReportData] = useState<IPunchDetail[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-
-    const form = useForm<EmployeePunchAttendanceFormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            fromdate: undefined,
-            todate: undefined,
-        },
-    });
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -53,41 +28,27 @@ export const useEmployeePunchAttendance = () => {
         fetchInitialData();
     }, []);
 
-    const onReportSubmit = async (values: EmployeePunchAttendanceFormValues) => {
+    return { employeeDetails };
+};
+
+export const useEmployeePunchAttendanceReport = () => {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const getReport = async (payload: { fromdate: string; todate: string }) => {
         setIsLoading(true);
-        setShowReport(false);
         try {
-            const payload = {
-                fromdate: format(values.fromdate, 'yyyy-MM-dd'),
-                todate: format(values.todate, 'yyyy-MM-dd'),
-            };
             const response = await getEmployeePunchAttendanceReport(payload);
-            if (
-                response.data &&
-                response.data.emp_punchDetails &&
-                response.data.emp_punchDetails.length > 0
-            ) {
-                setReportData(response.data.emp_punchDetails);
-                setShowReport(true);
-            } else {
-                setReportData([]);
-                setShowReport(false);
-                // Toast or alert can be added here
-                alert('No Record Found');
-            }
+            return response;
         } catch (error) {
             console.error('Error fetching report:', error);
+            return { success: false, message: 'An error occurred', data: [] };
         } finally {
             setIsLoading(false);
         }
     };
 
     return {
-        form,
-        employeeDetails,
-        reportData,
-        showReport,
+        getReport,
         isLoading,
-        onReportSubmit,
     };
 };

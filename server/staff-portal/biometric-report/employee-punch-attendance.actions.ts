@@ -22,9 +22,14 @@ export const getEmployeePunchAttendanceInitialData = async (): Promise<
 export const getEmployeePunchAttendanceReport = async (
     payload: IEmployeePunchAttendanceFilter
 ): Promise<ApiResponse<IEmployeePunchAttendanceReportData>> => {
+    const queryParams = new URLSearchParams({
+        fromdate: payload.fromdate,
+        todate: payload.todate,
+    }).toString();
+
     return await api.post<IEmployeePunchAttendanceReportData>(
         'portal',
-        `${BASE_URL}/getrpt/`,
-        payload
+        `${BASE_URL}/getrpt?${queryParams}`,
+        {}
     );
 };
