@@ -27,6 +27,6 @@ export async function getInstitutionSubscriptionData() {
 }
 
 export async function getInstitutionDropdown() {
-    const url = 'InstitutionFacade/get_institution_drop_down_superadmin';
-    return await api.get<InstitutionDropdown[]>('sadmin', url);
+    const url = '/Institution/get_institution_drop_down';
+    return await api.get<any>('sadmin', url);
 }
