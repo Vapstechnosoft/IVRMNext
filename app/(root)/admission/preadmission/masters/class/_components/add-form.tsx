@@ -98,7 +98,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
                             label='Class Code'
-                            placeholder='Enter Class Code'
                             required
                             id='asmcl_classcode'
                             placeholder='Enter Class Code (e.g. C01)'
@@ -108,7 +107,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                         />
                         <InputText
                             label='Class Name'
-                            placeholder='Enter Class Name'
                             required
                             id='asmcl_classname'
                             placeholder='Enter Class Name (e.g. Class I)'

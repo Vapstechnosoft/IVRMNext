@@ -1,13 +1,30 @@
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getEventMappingDetails, saveEventMapping, editEventMapping, deactivateEventMapping, getModelData } from '@/server/sports/transactions/events-mapping';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getEventMappingDetails, saveEventMapping, editEventMapping, deactivateEventMapping, getModelData } from '@/server/sports/transactions/events-mapping';
 
 export const useEventMapping = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const loadGrid = useQuery({
-        queryKey: ['events-mapping-details', searchParams],
-        queryFn: () => getEventMappingDetails(searchParams),
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const params = {
+        page: page,
+        page_size: pageSize,
+        sort_column: sortBy,
+        sort_direction: order,
+        search_query: searchQuery,
+    };
+
+    const loadData = useQuery({
+        queryKey: ['events-mapping-details', page, pageSize, sortBy, order, searchQuery],
+        queryFn: () => getEventMappingDetails(params),
+        staleTime: 0
     });
 
     const save = useMutation({
@@ -38,10 +55,15 @@ export const useEventMapping = (searchParams?: any) => {
     });
 
     return {
-        loadGrid,
+        loadData,
         save,
         edit,
         deactivate,
-        modelData
+        modelData,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['events-mapping-details']
+            });
+        }
     };
 };

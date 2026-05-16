@@ -15,9 +15,11 @@ interface FeedbackDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     questions: any[];
+    mI_Id?: number;
+    hrmE_Id?: number;
 }
 
-export default function FeedbackDialog({ open, onOpenChange, questions }: FeedbackDialogProps) {
+export default function FeedbackDialog({ open, onOpenChange, questions, mI_Id, hrmE_Id }: FeedbackDialogProps) {
     const [responses, setResponses] = useState<any[]>([]);
     const [submitting, setSubmitting] = useState(false);
 
@@ -57,23 +59,23 @@ export default function FeedbackDialog({ open, onOpenChange, questions }: Feedba
 
         setSubmitting(true);
         try {
-            const payload = responses.map(r => ({
-                name: r.fmoP_Id,
-                FMOP_FeedbackOptions: r.feedbackoptiondata.find((o: any) => o.fmoP_Id === r.fmoP_Id)?.fmoP_FeedbackOptions,
-                FMOP_OptionsValue: r.feedbackoptiondata.find((o: any) => o.fmoP_Id === r.fmoP_Id)?.fmoP_OptionsValue,
-                FMTY_Id: r.FMTY_Id,
-                FMQE_Id: r.FMQE_Id,
-                FMQE_FeedbackQuestions: r.fmqE_FeedbackQuestions,
-                FMTY_FeedbackTypeName: r.fmtY_FeedbackTypeName,
-                FSTTR_FeedBack: r.fsttR_FeedBack
+            const feedbackList = responses.map(r => ({
+                fmtY_Id: r.FMTY_Id,
+                fmqE_Id: r.FMQE_Id,
+                name: String(r.fmoP_Id),
+                fsttR_FeedBack: r.fsttR_FeedBack
             }));
 
-            const res = await saveFeedback({ savemodulefeedback: payload });
-            if (res.returnval === true) {
-                toast.success('Feedback submitted successfully');
+            const res = await saveFeedback({
+                mi_Id: mI_Id || 0,
+                hrmE_Id: hrmE_Id || 0,
+                savemodulefeedback: feedbackList
+            });
+            if (res.success) {
+                toast.success(res.message || 'Feedback submitted successfully');
                 onOpenChange(false);
             } else {
-                toast.error('Failed to save feedback');
+                toast.error(res.message || 'Failed to save feedback');
             }
         } catch (error) {
             toast.error('An error occurred while saving feedback');

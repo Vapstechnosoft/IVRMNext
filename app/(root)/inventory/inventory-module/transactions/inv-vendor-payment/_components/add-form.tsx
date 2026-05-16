@@ -115,7 +115,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             INVMGRN_TotalBalance_New: totalBalance + amount // Balance before this trans
                         };
                     });
-                    
+
                     const paymentDateStr = initialData.invspT_PaymentDate || initialData.invspt_paymentdate;
                     const chequeDDDateStr = initialData.invspT_ChequeDDDate || initialData.invspt_chequedddate;
 
@@ -136,7 +136,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                 }
             });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, reset]);
 
     const handleSupplierChange = (supplierId: string) => {
@@ -263,7 +263,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                     value={field.value?.toString()}
                                     disabled={!!initialData}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className="text-muted-foreground">
                                         <SelectValue placeholder="Select Supplier" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -286,7 +286,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             name="invspT_ModeOfPayment"
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className="text-muted-foreground">
                                         <SelectValue placeholder="Select Mode" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -372,7 +372,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             </div>
 
             {/* GRN Grid */}
-            {watchedSupplier && fields.length > 0 && (
+            {!!watchedSupplier && fields.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
                     <Table>
                         <TableHeader>

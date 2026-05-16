@@ -119,20 +119,7 @@ export default function StudentRouteMappingReportPage() {
     };
 
     const handleReset = () => {
-        form.reset({
-            asmaY_Id: '',
-            asmcL_Id: '',
-            asmS_Id: '',
-            trmR_Id: '',
-            TRMS_Id: '',
-            feeGroupWise: false,
-            FMG_Id: '0',
-            routeType: '0'
-        });
-        setFeeGroupWise(false);
-        setReportData([]);
-        setInstallments([]);
-        setSelectedRows([]);
+        window.location.reload();
     };
 
     const toggleRow = (index: number) => {

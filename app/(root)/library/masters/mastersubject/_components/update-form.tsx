@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
@@ -27,6 +28,7 @@ interface UpdateMasterSubjectFormProps {
 export default function UpdateMasterSubjectForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
     const { data: parentData, isLoading: parentLoading, error: parentError } = parentsubjectdropdowndata();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         control,
@@ -91,6 +93,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_ClassNo: row.lmS_ClassNo,
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             });
+            setResetKey((prev) => prev + 1);
         }
     };
 
@@ -109,8 +112,9 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     control={control}
                                     render={({ field }) => (
                                         <Select 
+                                            key={resetKey}
                                             onValueChange={(val) => field.onChange(Number(val))} 
-                                            value={field.value?.toString() || ''}
+                                            value={field.value ? field.value.toString() : undefined}
                                         >
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
@@ -125,8 +129,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                                         Error loading
                                                     </SelectItem>
                                                 ) : (
-                                                    parentData?.data?.map((item) => (
-                                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                    parentData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
@@ -155,6 +159,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         <InputText
                             label='Level :'
                             required
+                            placeholder='Enter Level'
                             {...register('lmS_Level')}
                             error={errors.lmS_Level?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

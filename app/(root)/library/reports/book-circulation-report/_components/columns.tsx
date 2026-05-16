@@ -20,69 +20,69 @@ const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'lmb_BookTitle',
+        accessorKey: 'LMB_BOOKTITLE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookTitle')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LMB_BOOKTITLE')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmbano_AccessionNo',
+        accessorKey: 'LMBANO_ACCESSIONNO',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
-        cell: ({ row }) => <div>{row.getValue('lmbano_AccessionNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LMBANO_ACCESSIONNO')}</div>,
         enableSorting: true
     }
 ];
 
 const StatusDateColumns: ColumnDef<IBookCirculationReportGridData>[] = [
     {
-        accessorKey: 'lbtr_Status',
+        accessorKey: 'LBTR_STATUS',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Transaction Status' />,
-        cell: ({ row }) => <div>{row.getValue('lbtr_Status')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LBTR_STATUS')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lbtr_IssuedDate',
+        accessorKey: 'LBTR_ISSUEDDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Issue Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lbtr_IssuedDate') as string;
+            const date = row.getValue('LBTR_ISSUEDDATE') as string;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lbtr_DueDate',
+        accessorKey: 'LBTR_DUEDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Due Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lbtr_DueDate') as string;
+            const date = row.getValue('LBTR_DUEDATE') as string;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lbtr_ReturnedDate',
+        accessorKey: 'LBTR_RETURNEDDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Return Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lbtr_ReturnedDate') as string;
+            const date = row.getValue('LBTR_RETURNEDDATE') as string;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lbtr_FineCollected',
+        accessorKey: 'LBTR_FINECOLLECTED',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fine Collected' />,
-        cell: ({ row }) => <div>{row.getValue('lbtr_FineCollected')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LBTR_FINECOLLECTED')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lbtr_TotalFine',
+        accessorKey: 'LBTR_TOTALFINE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Fine' />,
-        cell: ({ row }) => <div>{row.getValue('lbtr_TotalFine')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LBTR_TOTALFINE')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_BookType',
+        accessorKey: 'LMB_BOOKTYPE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Type' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookType')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LMB_BOOKTYPE')}</div>,
         enableSorting: true
     }
 ];
@@ -93,40 +93,40 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
     if (memberType === 'Student') {
         specificColumns = [
             {
-                accessorKey: 'amsT_AdmNo',
+                accessorKey: 'AMST_ADMNO',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
-                cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>,
+                cell: ({ row }) => <div>{row.getValue('AMST_ADMNO')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'amsT_Name',
+                accessorKey: 'AMST_NAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-                cell: ({ row }) => <div>{row.getValue('amsT_Name')}</div>,
+                cell: ({ row }) => <div>{row.getValue('AMST_NAME')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'asmcL_ClassName',
+                id: 'ASMCL_CLASSNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-                cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
+                cell: ({ row }) => <div>{(row.original as any).ASMCL_CLASSNAME || (row.original as any).ASMCL_CLASS_NAME || '--'}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'asmC_SectionName',
+                id: 'ASMC_SECTIONNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-                cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
+                cell: ({ row }) => <div>{(row.original as any).ASMC_SECTIONNAME || (row.original as any).ASMS_SECTIONNAME || '--'}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'amaY_RollNo',
+                accessorKey: 'AMAY_ROLLNO',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No.' />,
-                cell: ({ row }) => <div>{row.getValue('amaY_RollNo')}</div>,
+                cell: ({ row }) => <div>{row.getValue('AMAY_ROLLNO')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'latedays',
+                accessorKey: 'LATEDAYS',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Late Return Days' />,
                 cell: ({ row }) => {
-                    const days = row.getValue('latedays') as number;
+                    const days = row.getValue('LATEDAYS') as number;
                     return <div>{days > 0 ? days : '--'}</div>;
                 },
                 enableSorting: true
@@ -135,45 +135,45 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
     } else if (memberType === 'Staff') {
         specificColumns = [
             {
-                accessorKey: 'empName',
+                accessorKey: 'EMPNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
-                cell: ({ row }) => <div>{row.getValue('empName')}</div>,
+                cell: ({ row }) => <div>{row.getValue('EMPNAME')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'hrmE_EmployeeCode',
+                accessorKey: 'HRME_EMPLOYEECODE',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Code' />,
-                cell: ({ row }) => <div>{row.getValue('hrmE_EmployeeCode')}</div>,
+                cell: ({ row }) => <div>{row.getValue('HRME_EMPLOYEECODE')}</div>,
                 enableSorting: true
             }
         ];
     } else if (memberType === 'Guest') {
         specificColumns = [
             {
-                accessorKey: 'lbtR_GuestName',
+                accessorKey: 'LBTR_GUESTNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Guest Name' />,
-                cell: ({ row }) => <div>{row.getValue('lbtR_GuestName')}</div>,
+                cell: ({ row }) => <div>{row.getValue('LBTR_GUESTNAME')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'lbtR_GuestEmailId',
+                accessorKey: 'LBTR_GUESTEMAILID',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Mail' />,
-                cell: ({ row }) => <div>{row.getValue('lbtR_GuestEmailId')}</div>,
+                cell: ({ row }) => <div>{row.getValue('LBTR_GUESTEMAILID')}</div>,
                 enableSorting: true
             },
             {
-                accessorKey: 'lbtR_GuestContactNo',
+                accessorKey: 'LBTR_GUESTCONTACTNO',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Contact' />,
-                cell: ({ row }) => <div>{row.getValue('lbtR_GuestContactNo')}</div>,
+                cell: ({ row }) => <div>{row.getValue('LBTR_GUESTCONTACTNO')}</div>,
                 enableSorting: true
             }
         ];
     } else if (memberType === 'Department') {
         specificColumns = [
             {
-                accessorKey: 'hrmD_DepartmentName',
+                accessorKey: 'HRMD_DEPARTMENTNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Department Name' />,
-                cell: ({ row }) => <div>{row.getValue('hrmD_DepartmentName')}</div>,
+                cell: ({ row }) => <div>{row.getValue('HRMD_DEPARTMENTNAME')}</div>,
                 enableSorting: true
             }
         ];

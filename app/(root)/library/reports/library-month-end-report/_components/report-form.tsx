@@ -15,7 +15,8 @@ import * as z from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
-    LMRA_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library is required')),
+    LMRA_Id: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().optional()),
+    IE_Name: z.string().optional(),
     year: z.string().min(1, 'Year is required')
 });
 
@@ -45,7 +46,8 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
             ASMAY_Id: values.ASMAY_Id,
             IVRM_Month_Id: values.IVRM_Month_Id,
             year: values.year,
-            LMRA_Id: values.LMRA_Id
+            LMRA_Id: values.LMRA_Id,
+            IE_Name: values.IE_Name
         });
     };
 
@@ -118,32 +120,25 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                         </div>
                     </div>
 
-                    {/* Library (LMRA_Id) */}
+                    {/* IE (Text Field) */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
-                            Library:<span className='text-red-500'>*</span>
+                            IE:
                         </Label>
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='LMRA_Id'
+                                name='IE_Name'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                        <SelectTrigger className='w-full border-muted-foreground/30'>
-                                            <SelectValue placeholder='Select Library' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Array.isArray(initialData?.msterliblist1) &&
-                                                initialData?.msterliblist1?.map((item: any) => (
-                                                    <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
-                                                        {item.lmaL_LibraryName}
-                                                    </SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter IE Name'
+                                        className='w-full border-muted-foreground/30'
+                                    />
                                 )}
                             />
-                            {errors.LMRA_Id && <p className='text-xs text-destructive mt-1'>{errors.LMRA_Id.message}</p>}
+                            {errors.IE_Name && <p className='text-xs text-destructive mt-1'>{errors.IE_Name.message}</p>}
                         </div>
                     </div>
 

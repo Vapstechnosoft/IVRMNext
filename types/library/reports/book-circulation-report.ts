@@ -11,7 +11,18 @@ export interface IBookCirculationReportInitialData {
         asmS_Id: number;
         asmC_SectionName: string;
     }>;
-    // Other fields if needed from API
+    // Subject filters
+    parentsubjectlist?: Array<{
+        ismS_Id: number;
+        ismS_SubjectName: string;
+    }>;
+    subsubjectlist?: Array<{
+        lmS_Id: number;
+        lmS_SubjectName: string;
+        lmS_ParentId: number;
+    }>;
+    booktype?: any[];
+    booktitle?: any[];
 }
 
 export interface IBookCirculationReportRequest {
@@ -25,39 +36,45 @@ export interface IBookCirculationReportRequest {
     LMAL_Id: number;
     selectedClasslist?: Array<{ asmcL_Id: number }>;
     selectedSectionlist?: Array<{ asmS_Id: number }>;
+    selectedSubjectlist?: Array<{ ismS_Id: number }>;
+    selectedSubSubjectlist?: Array<{ lmS_Id: number }>;
 }
 
 // Union of all possible fields for different member types
 export interface IBookCirculationReportGridData {
-    lmb_BookTitle: string;
-    lmbano_AccessionNo: string;
-    lbtr_Status: string;
-    lbtr_IssuedDate: string;
-    lbtr_DueDate: string;
-    lbtr_ReturnedDate: string | null;
-    lbtr_FineCollected: number;
-    lbtr_TotalFine: number;
-    lmb_BookType: string;
+    LMB_BOOKTITLE: string;
+    LMBANO_ACCESSIONNO: string;
+    LBTR_STATUS: string;
+    LBTR_ISSUEDDATE: string;
+    LBTR_DUEDATE: string;
+    LBTR_RETURNEDDATE: string | null;
+    LBTR_FINECOLLECTED: number;
+    LBTR_TOTALFINE: number;
+    LMB_BOOKTYPE: string;
 
     // Student specific
-    amsT_AdmNo?: string;
-    amsT_Name?: string;
-    asmcL_ClassName?: string;
-    asmC_SectionName?: string;
-    amaY_RollNo?: string;
-    latedays?: number;
+    AMST_ADMNO?: string;
+    AMST_NAME?: string;
+    ASMCL_CLASSNAME?: string;
+    ASMC_SECTIONNAME?: string;
+    AMAY_ROLLNO?: string;
+    LATEDAYS?: number;
+
+    // Subject info
+    ISMS_SUBJECTNAME?: string;
+    LMS_SUBJECTNAME?: string;
 
     // Staff specific
-    empName?: string;
-    hrmE_EmployeeCode?: string;
+    EMPNAME?: string;
+    HRME_EMPLOYEECODE?: string;
 
     // Guest specific
-    lbtR_GuestName?: string;
-    lbtR_GuestEmailId?: string;
-    lbtR_GuestContactNo?: string;
+    LBTR_GUESTNAME?: string;
+    LBTR_GUESTEMAILID?: string;
+    LBTR_GUESTCONTACTNO?: string;
 
     // Department specific
-    hrmD_DepartmentName?: string;
+    HRMD_DEPARTMENTNAME?: string;
 }
 
 export interface IBookCirculationReportResponse {
