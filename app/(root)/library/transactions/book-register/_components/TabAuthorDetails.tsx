@@ -6,9 +6,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
-import { Plus, Trash } from 'lucide-react';
-import { useState } from 'react';
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { Plus, Trash, Minus, Upload, Eye, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { uploadDocument } from '@/server/document_upload';
+import { toast } from 'sonner';
 
 export default function TabAuthorDetails({
     dropdownData,
@@ -30,10 +32,21 @@ export default function TabAuthorDetails({
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields: accessionFields, append: appendAccession, remove: removeAccession } = useFieldArray({
         control,
         name: 'accessionList'
     });
+
+    const { fields: uploadFields, append: appendUpload, remove: removeUpload } = useFieldArray({
+        control,
+        name: 'attachementList'
+    });
+
+    useEffect(() => {
+        if (uploadFields.length === 0) {
+            appendUpload({ lmbA_FileName: '', lmbA_FilePath: '' });
+        }
+    }, [uploadFields, appendUpload]);
 
     const [numCopies, setNumCopies] = useState<string>('');
 
@@ -42,13 +55,48 @@ export default function TabAuthorDetails({
         if (isNaN(count) || count <= 0) return;
         
         for (let i = 0; i < count; i++) {
-            append({ lmbanO_No: '', lmbanO_AvialableStatus: 'Available' });
+            appendAccession({ lmbanO_No: '', lmbanO_AvialableStatus: 'Available' });
         }
         setNumCopies('');
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validation
+        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('File Must Be Upload jpeg,Png,pdf, Document');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size should be less than 5 MB');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'library_book_attachments');
+
+            const response = await uploadDocument(formData);
+            if (response.success && response.data) {
+                setValue(`attachementList.${index}.lmbA_FilePath`, response.data);
+                setValue(`attachementList.${index}.lmbA_FileName`, file.name);
+                toast.success('File uploaded successfully');
+            } else {
+                toast.error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            toast.error('An error occurred during upload');
+        } finally {
+            e.target.value = '';
+        }
+    };
+
     const rackList = dropdownData?.racklist || dropdownData?.rackList || [];
-    const authorList = dropdownData?.authorlst || dropdownData?.authorList || [];
     const accessoriesList = dropdownData?.accessoriesList || [];
 
     return (
@@ -211,7 +259,7 @@ export default function TabAuthorDetails({
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {fields.map((field, index) => (
+                                    {accessionFields.map((field, index) => (
                                         <TableRow key={field.id}>
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell>
@@ -221,7 +269,7 @@ export default function TabAuthorDetails({
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                <Button type='button' variant='ghost' size='icon' onClick={() => remove(index)}>
+                                                <Button type='button' variant='ghost' size='icon' onClick={() => removeAccession(index)}>
                                                     <Trash className='h-4 w-4 text-destructive' />
                                                 </Button>
                                             </TableCell>
@@ -234,55 +282,137 @@ export default function TabAuthorDetails({
                 </div>
             </div>
 
-            {/* Upload Section (Placeholder for Grid in Image 3) */}
+            {/* Upload Section */}
             <div className='rounded-md border p-4'>
                  <div className='text-xs text-red-500 mb-2 italic'>
                     * File Must Be Upload jpeg,Png,pdf, Document<br/>
                     * File size should be less than 5 MB
                  </div>
-                 <Table>
-                    <TableHeader className='bg-blue-600'>
-                        <TableRow>
-                            <TableHead className='text-white'>SL.No.</TableHead>
-                            <TableHead className='text-white'>Upload</TableHead>
-                            <TableHead className='text-white'>View</TableHead>
-                            <TableHead className='text-white'>Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>1</TableCell>
-                            <TableCell>
-                                <Button type='button' variant='outline' className='bg-yellow-400 hover:bg-yellow-500 w-full text-xs h-8'>
-                                    Choose File
-                                </Button>
-                            </TableCell>
-                            <TableCell></TableCell>
-                            <TableCell>
-                                <Button type='button' variant='ghost' size='icon'>
-                                    <Plus className='h-4 w-4 text-blue-600' />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                 </Table>
+                 <div className='max-h-[250px] overflow-auto border rounded-md'>
+                    <Table>
+                        <TableHeader className='bg-blue-600 sticky top-0 z-10'>
+                            <TableRow>
+                                <TableHead className='text-white w-16 text-center'>SL.No.</TableHead>
+                                <TableHead className='text-white'>Upload</TableHead>
+                                <TableHead className='text-white w-20 text-center'>View</TableHead>
+                                <TableHead className='text-white w-24 text-center'>Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {uploadFields.map((field, index) => (
+                                <UploadRow 
+                                    key={field.id}
+                                    index={index}
+                                    onUpload={(e) => handleFileUpload(e, index)}
+                                    onAdd={() => appendUpload({ lmbA_FileName: '', lmbA_FilePath: '' })}
+                                    onRemove={() => removeUpload(index)}
+                                    isLast={index === uploadFields.length - 1}
+                                    showRemove={uploadFields.length > 1 || index > 0}
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                 </div>
             </div>
 
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 pt-4 border-t'>
-    <Button type='button' variant='default' onClick={onPrevious} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
-        Previous
-    </Button>
-    <Button type='button' variant='destructive' onClick={onClear} className='bg-red-500 hover:bg-red-600 uppercase text-xs font-bold px-6'>
-        Clear
-    </Button>
-    <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
-        Cancel
-    </Button>
-    <Button type='button' variant='default' onClick={onSave} className='bg-blue-800 hover:bg-blue-900 uppercase text-xs font-bold px-6'>
-        Save
-    </Button>
-</div>
+                <Button type='button' variant='default' onClick={onPrevious} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+                    Previous
+                </Button>
+                <Button type='button' variant='destructive' onClick={onClear} className='bg-red-500 hover:bg-red-600 uppercase text-xs font-bold px-6'>
+                    Clear
+                </Button>
+                <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
+                    Cancel
+                </Button>
+                <Button type='button' variant='default' onClick={onSave} className='bg-blue-800 hover:bg-blue-900 uppercase text-xs font-bold px-6'>
+                    Save
+                </Button>
+            </div>
         </div>
+    );
+}
+
+function UploadRow({ 
+    index, 
+    onUpload, 
+    onAdd, 
+    onRemove, 
+    isLast, 
+    showRemove 
+}: { 
+    index: number; 
+    onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onAdd: () => void;
+    onRemove: () => void;
+    isLast: boolean;
+    showRemove: boolean;
+}) {
+    const { control } = useFormContext<BookRegisterPayload>();
+    const fileName = useWatch({ control, name: `attachementList.${index}.lmbA_FileName` });
+    const filePath = useWatch({ control, name: `attachementList.${index}.lmbA_FilePath` });
+
+    return (
+        <TableRow>
+            <TableCell className='text-center'>{index + 1}</TableCell>
+            <TableCell>
+                <div className='relative flex justify-center'>
+                    <input
+                        id={`file-upload-${index}`}
+                        type='file'
+                        className='hidden'
+                        onChange={onUpload}
+                        accept='.jpg,.jpeg,.png,.pdf,.doc,.docx'
+                    />
+                    <Button
+                        type='button'
+                        onClick={() => document.getElementById(`file-upload-${index}`)?.click()}
+                        className='h-8 w-44 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] font-bold border border-gray-400 shadow-sm transition-all px-2 flex items-center justify-center gap-1'
+                    >
+                        <Upload className='h-3.5 w-3.5 text-blue-700' />
+                        <span className='truncate'>
+                            {fileName || 'Choose File'}
+                        </span>
+                    </Button>
+                </div>
+            </TableCell>
+            <TableCell className='text-center'>
+                {filePath ? (
+                    <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-blue-600'
+                        onClick={() => window.open(filePath, '_blank')}>
+                        <Eye className='h-4 w-4' />
+                    </Button>
+                ) : '-'}
+            </TableCell>
+            <TableCell>
+                <div className='flex items-center justify-center gap-1'>
+                    {isLast && (
+                        <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-blue-600'
+                            onClick={onAdd}>
+                            <Plus className='h-4 w-4' />
+                        </Button>
+                    )}
+                    {showRemove && (
+                        <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-red-500'
+                            onClick={onRemove}>
+                            <Minus className='h-4 w-4' />
+                        </Button>
+                    )}
+                </div>
+            </TableCell>
+        </TableRow>
     );
 }
