@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { BookArrivalReportColumns } from './_components/columns';
 import { ReportForm } from './_components/report-form';
 
+import { exportToExcel } from '@/lib/export-to-file';
+
 export default function BookArrivalReportPage() {
     const [view, setView] = useState<'form' | 'grid'>('form');
     const [reportData, setReportData] = useState<IBookArrivalReportGridData[]>([]);
@@ -16,13 +18,38 @@ export default function BookArrivalReportPage() {
 
     const handleSearch = (data: IBookArrivalReportRequest) => {
         searchMutation.mutate(data, {
-            onSuccess: (response) => {
-                // setReportData(Array.isArray(response.reportlist) ? response.reportlist : []);
-                // if (response.reportlist?.length > 0) {
-                //     setView('grid');
-                // }
+            onSuccess: (response: any) => {
+                const list = response?.data || response?.reportlist || response?.griddata || (Array.isArray(response) ? response : []);
+                setReportData(Array.isArray(list) ? list : []);
+                if (list?.length > 0) {
+                    setView('grid');
+                }
             }
         });
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const handleExport = () => {
+        const columns = [
+            { label: 'Accession No.', value: 'lmbanO_AccessionNo' },
+            { label: 'Book Title', value: 'lmB_BookTitle' },
+            { label: 'Department Name', value: 'lmD_DepartmentName' },
+            { label: 'Author Name', value: 'authorName' },
+            { label: 'Book Type', value: 'lmB_BookType' },
+            { label: 'Call No', value: 'lmB_CallNo' },
+            { label: 'Purchase Date', value: 'lmB_PurchaseDate' },
+            { label: 'Entry Date', value: 'lmB_EntryDate' },
+            { label: 'Language Name', value: 'lmL_LanguageName' }
+        ];
+
+        exportToExcel(
+            'Book_Arrival_Report',
+            JSON.stringify(columns),
+            JSON.stringify(reportData)
+        );
     };
 
     return (
@@ -32,7 +59,13 @@ export default function BookArrivalReportPage() {
                 isOpen={view === 'form'}
                 onToggle={() => setView(view === 'form' ? 'grid' : 'form')}
                 defaultOpen={true}>
-                <ReportForm onSearch={handleSearch} isLoading={searchMutation.isPending} />
+                <ReportForm
+                    onSearch={handleSearch}
+                    isLoading={searchMutation.isPending}
+                    hasData={reportData.length > 0}
+                    onPrint={handlePrint}
+                    onExport={handleExport}
+                />
             </CollapsibleSection>
 
             {reportData.length > 0 && (
@@ -44,18 +77,7 @@ export default function BookArrivalReportPage() {
                         columns={BookArrivalReportColumns}
                         data={reportData}
                         isLoading={false}
-                        defaultVisibility={{
-                            slNo: true,
-                            lmbano_AccessionNo: true,
-                            lmb_BookTitle: true,
-                            lmd_DepartmentName: true,
-                            authorName: true,
-                            lmb_BookType: true,
-                            lmb_CallNo: true,
-                            lmb_PurchaseDate: true,
-                            lmb_EntryDate: true,
-                            lml_LanguageName: true
-                        }}
+                        columnPinning={{ right: ['actions'] }}
                     />
                 </CollapsibleSection>
             )}

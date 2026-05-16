@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type {
     IBookArrivalReportInitialData,
     IBookArrivalReportRequest,
@@ -9,13 +10,36 @@ import type {
 
 const FACADE = 'BookArrivalReport';
 
-export async function getBookArrivalReportInitialData(pageid = 2) {
-    const url = `${FACADE}/getdetails`;
-    // Consistent with previous implementation, assuming generic POST for init data or adapting if legacy requires specific input
-    return await api.post<IBookArrivalReportInitialData>('library', url, { id: pageid });
+const extractList = (list: any) => {
+    if (!list) return [];
+    const actualList = list.data || list;
+    if (actualList && typeof actualList === 'object' && '$values' in actualList) {
+        return actualList.$values;
+    }
+    return Array.isArray(actualList) ? actualList : [];
+};
+
+export async function getBookArrivalReportInitialData() {
+    const session = await auth();
+    if (!session?.mi_id) {
+        throw new Error('Authentication required');
+    }
+
+    const payload = {
+        MI_Id: session.mi_id
+    };
+
+    const url = `${FACADE}/bookarrivalReport-getdetails`;
+    const response = await api.get<any>('library', url, { params: payload });
+    const data = response?.data ?? response;
+
+    return {
+        lib_list: extractList(data.lib_list || []),
+        deptlist: extractList(data.deptlist || [])
+    } as IBookArrivalReportInitialData;
 }
 
 export async function getBookArrivalReportData(data: IBookArrivalReportRequest) {
-    const url = `${FACADE}/get_report`;
+    const url = `${FACADE}/bookarrivaldetails-Report`;
     return await api.post<IBookArrivalReportResponse>('library', url, data);
 }

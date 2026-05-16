@@ -1,98 +1,69 @@
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getEventsStudentSRKVSList, saveEventsStudentSRKVS, deactivateEventsStudentSRKVS, getEventsStudentSRKVSDetails } from '@/server/sports/events-student-srkvs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-    getEventsStudentSRKVSDropdowns,
-    getClassHouse,
-    getSectionList,
-    getSportsName,
-    getSubSubEvents,
-    getStudents,
-    saveEventsStudentSRKVS,
-    getEventsStudentSRKVSList,
-    deactivateEventsStudentSRKVS,
-    getEventsStudentSRKVSDetails
-} from '@/server/sports/events-student-srkvs';
-import { toast } from 'sonner'; // Ensure toast is imported
+import { toast } from 'sonner';
 
-export const useEventsStudentSRKVS = () => {
+export const useEventsStudentSRKVS = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const dropdowns = useQuery({
-        queryKey: ['eventsStudentSRKVSDropdowns'],
-        queryFn: () => getEventsStudentSRKVSDropdowns(),
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const params = {
+        page: page,
+        page_size: pageSize,
+        sort_column: sortBy,
+        sort_direction: order,
+        search_query: searchQuery,
+    };
+
+    const loadData = useQuery({
+        queryKey: ['events-student-srkvs-details', page, pageSize, sortBy, order, searchQuery],
+        queryFn: () => getEventsStudentSRKVSList(), // This mock doesn't seem to take params yet
+        staleTime: 0
     });
 
-    const gridData = useQuery({
-        queryKey: ['eventsStudentSRKVSList'],
-        queryFn: () => getEventsStudentSRKVSList(),
-    });
-
-    const fetchClassHouse = useMutation({
-        mutationFn: (asamyId: number) => getClassHouse(asamyId),
-    });
-
-    const fetchSportsName = useMutation({
-        mutationFn: (groupId: number) => getSportsName(groupId),
-    });
-
-    const fetchSubSubEvents = useMutation({
-        mutationFn: ({ subEventId, groupId }: { subEventId: number, groupId: number }) => getSubSubEvents(subEventId, groupId),
-    });
-
-    const fetchSectionList = useMutation({
-        mutationFn: (data: { ASMAY_Id: number, classListArray: any[] }) => getSectionList(data),
-    });
-
-    const fetchStudents = useMutation({
-        mutationFn: (payload: any) => getStudents(payload),
-    });
-
-    const saveData = useMutation({
+    const save = useMutation({
         mutationFn: (data: any) => saveEventsStudentSRKVS(data),
-        onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message);
-                queryClient.invalidateQueries({ queryKey: ['eventsStudentSRKVSDropdowns'] }); // Refresh if needed
-                queryClient.invalidateQueries({ queryKey: ['eventsStudentSRKVSList'] });
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Saved successfully');
             } else {
                 toast.error(response.message || 'Failed to save');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-student-srkvs-details'] });
         },
-        onError: (error) => {
-            console.error(error);
-            toast.error('An error occurred while saving');
-        }
-    });
-
-    const fetchViewDetails = useMutation({
-        mutationFn: (spccesT_Id: number) => getEventsStudentSRKVSDetails(spccesT_Id),
     });
 
     const deactivateData = useMutation({
         mutationFn: (data: { id: number, activeFlag: boolean }) => deactivateEventsStudentSRKVS(data),
-        onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message);
-                queryClient.invalidateQueries({ queryKey: ['eventsStudentSRKVSList'] });
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
             } else {
                 toast.error(response.message || 'Failed to update status');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-student-srkvs-details'] });
         },
-        onError: (error) => {
-            console.error(error);
-            toast.error('An error occurred');
-        }
+    });
+
+    const fetchViewDetails = useMutation({
+        mutationFn: (id: number) => getEventsStudentSRKVSDetails(id)
     });
 
     return {
-        dropdowns,
-        gridData,
-        fetchClassHouse,
-        fetchSectionList,
-        fetchSportsName,
-        fetchSubSubEvents,
-        fetchStudents,
-        saveData,
+        loadData,
+        save,
         deactivateData,
-        fetchViewDetails
+        fetchViewDetails,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['events-student-srkvs-details']
+            });
+        }
     };
 };

@@ -79,8 +79,13 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (!initialStoreList || initialStoreList.length === 0) {
             getStoresMutation.mutate(undefined, {
                 onSuccess: (res) => {
-                    if (res?.data) {
-                        setStores(res.data);
+                    const data = res?.data;
+                    if (Array.isArray(data)) {
+                        setStores(data);
+                    } else if (data?.$values) {
+                        setStores(data.$values);
+                    } else if (data?.get_Store) {
+                        setStores(Array.isArray(data.get_Store) ? data.get_Store : (data.get_Store?.$values || []));
                     }
                 }
             });
@@ -92,7 +97,15 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (watchedStoreId && watchedStoreId !== 0) {
             getItemsMutation.mutate({ INVMST_Id: watchedStoreId, INVC_LIFOFIFOFlg: 'LIFO' }, {
                 onSuccess: (res: any) => {
-                    const extractedItems = res.data || [];
+                    const data = res.data;
+                    let extractedItems = [];
+                    if (Array.isArray(data)) {
+                        extractedItems = data;
+                    } else if (data?.$values) {
+                        extractedItems = data.$values;
+                    } else if (data?.get_item) {
+                        extractedItems = Array.isArray(data.get_item) ? data.get_item : (data.get_item?.$values || []);
+                    }
                     setItems(extractedItems);
                 }
             });
@@ -141,7 +154,16 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (id) {
             itemDetailMutation.mutate({ INVMI_Id: id }, {
                 onSuccess: (res: any) => {
-                    const rawDetails = res.data || [];
+                    const data = res.data;
+                    let rawDetails = [];
+                    if (Array.isArray(data)) {
+                        rawDetails = data;
+                    } else if (data?.$values) {
+                        rawDetails = data.$values;
+                    } else if (data?.get_itemdetails) {
+                        rawDetails = Array.isArray(data.get_itemdetails) ? data.get_itemdetails : (data.get_itemdetails?.$values || []);
+                    }
+
                     if (rawDetails.length > 0) {
                         const details = rawDetails[0];
                         setValue(`transrows.${index}.invmuoM_Id`, details.invmuoM_Id);

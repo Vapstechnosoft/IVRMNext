@@ -94,12 +94,14 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='0'>ALL</SelectItem>
-                                            {Array.isArray(initialData?.deptlist) &&
-                                                initialData?.deptlist?.map((item: any) => (
-                                                    <SelectItem key={item.lmD_Id} value={item.lmD_Id.toString()}>
-                                                        {item.lmD_DepartmentName}
-                                                    </SelectItem>
-                                                ))}
+                                            {(Array.isArray(initialData?.deptlist)
+                                                ? initialData.deptlist
+                                                : (initialData?.deptlist as any)?.$values || []
+                                            ).map((item: any) => (
+                                                <SelectItem key={item.lmD_Id} value={item.lmD_Id.toString()}>
+                                                    {item.lmD_DepartmentName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}

@@ -942,3 +942,30 @@ export const finalPromReportSTMarySchema = z.object({
 });
 
 export type FinalPromReportSTMarySchema = z.infer<typeof finalPromReportSTMarySchema>;
+
+export const baldwinReportSchema = z.object({
+    ASMAY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
+    ASMS_Id: z.string({ required_error: 'Section is required' }).min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    workingDays: z.string().optional().default(''),
+    presentDays: z.string().optional().default(''),
+    includeLeftStudents: z.boolean().default(false),
+    dontShowRank: z.boolean().default(true),
+    printLogo: z.boolean().default(true),
+    left_logo: z.boolean().default(true),
+    right_logo: z.boolean().default(true)
+});
+
+export type BaldwinReportSchema = z.infer<typeof baldwinReportSchema>;
+
+export const finalPromReportChinmayI_IXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    OverAlltotal: z.boolean().default(false),
+    OverAlClass: z.boolean().default(false),
+    ECTEX_NotApplToTotalFlg: z.boolean().default(false),
+    reopen_date: z.string().min(1, 'Reopen Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});

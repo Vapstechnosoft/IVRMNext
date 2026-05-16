@@ -19,21 +19,21 @@ export const BookArrivalReportColumns: ColumnDef<IBookArrivalReportGridData>[] =
         enableSorting: false
     },
     {
-        accessorKey: 'lmbano_AccessionNo',
+        accessorKey: 'lmbanO_AccessionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No.' />,
-        cell: ({ row }) => <div>{row.getValue('lmbano_AccessionNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_BookTitle',
+        accessorKey: 'lmB_BookTitle',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookTitle')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_BookTitle')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmd_DepartmentName',
+        accessorKey: 'lmD_DepartmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Department Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmd_DepartmentName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmD_DepartmentName')}</div>,
         enableSorting: true
     },
     {
@@ -43,39 +43,39 @@ export const BookArrivalReportColumns: ColumnDef<IBookArrivalReportGridData>[] =
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_BookType',
+        accessorKey: 'lmB_BookType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Type' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookType')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_BookType')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_CallNo',
+        accessorKey: 'lmB_CallNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='CallNo' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_CallNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_CallNo')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_PurchaseDate',
+        accessorKey: 'lmB_PurchaseDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lmb_PurchaseDate') as string;
+            const date = row.getValue('lmB_PurchaseDate') as string;
             return <div>{date ? format(new Date(date), 'dd-MM-yyyy') : '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_EntryDate',
+        accessorKey: 'lmB_EntryDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Entry Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lmb_EntryDate') as string;
+            const date = row.getValue('lmB_EntryDate') as string;
             return <div>{date ? format(new Date(date), 'dd-MM-yyyy') : '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lml_LanguageName',
+        accessorKey: 'lmL_LanguageName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language Name' />,
-        cell: ({ row }) => <div>{row.getValue('lml_LanguageName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName')}</div>,
         enableSorting: true
     }
 ];

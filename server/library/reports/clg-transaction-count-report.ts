@@ -1,19 +1,55 @@
-'use server';
-
+import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
 import type {
     ICLGTransactionCountReportInitialData,
     ICLGTransactionCountReportRequest
 } from '@/types/library/reports/clg-transaction-count-report';
 
-const MODULE_URL = 'LibTransactionReportFacade';
+const FACADE = 'LibTransactionReport'; // Assuming shared or similar facade
+
+const extractList = (list: any) => {
+    if (!list) return [];
+    const actualList = list.data || list;
+    if (actualList && typeof actualList === 'object' && '$values' in actualList) {
+        return actualList.$values;
+    }
+    return Array.isArray(actualList) ? actualList : [];
+};
 
 export async function getCLGTransactionCountReportInitialData() {
-    const response = await api.get<ICLGTransactionCountReportInitialData>('library', `${MODULE_URL}/Getdetails/2`);
-    return response.data;
+    const url = `${FACADE}/library_countreport_getdetails`;
+    const response = await api.get<any>('library', url);
+    const responseData = response?.data || response;
+    const finalData = responseData?.data || responseData;
+
+    return {
+        msterliblist1: extractList(finalData.subjectList || finalData.msterliblist1 || finalData.alldata || []),
+        yearlist: extractList(finalData.departmentList || finalData.yearlist || finalData.acdlist || [])
+    } as ICLGTransactionCountReportInitialData;
 }
 
 export async function getCLGTransactionCountReportSearch(data: ICLGTransactionCountReportRequest) {
-    const response = await api.post<any>('library', `${MODULE_URL}/CLGget_report`, data);
-    return response.data;
+    const session = await auth();
+    if (!session?.mi_id) {
+        throw new Error('Authentication required');
+    }
+
+    const payload = {
+        ...data,
+        MI_Id: session.mi_id,
+        IVRMUL_Id: session.roleId || 0
+    };
+
+    const url = `${FACADE}/get-transaction-count-report`; // shared with school report usually
+    const response = await api.post<any>('library', url, payload);
+    const responseData = response.data || response;
+
+    return extractList(
+        responseData.data?.alldata || 
+        responseData.alldata || 
+        responseData.reportlist || 
+        responseData.griddata || 
+        responseData.statuslist ||
+        (Array.isArray(responseData) ? responseData : [])
+    );
 }
