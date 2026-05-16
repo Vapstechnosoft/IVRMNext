@@ -1055,30 +1055,6 @@ export async function getUserAccessibleModules() {
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
                                         },
-                                        // {
-                                        //     id: 596,
-                                        //     name: 'Student Search',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/StudentSearch',
-                                        //     title: 'Student Search',
-                                        //     description: 'Student Search'
-                                        // },
-                                        // {
-                                        //     id: 597,
-                                        //     name: 'Students Search Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
-                                        //     title: 'Students Search Report',
-                                        //     description: 'Students Search Report'
-                                        // },
-                                        // {
-                                        //     id: 598,
-                                        //     name: 'Date Of Birth Certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
-                                        //     title: 'Date Of Birth Certificate',
-                                        //     description: 'Date Of Birth Certificate'
-                                        // },
                                         {
                                             id: 599,
                                             name: 'Sophia study certificate',
@@ -1087,22 +1063,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia study certificate',
                                             description: 'Sophia study certificate'
                                         },
-                                        // {
-                                        //     id: 600,
-                                        //     name: 'SophiaRegistrationXI',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistrationXI',
-                                        //     title: 'SophiaRegistrationXI',
-                                        //     description: 'SophiaRegistrationXI'
-                                        // },
-                                        // {
-                                        //     id: 600,
-                                        //     name: 'SophiaRegistration',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistration',
-                                        //     title: 'SophiaRegistration',
-                                        //     description: 'SophiaRegistration'
-                                        // },
+                                        {
+                                            id: 6000,
+                                            name: 'SophiaRegistrationXI',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistrationXI',
+                                            title: 'SophiaRegistrationXI',
+                                            description: 'SophiaRegistrationXI'
+                                        },
+                                        {
+                                            id: 6001,
+                                            name: 'SophiaRegistration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaRegistration',
+                                            title: 'SophiaRegistration',
+                                            description: 'SophiaRegistration'
+                                        },
                                         {
                                             id: 601,
                                             name: 'OverallDailyAttendanceReport',
