@@ -260,7 +260,7 @@ export const masterClassCategorySchema = {
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
-        ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
+        lmS_ParentId: z.coerce.number().min(1, 'Please Select Parent Subject'),
         lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
         lmS_ClassNo: z
             .string()
@@ -276,9 +276,7 @@ export const masterSubjectSchema = {
             .max(50)
             .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmS_ParentId: z.number().optional(),
         lmS_ActiveFlg: z.boolean().optional()
-        // lmS_SubjectName: z.string()
     }),
     delete: z.object({
         lmS_Id: deleteIdSchema('lmS_Id')

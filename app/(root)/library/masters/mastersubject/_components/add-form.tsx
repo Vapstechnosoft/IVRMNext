@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -27,6 +28,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
     const { refetchAll } = useMasterSubject();
 
+    const [resetKey, setResetKey] = useState(0);
+
     const {
         control,
         register,
@@ -35,6 +38,13 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
+        defaultValues: {
+            lmS_ParentId: undefined,
+            ismS_SubjectName: '',
+            lmS_Level: '',
+            lmS_SubjectNo: '',
+            lmS_ClassNo: ''
+        },
         mode: 'onChange'
     });
 
@@ -109,6 +119,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
     const handleReset = () => {
         reset();
+        setResetKey((prev) => prev + 1);
         refetchcategory();
     };
 
@@ -126,7 +137,11 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                     name='lmS_ParentId'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value?.toString() || ''}>
+                                        <Select 
+                                            key={resetKey}
+                                            onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))} 
+                                            value={field.value ? field.value.toString() : ''}
+                                        >
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
@@ -140,8 +155,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                                         Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
-                                                    category?.data?.map((item) => (
-                                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                    category?.data?.map((item: any) => (
+                                                        <SelectItem key={item.ismS_Id || Math.random()} value={item.ismS_Id?.toString() || ''}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
@@ -171,6 +186,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Level'
+                            placeholder='Enter Level'
                             {...register('lmS_Level', {
                                 pattern: {
                                     value: /^\d{1,30}$/,
@@ -218,25 +234,24 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
+                <div className='flex flex-col gap-3 border-t pt-6 sm:flex-row sm:justify-start'>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105 sm:order-1'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save Master Subject
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105 sm:order-2'>
+                        Reset
                     </Button>
                 </div>
             </form>

@@ -1,13 +1,14 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RefreshCcw, FileText, Loader2, Search } from 'lucide-react';
 import { SportsYearEndReportFormData, sportsYearEndReportSchema } from '../schema';
@@ -40,6 +41,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
             selectedSectionlist: [],
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedType = useWatch({ control: form.control, name: 'type' });
     const watchedYear = useWatch({ control: form.control, name: 'asmaY_Id' });
@@ -126,6 +133,7 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
         setClassList([]);
         setSectionList([]);
         onReset();
+        window.location.reload();
     };
 
     const filteredClasses = classList.filter(c => c.asmcL_ClassName.toLowerCase().includes(classFilter.toLowerCase()));
@@ -144,12 +152,12 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
                         {/* Type Selection */}
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormControl>
+                        <div className="space-y-3">
+                            <Controller
+                                control={control}
+                                name="type"
+                                render={({ field }) => (
+                                    <div className="flex flex-col gap-2">
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -168,155 +176,157 @@ export default function ReportForm({ onReportGenerated, onReset }: ReportFormPro
                                                 </label>
                                             </div>
                                         </RadioGroup>
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
+                                        {errors.type && <span className="text-xs font-medium text-destructive">{errors.type.message}</span>}
+                                    </div>
+                                )}
+                            />
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {/* Academic Year */}
-                            <FormField
-                                control={form.control}
-                                name="asmaY_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Academic Year</FormLabel>
-                                        <span className="text-destructive font-bold">*</span>
-                                        <Select
-                                            onValueChange={(value) => field.onChange(Number(value))}
-                                            value={field.value?.toString()}
-                                            disabled={initialData.isLoading}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger className="h-11 border-2 bg-white shadow-sm focus:ring-primary/20 transition-all">
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Academic Year</Label>
+                                <Controller
+                                    control={control}
+                                    name="asmaY_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                                disabled={initialData.isLoading}
+                                            >
+                                                <SelectTrigger className={errors.asmaY_Id ? 'border-destructive ring-destructive/20 h-11 border-2 bg-white shadow-sm transition-all' : 'h-11 border-2 bg-white shadow-sm focus:ring-primary/20 transition-all'}>
                                                     <SelectValue placeholder="Select Year" />
                                                 </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {initialData.data?.yearlist?.map((year) => (
-                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                        {year.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                                <SelectContent>
+                                                    {initialData.data?.yearlist?.map((year) => (
+                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                            {year.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.asmaY_Id && <span className="text-xs font-medium text-destructive">{errors.asmaY_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
 
                             {/* Class Selection (CS Only) */}
                             {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="selectedClasslist"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Class</FormLabel>
-                                            <span className="text-destructive font-bold">*</span>
-                                            <div className="border-2 rounded-xl p-3 bg-white shadow-sm space-y-3">
-                                                <div className="flex items-center gap-3 pb-2 border-b">
-                                                    <Checkbox
-                                                        id="all-classes"
-                                                        checked={classList.length > 0 && field.value?.length === classList.length}
-                                                        onCheckedChange={(checked) => toggleAll(classList, 'asmcL_Id', 'selectedClasslist', !!checked)}
-                                                    />
-                                                    <label htmlFor="all-classes" className="text-xs font-bold uppercase cursor-pointer">All</label>
-                                                    <div className="relative flex-1">
-                                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                                                        <Input
-                                                            placeholder="Search..."
-                                                            className="h-8 pl-8 text-xs border-none bg-muted/30 focus-visible:ring-0"
-                                                            value={classFilter}
-                                                            onChange={(e) => setClassFilter(e.target.value)}
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Class</Label>
+                                    <Controller
+                                        control={control}
+                                        name="selectedClasslist"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <div className={`border-2 rounded-xl p-3 bg-white shadow-sm space-y-3 ${errors.selectedClasslist ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                    <div className="flex items-center gap-3 pb-2 border-b">
+                                                        <Checkbox
+                                                            id="all-classes"
+                                                            checked={classList.length > 0 && field.value?.length === classList.length}
+                                                            onCheckedChange={(checked) => toggleAll(classList, 'asmcL_Id', 'selectedClasslist', !!checked)}
                                                         />
+                                                        <label htmlFor="all-classes" className="text-xs font-bold uppercase cursor-pointer">All</label>
+                                                        <div className="relative flex-1">
+                                                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                                            <Input
+                                                                placeholder="Search..."
+                                                                className="h-8 pl-8 text-xs border-none bg-muted/30 focus-visible:ring-0"
+                                                                value={classFilter}
+                                                                onChange={(e) => setClassFilter(e.target.value)}
+                                                            />
+                                                        </div>
                                                     </div>
+                                                    <ScrollArea className="h-32 pr-4">
+                                                        <div className="space-y-2.5">
+                                                            {filteredClasses.map((cls) => (
+                                                                <div key={cls.asmcL_Id} className="flex items-center gap-3 group">
+                                                                    <Checkbox
+                                                                        id={`class-${cls.asmcL_Id}`}
+                                                                        checked={field.value?.some(v => v.asmcL_Id === cls.asmcL_Id)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            const current = [...(field.value || [])];
+                                                                            if (checked) {
+                                                                                field.onChange([...current, { asmcL_Id: cls.asmcL_Id }]);
+                                                                            } else {
+                                                                                field.onChange(current.filter(v => v.asmcL_Id !== cls.asmcL_Id));
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <label htmlFor={`class-${cls.asmcL_Id}`} className="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors">
+                                                                        {cls.asmcL_ClassName}
+                                                                    </label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </ScrollArea>
                                                 </div>
-                                                <ScrollArea className="h-32 pr-4">
-                                                    <div className="space-y-2.5">
-                                                        {filteredClasses.map((cls) => (
-                                                            <div key={cls.asmcL_Id} className="flex items-center gap-3 group">
-                                                                <Checkbox
-                                                                    id={`class-${cls.asmcL_Id}`}
-                                                                    checked={field.value?.some(v => v.asmcL_Id === cls.asmcL_Id)}
-                                                                    onCheckedChange={(checked) => {
-                                                                        const current = [...(field.value || [])];
-                                                                        if (checked) {
-                                                                            field.onChange([...current, { asmcL_Id: cls.asmcL_Id }]);
-                                                                        } else {
-                                                                            field.onChange(current.filter(v => v.asmcL_Id !== cls.asmcL_Id));
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <label htmlFor={`class-${cls.asmcL_Id}`} className="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors">
-                                                                    {cls.asmcL_ClassName}
-                                                                </label>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </ScrollArea>
+                                                {errors.selectedClasslist && <span className="text-xs font-medium text-destructive">{errors.selectedClasslist.message}</span>}
                                             </div>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                        )}
+                                    />
+                                </div>
                             )}
 
                             {/* Section Selection (CS Only) */}
                             {watchedType === 'CS' && (
-                                <FormField
-                                    control={form.control}
-                                    name="selectedSectionlist"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Section</FormLabel>
-                                            <span className="text-destructive font-bold">*</span>
-                                            <div className="border-2 rounded-xl p-3 bg-white shadow-sm space-y-3">
-                                                <div className="flex items-center gap-3 pb-2 border-b">
-                                                    <Checkbox
-                                                        id="all-sections"
-                                                        checked={sectionList.length > 0 && field.value?.length === sectionList.length}
-                                                        onCheckedChange={(checked) => toggleAll(sectionList, 'asmS_Id', 'selectedSectionlist', !!checked)}
-                                                    />
-                                                    <label htmlFor="all-sections" className="text-xs font-bold uppercase cursor-pointer">All</label>
-                                                    <div className="relative flex-1">
-                                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                                                        <Input
-                                                            placeholder="Search..."
-                                                            className="h-8 pl-8 text-xs border-none bg-muted/30 focus-visible:ring-0"
-                                                            value={sectionFilter}
-                                                            onChange={(e) => setSectionFilter(e.target.value)}
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-bold uppercase tracking-wider text-muted-foreground mr-1">Section</Label>
+                                    <Controller
+                                        control={control}
+                                        name="selectedSectionlist"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <div className={`border-2 rounded-xl p-3 bg-white shadow-sm space-y-3 ${errors.selectedSectionlist ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                    <div className="flex items-center gap-3 pb-2 border-b">
+                                                        <Checkbox
+                                                            id="all-sections"
+                                                            checked={sectionList.length > 0 && field.value?.length === sectionList.length}
+                                                            onCheckedChange={(checked) => toggleAll(sectionList, 'asmS_Id', 'selectedSectionlist', !!checked)}
                                                         />
+                                                        <label htmlFor="all-sections" className="text-xs font-bold uppercase cursor-pointer">All</label>
+                                                        <div className="relative flex-1">
+                                                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                                            <Input
+                                                                placeholder="Search..."
+                                                                className="h-8 pl-8 text-xs border-none bg-muted/30 focus-visible:ring-0"
+                                                                value={sectionFilter}
+                                                                onChange={(e) => setSectionFilter(e.target.value)}
+                                                            />
+                                                        </div>
                                                     </div>
+                                                    <ScrollArea className="h-32 pr-4">
+                                                        <div className="space-y-2.5">
+                                                            {filteredSections.map((sec) => (
+                                                                <div key={sec.asmS_Id} className="flex items-center gap-3 group">
+                                                                    <Checkbox
+                                                                        id={`section-${sec.asmS_Id}`}
+                                                                        checked={field.value?.some(v => v.asmS_Id === sec.asmS_Id)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            const current = [...(field.value || [])];
+                                                                            if (checked) {
+                                                                                field.onChange([...current, { asmS_Id: sec.asmS_Id }]);
+                                                                            } else {
+                                                                                field.onChange(current.filter(v => v.asmS_Id !== sec.asmS_Id));
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <label htmlFor={`section-${sec.asmS_Id}`} className="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors">
+                                                                        {sec.asmC_SectionName}
+                                                                    </label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </ScrollArea>
                                                 </div>
-                                                <ScrollArea className="h-32 pr-4">
-                                                    <div className="space-y-2.5">
-                                                        {filteredSections.map((sec) => (
-                                                            <div key={sec.asmS_Id} className="flex items-center gap-3 group">
-                                                                <Checkbox
-                                                                    id={`section-${sec.asmS_Id}`}
-                                                                    checked={field.value?.some(v => v.asmS_Id === sec.asmS_Id)}
-                                                                    onCheckedChange={(checked) => {
-                                                                        const current = [...(field.value || [])];
-                                                                        if (checked) {
-                                                                            field.onChange([...current, { asmS_Id: sec.asmS_Id }]);
-                                                                        } else {
-                                                                            field.onChange(current.filter(v => v.asmS_Id !== sec.asmS_Id));
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <label htmlFor={`section-${sec.asmS_Id}`} className="text-sm font-medium leading-none cursor-pointer group-hover:text-primary transition-colors">
-                                                                    {sec.asmC_SectionName}
-                                                                </label>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </ScrollArea>
+                                                {errors.selectedSectionlist && <span className="text-xs font-medium text-destructive">{errors.selectedSectionlist.message}</span>}
                                             </div>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                        )}
+                                    />
+                                </div>
                             )}
 
                         </div>

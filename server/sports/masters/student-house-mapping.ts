@@ -17,7 +17,7 @@ export async function getStudentHouseMappingLoadData(params?: any) {
     try {
         const urlParams = getSearchParamsUrl(params || {});
         const url = `${API_URL.GET_DETAILS}?${urlParams}`;
-        const response = await api.post<any>('sports', url, params || {});
+        const response = await api.post<any>('sports', url, {});
         return {
             yearlist: response.data?.yearlist || [],
             houseList: response.data?.houseList || [],
