@@ -58,7 +58,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                mI_Id: 30,
                 lmS_Id: row.lmS_Id,
                 lmS_ParentId: data.lmS_ParentId,
                 lmS_SubjectName: data.ismS_SubjectName,
@@ -68,7 +67,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             };
 
-            const response = await addOrUpdateMasterSubject(payload);
+
+            const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master Subject updated successfully');
