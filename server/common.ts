@@ -847,6 +847,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/newsharedhost/reports/TunBridge',
                                             title: 'TunBridge',
                                             description: 'TunBridge'
+                                        },
+                                        {
+                                            id: 75,
+                                            name: 'ST ANNS TC Custom Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-tc-custom-report',
+                                            title: 'ST ANNS TC Custom Report',
+                                            description: 'ST ANNS TC Custom Report'
+                                        },
+                                        {
+                                            id: 76,
+                                            name: 'Smartcarddetails',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/reports/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
                                         }
                                     ]
                                 },
@@ -1359,18 +1375,57 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
+
                                 {
-                                    id: 23,
-                                    name: 'GM Vidya Nikethan School',
+                                    id: 24,
+                                    name: 'BURNPUR SCHOOL',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 75,
-                                            name: 'Smartcarddetails',
+                                            id: 76,
+                                            name: 'BRS TC Certificate',
                                             icon: 'Settings',
-                                            url: '/admission/GMVPS/reports/Smartcarddetails',
-                                            title: 'Smartcarddetails',
-                                            description: 'Smartcarddetails'
+                                            url: '/admission/burnpur/reports/brs-tc-certificate',
+                                            title: 'BRS TC Certificate',
+                                            description: 'BRS TC Certificate'
+                                        },
+                                        {
+                                            id: 77,
+                                            name: 'BRS Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/burnpur/transactions/application-form',
+                                            title: 'BRS Admission Form',
+                                            description: 'BRS Admission Form'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 25,
+                                    name: 'Local ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 77,
+                                            name: 'SVP Class Wise Student Details',
+                                            icon: 'Settings',
+                                            url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                            title: 'SVP Class Wise Student Details',
+                                            description: 'SVP Class Wise Student Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 26,
+                                    name: 'Old ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 78,
+                                            name: 'Admission Procedure',
+                                            icon: 'Settings',
+                                            url: '/admission/oldsharehost/reports/admission-procedure',
+                                            title: 'Admission Procedure',
+                                            description: 'Admission Procedure'
                                         }
                                     ]
                                 }
