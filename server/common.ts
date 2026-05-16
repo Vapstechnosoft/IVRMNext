@@ -2798,11 +2798,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             "id": 4,
-                                            "name": "Calcutta PromotionReportI_X",
+                                            "name": "Calcutta PromotionReportI_IX",
                                             "icon": "BookOpen",
                                             "url": "/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX",
-                                            "title": "Calcutta PromotionReportI_X",
-                                            "description": "Calcutta PromotionReportI_X"
+                                            "title": "Calcutta PromotionReportI_IX",
+                                            "description": "Calcutta PromotionReportI_IX"
                                         },
                                         {
                                             "id": 5,
@@ -2814,11 +2814,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             "id": 6,
-                                            "name": "Calcutta PromotionReportI_IX",
+                                            "name": "Calcutta PromotionReportI_X",
                                             "icon": "BookOpen",
                                             "url": "/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X",
-                                            "title": "Calcutta PromotionReportI_IX",
-                                            "description": "Calcutta PromotionReportI_IX"
+                                            "title": "Calcutta PromotionReportI_X",
+                                            "description": "Calcutta PromotionReportI_X"
                                         },
                                         {
                                             "id": 7,

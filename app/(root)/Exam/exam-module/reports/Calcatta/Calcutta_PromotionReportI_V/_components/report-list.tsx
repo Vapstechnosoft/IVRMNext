@@ -131,48 +131,33 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {/* Applicable Subjects */}
                                         {student.studentsubjects?.filter((s: any) => s.EYCES_MarksDisplayFlg || s.eyceS_MarksDisplayFlg).map((subj: any, idx: number) => (
                                             <tr key={idx}>
                                                 <td className='border-black border-[0.5px] p-2 text-left break-words'>{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
                                                 {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                     let cellValue: any = '-';
-
                                                     if (exam.EME_Id === 9800000) {
-                                                        const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
+                                                        const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 9800000 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
                                                         if (mr1) {
-                                                            if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                cellValue = mr1.estmpS_ObtainedMarks || mr1.ObtainedMarks || mr1.YeralyGroupObtMarks || mr1.YearlyMarks || mr1.GroupMarks || mr1.ESTMPPSG_GroupObtMarks || cellValue;
-                                                                // Handle subject code exceptions if needed from old code
-                                                            } else {
-                                                                cellValue = 'AB';
-                                                            }
+                                                            cellValue = mr1.obtainedMarks || mr1.ObtainedMarks || mr1.estmpS_ObtainedMarks || cellValue;
                                                         } else {
-                                                            // fallback to student_marks
-                                                            const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id));
-                                                            if (mr) cellValue = mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || cellValue;
+                                                            cellValue = subj.estmppsG_GroupObtMarks || cellValue;
                                                         }
                                                     } else if (exam.EME_Id === 98000012) {
-                                                        const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
+                                                        const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 98000012 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
                                                         if (mr1) {
-                                                            if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest || cellValue;
-                                                            } else {
-                                                                cellValue = 'AB';
-                                                            }
+                                                            cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest || mr1.obtainedMarks || cellValue;
                                                         }
                                                     } else {
-                                                        const mr = student.studentmarks?.find((m: any) => m.EME_Id === exam.EME_Id && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id));
+                                                        const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && (m.ismS_Id === subj.ismS_Id));
                                                         if (mr) {
-                                                            if (mr.ESTMPS_PassFailFlg !== 'AB' && mr.ESTMPS_PassFailFlg !== 'M' && mr.ESTMPS_PassFailFlg !== 'L' && mr.PassFailFlag !== 'AB' && mr.PassFailFlag !== 'M' && mr.PassFailFlag !== 'L') {
-                                                                cellValue = mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || mr.GroupMarks || mr.ObtainedGrade || cellValue;
-                                                                // if it's SE subject, we might want to append maxmarks, but we follow standard output
+                                                            if (mr.passFailFlag !== 'AB' && mr.passFailFlag !== 'M' && mr.passFailFlag !== 'L') {
+                                                                cellValue = mr.obtainedMarks || mr.ObtainedMarks || mr.GroupMarks || mr.ObtainedGrade || cellValue;
                                                             } else {
-                                                                cellValue = mr.ESTMPS_PassFailFlg || mr.PassFailFlag;
+                                                                cellValue = mr.passFailFlag;
                                                             }
                                                         }
                                                     }
-
                                                     return (
                                                         <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{cellValue}</td>
                                                     );
@@ -180,37 +165,30 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                             </tr>
                                         ))}
 
-                                        {/* TOTAL row */}
                                         <tr>
                                             <td className='border-black border-[0.5px] p-2 text-left uppercase'>TOTAL</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let totalValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                    if (mr) {
-                                                        totalValue = `${mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || mr.YearlyMarks_Total1 || mr.GroupMarks_Total || 0}/${mr.maxmarks || 0}`;
-                                                    }
+                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                    if (mr) totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{totalValue}</td>;
                                             })}
                                         </tr>
 
-                                        {/* Percentage row */}
                                         <tr>
                                             <td className='border-black border-[0.5px] p-2 text-left uppercase'>PERCENTAGE</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let percValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                    if (mr && (mr.TotalPercentage || mr.GroupMarks_PER)) {
-                                                        percValue = `${(mr.TotalPercentage || mr.GroupMarks_PER).toFixed(0)} %`;
-                                                    }
+                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                    if (mr && mr.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{percValue}</td>;
                                             })}
                                         </tr>
 
-                                        {/* Attendance row */}
                                         <tr>
                                             <td className='border-black border-[0.5px] p-2 text-left'>Attendance</td>
                                             {getgroupdetails?.map((grp: any, gIdx: number) => {
