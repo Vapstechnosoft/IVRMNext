@@ -73,15 +73,14 @@ export default function UpdateMasterAccessoriesForm({ onSuccess, className = '',
     };
 
     const handleReset = () => {
-        if (row) {
-            reset({
-                lmaC_Id: row.lmaC_Id,
-                lmaC_AccessoriesName: row.lmaC_AccessoriesName,
-                lmaC_AccessoriesDesc: row.lmaC_AccessoriesDesc,
-                lmaC_ActiveFlg: row.lmaC_ActiveFlg
-            });
-        }
+        reset({
+            lmaC_Id: row.lmaC_Id,
+            lmaC_AccessoriesName: '',
+            lmaC_AccessoriesDesc: '',
+            lmaC_ActiveFlg: row.lmaC_ActiveFlg
+        });
     };
+
 
     return (
         <div className={className}>

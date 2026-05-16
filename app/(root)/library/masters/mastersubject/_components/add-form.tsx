@@ -101,7 +101,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
             console.log('PAYLOAD:', payload);
 
-            const response = await addOrUpdateMasterSubject(payload);
+            const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response?.success) {
                 toast.success(response.message || 'Subject saved successfully');
