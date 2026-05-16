@@ -92,7 +92,7 @@ export default function ExamElectivesReportPage() {
 
                         return {
                             ismS_Id: 0,
-                            ismS_SubjectName: subjectArray.length > 0 ? subjectArray.join(', ') : '@#$%^&',
+                            ismS_SubjectName: subjectArray.length > 0 ? subjectArray.join(', ') : '',
                             emG_GroupName: grp.emG_GroupName
                         };
                     })
