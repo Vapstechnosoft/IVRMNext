@@ -4,8 +4,11 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterLibraryList } from '@/types/library/masters/masters';
 
+import { auth } from '@/lib/auth';
+
 export async function getMasterLibraryList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmaL_LibraryName');
+    const session = await auth();
+    const urlParams = getSearchParamsUrl({ ...searchParams, mI_Id: session?.mi_id }, 'lmaL_LibraryName');
     const url = `/MasterLibrary/get-master-library-list?${urlParams}`;
     return await api.get<IMasterLibraryList[]>('library', url);
 }
@@ -22,5 +25,5 @@ export async function toggleMasterLibrary(LMAL_Id: number) {
 
 export async function deleteMasterLibrary(id: number) {
     const url = `/MasterLibrary/toggle-master-library?id=${id}`;
-    return await api.delete('fees', url);
+    return await api.delete('library', url);
 }

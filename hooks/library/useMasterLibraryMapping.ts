@@ -15,7 +15,9 @@ export function useMasterLibraryMapping() {
     });
 
     return {
-        libraries: (libraryQuery.data as any)?.data || [],
+        libraries: Array.isArray(libraryQuery.data) 
+            ? libraryQuery.data 
+            : (libraryQuery.data as any)?.data || [],
         isLoading: libraryQuery.isLoading,
         refetchAll: () => {
             queryClient.invalidateQueries({ queryKey: ['MASTER_LIBRARY_LIST'] });

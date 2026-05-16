@@ -208,11 +208,23 @@ export function useDataTableProps(
         messageKey?: string;
     }
 ) {
+    // Handle raw array response directly
+    if (Array.isArray(response)) {
+        return {
+            data: response,
+            totalItems: response.length,
+            success: true,
+            errorMessage: undefined
+        };
+    }
+
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
+    const extractedData = response?.[dataKey] || [];
+    
     return {
-        data: response?.[dataKey] || [],
-        totalItems: response?.[totalKey] || 0,
+        data: extractedData,
+        totalItems: response?.[totalKey] || extractedData.length || 0,
         success: response?.[successKey],
         errorMessage: response?.[messageKey]
     };
