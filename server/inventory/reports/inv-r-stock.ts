@@ -11,8 +11,14 @@ export async function getInvRStockDetails(optionflag: string) {
 export async function getInvRStockReport(payload: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_R_StockFacade/onreport?${urlParams}`;
-    console.log("payload", payload);
-    console.log("urlParams", urlParams);
+
+    const enhancedPayload = {
+        ...payload,
+        search_query: searchParams?.search_query || '',
+        search_column: searchParams?.search_columns || 'All'
+    };
+
+    console.log("enhancedPayload", enhancedPayload);
     console.log("url", url);
-    return await api.post<any>('inventory', url, payload);
+    return await api.post<any>('inventory', url, enhancedPayload);
 }
