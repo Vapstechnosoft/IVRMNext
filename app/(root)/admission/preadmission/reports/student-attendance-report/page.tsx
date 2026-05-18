@@ -2,8 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileSpreadsheet, Printer, Save } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -25,7 +25,7 @@ import { getStudentAttendanceReport } from '@/server/admission/preadmission/repo
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
-import { attendanceColumns } from './_components/columns';
+import { attendanceColumns, getAttendanceColumns } from './_components/columns';
 import { StudentAttendancePrint } from './_components/student-attendance-print';
 
 /* ---------------- Schema ---------------- */
@@ -109,6 +109,8 @@ export default function StudyCertificateReportPage() {
         undefined,
         showGrid
     );
+
+    const columns = useMemo(() => getAttendanceColumns(!!monthDateWise, (studentsAttendance as any)?.data?.monthList), [monthDateWise, studentsAttendance]);
 
     const [allReportData, setAllReportData] = useState<any>(null);
     const [isPrinting, setIsPrinting] = useState(false);
@@ -275,7 +277,18 @@ export default function StudyCertificateReportPage() {
                 return [];
             };
 
+            const getMonthList = (resp: any): any[] => {
+                if (!resp) return [];
+                const payload = resp.data;
+                if (payload?.monthList) return payload.monthList;
+                if (payload?.data?.monthList) return payload.data.monthList;
+                if (resp.monthList) return resp.monthList;
+                return [];
+            };
+
             let allData = getListData(allDataResponse);
+            const excelMonthList = getMonthList(allDataResponse);
+            const excelDays = excelMonthList.length > 0 ? excelMonthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
 
             // Fallback to currently displayed data if fetch failed or returned nothing
             if (allData.length === 0 && studentsReportData) {
@@ -303,18 +316,37 @@ export default function StudyCertificateReportPage() {
             ];
 
             // Define table headers based on attendanceColumns
-            const tableHeaders = ['Sl.No', 'Student Name', 'Admission No', 'Roll No', 'Class Held', 'Class Attended', 'Percentage'];
+            let tableHeaders = ['Sl.No', 'Student Name', 'Admission No', 'Roll No'];
+            if (monthDateWise) {
+                for (const day of excelDays) {
+                    tableHeaders.push(String(day));
+                }
+            }
+            tableHeaders.push('Class Held', 'Class Attended', 'Percentage');
 
             // Prepare table data
-            const tableData = allData.map((row: any) => [
-                row.RowNo,
-                row.name,
-                row.AMST_AdmNo,
-                row.AMAY_RollNo,
-                row.ASA_ClassHeld,
-                row.ASA_Class_Attended,
-                `${Number(row.Percentage || 0).toFixed(2)}%`
-            ]);
+            const tableData = allData.map((row: any) => {
+                const baseData = [
+                    row.RowNo,
+                    row.name,
+                    row.AMST_AdmNo,
+                    row.AMAY_RollNo
+                ];
+
+                if (monthDateWise) {
+                    for (const day of excelDays) {
+                        baseData.push(row[`_${day}`] || '');
+                    }
+                }
+
+                baseData.push(
+                    row.ASA_ClassHeld,
+                    row.ASA_Class_Attended,
+                    `${Number(row.Percentage || 0).toFixed(2)}%`
+                );
+
+                return baseData;
+            });
 
             // Add Total Records row
             const totalRecordsRow = [
@@ -561,28 +593,68 @@ export default function StudyCertificateReportPage() {
                                                     Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
                                                 </span>
                                             )}
-                                            {month && <span>Month: {monthList.find((m) => m.id === month)?.name}</span>}
-                                        </div>
-                                        <div className='mt-2 text-sm font-bold text-red-600'>
-                                            Total Records: {(studentsAttendance as any)?.total ?? 0}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        <GenericDataTable<IStudentAttendanceReportList>
-                            {...tableProps}
-                            ref={tableRef}
-                            columns={attendanceColumns}
-                            isLoading={isLoading}
-                            error={error}
-                            showViewOptions={false}
-                            loadingMessage='Loading Student Attendance Reports...'
-                            noDataTitle='No Data Found'
-                            noDataDescription='No Student Attendance Reports found.'
-                            errorTitle='Error Loading Student Attendance Reports'
-                        />
+                        <style dangerouslySetInnerHTML={{
+                            __html: `
+                            .attendance-table thead th {
+                                background-color: #337ab7 !important;
+                                color: white !important;
+                                border: 1px solid #ddd !important;
+                                text-align: center !important;
+                                font-size: 11px !important;
+                                padding: 8px 4px !important;
+                            }
+                            .attendance-table tbody td {
+                                border: 1px solid #ddd !important;
+                                font-size: 11px !important;
+                                padding: 4px !important;
+                            }
+                            `
+                        }} />
+
+                        {/* Report Header Info */}
+                        <div className='mb-2 flex flex-col gap-2'>
+                            <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2 text-sm font-bold'>
+                                    Total Grid Records : <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-xs text-white'>{(studentsAttendance as any)?.total || 0}</span>
+                                </div>
+                                <div className='flex items-center gap-0'>
+                                    <div className='relative'>
+                                        <input
+                                            type='text'
+                                            placeholder='search here...'
+                                            className='h-8 w-64 border border-gray-300 px-2 text-xs focus:outline-none'
+                                        />
+                                        <div className='absolute right-0 top-0 flex h-8 w-8 items-center justify-center border border-l-0 border-gray-300 bg-gray-50'>
+                                            <Search className='h-4 w-4 text-gray-500' />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='text-[11px] font-bold uppercase'>
+                                Note : P - Present , A - Absent , HO - Holiday , NE - Not Entered
+                            </div>
+                        </div>
+
+                        <div className='attendance-table overflow-x-auto border border-gray-300'>
+                            <GenericDataTable<IStudentAttendanceReportList>
+                                {...tableProps}
+                                ref={tableRef}
+                                columns={columns}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={false}
+                                loadingMessage='Loading Student Attendance Reports...'
+                                noDataTitle='No Data Found'
+                                noDataDescription='No Student Attendance Reports found.'
+                                errorTitle='Error Loading Student Attendance Reports'
+                            />
+                        </div>
 
                         <div className='hidden'>
                             <StudentAttendancePrint
@@ -592,6 +664,7 @@ export default function StudyCertificateReportPage() {
                                 className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
                                 sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}
                                 monthName={monthList.find((m) => m.id === month)?.name}
+                                monthDateWise={!!monthDateWise}
                             />
                         </div>
                     </CollapsibleSection>
