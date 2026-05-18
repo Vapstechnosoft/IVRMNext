@@ -101,7 +101,8 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
             if (selectedRow.invmI_Id && selectedRow.invmI_TaxAplFlg) {
                 setIsLoadingTaxes(true);
                 const res = await getItemTax(selectedRow.invmI_Id);
-                const itemTaxes = res.get_itemTax || [];
+                const rawTaxList = (res as any).get_itemTax;
+                const itemTaxes = Array.isArray(rawTaxList) ? rawTaxList : (rawTaxList?.$values ?? []);
 
                 const selected: Record<number, boolean> = {};
                 const values: Record<number, number> = {};
@@ -147,17 +148,18 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
 
             const payload = { ...data, tax_Applicable: taxApplicable };
             const result = await saveInvMasterItem(payload);
+            const res = result as any;
 
-            if (result.success || result.returnval === true) {
-                const msg = typeof result.message === 'string' ? result.message : (typeof result.returnval === 'string' ? result.returnval : 'Record updated successfully');
+            if (res.success || res.returnval === true) {
+                const msg = typeof res.message === 'string' ? res.message : (typeof res.returnval === 'string' ? res.returnval : 'Record updated successfully');
                 toast.success(msg);
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
-            } else if (result.returnval === 'Duplicate' || result.returnduplicatestatus === 'Duplicate') {
+            } else if (res.returnval === 'Duplicate' || res.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                const msg = typeof result.message === 'string' ? result.message : 'Failed to update record';
+                const msg = typeof res.message === 'string' ? res.message : 'Failed to update record';
                 toast.error(msg);
             }
         } catch (error: any) {

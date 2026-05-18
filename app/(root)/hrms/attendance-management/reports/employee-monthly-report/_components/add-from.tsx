@@ -33,12 +33,14 @@ interface AddEmployeeMonthlyReportFormProps {
     className?: string;
     searchParams?: any;
     groupTypes?: Array<{ label: string; value: string }>;
+    onSearchParamsChange?: (params: Record<string, string | string[] | undefined>) => void;
 }
 
 export default function AddEmployeeMonthlyReportForm({
     onSuccess,
     className = '',
     searchParams,
+    onSearchParamsChange,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     groupTypes = []
 }: AddEmployeeMonthlyReportFormProps) {
@@ -56,7 +58,7 @@ export default function AddEmployeeMonthlyReportForm({
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeMonthlyReportFilterSchema),
-        mode: 'onChange',
+        mode: 'onSubmit',
         defaultValues: {
             type: [],
             department: [],
@@ -163,25 +165,6 @@ export default function AddEmployeeMonthlyReportForm({
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully');
 
-                // Update URL parameters to trigger hook and keep state
-                const params = new URLSearchParams();
-                params.set('fromDate', data.fromDate);
-                params.set('toDate', data.toDate);
-                if (hrmeIds && hrmeIds.length < 1500) {
-                    params.set('employee', hrmeIds);
-                }
-                params.set('allOrIndividual', data.allOrIndividual);
-
-                // Add MultiSelect params
-                data.type.forEach(t => params.append('type', t));
-                data.department.forEach(d => params.append('department', d));
-                data.designation.forEach(d => params.append('designation', d));
-                if (data.reportOptions) {
-                    data.reportOptions.forEach(o => params.append('reportOptions', o));
-                }
-
-                router.push(`${pathname}?${params.toString()}`);
-
                 const nextSearchParams: Record<string, string | string[]> = {
                     fromDate: data.fromDate,
                     toDate: data.toDate,
@@ -203,7 +186,10 @@ export default function AddEmployeeMonthlyReportForm({
                 if (data.reportOptions && data.reportOptions.length === 1) nextSearchParams.reportOptions = data.reportOptions[0];
                 else if (data.reportOptions && data.reportOptions.length > 1) nextSearchParams.reportOptions = data.reportOptions;
 
-                // Update cache with the new reportOptions so page.tsx can read it
+                // Update local search params instead of updating the browser URL
+                onSearchParamsChange?.(nextSearchParams);
+
+                // Update cache with the new reportOptions so the next hook read is cached
                 queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, nextSearchParams], {
                     ...response,
                     reportOptions: data.reportOptions || []
@@ -230,7 +216,8 @@ export default function AddEmployeeMonthlyReportForm({
             reportOptions: []
         });
         clearErrors();
-        router.push(pathname);
+        onSearchParamsChange?.({});
+        router.replace(pathname);
     };
 
     return (

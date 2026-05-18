@@ -1242,3 +1242,31 @@ export interface GM_IThirdPartyTransactionEditdata {
     fmA_Id: number;
     fsS_ToBePaid: number;
 }
+
+export interface StudentPortalPrintDetails {
+    amst_firstname: string;
+    amst_middlename: string;
+    amst_lastname: string;
+    fmh_feename: string;
+    fyp_receipt_no: string;
+    ftp_paid_amt: number;
+    ftp_concession_amt: number;
+    ftp_fine_amt: number;
+    fyp_date: string;
+    classname: string;
+    sectionname: string;
+    fyp_bank_or_cash: string;
+    fmcc_concessionname: string;
+    amst_id: number;
+    admno: string;
+    amst_registrationno: string;
+    fmh_id: number;
+    fathername: string;
+    mothername: string;
+    fyp_dd_cheque_no: string;
+    fyp_dd_cheque_date: string;
+    fyp_remarks: string;
+    rollno: number;
+    fyp_bank_name: string;
+    fma_amount: number;
+}

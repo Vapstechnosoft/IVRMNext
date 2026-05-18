@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -116,10 +116,9 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
                             label='Class Code'
-                            placeholder='Enter Class Code'
                             required
                             id='asmcl_classcode'
-                            placeholder='Enter Class Code (e.g. C01)'
+                            //placeholder='Enter Class Code (e.g. C01)'
                             {...register('asmcl_classcode')}
                             defaultValue={row.asmcL_ClassCode}
                             error={errors.asmcl_classcode?.message}
@@ -127,10 +126,9 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         />
                         <InputText
                             label='Class Name'
-                            placeholder='Enter Class Name'
                             required
                             id='asmcl_classname'
-                            placeholder='Enter Class Name (e.g. Class I)'
+                            //placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
                             onKeyDown={(e) => {
                                 // Allow navigation keys (Backspace, Tab, Arrows, etc.)
@@ -308,28 +306,26 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         </div>
                     </div>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
+                        <div className='flex items-center gap-2 pt-6'>
+                            <Controller
+                                name='asmcl_preadmflag'
+                                control={control}
+                                render={({ field }) => (
+                                    <Checkbox
+                                        id='asmcl_preadmflag'
+                                        checked={field.value === 1}
+                                        onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                                    />
+                                )}
+                            />
+                            <Label
+                                aria-label='Preadmission Class'
+                                htmlFor='asmcl_preadmflag'
+                                className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                 Preadmission Class <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <RadioGroup
-                                defaultValue={String(row.asmcL_PreadmFlag)}
-                                onValueChange={(value) => setValue('asmcl_preadmflag', Number(value))}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='1' id='yes' />
-                                    <Label aria-label='Yes' htmlFor='yes'>
-                                        Yes
-                                    </Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='0' id='no' />
-                                    <Label aria-label='No' htmlFor='no'>
-                                        No
-                                    </Label>
-                                </div>
-                            </RadioGroup>
                         </div>
+                        {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}
                     </div>
 
                     {/* Root Error */}

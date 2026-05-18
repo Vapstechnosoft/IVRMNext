@@ -1,6 +1,5 @@
-
 'use client';
-
+ 
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRGRNSchema, type InvRGRNSchema } from '@/schemas/inventory/reports/inv-r-grn';
@@ -12,14 +11,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { useEffect, useMemo } from 'react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FileText, Filter, Printer, RefreshCcw } from 'lucide-react';
+import { FileText, RefreshCcw } from 'lucide-react';
 import { FormError } from '@/components/ui/extension/field';
 import { format } from 'date-fns';
-
+ 
 interface ReportFormProps {
     onReportGenerated: (data: any, payload: any, total: number) => void;
 }
-
+ 
 export default function ReportForm({ onReportGenerated }: ReportFormProps) {
     const form = useForm<InvRGRNSchema>({
         resolver: zodResolver(invRGRNSchema),
@@ -34,78 +33,133 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
             supplierArray: []
         }
     });
-
+ 
     const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = form;
-
+ 
     // Watched values
     const typeflag = watch('typeflag');
     const optionflag = watch('optionflag');
     const bw_dates = watch('bw_dates');
-
+ 
     // Data Fetching
-    const { data: loadData, refetch: refetchLoadData, isFetching: isLoadDataFetching } = useInvRGRNLoadData(optionflag || '');
+    const { data: loadData, refetch: refetchLoadData } = useInvRGRNLoadData(optionflag || '');
     const generateReportMutation = useInvRGRNReport();
-
+ 
     // Effect to refetch when optionflag changes
     useEffect(() => {
         if (optionflag) {
             refetchLoadData();
-            // Clear previous selections for other arrays to avoid confusion? 
-            // The angular code keeps separate arrays. We can do the same.
-            // But we might want to clear the current relevant array to force fresh selection
             if (optionflag === 'Individual_1') setValue('grnArray', []);
             if (optionflag === 'Item_1') setValue('itemArray', []);
             if (optionflag === 'Supplier') setValue('supplierArray', []);
         }
     }, [optionflag, refetchLoadData, setValue]);
-
+ 
     // Derived options for MultiSelects
+    // Data extraction helper
+    const getDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+
+        // 1. Data is directly in 'data' as an array
+        if (Array.isArray(resData)) return resData;
+
+        // 2. Data is in 'data.$values'
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+
+        // 3. Data is in 'data.get_grn_item_supplier'
+        if (resData?.get_grn_item_supplier) {
+            if (Array.isArray(resData.get_grn_item_supplier)) return resData.get_grn_item_supplier;
+            if (resData.get_grn_item_supplier.$values) return resData.get_grn_item_supplier.$values;
+        }
+
+        // 4. Root level properties
+        if (Array.isArray(data.get_grn_item_supplier)) return data.get_grn_item_supplier;
+        if (data.get_grn_item_supplier?.$values) return data.get_grn_item_supplier.$values;
+
+        return [];
+    };
+
+    const detailsArray = useMemo(() => getDetailsArray(loadData), [loadData]);
+ 
     const grnOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmgrN_GRNNo,
-            value: item.invmgrN_Id?.toString()
-        })) || [];
-    }, [loadData, optionflag]);
-
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmgrN_GRNNo || 'Unknown GRN',
+            value: (item.id || item.invmgrN_Id)?.toString()
+        }));
+    }, [detailsArray]);
+ 
     const itemOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmI_ItemName,
-            value: item.invmI_Id?.toString()
-        })) || [];
-    }, [loadData, optionflag]);
-
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmI_ItemName || 'Unknown Item',
+            value: (item.id || item.invmI_Id)?.toString()
+        }));
+    }, [detailsArray]);
+ 
     const supplierOptions = useMemo(() => {
-        return loadData?.data?.get_grn_item_supplier?.map((item: any) => ({
-            label: item.invmS_SupplierName,
-            value: item.invmS_Id?.toString()
-        })) || [];
-    }, [loadData, optionflag]);
-
+        return detailsArray.map((item: any) => ({
+            label: item.name || item.invmS_SupplierName || 'Unknown Supplier',
+            value: (item.id || item.invmS_Id)?.toString()
+        }));
+    }, [detailsArray]);
+ 
     const onSubmit = (data: InvRGRNSchema) => {
+        const payload = {
+            ...data,
+            optionflag: data.optionflag?.replace('_1', ''), // Strip suffix for backend compatibility
+            bwdateflag: data.bw_dates,
+            startdate: data.startdate ? format(data.startdate, 'yyyy-MM-dd') : "",
+            enddate: data.enddate ? format(data.enddate, 'yyyy-MM-dd') : "",
+            grnArray: data.grnArray?.map((g: any) => ({
+                ...g,
+                INVMGRN_Id: g.invmgrN_Id || g.id || g.INVMGRN_Id
+            })),
+            itemArray: data.itemArray?.map((i: any) => ({
+                ...i,
+                INVMI_Id: i.invmI_Id || i.id || i.INVMI_Id
+            })),
+            supplierArray: data.supplierArray?.map((s: any) => ({
+                ...s,
+                INVMS_Id: s.invmS_Id || s.id || s.INVMS_Id
+            })),
+        };
+
         generateReportMutation.mutate(
             // @ts-ignore - casting simpler types for mock payload
-            { payload: data },
+            { payload: payload },
             {
                 onSuccess: (res) => {
                     if (res.success) {
-                        onReportGenerated(res.data.get_grnreport, data, res.total || 0);
+                        // Handle varied data structures
+                        let reportData = [];
+                        if (Array.isArray(res.data)) {
+                            reportData = res.data;
+                        } else if (res.data?.$values) {
+                            reportData = res.data.$values;
+                        } else if (res.data?.get_grnreport) {
+                            reportData = Array.isArray(res.data.get_grnreport) 
+                                ? res.data.get_grnreport 
+                                : res.data.get_grnreport?.$values || [];
+                        }
+
+                        onReportGenerated(reportData, payload, res.total || 0);
                     }
                 }
             });
     };
-
+ 
     const handleCancel = () => {
         reset();
         onReportGenerated([], null, 0);
     };
-
+ 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <CollapsibleSection
                 title="Report Configuration"
                 defaultOpen={true}
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
                     {/* Report Type Selection */}
                     <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
                         <Label className="font-semibold text-primary">Report Type</Label>
@@ -137,7 +191,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                             )}
                         />
                     </div>
-
+ 
                     {/* Sub Options (Visible only for Overall/Detailed) */}
                     {(typeflag === 'Overall' || typeflag === 'Detailed') && (
                         <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
@@ -151,10 +205,6 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                         value={field.value}
                                         className="flex flex-col space-y-1"
                                     >
-                                        {/* Individual option only for Detailed? Angular logic:
-                                            <label class="radio-inline" ng-show="typeflag=='Detailed'">
-                                                <input type="radio" value="Individual_1" ...>
-                                        */}
                                         {typeflag === 'Detailed' && (
                                             <div className="flex items-center space-x-2">
                                                 <RadioGroupItem value="Individual_1" id="sub1" />
@@ -175,7 +225,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                             {errors.optionflag && <FormError>{errors.optionflag.message}</FormError>}
                         </div>
                     )}
-
+ 
                     {/* Date Filters */}
                     {typeflag !== 'All' && (
                         <div className="space-y-3 bg-muted/20 p-4 rounded-md border">
@@ -193,7 +243,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                 />
                                 <Label htmlFor="bw_dates" className="font-semibold cursor-pointer">Between Dates</Label>
                             </div>
-
+ 
                             {bw_dates && (
                                 <div className="space-y-3">
                                     <div className="flex flex-col gap-1.5">
@@ -233,7 +283,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                         </div>
                     )}
                 </div>
-
+ 
                 {/* Specific Filters (Multi Selects) */}
                 {(optionflag === 'Individual_1' || optionflag === 'Item_1' || optionflag === 'Supplier') && (
                     <div className="p-4 pt-0">
@@ -248,16 +298,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={grnOptions}
                                                 onValueChange={(val) => {
-                                                    // Map string values back to full objects if needed, or just send IDs
-                                                    // The schema expects array/any, server expects object array. 
-                                                    // We'll just map IDs for now and let server handle or map objects here.
-                                                    // Angular code sent full objects. Let's send basic objects.
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmgrN_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmgrN_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmgrN_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmgrN_Id)?.toString())}
                                                 placeholder="Select GRN..."
                                             />
                                         )}
@@ -265,7 +311,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                     {errors.optionflag && !watch('grnArray')?.length && <FormError>Please select at least one GRN</FormError>}
                                 </div>
                             )}
-
+ 
                             {optionflag === 'Item_1' && (
                                 <div className="space-y-2 max-w-xl">
                                     <Label>Select Item <span className="text-destructive">*</span></Label>
@@ -276,12 +322,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={itemOptions}
                                                 onValueChange={(val) => {
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmI_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmI_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmI_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmI_Id)?.toString())}
                                                 placeholder="Select Item..."
                                             />
                                         )}
@@ -289,7 +335,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                     {errors.optionflag && !watch('itemArray')?.length && <FormError>Please select at least one Item</FormError>}
                                 </div>
                             )}
-
+ 
                             {optionflag === 'Supplier' && (
                                 <div className="space-y-2 max-w-xl">
                                     <Label>Select Supplier <span className="text-destructive">*</span></Label>
@@ -300,12 +346,12 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             <MultiSelect
                                                 options={supplierOptions}
                                                 onValueChange={(val) => {
-                                                    const selectedObjects = loadData?.data?.get_grn_item_supplier
-                                                        ?.filter((i: any) => val.includes(i.invmS_Id.toString()))
+                                                    const selectedObjects = detailsArray
+                                                        ?.filter((i: any) => val.includes((i.id || i.invmS_Id)?.toString()))
                                                         .map((i: any) => ({ ...i, checked: true }));
                                                     field.onChange(selectedObjects);
                                                 }}
-                                                defaultValue={field.value?.map((v: any) => v.invmS_Id.toString())}
+                                                defaultValue={field.value?.map((v: any) => (v.id || v.invmS_Id)?.toString())}
                                                 placeholder="Select Supplier..."
                                             />
                                         )}
@@ -316,27 +362,25 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                         </div>
                     </div>
                 )}
-
+ 
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
                     <Button
                         type="submit"
-                        size="lg"
-                        className="w-32"
+                        variant="secondary"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
                         isLoading={generateReportMutation.isPending}
                     >
                         <FileText className="mr-2 h-4 w-4" /> Report
                     </Button>
                     <Button
                         type="button"
-                        variant="destructive"
-                        size="lg"
-                        className="w-32"
+                        variant="outline"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
                         onClick={handleCancel}
                     >
                         <RefreshCcw className="mr-2 h-4 w-4" /> Reset
                     </Button>
                 </div>
-
             </CollapsibleSection>
         </form>
     );

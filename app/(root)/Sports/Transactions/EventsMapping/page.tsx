@@ -17,13 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EventsMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { loadGrid } = useEventMapping(searchParams);
-    const { data: response, isLoading, error } = loadGrid;
+    const { loadData, refetchAll } = useEventMapping(searchParams);
 
-    // We pass the full response to the content component to handle pagination metadata
     return (
-        <FormProvider<any>>
-            <EventsMappingPageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<IEventsMappingData>>
+            <EventsMappingPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }

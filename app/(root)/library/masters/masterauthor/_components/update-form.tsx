@@ -32,7 +32,7 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterAuthorSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onSubmit'
     });
 
     useEffect(() => {
@@ -73,7 +73,18 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmaU_AuthorFirstName: '',
+            lmaU_AuthorMiddleName: '',
+            lmaU_AuthorLastName: '',
+            lmaU_MobileNo: '',
+            lmaU_Address: '',
+            lmaU_EmailId: '',
+            lmaU_PhoneNo: '',
+            lmaU_ActiveFlg: row.lmaU_ActiveFlg
+        });
+    };
 
     return (
         <div className={className}>
@@ -132,23 +143,22 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Update Master Author
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

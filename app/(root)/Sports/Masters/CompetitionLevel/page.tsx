@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCompetitionLevelPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterCompetitionLevels(searchParams);
+    const { loadData, refetchAll } = useMasterCompetitionLevels(searchParams);
 
     return (
         <FormProvider<IMasterCompetitionLevel>>
-            <MasterCompetitionLevelPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterCompetitionLevelPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }

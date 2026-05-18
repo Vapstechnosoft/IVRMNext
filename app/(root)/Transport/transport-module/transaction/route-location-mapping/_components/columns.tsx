@@ -11,12 +11,12 @@ import { useCallback } from 'react';
 export const routeLocationMappingColumns: ColumnDef<IRouteLocationMapping>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' className='justify-center' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='flex justify-center'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
@@ -33,12 +33,16 @@ export const routeLocationMappingColumns: ColumnDef<IRouteLocationMapping>[] = [
     },
     {
         accessorKey: 'trmrL_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => getStatusBadge(row.original.trmrL_ActiveFlag ? 'active' : 'inactive')
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' className='justify-center' />,
+        cell: ({ row }) => (
+            <div className='flex justify-center'>
+                {getStatusBadge(row.original.trmrL_ActiveFlag ? 'active' : 'inactive')}
+            </div>
+        )
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        header: ({ column }) => <div className='text-center w-full'>Action</div>,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -56,11 +60,13 @@ function ActionButtonsCell({ rowData }: { rowData: IRouteLocationMapping }) {
     );
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
-            onToggle={handleToggle}
-            toggleConditionKey='trmrL_ActiveFlag'
-        />
+        <div className='flex justify-center'>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: false, toggle: true, delete: false }}
+                onToggle={handleToggle}
+                toggleConditionKey='trmrL_ActiveFlag'
+            />
+        </div>
     );
 }

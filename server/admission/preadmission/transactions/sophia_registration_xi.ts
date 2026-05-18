@@ -1,53 +1,119 @@
 import { api, ApiResponse } from "@/lib/apiService";
 
-const API_BASE = 'StudentApplication';
-
 export const server = {
     getInitialData: async (orgId: number, instId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/getdpforreg`, { Organization: orgId, Institute: instId });
+        return api.post('preadmission', `/student_application_form/getdpforreg`, { Organization: orgId, Institute: instId });
     },
 
-    getCaste: async (imccId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/getCaste`, { IMCC_Id: imccId });
+    getCaste: async (IMCC_Id: number): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getCaste', { params: { IMCC_Id } });
     },
 
-    onClassChange: async (classId: number, asmayId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/classchange`, { ASMCL_Id: classId, ASMAY_Id: asmayId });
+    onClassChange: async (ASMCL_Id: number, ASMAY_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/classchange`, { ASMCL_Id: ASMCL_Id, ASMAY_Id: ASMAY_Id });
     },
 
-    onClassChangeMaxMinAge: async (classId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/classchangemaxminage`, { ASMCL_Id: classId });
+    onClassChangeMaxMinAge: async (payload: { ASMAY_Id: number; ASMCL_Id: number }): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/classchangemaxminage`, payload);
     },
 
-    getStreams: async (classId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/getstreams`, { ASMCL_Id: classId });
+    getStreams: async (ASMCL_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getstreams?ASMCL_Id=${ASMCL_Id}`, {});
     },
 
-    getSubjects: async (classId: number, asmstId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/GetSubjectsofinstitute`, { ASMCL_Id: classId, ASMST_Id: asmstId });
+    getSubjects: async (ASMAY_Id: number, ASMCL_Id: number, ASMST_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/GetSubjectsofinstitute?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`, {});
     },
 
-    getStates: async (countryId: number): Promise<ApiResponse<any>> => {
-        return api.get('preadmission', `${API_BASE}/getdpstate/${countryId}`);
+    getStates: async (IVRMMC_Id: number): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getdpstate', { params: { IVRMMC_Id } });
     },
 
     getDistricts: async (stateId: number): Promise<ApiResponse<any>> => {
-        return api.get('preadmission', `${API_BASE}/getdpdistrict/${stateId}`);
+        return api.get('preadmission', '/student_application_form/getdpdistrict', { params: { stateId } });
     },
 
-    saveRegistration: async (payload: any): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/`, payload);
+    getEmployees: async (): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getemployees');
     },
 
-    deleteRegistration: async (id: number): Promise<ApiResponse<any>> => {
-        return api.get('preadmission', `${API_BASE}/deletedetails/${id}`);
+    getRoutes: async (TRMA_Id: number): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getroutes', { params: { TRMA_Id } });
     },
 
-    toggleStatus: async (id: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/ActivateDactivate`, { pasr_id: id });
+    getRoutesLocation: async (TRMR_Id: number): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getrouteslocation', { params: { TRMR_Id } });
+    },
+
+    getEditHealthData: async (id: number): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/getEdithelthData', { params: { id } });
+    },
+
+    getStatesSubCasteFather: async (IMC_ID: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getdpstatesubcatsefather?IMC_ID=${IMC_ID}`, {});
+    },
+
+    getApplicationHtml: async (ASMAY_Id: number, ASMCL_Id: number, ASMST_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getapplicationhtml?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`, {});
+    },
+
+    getProspectusDetails: async (PASP_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getdprospectusdetails?PASP_Id=${PASP_Id}`, {});
+    },
+
+    deleteRegistration: async (PASR_Id: number): Promise<ApiResponse<any>> => {
+        return api.delete('preadmission', '/student_application_form/deletedetails', { params: { PASR_Id } });
+    },
+
+    fillProspectus: async (PASP_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/fill_prospectus?PASP_Id=${PASP_Id}`, {});
+    },
+
+    toggleStatus: async (PASR_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/ActivateDactivate?PASR_Id=${PASR_Id}`, {});
+    },
+
+    deleteHealthDetails: async (PASHD_Id: number): Promise<ApiResponse<any>> => {
+        return api.delete('preadmission', '/student_application_form/deletehelthdetails', { params: { PASHD_Id } });
+    },
+
+    printGetHealthData: async (ASMCL_ID: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/printgethelthData?ASMCL_ID=${ASMCL_ID}`, {});
+    },
+
+    getStudentData: async (): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getstudata`, {});
+    },
+
+    getCountOfStudents: async (ASMAY_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/Getcountofstudents?ASMAY_Id=${ASMAY_Id}`, {});
     },
 
     payNow: async (payload: any): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `${API_BASE}/paynow`, payload);
+        return api.post('preadmission', `/student_application_form/paynow`, payload);
+    },
+
+    getCountry: async (): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/country`, {});
+    },
+
+    saveHealthCertificateDetail: async (PASHD_Id: number): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/savehealthcertificatedetail?PASHD_Id=${PASHD_Id}`, {});
+    },
+
+    classOverUnderAge: async (payload: any): Promise<ApiResponse<any>> => {
+        return api.get('preadmission', '/student_application_form/classoverunderage', { params: payload });
+    },
+
+    saveRegistration: async (payload: any): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/SavePreadmissiomRegistrartionDetails`, payload);
+    },
+
+    getStudentPrintData: async (payload: any): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/getstudentprintData`, payload);
+    },
+
+    onClassChangeMaxMinAge: async (payload: { ASMAY_Id: number; ASMCL_Id: number }): Promise<ApiResponse<any>> => {
+        return api.post('preadmission', `/student_application_form/classchangemaxminage`, payload);
     }
 };

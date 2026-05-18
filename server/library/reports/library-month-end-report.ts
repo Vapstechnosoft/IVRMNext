@@ -37,6 +37,7 @@ export async function getLibraryMonthEndReportSearch(data: ILibraryMonthEndRepor
 
     const payload = {
         LMRA_Id: data.LMRA_Id || 0,
+        IE_Name: data.IE_Name || '',
         MI_Id: session.mi_id,
         ASMAY_Id: data.ASMAY_Id,
         year: data.year,
