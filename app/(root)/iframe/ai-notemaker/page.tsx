@@ -81,12 +81,12 @@ export default function AINotemaker() {
             const data = await response.json();
             setResult(data);
             setActiveTab('preview');
-            
+
             let successMsg = 'Content generated successfully';
             if (generateSummary && generateNotes) successMsg = 'Summary and Notes successfully generated';
             else if (generateSummary) successMsg = 'Summary successfully generated';
             else if (generateNotes) successMsg = 'Notes successfully generated';
-            
+
             toast.success(successMsg);
         } catch (error: any) {
             console.error('Notemaker Error:', error);
@@ -141,7 +141,14 @@ export default function AINotemaker() {
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            const lines = doc.splitTextToSize(content, maxWidth);
+
+            // Clean markdown markers for PDF
+            const cleanedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
+                .replace(/^\s*[\*\-]\s+/gm, '• ') // Replace bullets with a clean dot
+                .replace(/^#+\s+/gm, ''); // Remove heading markers
+
+            const lines = doc.splitTextToSize(cleanedContent, maxWidth);
 
             for (const line of lines) {
                 if (yPos > pageHeight - margin) {
@@ -219,20 +226,23 @@ export default function AINotemaker() {
                                                 Document (PDF) <span className='text-destructive'>*</span>
                                             </Label>
                                             {file ? (
-                                                <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5 border-primary/20">
-                                                    <div className="flex items-center gap-3">
-                                                        <FileText className="h-5 w-5 text-primary" />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-bold text-slate-900 line-clamp-1">{file.name}</span>
-                                                            <span className="text-[10px] text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                <div className='flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3'>
+                                                    <div className='flex items-center gap-3'>
+                                                        <FileText className='h-5 w-5 text-primary' />
+                                                        <div className='flex flex-col'>
+                                                            <span className='line-clamp-1 font-bold text-slate-900 text-sm'>
+                                                                {file.name}
+                                                            </span>
+                                                            <span className='text-[10px] text-muted-foreground'>
+                                                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant='ghost'
+                                                        size='sm'
                                                         onClick={() => setFile(null)}
-                                                        className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                    >
+                                                        className='h-8 text-destructive hover:bg-destructive/10 hover:text-destructive'>
                                                         Change
                                                     </Button>
                                                 </div>
@@ -260,7 +270,9 @@ export default function AINotemaker() {
                                                 className='h-10'
                                                 min='1'
                                             />
-                                            <p className='normal-case font-normal text-[10px] text-muted-foreground'>Please enter chapter numbers only</p>
+                                            <p className='font-normal text-[10px] text-muted-foreground normal-case'>
+                                                Please enter chapter numbers only
+                                            </p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -384,7 +396,24 @@ export default function AINotemaker() {
                                         </CardHeader>
                                         <CardContent className='p-8'>
                                             <div className='prose prose-slate max-w-none text-lg text-muted-foreground leading-relaxed'>
-                                                {renderWithBold(result.summary)}
+                                                {result.summary.split('\n').map((line, i) => {
+                                                    const trimmedLine = line.trim();
+                                                    if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+                                                        return (
+                                                            <div key={i} className='mb-2 ml-4 flex items-start'>
+                                                                <span className='mt-1.5 mr-3 text-primary'>•</span>
+                                                                <span className='flex-1'>
+                                                                    {renderWithBold(trimmedLine.substring(1).trim())}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <p key={i} className='mb-3'>
+                                                            {renderWithBold(line)}
+                                                        </p>
+                                                    );
+                                                })}
                                             </div>
                                         </CardContent>
                                     </Card>

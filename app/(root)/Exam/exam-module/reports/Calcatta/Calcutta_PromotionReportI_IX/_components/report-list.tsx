@@ -135,38 +135,44 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                             <tr key={idx}>
                                                 <td className='border-black border-[0.5px] p-2 text-left break-words font-bold'>{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
                                                 {groupwiseexamlist?.map((exam: any, eIdx: number) => {
+                                                    const marks = student.studentmarks?.filter((mrks: any) => {
+                                                        const mSubjId = mrks.ISMS_Id || mrks.ismS_Id;
+                                                        const sSubjId = subj.ISMS_Id || subj.ismS_Id;
+                                                        const mEmeId = mrks.EME_Id || mrks.emE_Id;
+                                                        const gEmeId = exam.EME_Id || exam.emE_Id;
+                                                        const mGrpName = mrks.EMPSG_DisplayName || mrks.empsG_DisplayName;
+                                                        const gGrpName = exam.EMPG_DistplayName || exam.empG_DistplayName;
+
+                                                        const subjMatch = mSubjId && sSubjId && Number(mSubjId) === Number(sSubjId);
+                                                        const grpMatch = !mGrpName || !gGrpName || mGrpName === gGrpName;
+
+                                                        if (exam.EME_ExamName === 'Highest in Class') {
+                                                            return subjMatch && grpMatch && (Number(mEmeId) === 9800000 || Number(mEmeId) === Number(gEmeId));
+                                                        }
+
+                                                        return subjMatch && grpMatch && Number(mEmeId) === Number(gEmeId);
+                                                    });
+
                                                     let cellValue: any = '-';
 
-                                                    if (exam.EME_Id === 9800000) {
-                                                        const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
-                                                        if (mr1) {
-                                                            if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                cellValue = mr1.estmpS_ObtainedMarks || mr1.ObtainedMarks || mr1.YeralyGroupObtMarks || mr1.YearlyMarks || mr1.GroupMarks || mr1.ESTMPPSG_GroupObtMarks || cellValue;
-                                                            } else {
-                                                                cellValue = 'AB';
-                                                            }
+                                                    if (marks && marks.length > 0) {
+                                                        const mr = marks[0]; // Take the first matching mark
+                                                        const passFail = mr.PassFailFlag || mr.passFailFlag;
+                                                        const isAbsent = ['AB', 'M', 'L'].includes(passFail);
+                                                        const isHighestExam = exam.EME_ExamName === 'Highest in Class';
+
+                                                        if (isHighestExam) {
+                                                            cellValue = mr.ESTMPPS_ClassHighest || mr.estmppS_ClassHighest || mr.ESTMPPS_MaxHighest || '';
+                                                        } else if (isAbsent) {
+                                                            cellValue = passFail;
                                                         } else {
-                                                            const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id));
-                                                            if (mr) cellValue = mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || cellValue;
-                                                        }
-                                                    } else if (exam.EME_Id === 98000012) {
-                                                        const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
-                                                        if (mr1) {
-                                                            if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest || cellValue;
-                                                            } else {
-                                                                cellValue = 'AB';
+                                                            cellValue = mr.ObtainedMarks !== undefined ? mr.ObtainedMarks : mr.obtainedMarks;
+                                                            if (cellValue === undefined || cellValue === null) {
+                                                                cellValue = mr.GroupMarks || mr.ObtainedGrade || mr.obtainedGrade || '-';
                                                             }
                                                         }
-                                                    } else {
-                                                        const mr = student.studentmarks?.find((m: any) => m.EME_Id === exam.EME_Id && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id));
-                                                        if (mr) {
-                                                            if (mr.ESTMPS_PassFailFlg !== 'AB' && mr.ESTMPS_PassFailFlg !== 'M' && mr.ESTMPS_PassFailFlg !== 'L' && mr.PassFailFlag !== 'AB' && mr.PassFailFlag !== 'M' && mr.PassFailFlag !== 'L') {
-                                                                cellValue = mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || mr.GroupMarks || mr.ObtainedGrade || cellValue;
-                                                            } else {
-                                                                cellValue = mr.ESTMPS_PassFailFlg || mr.PassFailFlag;
-                                                            }
-                                                        }
+                                                    } else if (exam.EME_Id === 9800000) {
+                                                        cellValue = subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? '-';
                                                     }
 
                                                     return (
@@ -182,10 +188,8 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let totalValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                    if (mr) {
-                                                        totalValue = `${mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || mr.YearlyMarks_Total1 || mr.GroupMarks_Total || 0}/${mr.maxmarks || 0}`;
-                                                    }
+                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                    if (mr) totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center font-bold'>{totalValue}</td>;
                                             })}
@@ -197,10 +201,8 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let percValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                    if (mr && (mr.TotalPercentage || mr.GroupMarks_PER)) {
-                                                        percValue = `${(mr.TotalPercentage || mr.GroupMarks_PER).toFixed(0)} %`;
-                                                    }
+                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                    if (mr && mr.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center font-bold'>{percValue}</td>;
                                             })}

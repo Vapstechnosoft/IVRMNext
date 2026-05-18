@@ -8,6 +8,7 @@ import { getColumns } from './_components/columns';
 import { Search } from 'lucide-react';
 import { useBookCirculationReportSearch } from '@/hooks/library/reports/useBookCirculationReport';
 import { IBookCirculationReportGridData, IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
+import { toast } from 'sonner';
 
 export default function BookCirculationReportPage() {
     const [view, setView] = useState<'form' | 'grid'>('form');
@@ -17,13 +18,16 @@ export default function BookCirculationReportPage() {
     const searchMutation = useBookCirculationReportSearch();
 
     const handleSearch = (data: IBookCirculationReportRequest) => {
-        setMemberType(data.AGType); // Store member type to select columns
+        setMemberType(data.AGType);
         searchMutation.mutate(data, {
             onSuccess: (response) => {
-                const list = response.data?.reportlist || [];
+                // response is now the array directly from the server action
+                const list = Array.isArray(response) ? response : [];
                 setReportData(list);
                 if (list.length > 0) {
                     setView('grid');
+                } else {
+                    toast.info('No records found for the selected criteria');
                 }
             }
         });
@@ -37,7 +41,6 @@ export default function BookCirculationReportPage() {
 
     const handleExport = () => {
         if (reportData.length > 0) {
-            // Placeholder for excel export logic
             console.log('Exporting to Excel...', reportData);
         }
     };
@@ -61,13 +64,13 @@ export default function BookCirculationReportPage() {
             </CollapsibleSection>
 
             {reportData.length > 0 && (
-                <div className="mx-auto max-w-4xl border rounded-sm overflow-hidden shadow-sm bg-white">
-                    {/* Header Bar - Exactly like Reference */}
-                    <div className="bg-[#3f51b5] px-4 py-2 flex items-center justify-between">
-                        <h2 className="text-white font-bold text-sm uppercase tracking-wider">Book Circulation Reports</h2>
+                <div className="mx-auto max-w-5xl border rounded-sm overflow-hidden shadow-sm bg-white">
+                    {/* Header Bar - Standardized Branded Blue */}
+                    <div className="bg-[#4255a7] px-4 py-2 flex items-center justify-between">
+                        <h2 className="text-white font-bold text-sm uppercase tracking-wider">Book Circulation Report</h2>
                     </div>
                     {/* Orange accent line */}
-                    <div className="h-1 bg-[#ff9800]" />
+                    <div className="h-1 bg-[#f47a1f]" />
                     
                     <div className="p-4 space-y-4">
                         {/* Records Count & Search Row */}

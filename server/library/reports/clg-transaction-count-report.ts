@@ -1,3 +1,5 @@
+'use server';
+
 import { auth } from '@/lib/auth';
 import { api } from '@/lib/apiService';
 import type {
@@ -17,22 +19,14 @@ const extractList = (list: any) => {
 };
 
 export async function getCLGTransactionCountReportInitialData() {
-    const session = await auth();
-    if (!session?.mi_id) {
-        throw new Error('Authentication required');
-    }
-
-    const payload = {
-        MI_Id: session.mi_id
-    };
-
     const url = `${FACADE}/library_countreport_getdetails`;
-    const response = await api.get<any>('library', url, { params: payload });
-    const data = response?.data ?? response;
+    const response = await api.get<any>('library', url);
+    const responseData = response?.data || response;
+    const finalData = responseData?.data || responseData;
 
     return {
-        msterliblist1: extractList(data.msterliblist1 || data.alldata || []),
-        yearlist: extractList(data.yearlist || data.acdlist || [])
+        msterliblist1: extractList(finalData.subjectList || finalData.msterliblist1 || finalData.alldata || []),
+        yearlist: extractList(finalData.departmentList || finalData.yearlist || finalData.acdlist || [])
     } as ICLGTransactionCountReportInitialData;
 }
 
@@ -44,12 +38,19 @@ export async function getCLGTransactionCountReportSearch(data: ICLGTransactionCo
 
     const payload = {
         ...data,
-        MI_Id: session.mi_id
+        mI_Id: session.mi_id,
     };
 
-    const url = `${FACADE}/get-transaction-count-report`; // shared with school report usually
+    const url = `${FACADE}/CLGget_report`;
     const response = await api.post<any>('library', url, payload);
     const responseData = response.data || response;
 
-    return extractList(responseData.alldata || responseData.reportlist || responseData.griddata || (Array.isArray(responseData) ? responseData : []));
+    return extractList(
+        responseData.data?.alldata || 
+        responseData.alldata || 
+        responseData.reportlist || 
+        responseData.griddata || 
+        responseData.statuslist ||
+        (Array.isArray(responseData) ? responseData : [])
+    );
 }

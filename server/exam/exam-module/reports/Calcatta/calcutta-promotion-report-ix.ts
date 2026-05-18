@@ -103,21 +103,41 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
     // 2. Map all related data to student details
     const studentListDetails = getstudentdetails.map((stu: any) => {
         // Subjects
-        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         // Marks
-        const studentMarks = getstudentmarksdetails.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentMarks = getstudentmarksdetails.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Exam wise total marks
-        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Remarks
-        const promotionRemarks = getpromotionremarksdetails.find((d: any) => d.amsT_Id === stu.amsT_Id);
+        const promotionRemarks = getpromotionremarksdetails.find((d: any) => {
+            const dId = d.amsT_Id || d.AMST_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        });
         const remarks = promotionRemarks?.eprD_Remarks || '';
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
+        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
+            const dId = d.AMST_Id || d.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        }).map((d: any) => ({
             classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
             emE_Id: d.EME_Id || d.emE_Id,
             classatt: d.PRESENTDAYS || d.presentdays,
@@ -126,10 +146,18 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         }));
 
         // Exam wise total details
-        const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
+        const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
+            const tId = t.AMST_Id || t.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return tId && stuId && Number(tId) === Number(stuId);
+        });
 
         // Skills for the specific student
-        const studentSkills = getstudentwiseskillslist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSkills = getstudentwiseskillslist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            const stuId = stu.amsT_Id || stu.AMST_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         return {
             ...stu,

@@ -28,13 +28,14 @@ export async function saveMasterRoute(data: any) {
 
 export async function routeDropDown() {
     const url = '/master_route/route_drop_down';
-    const res = await api.get<any[]>('transport', url);
+    const res = await api.get<any>('transport', url);
+    console.log("route dropdown api res", res);
     return res;
 }
 
 export async function areaDropDown() {
     const url = '/master_route/area_drop_down';
-    const res = await api.get<any[]>('transport', url);
+    const res = await api.get<any>('transport', url);
     return res;
 }
 
