@@ -93,3 +93,35 @@ export async function getMasterLibraryEditStaff(id: number) {
         return { success: false, message: error?.message || 'Failed to fetch mapping details' };
     }
 }
+
+export async function saveClassMapping(data: { LMAL_Id: number; classlst: { ASMCL_Id: number }[] }) {
+    try {
+        const session = await auth();
+        const payload = {
+            ...data,
+            MI_Id: session?.mi_id
+        };
+        const url = '/MasterLibrary/saveclassdata';
+        return await api.post<any>('library', url, payload);
+    } catch (error: any) {
+        console.error('Error in saveClassMapping:', error);
+        return { success: false, message: error?.message || 'Failed to save class mapping' };
+    }
+}
+
+export async function saveStaffMapping(data: { LUL_Id: number; LMAL_Id: number; IVRMUL_Id: number }) {
+    try {
+        const session = await auth();
+        const payload = {
+            ...data,
+            MI_Id: session?.mi_id
+        };
+        const url = '/MasterLibrary/savestaffdata';
+        return await api.post<any>('library', url, payload);
+    } catch (error: any) {
+        console.error('Error in saveStaffMapping:', error);
+        return { success: false, message: error?.message || 'Failed to save staff mapping' };
+    }
+}
+
+
