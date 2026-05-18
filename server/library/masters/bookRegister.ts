@@ -34,12 +34,15 @@ export async function saveBookRegister(data: BookRegisterPayload) {
     }
 }
 
-export async function deactivateBookRegister(data: { LMB_Id: number; LMB_BookTitle?: string }) {
+export async function deactivateBookRegister(data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string }) {
     try {
-        const response = await api.post<any>('library', `${BASE_URL}deactiveY`, data);
+        const payload = {
+            LMBANO_Id: Number(data.LMBANO_Id || (data as any).lmbanO_Id || data.LMB_Id)
+        };
+        const response = await api.post<any>('library', `/BookRegister/deactiveY`, payload);
         return response;
     } catch (error) {
-        return { success: false, message: 'Failed to delete record' };
+        return { success: false, message: 'Failed to toggle status' };
     }
 }
 
