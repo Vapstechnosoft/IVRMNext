@@ -33,8 +33,13 @@ export const useInvRItemConsumptionReportQuery = (payload: IInvRItemConsumptionP
     return useQuery({
         queryKey: ['invRItemConsumptionReport', payload, searchParams],
         queryFn: () => {
-            if (!payload) return { success: true, data: { get_ICReport: [] }, total: 0, message: '', page: 1, page_size: 10 };
-            return getInvRItemConsumptionReport(payload, searchParams);
+            if (!payload) return { success: true, data: [], total: 0, message: '', page: 1, page_size: 10 };
+            const enhancedPayload = payload ? {
+                ...payload,
+                search_query: searchParams.search_query || '',
+                search_column: searchParams.search_column || 'All'
+            } : null;
+            return getInvRItemConsumptionReport(enhancedPayload, searchParams);
         },
         enabled: !!payload
     });

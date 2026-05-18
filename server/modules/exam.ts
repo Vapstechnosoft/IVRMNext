@@ -22,21 +22,14 @@ export const examModule: IUserAccessibleModules = {
                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
                             title: 'OMR Sheet Evaluator',
                             description: 'Evaluate OMR mark sheets'
-                        }
-                    ]
-                },
-                {
-                    id: 1000,
-                    name: 'AI MCQ QUIZ',
-                    icon: 'Trophy',
-                    pages: [
+                        },
                         {
-                            id: 1002,
-                            name: 'AI Performance Analysis',
-                            icon: 'BarChart',
-                            url: '/Exam/exam-module/ai-performance-analysis',
-                            title: 'AI Performance Analysis',
-                            description: 'Analyze student performance using AI insights'
+                            id: 1000,
+                            name: 'AI MCQ Quiz',
+                            icon: 'Trophy',
+                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
+                            title: 'AI MCQ Quiz',
+                            description: 'Conduct and manage online MCQ quizzes'
                         }
                     ]
                 },

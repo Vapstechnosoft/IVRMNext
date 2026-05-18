@@ -1055,30 +1055,6 @@ export async function getUserAccessibleModules() {
                                             title: 'ClassWise Daily Attendance',
                                             description: 'ClassWise Daily Attendance'
                                         },
-                                        // {
-                                        //     id: 596,
-                                        //     name: 'Student Search',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/StudentSearch',
-                                        //     title: 'Student Search',
-                                        //     description: 'Student Search'
-                                        // },
-                                        // {
-                                        //     id: 597,
-                                        //     name: 'Students Search Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/StudentsSearchReport',
-                                        //     title: 'Students Search Report',
-                                        //     description: 'Students Search Report'
-                                        // },
-                                        // {
-                                        //     id: 598,
-                                        //     name: 'Date Of Birth Certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/DateOfBirthCertificate',
-                                        //     title: 'Date Of Birth Certificate',
-                                        //     description: 'Date Of Birth Certificate'
-                                        // },
                                         {
                                             id: 599,
                                             name: 'Sophia study certificate',
@@ -1087,22 +1063,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Sophia study certificate',
                                             description: 'Sophia study certificate'
                                         },
-                                        // {
-                                        //     id: 600,
-                                        //     name: 'SophiaRegistrationXI',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistrationXI',
-                                        //     title: 'SophiaRegistrationXI',
-                                        //     description: 'SophiaRegistrationXI'
-                                        // },
-                                        // {
-                                        //     id: 600,
-                                        //     name: 'SophiaRegistration',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/SophiaRegistration',
-                                        //     title: 'SophiaRegistration',
-                                        //     description: 'SophiaRegistration'
-                                        // },
+                                        {
+                                            id: 6000,
+                                            name: 'SophiaRegistrationXI',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistrationXI',
+                                            title: 'SophiaRegistrationXI',
+                                            description: 'SophiaRegistrationXI'
+                                        },
+                                        {
+                                            id: 6001,
+                                            name: 'SophiaRegistration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/SophiaRegistration',
+                                            title: 'SophiaRegistration',
+                                            description: 'SophiaRegistration'
+                                        },
                                         {
                                             id: 601,
                                             name: 'OverallDailyAttendanceReport',
@@ -2121,11 +2097,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 522,
-                                            name: 'Fee Trail Audit Reoport ST JAMES',
+                                            name: 'Fee Trail Audit Report ST JAMES',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feetrailauditreport',
-                                            title: 'Fee Trail Audit Reoport ST JAMES',
-                                            description: 'Manage Fee Trail Audit Reoport ST JAMES'
+                                            title: 'Fee Trail Audit Report ST JAMES',
+                                            description: 'Manage Fee Trail Audit Report ST JAMES'
                                         },
                                         {
                                             id: 524,
@@ -2159,14 +2135,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee PreAdmission Transaction ST Marys',
                                             description: 'Manage Fee PreAdmission Transaction ST Marys'
                                         },
-                                        {
-                                            id: 528,
-                                            name: 'Mess Attendance Entry Vishwadarshana',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/messattendanceentryvishwa',
-                                            title: 'Mess Attendance Entry Vishwadarshana',
-                                            description: 'Manage Mess Attendance Entry Vishwadarshana'
-                                        },
+                                        // {
+                                        //     id: 528,
+                                        //     name: 'Mess Attendance Entry Vishwadarshana',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/messattendanceentryvishwa',
+                                        //     title: 'Mess Attendance Entry Vishwadarshana',
+                                        //     description: 'Manage Mess Attendance Entry Vishwadarshana'
+                                        // },
                                         {
                                             id: 529,
                                             name: 'Fee Collection Sophia',
@@ -2184,12 +2160,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Fee Receipt Delete Report Nagarjuna'
                                         },
                                         {
-                                            id: 531,
-                                            name: 'Portal Fee Receipt',
+                                            id: 530,
+                                            name: 'Fee Collection Statement Report Nagarjuna',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/portalfeereceipt',
-                                            title: 'Portal Fee Receipt',
-                                            description: 'Manage Portal Fee Receipt'
+                                            url: '/fees/feereports/feecollectionstatementreportnagarjuna',
+                                            title: 'Fee Collection Statement Report Nagarjuna',
+                                            description: 'Manage Fee Collection Statement Report Nagarjuna'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'Daily Fee Collection Report St Marys',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/dailyfeeCollectionreportstmarys',
+                                            title: 'Daily Fee Collection Report St Marys',
+                                            description: 'Manage Daily Fee Collection Report St Marys'
+                                        },
+                                        {
+                                            id: 530,
+                                            name: 'College Fee Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/collegefeetransaction',
+                                            title: 'College Fee Transaction',
+                                            description: 'College Fee Transaction'
                                         }
                                     ]
                                 }
@@ -2220,6 +2212,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/omr-evaluation/omr-mark-sheet-evaluation',
                                             title: 'OMR Sheet Evaluator',
                                             description: 'Evaluate OMR mark sheets'
+                                        },
+                                        {
+                                            id: 1000,
+                                            name: 'AI MCQ Quiz',
+                                            icon: 'Trophy',
+                                            url: '/Exam/exam-module/online-quiz/online-mcq-quiz',
+                                            title: 'AI MCQ Quiz',
+                                            description: 'Conduct and manage online MCQ quizzes'
                                         }
                                     ]
                                 },
@@ -2879,7 +2879,6 @@ export async function getUserAccessibleModules() {
                                             "title": "Baldwin Exam Hallticket",
                                             "description": "Baldwin Exam Hallticket"
                                         }
-
                                     ]
                                 },
                                 {
@@ -9128,6 +9127,22 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/masters/feeonlinpayment',
                                             title: 'Fee Online Payment',
                                             description: 'Pay Fees Online'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Student Fee Details',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedetails',
+                                            title: 'Student Fee Details',
+                                            description: 'Manage Student Fee Details'
+                                        },
+                                        {
+                                            id: 531,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/portalfeereceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'Manage Portal Fee Receipt'
                                         }
                                     ]
                                 }

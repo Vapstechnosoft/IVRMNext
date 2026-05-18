@@ -32,8 +32,14 @@ export async function addOrUpdateMasterTimeSlab(data: any) {
 export async function deactivateMasterTimeSlab(id: number) {
     try {
         const session = await auth();
-        const url = `/MasterTimeSlab/toggle-master-timeslab/${id}?MI_Id=${session?.mi_id}`;
-        return await api.post<any>('library', url, {});
+        const url = `/MasterTimeSlab/toggle-master-timeslab/${id}`;
+        return await api.put<any>('library', url);
+
+
+
+
+
+
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to update status' };
     }

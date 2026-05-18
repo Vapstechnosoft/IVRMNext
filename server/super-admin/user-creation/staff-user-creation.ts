@@ -362,19 +362,24 @@ export async function getSearchListGridByInstituteName(mi_id: number, searchPara
     }
 }
 
-export async function getUsernameOnStaffSelection(hrme_id: number, mi_id: number) {
+export async function getUsernameOnStaffSelection(hrme_id: number, mi_id: number, ivrmrt_id: number) {
     try {
-        console.info('📡 [SERVER] Fetching Username for Staff Selection:', { hrme_id, mi_id });
-        const response = await api.get<any>(API_KEY, `StaffLogin/get_username_onchange_of_single_staff_selection/${hrme_id}/${mi_id}`);
+        console.info('📡 [SERVER] Fetching Username for Staff Selection:', { hrme_id, mi_id, ivrmrt_id });
+        const response = await api.get<any>(API_KEY, `StaffLogin/get_username_onchange_of_single_staff_selection/${hrme_id}/${mi_id}/${ivrmrt_id}`);
 
         if (response.success && response.data) {
-            const extractedData = Array.isArray(response.data)
+            let extractedData = Array.isArray(response.data)
                 ? response.data
                 : (response.data.$values || response.data);
 
+            // If it's still an object (not an array), wrap it in an array
+            if (!Array.isArray(extractedData)) {
+                extractedData = [extractedData];
+            }
+
             return {
                 success: true,
-                data: Array.isArray(extractedData) ? extractedData : []
+                data: extractedData
             };
         }
         return { success: false, message: response.message || 'Failed to fetch username', data: [] };
@@ -508,5 +513,44 @@ export async function getSavedListGridOnChangeOfStaff(
     } catch (error: any) {
         console.error('❌ [SERVER] getSavedListGridOnChangeOfStaff error:', error);
         return { success: false, message: error.message || 'Failed to fetch saved list', data: [], total: 0, page: 1, page_size: 10 };
+    }
+}
+
+
+export async function getMasterPageListGridOnChangeOfModule(
+    User_Name: string,
+    MI_Id: number,
+    IVRMRT_Id: number,
+    ivrmm_id: number[],
+    mi_ids: number[]
+) {
+    try {
+        console.info('📡 [SERVER] Fetching Master Page List for Modules:', { User_Name, MI_Id, IVRMRT_Id, ivrmm_id, mi_ids });
+
+        const params = new URLSearchParams();
+        params.append('User_Name', User_Name);
+        params.append('MI_Id', String(MI_Id));
+        params.append('IVRMRT_Id', String(IVRMRT_Id));
+
+        ivrmm_id.forEach((id) => params.append('ivrmm_id', String(id)));
+        mi_ids.forEach((id) => params.append('mi_ids', String(id)));
+
+        const url = `StaffLogin/get_staff_page_privilege?${params.toString()}`;
+        const response = await api.get<any>(API_KEY, url);
+
+        const showgrid1 = response.data && Array.isArray(response.data.showgrid1) ? response.data.showgrid1 : [];
+        const savedgrid = response.data && Array.isArray(response.data.savedgrid) ? response.data.savedgrid : [];
+
+        return {
+            success: true,
+            data: showgrid1,
+            savedGrid: savedgrid,
+            total: Number(response.total || showgrid1.length),
+            page: Number(response.page || 1),
+            page_size: Number(response.page_size || 10)
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] getMasterPageListGridOnChangeOfModule error:', error);
+        return { success: false, message: error.message || 'Failed to fetch master page list for modules', data: [], savedGrid: [] };
     }
 }

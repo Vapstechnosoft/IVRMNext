@@ -44,31 +44,35 @@ export default function AddMasterRackForm({ onSuccess, className = '', subjectLi
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload = {
-                ...data,
-                lmrA_ActiveFlag: true,
-                lmrA_Id: data.lmrA_Id || 0,
-                lmraS_Id: 0 // Defaulting as it isn't in the form, legacy hidden input had it.
-            };
+            const response: any = await addOrUpdateMasterRack(data);
 
-            const response = await addOrUpdateMasterRack(payload);
-
-            if (response.returnval) {
-                toast.success('Record Saved Successfully!!!');
+            if (response.returnval || response.success) {
+                toast.success(response.message || 'Record Saved Successfully!!!');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else if (response.duplicate) {
-                toast.error('Record already exist');
+                toast.error(response.message || 'Record already exist');
             } else {
-                toast.error('Record Not Saved Successfully!!!');
+                toast.error(response.message || 'Record Not Saved Successfully!!!');
             }
+
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmrA_BuildingName: '',
+            lmrA_RackName: '',
+            lmrA_DisplayColour: '',
+            lmrA_FloorName: '',
+            lmrA_Location: '',
+            lmS_Id: 0
+        });
+    };
+
 
     return (
         <div className={className}>
