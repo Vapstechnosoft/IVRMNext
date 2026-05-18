@@ -2,40 +2,74 @@
 
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
-import { Controller, UseFormReturn } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { FormError } from '@/components/ui/extension/field';
 import { DatePicker } from '@/components/ui/date-picker';
-
-import {
-    EmployeePunchAttendanceFormValues,
-} from '@/hooks/staff-portal/useEmployeePunchAttendance';
-
+import { useEmployeePunchAttendanceReport } from '@/hooks/staff-portal/useEmployeePunchAttendance';
 import { IEmployeeDetails } from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
 
 interface EmployeePunchAttendanceFilterProps {
-    form: UseFormReturn<EmployeePunchAttendanceFormValues>;
     employeeDetails: IEmployeeDetails | null;
-    onSubmit: (values: EmployeePunchAttendanceFormValues) => void;
-    isLoading: boolean;
+    setReportData: (data: any) => void;
 }
 
+const formSchema = z.object({
+    fromdate: z.string().min(1, 'From date is required.'),
+    todate: z.string().min(1, 'To date is required.'),
+});
+
+type EmployeePunchAttendanceFormValues = z.infer<typeof formSchema>;
+
 export const EmployeePunchAttendanceFilter = ({
-    form,
     employeeDetails,
-    onSubmit,
-    isLoading,
+    setReportData,
 }: EmployeePunchAttendanceFilterProps) => {
+    const { getReport, isLoading } = useEmployeePunchAttendanceReport();
+
+    const form = useForm<EmployeePunchAttendanceFormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            fromdate: '',
+            todate: '',
+        },
+    });
+
+    console.log("employeeDetails", employeeDetails)
+
     const {
         control,
         handleSubmit,
         watch,
-        setValue,
         formState: { errors },
     } = form;
+
+    console.log("form errors", errors);
+
+    const onReportSubmit = async (values: EmployeePunchAttendanceFormValues) => {
+        const payload = {
+            fromdate: format(new Date(values.fromdate), 'yyyy-MM-dd'),
+            todate: format(new Date(values.todate), 'yyyy-MM-dd'),
+        };
+        console.log("payload", payload);
+
+        const response = await getReport(payload);
+        console.log("response", response)
+
+        if (response.success && response.data) {
+            setReportData(response.data);
+            toast.success('Report fetched successfully');
+        } else {
+            setReportData([]);
+            toast.error(response.message || 'No Record Found');
+        }
+    };
 
     const fromDate = watch('fromdate');
 
@@ -48,7 +82,7 @@ export const EmployeePunchAttendanceFilter = ({
             </div>
 
             <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <form onSubmit={handleSubmit(onReportSubmit)} className='space-y-6'>
                     {/* Employee Details */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                         <div className='space-y-4'>
@@ -70,7 +104,7 @@ export const EmployeePunchAttendanceFilter = ({
                                 </label>
 
                                 <div className='w-2/3 p-2 bg-gray-50 rounded border border-gray-200 text-sm'>
-                                    {employeeDetails?.hrmdeS_DesignationName || '-'}
+                                    {employeeDetails?.hrmdeS_DesignationName || 'Loading...'}
                                 </div>
                             </div>
                         </div>
@@ -82,7 +116,7 @@ export const EmployeePunchAttendanceFilter = ({
                                 </label>
 
                                 <div className='w-2/3 p-2 bg-gray-50 rounded border border-gray-200 text-sm'>
-                                    {employeeDetails?.hrmD_DepartmentName || '-'}
+                                    {employeeDetails?.hrmD_DepartmentName || 'Loading...'}
                                 </div>
                             </div>
 
@@ -97,13 +131,13 @@ export const EmployeePunchAttendanceFilter = ({
                                             new Date(employeeDetails.hrmE_DOJ),
                                             'dd-MM-yyyy'
                                         )
-                                        : '-'}
+                                        : 'Loading...'}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Date Filters */}
+                    
                     {/* Date Filters */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-4'>
                         {/* From Date */}
