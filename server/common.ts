@@ -4455,7 +4455,7 @@ export async function getUserAccessibleModules() {
                                         //             description: 'View All Job Postings'
                                         //         }
                                     ]
-                                }
+                                },
                                 // {
                                 //     id: 3,
                                 //     name: 'MRF Approval',
@@ -4486,29 +4486,29 @@ export async function getUserAccessibleModules() {
                                 //         }
                                 //     ]
                                 // },
-                                // {
-                                //     id: 5,
-                                //     name: 'Reports',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Report',
-                                //             icon: 'Users',
-                                //             url: '/hrms/recruitment/reports/candidate-report',
-                                //             title: 'Candidate Report',
-                                //             description: 'Candidate Summary Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Interview Report',
-                                //             icon: 'ClipboardList',
-                                //             url: '/hrms/recruitment/reports/interview-report',
-                                //             title: 'Interview Report',
-                                //             description: 'Interview Summary Report'
-                                //         }
-                                //     ]
-                                // }
+                                {
+                                    id: 5,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Candidate Report',
+                                            icon: 'Users',
+                                            url: '/hrms/recruitment/reports/candidate-report',
+                                            title: 'Candidate Report',
+                                            description: 'Candidate Summary Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Interview Report',
+                                            icon: 'ClipboardList',
+                                            url: '/hrms/recruitment/reports/interview-report',
+                                            title: 'Interview Report',
+                                            description: 'Interview Summary Report'
+                                        }
+                                    ]
+                                }
                             ]
                         },
                         {

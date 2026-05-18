@@ -14,7 +14,7 @@ export default function EmployeePunchAttendancePage() {
                 employeeDetails={employeeDetails}
                 setReportData={setReportData}
             />
-            {reportData && reportData.length > 0 && (
+            {reportData && reportData?.length > 0 && (
                 <EmployeePunchAttendanceView data={reportData} />
             )}
         </div>
