@@ -1,9 +1,11 @@
 export interface ICLGTransactionCountReportRequest {
+    mI_Id?: number;
+    asmaY_Id: number;
+    issue_Date: string;
+    issueToDate: string;
     statuscount: boolean;
-    Issue_Date?: string;
-    IssueToDate?: string;
-    ASMAY_Id: number;
-    LMAL_Id: number;
+    lmaL_Id: number;
+    type: string;
 }
 
 export interface ICLGTransactionCountReportGridData {

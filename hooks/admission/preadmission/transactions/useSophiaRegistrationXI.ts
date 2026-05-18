@@ -16,7 +16,7 @@ export const useSophiaRegistrationXICaste = () => {
 
 export const useSophiaRegistrationXIClassChange = () => {
     return useMutation({
-        mutationFn: (payload: { classId: number; asmayId: number }) => server.onClassChange(payload.classId, payload.asmayId),
+        mutationFn: (payload: { ASMCL_Id: number; ASMAY_Id: number }) => server.onClassChange(payload.ASMCL_Id, payload.ASMAY_Id),
     });
 };
 
@@ -28,7 +28,8 @@ export const useSophiaRegistrationXIStreams = () => {
 
 export const useSophiaRegistrationXISubjects = () => {
     return useMutation({
-        mutationFn: (payload: { classId: number; asmstId: number }) => server.getSubjects(payload.classId, payload.asmstId),
+        mutationFn: (payload: { ASMAY_Id: number; ASMCL_Id: number; ASMST_Id: number }) => 
+            server.getSubjects(payload.ASMAY_Id, payload.ASMCL_Id, payload.ASMST_Id),
     });
 };
 
@@ -71,5 +72,114 @@ export const useSophiaRegistrationXIToggleStatus = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sophiaRegistrationXIInitialData'] });
         },
+    });
+};
+
+export const useSophiaRegistrationXIEmployees = () => {
+    return useMutation({
+        mutationFn: () => server.getEmployees(),
+    });
+};
+
+export const useSophiaRegistrationXIRoutes = () => {
+    return useMutation({
+        mutationFn: (trmaId: number) => server.getRoutes(trmaId),
+    });
+};
+
+export const useSophiaRegistrationXIRoutesLocation = () => {
+    return useMutation({
+        mutationFn: (trmrId: number) => server.getRoutesLocation(trmrId),
+    });
+};
+
+export const useSophiaRegistrationXIEditHealthData = () => {
+    return useMutation({
+        mutationFn: (id: number) => server.getEditHealthData(id),
+    });
+};
+
+export const useSophiaRegistrationXIStatesSubCasteFather = () => {
+    return useMutation({
+        mutationFn: (imcId: number) => server.getStatesSubCasteFather(imcId),
+    });
+};
+
+export const useSophiaRegistrationXIApplicationHtml = () => {
+    return useMutation({
+        mutationFn: (payload: { ASMAY_Id: number; ASMCL_Id: number; ASMST_Id: number }) => 
+            server.getApplicationHtml(payload.ASMAY_Id, payload.ASMCL_Id, payload.ASMST_Id),
+    });
+};
+
+export const useSophiaRegistrationXIProspectusDetails = () => {
+    return useMutation({
+        mutationFn: (paspId: number) => server.getProspectusDetails(paspId),
+    });
+};
+
+export const useSophiaRegistrationXIFillProspectus = () => {
+    return useMutation({
+        mutationFn: (paspId: number) => server.fillProspectus(paspId),
+    });
+};
+
+export const useSophiaRegistrationXIDeleteHealthDetails = () => {
+    return useMutation({
+        mutationFn: (id: number) => server.deleteHealthDetails(id),
+    });
+};
+
+export const useSophiaRegistrationXIPrintGetHealthData = () => {
+    return useMutation({
+        mutationFn: (asmclId: number) => server.printGetHealthData(asmclId),
+    });
+};
+
+export const useSophiaRegistrationXIStudentData = () => {
+    return useMutation({
+        mutationFn: () => server.getStudentData(),
+    });
+};
+
+export const useSophiaRegistrationXICountOfStudents = () => {
+    return useMutation({
+        mutationFn: (asmayId: number) => server.getCountOfStudents(asmayId),
+    });
+};
+
+export const useSophiaRegistrationXIPayNow = () => {
+    return useMutation({
+        mutationFn: (payload: any) => server.payNow(payload),
+    });
+};
+
+export const useSophiaRegistrationXICountry = () => {
+    return useMutation({
+        mutationFn: () => server.getCountry(),
+    });
+};
+
+export const useSophiaRegistrationXISaveHealthCertificateDetail = () => {
+    return useMutation({
+        mutationFn: (pashdId: number) => server.saveHealthCertificateDetail(pashdId),
+    });
+};
+
+export const useSophiaRegistrationXIClassOverUnderAge = () => {
+    return useMutation({
+        mutationFn: (payload: any) => server.classOverUnderAge(payload),
+    });
+};
+
+export const useSophiaRegistrationXIStudentPrintData = () => {
+    return useMutation({
+        mutationFn: (payload: any) => server.getStudentPrintData(payload),
+    });
+};
+
+export const useSophiaRegistrationXIClassMaxMinAge = () => {
+    return useMutation({
+        mutationFn: (payload: { ASMAY_Id: number; ASMCL_Id: number }) => server.onClassChangeMaxMinAge(payload),
     });
 };

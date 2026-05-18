@@ -898,3 +898,33 @@ export const feePortalReceiptSchema = z.object({
             .min(1, 'Receipt Name is required')
     )
 });
+
+export const feeCollectionstatementNagarjunaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    organizationId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Organization Name is required',
+                invalid_type_error: 'Organization Name is required'
+            })
+            .min(1, 'Organization Name is required')
+    ),
+    radio_val: z.enum(['All', 'Branchwise/Classwise', 'Hostel', 'Transport']).default('All')
+});

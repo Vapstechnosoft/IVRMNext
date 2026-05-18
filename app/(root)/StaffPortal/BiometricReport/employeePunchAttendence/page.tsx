@@ -14,6 +14,9 @@ export default function EmployeePunchAttendancePage() {
         onReportSubmit,
     } = useEmployeePunchAttendance();
 
+    console.log("employeeDetails", employeeDetails);
+    console.log("reportData", reportData);
+
     return (
         <div className='container mx-auto p-4 max-w-5xl'>
             <EmployeePunchAttendanceFilter

@@ -39,7 +39,8 @@ export const useInvVendorPaymentReportQuery = (payload: IInvVendorPaymentReportP
             // Inject search parameters into payload for backend compatibility
             const enhancedPayload = {
                 ...payload,
-                search_query: searchParams.search_query || ''
+                search_query: searchParams.search_query || '',
+                search_columns: searchParams.search_columns || ''
             };
             return getInvVendorPaymentReport(enhancedPayload, searchParams);
         },

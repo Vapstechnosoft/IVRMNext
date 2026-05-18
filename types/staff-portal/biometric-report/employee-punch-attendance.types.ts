@@ -1,6 +1,3 @@
-export interface IEmployeePunchAttendanceInitialData {
-    filldepartment: IEmployeeDetails[];
-}
 
 export interface IEmployeeDetails {
     empFname: string;
