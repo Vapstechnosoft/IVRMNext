@@ -16,6 +16,10 @@ export const overallColumns: ColumnDef<IInvVendorPaymentOverallReport>[] = [
         header: "Supplier",
     },
     {
+        accessorKey: "invmgrN_GRNNo",
+        header: "GRN No",
+    },
+    {
         accessorKey: "invspT_PaymentDate",
         header: "Payment Date",
         cell: ({ row }) => {
@@ -28,9 +32,19 @@ export const overallColumns: ColumnDef<IInvVendorPaymentOverallReport>[] = [
         header: "Mode Of Payment",
     },
     {
+        accessorKey: "invspT_ChequeDDNo",
+        header: "Cheque/DD No",
+        cell: ({ row }) => row.original.invspT_ChequeDDNo || "-",
+    },
+    {
+        accessorKey: "invspT_BankName",
+        header: "Bank Name",
+        cell: ({ row }) => row.original.invspT_BankName || "-",
+    },
+    {
         accessorKey: "invmgrN_TotalPaid",
         header: "Amount",
-        cell: ({ row }) => row.original.invmgrN_TotalPaid
+        cell: ({ row }) => Number(row.original.invmgrN_TotalPaid || 0).toFixed(2)
     },
     {
         accessorKey: "invspT_Remarks",

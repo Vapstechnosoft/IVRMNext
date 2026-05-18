@@ -89,6 +89,9 @@ export interface IBookRegisterList {
     lmrA_Id: number | null; // Rack ID
     authoR_FullName: string; // Author Full Name
     lmaU_AuthorFirstName: string; // Author First Name
+    lmB_FirstSummary?: string;
+    lmB_SecondSummary?: string;
+    lmB_ThirdSummary?: string | number;
 
     lmB_PublishedYear?: number | null; // Published Year
     lmaU_AuthorMiddleName?: string | null; // Author Middle Name

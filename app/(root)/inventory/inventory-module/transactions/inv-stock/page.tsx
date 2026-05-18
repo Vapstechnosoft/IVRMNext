@@ -41,12 +41,17 @@ export default function InvStockPage(props: { searchParams: SearchParams }) {
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('asc')
     );
+    const [searchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
         search_query: searchQuery,
+        search_columns: searchColumns,
         sort_column: sortColumn,
         sort_direction: sortDirection
     };
@@ -120,6 +125,7 @@ function InvStockPageContent({
                         isLoading={isLoading}
                         error={error}
                         isSearchRequired={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Retrieving stock records...'
                         noDataTitle='No Stock Records'

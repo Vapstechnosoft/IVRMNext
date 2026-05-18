@@ -12,19 +12,41 @@ import { CLGTransactionCountColumns, CLGTransactionStatusColumns } from './_comp
 import { ReportForm } from './_components/report-form';
 
 import { exportToExcel } from '@/lib/export-to-file';
+import Swal from 'sweetalert2';
 
 export default function CLGTransactionCountReportPage() {
     const [reportData, setReportData] = useState<ICLGTransactionCountReportGridData[]>([]);
     const [isStatusCount, setIsStatusCount] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
 
     const searchMutation = useCLGTransactionCountReportSearch();
 
     const handleSearch = (data: ICLGTransactionCountReportRequest) => {
         setIsStatusCount(data.statuscount);
+        setHasSearched(false);
         searchMutation.mutate(data, {
             onSuccess: (response: any) => {
                 const data = (response.alldata || response.reportlist || response.griddata || (Array.isArray(response) ? response : [])) as ICLGTransactionCountReportGridData[];
                 setReportData(data);
+                setHasSearched(true);
+                if (data.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Records',
+                        text: 'records is not there',
+                        confirmButtonColor: '#4251b1'
+                    });
+                }
+            },
+            onError: (error: any) => {
+                setHasSearched(true);
+                setReportData([]);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error?.message || 'Failed to fetch report data',
+                    confirmButtonColor: '#ff5a30'
+                });
             }
         });
     };
@@ -58,9 +80,14 @@ export default function CLGTransactionCountReportPage() {
                     isLoading={searchMutation.isPending} 
                     onPrint={() => window.print()}
                     onExport={handleExport}
+                    onCancel={() => {
+                        setReportData([]);
+                        setHasSearched(false);
+                    }}
                     hasData={reportData.length > 0}
                 />
             </CollapsibleSection>
+
 
             {reportData.length > 0 && (
                 <CollapsibleSection title='Report Grid' defaultOpen={true}>

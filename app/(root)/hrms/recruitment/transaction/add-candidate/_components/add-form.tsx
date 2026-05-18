@@ -470,13 +470,18 @@ export default function AddCandidateForm({
         HRCD_NatureOfWork: (candidateDetails as any)?.hrcD_NatureOfWork || "",
         HRCD_ScopeOfService:
           (candidateDetails as any)?.hrcD_ScopeOfService || "",
+        HRCD_NationalityId:Number(data.nationality),
+        HRCD_CasteId:Number(data.caste),
+        HRCD_Religion:Number(data.religion),
+        HRCD_MaritalStatus:Number(data.maritalStatus),
+        HRCD_BloodGroup:data.bloodGroup,
       };
       console.log("payload", payload);
 
       saveCandidate(payload, {
         onSuccess: (res) => {
           if (res.success) {
-            reset();
+            reset(); 
             onSuccess?.();
           }
         },

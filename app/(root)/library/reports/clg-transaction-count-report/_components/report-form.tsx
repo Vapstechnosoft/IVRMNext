@@ -14,11 +14,12 @@ import { format } from 'date-fns';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    LMAL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-    ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+    lmaL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
+    asmaY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     statuscount: z.boolean().default(false),
-    Issue_Date: z.date({ required_error: 'From Date is required' }),
-    IssueToDate: z.date({ required_error: 'To Date is required' })
+    issue_Date: z.date({ required_error: 'From Date is required' }),
+    issueToDate: z.date({ required_error: 'To Date is required' }),
+    type: z.string().default('Student')
 });
 
 interface ReportFormProps {
@@ -26,10 +27,11 @@ interface ReportFormProps {
     isLoading: boolean;
     onPrint?: () => void;
     onExport?: () => void;
+    onCancel?: () => void;
     hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
     const { data: initialDataWrapper, isLoading: isInitialLoading } = useCLGTransactionCountReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
 
@@ -48,8 +50,8 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
             ...values,
-            Issue_Date: format(values.Issue_Date, "yyyy-MM-dd'T'HH:mm:ss"),
-            IssueToDate: format(values.IssueToDate, "yyyy-MM-dd'T'HH:mm:ss")
+            issue_Date: format(values.issue_Date, "yyyy-MM-dd'T'HH:mm:ss"),
+            issueToDate: format(values.issueToDate, "yyyy-MM-dd'T'HH:mm:ss")
         });
     };
 
@@ -68,7 +70,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='LMAL_Id'
+                                name='lmaL_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -85,7 +87,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                                     </Select>
                                 )}
                             />
-                            {errors.LMAL_Id && <p className='text-xs text-destructive mt-1'>{errors.LMAL_Id.message}</p>}
+                            {errors.lmaL_Id && <p className='text-xs text-destructive mt-1'>{errors.lmaL_Id.message}</p>}
                         </div>
                     </div>
 
@@ -97,7 +99,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='ASMAY_Id'
+                                name='asmaY_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -114,7 +116,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                                     </Select>
                                 )}
                             />
-                            {errors.ASMAY_Id && <p className='text-xs text-destructive mt-1'>{errors.ASMAY_Id.message}</p>}
+                            {errors.asmaY_Id && <p className='text-xs text-destructive mt-1'>{errors.asmaY_Id.message}</p>}
                         </div>
                     </div>
 
@@ -153,7 +155,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='Issue_Date'
+                                name='issue_Date'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -163,7 +165,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                                     />
                                 )}
                             />
-                            {errors.Issue_Date && <p className='text-xs text-destructive mt-1'>{errors.Issue_Date.message}</p>}
+                            {errors.issue_Date && <p className='text-xs text-destructive mt-1'>{errors.issue_Date.message}</p>}
                         </div>
                     </div>
 
@@ -175,7 +177,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='IssueToDate'
+                                name='issueToDate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -185,7 +187,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                                     />
                                 )}
                             />
-                            {errors.IssueToDate && <p className='text-xs text-destructive mt-1'>{errors.IssueToDate.message}</p>}
+                            {errors.issueToDate && <p className='text-xs text-destructive mt-1'>{errors.issueToDate.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -206,7 +208,10 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                 <Button
                     type='button'
                     className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
-                    onClick={() => reset()}
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
                     disabled={isLoading}
                 >
                     <X className='mr-1.5 h-3.5 w-3.5' />

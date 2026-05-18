@@ -13,6 +13,7 @@ import {
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -30,6 +31,7 @@ export default function CalcuttaPromotionReportForm({
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
+            empG_GroupName: '',
             studentList: [],
             academicDate: new Date(),
             issueDate: new Date(),
@@ -43,6 +45,7 @@ export default function CalcuttaPromotionReportForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
+    const [terms, setTerms] = useState<{ empG_GroupName: string, empG_DisplayName?: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -54,6 +57,7 @@ export default function CalcuttaPromotionReportForm({
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingTerms, setLoadingTerms] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
 
     // set academic years
@@ -83,8 +87,10 @@ export default function CalcuttaPromotionReportForm({
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
+                setTerms([]);
             } catch {
                 toast.error('Failed to load classes');
             } finally {
@@ -105,8 +111,10 @@ export default function CalcuttaPromotionReportForm({
                 }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
+                setTerms([]);
             } catch {
                 toast.error('Failed to load sections');
             } finally {
@@ -115,17 +123,26 @@ export default function CalcuttaPromotionReportForm({
         })();
     }, [selectedYear, selectedClass, setValue]);
 
-    // set Students
+    // set Students and Terms
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
                 setLoadingStudents(true);
+                setLoadingTerms(true);
+
                 const studentRes = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
                     selectedSection
                 );
+
+                try {
+                    const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
+                    setTerms(Array.isArray(termsData) ? termsData : []);
+                } catch (e) {
+                    setTerms([]);
+                }
 
                 const valid = Array.isArray(studentRes.data)
                     ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
@@ -142,11 +159,13 @@ export default function CalcuttaPromotionReportForm({
                 }
 
                 setStudents(formattedStudents);
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
             } catch {
                 toast.error('Failed to load students');
             } finally {
                 setLoadingStudents(false);
+                setLoadingTerms(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -158,7 +177,7 @@ export default function CalcuttaPromotionReportForm({
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
-            EMPG_GroupName: '',
+            EMPG_GroupName: data.empG_GroupName || '',
             flag: "4",
             academicDate: data.academicDate,
             issueDate: data.issueDate,
@@ -288,6 +307,46 @@ export default function CalcuttaPromotionReportForm({
                                                         sections.map((s) => (
                                                             <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
                                                                 {s.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='empG_GroupName'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-44'>
+                                            Term
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value || ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Term' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {loadingTerms ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Terms are loading...
+                                                        </SelectItem>
+                                                    ) : terms.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Terms found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        terms.map((t: any, idx) => (
+                                                            <SelectItem key={idx} value={String(t.empG_GroupName)}>
+                                                                {t.empG_DisplayName || t.empG_GroupName}
                                                             </SelectItem>
                                                         ))
                                                     )}

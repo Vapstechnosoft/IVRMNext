@@ -45,7 +45,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
             lmS_SubjectNo: '',
             lmS_ClassNo: ''
         },
-        mode: 'onChange'
+        mode: 'onSubmit'
     });
 
     const { data: category, isLoading: categoryLoading, error: categoryError, refetchAll: refetchcategory } = parentsubjectdropdowndata();
@@ -101,7 +101,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
             console.log('PAYLOAD:', payload);
 
-            const response = await addOrUpdateMasterSubject(payload);
+            const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response?.success) {
                 toast.success(response.message || 'Subject saved successfully');
@@ -118,9 +118,14 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            lmS_ParentId: undefined,
+            ismS_SubjectName: '',
+            lmS_Level: '',
+            lmS_SubjectNo: '',
+            lmS_ClassNo: ''
+        });
         setResetKey((prev) => prev + 1);
-        refetchcategory();
     };
 
     return (
@@ -140,7 +145,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                         <Select 
                                             key={resetKey}
                                             onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))} 
-                                            value={field.value ? field.value.toString() : ''}
+                                            value={field.value?.toString() || ''}
                                         >
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
@@ -218,13 +223,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             label='Class No '
                             id='lmS_ClassNo'
                             placeholder='Enter Class No'
-                            {...register('lmS_ClassNo', {
-                                required: 'Subject Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('lmS_ClassNo')}
                             error={errors.lmS_ClassNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -238,7 +237,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105 sm:order-1'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
@@ -250,7 +249,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105 sm:order-2'>
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
                         Reset
                     </Button>
                 </div>
