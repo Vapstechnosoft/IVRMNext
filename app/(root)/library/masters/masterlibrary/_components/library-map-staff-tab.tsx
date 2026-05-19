@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { useMasterLibraryMapping, useMasterLibrarySaveMapping, useMasterLibraryEditData } from '@/hooks/library/useMasterLibraryMapping';
+import { useMasterLibraryMapping, useMasterLibrarySaveStaffMapping, useMasterLibraryEditData } from '@/hooks/library/useMasterLibraryMapping';
 import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 export function LibraryMapStaffTab() {
     const { libraries, roles, staff, isLoading: isLibLoading, refetchAll } = useMasterLibraryMapping();
     const { fetchEditStaff } = useMasterLibraryEditData();
-    const saveMapping = useMasterLibrarySaveMapping();
+    const saveMapping = useMasterLibrarySaveStaffMapping();
     const [selectedLibrary, setSelectedLibrary] = useState<string>('');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [selectedUser, setSelectedUser] = useState<string>('');
@@ -23,6 +23,7 @@ export function LibraryMapStaffTab() {
     const [isSaving, setIsSaving] = useState(false);
 
     // Toggle Modal State
+    console.log('DEBUG: render lists - roles =', roles, 'staff =', staff);
     const [isToggleModalOpen, setIsToggleModalOpen] = useState(false);
     const [toggleData, setToggleData] = useState<any>(null);
     const [isToggling, setIsToggling] = useState(false);
@@ -35,10 +36,9 @@ export function LibraryMapStaffTab() {
 
         setIsSaving(true);
         const payload = {
-            lmaL_Id: Number(selectedLibrary),
-            ivrmrT_Id: Number(selectedRole),
-            ivrmuL_Id: Number(selectedUser),
-            luL_Id: Number(selectedUserMappingId) // Added to support updates
+            LUL_Id: Number(selectedUserMappingId),
+            LMAL_Id: Number(selectedLibrary),
+            IVRMUL_Id: Number(selectedUser)
         };
 
         try {
@@ -73,7 +73,7 @@ export function LibraryMapStaffTab() {
         if (!toggleData) return;
         setIsToggling(true);
         try {
-            const response = await toggleMasterLibrary(toggleData.lmaL_Id);
+            const response = await toggleMasterLibrary(Number(toggleData.lmaL_Id));
             if (response.success || response.message?.toLowerCase().includes('success')) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
@@ -114,7 +114,7 @@ export function LibraryMapStaffTab() {
                                     Library Name:<span className='text-red-500'>*</span>
                                 </label>
                                 <div className='flex-1'>
-                                    <Select value={selectedLibrary} onValueChange={setSelectedLibrary}>
+                                    <Select key={selectedLibrary} value={selectedLibrary} onValueChange={setSelectedLibrary}>
                                         <SelectTrigger className='h-9'>
                                             <SelectValue placeholder='--Select Library--' />
                                         </SelectTrigger>
@@ -129,19 +129,19 @@ export function LibraryMapStaffTab() {
                                 </div>
                             </div>
 
-                            <div className='flex items-center gap-4'>
+                             <div className='flex items-center gap-4'>
                                 <label className='min-w-[100px] text-right text-sm font-medium'>
                                     User Name:<span className='text-red-500'>*</span>
                                 </label>
                                 <div className='flex-1'>
-                                    <Select value={selectedUser} onValueChange={setSelectedUser}>
+                                    <Select key={selectedUser} value={selectedUser} onValueChange={setSelectedUser}>
                                         <SelectTrigger className='h-9'>
                                             <SelectValue placeholder='--Select User--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(staff || []).map((s: any) => {
-                                                const userId = s.ivrmuL_Id || s.hRmE_Id || s.userId;
-                                                const userName = s.ivrmuL_UserName || `${s.hrmE_EmployeeFirstName || ''} ${s.hrmE_EmployeeLastName || ''}`.trim() || s.userName;
+                                                const userId = s.ivrmuL_Id || s.hRmE_Id || s.hrmE_Id || s.userId || s.id;
+                                                const userName = s.ivrmuL_UserName || `${s.hrmE_EmployeeFirstName || ''} ${s.hrmE_EmployeeLastName || ''}`.trim() || s.userName || s.hrmE_EmployeeFirstName;
                                                 return (
                                                     <SelectItem key={userId || `staff-${Math.random()}`} value={userId?.toString() || ''}>
                                                         {userName}
@@ -151,7 +151,7 @@ export function LibraryMapStaffTab() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
+                             </div>
                         </div>
 
                         <div className='space-y-4'>
@@ -160,16 +160,20 @@ export function LibraryMapStaffTab() {
                                     Role Type:<span className='text-red-500'>*</span>
                                 </label>
                                 <div className='flex-1'>
-                                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                    <Select key={selectedRole} value={selectedRole} onValueChange={setSelectedRole}>
                                         <SelectTrigger className='h-9'>
                                             <SelectValue placeholder='--Select Role--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(roles || []).map((r: any) => (
-                                                <SelectItem key={r.ivrmrT_Id || `role-${Math.random()}`} value={r.ivrmrT_Id?.toString() || ''}>
-                                                    {r.ivrmrT_Role || r.roleName}
-                                                </SelectItem>
-                                            ))}
+                                            {(roles || []).map((r: any) => {
+                                                const roleId = r.ivrmrT_Id || r.roleTypeId || r.ivrm_Role_Id || r.roleId;
+                                                const roleName = r.ivrmrT_Role || r.roleName || r.ivrm_Role_Name || r.roleTypeName;
+                                                return (
+                                                    <SelectItem key={roleId || `role-${Math.random()}`} value={roleId?.toString() || ''}>
+                                                        {roleName}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -213,18 +217,27 @@ export function LibraryMapStaffTab() {
                                     rowData={row.original}
                                     buttons={{ edit: true, toggle: true }}
                                     onEdit={async (data) => {
+                                        console.log('DEBUG: onEdit triggered with row data:', data);
                                         setSelectedLibrary(data.lmaL_Id.toString());
                                         try {
                                             const mappingId = data.luL_Id || data.lmL_Id || data.lmaL_Id;
+                                            console.log('DEBUG: calling fetchEditStaff with id1:', data.lmaL_Id, 'id2:', mappingId);
                                             const response: any = await fetchEditStaff({ id1: data.lmaL_Id, id2: mappingId });
+                                            console.log('DEBUG: fetchEditStaff raw response:', response);
                                             const editDataList = response?.data || response;
                                             const editData = Array.isArray(editDataList) ? editDataList[0] : editDataList;
+                                            console.log('DEBUG: resolved editData:', editData);
                                             
-                                            setSelectedRole(editData?.ivrmrT_Id?.toString() || data.ivrmrT_Id?.toString() || '');
-                                            setSelectedUser(editData?.ivrmuL_Id?.toString() || editData?.hRmE_Id?.toString() || data.ivrmuL_Id?.toString() || '');
+                                            const resolvedRole = editData?.roleTypeId?.toString() || editData?.ivrmrT_Id?.toString() || data.ivrmrT_Id?.toString() || data.roleTypeId?.toString() || '';
+                                            const resolvedUser = editData?.ivrmuL_Id?.toString() || editData?.hRmE_Id?.toString() || editData?.hrmE_Id?.toString() || editData?.userId?.toString() || data.ivrmuL_Id?.toString() || data.hRmE_Id?.toString() || data.hrmE_Id?.toString() || '';
+                                            console.log('DEBUG: resolvedRole =', resolvedRole, 'resolvedUser =', resolvedUser);
+                                            
+                                            setSelectedRole(resolvedRole);
+                                            setSelectedUser(resolvedUser);
                                             setSelectedUserMappingId(editData?.luL_Id || data.luL_Id || 0);
                                             toast.success('Mapping details loaded');
                                         } catch (error) {
+                                            console.error('DEBUG: error in onEdit fetch:', error);
                                             toast.error('Failed to fetch details');
                                         }
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -252,13 +265,15 @@ export function LibraryMapStaffTab() {
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={() => setIsToggleModalOpen(false)} type='button' className='h-9 px-6 text-xs'>
+                    <Button variant='secondary' onClick={() => setIsToggleModalOpen(false)} type='button' className='h-9 px-6 text-xs' disabled={isToggling}>
                         CANCEL
                     </Button>
                     <Button 
                         onClick={confirmToggleStatus} 
                         variant={toggleData?.lmaL_ActiveFlag ? 'destructive' : 'default'}
                         className='h-9 px-6 text-xs'
+                        isLoading={isToggling}
+                        disabled={isToggling}
                     >
                         {toggleData?.lmaL_ActiveFlag ? 'DEACTIVATE' : 'ACTIVATE'}
                     </Button>

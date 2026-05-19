@@ -25,5 +25,6 @@ export async function getInvRSalesStudentList(payload: any) {
 export async function getInvRSalesReport(payload: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_R_SalesFacade/onreport?${urlParams}`;
+    console.log("getInvRSalesReport Payload:", payload);
     return await api.post<any>('inventory', url, payload);
 }

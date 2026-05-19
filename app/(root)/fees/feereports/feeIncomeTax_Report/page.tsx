@@ -22,12 +22,16 @@ export default function FeeIncomeTaxReportPage() {
     const handleCloseReport = () => {
         setShowReport(false);
     };
+    const handleResetForm = () => {
+        setReportData([]);
+        setShowReport(false);
+    };
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <Card className='shadow-lg'>
                 <CardContent className='p-6'>
-                    <FeeIncomeTaxForm onReportGenerated={handleReportGenerated} />
+                    <FeeIncomeTaxForm onReportGenerated={handleReportGenerated} onReset={handleResetForm} />
                 </CardContent>
             </Card>
 
