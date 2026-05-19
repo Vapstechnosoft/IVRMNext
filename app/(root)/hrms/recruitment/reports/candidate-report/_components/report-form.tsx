@@ -8,12 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetInstitutionByLogin } from "@/hooks/hrms/recruitment/masters/useMasters";
+import { useGetInstitutionByLogin, useGetCandidateDropDown } from "@/hooks/hrms/recruitment/masters/useMasters";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BarChart3, Printer, X } from "lucide-react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import {useState} from "react";
 const candidateReportSchema = z.object({
   institution: z.string().min(1, "Institution is required"),
   candidateId: z.string().min(1, "Candidate Name is required"),
@@ -21,29 +22,22 @@ const candidateReportSchema = z.object({
 type FormFields = z.infer<typeof candidateReportSchema>;
 interface CandidateReportFormProps {
   onGenerateReport?: (filters: FormFields) => void;
+  onClear?: () => void;
   isLoading?: boolean;
   className?: string;
 }
-// Mock data - replace with actual API calls
-const institutions = [
-  "Global Quality Training & Assessors PVT LTD",
-  "VAPS Technologies",
-  "ANI Technologies",
-];
-const candidates = [
-  { id: "1", name: "Uma Mageshwari" },
-  { id: "2", name: "John Doe" },
-  { id: "3", name: "Jane Smith" },
-];
+
 export default function CandidateReportForm({
   onGenerateReport,
   isLoading = false,
   className = "",
+  onClear
 }: CandidateReportFormProps) {
   const {
     reset,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
     resolver: zodResolver(candidateReportSchema),
@@ -54,13 +48,18 @@ export default function CandidateReportForm({
     },
   });
 
+  const [resetKey, setResetKey] = useState(0);
+
+  const selectedInstitution = watch("institution");
+
   const { data: institutionData, isLoading: institutionLoading } = useGetInstitutionByLogin();
+  const { data: candidateData, isLoading: candidateLoading } = useGetCandidateDropDown(!!selectedInstitution);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
       // Call the parent handler to generate report
       onGenerateReport?.(data);
-      toast.success("Report generated successfully");
+
     } catch (error: any) {
       toast.error(error.message || "Failed to generate report");
     }
@@ -68,6 +67,13 @@ export default function CandidateReportForm({
   const handlePrint = () => {
     window.print();
   };
+
+  const handleClear = () => {
+    reset();
+    onClear?.();
+    setResetKey((prev) => prev + 1);
+  };
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -81,6 +87,7 @@ export default function CandidateReportForm({
               Institution <span className="text-red-500">*</span>
             </span>
             <Controller
+              key={resetKey}
               name="institution"
               control={control}
               render={({ field }) => (
@@ -121,17 +128,28 @@ export default function CandidateReportForm({
               Candidate Name:<span className="text-red-500">*</span>
             </label>
             <Controller
+            key={resetKey}
               name="candidateId"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={candidateLoading || !selectedInstitution}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="--Select--" />
+                    <SelectValue
+                      placeholder={
+                        candidateLoading
+                          ? "Loading Candidates..."
+                          : "Select Candidate"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {candidates.map((candidate) => (
-                      <SelectItem key={candidate.id} value={candidate.id}>
-                        {candidate.name}
+                    {candidateData?.data?.map((candidate: any) => (
+                      <SelectItem key={candidate.hrcD_Id} value={candidate.hrcD_Id.toString()}>
+                        {candidate.hrcD_FirstName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -157,7 +175,7 @@ export default function CandidateReportForm({
         <Button
           type="button"
           variant="outline"
-          onClick={() => reset()}
+          onClick={handleClear}
           disabled={isSubmitting || isLoading}
         >
           <X className="mr-2 h-4 w-4" />

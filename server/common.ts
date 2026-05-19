@@ -1398,21 +1398,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        }
-                                    ]
-                                }
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -6508,7 +6508,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'Manual Period Insertion',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/manualperiodinsertion',
+                                            url: '/timetable/transactions/manual-Period-insersion',
                                             title: 'Manual Period Insertion',
                                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
                                         },
@@ -6516,7 +6516,7 @@ export async function getUserAccessibleModules() {
                                             id: 4,
                                             name: 'Staff Period Transfer',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staffperiodtransfer',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
                                             title: 'Staff Period Transfer',
                                             description: 'Transfer Staff Periods Between Classes and Sections'
                                         },
@@ -6524,7 +6524,7 @@ export async function getUserAccessibleModules() {
                                             id: 5,
                                             name: 'Staff Replacement Existing To New',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staffreplacementexistingtonew',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
                                             title: 'Staff Replacement Existing To New',
                                             description: 'Replacing staff Existing To New'
                                         },
@@ -6532,7 +6532,7 @@ export async function getUserAccessibleModules() {
                                             id: 6,
                                             name: 'Staff Replacement In Their TimeTable',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staffreplacementintheirtimetable',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
                                             title: 'Staff Replacement In Their TimeTable',
                                             description: 'Staff Replacement In Their TimeTable'
                                         },
@@ -6540,7 +6540,7 @@ export async function getUserAccessibleModules() {
                                             id: 7,
                                             name: 'Staff Replacement In Unallocated Period',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staffreplacementinunallocatedperiod',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
                                             title: 'Staff Replacement In Unallocated Period',
                                             description: 'Staff Replacement In Unallocated Period'
                                         },
@@ -6548,7 +6548,7 @@ export async function getUserAccessibleModules() {
                                             id: 8,
                                             name: 'Time Table Generation',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/timetablegeneration',
+                                            url: '/timetable/transactions/time-table-generation',
                                             title: 'Time Table Generation',
                                             description: 'Time Table Generation'
                                         }
@@ -6802,11 +6802,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30017,
-                                            name: 'LOST BOOK',
+                                            name: 'Lost Book',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
-                                            title: 'LOST BOOK',
-                                            description: 'LOST BOOK Details'
+                                            title: 'Lost Book',
+                                            description: 'Lost Book Details'
                                         }
                                     ]
                                 },
