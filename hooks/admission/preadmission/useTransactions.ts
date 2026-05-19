@@ -316,15 +316,15 @@ export const usePreadmissionStudentList = (asmay_id: number, asmcl_id: number, p
     };
 };
 
-export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: number, searchParams?: ApiSearchparams) => {
+export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: number | null, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST, asmay_id, asmcl_id, searchParams ?? {}],
-            queryFn: async () => getExportPreadmissionStudentList(asmay_id, asmcl_id, searchParams),
+            queryFn: async () => getExportPreadmissionStudentList(asmay_id, asmcl_id ?? 0, searchParams),
             staleTime: 0,
-            enabled: !!asmay_id && asmcl_id !== undefined
+            enabled: !!asmay_id && asmcl_id !== null && asmcl_id !== undefined
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

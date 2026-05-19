@@ -42,7 +42,7 @@ export default function UpdateServiceStationForm({
         defaultValues: {
             TRMSST_Id: rowData.trmssT_Id,
             TRMSST_ServiceStationName: rowData.trmssT_ServiceStationName,
-            TRMSST_ContactNo: rowData.trmssT_ContactNo,
+            TRMSST_ContactNo: rowData.trmssT_ContactNo.toString(),
             TRMSST_EmailId: rowData.trmssT_EmailId,
             TRMSST_Address: rowData.trmssT_Address
         }
@@ -53,7 +53,7 @@ export default function UpdateServiceStationForm({
             reset({
                 TRMSST_Id: rowData.trmssT_Id,
                 TRMSST_ServiceStationName: rowData.trmssT_ServiceStationName,
-                TRMSST_ContactNo: rowData.trmssT_ContactNo,
+                TRMSST_ContactNo: rowData.trmssT_ContactNo.toString(),
                 TRMSST_EmailId: rowData.trmssT_EmailId,
                 TRMSST_Address: rowData.trmssT_Address
             });
@@ -87,7 +87,7 @@ export default function UpdateServiceStationForm({
             reset({
                 TRMSST_Id: rowData.trmssT_Id,
                 TRMSST_ServiceStationName: rowData.trmssT_ServiceStationName,
-                TRMSST_ContactNo: rowData.trmssT_ContactNo,
+                TRMSST_ContactNo: rowData.trmssT_ContactNo.toString(),
                 TRMSST_EmailId: rowData.trmssT_EmailId,
                 TRMSST_Address: rowData.trmssT_Address
             });

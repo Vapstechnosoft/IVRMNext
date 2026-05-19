@@ -107,7 +107,7 @@ export default function BirthdayListForm() {
                     <Card className='p-4'>
                         <div className='space-y-4'>
                             <div className='flex items-center space-x-4'>
-                                <Label className='font-semibold'>Please Select Radio Button:</Label>
+                                <Label className='font-semibold'>Please Select Radio Button:<span className='text-red-600'>*</span></Label>
                                 <RadioGroup value={filterType} onValueChange={handleFilterChange} className='flex space-x-4'>
                                     {[
                                         { value: '1', label: 'Student' },
@@ -125,7 +125,7 @@ export default function BirthdayListForm() {
                             </div>
 
                             <div className='flex items-center space-x-6 border-t pt-4'>
-                                <Label className='font-semibold'>Please Select Check Box:</Label>
+                                <Label className='font-semibold'>Please Select Check Box:<span className='text-red-600'>*</span></Label>
                                 {[
                                     { key: 'sms', label: 'SMS' },
                                     { key: 'email', label: 'EMAIL' },

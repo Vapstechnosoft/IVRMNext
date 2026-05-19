@@ -7,12 +7,13 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { type CalcuttaPromotionReportItoVSchema, calcuttaPromotionReportItoVSchema } from '@/schemas/exam/exam-module/reports';
+import { type CalcuttaPromotionReportItoIVSchema, calcuttaPromotionReportItoIVSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -23,17 +24,15 @@ export default function CalcuttaPromotionReportForm({
 }: {
     onSuccess?: (payload: any, dates: any) => Promise<void> | void;
 }) {
-    const methods = useForm<CalcuttaPromotionReportItoVSchema>({
-        resolver: zodResolver(calcuttaPromotionReportItoVSchema),
+    const methods = useForm<CalcuttaPromotionReportItoIVSchema>({
+        resolver: zodResolver(calcuttaPromotionReportItoIVSchema),
         mode: 'all',
         defaultValues: {
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            studentList: [],
-            academicDate: new Date(),
-            reportPrintedDate: new Date(),
-            issueDate: new Date()
+            empG_GroupName: '',
+            studentList: []
         } as any
     });
 
@@ -43,7 +42,13 @@ export default function CalcuttaPromotionReportForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
+    const [terms, setTerms] = useState<{ empG_GroupName: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
+
+    // Date state for the report-list UI (not part of the API payload)
+    const [academicDate, setAcademicDate] = useState<Date>(new Date());
+    const [reportPrintedDate, setReportPrintedDate] = useState<Date>(new Date());
+    const [issueDate, setIssueDate] = useState<Date>(new Date());
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
@@ -54,6 +59,7 @@ export default function CalcuttaPromotionReportForm({
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingTerms, setLoadingTerms] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
 
     // set academic years
@@ -83,8 +89,10 @@ export default function CalcuttaPromotionReportForm({
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
+                setTerms([]);
             } catch {
                 toast.error('Failed to load classes');
             } finally {
@@ -105,8 +113,10 @@ export default function CalcuttaPromotionReportForm({
                 }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
+                setTerms([]);
             } catch {
                 toast.error('Failed to load sections');
             } finally {
@@ -115,11 +125,12 @@ export default function CalcuttaPromotionReportForm({
         })();
     }, [selectedYear, selectedClass, setValue]);
 
-    // set Students
+    // set Terms & Students
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                setLoadingTerms(true);
                 setLoadingStudents(true);
 
                 // Fetch Students
@@ -128,6 +139,14 @@ export default function CalcuttaPromotionReportForm({
                     selectedClass,
                     selectedSection
                 );
+
+                // Fetch Terms
+                try {
+                    const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
+                    setTerms(Array.isArray(termsData) ? termsData : []);
+                } catch (e) {
+                    setTerms([]);
+                }
 
                 const valid = Array.isArray(studentRes.data)
                     ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
@@ -144,30 +163,33 @@ export default function CalcuttaPromotionReportForm({
                 }
 
                 setStudents(formattedStudents);
+
+                setValue('empG_GroupName', '');
                 setValue('studentList', []);
             } catch {
-                toast.error('Failed to load students');
+                toast.error('Failed to load students and terms');
             } finally {
                 setLoadingStudents(false);
+                setLoadingTerms(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     // on submit
-    const onSubmit = async (data: CalcuttaPromotionReportItoVSchema) => {
+    const onSubmit = async (data: CalcuttaPromotionReportItoIVSchema) => {
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
-            EMPG_GroupName: '',
+            EMPG_GroupName: data.empG_GroupName || '',
             flag: "4"
         };
 
         const dates = {
-            academicDate: data.academicDate,
-            reportPrintedDate: data.reportPrintedDate,
-            issueDate: data.issueDate
+            academicDate,
+            reportPrintedDate,
+            issueDate
         };
 
         if (onSuccess) {
@@ -306,60 +328,79 @@ export default function CalcuttaPromotionReportForm({
 
                             <Controller
                                 control={control}
-                                name='academicDate'
+                                name='empG_GroupName'
                                 render={({ field, fieldState }) => (
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                                         <Label className='font-medium text-sm sm:w-40'>
-                                            New Academic Date <span className='text-red-500'>*</span>
+                                            Term
                                         </Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={(date: any) => field.onChange(date)}
-                                            />
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value || ''}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Term' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {loadingTerms ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Terms are loading...
+                                                        </SelectItem>
+                                                    ) : terms.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Terms found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        terms.map((t: any, idx) => (
+                                                            <SelectItem key={idx} value={String(t.empG_GroupName)}>
+                                                                {t.empG_DisplayName || t.empG_GroupName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
                                 )}
                             />
 
-                            <Controller
-                                control={control}
-                                name='reportPrintedDate'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Report Card printed On
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={(date: any) => field.onChange(date)}
-                                            />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                <Label className='font-medium text-sm sm:w-40'>
+                                    New Academic Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
+                                    <DatePicker
+                                        date={academicDate}
+                                        setDate={(date: any) => setAcademicDate(date)}
+                                    />
+                                </div>
+                            </div>
 
-                            <Controller
-                                control={control}
-                                name='issueDate'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Issue Date <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={(date: any) => field.onChange(date)}
-                                            />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                <Label className='font-medium text-sm sm:w-40'>
+                                    Report Card printed On
+                                </Label>
+                                <div className='flex-1'>
+                                    <DatePicker
+                                        date={reportPrintedDate}
+                                        setDate={(date: any) => setReportPrintedDate(date)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                <Label className='font-medium text-sm sm:w-40'>
+                                    Issue Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='flex-1'>
+                                    <DatePicker
+                                        date={issueDate}
+                                        setDate={(date: any) => setIssueDate(date)}
+                                    />
+                                </div>
+                            </div>
 
                         </div>
 

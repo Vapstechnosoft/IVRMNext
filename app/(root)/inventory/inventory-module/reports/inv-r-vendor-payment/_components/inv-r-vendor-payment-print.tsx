@@ -26,8 +26,11 @@ export const InvVendorPaymentPrint = React.forwardRef<HTMLDivElement, InvVendorP
                     <tr>
                         <th className='w-16 text-center'>Sl.No</th>
                         <th>Supplier</th>
+                        <th>GRN No</th>
                         <th>Payment Date</th>
-                        <th>Mode Of Payment</th>
+                        <th>Mode</th>
+                        <th>Cheque/DD No</th>
+                        <th>Bank Name</th>
                         <th className='text-right'>Amount</th>
                         <th>Remarks</th>
                     </tr>
@@ -54,12 +57,15 @@ export const InvVendorPaymentPrint = React.forwardRef<HTMLDivElement, InvVendorP
                 
                 if (reportType === 'Overall') {
                     const sup = <td>{item.invmS_SupplierName || '-'}</td>;
+                    const grn = <td>{item.invmgrN_GRNNo || '-'}</td>;
                     const pDate = <td>{item.invspT_PaymentDate ? format(new Date(item.invspT_PaymentDate), 'dd-MM-yyyy') : '-'}</td>;
                     const mode = <td>{item.invspT_ModeOfPayment || '-'}</td>;
-                    const amt = <td className='text-right'>{item.invmgrN_TotalPaid ?? 0}</td>;
+                    const cheque = <td>{item.invspT_ChequeDDNo || '-'}</td>;
+                    const bank = <td>{item.invspT_BankName || '-'}</td>;
+                    const amt = <td className='text-right'>{Number(item.invmgrN_TotalPaid || 0).toFixed(2)}</td>;
                     const rmk = <td>{item.invspT_Remarks || '-'}</td>;
 
-                    return <tr key={index}>{slNo}{sup}{pDate}{mode}{amt}{rmk}</tr>;
+                    return <tr key={index}>{slNo}{sup}{grn}{pDate}{mode}{cheque}{bank}{amt}{rmk}</tr>;
                 }
                 
                 if (reportType === 'Vendor') {
@@ -175,7 +181,7 @@ export const InvVendorPaymentPrint = React.forwardRef<HTMLDivElement, InvVendorP
                                             <td colSpan={1} className='text-right px-4'>
                                                 Total Records:
                                             </td>
-                                            <td colSpan={5} className='text-left px-4'>
+                                            <td colSpan={reportType === 'Overall' ? 8 : 5} className='text-left px-4'>
                                                 {data.length}
                                             </td>
                                         </tr>

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
 // Use node:stream for better compatibility with modern Node environments in Next.js 15
 import { Readable } from 'node:stream';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Next.js 15 Route Handler Configuration
 export const runtime = 'nodejs';
@@ -185,6 +185,9 @@ export async function POST(req: NextRequest) {
 
                 TASK:
                 Create a high-level Academic Executive Summary ${chapter ? 'for chapter ' + chapter : 'for the provided document'}.
+                
+                **STRICT REQUIREMENT**: The summary MUST be presented in clear, concise bullet points for maximum readability.
+                
                 Identify the core message, primary concepts, and the significance of the topics discussed.
                 Focus on what remains most important from an exam perspective.
             `;
@@ -216,7 +219,8 @@ export async function POST(req: NextRequest) {
                 You are a Senior Academic Architect. You are given educational content.
 
                 TASK:
-                1. Provide an **Exam-Focused Executive Summary** (~300 words).
+                1. Provide an **Exam-Focused Executive Summary** (~300 words). 
+                   **REQUIREMENT**: Use clear bullet points for the summary.
                 2. Provide **Exhaustive Study Material (COMPULSORY 1500+ WORDS)**.
 
                 **STRICT REQUIREMENT FOR NOTES**:

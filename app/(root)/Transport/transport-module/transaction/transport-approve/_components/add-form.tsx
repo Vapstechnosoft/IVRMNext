@@ -7,7 +7,7 @@ import { useFeeBusRouteDefaulterreport, useFeeClassListDefaulterreport, useFeeDe
 import { transportApproveSchema } from '@/schemas/transport/transport-module/transaction/transport-approve';
 import { searchTransportApprovedDetails } from '@/server/transport/transport-module/transaction/transport-approve';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, RotateCcw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -182,11 +182,19 @@ export default function AddForm({ onSearch }: AddFormProps) {
                     />
                 </div>
 
-                <div className='flex justify-center'>
+                <div className='flex justify-center space-x-2'>
                     <Button type='submit' disabled={isLoading}>
                         {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                         <Search className='mr-2 h-4 w-4' />
                         Search
+                    </Button>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => window.location.reload()}
+                        disabled={isLoading}>
+                        <RotateCcw className='mr-2 h-4 w-4' />
+                        Cancel
                     </Button>
                 </div>
             </form>
