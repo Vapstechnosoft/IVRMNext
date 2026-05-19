@@ -41,12 +41,17 @@ export default function InvVendorPaymentPage(props: { searchParams: SearchParams
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('asc')
     );
+    const [searchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
         search_query: searchQuery,
+        search_columns: searchColumns,
         sort_column: sortColumn,
         sort_direction: sortDirection
     };
@@ -134,6 +139,7 @@ function InvVendorPaymentContent({
                         isLoading={isVendorPaymentsLoading}
                         error={error}
                         isSearchRequired={true}
+                        showSearchColumns={true}
                         manualPagination={true}
                         manualSorting={true}
                         columnPinning={{ right: ['actions'] }}

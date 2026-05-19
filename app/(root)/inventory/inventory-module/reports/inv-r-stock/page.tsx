@@ -48,13 +48,18 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [searchColumns, setSearchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('All')
+    );
     console.log("payload", currentPayload);
 
     const { data: reportResult, isFetching } = useInvRStockReportQuery(currentPayload, {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        search_columns: searchColumns
     });
     console.log("reportResult", reportResult?.data);
 
@@ -79,6 +84,7 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
         setCurrentPayload(payload);
         setCurrentPage(1);
         setSearchQuery(null);
+        setSearchColumns('All');
     };
 
     // Show toast for empty search results or initial empty report
@@ -235,6 +241,7 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
                                 isLoading={isFetching}
                                 totalItems={totalRecords}
                                 isSearchRequired={true}
+                                showSearchColumns={true}
                                 noDataTitle="No Stock Records Found"
                                 noDataDescription="No records found matching your selection or search criteria."
                             />

@@ -40,7 +40,7 @@ export async function getInvGRNItemDetails(invmgrN_Id: number) {
 }
 
 export async function loadVendorPayments(searchParams?: ApiSearchparams) {
-    const searchableColumns = "INVMS_SupplierName,INVSPT_ModeOfPayment,INVSPT_PaymentReference,INVSPT_ChequeDDNo,INVSPT_BankName,INVSPT_Remarks";
+    const defaultSearchColumns = "INVMS_SupplierName,INVSPT_ModeOfPayment,INVSPT_PaymentReference,INVSPT_ChequeDDNo,INVSPT_BankName,INVSPT_Remarks";
     
     // Map sort_column to uppercase as expected by the backend facade
     const params = { ...searchParams };
@@ -48,9 +48,32 @@ export async function loadVendorPayments(searchParams?: ApiSearchparams) {
         params.sort_column = params.sort_column.toUpperCase();
     }
     
-    const urlParams = getSearchParamsUrl(params ?? {}, searchableColumns);
+    const cols = params.search_columns || defaultSearchColumns;
+    const urlParams = getSearchParamsUrl(params ?? {}, cols);
     const url = `/INV_VendorPaymentFacade/loadVendorPayments?${urlParams}`;
-    return await api.get<any>('inventory', url);
+    
+    try {
+        const response = await api.get<any>('inventory', url);
+        if (response && response.success === false && response.message && response.message.toLowerCase().includes('record')) {
+            return {
+                ...response,
+                success: true,
+                data: [],
+                total: 0
+            };
+        }
+        return response;
+    } catch (error) {
+        console.error('Search failed in loadVendorPayments:', error);
+        return {
+            success: true,
+            message: 'No records found matching the search criteria.',
+            data: [],
+            total: 0,
+            page: searchParams?.page || 1,
+            page_Size: searchParams?.page_size || 10
+        };
+    }
 }
 
 export async function getGRNList(invmS_Id: number) {

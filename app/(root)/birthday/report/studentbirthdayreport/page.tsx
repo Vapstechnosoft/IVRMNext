@@ -1,363 +1,804 @@
 'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import {
+    Cake,
+    Calendar,
+    FileSpreadsheet,
+    Printer,
+    Search,
+    RotateCcw,
+    ChevronDown,
+    ChevronUp,
+    CheckCircle2,
+    Users,
+    MapPin,
+    AlertCircle,
+    Loader2
+} from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useMasterEventCoe } from '@/hooks/coe/usemMaster';
-import type { MasterEventCoe } from '@/types/coe/masterevent';
-import { Calendar, FileText, Printer } from 'lucide-react';
-import { use, useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getStudentBirthdayReportDetails } from '@/server/admission/student-birthday-action';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+const MONTHS = [
+    { value: '01', label: 'JANUARY' },
+    { value: '02', label: 'FEBRUARY' },
+    { value: '03', label: 'MARCH' },
+    { value: '04', label: 'APRIL' },
+    { value: '05', label: 'MAY' },
+    { value: '06', label: 'JUNE' },
+    { value: '07', label: 'JULY' },
+    { value: '08', label: 'AUGUST' },
+    { value: '09', label: 'SEPTEMBER' },
+    { value: '10', label: 'OCTOBER' },
+    { value: '11', label: 'NOVEMBER' },
+    { value: '12', label: 'DECEMBER' }
+];
 
-export default function StudentBirthdayReport(props: {
-    searchParams: SearchParams;
-}) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetch } = useMasterEventCoe(searchParams);
+export default function StudentBirthdayReportPage() {
+    // Form fields state
+    const [all1, setAll1] = useState<string>('1'); // '1': Between Days, '0': Month Wise
+    const [flag, setFlag] = useState<string>('S'); // 'S': Studying, 'L': Left
+    const [month, setMonth] = useState<string>('');
+    const [fromdate, setFromdate] = useState<string>('');
+    const [todate, setTodate] = useState<string>('');
 
-    return (
-        <FormProvider<MasterEventCoe>>
-            <MasterBirthdaypage response={response} isLoading={isLoading} error={error} refetch={refetch} />
-        </FormProvider>
-    );
-}
+    // UI state
+    const [students, setStudents] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [submitted, setSubmitted] = useState<boolean>(false);
+    const [staffBirthday, setStaffBirthday] = useState<boolean>(false);
+    const [searchValue, setSearchValue] = useState<string>('');
+    const [selectedRows, setSelectedRows] = useState<any[]>([]);
+    const [hasSearched, setHasSearched] = useState<boolean>(false);
 
-function MasterBirthdaypage({
-    response,
-    isLoading,
-    error,
-    refetch
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-    refetch?: () => void;
-}) {
-    const { openAddForm } = useFormContext<MasterEventCoe>();
-    const tableProps = useDataTableProps(response);
+    // Sorting state
+    const [sortKey, setSortKey] = useState<string>('studentname');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-    return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Data Table Section */}
-                {/* <CollapsibleSection
-                       defaultOpen={true}
-                       variant='default'
-                       size='lg'
-                       className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                       <GenericDataTable<MasterEventCoe>
-                           {...tableProps}
-                           columns={masterMasterBirthdayColumn}
-                           isLoading={isLoading}
-                           error={error}
-                           columnPinning={{ right: ['actions'] }}
-                           loadingMessage='Loading master event...'
-                           noDataTitle='No Master Event Found'
-                           noDataDescription='Get started by creating your first Master Event'
-                           errorTitle='Error Loading Master Event'
-                       />
-                   </CollapsibleSection> */}
+    // Local Storage configurations
+    const [logoPath, setLogoPath] = useState<string>('');
+    const [copyright, setCopyright] = useState<string>('');
+    const [userName, setUserName] = useState<string>('');
+    const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
-                {/* Forms */}
-                <FormSections refetch={refetch} />
-            </div>
-        </div>
-    );
-}
-
-function FormSections({ refetch }: { refetch?: () => void }) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        isDeleteFormOpen,
-        closeDeleteForm,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<MasterEventCoe>();
-
-    // State for form fields
-    const [reportType, setReportType] = useState<string>('betweenDays');
-    const [activeType, setActiveType] = useState<string>('Studying');
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
-    const [showDataTable, setShowDataTable] = useState<boolean>(false);
-
-    // Static data matching your image
-    const staticBirthdayData = [
-        {
-            id: 1,
-            studentName: 'KISHAN K S',
-            admNo: '1629',
-            class: 'X',
-            section: 'C',
-            dateOfBirth: '02/Jan/2010',
-            studentPhoto: '',
-            address: 'KOTWAL NAGARA, 3RD CROSS, MH ROAD,CHITRADURGA,CHITRADURGA,Karnataka,India-577501'
-        },
-        {
-            id: 2,
-            studentName: 'RISHITHA G',
-            admNo: '932',
-            class: 'X Std',
-            section: 'A',
-            dateOfBirth: '08/Jan/2010',
-            studentPhoto: '',
-            address: '80, MASTHAMMA LAYOUT,3RD CROSS, ONAKE OBAVVA STADIUM ROAD,CHITRADURGA,Karnataka,-577501'
-        },
-        {
-            id: 3,
-            studentName: 'NUTHANA A',
-            admNo: '949',
-            class: 'X Std',
-            section: 'A',
-            dateOfBirth: '11/Jan/2010',
-            studentPhoto: '',
-            address: 'CHITRADURGA,CHITRADURGA,CHITRADURGA,Karnataka,-577501'
-        },
-        {
-            id: 4,
-            studentName: 'SUHAS S',
-            admNo: '862',
-            class: 'X Std',
-            section: 'A',
-            dateOfBirth: '19/Jan/2010',
-            studentPhoto: '',
-            address: 'MURTHY RAO HOUSE, BESIDE M S TAILORS,NEAR GAREHATTI, KELAGOTE,,CHITRADURGA,Karnataka,India-577501'
-        },
-        {
-            id: 5,
-            studentName: 'CHINMAY M',
-            admNo: '921',
-            class: 'X Std',
-            section: 'A',
-            dateOfBirth: '23/Jan/2010',
-            studentPhoto: '',
-            address: 'CHOWDESHWARI BADAWANE,CHITRADURGA,CHITRADURGA,Karnataka,-577501'
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const admfig = localStorage.getItem('admfigsettings');
+                if (admfig) {
+                    const parsed = JSON.parse(admfig);
+                    if (parsed && parsed.length > 0) {
+                        setLogoPath(parsed[0].asC_Logo_Path || '');
+                    }
+                }
+                const ivrmconfig = localStorage.getItem('ivrmgeneralconfiglist');
+                if (ivrmconfig) {
+                    const parsed = JSON.parse(ivrmconfig);
+                    if (parsed && parsed.length > 0) {
+                        setCopyright(parsed[0].ivrmgC_Disclaimer || '');
+                        if (parsed[0].ivrmgC_ReportPagination) {
+                            setItemsPerPage(Number(parsed[0].ivrmgC_ReportPagination));
+                        }
+                    }
+                }
+                setUserName(localStorage.getItem('username') || '');
+            } catch (e) {
+                console.error('Error loading config from localStorage:', e);
+            }
         }
-    ];
+    }, []);
 
-    // Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
+    // Form validation
+    const isFormValid = (): boolean => {
+        if (all1 === '1') {
+            return !!fromdate && !!todate;
+        } else {
+            return !!month;
+        }
+    };
+
+    // Handle Form Submit
+    const handleShowReport = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitted(true);
 
-        // Validation
-        if (!fromDate || !toDate) {
-            alert('Please fill in both From Date and To Date');
+        if (!isFormValid()) {
+            toast.error('Please fill in all required fields');
             return;
         }
 
-        // Check if fromDate is before toDate
-        const fromDateObj = new Date(fromDate);
-        const toDateObj = new Date(toDate);
-
-        if (fromDateObj > toDateObj) {
-            alert('From Date cannot be after To Date');
-            return;
+        // Date logical validation
+        if (all1 === '1') {
+            const start = new Date(fromdate);
+            const end = new Date(todate);
+            if (start > end) {
+                toast.error('From Date cannot be later than To Date');
+                return;
+            }
         }
 
-        // Validation satisfied - show data table
-        console.log({
-            reportType,
-            activeType,
-            fromDate,
-            toDate
+        setLoading(true);
+        setStudents([]);
+        setSelectedRows([]);
+        setHasSearched(false);
+
+        try {
+            const fromdateString = all1 === '1' ? new Date(fromdate).toDateString() : new Date().toDateString();
+            const todateString = all1 === '1' ? new Date(todate).toDateString() : new Date().toDateString();
+
+            const payload = {
+                months: all1 === '0' ? month : '',
+                flag: flag,
+                all1: Number(all1),
+                Fromdate: fromdateString,
+                Todate: todateString
+            };
+
+            const response = await getStudentBirthdayReportDetails(payload);
+            const res = response as any;
+
+            if (res && res.count > 0 && res.studentDetails) {
+                setStudents(res.studentDetails);
+                setStaffBirthday(res.studentDetails[0]?.HRME_Id > 0);
+                setHasSearched(true);
+                toast.success(`Successfully loaded ${res.count} records`);
+            } else {
+                toast.info('No Records Found');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load birthday report details');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Reset Form
+    const handleReset = () => {
+        window.location.reload();
+    };
+
+    // Selection helper
+    const handleToggleAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedRows([...filteredAndSortedStudents]);
+        } else {
+            setSelectedRows([]);
+        }
+    };
+
+    const handleToggleRow = (checked: boolean, student: any) => {
+        if (checked) {
+            setSelectedRows(prev => [...prev, student]);
+        } else {
+            setSelectedRows(prev => prev.filter(item => 
+                !(item.AMST_Id === student.AMST_Id && 
+                  item.HRME_Id === student.HRME_Id && 
+                  item.classname === student.classname && 
+                  item.sectionname === student.sectionname)
+            ));
+        }
+    };
+
+    const isRowSelected = (student: any) => {
+        return selectedRows.some(item => 
+            item.AMST_Id === student.AMST_Id && 
+            item.HRME_Id === student.HRME_Id && 
+            item.classname === student.classname && 
+            item.sectionname === student.sectionname
+        );
+    };
+
+    // Table sorting helper
+    const handleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortKey(key);
+            setSortDirection('asc');
+        }
+    };
+
+    // Search, Filter and Sort logical computation
+    const filteredAndSortedStudents = useMemo(() => {
+        let result = [...students];
+
+        // Search Filter
+        if (searchValue.trim() !== '') {
+            const query = searchValue.toLowerCase();
+            result = result.filter(item => {
+                return (
+                    (item.studentname && item.studentname.toLowerCase().includes(query)) ||
+                    (item.admno && item.admno.toLowerCase().includes(query)) ||
+                    (item.classname && item.classname.toLowerCase().includes(query)) ||
+                    (item.sectionname && item.sectionname.toLowerCase().includes(query)) ||
+                    (item.stdaddress && item.stdaddress.toLowerCase().includes(query))
+                );
+            });
+        }
+
+        // Sorting
+        result.sort((a, b) => {
+            let valA = a[sortKey] || '';
+            let valB = b[sortKey] || '';
+
+            if (sortKey === 'amst_dob') {
+                valA = new Date(valA).getTime();
+                valB = new Date(valB).getTime();
+            } else {
+                valA = String(valA).toLowerCase();
+                valB = String(valB).toLowerCase();
+            }
+
+            if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+            if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
         });
 
-        setShowDataTable(true);
+        return result;
+    }, [students, searchValue, sortKey, sortDirection]);
+
+    // Pagination computation
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredAndSortedStudents.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredAndSortedStudents, currentPage, itemsPerPage]);
+
+    const totalPages = Math.ceil(filteredAndSortedStudents.length / itemsPerPage);
+
+    // Export Excel operation
+    const handleExportToExcel = () => {
+        if (selectedRows.length === 0) {
+            toast.error('Please select records to be exported');
+            return;
+        }
+
+        const dataToExport = selectedRows.map((row, index) => {
+            const item: any = {
+                'SL.No': index + 1,
+                [staffBirthday ? 'Employee Name' : 'Student Name']: row.studentname || ''
+            };
+            if (!staffBirthday) {
+                item['Adm.No.'] = row.admno || '';
+            }
+            item['Class'] = row.classname || '';
+            item['Section'] = row.sectionname || '';
+            item['Date of Birth'] = row.amst_dob ? format(new Date(row.amst_dob), 'dd/MMM/yyyy') : '';
+            item['Address'] = row.stdaddress || '';
+            return item;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'BirthdayReport');
+        XLSX.writeFile(workbook, `StudentBirthdayReport_${format(new Date(), 'ddMMyyyy')}.xlsx`);
+        toast.success('Excel file exported successfully!');
     };
 
-    // Handle cancel
-    const handleCancel = () => {
-        setReportType('betweenDays');
-        setActiveType('Studying');
-        setFromDate('');
-        setToDate('');
-        setShowDataTable(false); // Hide data table on cancel
-    };
-
-    // Handle print
+    // Print operation
     const handlePrint = () => {
+        if (selectedRows.length === 0) {
+            toast.error('Please select records to be Printed');
+            return;
+        }
         window.print();
     };
 
-    // Handle export to Excel
-    const handleExportExcel = () => {
-        console.log('Exporting to Excel...');
-        // Add export functionality here
+    // Format DOB for display
+    const formatDateOfBirth = (dateString: string) => {
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'dd/MMM/yyyy');
+        } catch (e) {
+            return dateString;
+        }
     };
 
     return (
-        <>
-            <div ref={addFormRef}>
-                <CollapsibleSection
-                    title='STUDENT BIRTHDAY REPORT'
-                    description='Generate birthday reports based on selected criteria'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        {/* Birthday Report Form */}
-                        <Card className='p-6'>
-                            <form onSubmit={handleSubmit} className='space-y-6'>
-                                {/* Report Type Selection */}
-                                <div className='space-y-4'>
-                                    <Label className='font-semibold text-lg'>Select Report Type:</Label>
-                                    <RadioGroup value={reportType} onValueChange={setReportType} className='flex space-x-6'>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='betweenDays' id='betweenDays' />
-                                            <Label htmlFor='betweenDays' className='cursor-pointer font-medium'>
-                                                Between Days
-                                            </Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='monthWise' id='monthWise' />
-                                            <Label htmlFor='monthWise' className='cursor-pointer font-medium'>
-                                                Month Wise
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                    <RadioGroup value={activeType} onValueChange={setActiveType} className='flex space-x-6'>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Studying' id='Studying' />
-                                            <Label htmlFor='Studying' className='cursor-pointer font-medium'>
-                                                Studying
-                                            </Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='left' id='left' />
-                                            <Label htmlFor='left' className='cursor-pointer font-medium'>
-                                                Left
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
+        <div className='container mx-auto space-y-8 p-4 md:p-6 min-h-screen'>
+            {/* Embedded Print Styling */}
+            <style jsx global>{`
+                @media print {
+                    @page {
+                        size: A4 portrait;
+                        margin: 15mm 15mm 15mm 15mm;
+                    }
+                    body * {
+                        visibility: hidden;
+                    }
+                    #printSectionId,
+                    #printSectionId * {
+                        visibility: visible !important;
+                    }
+                    #printSectionId {
+                        display: block !important;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        background: white !important;
+                        color: black !important;
+                        font-family: 'Times New Roman', Times, serif;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    #printSectionId table {
+                        border-collapse: collapse !important;
+                        width: 100% !important;
+                    }
+                    #printSectionId th,
+                    #printSectionId td {
+                        border: 1px solid black !important;
+                        padding: 6px 8px !important;
+                        font-size: 11px !important;
+                        color: black !important;
+                        text-align: center !important;
+                    }
+                    #printSectionId th {
+                        background-color: #f3f4f6 !important;
+                        font-weight: bold !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    #printSectionId td.text-left,
+                    #printSectionId th.text-left {
+                        text-align: left !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                }
+            `}</style>
 
-                                {/* Date Selection */}
-                                <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
-                                    {/* From Date */}
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='fromDate' className='font-medium'>
-                                            From Date: <span className='text-red-500'>*</span>
+            {/* Header section with gradient design */}
+            <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b pb-4 no-print'>
+                <div>
+                    <h1 className='text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent flex items-center gap-3'>
+                        <Cake className='h-8 w-8 text-primary animate-bounce' />
+                        Student Birthday Report
+                    </h1>
+                    <p className='text-muted-foreground text-sm mt-1'>
+                        Modern dashboard to generate, analyze, print, and export birthday reports for students and staff.
+                    </p>
+                </div>
+            </div>
+
+            {/* Search Criteria Form */}
+            <Card className='shadow-xl border-t-4 border-t-primary/80 transition-shadow duration-300 hover:shadow-2xl no-print'>
+                <CardHeader>
+                    <CardTitle className='text-lg font-bold flex items-center gap-2'>
+                        <Calendar className='h-5 w-5 text-primary' />
+                        Report Configuration Criteria
+                    </CardTitle>
+                    <CardDescription>Select range, student status and monthly flags.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleShowReport} className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                            {/* Between Days or Month Wise Selection */}
+                            <div className='space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10'>
+                                <Label className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+                                    Report Selection Filter
+                                </Label>
+                                <RadioGroup value={all1} onValueChange={setAll1} className='flex flex-col gap-3 pt-2'>
+                                    <div className='flex items-center space-x-3'>
+                                        <RadioGroupItem value='1' id='r1' className='h-5 w-5 text-primary' />
+                                        <Label htmlFor='r1' className='font-medium cursor-pointer text-sm md:text-base'>
+                                            Between Days
                                         </Label>
-                                        <div className='relative'>
-                                            <Calendar className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-500' />
-                                            <Input
-                                                id='fromDate'
-                                                type='date'
-                                                value={fromDate}
-                                                onChange={(e) => setFromDate(e.target.value)}
-                                                className='pl-10'
-                                                placeholder='Enter date'
-                                                required
-                                            />
-                                        </div>
                                     </div>
-
-                                    {/* To Date */}
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='toDate' className='font-medium'>
-                                            To Date: <span className='text-red-500'>*</span>
+                                    <div className='flex items-center space-x-3'>
+                                        <RadioGroupItem value='0' id='r0' className='h-5 w-5 text-primary' />
+                                        <Label htmlFor='r0' className='font-medium cursor-pointer text-sm md:text-base'>
+                                            Month Wise
                                         </Label>
-                                        <div className='relative'>
-                                            <Calendar className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-500' />
-                                            <Input
-                                                id='toDate'
-                                                type='date'
-                                                value={toDate}
-                                                onChange={(e) => setToDate(e.target.value)}
-                                                className='pl-10'
-                                                placeholder='Enter date'
-                                                required
+                                    </div>
+                                </RadioGroup>
+                            </div>
+
+                            {/* Participant Status Flag (Studying / Left) */}
+                            <div className='space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10'>
+                                <Label className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+                                    Student Current Status
+                                </Label>
+                                <RadioGroup value={flag} onValueChange={setFlag} className='flex flex-col gap-3 pt-2'>
+                                    <div className='flex items-center space-x-3'>
+                                        <RadioGroupItem value='S' id='sS' className='h-5 w-5 text-primary' />
+                                        <Label htmlFor='sS' className='font-medium cursor-pointer text-sm md:text-base'>
+                                            Studying
+                                        </Label>
+                                    </div>
+                                    <div className='flex items-center space-x-3'>
+                                        <RadioGroupItem value='L' id='sL' className='h-5 w-5 text-primary' />
+                                        <Label htmlFor='sL' className='font-medium cursor-pointer text-sm md:text-base'>
+                                            Left
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                        </div>
+
+                        {/* Date selection or Month selection container */}
+                        <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 items-end pt-2'>
+                            {all1 === '0' && (
+                                <div className='space-y-2 col-span-1'>
+                                    <Label className='flex items-center gap-1 font-semibold text-sm'>
+                                        Select Month <span className='text-destructive'>*</span>
+                                    </Label>
+                                    <Select value={month} onValueChange={setMonth}>
+                                        <SelectTrigger className='w-full shadow-sm focus:ring-2 focus:ring-primary'>
+                                            <SelectValue placeholder='--Select Month--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MONTHS.map(item => (
+                                                <SelectItem key={item.value} value={item.value}>
+                                                    {item.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {submitted && !month && (
+                                        <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                            <AlertCircle className='h-3. w-3' /> Select Month Name
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {all1 === '1' && (
+                                <>
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold text-sm'>From Date <span className='text-destructive'>*</span></Label>
+                                        <Input
+                                            type='date'
+                                            value={fromdate}
+                                            onChange={e => setFromdate(e.target.value)}
+                                            className='shadow-sm focus:ring-2 focus:ring-primary'
+                                        />
+                                        {submitted && !fromdate && (
+                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                                <AlertCircle className='h-3 w-3' /> Select From Date
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold text-sm'>To Date <span className='text-destructive'>*</span></Label>
+                                        <Input
+                                            type='date'
+                                            value={todate}
+                                            onChange={e => setTodate(e.target.value)}
+                                            className='shadow-sm focus:ring-2 focus:ring-primary'
+                                        />
+                                        {submitted && !todate && (
+                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                                <AlertCircle className='h-3 w-3' /> Select To Date
+                                            </p>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Submit and Cancel Buttons */}
+                        <div className='flex justify-end gap-4 border-t pt-6'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                className='px-6 transition-all duration-200 hover:bg-muted/80'
+                            >
+                                <RotateCcw className='mr-2 h-4 w-4' /> Cancel
+                            </Button>
+                            <Button
+                                type='submit'
+                                disabled={loading}
+                                className='px-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/95 hover:to-violet-650 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
+                                    </>
+                                ) : (
+                                    <>Submit</>
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+
+            {/* Results Section */}
+            {hasSearched && students.length > 0 && (
+                <CollapsibleSection title='STUDENT BIRTHDAY REPORT DETAILS' defaultOpen={true} className='no-print shadow-xl rounded-xl border border-border/80'>
+                    <div className='space-y-6 p-1'>
+                        {/* Summary Metrics & Dynamic Search / Options */}
+                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4'>
+                            <div className='flex flex-wrap gap-4'>
+                                <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
+                                    Total Grid Records: <span className='rounded-full bg-primary/10 text-primary px-2.5 py-0.5'>{students.length}</span>
+                                </div>
+                                {searchValue.trim() !== '' && (
+                                    <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
+                                        Total Records Searched: <span className='rounded-full bg-violet-600/10 text-violet-600 px-2.5 py-0.5'>{filteredAndSortedStudents.length}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Export and Print Buttons */}
+                            <div className='flex gap-3 flex-wrap'>
+                                <Button
+                                    onClick={handleExportToExcel}
+                                    variant='outline'
+                                    className='border-emerald-200 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20'
+                                >
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' /> Export to Excel
+                                </Button>
+                                <Button
+                                    onClick={handlePrint}
+                                    variant='outline'
+                                    className='border-violet-200 text-violet-600 bg-violet-50/50 hover:bg-violet-50 hover:text-violet-750 dark:hover:bg-violet-950/20'
+                                >
+                                    <Printer className='mr-2 h-4 w-4' /> Print Report
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Search and Table filter input */}
+                        <div className='flex max-w-sm items-center gap-2'>
+                            <div className='relative w-full'>
+                                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                                <Input
+                                    placeholder='Search grid rows...'
+                                    value={searchValue}
+                                    onChange={e => {
+                                        setSearchValue(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className='pl-10 shadow-sm'
+                                />
+                            </div>
+                        </div>
+
+                        {/* Responsive Data Grid */}
+                        <div className='overflow-x-auto rounded-xl border border-muted-foreground/20 shadow-inner bg-card'>
+                            <table className='w-full border-collapse text-left text-sm text-foreground'>
+                                <thead>
+                                    <tr className='border-b bg-accent/15 font-semibold text-muted-foreground shadow-sm transition-colors'>
+                                        <th className='p-4 text-center w-12'>
+                                            <Checkbox
+                                                checked={filteredAndSortedStudents.length > 0 && selectedRows.length === filteredAndSortedStudents.length}
+                                                onCheckedChange={handleToggleAll}
                                             />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className='flex justify-end space-x-4 pt-6'>
-                                    <Button type='button' variant='outline' onClick={handleCancel} className='px-8 font-medium'>
-                                        CANCEL
-                                    </Button>
-                                    <Button type='submit' className='px-8 font-medium'>
-                                        SUBMIT
-                                    </Button>
-                                </div>
-                            </form>
-                        </Card>
-
-                        {/* Data Table Section - Only shown after validation */}
-                        {showDataTable && (
-                            <div className='mt-8'>
-                                <Card className='p-6'>
-                                    {/* Table Header */}
-                                    <div className='mb-4 flex items-center justify-between'>
-                                        <h3 className='font-semibold text-lg'>Total Grid Records: {staticBirthdayData.length}</h3>
-                                        <div className='flex space-x-2'>
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                onClick={handleExportExcel}
-                                                className='flex items-center gap-2'>
-                                                <FileText className='h-4 w-4' />
-                                                EXPORT TO EXCEL
-                                            </Button>
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                onClick={handlePrint}
-                                                className='flex items-center gap-2'>
-                                                <Printer className='h-4 w-4' />
-                                                PRINT
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Data Table */}
-                                    <div className='overflow-x-auto'>
-                                        <table className='w-full border-collapse border'>
-                                            <thead>
-                                                <tr className='bg-gray-100'>
-                                                    <th className='border p-3 text-left font-semibold'>Student Name</th>
-                                                    <th className='border p-3 text-left font-semibold'>Adm.No.</th>
-                                                    <th className='border p-3 text-left font-semibold'>Class</th>
-                                                    <th className='border p-3 text-left font-semibold'>Section</th>
-                                                    <th className='border p-3 text-left font-semibold'>Date of Birth</th>
-                                                    <th className='border p-3 text-left font-semibold'>Student Photo</th>
-                                                    <th className='border p-3 text-left font-semibold'>Address</th>
+                                        </th>
+                                        <th className='p-4 text-center w-16'>SL.No</th>
+                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-48' onClick={() => handleSort('studentname')}>
+                                            <div className='flex items-center gap-1.5'>
+                                                {staffBirthday ? 'Employee Name' : 'Student Name'}
+                                                {sortKey === 'studentname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                            </div>
+                                        </th>
+                                        {!staffBirthday && (
+                                            <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-32' onClick={() => handleSort('admno')}>
+                                                <div className='flex items-center gap-1.5'>
+                                                    Adm.No.
+                                                    {sortKey === 'admno' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                </div>
+                                            </th>
+                                        )}
+                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-28' onClick={() => handleSort('classname')}>
+                                            <div className='flex items-center gap-1.5'>
+                                                Class
+                                                {sortKey === 'classname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                            </div>
+                                        </th>
+                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-28' onClick={() => handleSort('sectionname')}>
+                                            <div className='flex items-center gap-1.5'>
+                                                Section
+                                                {sortKey === 'sectionname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                            </div>
+                                        </th>
+                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-40' onClick={() => handleSort('amst_dob')}>
+                                            <div className='flex items-center gap-1.5'>
+                                                Date of Birth
+                                                {sortKey === 'amst_dob' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                            </div>
+                                        </th>
+                                        <th className='p-4 text-center w-36'>Student Photo</th>
+                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-64' onClick={() => handleSort('stdaddress')}>
+                                            <div className='flex items-center gap-1.5'>
+                                                Address
+                                                {sortKey === 'stdaddress' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedStudents.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={staffBirthday ? 8 : 9} className='p-8 text-center text-muted-foreground font-medium'>
+                                                No records match the search filter.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedStudents.map((row, index) => {
+                                            const slNo = (currentPage - 1) * itemsPerPage + index + 1;
+                                            return (
+                                                <tr
+                                                    key={`${row.AMST_Id || row.HRME_Id || ''}_${row.classname || ''}_${row.sectionname || ''}_${slNo}`}
+                                                    className='border-b hover:bg-accent/5 transition-colors duration-150'
+                                                >
+                                                    <td className='p-4 text-center'>
+                                                        <Checkbox
+                                                            checked={isRowSelected(row)}
+                                                            onCheckedChange={checked => handleToggleRow(!!checked, row)}
+                                                        />
+                                                    </td>
+                                                    <td className='p-4 text-center font-medium'>{slNo}</td>
+                                                    <td className='p-4 font-semibold text-primary/95'>{row.studentname}</td>
+                                                    {!staffBirthday && <td className='p-4 font-medium'>{row.admno}</td>}
+                                                    <td className='p-4'>{row.classname}</td>
+                                                    <td className='p-4'>{row.sectionname}</td>
+                                                    <td className='p-4 font-medium'>{formatDateOfBirth(row.amst_dob)}</td>
+                                                    <td className='p-4 text-center'>
+                                                        <div className='flex justify-center'>
+                                                            {row.amst_photo ? (
+                                                                <img
+                                                                    src={row.amst_photo}
+                                                                    alt='Birthday student photo'
+                                                                    className='h-16 w-16 rounded-xl object-cover border-2 border-primary/20 shadow-sm transition-transform duration-200 hover:scale-110'
+                                                                    onError={e => {
+                                                                        (e.target as HTMLImageElement).src = '';
+                                                                        (e.target as HTMLImageElement).alt = 'Photo Not Available';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className='flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-[10px] text-muted-foreground font-bold text-center leading-3 border border-dashed border-muted-foreground/30 px-1'>
+                                                                    Photo Not Available
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className='p-4 text-xs leading-relaxed max-w-xs text-muted-foreground'>{row.stdaddress}</td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                {staticBirthdayData.map((student) => (
-                                                    <tr key={student.id} className='border-b hover:bg-gray-50'>
-                                                        <td className='border p-3'>{student.studentName}</td>
-                                                        <td className='border p-3'>{student.admNo}</td>
-                                                        <td className='border p-3'>{student.class}</td>
-                                                        <td className='border p-3'>{student.section}</td>
-                                                        <td className='border p-3'>{student.dateOfBirth}</td>
-                                                        <td className='border p-3'>{student.studentPhoto || '-'}</td>
-                                                        <td className='border p-3 text-sm'>{student.address}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </Card>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Interactive Pagination controls */}
+                        {totalPages > 1 && (
+                            <div className='flex justify-between items-center bg-accent/5 p-4 rounded-xl border border-muted-foreground/10'>
+                                <span className='text-xs text-muted-foreground font-semibold'>
+                                    Showing page {currentPage} of {totalPages}
+                                </span>
+                                <div className='flex gap-2'>
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        className='text-xs'
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        className='text-xs'
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </div>
                 </CollapsibleSection>
+            )}
+
+            {/* Printable Area - Rendered exactly as requested by legacy design parameters */}
+            <div id='printSectionId' className='hidden'>
+                {/* Header section with Logo */}
+                {logoPath ? (
+                    <div className='text-center mb-6'>
+                        <img src={logoPath} className='mx-auto max-h-24 object-contain mb-3' alt='Institution Logo' />
+                    </div>
+                ) : (
+                    <div className='text-center mb-6 font-bold text-xl uppercase tracking-wider'>
+                        BALDWIN INSTITUTIONS
+                    </div>
+                )}
+
+                <div className='text-center mb-6'>
+                    <h2 className='text-2xl font-bold uppercase underline tracking-wide'>Student Birthday Report</h2>
+                    <p className='text-xs italic text-gray-700 mt-1'>
+                        Report Filter: {all1 === '1' ? 'Between Days' : 'Month Wise'} Wise | Status:{' '}
+                        {flag === 'S' ? 'Studying' : 'Left'}
+                    </p>
+                    {all1 === '1' && fromdate && todate && (
+                        <p className='text-xs text-gray-800 font-semibold mt-1'>
+                            Period: {format(new Date(fromdate), 'dd/MM/yyyy')} to {format(new Date(todate), 'dd/MM/yyyy')}
+                        </p>
+                    )}
+                    {all1 === '0' && month && (
+                        <p className='text-xs text-gray-800 font-semibold mt-1'>
+                            Month: {MONTHS.find(m => m.value === month)?.label}
+                        </p>
+                    )}
+                </div>
+
+                {/* Solid printable table borders */}
+                <table className='w-full border-collapse border border-black text-xs text-center mt-6'>
+                    <thead>
+                        <tr className='bg-gray-100 font-bold border-b border-black'>
+                            <th className='border border-black p-2 w-12'>SL.No</th>
+                            <th className='border border-black p-2 text-left'>{staffBirthday ? 'Employee Name' : 'Student Name'}</th>
+                            {!staffBirthday && <th className='border border-black p-2'>Adm. No.</th>}
+                            <th className='border border-black p-2'>Class</th>
+                            <th className='border border-black p-2'>Section</th>
+                            <th className='border border-black p-2 w-28'>Date of Birth</th>
+                            <th className='border border-black p-2 w-24'>Photo</th>
+                            <th className='border border-black p-2 text-left w-56'>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {selectedRows.length === 0 ? (
+                            <tr>
+                                <td colSpan={staffBirthday ? 7 : 8} className='border border-black p-4 italic text-gray-500'>
+                                    No records selected for printing.
+                                </td>
+                            </tr>
+                        ) : (
+                            selectedRows.map((row, index) => (
+                                <tr key={`${row.AMST_Id || row.HRME_Id || ''}_${row.classname || ''}_${row.sectionname || ''}_${index}`} className='border-b border-black'>
+                                    <td className='border border-black p-2 font-medium'>{index + 1}</td>
+                                    <td className='border border-black p-2 text-left font-bold'>{row.studentname}</td>
+                                    {!staffBirthday && <td className='border border-black p-2'>{row.admno}</td>}
+                                    <td className='border border-black p-2'>{row.classname}</td>
+                                    <td className='border border-black p-2'>{row.sectionname}</td>
+                                    <td className='border border-black p-2'>{formatDateOfBirth(row.amst_dob)}</td>
+                                    <td className='border border-black p-2 text-center'>
+                                        <div className='flex justify-center'>
+                                            {row.amst_photo ? (
+                                                <img
+                                                    src={row.amst_photo}
+                                                    alt='Printed photo'
+                                                    className='h-14 w-14 object-cover border border-black'
+                                                />
+                                            ) : (
+                                                <span className='text-[10px] text-gray-500 font-semibold'>No Photo</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className='border border-black p-2 text-left leading-tight text-[11px]'>{row.stdaddress}</td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+
+                {/* Legacy Print Footer details */}
+                <div className='mt-8 pt-4 border-t border-dashed border-gray-400 flex flex-row justify-between items-center text-[10px] text-gray-600'>
+                    <div>Date: {format(new Date(), 'dd/MM/yyyy')}</div>
+                    {userName && <div>UserName: {userName}</div>}
+                    {copyright && <div>{copyright}</div>}
+                </div>
             </div>
-        </>
+        </div>
     );
 }
