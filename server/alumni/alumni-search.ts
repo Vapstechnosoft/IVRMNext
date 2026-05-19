@@ -10,5 +10,6 @@ export async function performAlumniSearch(data: any) {
 
 export async function getAlumniSearchDropdownData(data: any) {
     const url = '/AlumniSearch/Getdetails';
-    return await api.post<any>('alumni', url, data);
+    return await api.post<IAlumniSearchDetailsResponse>('alumni', url, data);
 }
+
