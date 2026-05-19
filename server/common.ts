@@ -1168,6 +1168,14 @@ export async function getUserAccessibleModules() {
                                             description: 'St. Thomas Admission Form'
                                         },
                                         {
+                                            id: 161,
+                                            name: 'STTHOMAS Application Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
+                                            title: 'STTHOMAS Application Form',
+                                            description: 'STTHOMAS Application Form'
+                                        },
+                                        {
                                             id: 62,
                                             name: 'Total Strength',
                                             icon: 'Settings',
@@ -1364,14 +1372,6 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/burnpur/reports/brs-tc-certificate',
                                             title: 'BRS TC Certificate',
                                             description: 'BRS TC Certificate'
-                                        },
-                                        {
-                                            id: 77,
-                                            name: 'BRS Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/burnpur/transactions/application-form',
-                                            title: 'BRS Admission Form',
-                                            description: 'BRS Admission Form'
                                         }
                                     ]
                                 },
@@ -6223,87 +6223,87 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                // {
-                //     id: 27,
+                {
+                    id: 27,
 
-                //     name: 'BirthDay',
+                    name: 'BirthDay',
 
-                //     icon: 'Settings',
+                    icon: 'Settings',
 
-                //     menu: [
-                //         {
-                //             id: 1,
+                    menu: [
+                        {
+                            id: 1,
 
-                //             name: 'BirthDay',
+                            name: 'BirthDay',
 
-                //             icon: 'Settings',
+                            icon: 'Settings',
 
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
+                            sub_menu: [
+                                {
+                                    id: 1,
 
-                //                     name: 'Master',
+                                    name: 'Master',
 
-                //                     icon: 'Settings',
+                                    icon: 'Settings',
 
-                //                     pages: [
-                //                         {
-                //                             id: 1,
+                                    pages: [
+                                        {
+                                            id: 1,
 
-                //                             name: 'BirthDay',
+                                            name: 'BirthDay',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/master/masterbirthday',
+                                            url: '/birthday/master/masterbirthday',
 
-                //                             title: 'Master BirthDay',
+                                            title: 'Master BirthDay',
 
-                //                             description: 'Manage Master BirthDay Details'
-                //                         }
-                //                     ]
-                //                 },
+                                            description: 'Manage Master BirthDay Details'
+                                        }
+                                    ]
+                                },
 
-                //                 {
-                //                     id: 2,
+                                {
+                                    id: 2,
 
-                //                     name: 'Report',
+                                    name: 'Report',
 
-                //                     icon: 'Settings',
+                                    icon: 'Settings',
 
-                //                     pages: [
-                //                         {
-                //                             id: 1,
+                                    pages: [
+                                        {
+                                            id: 1,
 
-                //                             name: 'Student BirthDay Report',
+                                            name: 'Student BirthDay Report',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/report/studentbirthdayreport',
+                                            url: '/birthday/report/studentbirthdayreport',
 
-                //                             title: 'Student BirthDay Report',
+                                            title: 'Student BirthDay Report',
 
-                //                             description: 'Manage Student BirthDay Report'
-                //                         },
+                                            description: 'Manage Student BirthDay Report'
+                                        },
 
-                //                         {
-                //                             id: 2,
+                                        {
+                                            id: 2,
 
-                //                             name: 'Staff BirthDay Report',
+                                            name: 'Staff BirthDay Report',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/report/staffbirthdayreport',
+                                            url: '/birthday/report/staffbirthdayreport',
 
-                //                             title: 'Staff BirthDay Report',
+                                            title: 'Staff BirthDay Report',
 
-                //                             description: 'Manage Staff BirthDay Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                            description: 'Manage Staff BirthDay Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
 
                 {
                     id: 60006,
@@ -9734,12 +9734,12 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Pre Admission Form',
+                                            id: 2,
+                                            name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Admission Form',
-                                            description: 'Apply for Admission'
+                                            title: 'Preadmission Form',
+                                            description: 'Apply for Preadmission'
                                         }
                                     ]
                                 }

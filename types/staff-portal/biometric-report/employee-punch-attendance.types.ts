@@ -13,6 +13,9 @@ export interface IEmployeePunchAttendanceReportData {
 }
 
 export interface IPunchDetail {
+    ecode:string;
+    ename:string;
+    HRME_Id:number;
     punchdate: string;
     punchINtime: string;
     punchOUTtime: string;

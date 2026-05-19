@@ -1,5 +1,5 @@
 'use client';
- 
+
 import { use, useRef, useState, useEffect, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Heading } from '@/components/layout/heading';
@@ -21,19 +21,19 @@ import { InvRSalesPrint } from './_components/inv-r-sales-print';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
- 
+
 interface ReportTotals {
     amount: number;
     tax: number;
     discount: number;
 }
- 
+
 const calculateReportTotals = (data: any[]): ReportTotals => {
     return data.reduce((acc: ReportTotals, curr: any) => {
         const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? 0;
         const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? 0;
         const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? 0;
- 
+
         return {
             amount: acc.amount + Number(amount),
             tax: acc.tax + Number(tax),
@@ -41,7 +41,7 @@ const calculateReportTotals = (data: any[]): ReportTotals => {
         };
     }, { amount: 0, tax: 0, discount: 0 } as ReportTotals);
 };
- 
+
 export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     const searchParams = use(props.searchParams);
     const [currentPage, setPage] = useQueryState(
@@ -56,10 +56,10 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
- 
+
     const [currentPayload, setCurrentPayload] = useState<InvRSalesSchema | null>(null);
     const [printData, setPrintData] = useState<any[]>([]);
- 
+
     const mapReportPayload = (payload: InvRSalesSchema | null) => {
         if (!payload) return null;
 
@@ -105,10 +105,10 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         search_query: searchQuery,
         search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
     });
- 
+
     const reportData = Array.isArray(reportResult?.data) ? reportResult.data : (reportResult?.data?.get_SalesReport || []);
     const totalRecords = reportResult?.total || (Array.isArray(reportResult?.data) ? reportResult.data.length : 0);
- 
+
     const handleReportSubmit = (payload: InvRSalesSchema | null) => {
         // Handle reset or empty
         if (!payload || Object.keys(payload).length === 0) {
@@ -117,24 +117,24 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             setSearchQuery(null);
             return;
         }
- 
+
         // Show toast for empty initial report
         if (totalRecords === 0 && !isFetching && currentPayload) {
             toast.error("No record found");
         }
- 
+
         setCurrentPayload(payload);
         setPage(1);
         setSearchQuery(null);
     };
- 
+
     // Show toast for empty search results or initial empty report
     useEffect(() => {
         if (!isFetching && currentPayload && totalRecords === 0) {
             toast.error("No record found");
         }
     }, [isFetching, totalRecords, searchQuery, currentPayload]);
- 
+
     const columns = getColumns(
         currentPayload?.typeflag || 'All',
         currentPayload?.optionflag,
@@ -143,32 +143,33 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         currentPage,
         pageSize
     );
- 
+
     const totals = calculateReportTotals(reportData);
- 
+
     const componentRef = useRef<HTMLDivElement>(null);
     const handlePrintContent = useReactToPrint({
         contentRef: componentRef,
         documentTitle: `Sales Report - ${new Date().toISOString().split('T')[0]}`
     });
- 
+
     const fetchAllData = async (action: 'print' | 'excel') => {
         if (!currentPayload) return [];
         try {
             toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
-            
+
             const p = mapReportPayload(currentPayload);
- 
-            const response = await getInvRSalesReport(p, { 
-                ...searchParams, 
-                page: 1, 
-                page_size: 100000, 
+
+            const response = await getInvRSalesReport(p, {
+                ...searchParams,
+                page: 1,
+                page_size: 100000,
                 search_query: searchQuery || '',
                 search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
             });
-            
+            console.log("fetchAllData Response:", response?.data);
+
             const allData = Array.isArray(response?.data) ? response.data : (response?.data?.get_SalesReport || []);
-            
+
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
                 toast.error(`Failed to fetch ${action} data`);
@@ -177,13 +178,13 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             toast.dismiss('fetch-all');
             return allData;
         } catch (error) {
-             console.error(`${action} fetch error:`, error);
-             toast.dismiss('fetch-all');
-             toast.error(`Error fetching ${action} data`);
-             return [];
+            console.error(`${action} fetch error:`, error);
+            toast.dismiss('fetch-all');
+            toast.error(`Error fetching ${action} data`);
+            return [];
         }
     };
- 
+
     const handlePrint = async () => {
         const allData = await fetchAllData('print');
         if (allData.length > 0) {
@@ -194,7 +195,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             }, 500);
         }
     };
- 
+
     const handleExportExcel = async () => {
         const allData = await fetchAllData('excel');
         if (allData.length > 0) {
@@ -203,14 +204,14 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             const optionflag = currentPayload?.optionflag;
             const showTax = currentPayload?.showTax || false;
             const showDiscount = currentPayload?.showDiscount || false;
- 
+
             dataToExport = allData.map((row: any, index: number) => {
                 const base: any = {
                     "SL.No": index + 1
                 };
- 
+
                 const saleDate = row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate;
- 
+
                 if (typeflag === 'All') {
                     base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
                     base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
@@ -219,7 +220,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                     base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
                     base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
                     base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
-                    
+
                     if (['Student', 'Staff', 'Customer', 'Saleno'].includes(optionflag || '')) {
                         base["Name"] = row.membername || row.memberName || '';
                     }
@@ -227,24 +228,24 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                     if (optionflag === 'Item') {
                         base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
                     } else if (['Student', 'Staff', 'Customer'].includes(optionflag || '')) {
-                         base["Name"] = row.membername || row.memberName || '';
+                        base["Name"] = row.membername || row.memberName || '';
                     }
                 }
- 
+
                 base["Quantity"] = Number(row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? 0).toFixed(2);
                 base["Price"] = Number(row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? 0).toFixed(2);
                 base["Amount"] = Number(row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? 0).toFixed(2);
- 
+
                 if (showTax) {
-                     base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? 0).toFixed(2);
+                    base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? 0).toFixed(2);
                 }
                 if (showDiscount) {
-                     base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? 0).toFixed(2);
+                    base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? 0).toFixed(2);
                 }
- 
+
                 return base;
             });
- 
+
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
@@ -254,23 +255,23 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
             toast.success('Excel downloaded successfully');
         }
     };
- 
+
     const tableProps = useDataTableProps({
         enablePagination: true,
         enableSorting: false,
         enableSearching: true, // Grid Search enabled
         isSearchRequired: true,
     });
- 
+
     return (
         <div className="container mx-auto px-4 py-6 space-y-6">
             <Heading
                 title="Sales Report"
                 description="Generate Sales Reports"
             />
- 
+
             <ReportForm onSubmit={handleReportSubmit} isLoading={isFetching} />
- 
+
             {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
                     <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
@@ -314,9 +315,9 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                                 </Button>
                             </div>
                         </div>
- 
+
                         <div>
- 
+
                             <GenericDataTable
                                 {...tableProps}
                                 data={reportData}
@@ -327,7 +328,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                                 noDataTitle="No Sales Found"
                                 noDataDescription="No records found matching your search criteria."
                             />
- 
+
                             {reportData.length > 0 && (
                                 <div className="flex justify-end mt-4">
                                     <Card className="w-full md:w-[400px] bg-muted/10 print:bg-transparent print:border-none print:shadow-none">
@@ -359,7 +360,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                     </div>
                 </CollapsibleSection>
             )}
- 
+
             {/* Hidden Print Component */}
             <div
                 style={{
