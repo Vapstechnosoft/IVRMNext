@@ -155,20 +155,31 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         {errors.lfsE_SlabTypeFlg && <p className='text-destructive text-sm'>{errors.lfsE_SlabTypeFlg.message}</p>}
                     </div>
 
-                    <div className='flex items-center space-x-2 pt-8'>
-                        <Controller
-                            control={control}
-                            name='lfsE_PerDayFlg'
-                            render={({ field }) => (
-                                <Checkbox
-                                    id='perDay'
-                                    checked={field.value === 1}
-                                    onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
-                                />
-                            )}
-                        />
-                        <Label htmlFor='perDay' className='font-normal'>Per Day</Label>
-                    </div>
+                   <div className='flex items-center space-x-4 pt-8'>
+    <Label className='font-normal whitespace-nowrap'>
+        Fine Type :
+    </Label>
+
+    <div className='flex items-center space-x-2'>
+        <Controller
+            control={control}
+            name='lfsE_PerDayFlg'
+            render={({ field }) => (
+                <Checkbox
+                    id='perDay'
+                    checked={field.value === 1}
+                    onCheckedChange={(checked) =>
+                        field.onChange(checked ? 1 : 0)
+                    }
+                />
+            )}
+        />
+
+        <Label htmlFor='perDay' className='font-normal'>
+            Per Day
+        </Label>
+    </div>
+</div>
 
                     <InputText
                         label='From Day'

@@ -5,7 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InputText } from '@/components/ui/extension/input-text';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { useMasterLibraryMapping, useMasterLibraryEditData, useMasterLibrarySaveMapping } from '@/hooks/library/useMasterLibraryMapping';
+import { useMasterLibraryMapping, useMasterLibraryEditData, useMasterLibrarySaveClassMapping } from '@/hooks/library/useMasterLibraryMapping';
 import { Save, X, Search, Eye } from 'lucide-react';
 import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,7 +25,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 export function LibraryMapClassTab() {
     const { libraries, classes: fetchedClasses, isLoading: isLibLoading, refetchAll } = useMasterLibraryMapping();
     const { fetchEditClass, isFetchingClass } = useMasterLibraryEditData();
-    const saveMapping = useMasterLibrarySaveMapping();
+    const saveMapping = useMasterLibrarySaveClassMapping();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedLibrary, setSelectedLibrary] = useState<string>('');
     const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
@@ -56,8 +56,8 @@ export function LibraryMapClassTab() {
 
         setIsSaving(true);
         const payload = {
-            lmaL_Id: Number(selectedLibrary),
-            selected_classes: selectedClasses.map((id: any) => ({ asmcL_Id: id }))
+            LMAL_Id: Number(selectedLibrary),
+            classlst: selectedClasses.map((id: any) => ({ ASMCL_Id: Number(id) }))
         };
 
         try {
@@ -97,7 +97,7 @@ export function LibraryMapClassTab() {
         if (!toggleData) return;
         setIsToggling(true);
         try {
-            const response = await toggleMasterLibrary(toggleData.lmaL_Id);
+            const response = await toggleMasterLibrary(Number(toggleData.lmaL_Id));
             if (response.success || response.message?.toLowerCase().includes('success')) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
@@ -173,7 +173,7 @@ export function LibraryMapClassTab() {
                                     Library Name:<span className='text-red-500'>*</span>
                                 </label>
                                 <div className='flex-1'>
-                                    <Select value={selectedLibrary} onValueChange={setSelectedLibrary}>
+                                    <Select key={selectedLibrary} value={selectedLibrary} onValueChange={setSelectedLibrary}>
                                         <SelectTrigger className='h-9'>
                                             <SelectValue placeholder='--Select Library--' />
                                         </SelectTrigger>
@@ -392,13 +392,15 @@ export function LibraryMapClassTab() {
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={() => setIsToggleModalOpen(false)} type='button' className='h-9 px-6 text-xs'>
+                    <Button variant='secondary' onClick={() => setIsToggleModalOpen(false)} type='button' className='h-9 px-6 text-xs' disabled={isToggling}>
                         CANCEL
                     </Button>
                     <Button 
                         onClick={confirmToggleStatus} 
                         variant={toggleData?.lmaL_ActiveFlag ? 'destructive' : 'default'}
                         className='h-9 px-6 text-xs'
+                        isLoading={isToggling}
+                        disabled={isToggling}
                     >
                         {toggleData?.lmaL_ActiveFlag ? 'DEACTIVATE' : 'ACTIVATE'}
                     </Button>
