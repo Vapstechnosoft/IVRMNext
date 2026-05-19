@@ -42,10 +42,6 @@ export async function toggleMasterSubject(id: number) {
     try {
         const url = `/MasterSubject/toggle/${id}`;
         return await api.put<any>('library', url);
-
-
-
-
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to toggle record' };
     }

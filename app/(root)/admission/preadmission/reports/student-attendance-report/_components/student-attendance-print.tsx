@@ -7,10 +7,11 @@ interface StudentAttendancePrintProps {
     className: string;
     sectionName: string;
     monthName?: string;
+    monthDateWise?: boolean;
 }
 
 export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAttendancePrintProps>(
-    ({ data, academicYear, className, sectionName, monthName }, ref) => {
+    ({ data, academicYear, className, sectionName, monthName, monthDateWise }, ref) => {
         const currentDate = format(new Date(), 'dd/MM/yyyy');
         const institution = data?.data?.institutionDetails?.[0];
         const studentList = data?.data?.studentAttendanceList ?? [];
@@ -24,14 +25,17 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
             );
         }
 
+        const monthList = data?.data?.monthList ?? [];
+        const days = monthList.length > 0 ? monthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
+
         return (
             <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
                 <style>
                     {`
                         @media print {
                             @page {
-                                margin: 10mm;
-                                size: A4 portrait;
+                                margin: 5mm;
+                                size: ${monthDateWise ? 'A4 landscape' : 'A4 portrait'};
                             }
                             body {
                                 visibility: hidden;
@@ -64,9 +68,9 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                             }
                             .data-table th, .data-table td {
                                 border: 1px solid #000;
-                                padding: 6px 4px;
+                                padding: 4px 2px;
                                 text-align: center;
-                                font-size: 10px;
+                                font-size: ${monthDateWise ? '8px' : '10px'};
                             }
                             .data-table th {
                                 background-color: #f3f4f6 !important;
@@ -131,6 +135,7 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                             <th>Student Name</th>
                                             <th>Admission No</th>
                                             <th>Roll No</th>
+                                            {monthDateWise && days.map((d: any) => <th key={d}>{d}</th>)}
                                             <th>Class Held</th>
                                             <th>Class Attended</th>
                                             <th>Percentage</th>
@@ -140,22 +145,39 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                         {studentList.map((student: any, index: number) => (
                                             <tr key={index}>
                                                 <td>{student.RowNo || index + 1}</td>
-                                                <td style={{ textAlign: 'left' }}>{student.name}</td>
+                                                <td style={{ textAlign: 'left', minWidth: monthDateWise ? '100px' : 'auto' }}>{student.name}</td>
                                                 <td>{student.AMST_AdmNo}</td>
                                                 <td>{student.AMAY_RollNo}</td>
+                                                {monthDateWise && days.map((d: any) => (
+                                                    <td key={d}>{student[`_${d}`] || ''}</td>
+                                                ))}
                                                 <td>{student.ASA_ClassHeld}</td>
                                                 <td>{student.ASA_Class_Attended}</td>
                                                 <td>{Number(student.Percentage).toFixed(2)}%</td>
                                             </tr>
                                         ))}
                                         <tr className='bg-gray-100 font-bold'>
-                                            <td colSpan={6} className='text-right px-4 uppercase'>
+                                            <td colSpan={monthDateWise ? (days.length + 4) : 6} className='text-right px-4 uppercase'>
                                                 Total Records
                                             </td>
                                             <td className='px-4'>
                                                 {totalRecords}
                                             </td>
+                                            <td></td>
                                         </tr>
+                                        {monthDateWise && (
+                                            <tr>
+                                                <td colSpan={days.length + 7} className='text-left p-2'>
+                                                    <div className='flex gap-4 text-[10px] font-bold'>
+                                                        <span>Legend:</span>
+                                                        <span style={{ color: '#16a34a' }}>P: Present</span>
+                                                        <span style={{ color: '#dc2626' }}>A: Absent</span>
+                                                        <span style={{ color: '#2563eb' }}>L: Leave</span>
+                                                        <span style={{ color: '#d97706' }}>HO: Holiday</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </td>
