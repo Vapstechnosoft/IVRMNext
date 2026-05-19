@@ -1372,14 +1372,6 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/burnpur/reports/brs-tc-certificate',
                                             title: 'BRS TC Certificate',
                                             description: 'BRS TC Certificate'
-                                        },
-                                        {
-                                            id: 77,
-                                            name: 'BRS Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/burnpur/transactions/application-form',
-                                            title: 'BRS Admission Form',
-                                            description: 'BRS Admission Form'
                                         }
                                     ]
                                 },
@@ -9742,12 +9734,12 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Pre Admission Form',
+                                            id: 2,
+                                            name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Admission Form',
-                                            description: 'Apply for Admission'
+                                            title: 'Preadmission Form',
+                                            description: 'Apply for Preadmission'
                                         }
                                     ]
                                 }
