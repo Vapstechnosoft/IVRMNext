@@ -62,6 +62,7 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         ttmD_Date: watchDate ? format(watchDate, 'yyyy-MM-dd') : '',
         absent_Staff_Flag: watchAbsent
     });
+    console.log('absentStaffData', absentStaffData, absentStaffData?.data);
 
     useEffect(() => {
         if (watchDate) {
@@ -69,7 +70,6 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         }
     }, [watchDate, setValue]);
 
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: ayData, isLoading: ayLoading } = useTimeTableAcademicYear();
     const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownData();
     const { data: classData, isLoading: classLoading } = useTimeTableClassDropdownData();
@@ -126,10 +126,10 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger
                                             className={`h-10 border-purple-100 ${errors.asmaY_Id ? 'border-red-500 ring-red-100' : ''}`}>
-                                            <SelectValue placeholder={isLoading ? 'Loading...' : 'Select Year'} />
+                                            <SelectValue placeholder={ayLoading ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {masters?.academicYears?.map((ay: any) => (
+                                            {ayData?.data?.map((ay: any) => (
                                                 <SelectItem key={ay.asmaY_Id} value={ay.asmaY_Id.toString()}>
                                                     {ay.asmaY_Year}
                                                 </SelectItem>

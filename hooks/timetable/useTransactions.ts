@@ -108,7 +108,11 @@ export const useAbsentStaffList = (payload: { asmaY_Id: number; ttmD_Date: strin
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_ABSENT_STAFF, payload],
         queryFn: async () => {
-            const res = await getAbsentStaffList(payload);
+            const res = await getAbsentStaffList({
+                asmaY_Id: payload.asmaY_Id,
+                TTSD_Date: payload.ttmD_Date,
+                absFlag: payload.absent_Staff_Flag
+            });
             return res.data || [];
         },
         enabled: !!payload.asmaY_Id && !!payload.ttmD_Date
@@ -208,7 +212,7 @@ export const useStaffReplacementGridData = (searchParams?: ApiSearchparams) => {
             queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_GRID_DATA, searchParams ?? {}],
             queryFn: async () => {
                 const res = await getStaffReplacementGridData(searchParams);
-                return res.data || res;
+                return res;
             },
             staleTime: 0
         }),
@@ -260,7 +264,7 @@ export const useTTStaffReplacementInUnallocatedPeriodReport = (hrmE_Id: number) 
         queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_IN_UNALLOCATED_PERIOD_REPORT, hrmE_Id],
         queryFn: async () => {
             const res = await TTStaffReplacementInUnallocatedPeriodReport(hrmE_Id);
-            return res.data || res;
+            return res;
         },
         enabled: !!hrmE_Id
     });

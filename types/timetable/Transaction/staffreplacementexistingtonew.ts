@@ -34,6 +34,7 @@ export interface StaffReplacementGridData {
     ttmC_CategoryName: string;
     asmcL_ClassName: string;
     asmC_SectionName: string;
+    hrmE_EmployeeFirstName: string;
     ismS_SubjectName: string;
     ttmP_PeriodName: string;
 }

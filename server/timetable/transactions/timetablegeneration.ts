@@ -6,13 +6,13 @@ import type { AcademicYear, Category } from '@/types/timetable/Transaction/timet
 export async function getAcademicYear(data?: any) {
     const url = '/TimeTableCommon/GetAcademicYearData';
     console.info('TimeTableCommon', url);
-    return await api.get<any>('timetable', url);
+    return await api.get<AcademicYear>('timetable', url);
 }
 
 export async function getCategory(data?: any) {
     const url = '/TimeTableCommon/GetCategoryDetails';
     console.info('TimeTableCommon', url);
-    return await api.get<any>('timetable', url);
+    return await api.get<Category>('timetable', url);
 }
 
 export async function getGenerationMasters() {

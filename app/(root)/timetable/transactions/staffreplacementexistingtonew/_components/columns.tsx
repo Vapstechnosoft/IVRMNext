@@ -32,9 +32,9 @@ export const columns: ColumnDef<StaffReplacementGridData>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'staffName',
+        accessorKey: 'hrmE_EmployeeFirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' />,
-        cell: ({ row }) => <div>{row.getValue('staffName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('hrmE_EmployeeFirstName')}</div>,
         enableSorting: true,
         enableHiding: false
     },

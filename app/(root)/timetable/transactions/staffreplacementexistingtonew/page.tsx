@@ -10,13 +10,45 @@ import { List } from 'lucide-react';
 import { use, useEffect, useRef, useState } from 'react';
 import { columns } from './_components/columns';
 import StaffReplacementExistingToNewForm from './_components/form';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StaffReplacementExistingToNewPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useStaffReplacementGridData(searchParams);
-    // console.log('response', response);
+
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
+    };
+
+    const { data: response, isLoading, error, refetchAll } = useStaffReplacementGridData(queryParams);
 
     return (
         <FormProvider<StaffReplacementGridData>>
@@ -74,6 +106,9 @@ function StaffReplacementPageContent({
                     columns={columns}
                     isLoading={isLoading}
                     error={error}
+                    manualPagination={true}
+                    manualSorting={true}
+                    isSearchRequired={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading data...'
                     noDataTitle='No Data Found'

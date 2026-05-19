@@ -18,9 +18,9 @@ export async function saveDeputation(data: any) {
 }
 
 export async function getAbsentStaffList(payload: any) {
-    const { asmaY_Id, ttmD_Date, absent_Staff_Flag } = payload;
-    const formattedDate = ttmD_Date ? new Date(ttmD_Date).toISOString().split('T')[0] : '';
-    const url = `/DeputationNewFacade/getabsentstaff/${asmaY_Id}/${formattedDate}/${absent_Staff_Flag}`;
+    const { asmaY_Id, TTSD_Date, absFlag } = payload;
+    const formattedDate = TTSD_Date ? new Date(TTSD_Date).toISOString().split('T')[0] : '';
+    const url = `/DeputationNewFacade/getabsentstaff/${asmaY_Id}/${formattedDate}/${absFlag}`;
     console.info('DeputationNewFacade', url);
     return await api.get<any>('timetable', url);
 }

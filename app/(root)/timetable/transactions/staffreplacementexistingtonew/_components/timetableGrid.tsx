@@ -8,20 +8,6 @@ interface TimetableGridProps {
 }
 
 export default function TimetableGrid({ data }: TimetableGridProps) {
-    // Sample data structure - you'll need to fetch actual data based on the filter params
-    const timetableData = [
-        {
-            sno: 1,
-            category: 'Primary',
-            class: 'Class 1',
-            section: 'A',
-            staff: 'John Doe',
-            subject: 'Mathematics',
-            period: 'Period 1'
-        }
-        // Add more rows as needed
-    ];
-
     return (
         <div className='fade-in slide-in-from-top-4 mx-auto max-w-7xl animate-in overflow-hidden rounded-xl border border-purple-100 bg-white shadow-md duration-500'>
             {/* HEADER */}
@@ -114,27 +100,6 @@ export default function TimetableGrid({ data }: TimetableGridProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {timetableData.length > 0 ? (
-                                timetableData.map((row, index) => (
-                                    <tr
-                                        key={index}
-                                        className='group border-purple-50 border-b bg-white transition-colors last:border-0 hover:bg-purple-50/30'>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.sno}</td>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.category}</td>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.class}</td>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.section}</td>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.staff}</td>
-                                        <td className='border-purple-100 border-r bg-white px-4 py-3 text-gray-700'>{row.subject}</td>
-                                        <td className='bg-white px-4 py-3 text-gray-700'>{row.period}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={7} className='bg-white px-4 py-8 text-center text-gray-500'>
-                                        No data available. Please select filters and click Report.
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
@@ -150,7 +115,6 @@ export default function TimetableGrid({ data }: TimetableGridProps) {
                         </Button>
                     </div>
                     <div className='rounded-lg border border-purple-100 bg-purple-50 px-3 py-1.5 font-medium text-purple-700 text-sm shadow-sm'>
-                        Total Rows: {timetableData.length}
                     </div>
                 </div>
             </div>

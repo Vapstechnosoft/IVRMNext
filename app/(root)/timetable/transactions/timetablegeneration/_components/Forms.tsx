@@ -223,35 +223,33 @@ export default function Forms({ onFetch }: FormsProps) {
         }
     };
 
-    const handleResetTT = async () => {
+    const handleReset = async () => {
         if (!asmaY_Id) {
-            toast.error('Please select Academic Year first');
+            reset();
             return;
         }
 
-        if (confirm('Are you sure you want to Reset TimeTable?')) {
+        if (confirm('Are you sure you want to Reset TimeTable? (Click OK to reset the timetable in the database, or Cancel to only clear the form fields)')) {
             setResetting(true);
             try {
                 const payload = { asmaY_Id: Number(asmaY_Id) };
                 const response = await resetTT(payload);
                 const isResetSuccess = response.success === true || response.data === true || response.data?.returnval === true || (response as any) === true || (response as any)?.returnval === true;
                 if (isResetSuccess) {
-                    toast.success('Time Table successfully Reseted!');
+                    toast.success('Time Table successfully Reset!');
                     reset();
                 } else {
                     toast.error('Reset failed. Please contact administration');
                 }
             } catch (error) {
                 console.error('Error resetting TT:', error);
-                toast.error('An error occurred während resetting the timetable');
+                toast.error('An error occurred during resetting the timetable');
             } finally {
                 setResetting(false);
             }
+        } else {
+            reset();
         }
-    };
-
-    const handleResetForm = () => {
-        reset();
     };
 
     const handleExportExcel = () => {
@@ -436,7 +434,7 @@ export default function Forms({ onFetch }: FormsProps) {
                             </div>
                         </div>
 
-                        <div className='flex flex-wrap items-center justify-center gap-4 pt-6 border-t'>
+                        <div className='flex flex-wrap items-center justify-start gap-4 pt-6 border-t'>
                             <Button
                                 type='submit'
                                 className='min-w-[140px]'
@@ -461,25 +459,16 @@ export default function Forms({ onFetch }: FormsProps) {
 
                             <Button
                                 type='button'
-                                variant='destructive'
-                                className='min-w-[140px]'
-                                onClick={handleResetTT}
-                                disabled={resetting || ttmC_Id !== 'all'}>
-                                {resetting ? (
-                                    <Trash2 className='mr-2 h-4 w-4 animate-spin' />
-                                ) : (
-                                    <Trash2 className='mr-2 h-4 w-4' />
-                                )}
-                                Reset TT
-                            </Button>
-
-                            <Button
-                                type='button'
                                 variant='outline'
                                 className='min-w-[140px]'
-                                onClick={handleResetForm}>
-                                <RotateCcw className='mr-2 h-4 w-4' />
-                                Cancel
+                                onClick={handleReset}
+                                disabled={resetting}>
+                                {resetting ? (
+                                    <RotateCcw className='mr-2 h-4 w-4 animate-spin' />
+                                ) : (
+                                    <RotateCcw className='mr-2 h-4 w-4' />
+                                )}
+                                Reset
                             </Button>
                         </div>
                     </form>

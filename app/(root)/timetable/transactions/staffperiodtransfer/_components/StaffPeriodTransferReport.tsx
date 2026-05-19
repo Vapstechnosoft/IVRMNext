@@ -105,13 +105,8 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
     const handleDelete = () => {
         reset();
         setSelectedPeriods([]);
+        setTargetStaffId('');
         toast.success('Selection cleared');
-        // onFetch();
-        // reset({
-        //     asmaY_Id: "",
-        //     hrmE_Id: "",
-        // });
-        // onFetch(null); // 🔥 clear report grid
     };
 
     return (
@@ -126,7 +121,10 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                                key={field.value || 'empty-class'}
+                                value={field.value}
+                                onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Classes --' />
                                 </SelectTrigger>
@@ -152,7 +150,10 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='asms_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                                key={field.value || 'empty-section'}
+                                value={field.value}
+                                onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Sections --' />
                                 </SelectTrigger>
@@ -188,7 +189,10 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='ismS_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select
+                                key={field.value || 'empty-subject'}
+                                value={field.value}
+                                onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Subjects --' />
                                 </SelectTrigger>
