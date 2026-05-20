@@ -84,13 +84,21 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'Settings',
                                     pages: [
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Preadmission Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/application-form',
+                                        //     title: 'Preadmission Form',
+                                        //     description: 'Apply for Preadmission'
+                                        // },
                                         {
                                             id: 2,
-                                            name: 'Preadmission Form',
+                                            name: 'Application Form',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Preadmission Form',
-                                            description: 'Apply for Preadmission'
+                                            url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
+                                            title: 'Application Form',
+                                            description: 'Application Form'
                                         },
                                         // {
                                         //     id: 20000000,
@@ -1383,21 +1391,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 25,
-                                    name: 'Local ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 77,
-                                            name: 'SVP Class Wise Student Details',
-                                            icon: 'Settings',
-                                            url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                            title: 'SVP Class Wise Student Details',
-                                            description: 'SVP Class Wise Student Details'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 25,
+                                //     name: 'Local ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 77,
+                                //             name: 'SVP Class Wise Student Details',
+                                //             icon: 'Settings',
+                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                //             title: 'SVP Class Wise Student Details',
+                                //             description: 'SVP Class Wise Student Details'
+                                //         }
+                                //     ]
+                                // },
                                 // {
                                 //     id: 26,
                                 //     name: 'Old ShareHost',

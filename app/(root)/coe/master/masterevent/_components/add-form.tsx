@@ -118,7 +118,10 @@ export default function AddMasterEventCoeForm({
     }
   };
 
-  const handleReset = () => reset();
+  const handleReset = () => {
+    reset();
+    window.location.reload();
+  };
 
   return (
     <div className={className}>
