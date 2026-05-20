@@ -27,12 +27,7 @@ export default function PaymentSuccessPage() {
         const searchParams = new URLSearchParams(window.location.search);
         const wasProcessed = searchParams.get('processed') === 'true';
 
-        console.log('🔵 CLIENT: Page loaded for transaction:', params.id);
-        console.log('🔵 CLIENT: Already processed:', wasProcessed);
-
         if (wasProcessed) {
-            // Payment was already processed by the callback route
-            console.log('✅ CLIENT: Payment already processed, showing success');
             setApiCallStatus('success');
             setIsProcessing(false);
             toast.success('Payment completed successfully!');
@@ -57,13 +52,10 @@ export default function PaymentSuccessPage() {
                 if (!params?.id) return;
 
                 const transactionId = Array.isArray(params.id) ? params.id[0] : params.id;
-                console.log('🔵 CLIENT: Processing payment for:', transactionId);
 
                 const response = await updateApplicationPaymentStatus('success', transactionId);
 
                 if (isCancelled) return;
-
-                console.log('🔵 CLIENT: Payment response received:', response);
 
                 if (!response) {
                     console.error('🔴 CLIENT: Response is undefined or null');
@@ -71,7 +63,6 @@ export default function PaymentSuccessPage() {
                 }
 
                 if (response.success) {
-                    console.log('✅ CLIENT: Payment successful!');
                     setApiCallStatus('success');
                     toast.success('Payment completed successfully!');
 
@@ -92,7 +83,7 @@ export default function PaymentSuccessPage() {
 
                 const errorMsg = error?.message || error?.toString() || 'An error occurred while processing your payment';
                 setErrorMessage(errorMsg);
-                toast.error('Payment verification failed: ' + errorMsg);
+                toast.error(`Payment verification failed: ${errorMsg}`);
             } finally {
                 if (!isCancelled) {
                     setIsProcessing(false);

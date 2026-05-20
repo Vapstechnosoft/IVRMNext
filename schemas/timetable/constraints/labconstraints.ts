@@ -10,7 +10,10 @@ export const labConstraintsSchema = z.object({
             z.object({
                 asmcL_Id: z.number().min(1, 'Class is required'),
                 asmS_Id: z.number().min(1, 'Section is required'),
-                ismS_Id: z.number().min(1, 'Subject is required')
+                ismS_Id: z.number().min(1, 'Subject is required'),
+                clsName: z.string().optional(),
+                sectName: z.string().optional(),
+                subName: z.string().optional()
             })
         )
         .min(1, 'At least one lab detail is required')
