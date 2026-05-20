@@ -211,10 +211,10 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentApplicationForm(pasrId);
 
             useEffect(() => {
-                if (session?.data?.role === undefined) {
+                if (session?.status === 'authenticated' && session?.data?.role === undefined) {
                     window.location.reload();
                 }
-            }, [session?.data?.role]);
+            }, [session?.data?.role, session?.status]);
 
             // Trigger form open when applicationFormDetails is loaded
             useEffect(() => {

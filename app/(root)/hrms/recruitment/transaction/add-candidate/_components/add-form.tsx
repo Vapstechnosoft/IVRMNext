@@ -46,6 +46,7 @@ import {
   useGetCandidateDetails,
   useSaveOrUpdateCandidate,
 } from "@/hooks/hrms/recruitment/transactions/useTransactions";
+import { validatePANNumber } from "@/schemas/hrms/employee-register-schemas";
 
 const candidateSchema = z.object({
   firstName: z.string().min(1, "First Name is required"),
@@ -97,11 +98,9 @@ const candidateSchema = z.object({
     .regex(/^[0-9]+$/, "Only numbers are allowed"),
   panCardNo: z
     .string()
-    .optional()
-    .refine(
-      (val) => !val || /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val),
-      "Invalid PAN format",
-    ),
+    .min(1, 'PAN Card No. Required')
+    .max(10, 'PAN Card No. must not exceed 10 characters')
+    .refine((val) => validatePANNumber(val), 'PAN Card No. must be in valid format (e.g., ABCDE1234F)'),
   refCode: z.string().optional(),
   source: z.string().optional(),
   remark: z.string().optional(),
@@ -144,8 +143,8 @@ import {
 } from "@/hooks/hrms/recruitment/masters/useMasters";
 import { useMasterCourse } from "@/hooks/hrms/useMasters";
 import { RefreshCw } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { usePositionTypeDropdown } from "@/hooks/hrms/recruitment/masterDropDown/useMasterDropDown";
+import { Spinner } from "@/components/ui/spinner";
 
 interface AddCandidateFormProps {
   rowData?: Candidate | null;
@@ -193,67 +192,10 @@ export default function AddCandidateForm({
   const candidateDetails = detailsResponse?.data;
 
   useEffect(() => {
-    console.log("candidateDetails", candidateDetails);
-    if (candidateDetails) {
-      reset({
-        firstName: candidateDetails.hrcD_FirstName || "",
-        middleName: candidateDetails.hrcD_MiddleName || "",
-        lastName: candidateDetails.hrcD_LastName || "",
-        skill: candidateDetails.hrcD_Skills || "",
-        mobileNo: candidateDetails.hrcD_MobileNo?.toString() || "",
-        emailId: candidateDetails.hrcD_EmailId || "",
-        qualification: candidateDetails.hrmC_Id?.toString() || "",
-        jobPortalName: candidateDetails.hrcD_JobPortalName || "",
-        currentCompany: candidateDetails.hrcD_CurrentCompany || "",
-        totalExp: candidateDetails.hrcD_ExpFrom?.toString() || "",
-        lastCTC: candidateDetails.hrcD_LastCTC?.toString() || "",
-        expectedCTC: candidateDetails.hrcD_ExpectedCTC?.toString() || "",
-        applicationDate: candidateDetails.hrcD_AppDate
-          ? candidateDetails.hrcD_AppDate.split("T")[0]
-          : "",
-        interviewDate: candidateDetails.hrcD_InterviewDate
-          ? candidateDetails.hrcD_InterviewDate.split("T")[0]
-          : "",
-        dateOfBirth: candidateDetails.hrcD_DOB
-          ? candidateDetails.hrcD_DOB.split("T")[0]
-          : "",
-        nationality: candidateDetails.hrcD_NationalityId?.toString() || "",
-        religion: candidateDetails.hrcD_ReligionId?.toString() || "",
-        caste: candidateDetails.hrcD_CasteId?.toString() || "",
-        gender: candidateDetails.ivrmmG_Id?.toString() || "",
-        maritalStatus: candidateDetails.hrcD_MaritalStatusId?.toString() || "",
-        bloodGroup: candidateDetails.hrcD_BloodGroup || "",
-        jobTitle: candidateDetails.hrmJ_Id?.toString() || "",
-        positionType: candidateDetails.hrmpT_Id?.toString() || "",
-        aadharNo: candidateDetails.hrcD_AadharNo?.toString() || "",
-        panCardNo: candidateDetails.hrcD_PAN || "",
-        refCode: candidateDetails.hrcD_RefCode || "",
-        source: candidateDetails.hrcD_ResumeSource || "",
-        remark: candidateDetails.hrcD_Remarks || "",
-        localAddressLine1: candidateDetails.hrcD_AddressLocal || "",
-        localAddressLine2: candidateDetails.hrcD_AddressLocal2 || "",
-        localPlace: candidateDetails.hrcD_AddLocalPlace || "",
-        localPincode: candidateDetails.hrcD_AddLocalPIN?.toString() || "",
-        permanentAddressLine1: candidateDetails.hrcD_AddressPermanent || "",
-        permanentAddressLine2: candidateDetails.hrcD_AddressPermanent2 || "",
-        permanentPlace: candidateDetails.hrcD_AddPermanentPlace || "",
-        permanentPincode:
-          candidateDetails.hrcD_AddPermanentPIN?.toString() || "",
-        sameAsLocalAddress:
-          candidateDetails.hrcD_AddressLocal ===
-            candidateDetails.hrcD_AddressPermanent &&
-          !!candidateDetails.hrcD_AddressLocal,
-      });
-      if (candidateDetails.hrcD_Photo)
-        setPhotoPreview(candidateDetails.hrcD_Photo);
-    } else if (!rowData) {
-      reset({
-        sameAsLocalAddress: false,
-      });
-      setPhotoPreview(null);
-      setResumeName(null);
-    }
-  }, [candidateDetails, rowData, reset]);
+    setHasResetForm(false);
+  }, [rowData?.hrcD_Id]);
+
+
 
   // --- Dropdown Hooks ---
   const { data: nationalities, isLoading: isLoadingNationalities } =
@@ -261,8 +203,11 @@ export default function AddCandidateForm({
   const { data: religions, isLoading: isLoadingReligions } =
     useReligionDropdown();
   const selectedReligion = watch("religion");
+  console.log("selectedReligion", selectedReligion)
   const { data: castes, isLoading: isLoadingCastes } =
     useCasteCategoryDropdown(selectedReligion);
+
+    console.log("castes", castes)
   const { data: genders, isLoading: isLoadingGenders } = useGenderDropdown();
   const { data: maritalStatuses, isLoading: isLoadingMaritalStatuses } =
     useMaritalStatusDropdown();
@@ -273,6 +218,24 @@ export default function AddCandidateForm({
   const { data: positionTypes, isLoading: isLoadingPositionTypes } =
     usePositionTypeDropdown();
   const { data: courses, isLoading: isLoadingCourses } = useMasterCourse();
+
+  const [hasResetForm, setHasResetForm] = useState(false);
+
+  const religionValueInDetails = (candidateDetails?.hrcD_Religion ?? candidateDetails?.hrcD_ReligionId ?? candidateDetails?.HRCD_Religion ?? candidateDetails?.hrcd_religion);
+
+  const isInitialDataLoading = rowData ? (
+    isLoadingDetails ||
+    !hasResetForm ||
+    isLoadingNationalities ||
+    isLoadingReligions ||
+    (!!religionValueInDetails && (isLoadingCastes || !selectedReligion)) ||
+    isLoadingGenders ||
+    isLoadingMaritalStatuses ||
+    isLoadingBloodGroups ||
+    isLoadingJobs ||
+    isLoadingPositionTypes ||
+    isLoadingCourses
+  ) : false;
 
   // Format data for Select components - using key/value pattern from API with robust data extraction
   const extractData = (res: any) => {
@@ -297,10 +260,14 @@ export default function AddCandidateForm({
     }),
   );
 
+
+
   const casteOptions = extractData(castes).map((c: any, index: number) => ({
     label: c.value || c.imcC_CategoryName,
     value: (c.key || c.imcC_Id).toString(),
   }));
+
+  console.log("casteID", casteOptions)
 
   const genderOptions = extractData(genders).map((g: any, index: number) => ({
     label: g.value || g.ivrmmG_GenderName,
@@ -396,6 +363,71 @@ export default function AddCandidateForm({
     }
   };
 
+  useEffect(() => {
+    console.log("candidateDetails", candidateDetails);
+    if (candidateDetails) {
+      reset({
+        firstName: candidateDetails.hrcD_FirstName || "",
+        middleName: candidateDetails.hrcD_MiddleName || "",
+        lastName: candidateDetails.hrcD_LastName || "",
+        skill: candidateDetails.hrcD_Skills || "",
+        mobileNo: candidateDetails.hrcD_MobileNo?.toString() || "",
+        emailId: candidateDetails.hrcD_EmailId || "",
+        qualification: candidateDetails.hrmC_Id?.toString() || "",
+        jobPortalName: candidateDetails.hrcD_JobPortalName || "",
+        currentCompany: candidateDetails.hrcD_CurrentCompany || "",
+        totalExp: candidateDetails.hrcD_ExpFrom?.toString() || "",
+        lastCTC: candidateDetails.hrcD_LastCTC?.toString() || "",
+        expectedCTC: candidateDetails.hrcD_ExpectedCTC?.toString() || "",
+        applicationDate: candidateDetails.hrcD_AppDate
+          ? candidateDetails.hrcD_AppDate.split("T")[0]
+          : "",
+        interviewDate: candidateDetails.hrcD_InterviewDate
+          ? candidateDetails.hrcD_InterviewDate.split("T")[0]
+          : "",
+        dateOfBirth: candidateDetails.hrcD_DOB
+          ? candidateDetails.hrcD_DOB.split("T")[0]
+          : "",
+        nationality: (candidateDetails.hrcD_NationalityId ?? candidateDetails.HRCD_NationalityId ?? candidateDetails.hrcd_nationalityid)?.toString() || "",
+        religion: (candidateDetails.hrcD_Religion ?? candidateDetails.hrcD_ReligionId ?? candidateDetails.HRCD_Religion ?? candidateDetails.hrcd_religion)?.toString() || "",
+        caste: (candidateDetails.hrcD_CasteId ?? candidateDetails.HRCD_CasteId ?? candidateDetails.hrcd_casteid)?.toString() || "",
+        gender: (candidateDetails.ivrmmG_Id ?? candidateDetails.IVRMMG_Id ?? candidateDetails.ivrmmg_id)?.toString() || "",
+        maritalStatus: (candidateDetails.hrcD_MaritalStatus ?? candidateDetails.hrcD_MaritalStatusId ?? candidateDetails.HRCD_MaritalStatus ?? candidateDetails.hrcd_maritalstatus)?.toString() || "",
+        bloodGroup: candidateDetails.hrcD_BloodGroup || "",
+        jobTitle: candidateDetails.hrmJ_Id?.toString() || "",
+        positionType: candidateDetails.hrmpT_Id?.toString() || "",
+        aadharNo: candidateDetails.hrcD_AadharNo?.toString() || "",
+        panCardNo: candidateDetails.hrcD_PAN || "",
+        refCode: candidateDetails.hrcD_RefCode || "",
+        source: candidateDetails.hrcD_ResumeSource || "",
+        remark: candidateDetails.hrcD_Remarks || "",
+        localAddressLine1: candidateDetails.hrcD_AddressLocal || "",
+        localAddressLine2: candidateDetails.hrcD_AddressLocal2 || "",
+        localPlace: candidateDetails.hrcD_AddLocalPlace || "",
+        localPincode: candidateDetails.hrcD_AddLocalPIN?.toString() || "",
+        permanentAddressLine1: candidateDetails.hrcD_AddressPermanent || "",
+        permanentAddressLine2: candidateDetails.hrcD_AddressPermanent2 || "",
+        permanentPlace: candidateDetails.hrcD_AddPermanentPlace || "",
+        permanentPincode:
+          candidateDetails.hrcD_AddPermanentPIN?.toString() || "",
+        sameAsLocalAddress:
+          candidateDetails.hrcD_AddressLocal ===
+          candidateDetails.hrcD_AddressPermanent &&
+          !!candidateDetails.hrcD_AddressLocal,
+      });
+      if (candidateDetails.hrcD_Photo)
+        setPhotoPreview(candidateDetails.hrcD_Photo);
+      setHasResetForm(true);
+    } else if (!rowData) {
+      reset({
+        sameAsLocalAddress: false,
+      });
+      setPhotoPreview(null);
+      setResumeName(null);
+      setHasResetForm(true); // Treat as "reset" even for new forms once we've initialized
+    }
+  }, [candidateDetails, rowData, nationalities, religions, castes, genders, maritalStatuses, bloodGroups, reset]);
+
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     console.log("Form Data", data);
     try {
@@ -451,7 +483,7 @@ export default function AddCandidateForm({
         HRCD_Photo: data.photo || "",
 
         // ⚠️ safer to send as string (avoids bigint issues)
-        HRCD_AadharNo: data.aadharNo ,
+        HRCD_AadharNo: data.aadharNo,
 
         HRCD_PAN: data.panCardNo || "",
 
@@ -470,6 +502,11 @@ export default function AddCandidateForm({
         HRCD_NatureOfWork: (candidateDetails as any)?.hrcD_NatureOfWork || "",
         HRCD_ScopeOfService:
           (candidateDetails as any)?.hrcD_ScopeOfService || "",
+        HRCD_NationalityId: Number(data.nationality),
+        HRCD_CasteId: Number(data.caste),
+        HRCD_Religion: Number(data.religion),
+        HRCD_MaritalStatus: Number(data.maritalStatus),
+        HRCD_BloodGroup: data.bloodGroup,
       };
       console.log("payload", payload);
 
@@ -575,11 +612,31 @@ export default function AddCandidateForm({
     setDocuments(documents.filter((_, i) => i !== index));
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className={`flex flex-col gap-6 ${className}`}
-    >
-      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+    <div className={`relative ${className}`}>
+      {isInitialDataLoading ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] w-full bg-slate-50/50 backdrop-blur-sm rounded-xl border-2 border-dashed border-violet-100 animate-in fade-in duration-500">
+          <div className="bg-white p-10 rounded-2xl shadow-xl flex flex-col items-center border border-violet-50">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 rounded-full bg-violet-100 animate-ping opacity-20"></div>
+              <RefreshCw className="animate-spin h-12 w-12 text-violet-600 relative z-10" />
+            </div>
+            <h3 className="text-xl font-bold text-violet-900">Preparing Form</h3>
+            <p className="text-sm text-muted-foreground mt-2 text-center max-w-[250px]">
+              Fetching master data and binding candidate details. Please wait...
+            </p>
+            <div className="mt-6 flex gap-2">
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.3s]"></div>
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.15s]"></div>
+               <div className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce"></div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500"
+        >
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
         <TabsContent value="candidate" className="space-y-6">
           <Card className=" shadow-sm">
             <CardHeader className="bg-violet-500 overflow-hidden ">
@@ -608,7 +665,7 @@ export default function AddCandidateForm({
                       <div className="relative">
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={nationalityOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
                           disabled={isLoadingNationalities}
                         >
                           <SelectTrigger
@@ -658,8 +715,11 @@ export default function AddCandidateForm({
                     render={({ field }) => (
                       <div className="relative">
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            setValue("caste", ""); // Reset caste when religion changes
+                          }}
+                          value={religionOptions.some((o: any) => o.value?.toString() === field.value?.toString()) ? field.value : undefined}
                           disabled={isLoadingReligions}
                         >
                           <SelectTrigger
@@ -710,7 +770,7 @@ export default function AddCandidateForm({
                       <div className="relative">
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={casteOptions.some((o: any) => o.value?.toString() === field.value?.toString()) ? field.value : undefined}
                           disabled={isLoadingCastes || !selectedReligion}
                         >
                           <SelectTrigger
@@ -728,7 +788,7 @@ export default function AddCandidateForm({
                           </SelectTrigger>
                           <SelectContent>
                             {casteOptions.map((opt: any) => (
-                              <SelectItem key={opt.value} value={opt.value}>
+                              <SelectItem key={opt.value} value={(opt.value).toString()}>
                                 {opt.label}
                               </SelectItem>
                             ))}
@@ -763,7 +823,7 @@ export default function AddCandidateForm({
                       <div className="relative">
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={genderOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
                           disabled={isLoadingGenders}
                         >
                           <SelectTrigger
@@ -816,7 +876,7 @@ export default function AddCandidateForm({
                       <div className="relative">
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={maritalStatusOptions.some((o: any) => o.value === field.value) ? field.value : undefined}
                           disabled={isLoadingMaritalStatuses}
                         >
                           <SelectTrigger
@@ -1079,6 +1139,8 @@ export default function AddCandidateForm({
                   label="PAN Card No"
                   placeholder="Enter PAN Card Number"
                   {...register("panCardNo")}
+                  error={errors.panCardNo?.message}
+                  maxLength={10}
                 />
 
                 {/* Row 11 */}
@@ -1372,5 +1434,7 @@ export default function AddCandidateForm({
         </Button>
       </div>
     </form>
+      )}
+    </div>
   );
 }

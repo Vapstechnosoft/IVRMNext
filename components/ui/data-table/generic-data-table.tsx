@@ -54,6 +54,7 @@ interface GenericDataTableProps<T> {
     manualSorting?: boolean;
     manualFiltering?: boolean;
     getRowId?: (row: T) => string;
+    onPageChange?: (page: number) => void;
     // Bento-Glass Props
 }
 
@@ -87,7 +88,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         manualFiltering = totalItems > data.length,
         scrollable = false,
         maxHeight = '600px',
-        getRowId
+        getRowId,
+        onPageChange
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -159,6 +161,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                             onRowSelectionChange(selectedRows);
                         }
                     }}
+                    onPageChange={onPageChange}
                 />
             </div>
         );
@@ -189,6 +192,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                         onRowSelectionChange(selectedRows);
                     }
                 }}
+                onPageChange={onPageChange}
             />
         </div>
     );
@@ -204,11 +208,23 @@ export function useDataTableProps(
         messageKey?: string;
     }
 ) {
+    // Handle raw array response directly
+    if (Array.isArray(response)) {
+        return {
+            data: response,
+            totalItems: response.length,
+            success: true,
+            errorMessage: undefined
+        };
+    }
+
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
+    const extractedData = response?.[dataKey] || [];
+    
     return {
-        data: response?.[dataKey] || [],
-        totalItems: response?.[totalKey] || 0,
+        data: extractedData,
+        totalItems: response?.[totalKey] || extractedData.length || 0,
         success: response?.[successKey],
         errorMessage: response?.[messageKey]
     };

@@ -8,24 +8,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCLGTransactionCountReportInitialData } from '@/hooks/library/reports/useCLGTransactionCountReport';
 import type { ICLGTransactionCountReportRequest } from '@/types/library/reports/clg-transaction-count-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X, Printer, FileSpreadsheet } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
+import { format } from 'date-fns';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    LMAL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-    ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+    lmaL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
+    asmaY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     statuscount: z.boolean().default(false),
-    Issue_Date: z.date({ required_error: 'From Date is required' }),
-    IssueToDate: z.date({ required_error: 'To Date is required' })
+    issue_Date: z.date({ required_error: 'From Date is required' }),
+    issueToDate: z.date({ required_error: 'To Date is required' }),
+    type: z.string().default('Student')
 });
 
 interface ReportFormProps {
     onSearch: (data: ICLGTransactionCountReportRequest) => void;
     isLoading: boolean;
+    onPrint?: () => void;
+    onExport?: () => void;
+    onCancel?: () => void;
+    hasData: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
     const { data: initialDataWrapper, isLoading: isInitialLoading } = useCLGTransactionCountReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
 
@@ -44,8 +50,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
             ...values,
-            Issue_Date: values.Issue_Date.toISOString(),
-            IssueToDate: values.IssueToDate.toISOString()
+            issue_Date: format(values.issue_Date, "yyyy-MM-dd'T'HH:mm:ss"),
+            issueToDate: format(values.issueToDate, "yyyy-MM-dd'T'HH:mm:ss")
         });
     };
 
@@ -64,7 +70,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='LMAL_Id'
+                                name='lmaL_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -81,7 +87,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     </Select>
                                 )}
                             />
-                            {errors.LMAL_Id && <p className='text-xs text-destructive mt-1'>{errors.LMAL_Id.message}</p>}
+                            {errors.lmaL_Id && <p className='text-xs text-destructive mt-1'>{errors.lmaL_Id.message}</p>}
                         </div>
                     </div>
 
@@ -93,7 +99,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='ASMAY_Id'
+                                name='asmaY_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -110,7 +116,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     </Select>
                                 )}
                             />
-                            {errors.ASMAY_Id && <p className='text-xs text-destructive mt-1'>{errors.ASMAY_Id.message}</p>}
+                            {errors.asmaY_Id && <p className='text-xs text-destructive mt-1'>{errors.asmaY_Id.message}</p>}
                         </div>
                     </div>
 
@@ -139,7 +145,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
 
             {/* Date Selection Section */}
             <div className='w-full max-w-4xl mx-auto mt-8'>
-                <Label className='font-semibold text-[#4251b1] block mb-4'>ISSUE DATE BETWEEN :-</Label>
+                <Label className='font-semibold text-[#4251b1] block mb-4 uppercase text-xs tracking-wider'>Issue Date Between :-</Label>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     {/* From Date */}
                     <div className='flex items-center gap-4'>
@@ -149,7 +155,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='Issue_Date'
+                                name='issue_Date'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -159,7 +165,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     />
                                 )}
                             />
-                            {errors.Issue_Date && <p className='text-xs text-destructive mt-1'>{errors.Issue_Date.message}</p>}
+                            {errors.issue_Date && <p className='text-xs text-destructive mt-1'>{errors.issue_Date.message}</p>}
                         </div>
                     </div>
 
@@ -171,7 +177,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='IssueToDate'
+                                name='issueToDate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -181,7 +187,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     />
                                 )}
                             />
-                            {errors.IssueToDate && <p className='text-xs text-destructive mt-1'>{errors.IssueToDate.message}</p>}
+                            {errors.issueToDate && <p className='text-xs text-destructive mt-1'>{errors.issueToDate.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -202,12 +208,36 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                 <Button
                     type='button'
                     className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
-                    onClick={() => reset()}
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
                     disabled={isLoading}
                 >
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+
+                {hasData && (
+                    <>
+                        <Button 
+                            type='button' 
+                            onClick={onPrint}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
+                            PRINT
+                        </Button>
+                        <Button 
+                            type='button' 
+                            onClick={onExport}
+                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                        >
+                            <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                            EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );

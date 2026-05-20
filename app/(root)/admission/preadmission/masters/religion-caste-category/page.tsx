@@ -11,6 +11,7 @@ import { use } from 'react';
 import AddMasterReligionCasteCategoryForm from './_components/add-form';
 import { masterReligionCasteCategoryColumns } from './_components/columns';
 import ToggleMasterReligionCasteCategoryForm from './_components/toggle-form';
+import UpdateMasterReligionCasteCategoryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -79,8 +80,17 @@ function MasterReligionCasteCategoryPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
-        useFormContext<IMasterReligionCasteCategoryList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterReligionCasteCategoryList>();
 
     return (
         <>
@@ -104,6 +114,31 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterReligionCasteCategoryForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Master Religion Caste Category'
+                        description='Update the mapping details below'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterReligionCasteCategoryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

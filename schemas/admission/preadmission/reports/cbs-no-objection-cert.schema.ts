@@ -30,7 +30,7 @@ export const cbsNoObjectionCertSchema = z.object({
     if (!data.amsT_Id || data.amsT_Id === 0) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'Student is required',
+            message: 'Student Name is required',
             path: ['amsT_Id'],
         });
     }

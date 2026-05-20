@@ -209,6 +209,23 @@ class ApiService {
             );
         }
 
+        // Format detailed validation errors from dotnet if present
+        if (error?.response?.data?.errors) {
+            const validationErrors = Object.entries(error.response.data.errors)
+                .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(', ')}`)
+                .join(' | ');
+            if (validationErrors) {
+                return `Validation Error: ${validationErrors}`;
+            }
+        }
+
+        if (error?.response?.data && typeof error.response.data === 'object') {
+            const dataStr = JSON.stringify(error.response.data);
+            if (dataStr && dataStr !== '{}' && dataStr.length < 300) {
+                return `API Error: ${dataStr}`;
+            }
+        }
+
         return error?.response?.data?.message || error?.message || 'An unknown error occurred.';
     }
 

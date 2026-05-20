@@ -1,12 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/useLibraryMonthEndReport';
 import type { ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Printer, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -14,24 +15,24 @@ import * as z from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
+    LMRA_Id: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().optional()),
+    IE_Name: z.string().optional(),
     year: z.string().min(1, 'Year is required')
 });
 
 interface ReportFormProps {
     onSearch: (data: ILibraryMonthEndReportRequest) => void;
+    onPrint?: () => void;
     isLoading: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
-    const { data: initialDataWrapper, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
-    const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
+export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) => {
+    const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
+    const initialData = (monthEndData as any)?.data || monthEndData;
     
-    const [yearsList, setYearsList] = useState<string[]>([]);
-
     const {
         control,
         handleSubmit,
-        watch,
         setValue,
         formState: { errors },
         reset
@@ -40,31 +41,14 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         defaultValues: {}
     });
 
-    const selectedAcademicYearId = watch('ASMAY_Id');
-
-    useEffect(() => {
-        if (selectedAcademicYearId && initialData?.acdlist) {
-            const selectedYear = initialData.acdlist.find((y: any) => y.asmaY_Id === selectedAcademicYearId);
-            if (selectedYear) {
-                const yearParts = selectedYear.asmaY_Year.split('-');
-                if (yearParts.length >= 1) {
-                    const y1 = yearParts[0];
-                    const y2 = yearParts[1];
-                    const tempYears = [];
-                    if (y1) tempYears.push(y1);
-                    if (y2) tempYears.push(y2);
-                    setYearsList(tempYears);
-                } else {
-                    setYearsList([selectedYear.asmaY_Year]);
-                }
-            }
-        } else {
-            setYearsList([]);
-        }
-    }, [selectedAcademicYearId, initialData]);
-
     const onSubmit = (values: z.infer<typeof formSchema>) => {
-        onSearch(values);
+        onSearch({
+            ASMAY_Id: values.ASMAY_Id,
+            IVRM_Month_Id: values.IVRM_Month_Id,
+            year: values.year,
+            LMRA_Id: values.LMRA_Id,
+            IE_Name: values.IE_Name
+        });
     };
 
     return (
@@ -136,6 +120,28 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         </div>
                     </div>
 
+                    {/* IE (Text Field) */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            IE:
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='IE_Name'
+                                render={({ field }) => (
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter IE Name'
+                                        className='w-full border-muted-foreground/30'
+                                    />
+                                )}
+                            />
+                            {errors.IE_Name && <p className='text-xs text-destructive mt-1'>{errors.IE_Name.message}</p>}
+                        </div>
+                    </div>
+
                     {/* Year */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -146,18 +152,12 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 control={control}
                                 name='year'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={yearsList.length === 0}>
-                                        <SelectTrigger className='w-full border-muted-foreground/30'>
-                                            <SelectValue placeholder='Select' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {yearsList.map((y) => (
-                                                <SelectItem key={y} value={y}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter Year (e.g. 2024)'
+                                        className='w-full border-muted-foreground/30'
+                                    />
                                 )}
                             />
                             {errors.year && <p className='text-xs text-destructive mt-1'>{errors.year.message}</p>}
@@ -188,6 +188,17 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+                {onPrint && (
+                    <Button
+                        type='button'
+                        className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-sm rounded-sm'
+                        onClick={onPrint}
+                        disabled={isLoading}
+                    >
+                        <Printer className='mr-1.5 h-3.5 w-3.5' />
+                        PRINT
+                    </Button>
+                )}
             </div>
         </form>
     );

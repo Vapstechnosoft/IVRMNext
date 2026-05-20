@@ -12,12 +12,51 @@ import { Plus, X, Package2, ListChecks, Layers, PlusCircle, Pencil } from 'lucid
 import { use } from 'react';
 import AddStockForm from './_components/add-form';
 import { invStockColumns } from './_components/columns';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function InvStockPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useInvStock(searchParams);
+
+    // Pagination & Search State synced with URL
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
+    const [searchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const queryParams = {
+        ...searchParams,
+        page: currentPage,
+        page_size: pageSize,
+        search_query: searchQuery,
+        search_columns: searchColumns,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
+    };
+
+    const { data: response, isLoading, error } = useInvStock(queryParams);
 
     return (
         <FormProvider<InvStock>>
@@ -50,8 +89,8 @@ function InvStockPageContent({
         editFormRef,
     } = useFormContext<InvStock>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_stock',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -72,6 +111,28 @@ function InvStockPageContent({
                     </Button>
                 </div>
 
+                <CollapsibleSection
+                    title='Stock Details'
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg'
+                    icon={<Layers className='h-5 w-5' />}>
+                    <GenericDataTable<InvStock>
+                        {...tableProps}
+                        data={response?.data || []}
+                        columns={invStockColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        isSearchRequired={true}
+                        showSearchColumns={true}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Retrieving stock records...'
+                        noDataTitle='No Stock Records'
+                        noDataDescription='Try adjusting your filters or create a new stock entry.'
+                    />
+                </CollapsibleSection>
+
                 {isAddFormOpen && (
                     <div ref={addFormRef}>
                         <CollapsibleSection
@@ -88,7 +149,7 @@ function InvStockPageContent({
                                     onClick={closeAddForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddStockForm
@@ -114,7 +175,7 @@ function InvStockPageContent({
                                     onClick={closeEditForm}
                                     variant='ghost'
                                     size='sm'
-                                    className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                    className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                     <X className='h-4 w-4 mr-1' /> Close
                                 </Button>
                                 <AddStockForm
@@ -125,26 +186,6 @@ function InvStockPageContent({
                         </CollapsibleSection>
                     </div>
                 )}
-
-                <CollapsibleSection
-                    title='Stock Details'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                    icon={<Layers className='h-5 w-5' />}>
-                    <GenericDataTable<InvStock>
-                        {...tableProps}
-                        data={response?.data?.get_stock || []}
-                        columns={invStockColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Retrieving stock records...'
-                        noDataTitle='No Stock Records'
-                        noDataDescription='Try adjusting your filters or create a new stock entry.'
-                    />
-                </CollapsibleSection>
             </div>
         </div>
     );

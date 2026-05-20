@@ -9,7 +9,7 @@ import {
     getSophiaStudentTCViewStatus,
     saveSophiaStudentTCApply
 } from '@/server/admission/preadmission/transactions/sophia_student_tc_apply';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useSophiaStudentTCApplyLoadData = () => {
     return useQuery({
@@ -34,9 +34,13 @@ export const useSophiaStudentTCApplyStudentList = () => {
 };
 
 export const useSophiaStudentTCApplySave = () => {
+    const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: { StudentTCdata: any[]; transnumconfigsettings: any }) =>
-            saveSophiaStudentTCApply(data)
+        mutationFn: (data: { studentTCdata: any[]; tcflagexists: string; transnumconfigsettings: any }) =>
+            saveSophiaStudentTCApply(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [ADMISSION_QUERY_KEYS.TRANSACTIONS, 'sophia_student_tc_apply', 'load_data'] });
+        }
     });
 };
 
@@ -48,6 +52,6 @@ export const useSophiaStudentTCApplyTCPdf = () => {
 
 export const useSophiaStudentTCApplyViewStatus = () => {
     return useMutation({
-        mutationFn: (data: { AMST_Id: number }) => getSophiaStudentTCViewStatus(data)
+        mutationFn: (data: { AMST_Id: number; ASMAY_Id: number }) => getSophiaStudentTCViewStatus(data)
     });
 };

@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterProgram } from '@/types/sports/masters/program';
 
 export async function getMasterPrograms(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'SPCCPM_Name,SPCCPM_Description');
     const url = `/ProgramMaster/getDetails?${urlParams}`;
     return await api.post<IMasterProgram[]>('sports', url, {});
 }

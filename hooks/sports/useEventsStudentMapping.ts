@@ -1,76 +1,64 @@
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { getEventsStudentMappingList, saveEventsStudentMapping, deactivateEventsStudentMapping } from '@/server/sports/events-student-mapping';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-    getEventsStudentMappingDropdowns,
-    getEventsStudentMappingList,
-    getStudentList,
-    saveEventsStudentMapping,
-    deactivateEventsStudentMapping,
-    getClassList
-} from '@/server/sports/events-student-mapping';
-import { IStudentFilterParams } from '@/types/sports/events-student-mapping';
 import { toast } from 'sonner';
 
-export const useEventsStudentMapping = () => {
+export const useEventsStudentMapping = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const dropdowns = useQuery({
-        queryKey: ['eventsStudentMappingDropdowns'],
-        queryFn: () => getEventsStudentMappingDropdowns(),
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    const params = {
+        page: page,
+        page_size: pageSize,
+        sort_column: sortBy,
+        sort_direction: order,
+        search_query: searchQuery,
+    };
+
+    const loadData = useQuery({
+        queryKey: ['events-student-mapping-details', page, pageSize, sortBy, order, searchQuery],
+        queryFn: () => getEventsStudentMappingList(), // This mock doesn't seem to take params yet, but we'll follow the pattern
+        staleTime: 0
     });
 
-    const gridData = useQuery({
-        queryKey: ['eventsStudentMappingList'],
-        queryFn: () => getEventsStudentMappingList(),
-    });
-
-    // We don't use a simple useQuery for students because it depends on manual "Search" action
-    // But we can expose a mutation-like helper or just useQuery with enabled:false
-    // Ideally, for a search filter, a mutation is easier to control when to fire.
-    // Or useQuery with a state dependency. Let's use mutation for explicit fetching.
-    const fetchStudents = useMutation({
-        mutationFn: (filter: IStudentFilterParams) => getStudentList(filter),
-    });
-
-    const fetchClasses = useMutation({
-        mutationFn: (asamyId: number) => getClassList(asamyId),
-    });
-
-    const saveData = useMutation({
+    const save = useMutation({
         mutationFn: (data: any) => saveEventsStudentMapping(data),
-        onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message);
-                queryClient.invalidateQueries({ queryKey: ['eventsStudentMappingList'] });
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Saved successfully');
             } else {
                 toast.error(response.message || 'Failed to save');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-student-mapping-details'] });
         },
-        onError: (error) => {
-            toast.error('An error occurred while saving');
-        }
     });
 
-    const deactivateData = useMutation({
-        mutationFn: ({ id, activeFlag }: { id: number; activeFlag: boolean }) => deactivateEventsStudentMapping(id, activeFlag),
-        onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message);
-                queryClient.invalidateQueries({ queryKey: ['eventsStudentMappingList'] });
+    const deactivate = useMutation({
+        mutationFn: (data: { id: number; activeFlag: boolean }) => deactivateEventsStudentMapping(data.id, data.activeFlag),
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Status updated successfully');
             } else {
                 toast.error(response.message || 'Failed to update status');
             }
+            queryClient.invalidateQueries({ queryKey: ['events-student-mapping-details'] });
         },
-        onError: () => {
-            toast.error('An error occurred while updating status');
-        }
     });
 
     return {
-        dropdowns,
-        gridData,
-        fetchStudents,
-        fetchClasses,
-        saveData,
-        deactivateData,
+        loadData,
+        save,
+        deactivate,
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['events-student-mapping-details']
+            });
+        }
     };
 };

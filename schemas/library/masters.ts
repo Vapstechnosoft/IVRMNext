@@ -111,9 +111,10 @@ export const masterPublisherSchema = {
             .email('Invalid email address'),
 
         lmP_PhoneNo: z
-            .string({ required_error: 'Phone Number is required' })
+            .string()
             .trim()
-            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
+            .optional()
+            .or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')
@@ -175,7 +176,7 @@ export const masterDepartmentSchema = {
         lmD_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         lmD_DepartmentName: z.string().min(1, 'Department Name is required'),
-        lmD_DepartmentCode: z.string().min(1, 'Department Code is required'),
+        lmD_DepartmentCode: z.string().optional().or(z.literal('')),
         lmD_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({
@@ -259,7 +260,7 @@ export const masterClassCategorySchema = {
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
-        ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
+        lmS_ParentId: z.coerce.number().min(1, 'Please Select Parent Subject'),
         lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
         lmS_ClassNo: z
             .string()
@@ -275,9 +276,7 @@ export const masterSubjectSchema = {
             .max(50)
             .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmS_ParentId: z.number().optional(),
         lmS_ActiveFlg: z.boolean().optional()
-        // lmS_SubjectName: z.string()
     }),
     delete: z.object({
         lmS_Id: deleteIdSchema('lmS_Id')

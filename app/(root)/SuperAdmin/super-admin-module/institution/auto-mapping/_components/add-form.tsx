@@ -41,8 +41,10 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
         const fetchDropdowns = async () => {
             try {
                 const response = await getInstitutionDropdown();
-                if (response.success && response.data) {
-                    setInstitutionOptions(response.data);
+                console.log('getInstitutionDropdown response:', response);
+                if (response.success) {
+                    const data = response.data || (response as any).institutionList || [];
+                    setInstitutionOptions(Array.isArray(data) ? data : []);
                 }
             } catch (error) {
                 console.error('Failed to fetch institution dropdown', error);
@@ -59,7 +61,7 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
             const response = await saveAutoMapping(data);
 
             if (response.success) {
-                toast.success(response.message || 'Auto Mapping saved successfully');
+                toast.success('Record saved successfully');
                 reset();
                 onSuccess?.();
             } else {
@@ -81,16 +83,20 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                         name='Pervious_MI_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
-                                <SelectTrigger>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <SelectTrigger id='Pervious_MI_Id'>
                                     <SelectValue placeholder="Select Reference Institute" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {institutionOptions.map((option) => (
-                                        <SelectItem key={option.mI_Id} value={option.mI_Id.toString()}>
-                                            {option.mI_Name}
-                                        </SelectItem>
-                                    ))}
+                                    {institutionOptions?.length > 0 ? (
+                                        institutionOptions.map((option, index) => (
+                                            <SelectItem key={`${option.mI_Id}_${index}`} value={option.mI_Id.toString()}>
+                                                {option.mI_Name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='p-2 text-center text-sm text-muted-foreground'>No Institutions Found</div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -104,16 +110,20 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                         name='Current_MI_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
-                                <SelectTrigger>
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <SelectTrigger id='Current_MI_Id'>
                                     <SelectValue placeholder="Select Current Institute" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {institutionOptions.map((option) => (
-                                        <SelectItem key={option.mI_Id} value={option.mI_Id.toString()}>
-                                            {option.mI_Name}
-                                        </SelectItem>
-                                    ))}
+                                    {institutionOptions?.length > 0 ? (
+                                        institutionOptions.map((option, index) => (
+                                            <SelectItem key={`${option.mI_Id}_${index}`} value={option.mI_Id.toString()}>
+                                                {option.mI_Name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='p-2 text-center text-sm text-muted-foreground'>No Institutions Found</div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}

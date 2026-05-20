@@ -109,7 +109,7 @@ export default function OverallDailyAttendanceReportPage() {
 
         try {
             const res = await reportMutation.mutateAsync(payload);
-            const list = res?.studentAttendanceList || res?.data?.studentAttendanceList || [];
+            const list = Array.isArray(res?.data) ? res.data : (res?.studentAttendanceList || res?.data?.studentAttendanceList || []);
             if (Array.isArray(list) && list.length > 0) {
                 setReportData(list);
                 setShowReport(true);
@@ -135,20 +135,27 @@ export default function OverallDailyAttendanceReportPage() {
         if (!academicYearId || !selectedDate) return;
 
         const payload = {
-            ASMCL_className: user.ASMCL_Id,
-            ASMC_SectionName: user.ASMS_ID,
+            ASMCL_Id: Number(user.ASMCL_Id),
+            ASMS_Id: Number(user.ASMS_Id || user.ASMS_ID),
             ASMAY_Id: academicYearId,
             fromdate: format(selectedDate, 'yyyy-MM-dd')
         };
 
         try {
             const res = await studentDetailsMutation.mutateAsync(payload);
-            const list = res?.student_teacherList || res?.data?.student_teacherList || [];
-            const filteredList = list.filter((item: any) => item.ABSENT === 1);
+            const list = Array.isArray(res?.data) ? res.data : (res?.student_teacherList || res?.data?.student_teacherList || []);
+
+            // Note: Keeping the filter for absentees if that's the intended report behavior, 
+            // but ensuring the list is extracted correctly from the array format.
+            const filteredList = list.filter((item: any) => item.ABSENT === 1 || item.ABSENT === '1');
+
+            // If the user wants to see the data they provided (which has ABSENT: 0), 
+            // we might want to show all if no absentees are found, but standard reports usually filter.
+            const displayList = filteredList.length > 0 ? filteredList : list;
 
             setModalTitle(user.ABSENT === 0 ? "Absentees and Teacher's Names Are Not Available" : "Absentees and Teacher's Names Details:");
             setModalDetails({
-                year: (loadData as any)?.academicList?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year,
+                year: (loadData as any)?.data?.academicList?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year,
                 classSection: `${user.ASMCL_ClassName}-${user.ASMC_SectionName}`,
                 present: user.PRESENT,
                 absent: user.ABSENT,
@@ -156,7 +163,7 @@ export default function OverallDailyAttendanceReportPage() {
                 halfday: user.HALFDAY,
                 date: selectedDate
             });
-            setModalGridData(filteredList);
+            setModalGridData(displayList);
             setModalOpen(true);
         } catch (e) {
             toast.error('Failed to load details');
@@ -173,12 +180,13 @@ export default function OverallDailyAttendanceReportPage() {
 
         try {
             const res = await allStudentDetailsMutation.mutateAsync(payload);
-            const list = res?.student_teacherList || res?.data?.student_teacherList || [];
-            const filteredList = list.filter((item: any) => item.ABSENT === 1);
+            const list = Array.isArray(res?.data) ? res.data : (res?.student_teacherList || res?.data?.student_teacherList || []);
+            const filteredList = list.filter((item: any) => item.ABSENT === 1 || item.ABSENT === '1');
+            const displayList = filteredList.length > 0 ? filteredList : list;
 
             setModalTitle(totals.absent === 0 ? "Absentees and Teacher's Names Are Not Available" : "Absentees and Teacher's Names Details:");
             setModalDetails({
-                year: (loadData as any)?.academicList?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year,
+                year: (loadData as any)?.data?.academicList?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year,
                 classSection: null, // Overall
                 present: totals.present,
                 absent: totals.absent,
@@ -186,7 +194,7 @@ export default function OverallDailyAttendanceReportPage() {
                 halfday: totals.halfday,
                 date: selectedDate
             });
-            setModalGridData(filteredList);
+            setModalGridData(displayList);
             setModalOpen(true);
         } catch (e) {
             toast.error('Failed to load details');
@@ -223,7 +231,7 @@ export default function OverallDailyAttendanceReportPage() {
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {(loadData as any)?.academicList?.map((item: any) => (
+                                    {(loadData as any)?.data?.academicList?.map((item: any) => (
                                         <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                             {item.asmaY_Year}
                                         </SelectItem>
@@ -232,7 +240,7 @@ export default function OverallDailyAttendanceReportPage() {
                             </Select>
                         </div>
 
-                        {(loadData as any)?.categoryflag && (
+                        {/* {(loadData as any)?.data?.categoryflag && (
                             <div className='space-y-4'>
                                 <Label className='text-sm font-bold'>Category:<span className='text-red-500'>*</span></Label>
                                 <Select value={categoryId} onValueChange={setCategoryId}>
@@ -241,7 +249,7 @@ export default function OverallDailyAttendanceReportPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value='All'>All</SelectItem>
-                                        {(loadData as any)?.category_list?.map((cat: any) => (
+                                        {(loadData as any)?.data?.category_list?.map((cat: any) => (
                                             <SelectItem key={cat.amC_Id} value={cat.amC_Id.toString()}>
                                                 {cat.amC_Name}
                                             </SelectItem>
@@ -249,7 +257,7 @@ export default function OverallDailyAttendanceReportPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
+                        )} */}
 
                         <div className='space-y-4'>
                             <Label className='text-sm font-bold'>Date:<span className='text-red-500'>*</span></Label>
@@ -341,7 +349,7 @@ export default function OverallDailyAttendanceReportPage() {
                                         <TableCell className='text-center text-red-600 font-semibold'>{user.ABSENT}</TableCell>
                                         <TableCell className='text-center text-orange-600 font-semibold'>{user.HALFDAY}</TableCell>
                                         <TableCell className='text-xs'>
-                                            {user.EntryTime ? format(new Date(user.EntryTime), 'dd-MM-yyyy / hh:mm a') : '-'}
+                                            {(user.EntryTime || user.ASA_Entry_DateTime) ? format(new Date(user.EntryTime || user.ASA_Entry_DateTime), 'dd-MM-yyyy / hh:mm a') : '-'}
                                         </TableCell>
                                         <TableCell className='text-center'>
                                             <Button variant='link' size='sm' onClick={() => handleRowDetails(user)} className='text-indigo-600 font-bold hover:no-underline'>

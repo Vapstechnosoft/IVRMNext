@@ -28,7 +28,8 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             purchase_Date: new Date(),
             lmbanO_AvialableStatus: 'Available',
             with_Accessories: false,
-            accessionList: [{ lmbanO_No: '' }]
+            accessionList: [{ lmbanO_No: '' }],
+            attachementList: [{ lmbA_FileName: '', lmbA_FilePath: '' }]
         }
     });
 
@@ -51,6 +52,20 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
         });
     };
 
+    const handleNext = () => {
+        if (activeTab === 'bookDetails') setActiveTab('purchaseDetails');
+        else if (activeTab === 'purchaseDetails') setActiveTab('authorDetails');
+    };
+
+    const handlePrevious = () => {
+        if (activeTab === 'purchaseDetails') setActiveTab('bookDetails');
+        else if (activeTab === 'authorDetails') setActiveTab('purchaseDetails');
+    };
+
+    const handleClear = () => {
+        form.reset();
+    };
+
     if (isLoadingDropdowns) {
         return (
             <div className='flex justify-center p-4'>
@@ -71,26 +86,33 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
 
                     <div className='mt-2 min-h-[300px] rounded-md border p-4'>
                         <TabsContent value='bookDetails'>
-                            <TabBookDetails dropdownData={dropdownData} />
+                            <TabBookDetails
+                                dropdownData={dropdownData}
+                                onNext={handleNext}
+                                onCancel={() => onSuccess()}
+                                onClear={handleClear}
+                            />
                         </TabsContent>
                         <TabsContent value='purchaseDetails'>
-                            <TabPurchaseDetails dropdownData={dropdownData} />
+                            <TabPurchaseDetails
+                                dropdownData={dropdownData}
+                                onNext={handleNext}
+                                onPrevious={handlePrevious}
+                                onCancel={() => onSuccess()}
+                                onClear={handleClear}
+                            />
                         </TabsContent>
                         <TabsContent value='authorDetails'>
-                            <TabAuthorDetails dropdownData={dropdownData} />
+                            <TabAuthorDetails
+                                dropdownData={dropdownData}
+                                onSave={form.handleSubmit(onSubmit)}
+                                onPrevious={handlePrevious}
+                                onCancel={() => onSuccess()}
+                                onClear={handleClear}
+                            />
                         </TabsContent>
                     </div>
                 </Tabs>
-
-                <div className='mt-4 flex justify-end gap-2'>
-                    <Button type='button' variant='outline' onClick={() => onSuccess()}>
-                        Cancel
-                    </Button>
-                    <Button type='submit' disabled={saveMutation.isPending}>
-                        {saveMutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                        Save
-                    </Button>
-                </div>
             </form>
         </FormProvider>
     );

@@ -4,10 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StjCharacterCertificateSchema, type StjCharacterCertificateFields } from '@/schemas/admission/preadmission/reports/stj-character-certificate';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useStjCharacterCertificate } from '@/hooks/admission/preadmission/reports/useStjCharacterCertificate';
 import { useEffect, useState } from 'react';
@@ -203,7 +204,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="allorindi"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Report Type</FormLabel>
+                                <Label className="font-bold">Report Type</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -231,7 +232,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                         name="optradio"
                         render={({ field }) => (
                             <FormItem className="space-y-3 p-4 border rounded-lg bg-slate-50/50">
-                                <FormLabel className="font-bold">Student Status</FormLabel>
+                                <Label className="font-bold">Student Status</Label>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -267,7 +268,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="ASMAY_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-bold">Academic Year <span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-bold">Academic Year <span className="text-red-500">*</span></Label>
                                     <Select
                                         onValueChange={(v) => field.onChange(Number(v))}
                                         value={field.value?.toString() || ""}
@@ -285,7 +286,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-
+                                    {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -296,9 +297,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="ASMCL_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                    <Label className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                         Class
-                                    </FormLabel>
+                                    </Label>
                                     <Select
                                         disabled={allorindi === 'A'}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -318,6 +319,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </SelectContent>
                                     </Select>
 
+                                    {errors.ASMCL_Id && <FormError>{errors.ASMCL_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -328,9 +330,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="ASMS_Id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
+                                    <Label className={cn("font-bold", allorindi === 'I' && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
                                         Section
-                                    </FormLabel>
+                                    </Label>
                                     <Select
                                         disabled={allorindi === 'A'}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -350,6 +352,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         </SelectContent>
                                     </Select>
 
+                                    {errors.ASMS_Id && <FormError>{errors.ASMS_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -373,9 +376,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         onCheckedChange={field.onChange}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal cursor-pointer leading-tight">
+                                                <Label className="font-normal cursor-pointer leading-tight">
                                                     {activity}
-                                                </FormLabel>
+                                                </Label>
                                             </FormItem>
                                         )}
                                     />
@@ -402,9 +405,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         onCheckedChange={field.onChange}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal cursor-pointer leading-tight">
+                                                <Label className="font-normal cursor-pointer leading-tight">
                                                     {activity}
-                                                </FormLabel>
+                                                </Label>
                                             </FormItem>
                                         )}
                                     />
@@ -418,7 +421,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="Posts"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-bold">Posts/Achievements :</FormLabel>
+                                    <Label className="font-bold">Posts/Achievements :</Label>
                                     <FormControl>
                                         <Textarea
                                             placeholder="Posts/Achievements"
@@ -438,7 +441,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="Principal"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-bold">Principal&apos;s Comments :</FormLabel>
+                                    <Label className="font-bold">Principal&apos;s Comments :</Label>
                                     <FormControl>
                                         <Textarea
                                             placeholder="Principal's Comments"
@@ -461,7 +464,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="ASA_FromDate"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-bold">Date <span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-bold">Date <span className="text-red-500">*</span></Label>
                                     <FormControl>
                                         <DatePicker
                                             date={field.value}
@@ -469,6 +472,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                         />
                                     </FormControl>
 
+                                    {errors.ASA_FromDate && <FormError>{errors.ASA_FromDate.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -479,7 +483,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                             name="AMST_Id"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="font-bold">Student <span className="text-red-500">*</span></FormLabel>
+                                    <Label className="font-bold">Student <span className="text-red-500">*</span></Label>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
@@ -538,7 +542,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                             </Command>
                                         </PopoverContent>
                                     </Popover>
-
+                                    {errors.AMST_Id && <FormError>{errors.AMST_Id.message}</FormError>}
                                 </FormItem>
                             )}
                         />
@@ -562,9 +566,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         onCheckedChange={field.onChange}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal cursor-pointer leading-tight">
+                                                <Label className="font-normal cursor-pointer leading-tight">
                                                     {club.label}
-                                                </FormLabel>
+                                                </Label>
                                             </FormItem>
                                         )}
                                     />
@@ -591,9 +595,9 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                                         onCheckedChange={field.onChange}
                                                     />
                                                 </FormControl>
-                                                <FormLabel className="font-normal cursor-pointer leading-tight">
+                                                <Label className="font-normal cursor-pointer leading-tight">
                                                     {activity}
-                                                </FormLabel>
+                                                </Label>
                                             </FormItem>
                                         )}
                                     />
@@ -608,7 +612,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                 name="Year"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel className="font-bold">Year :</FormLabel>
+                                        <Label className="font-bold">Year :</Label>
                                         <FormControl>
                                             <Input placeholder="Year" {...field} />
                                         </FormControl>
@@ -621,7 +625,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                 name="Final"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel className="font-bold">Final Average :</FormLabel>
+                                        <Label className="font-bold">Final Average :</Label>
                                         <FormControl>
                                             <Input placeholder="Final Average" {...field} />
                                         </FormControl>
@@ -637,7 +641,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                 name="Year1"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel className="font-bold">Year:</FormLabel>
+                                        <Label className="font-bold">Year:</Label>
                                         <FormControl>
                                             <Input placeholder="Year" {...field} />
                                         </FormControl>
@@ -650,7 +654,7 @@ export function FilterForm({ onSubmit, onReset }: FilterFormProps) {
                                 name="Final1"
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
-                                        <FormLabel className="font-bold">Final Average :</FormLabel>
+                                        <Label className="font-bold">Final Average :</Label>
                                         <FormControl>
                                             <Input placeholder="Final Average" {...field} />
                                         </FormControl>

@@ -3,33 +3,23 @@
 import { api } from '@/lib/apiService';
 import type { ILibLostBookReportInitialData, ILibLostBookReportRequest } from '@/types/library/reports/lib-lost-book-report';
 
-const MODULE_URL = 'LostBookReport';
+const MODULE_URL = '/LostBookReport';
 
 export async function getLibLostBookReportInitialData(): Promise<ILibLostBookReportInitialData> {
-    // Using the specific payload provided by the user for initialization
-    const response = await api.post<any>('library', `${MODULE_URL}/lost-get-details`, {
-        IVRMUL_Id: 21602,
-        lmaL_Id: 2,
-        bookType: "Issue",
-        bnbFlg: "ALL",
-        fromdate: "2026-01-01",
-        toDate: "2026-12-31",
-        reportlist: ["Book 1", "Book 2"],
-        lib_list: ["Library 1", "Library 2"]
-    });
-    
-    // Check multiple common fields where the library list might be located
-    const responseData = response.data || response.msterliblist || response.msterliblist1 || response.librarylist || response.lib_list;
-    
-    // Defensive handling for $values wrapping
-    if (responseData && typeof responseData === 'object' && '$values' in responseData) {
-        return responseData.$values as ILibLostBookReportInitialData;
-    }
-    
-    return (Array.isArray(responseData) ? responseData : []) as ILibLostBookReportInitialData;
+    // GET AvailableBooksReport/getdetails
+    // api.get() returns the HTTP body directly:
+    // { success, message, data: { libraryList: [{ lmaL_Id, lmaL_LibraryName, lmaL_ActiveFlag }] } }
+    const response = await api.get<any>('library', `AvailableBooksReport/getdetails`);
+    const libraryList: ILibLostBookReportInitialData =
+        response?.data?.libraryList ?? [];
+    return Array.isArray(libraryList) ? libraryList : [];
 }
 
 export async function getLibLostBookReportSearch(data: ILibLostBookReportRequest) {
+    // POST LostBookReport/get-lost-book-report
+    // Payload: { MI_Id, p_booktype, p_bnbflg, p_fromdate, p_todate, p_lmal_id }
+    // api.post() returns the HTTP body: { success, message, data: [...], total }
     const response = await api.post<any>('library', `${MODULE_URL}/get-lost-book-report`, data);
-    return response.data; // This will return the 'data' array from the backend response
+    const list = response?.data;
+    return Array.isArray(list) ? list : [];
 }

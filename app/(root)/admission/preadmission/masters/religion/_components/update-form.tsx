@@ -80,8 +80,10 @@ export default function UpdateMasterReligionForm({ onSuccess, className = '', se
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Religion Name'
+                            placeholder='Enter Religion Name'
                             required
                             id='ivrmmR_Name'
+                            placeholder='Enter Religion Name'
                             {...register('ivrmmR_Name')}
                             defaultValue={row.ivrmmR_Name}
                             error={errors.ivrmmR_Name?.message}

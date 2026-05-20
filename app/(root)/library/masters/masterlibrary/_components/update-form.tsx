@@ -49,7 +49,6 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
             const { lmaL_LibraryName } = data;
 
             const payload = {
-                mI_Id: 30,
                 lmaL_Id: row.lmaL_Id,
                 lmaL_LibraryName: lmaL_LibraryName
             };

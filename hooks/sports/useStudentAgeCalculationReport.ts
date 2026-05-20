@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     getStudentAgeReportLoadData,
     getClassesForYear,
@@ -7,18 +7,29 @@ import {
 } from '@/server/sports/reports/student-age-calculation';
 import type { IReportRequest } from '@/types/sports/reports/student-age-calculation';
 
-export const useStudentAgeCalculationReport = () => {
+export const useStudentAgeCalculationReport = (payload?: IReportRequest, searchParams?: any) => {
+    const queryClient = useQueryClient();
+
     const initialData = useQuery({
         queryKey: ['studentAgeCalculationReportInitial'],
         queryFn: () => getStudentAgeReportLoadData(),
     });
 
+    const reportQuery = useQuery({
+        queryKey: ['student-age-report', payload, searchParams],
+        queryFn: () => getStudentAgeReport(payload!, searchParams),
+        enabled: !!payload,
+    });
+
     const generateReport = useMutation({
-        mutationFn: (data: IReportRequest) => getStudentAgeReport(data),
+        mutationFn: ({ data, searchParams }: { data: IReportRequest, searchParams?: any }) => 
+            getStudentAgeReport(data, searchParams),
     });
 
     return {
         initialData,
-        generateReport
+        reportQuery,
+        generateReport,
+        refetchReport: () => queryClient.invalidateQueries({ queryKey: ['student-age-report'] })
     };
 };

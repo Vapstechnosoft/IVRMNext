@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useRef, useEffect } from 'react';
+import { useState, use, useRef, useEffect, useMemo } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -21,6 +21,7 @@ import { useReactToPrint } from 'react-to-print';
 import { InvRGRNPrint } from './_components/inv-r-grn-print';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { format } from 'date-fns';
 
 interface ReportTotals {
     basic: number;
@@ -67,13 +68,38 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [searchColumn] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('All')
+    );
 
     const [printData, setPrintData] = useState<IInvRGRNReportData[]>([]);
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery });
+    const { data: reportResult, isFetching } = useInvRGRNReportQuery(currentPayload, { ...searchParams, page: currentPage, page_size: pageSize, search_query: searchQuery, search_column: searchColumn });
 
-    const reportData = reportResult?.data?.get_grnreport || [];
+    const extractReportData = (result: any) => {
+        if (!result?.data) return [];
+        
+        // 1. data is directly an array
+        if (Array.isArray(result.data)) return result.data;
+        
+        // 2. data.$values is an array
+        if (result.data.$values && Array.isArray(result.data.$values)) return result.data.$values;
+        
+        // 3. get_grnreport is an array
+        if (Array.isArray(result.data.get_grnreport)) return result.data.get_grnreport;
+        
+        // 4. get_grnreport.$values is an array
+        if (result.data.get_grnreport?.$values && Array.isArray(result.data.get_grnreport.$values)) {
+            return result.data.get_grnreport.$values;
+        }
+
+        return [];
+    };
+
+    const reportData = extractReportData(reportResult);
+
     const totalRecords = reportResult?.total || 0;
 
     // Handle initial report generation (Page 1)
@@ -81,12 +107,11 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         if (total === 0) {
             toast.error("No record found");
         }
-        
+
         // Seed the query cache with the data we just got from the form submit
-        // This prevents the hook from needing to immediately re-fetch
         queryClient.setQueryData(['invRGRNReport', payload, { ...searchParams, page: 1, page_size: pageSize, search_query: '' }], {
             success: true,
-            data: { get_grnreport: data, get_grn_item_supplier: [] },
+            data: data, // data is now the normalized array from report-form.tsx
             total: total,
             page: 1,
             page_size: pageSize
@@ -123,11 +148,14 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
         if (!currentPayload) return [];
         try {
             toast.loading(`Fetching all records for ${action}...`, { id: 'fetch-all' });
-            
-            const response = await getInvRGRNReport(currentPayload, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
-            
-            const allData = response?.data?.get_grnreport || [];
-            
+
+            const response = await getInvRGRNReport(
+                { ...currentPayload, search_query: searchQuery || '' }, 
+                { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' }
+            );
+
+            const allData = extractReportData(response);
+
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
                 toast.error(`Failed to fetch ${action} data`);
@@ -136,10 +164,10 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
             toast.dismiss('fetch-all');
             return allData;
         } catch (error) {
-             console.error(`${action} fetch error:`, error);
-             toast.dismiss('fetch-all');
-             toast.error(`Error fetching ${action} data`);
-             return [];
+            console.error(`${action} fetch error:`, error);
+            toast.dismiss('fetch-all');
+            toast.error(`Error fetching ${action} data`);
+            return [];
         }
     };
 
@@ -192,7 +220,7 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                         "Amount": Number((row.grnAmount ?? row.grnamount) || 0).toFixed(2),
                     }));
                 } else if (optionflag === 'Supplier') {
-                     dataToExport = allData.map((row: any, index: number) => ({
+                    dataToExport = allData.map((row: any, index: number) => ({
                         "SL.No": index + 1,
                         "Supplier Name": row.invms_suppliername || row.invmS_SupplierName || '',
                         "Code": row.invmS_SupplierCode || '',
@@ -220,12 +248,11 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-6 space-y-6">
             <Heading
                 title="GRN Report"
                 description="Generate Goods Receipt Note Reports"
             />
-
 
             <ReportForm
                 onReportGenerated={handleReportGenerated}
@@ -233,60 +260,88 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
 
             {currentPayload && (
                 <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-4 space-y-4">
-                        <div className="flex justify-between items-center bg-muted/20 p-2 rounded border">
-                            <div className="flex gap-2 items-center">
-                                <span className="font-semibold text-sm">Total Records:</span>
-                                <Badge variant="secondary">{totalRecords}</Badge>
+                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
+                        {/* Header Section */}
+                        <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
+                            <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">
+                                GRN Report
+                            </h3>
+                            <div className="w-24 h-1 bg-primary rounded-full"></div>
+                            <p className="text-lg font-medium text-slate-600 uppercase tracking-wide">
+                                {currentPayload.startdate ? format(new Date(currentPayload.startdate), 'dd/MM/yyyy') : 'N/A'} - {currentPayload.enddate ? format(new Date(currentPayload.enddate), 'dd/MM/yyyy') : 'N/A'}
+                            </p>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex gap-4 items-center">
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Total Records:</span>
+                                    <Badge variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-200">{totalRecords}</Badge>
+                                </div>
+                                <div className="h-4 w-[1px] bg-slate-300"></div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Type:</span>
+                                    <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px]">{currentPayload.typeflag}</Badge>
+                                </div>
                             </div>
-                            <div className="flex gap-2 items-center">
-                                <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                            <div className="flex gap-3 items-center">
+                                <Button
+                                    variant="outline"
+                                    className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handleExportExcel}
+                                >
                                     <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={handlePrint}>
+                                <Button
+                                    variant="secondary"
+                                    className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                                    onClick={handlePrint}
+                                >
                                     <Printer className="mr-2 h-4 w-4" /> Print
                                 </Button>
                             </div>
                         </div>
 
-                        <GenericDataTable
-                            data={reportData}
-                            columns={columns}
-                            isLoading={isFetching} // Use isFetching to show loading on page changes/search
-                            totalItems={totalRecords}
-                            isSearchRequired={true}
-                            noDataTitle="No GRN Found"
-                            noDataDescription="No records found matching your search criteria."
-                        />
+                        <div className="space-y-4">
+                             <GenericDataTable
+                                data={reportData}
+                                columns={columns}
+                                isLoading={isFetching}
+                                totalItems={totalRecords}
+                                isSearchRequired={true}
+                                manualFiltering={totalRecords > reportData.length}
+                                noDataTitle="No GRN Found"
+                                noDataDescription="No records found matching your search criteria."
+                            />
 
-                        {/* Summary Card */}
-                        {reportData.length > 0 && (
-                            <div className="flex justify-end">
-                                <Card className="w-full md:w-[400px] bg-muted/10">
-                                    <CardHeader className="py-3">
-                                        <CardTitle className="text-sm font-semibold uppercase text-muted-foreground">Summary (Current Page)</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2 text-sm pt-0">
-                                        <div className="flex justify-between">
-                                            <span>Total Amount (Basic):</span>
-                                            <span className="font-mono">{totals.basic.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-green-600">
-                                            <span>Total Tax (+):</span>
-                                            <span className="font-mono">{totals.tax.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-destructive">
-                                            <span>Total Discount (-):</span>
-                                            <span className="font-mono">{totals.discount.toFixed(2)}</span>
-                                        </div>
-                                        <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                                            <span>Final Amount:</span>
-                                            <span className="font-mono">{displayFinal.toFixed(2)}</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        )}
+                            {reportData.length > 0 && (
+                                <div className="flex justify-end mt-4">
+                                    <Card className="w-full md:w-[400px] bg-muted/10 print:bg-transparent print:border-none print:shadow-none">
+                                        <CardHeader className="py-3">
+                                            <CardTitle className="text-sm font-semibold uppercase text-muted-foreground print:text-black">Summary (Current Page)</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2 text-sm pt-0">
+                                            <div className="flex justify-between">
+                                                <span>Total Amount (Basic):</span>
+                                                <span className="font-mono">{totals.basic.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-green-600 print:text-black">
+                                                <span>Total Tax (+):</span>
+                                                <span className="font-mono">{totals.tax.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-destructive print:text-black">
+                                                <span>Total Discount (-):</span>
+                                                <span className="font-mono">{totals.discount.toFixed(2)}</span>
+                                            </div>
+                                            <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                                                <span>Final Amount:</span>
+                                                <span className="font-mono">{displayFinal.toFixed(2)}</span>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </CollapsibleSection>
             )}

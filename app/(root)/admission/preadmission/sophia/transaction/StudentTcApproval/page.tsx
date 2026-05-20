@@ -32,10 +32,10 @@ import {
 } from '@/hooks/admission/preadmission/transactions/useSophiaStudentTCApproval';
 
 export default function StudentTcApprovalPage() {
-    /* -------------------- Data Fetching -------------------- */
+    const [asmayId, setAsmayId] = useState<number>(0);
+
     const { data: initialData, isLoading: isInitialLoading } = useSophiaStudentTCApprovalLoadData();
-    // Defaulting asmayId to 1 as per legacy code gettcdetails
-    const { data: detailsData, isLoading: isDetailsLoading, refetch: refetchDetails } = useSophiaStudentTCApprovalDetails(1);
+    const { data: detailsData, isLoading: isDetailsLoading, refetch: refetchDetails } = useSophiaStudentTCApprovalDetails(asmayId);
     
     const saveMutation = useSophiaStudentTCApprovalSave();
     const updateIDsMutation = useSophiaStudentTCApprovalUpdateIDs();
@@ -47,8 +47,20 @@ export default function StudentTcApprovalPage() {
 
     /* -------------------- Effects -------------------- */
     useEffect(() => {
+        if (initialData) {
+            const years = initialData?.academicYear || initialData?.data?.academicYear || [];
+            if (Array.isArray(years) && years.length > 0 && asmayId === 0) {
+                const activeYear = years.find((y: any) => y.asmaY_ActiveFlag === 1) || years[0];
+                if (activeYear) {
+                    setAsmayId(activeYear.asmaY_Id);
+                }
+            }
+        }
+    }, [initialData, asmayId]);
+
+    useEffect(() => {
         if (detailsData) {
-            const list = detailsData?.studenttcdetails || detailsData?.data?.studenttcdetails || [];
+            const list = detailsData?.studentList || detailsData?.data?.studentList || detailsData?.studenttcdetails || detailsData?.data?.studenttcdetails || [];
             const uId = detailsData?.user_id || detailsData?.data?.user_id || '';
             setUserId(String(uId));
             
@@ -100,11 +112,10 @@ export default function StudentTcApprovalPage() {
         const val = field === 'AMST_APAARId' ? Number(value) : value;
         
         const payload = {
-            STUDENTDATA: [{
-                AMST_Id: student.AMST_Id,
-                AMST_PENNo: field === 'AMST_PENNo' ? value : student.AMST_PENNo,
-                AMST_BPLCardNo: field === 'AMST_BPLCardNo' ? value : student.AMST_BPLCardNo,
-                AMST_APAARId: field === 'AMST_APAARId' ? Number(value) : student.AMST_APAARId
+            studentdata: [{
+                amsT_Id: student.AMST_Id,
+                amsT_PENNo: field === 'AMST_PENNo' ? value : student.AMST_PENNo,
+                amsT_BPLCardNo: field === 'AMST_BPLCardNo' ? value : student.AMST_BPLCardNo
             }]
         };
 
@@ -134,12 +145,19 @@ export default function StudentTcApprovalPage() {
         }
 
         try {
-            const res = await saveMutation.mutateAsync({ SelectedTCDATAlist: selected });
-            if (res?.returnval || res?.data?.returnval) {
-                toast.success('Record Saved Successfully...!');
+            const payload = {
+                selectedTCDATAlist: selected.map(s => ({
+                    asca_Id: s.ASCA_Id,
+                    astca_Status: s.ASTCA_Status,
+                    astca_Remarks: s.ASTCA_Remarks
+                }))
+            };
+            const res = await saveMutation.mutateAsync(payload);
+            if (res?.success) {
+                toast.success(res?.message || 'Record Saved Successfully...!');
                 refetchDetails();
             } else {
-                toast.error('Failed to approve TC');
+                toast.error(res?.message || 'Failed to approve TC');
             }
         } catch (e) {
             toast.error('Approval failed');
@@ -161,7 +179,9 @@ export default function StudentTcApprovalPage() {
                 variant='outline'
                 className='shadow-lg'>
 
-                <div className='bg-white p-6'>
+                <div className='bg-white p-6 space-y-6'>
+                    {/* Filters Section Removed as per request */}
+
                     {isDetailsLoading ? (
                         <div className='flex flex-col items-center justify-center py-20 space-y-4'>
                             <Loader2 className='h-10 w-10 animate-spin text-indigo-500' />
@@ -237,6 +257,15 @@ export default function StudentTcApprovalPage() {
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
                                                                     <span className='font-bold text-gray-700'>Mother:</span> {s.MotherName}
+                                                                </div>
+                                                                <div className='flex items-center gap-2 text-gray-500'>
+                                                                    <span className='font-bold text-gray-700'>DOB:</span> {s.AMST_DOB ? format(new Date(s.AMST_DOB), 'dd/MM/yyyy') : ''}
+                                                                </div>
+                                                                <div className='flex items-center gap-2 text-gray-500'>
+                                                                    <span className='font-bold text-gray-700'>Caste:</span> {s.IMC_CasteName}
+                                                                </div>
+                                                                <div className='flex items-center gap-2 text-gray-500'>
+                                                                    <span className='font-bold text-gray-700'>Language/Religion:</span> {s.IVRMMR_Name}
                                                                 </div>
                                                             </CardContent>
                                                         </Card>

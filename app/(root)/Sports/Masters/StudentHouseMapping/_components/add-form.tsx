@@ -23,22 +23,34 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { studentHouseMappingSchema } from '@/schemas/sports/masters/student-house-mapping';
-import { saveStudentHouseMapping, getMasterData } from '@/actions/sports/masters/student-house-mapping';
-import { StudentHouseMappingDTO, MasterDataDTO } from '@/types/sports/masters/student-house-mapping';
+import { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useStudentHouseMapping } from '@/hooks/sports/useStudentHouseMapping';
+import { Loader2 } from 'lucide-react';
 
 interface AddFormProps {
     onSuccess: () => void;
-    onCancel: () => void;
-    initialData?: StudentHouseMappingDTO | null;
 }
 
-export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
-    const [masterData, setMasterData] = useState<MasterDataDTO | null>(null);
-    const [searchStudent, setSearchStudent] = useState("");
+export default function AddForm({ onSuccess }: AddFormProps) {
+    const {
+        loadData,
+        getClasses,
+        getSections,
+        getStudents,
+        saveData,
+    } = useStudentHouseMapping();
+
+    const yearList = loadData.data?.yearlist || [];
+    const houses   = loadData.data?.houseList || [];
+
+    const [classList,   setClassList]   = useState<any[]>([]);
+    const [sectionList, setSectionList] = useState<any[]>([]);
+    const [studentList, setStudentList] = useState<any[]>([]);
+    const [searchStudent, setSearchStudent] = useState('');
     const [selectAll, setSelectAll] = useState(false);
 
     const form = useForm<z.infer<typeof studentHouseMappingSchema.addOrUpdate>>({
@@ -57,135 +69,107 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
 
     const asmaY_Id = form.watch('asmaY_Id');
     const asmcL_Id = form.watch('asmcL_Id');
-    const asmS_Id = form.watch('asmS_Id');
+    const asmS_Id  = form.watch('asmS_Id');
 
-    // Load Master Data
+    // ── Year → fetch classes ─────────────────────────────────────────────────
     useEffect(() => {
-        getMasterData().then((data) => {
-            setMasterData(data);
-            // Set default year if available
-            if (data.yearlist && data.yearlist.length > 0) {
-                const selectedYear = data.yearlist.find(y => y.Selected);
-                if (selectedYear) {
-                    form.setValue('asmaY_Id', selectedYear.asmaY_Id);
-                }
-            }
+        if (!asmaY_Id) return;
+        form.setValue('asmcL_Id', 0);
+        form.setValue('asmS_Id',  0);
+        form.setValue('spccmH_Id', 0);
+        form.setValue('studList1', []);
+        setSectionList([]);
+        setStudentList([]);
+        setSelectAll(false);
+
+        getClasses.mutate(Number(asmaY_Id), {
+            onSuccess: (data) => setClassList(data || []),
         });
-    }, [form]);
+    }, [asmaY_Id]);
 
-    // Handle Initial Data for Edit
+    // ── Class → fetch sections ───────────────────────────────────────────────
     useEffect(() => {
-        if (initialData) {
-            form.reset({
-                spccsH_Id: initialData.spccsH_Id,
-                asmaY_Id: initialData.asmaY_Id,
-                asmcL_Id: initialData.asmcL_Id,
-                asmS_Id: initialData.asmS_Id,
-                spccmH_Id: initialData.spccmH_Id,
-                spccsH_Remarks: initialData.spccsH_Remarks,
-                spccsH_Date: initialData.spccsH_Date ? new Date(initialData.spccsH_Date) : new Date(),
-                studList1: initialData.spccsH_Id ? [] : [], // We need to handle this carefully.
-            });
-        }
-    }, [initialData, form.reset]);
+        if (!asmcL_Id || !asmaY_Id) return;
+        form.setValue('asmS_Id',  0);
+        form.setValue('spccmH_Id', 0);
+        form.setValue('studList1', []);
+        setStudentList([]);
+        setSelectAll(false);
 
-    // Reset Class and Section when Academic Year changes
+        getSections.mutate({ asmaY_Id: Number(asmaY_Id), asmcL_Id: Number(asmcL_Id) }, {
+            onSuccess: (data) => setSectionList(data || []),
+        });
+    }, [asmcL_Id]);
+
+    // ── Section → fetch students ─────────────────────────────────────────────
     useEffect(() => {
-        if (asmaY_Id !== 0) { // Only reset if a year is selected (not initial 0)
-            form.setValue('asmcL_Id', 0, { shouldValidate: true });
-            form.setValue('asmS_Id', 0, { shouldValidate: true });
-            form.setValue('spccmH_Id', 0, { shouldValidate: true });
-            form.setValue('studList1', [], { shouldValidate: true });
-            setSelectAll(false);
-        }
-    }, [asmaY_Id, form]);
+        if (!asmS_Id || !asmcL_Id || !asmaY_Id) return;
+        form.setValue('spccmH_Id', 0);
+        form.setValue('studList1', []);
+        setSelectAll(false);
 
-    // Reset Section when Class changes
-    useEffect(() => {
-        if (asmcL_Id !== 0) { // Only reset if a class is selected (not initial 0)
-            form.setValue('asmS_Id', 0, { shouldValidate: true });
-            form.setValue('spccmH_Id', 0, { shouldValidate: true });
-            form.setValue('studList1', [], { shouldValidate: true });
-            setSelectAll(false);
-        }
-    }, [asmcL_Id, form]);
+        getStudents.mutate(
+            { asmaY_Id: Number(asmaY_Id), asmcL_Id: Number(asmcL_Id), asmS_Id: Number(asmS_Id) },
+            { onSuccess: (data) => setStudentList(data || []) },
+        );
+    }, [asmS_Id]);
 
-    // Reset House and Student list when Section changes
-    useEffect(() => {
-        if (asmS_Id !== 0) { // Only reset if a section is selected (not initial 0)
-            form.setValue('spccmH_Id', 0, { shouldValidate: true });
-            form.setValue('studList1', [], { shouldValidate: true });
-            setSelectAll(false);
-        }
-    }, [asmS_Id, form]);
-
-    const onSubmit = async (values: z.infer<typeof studentHouseMappingSchema.addOrUpdate>) => {
-        try {
-            const result = await saveStudentHouseMapping(values) as any;
-            // Robust success check for IVRM backend responses
-            const msg = (result?.message || result?.Message || '') as string;
-            const isSuccess = result.success || 
-                             result?.returnval == true || 
-                             result?.returnVal == true ||
-                             result?.returnVal === 'saved' || 
-                             result?.returnVal === 'updated' || 
-                             msg.toLowerCase() === 'saved' ||
-                             msg.toLowerCase() === 'updated' ||
-                             msg.toLowerCase().includes('success');
-
-            if (isSuccess) {
-                toast.success('Record saved successfully');
-                onSuccess();
-            } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
-                toast.error('Record already exists');
-            } else {
-                const errorMsg = (result?.message || result?.Message || 'Failed to save record') as string;
-                toast.error(errorMsg);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('Something went wrong');
-        }
-    };
-
-    // Update Filtered Students
-    const filteredStudents = masterData?.studentList.filter(student => {
-        const matchesSearch = student.studentname.toLowerCase().includes(searchStudent.toLowerCase()) ||
-            student.amsT_AdmNo.toLowerCase().includes(searchStudent.toLowerCase());
-
-        // Strict filtering based on cascading dropdowns
-        const matchesClass = asmcL_Id ? student.asmcL_Id === asmcL_Id : false;
-        const matchesSection = asmS_Id ? student.asmS_Id === asmS_Id : false;
-
-        return matchesSearch && matchesClass && matchesSection;
-    }) || [];
+    const filteredStudents = studentList.filter((s) => {
+        const q = searchStudent.toLowerCase();
+        return s.studentname?.toLowerCase().includes(q) || s.amsT_AdmNo?.toLowerCase().includes(q) || !q;
+    });
 
     const handleSelectAll = (checked: boolean) => {
         setSelectAll(checked);
-        if (checked) {
-            // Select only filtered students
-            const allStudents = filteredStudents.map(s => ({ amsT_Id: s.amsT_Id }));
-            form.setValue('studList1', allStudents, { shouldValidate: true });
-        } else {
-            form.setValue('studList1', [], { shouldValidate: true });
-        }
+        form.setValue(
+            'studList1',
+            checked ? filteredStudents.map((s) => ({ amsT_Id: s.amsT_Id })) : [],
+            { shouldValidate: true },
+        );
     };
 
     const handleStudentToggle = (studentId: number, checked: boolean) => {
-        const currentList = form.getValues('studList1') || [];
-        if (checked) {
-            form.setValue('studList1', [...currentList, { amsT_Id: studentId }], { shouldValidate: true });
-        } else {
-            form.setValue('studList1', currentList.filter(item => item.amsT_Id !== studentId), { shouldValidate: true });
-        }
+        const current = form.getValues('studList1') || [];
+        form.setValue(
+            'studList1',
+            checked
+                ? [...current, { amsT_Id: studentId }]
+                : current.filter((item) => item.amsT_Id !== studentId),
+            { shouldValidate: true },
+        );
+    };
+
+    const onSubmit = (values: z.infer<typeof studentHouseMappingSchema.addOrUpdate>) => {
+        saveData.mutate(values, {
+            onSuccess: (result: any) => {
+                const msg = (result?.message || result?.Message || '') as string;
+                const isOk = result?.success || 
+                            result?.returnval == true || 
+                            result?.returnVal == true || 
+                            result?.returnVal === 'saved' || 
+                            result?.returnVal === 'updated' || 
+                            msg.toLowerCase() === 'saved' ||
+                            msg.toLowerCase() === 'updated' ||
+                            msg.toLowerCase().includes('success');
+
+                if (isOk) {
+                    toast.success(msg || 'Record saved successfully');
+                    form.reset();
+                    onSuccess();
+                } else if (result?.returnVal === 'duplicate' || msg.toLowerCase() === 'duplicate') {
+                    toast.error('Record already exists');
+                } else {
+                    toast.error(msg || 'Failed to save record');
+                }
+            },
+            onError: () => toast.error('Something went wrong'),
+        });
     };
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    {/* Left Column */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
@@ -193,20 +177,34 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="--Select Year--" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {yearList.map((item: any) => (
+                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="asmcL_Id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Class Name <span className="text-red-500">*</span></FormLabel>
+                                    <Select disabled={!asmaY_Id || getClasses.isPending} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="--Select--" />
+                                                {getClasses.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select Class" />}
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {masterData?.yearlist.map((item) => (
-                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                    {item.asmaY_Year}
-                                                </SelectItem>
+                                            {classList.map((item: any) => (
+                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -221,21 +219,15 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Section <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        disabled={!asmcL_Id} // Disabled until Class selected
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
+                                    <Select disabled={!asmcL_Id || getSections.isPending} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Section" />
+                                                {getSections.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select Section" />}
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {masterData?.sectionDropdown.map((item) => (
-                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                    {item.asmC_SectionName}
-                                                </SelectItem>
+                                            {sectionList.map((item: any) => (
+                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmC_SectionName}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -250,21 +242,11 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>House <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        disabled={!asmS_Id} // Disabled until Section selected
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select House" />
-                                            </SelectTrigger>
-                                        </FormControl>
+                                    <Select disabled={!asmS_Id} onValueChange={(val) => field.onChange(Number(val))} value={field.value ? field.value.toString() : ''}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select House" /></SelectTrigger></FormControl>
                                         <SelectContent>
-                                            {masterData?.houseList.map((item) => (
-                                                <SelectItem key={item.spccmH_Id} value={item.spccmH_Id.toString()}>
-                                                    {item.spccmH_HouseName}
-                                                </SelectItem>
+                                            {houses.map((item: any) => (
+                                                <SelectItem key={item.spccmH_Id} value={item.spccmH_Id.toString()}>{item.spccmH_HouseName}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -272,123 +254,75 @@ export const AddForm = ({ onSuccess, onCancel, initialData }: AddFormProps) => {
                                 </FormItem>
                             )}
                         />
-
-                        <FormField
-                            control={form.control}
-                            name="spccsH_Date"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder="Select Date"
-                                    />
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="spccsH_Remarks"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Remarks</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Enter remarks" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
                     </div>
 
-                    {/* Right Column */}
                     <div className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="asmcL_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Class Name <span className="text-red-500">*</span></FormLabel>
-                                    <Select
-                                        disabled={!asmaY_Id} // Disabled until Year selected
-                                        onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {masterData?.classList.map((item) => (
-                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                    {item.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
                         <div className="border rounded-md p-4">
-                            <FormLabel className="block mb-2">Student Name <span className="text-red-500">*</span></FormLabel>
-
-                            <Input
-                                placeholder="Search here..."
-                                value={searchStudent}
-                                onChange={(e) => setSearchStudent(e.target.value)}
-                                className="mb-2"
-                            />
-
-                            <div className="flex items-center space-x-2 mb-2 p-2 bg-gray-50 rounded">
-                                <Checkbox
-                                    checked={selectAll}
-                                    onCheckedChange={handleSelectAll}
-                                />
-                                <span className="font-semibold">All</span>
-                            </div>
-
-                            <ScrollArea className="h-[200px] w-full rounded-md border p-2">
-                                {filteredStudents.map((student) => {
-                                    const isSelected = (form.watch('studList1') || []).some(item => item.amsT_Id === student.amsT_Id);
-                                    return (
-                                        <div key={student.amsT_Id} className="flex items-center space-x-2 py-1">
-                                            <Checkbox
-                                                checked={isSelected}
-                                                onCheckedChange={(checked) => handleStudentToggle(student.amsT_Id, !!checked)}
-                                            />
-                                            <span className="text-sm">
-                                                {student.studentname} : {student.amsT_AdmNo}
-                                            </span>
+                            <FormLabel className="block mb-2 font-semibold">Student Selection <span className="text-red-500">*</span></FormLabel>
+                            <Input placeholder="Search students..." value={searchStudent} onChange={(e) => setSearchStudent(e.target.value)} className="mb-2" />
+                            {getStudents.isPending ? (
+                                <div className="flex items-center justify-center py-4 text-muted-foreground gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading...</div>
+                            ) : (
+                                <>
+                                    {studentList.length > 0 && (
+                                        <div className="flex items-center space-x-2 mb-2 p-2 bg-muted/50 rounded-sm">
+                                            <Checkbox checked={selectAll} onCheckedChange={handleSelectAll} />
+                                            <span className="text-sm font-medium">Select All</span>
                                         </div>
-                                    )
-                                })}
-                            </ScrollArea>
-                            {form.formState.errors.studList1 && (
-                                <p className="text-sm font-medium text-destructive mt-2">
-                                    {form.formState.errors.studList1.message}
-                                </p>
+                                    )}
+                                    <ScrollArea className="h-[180px] w-full rounded-md border p-2">
+                                        {filteredStudents.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground text-center py-4">{asmS_Id ? 'No students found' : 'Select details to load students'}</p>
+                                        ) : (
+                                            filteredStudents.map((student) => {
+                                                const isSelected = (form.watch('studList1') || []).some((item) => item.amsT_Id === student.amsT_Id);
+                                                return (
+                                                    <div key={student.amsT_Id} className="flex items-center space-x-2 py-1.5 hover:bg-muted/30 px-1 rounded-sm">
+                                                        <Checkbox checked={isSelected} onCheckedChange={(checked) => handleStudentToggle(student.amsT_Id, !!checked)} />
+                                                        <span className="text-sm">{student.studentname} - {student.amsT_AdmNo}</span>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </ScrollArea>
+                                </>
                             )}
+                            {form.formState.errors.studList1 && <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.studList1.message}</p>}
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="spccsH_Date"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select Date" />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="spccsH_Remarks"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Remarks</FormLabel>
+                                        <FormControl><Textarea placeholder="Remarks" className="min-h-[40px] resize-none" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex justify-center space-x-2 mt-6">
-                    <Button type="submit" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Saving...' : 'Save'}
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={onCancel}>
-                        Cancel
+                <div className="flex justify-center gap-3 pt-4 border-t">
+                    <Button type="submit" disabled={saveData.isPending} className="min-w-[100px]">
+                        {saveData.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Mapping'}
                     </Button>
                 </div>
             </form>
         </Form>
     );
-};
+}

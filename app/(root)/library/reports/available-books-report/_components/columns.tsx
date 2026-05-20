@@ -19,36 +19,36 @@ export const AvailableBooksReportColumns: ColumnDef<IAvailableBooksReportGridDat
         enableSorting: false
     },
     {
-        accessorKey: 'lmb_EntryDate',
+        accessorKey: 'lmB_EntryDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Entry Date' />,
         cell: ({ row }) => {
-            const date = row.getValue('lmb_EntryDate') as string;
+            const date = row.getValue('lmB_EntryDate') as string;
             return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'lmbano_AccessionNo',
+        accessorKey: 'lmbanO_AccessionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
-        cell: ({ row }) => <div>{row.getValue('lmbano_AccessionNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_BookTitle',
+        accessorKey: 'lmB_BookTitle',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Title' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookTitle')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_BookTitle')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_BookType',
+        accessorKey: 'lmB_BookType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Type' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_BookType')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_BookType')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmd_DepartmentName',
+        accessorKey: 'lmD_DepartmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('lmd_DepartmentName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmD_DepartmentName')}</div>,
         enableSorting: true
     },
     {
@@ -58,27 +58,27 @@ export const AvailableBooksReportColumns: ColumnDef<IAvailableBooksReportGridDat
         enableSorting: true
     },
     {
-        accessorKey: 'lmp_PublisherName',
+        accessorKey: 'lmP_PublisherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher' />,
-        cell: ({ row }) => <div>{row.getValue('lmp_PublisherName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lml_LanguageName',
+        accessorKey: 'lmL_LanguageName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />,
-        cell: ({ row }) => <div>{row.getValue('lml_LanguageName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lms_SubjectName',
+        accessorKey: 'lmS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,
-        cell: ({ row }) => <div>{row.getValue('lms_SubjectName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmS_SubjectName')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'lmb_PurOrDonated',
+        accessorKey: 'lmB_PurOrDonated',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Purchased/Donated' />,
-        cell: ({ row }) => <div>{row.getValue('lmb_PurOrDonated')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmB_PurOrDonated') ?? '-'}</div>,
         enableSorting: true
     }
 ];

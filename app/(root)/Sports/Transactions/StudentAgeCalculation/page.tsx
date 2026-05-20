@@ -76,7 +76,8 @@ const createColumns = () => [
 
 export default function StudentAgeCalculationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { initialData, studentsData, saveData } = useStudentAgeCalculation(searchParams);
+    const { loadData, refetchAll, studentsData, saveData } = useStudentAgeCalculation(searchParams);
+    const initialData = loadData; // Alias for backward compatibility in this page
     const [studentOptions, setStudentOptions] = useState<{ label: string; value: string }[]>([]);
     const [resetKey, setResetKey] = useState(0);
 

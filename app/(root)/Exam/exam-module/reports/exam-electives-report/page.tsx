@@ -23,7 +23,7 @@ export default function ExamElectivesReportPage() {
 
         try {
             const res = await getExamElectivesReport(payload);
-
+            console.log("res from the ExamElectivesReport", res);
             if (!res?.success || !Array.isArray(res.data) || res.data.length === 0) {
                 toast.info('No students found for the selected criteria');
                 setIsReportVisible(false);
@@ -92,7 +92,7 @@ export default function ExamElectivesReportPage() {
 
                         return {
                             ismS_Id: 0,
-                            ismS_SubjectName: subjectArray.length > 0 ? subjectArray.join(', ') : '@#$%^&',
+                            ismS_SubjectName: subjectArray.length > 0 ? subjectArray.join(', ') : '',
                             emG_GroupName: grp.emG_GroupName
                         };
                     })

@@ -39,9 +39,15 @@ function MasterRackDetailsPageContent({
 }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterRackDetails>();
 
-    const tableData = response?.data?.rackDetails || [];
-    const tableProps = useDataTableProps(tableData);
-    const subjectList = response?.data?.subjects || [];
+    // Defensive data mapping
+    const rawData = response?.data;
+    const tableData = Array.isArray(rawData) ? rawData : (rawData?.rackDetails || []);
+    const subjectList = rawData?.subjects || [];
+    
+    const tableProps = useDataTableProps(rawData, { 
+        dataKey: Array.isArray(rawData) ? undefined : 'rackDetails' 
+    });
+
 
     return (
         <div className='min-h-screen'>
@@ -89,11 +95,17 @@ function MasterRackDetailsPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
+                        showSearchColumns={true}
+                        showViewOptions={true}
+                        manualFiltering={true}
+                        manualPagination={true}
+                        manualSorting={true}
                         loadingMessage='Loading rack details...'
                         noDataTitle='No Rack Details Found'
                         noDataDescription='Get started by creating your first rack entry'
                         errorTitle='Error Loading Rack Details'
                     />
+
                 </CollapsibleSection>
 
                 {/* Forms */}

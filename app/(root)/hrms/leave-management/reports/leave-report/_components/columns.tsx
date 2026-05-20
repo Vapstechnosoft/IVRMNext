@@ -16,27 +16,47 @@ export interface LeaveReportRow {
 export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => (
+            <div className='text-center font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Sl.No' />
+            </div>
+        ),
         cell: ({ row }) => <div className='text-center'>{row.getValue('slNo')}</div>
     },
     {
         accessorKey: 'employeeCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Employee Code' />
+            </div>
+        ),
+        cell: ({ row }) => <div className=''>{row.getValue('employeeCode')}</div>
     },
     {
         accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Employee Name' />
+            </div>
+        ),
         cell: ({ row }) => <div>{row.getValue('employeeName')}</div>
     },
     {
         accessorKey: 'leaveName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Name' />,
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Leave Name' />
+            </div>
+        ),
         cell: ({ row }) => <div>{row.getValue('leaveName')}</div>
     },
     {
         accessorKey: 'fromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='From Date' />
+            </div>
+        ),
         cell: ({ row }) => {
             const date = row.getValue('fromDate') as string;
             return <div>{new Date(date).toLocaleDateString()}</div>;
@@ -44,7 +64,11 @@ export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
     },
     {
         accessorKey: 'toDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='To Date' />
+            </div>
+        ),
         cell: ({ row }) => {
             const date = row.getValue('toDate') as string;
             return <div>{new Date(date).toLocaleDateString()}</div>;
@@ -52,12 +76,20 @@ export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
     },
     {
         accessorKey: 'appliedDays',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Days' />,
+        header: ({ column }) => (
+            <div className='text-center font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Applied Days' />
+            </div>
+        ),
         cell: ({ row }) => <div className='text-center'>{row.getValue('appliedDays')}</div>
     },
     {
         accessorKey: 'leaveStatus',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Status' />,
+        header: ({ column }) => (
+            <div className='font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Leave Status' />
+            </div>
+        ),
         cell: ({ row }) => {
             const status = row.getValue('leaveStatus') as string;
             const statusColors = {
@@ -78,7 +110,11 @@ export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
     },
     {
         accessorKey: 'leaveBalance',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Balance' />,
-        cell: ({ row }) => <div className='text-center font-semibold'>{row.getValue('leaveBalance')}</div>
+        header: ({ column }) => (
+            <div className='text-center font-bold text-black'>
+                <DataTableColumnHeader column={column} title='Leave Balance' />
+            </div>
+        ),
+        cell: ({ row }) => <div className='text-center '>{row.getValue('leaveBalance')}</div>
     }
 ];

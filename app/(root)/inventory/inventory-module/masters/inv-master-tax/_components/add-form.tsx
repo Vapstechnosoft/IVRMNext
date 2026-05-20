@@ -69,6 +69,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
             <div className='flex flex-col gap-4'>
                 <InputText
                     label='Tax Name'
+                    placeholder='Enter Tax Name'
                     required
                     id='INVMT_TaxName'
                     {...register('INVMT_TaxName')}
@@ -77,6 +78,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
 
                 <InputText
                     label='Alias Name'
+                    placeholder='Enter Alias Name'
                     id='INVMT_TaxAliasName'
                     {...register('INVMT_TaxAliasName')}
                     error={errors.INVMT_TaxAliasName?.message}
