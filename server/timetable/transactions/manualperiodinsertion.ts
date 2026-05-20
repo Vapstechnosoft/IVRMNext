@@ -87,5 +87,6 @@ export async function getManualPeriodInsertionReportData(payload: any) {
 export async function saveManualPeriodInsertion(payload: any) {
     const url = '/ManualperiodinsertionFacade/savemanualPeriodinsertion';
     console.info('ManualperiodinsertionFacade', url);
+    console.log("payload : ", JSON.stringify(payload, null, 2));
     return await api.post<any>('timetable', url, payload);
 }
