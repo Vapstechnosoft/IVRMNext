@@ -90,3 +90,19 @@ export async function getInstitutionByLogin(): Promise<ApiResponse<any>> {
         throw error;
     }
 }
+
+
+export async function getCandidateDropDownDataByInstitution(): Promise<ApiResponse<any>> {
+    const url = `/api/AddCandidateInterviewVMS/get_candidates_by_institutionId`;
+    try {
+        const response = await api.get('hrmsrecruitment', url);
+        return {
+            success: response?.success ?? true,
+            message: response?.message || 'Data fetched successfully',
+            data: response?.data || response,
+        };
+    } catch (error) {
+        console.error('Error fetching candidate dropdown data:', error);
+        throw error;
+    }
+}

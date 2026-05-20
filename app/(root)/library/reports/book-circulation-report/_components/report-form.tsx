@@ -83,6 +83,56 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
     const [classSearch, setClassSearch] = useState('');
     const [sectionSearch, setSectionSearch] = useState('');
 
+    const sectionList = React.useMemo(() => {
+        if (!initialData?.sectionList) return [];
+        return initialData.sectionList.map((sec: any, index) => {
+            // 1. Try to find the section name by checking standard keys
+            let name = sec.asmC_SectionName || 
+                       sec.asmc_SectionName ||
+                       sec.asmS_SectionName || 
+                       sec.asms_SectionName || 
+                       sec.asmc_sectionname ||
+                       sec.asms_sectionname ||
+                       sec.ASMC_SECTIONNAME || 
+                       sec.ASMS_SECTIONNAME || 
+                       sec.ASMC_SectionName ||
+                       sec.ASMS_SectionName ||
+                       sec.sectionName || 
+                       sec.SectionName ||
+                       sec.sectionname ||
+                       sec.SECTIONNAME ||
+                       sec.SECTION_NAME || 
+                       sec.ASMC_SECTION_NAME || 
+                       sec.MC_SECTIONNAME || '';
+
+            // 2. Dynamic fallback: Scan all keys for anything containing "section" or "sec"
+            if (!name || name.trim() === '') {
+                for (const key in sec) {
+                    const lowerKey = key.toLowerCase();
+                    if ((lowerKey.includes('section') || lowerKey.includes('sec')) && 
+                        !lowerKey.includes('id') && 
+                        sec[key] && 
+                        typeof sec[key] === 'string' && 
+                        sec[key].trim() !== '') {
+                        name = sec[key];
+                        break;
+                    }
+                }
+            }
+
+            // 3. Last fallback: Alphabet index
+            if (!name || name.trim() === '') {
+                const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+                name = alphabet[index % alphabet.length] || `Section ${index + 1}`;
+            }
+
+            return {
+                ...sec,
+                asmC_SectionName: name
+            };
+        });
+    }, [initialData?.sectionList]);
+
     const {
         handleSubmit,
         setValue,
@@ -116,12 +166,12 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
             setSelectedClasses(allClassIds);
             setValue('selectedClasslist', allClassIds.map(id => ({ asmcL_Id: id })));
         }
-        if (initialData?.sectionList && (initialData.sectionList.length || 0) > 0) {
-            const allSectionIds = initialData.sectionList.map(s => s.asmS_Id);
+        if (sectionList && (sectionList.length || 0) > 0) {
+            const allSectionIds = sectionList.map(s => s.asmS_Id);
             setSelectedSections(allSectionIds);
             setValue('selectedSectionlist', allSectionIds.map(id => ({ asmS_Id: id })));
         }
-    }, [initialData, setValue]);
+    }, [initialData, sectionList, setValue]);
 
     const handleClassToggle = (id: number) => {
         let newSelected = [...selectedClasses];
@@ -157,8 +207,8 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
     };
 
     const handleAllSectionsToggle = (checked: boolean) => {
-        if (checked && initialData?.sectionList) {
-            const allIds = initialData.sectionList.map(s => s.asmS_Id);
+        if (checked && sectionList) {
+            const allIds = sectionList.map(s => s.asmS_Id);
             setSelectedSections(allIds);
             setValue('selectedSectionlist', allIds.map(i => ({ asmS_Id: i })));
         } else {
@@ -359,19 +409,19 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData }: 
                                     <div className="flex items-center space-x-1.5 pb-0.5 border-b mb-0.5 bg-slate-100 px-2 py-0.5 sticky top-0 z-10">
                                         <Checkbox
                                             id="sec-all"
-                                            checked={(initialData?.sectionList?.length || 0) > 0 && initialData?.sectionList?.length === selectedSections.length}
+                                            checked={(sectionList?.length || 0) > 0 && sectionList?.length === selectedSections.length}
                                             onCheckedChange={(checked) => handleAllSectionsToggle(checked as boolean)}
                                             className="w-3.5 h-3.5 border-slate-400 data-[state=checked]:bg-[#4255a7]"
                                         />
                                         <Label htmlFor="sec-all" className="text-[10px] font-bold cursor-pointer text-slate-800 uppercase tracking-tighter">All</Label>
                                     </div>
                                     <div className="px-2">
-                                        {initialData?.sectionList?.filter(s => {
-                                            const name = (s.asmC_SectionName || (s as any).ASMC_SECTIONNAME || (s as any).asmS_SectionName || (s as any).ASMS_SECTIONNAME || '').toString().toLowerCase();
+                                        {sectionList?.filter(s => {
+                                            const name = (s.asmC_SectionName || '').toString().toLowerCase();
                                             return name.includes(sectionSearch.toLowerCase());
                                         }).map((sec) => {
                                             const sectionId = sec.asmS_Id || (sec as any).ASMS_ID;
-                                            const sectionName = sec.asmC_SectionName || (sec as any).ASMC_SECTIONNAME || (sec as any).asmS_SectionName || (sec as any).ASMS_SECTIONNAME || (sec as any).SECTIONNAME || (sec as any).SECTION_NAME || (sec as any).ASMC_SECTION_NAME || (sec as any).MC_SECTIONNAME || '';
+                                            const sectionName = sec.asmC_SectionName || '';
                                             return (
                                                 <div key={sectionId} className="flex items-center space-x-1.5 py-0.5 hover:bg-slate-50 transition-colors">
                                                     <Checkbox
