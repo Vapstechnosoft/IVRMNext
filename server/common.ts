@@ -1372,6 +1372,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/burnpur/reports/brs-tc-certificate',
                                             title: 'BRS TC Certificate',
                                             description: 'BRS TC Certificate'
+                                        },
+                                        {
+                                            id: 77,
+                                            name: 'BRS Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/burnpur/transactions/application-form',
+                                            title: 'BRS Admission Form',
+                                            description: 'BRS Admission Form'
                                         }
                                     ]
                                 },
@@ -1390,21 +1398,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        }
-                                    ]
-                                }
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -6500,7 +6508,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'Manual Period Insertion',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            url: '/timetable/transactions/manualperiodinsertion',
                                             title: 'Manual Period Insertion',
                                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
                                         },
@@ -6508,7 +6516,7 @@ export async function getUserAccessibleModules() {
                                             id: 4,
                                             name: 'Staff Period Transfer',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            url: '/timetable/transactions/staffperiodtransfer',
                                             title: 'Staff Period Transfer',
                                             description: 'Transfer Staff Periods Between Classes and Sections'
                                         },
@@ -6516,7 +6524,7 @@ export async function getUserAccessibleModules() {
                                             id: 5,
                                             name: 'Staff Replacement Existing To New',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            url: '/timetable/transactions/staffreplacementexistingtonew',
                                             title: 'Staff Replacement Existing To New',
                                             description: 'Replacing staff Existing To New'
                                         },
@@ -6524,7 +6532,7 @@ export async function getUserAccessibleModules() {
                                             id: 6,
                                             name: 'Staff Replacement In Their TimeTable',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            url: '/timetable/transactions/staffreplacementintheirtimetable',
                                             title: 'Staff Replacement In Their TimeTable',
                                             description: 'Staff Replacement In Their TimeTable'
                                         },
@@ -6532,7 +6540,7 @@ export async function getUserAccessibleModules() {
                                             id: 7,
                                             name: 'Staff Replacement In Unallocated Period',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            url: '/timetable/transactions/staffreplacementinunallocatedperiod',
                                             title: 'Staff Replacement In Unallocated Period',
                                             description: 'Staff Replacement In Unallocated Period'
                                         },
@@ -6540,7 +6548,7 @@ export async function getUserAccessibleModules() {
                                             id: 8,
                                             name: 'Time Table Generation',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/time-table-generation',
+                                            url: '/timetable/transactions/timetablegeneration',
                                             title: 'Time Table Generation',
                                             description: 'Time Table Generation'
                                         }
@@ -6794,11 +6802,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30017,
-                                            name: 'LOST BOOK',
+                                            name: 'Lost Book',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
-                                            title: 'LOST BOOK',
-                                            description: 'LOST BOOK Details'
+                                            title: 'Lost Book',
+                                            description: 'Lost Book Details'
                                         }
                                     ]
                                 },
@@ -9734,12 +9742,12 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 2,
-                                            name: 'Preadmission Form',
+                                            id: 1,
+                                            name: 'Pre Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Preadmission Form',
-                                            description: 'Apply for Preadmission'
+                                            title: 'Admission Form',
+                                            description: 'Apply for Admission'
                                         }
                                     ]
                                 }

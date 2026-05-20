@@ -202,12 +202,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Subject No :'
                             placeholder='Enter subject no'
-                            {...register('lmS_SubjectNo', {
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('lmS_SubjectNo')}
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
