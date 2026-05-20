@@ -5,7 +5,8 @@ import {
     getInvRSalesDetails,
     getInvRSalesClassData,
     getInvRSalesStudentList,
-    getInvRSalesReport
+    getInvRSalesReport,
+    getInvRSalesItemLoadData
 } from '@/server/inventory/reports/inv-r-sales';
 import { toast } from 'sonner';
 import { IInvRSalesPayload } from '@/types/inventory/reports/inv-r-sales';
@@ -14,6 +15,14 @@ export const useInvRSalesLoadData = () => {
     return useQuery({
         queryKey: ['invRSalesLoadData'],
         queryFn: getInvRSalesLoadData,
+    });
+};
+
+export const useInvRSalesItemLoadData = (optionflag: string) => {
+    return useQuery({
+        queryKey: ['invRSalesItemLoadData', optionflag],
+        queryFn: () => getInvRSalesItemLoadData(optionflag),
+        enabled: !!optionflag,
     });
 };
 
