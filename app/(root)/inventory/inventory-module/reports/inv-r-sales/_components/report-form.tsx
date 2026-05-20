@@ -3,7 +3,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRSalesSchema, type InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
-import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList } from '@/hooks/inventory/reports/use-inv-r-sales';
+import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList, useInvRSalesItemLoadData } from '@/hooks/inventory/reports/use-inv-r-sales';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -14,6 +14,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FileText, RefreshCcw } from 'lucide-react';
 import { FormError } from '@/components/ui/extension/field';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
@@ -63,6 +64,10 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const { data: classData, refetch: refetchClasses } = useInvRSalesClassData(individualflag);
     const { data: sectionData, refetch: refetchSections } = useInvRSalesSectionList(classId, individualflag);
     const { data: studentListData, refetch: refetchStudentList } = useInvRSalesStudentList(classId, sectionId, individualflag, optionflag);
+    // Item load-data from the same GRN API (flg=Item_1), enabled only when optionflag === 'Item'
+    const { data: itemLoadData, refetch: refetchItemLoadData } = useInvRSalesItemLoadData(
+        optionflag === 'Item' ? 'Item_1' : ''
+    );
 
     useEffect(() => {
         if (optionflag) {
@@ -76,8 +81,11 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             setValue('singleStudentId', undefined);
             setValue('singleStaffId', undefined);
             setValue('singleCustomerId', undefined);
+            if (optionflag === 'Item') {
+                refetchItemLoadData();
+            }
         }
-    }, [optionflag, refetchDetails, setValue]);
+    }, [optionflag, refetchDetails, refetchItemLoadData, setValue]);
 
     useEffect(() => {
         if (individualflag) {
@@ -109,26 +117,77 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     }, [classId, sectionId, individualflag, refetchStudentList, setValue]);
 
     const grnSalesOptions = useMemo(() => {
-        return detailsData?.data?.get_salesdetails?.map((item: any) => ({
-            label: item.invmsL_SalesNo,
-            value: item.invmsL_Id?.toString()
-        })) || [];
+        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        return details.map((item: any) => {
+            const id = item.invmsL_Id ?? item.invmsl_Id ?? item.INVMSL_Id;
+            const no = item.invmsL_SalesNo ?? item.invmsl_SalesNo ?? item.INVMSL_SalesNo;
+            return {
+                label: no?.toString() || '',
+                value: id?.toString() || ''
+            };
+        }).filter((o: any) => o.value);
     }, [detailsData]);
 
-    const itemOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
-        label: item.invmI_ItemName,
-        value: item.invmI_Id?.toString()
-    })) || [], [detailsData]);
+    // Helper to extract item array from GRN-style load data response (same as GRN report)
+    const getItemDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+        if (Array.isArray(resData)) return resData;
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+        if (resData?.get_grn_item_supplier) {
+            if (Array.isArray(resData.get_grn_item_supplier)) return resData.get_grn_item_supplier;
+            if (resData.get_grn_item_supplier.$values) return resData.get_grn_item_supplier.$values;
+        }
+        if (Array.isArray(data.get_grn_item_supplier)) return data.get_grn_item_supplier;
+        if (data.get_grn_item_supplier?.$values) return data.get_grn_item_supplier.$values;
+        return [];
+    };
 
-    const staffOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
-        label: item.employeename,
-        value: item.hrmE_Id
-    })) || [], [detailsData]);
+    const itemDetailsArray = useMemo(() => getItemDetailsArray(itemLoadData), [itemLoadData]);
 
-    const customerOptions = useMemo(() => detailsData?.data?.get_salesdetails?.map((item: any) => ({
-        label: item.invmC_CustomerName,
-        value: item.invmC_Id
-    })) || [], [detailsData]);
+    const itemOptions = useMemo(() => {
+        // Prefer the GRN load-data source when optionflag is 'Item'
+        if (optionflag === 'Item' && itemDetailsArray.length > 0) {
+            return itemDetailsArray.map((item: any) => ({
+                label: item.name || item.invmI_ItemName || 'Unknown Item',
+                value: (item.id || item.invmI_Id)?.toString() || ''
+            })).filter((o: any) => o.value);
+        }
+        // Fallback to detailsData (existing behaviour)
+        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        return details.map((item: any) => {
+            const id = item.invmI_Id ?? item.invmi_Id ?? item.INVMI_Id;
+            const name = item.invmI_ItemName ?? item.invmi_ItemName ?? item.INVMI_ItemName;
+            return {
+                label: name?.toString() || '',
+                value: id?.toString() || ''
+            };
+        }).filter((o: any) => o.value);
+    }, [detailsData, itemDetailsArray, optionflag]);
+
+    const staffOptions = useMemo(() => {
+        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        return details.map((item: any) => {
+            const id = item.hrmE_Id ?? item.hrme_Id ?? item.HRME_Id;
+            const name = item.employeename ?? item.employeeName ?? item.HRME_EmployeeName;
+            return {
+                label: name?.toString() || '',
+                value: id?.toString() || ''
+            };
+        }).filter((o: any) => o.value);
+    }, [detailsData]);
+
+    const customerOptions = useMemo(() => {
+        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        return details.map((item: any) => {
+            const id = item.invmC_Id ?? item.invmc_Id ?? item.INVMC_Id;
+            const name = item.invmC_CustomerName ?? item.invmc_CustomerName ?? item.INVMC_CustomerName;
+            return {
+                label: name?.toString() || '',
+                value: id?.toString() || ''
+            };
+        }).filter((o: any) => o.value);
+    }, [detailsData]);
 
     useEffect(() => {
         if (optionflag === 'Student' && !individualflag) {
@@ -145,15 +204,34 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
         if (Array.isArray(sectionData?.data)) return sectionData.data;
         return sectionData?.data?.get_Section || [];
     }, [sectionData]);
-    const studentList = useMemo(() => Array.isArray(studentListData?.data) ? studentListData.data : (studentListData?.data?.get_Studentlist || []), [studentListData]);
+    const studentList = useMemo(() => {
+        const data = studentListData?.data;
+        if (Array.isArray(data)) return data;
+        return data?.get_Studentlist ?? data?.studentList ?? [];
+    }, [studentListData]);
 
-    const studentListOptions = useMemo(() => studentList.map((item: any) => ({
-        label: `${item.studentName || item.studentname} : ${item.amsT_AdmNo}`,
-        value: item.amsT_Id?.toString()
-    })), [studentList]);
+    const studentListOptions = useMemo(() => studentList.map((item: any) => {
+        const id = item.amsT_Id ?? item.amst_Id ?? item.AMST_Id ?? item.studentId;
+        const name = item.studentName ?? item.studentname ?? item.ameS_StudentName ?? '';
+        const admNo = item.amsT_AdmNo ?? item.amst_AdmNo ?? item.AMST_AdmNo ?? '';
+        return {
+            label: name + (admNo ? ` : ${admNo}` : ''),
+            value: id?.toString() || ''
+        };
+    }).filter((opt: { value: string; label: string }) => opt.value), [studentList]);
 
     const handleFormSubmit = (data: InvRSalesSchema) => {
         onSubmit(data);
+    };
+
+    const onFormError = (errors: any) => {
+        console.log("Validation Errors:", errors);
+        const firstErrorKey = Object.keys(errors)[0];
+        if (firstErrorKey) {
+            const error = errors[firstErrorKey];
+            const message = error.message || "Please fill all required fields";
+            toast.error(message);
+        }
     };
 
     const handleCancel = () => {
@@ -204,7 +282,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit, onFormError)} className="space-y-4">
             <CollapsibleSection title="Report Configuration" defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
                     {/* Report Type */}
@@ -302,7 +380,21 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Item <span className="text-destructive">*</span></Label>
                                 <Controller name="itemArray" control={control} render={({ field }) => (
-                                    <MultiSelect options={itemOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_salesdetails?.filter((i: any) => val.includes(i.invmI_Id.toString())))} defaultValue={field.value?.map((v: any) => v.invmI_Id.toString())} placeholder="Select Item..." />
+                                    <MultiSelect
+                                        options={itemOptions}
+                                        onValueChange={(val) => {
+                                            const selectedObjects = itemDetailsArray.length > 0
+                                                ? itemDetailsArray
+                                                    .filter((i: any) => val.includes((i.id || i.invmI_Id)?.toString()))
+                                                    .map((i: any) => ({ ...i, checked: true }))
+                                                : (detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [])
+                                                    .filter((i: any) => val.includes(i.invmI_Id?.toString()))
+                                                    .map((i: any) => ({ ...i, checked: true }));
+                                            field.onChange(selectedObjects);
+                                        }}
+                                        defaultValue={field.value?.map((v: any) => (v.id || v.invmI_Id)?.toString())}
+                                        placeholder="Select Item..."
+                                    />
                                 )} />
                                 {errors.itemArray && <FormError>{errors.itemArray.message}</FormError>}
                             </div>
@@ -360,7 +452,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                     </div>
                                 )}
 
-                                {(individualflag === 'C' || individualflag === 'CS') && studentListOptions.length > 0 && (
+                                {((individualflag === 'C' && classId) || (individualflag === 'CS' && classId && sectionId)) && (
                                     <div className="space-y-2 max-w-xl">
                                         <Label>Select Students <span className="text-destructive">*</span></Label>
                                         <Controller name="studentArray" control={control} render={({ field }) => (

@@ -431,38 +431,44 @@ export default function EmployeeIDcardReportSTpeterPage() {
                                 {employeeSearch && <X className='absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 cursor-pointer hover:text-slate-600' onClick={() => setEmployeeSearch('')} />}
                             </div>
                             <ScrollArea className='h-[320px] border border-blue-100 rounded-sm p-1 bg-slate-50/20'>
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-1.5'>
-                                    {filteredEmployees.map((e: any) => {
-                                        const isSelected = selectedEmployeeIds.includes(e.hrmE_Id);
-                                        return (
-                                            <div
-                                                key={e.hrmE_Id}
-                                                onClick={() => setSelectedEmployeeIds(prev => prev.includes(e.hrmE_Id) ? prev.filter(i => i !== e.hrmE_Id) : [...prev, e.hrmE_Id])}
-                                                className={cn(
-                                                    'flex items-center space-x-3 p-3 rounded-sm cursor-pointer transition-all border group relative overflow-hidden',
-                                                    isSelected ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100' : 'bg-white border-slate-200 hover:border-blue-200'
-                                                )}>
-                                                <div className={cn(
-                                                    'w-5 h-5 rounded-full border flex items-center justify-center transition-colors',
-                                                    isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'
-                                                )}>
-                                                    {isSelected && <Check className="w-3 h-3 text-white" />}
-                                                </div>
-                                                <div className='flex flex-col min-w-0 pr-4'>
-                                                    <span className='text-[10px] font-bold uppercase text-slate-800 truncate'>{getEmployeeName(e)}</span>
-                                                    <div className='flex items-center gap-2 mt-0.5'>
-                                                        <span className='text-[9px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-[2px]'>
-                                                            Code: {e.hrmE_EmployeeCode || e.currentemployeeDetails?.hrmE_EmployeeCode || 'N/A'}
-                                                        </span>
-                                                        <span className='text-[9px] text-blue-500 font-bold uppercase truncate max-w-[120px]'>
-                                                            {e.designationName || 'Staff'}
-                                                        </span>
+                                {filteredEmployees.length > 0 ? (
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-1.5'>
+                                        {filteredEmployees.map((e: any) => {
+                                            const isSelected = selectedEmployeeIds.includes(e.hrmE_Id);
+                                            return (
+                                                <div
+                                                    key={e.hrmE_Id}
+                                                    onClick={() => setSelectedEmployeeIds(prev => prev.includes(e.hrmE_Id) ? prev.filter(i => i !== e.hrmE_Id) : [...prev, e.hrmE_Id])}
+                                                    className={cn(
+                                                        'flex items-center space-x-3 p-3 rounded-sm cursor-pointer transition-all border group relative overflow-hidden',
+                                                        isSelected ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-100' : 'bg-white border-slate-200 hover:border-blue-200'
+                                                    )}>
+                                                    <div className={cn(
+                                                        'w-5 h-5 rounded-full border flex items-center justify-center transition-colors',
+                                                        isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'
+                                                    )}>
+                                                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                                                    </div>
+                                                    <div className='flex flex-col min-w-0 pr-4'>
+                                                        <span className='text-[10px] font-bold uppercase text-slate-800 truncate'>{getEmployeeName(e)}</span>
+                                                        <div className='flex items-center gap-2 mt-0.5'>
+                                                            <span className='text-[9px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-[2px]'>
+                                                                Code: {e.hrmE_EmployeeCode || e.currentemployeeDetails?.hrmE_EmployeeCode || 'N/A'}
+                                                            </span>
+                                                            <span className='text-[9px] text-blue-500 font-bold uppercase truncate max-w-[120px]'>
+                                                                {e.designationName || 'Staff'}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-slate-500 font-medium text-sm">
+                                        No records found
+                                    </div>
+                                )}
                             </ScrollArea>
 
                             {/* Final Action Buttons */}

@@ -18,7 +18,7 @@ export const getColumns = (
     const getRowNumber = (index: number) => (page - 1) * pageSize + index + 1;
 
     const dateCell = ({ row }: any) => {
-        const date = row.original.sales_Date || row.original.invmsL_SalesDate;
+        const date = row.original.sales_Date || row.original.invmsL_SalesDate || row.original.invmsl_SalesDate || row.original.invmsl_salesdate;
         if (!date) return '';
         return date.split('T')[0];
     };
@@ -36,27 +36,27 @@ export const getColumns = (
     const salesNoCol: ColumnDef<IInvRSalesReportData> = {
         id: "sales_no",
         header: "Sale No",
-        accessorFn: (row) => row.invmsL_SalesNo || row.invmsl_SalesNo || (row as any).Invmsl_SalesNo
+        accessorFn: (row) => row.invmsL_SalesNo || row.invmsl_SalesNo || (row as any).Invmsl_SalesNo || row.invmsl_salesno
     };
 
     const salesDateCol: ColumnDef<IInvRSalesReportData> = {
         id: "sales_date",
         header: "Sale Date",
-        accessorFn: (row) => row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate,
+        accessorFn: (row) => row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate || row.invmsl_salesdate,
         cell: dateCell
     };
 
     const itemCol: ColumnDef<IInvRSalesReportData> = {
         id: "item_name",
         header: "Item",
-        accessorFn: (row) => row.item_Name || row.invmI_ItemName || row.invmi_ItemName
+        accessorFn: (row) => row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname
     };
 
     const quantityCol: ColumnDef<IInvRSalesReportData> = {
         id: "qty",
         header: () => rightHeader("Quantity"),
         cell: ({ row }) => {
-            const val = row.original.sales_Qty ?? row.original.invtsL_SalesQty ?? row.original.saleQty ?? row.original.invtsl_SalesQty ?? 0;
+            const val = row.original.sales_Qty ?? row.original.invtsL_SalesQty ?? row.original.saleQty ?? row.original.invtsl_SalesQty ?? row.original.invtsl_salesqty ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
@@ -65,7 +65,7 @@ export const getColumns = (
         id: "price",
         header: () => rightHeader("Price"),
         cell: ({ row }) => {
-            const val = row.original.sales_Price ?? row.original.invtsL_SalesPrice ?? row.original.salePrice ?? row.original.invtsl_SalesPrice ?? 0;
+            const val = row.original.sales_Price ?? row.original.invtsL_SalesPrice ?? row.original.salePrice ?? row.original.invtsl_SalesPrice ?? row.original.invtsl_salesprice ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
@@ -74,7 +74,7 @@ export const getColumns = (
         id: "amount",
         header: () => rightHeader("Amount"),
         cell: ({ row }) => {
-            const val = row.original.total_Amount ?? row.original.invtsL_Amount ?? row.original.saleAmount ?? row.original.invtsl_Amount ?? 0;
+            const val = row.original.total_Amount ?? row.original.invtsL_Amount ?? row.original.saleAmount ?? row.original.invtsl_Amount ?? row.original.invtsl_amount ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
@@ -83,7 +83,7 @@ export const getColumns = (
         id: "tax",
         header: () => rightHeader("Tax"),
         cell: ({ row }) => {
-            const val = row.original.tax_Amt ?? row.original.invtsL_TaxAmt ?? row.original.saleTax ?? row.original.invtsl_TaxAmt ?? 0;
+            const val = row.original.tax_Amt ?? row.original.invtsL_TaxAmt ?? row.original.saleTax ?? row.original.invtsl_TaxAmt ?? row.original.invtsl_taxamt ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
@@ -92,7 +92,7 @@ export const getColumns = (
         id: "discount",
         header: () => rightHeader("Discount"),
         cell: ({ row }) => {
-            const val = row.original.discount_Amt ?? row.original.invtsL_DiscountAmt ?? row.original.saleDiscount ?? row.original.invtsl_DiscountAmt ?? 0;
+            const val = row.original.discount_Amt ?? row.original.invtsL_DiscountAmt ?? row.original.saleDiscount ?? row.original.invtsl_DiscountAmt ?? row.original.invtsl_discountamt ?? 0;
             return <div className={commonNumberClass}>{Number(val).toFixed(2)}</div>;
         }
     };
