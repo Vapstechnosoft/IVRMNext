@@ -14,6 +14,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { parseAsInteger, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { getProductQtyColumns } from './product-columns';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Box, PlusCircle } from 'lucide-react';
 
 const formSchema = z.object({
     invmpI_Id: z.number().optional(),
@@ -119,75 +121,105 @@ export default function ProductQtyTab() {
 
     return (
         <div className="space-y-4">
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <FormField control={form.control} name="invmP_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Product</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Product" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {products.map((item: any) => (
-                                            <SelectItem key={item.invmP_Id} value={item.invmP_Id.toString()}>
-                                                {item.invmP_ProductName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+            <CollapsibleSection
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                title='Add / Edit Product Quantity'
+                icon={<PlusCircle className='h-5 w-5' />}
+            >
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="invmP_Id" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Product</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Product" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {products.map((item: any) => (
+                                                <SelectItem key={item.invmP_Id} value={item.invmP_Id.toString()}>
+                                                    {item.invmP_ProductName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
 
-                        <FormField control={form.control} name="invmI_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Item</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Item" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {items.map((item: any) => (
-                                            <SelectItem key={item.invmI_Id} value={item.invmI_Id.toString()}>
-                                                {item.invmI_ItemName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                            <FormField control={form.control} name="invmI_Id" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Item</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Item" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {items.map((item: any) => (
+                                                <SelectItem key={item.invmI_Id} value={item.invmI_Id.toString()}>
+                                                    {item.invmI_ItemName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
 
-                        <FormField control={form.control} name="invmpI_ItemQty" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Item Quantity</FormLabel>
-                                <FormControl><Input {...field} type="number" placeholder="Enter Quantity" /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                    </div>
+                            <FormField control={form.control} name="invmpI_ItemQty" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Item Quantity</FormLabel>
+                                    <FormControl><Input {...field} type="number" placeholder="Enter Quantity" /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
 
-                    <div className="flex justify-center space-x-4">
-                        <Button type="submit">Save</Button>
-                        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-                    </div>
-                </form>
-            </Form>
+                        <div className="flex justify-center gap-4 border-t pt-4">
+                            <Button
+                                type="submit"
+                                variant="secondary"
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                                isLoading={saveProductQtyMutation.isPending}
+                            >
+                                Save
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                                onClick={onCancel}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CollapsibleSection>
 
-            <div className="mt-8">
+            <CollapsibleSection
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                title='Product Quantity List'
+                icon={<Box className='h-5 w-5' />}
+            >
                 <GenericDataTable
                     {...tableProps}
                     data={data}
                     columns={columns}
                     isLoading={isProductItemLoading}
                 />
-            </div>
+            </CollapsibleSection>
         </div>
     );
 }

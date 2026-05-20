@@ -12,6 +12,11 @@ export async function getInvRSalesItemLoadData(optionflag: string) {
     return await api.get<any>('inventory', url, {});
 }
 
+export async function getInvRSalesStaffLoadData() {
+    const url = `/INV_ItemConsumptionReportFacade/getloaddata?optionflag=Staff`;
+    return await api.get<any>('inventory', url);
+}
+
 export async function getInvRSalesDetails(optionflag: string) {
     const url = `/INV_R_SalesFacade/mainradiochange?type=${optionflag}`;
     return await api.get<any>('inventory', url);

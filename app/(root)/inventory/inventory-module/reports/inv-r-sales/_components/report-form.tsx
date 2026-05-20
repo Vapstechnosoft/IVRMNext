@@ -3,7 +3,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRSalesSchema, type InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
-import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList, useInvRSalesItemLoadData } from '@/hooks/inventory/reports/use-inv-r-sales';
+import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList, useInvRSalesItemLoadData, useInvRSalesStaffLoadData } from '@/hooks/inventory/reports/use-inv-r-sales';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -68,6 +68,10 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const { data: itemLoadData, refetch: refetchItemLoadData } = useInvRSalesItemLoadData(
         optionflag === 'Item' ? 'Item_1' : ''
     );
+    // Staff load-data from the same item-consumption API, enabled only when optionflag === 'Staff'
+    const { data: staffLoadData, refetch: refetchStaffLoadData } = useInvRSalesStaffLoadData(
+        optionflag === 'Staff'
+    );
 
     useEffect(() => {
         if (optionflag) {
@@ -84,8 +88,11 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             if (optionflag === 'Item') {
                 refetchItemLoadData();
             }
+            if (optionflag === 'Staff') {
+                refetchStaffLoadData();
+            }
         }
-    }, [optionflag, refetchDetails, refetchItemLoadData, setValue]);
+    }, [optionflag, refetchDetails, refetchItemLoadData, refetchStaffLoadData, setValue]);
 
     useEffect(() => {
         if (individualflag) {
@@ -145,6 +152,23 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
 
     const itemDetailsArray = useMemo(() => getItemDetailsArray(itemLoadData), [itemLoadData]);
 
+    // Helper to extract staff array from item-consumption-style load data response
+    const getStaffDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+        if (Array.isArray(resData)) return resData;
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+        if (resData?.get_ICreportdetails) {
+            if (Array.isArray(resData.get_ICreportdetails)) return resData.get_ICreportdetails;
+            if (resData.get_ICreportdetails.$values) return resData.get_ICreportdetails.$values;
+        }
+        if (Array.isArray(data.get_ICreportdetails)) return data.get_ICreportdetails;
+        if (data.get_ICreportdetails?.$values) return data.get_ICreportdetails.$values;
+        return [];
+    };
+
+    const staffDetailsArray = useMemo(() => getStaffDetailsArray(staffLoadData), [staffLoadData]);
+
     const itemOptions = useMemo(() => {
         // Prefer the GRN load-data source when optionflag is 'Item'
         if (optionflag === 'Item' && itemDetailsArray.length > 0) {
@@ -166,6 +190,14 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     }, [detailsData, itemDetailsArray, optionflag]);
 
     const staffOptions = useMemo(() => {
+        // Prefer the item-consumption load-data source when optionflag is 'Staff'
+        if (optionflag === 'Staff' && staffDetailsArray.length > 0) {
+            return staffDetailsArray.map((item: any) => ({
+                label: item.name || item.employeename || 'Unknown Staff',
+                value: (item.id || item.hrmE_Id)?.toString() || ''
+            })).filter((o: any) => o.value);
+        }
+        // Fallback to detailsData (existing behaviour)
         const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
         return details.map((item: any) => {
             const id = item.hrmE_Id ?? item.hrme_Id ?? item.HRME_Id;
@@ -175,7 +207,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                 value: id?.toString() || ''
             };
         }).filter((o: any) => o.value);
-    }, [detailsData]);
+    }, [detailsData, staffDetailsArray, optionflag]);
 
     const customerOptions = useMemo(() => {
         const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
