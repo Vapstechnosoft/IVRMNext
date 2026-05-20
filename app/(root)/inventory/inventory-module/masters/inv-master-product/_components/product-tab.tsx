@@ -98,7 +98,7 @@ export default function ProductTab() {
         if (item.invmP_TaxApplFlg === true) {
             Promise.all([
                 getTaxListMutation.mutateAsync(undefined),
-                getProductTaxMutation.mutateAsync({ INVMP_Id: item.invmP_Id })
+                getProductTaxMutation.mutateAsync(item.invmP_Id)
             ]).then(([taxListRes, productTaxRes]) => {
                 let taxListRaw: any[] = [];
                 // Handle tax list response structure
