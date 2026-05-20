@@ -235,7 +235,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                 placeholder='e.g., 2024'
                                 {...register('asmaY_AcademicYearCode', {
                                     onChange: (e) => {
-                                        e.target.value = e.target.value.replace(/\D/g, '');
+                                        e.target.value = e.target.value.replace(/[^a-zA-Z0-9-]/g, '');
                                     }
                                 })}
                                 error={errors.asmaY_AcademicYearCode?.message}
