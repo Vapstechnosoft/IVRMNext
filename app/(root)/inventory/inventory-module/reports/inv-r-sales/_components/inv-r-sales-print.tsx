@@ -103,27 +103,27 @@ export const InvRSalesPrint = React.forwardRef<HTMLDivElement, InvRSalesPrintPro
         const renderTableBody = () => {
             return data.map((item: any, index: number) => {
                 const slNo = <td className='text-center'>{index + 1}</td>;
-                const saleNo = <td>{item.invmsL_SalesNo || item.invmsl_SalesNo || item.Invmsl_SalesNo || '-'}</td>;
+                const saleNo = <td>{item.invmsL_SalesNo || item.invmsl_SalesNo || item.Invmsl_SalesNo || item.invmsl_salesno || '-'}</td>;
                 
-                const rawDate = item.sales_Date || item.invmsL_SalesDate || item.invmsl_SalesDate;
+                const rawDate = item.sales_Date || item.invmsL_SalesDate || item.invmsl_SalesDate || item.invmsl_salesdate;
                 const saleDate = <td>{rawDate ? rawDate.split('T')[0] : '-'}</td>;
 
-                const itemName = <td>{item.item_Name || item.invmI_ItemName || item.invmi_ItemName || '-'}</td>;
+                const itemName = <td>{item.item_Name || item.invmI_ItemName || item.invmi_ItemName || item.invmi_itemname || '-'}</td>;
                 const name = <td>{item.membername || item.memberName || '-'}</td>;
 
-                const qty = item.sales_Qty ?? item.invtsL_SalesQty ?? item.saleQty ?? item.invtsl_SalesQty ?? 0;
+                const qty = item.sales_Qty ?? item.invtsL_SalesQty ?? item.saleQty ?? item.invtsl_SalesQty ?? item.invtsl_salesqty ?? 0;
                 const quantity = <td className='text-right'>{Number(qty).toFixed(2)}</td>;
 
-                const pr = item.sales_Price ?? item.invtsL_SalesPrice ?? item.salePrice ?? item.invtsl_SalesPrice ?? 0;
+                const pr = item.sales_Price ?? item.invtsL_SalesPrice ?? item.salePrice ?? item.invtsl_SalesPrice ?? item.invtsl_salesprice ?? 0;
                 const price = <td className='text-right'>{Number(pr).toFixed(2)}</td>;
 
-                const amt = item.total_Amount ?? item.invtsL_Amount ?? item.saleAmount ?? item.invtsl_Amount ?? 0;
+                const amt = item.total_Amount ?? item.invtsL_Amount ?? item.saleAmount ?? item.invtsl_Amount ?? item.invtsl_amount ?? 0;
                 const amount = <td className='text-right'>{Number(amt).toFixed(2)}</td>;
 
-                const tx = item.tax_Amt ?? item.invtsL_TaxAmt ?? item.saleTax ?? item.invtsl_TaxAmt ?? 0;
+                const tx = item.tax_Amt ?? item.invtsL_TaxAmt ?? item.saleTax ?? item.invtsl_TaxAmt ?? item.invtsl_taxamt ?? 0;
                 const tax = <td className='text-right'>{Number(tx).toFixed(2)}</td>;
 
-                const disc = item.discount_Amt ?? item.invtsL_DiscountAmt ?? item.saleDiscount ?? item.invtsl_DiscountAmt ?? 0;
+                const disc = item.discount_Amt ?? item.invtsL_DiscountAmt ?? item.saleDiscount ?? item.invtsl_DiscountAmt ?? item.invtsl_discountamt ?? 0;
                 const discount = <td className='text-right'>{Number(disc).toFixed(2)}</td>;
 
                 if (typeflag === 'All') {
