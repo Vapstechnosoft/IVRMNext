@@ -1,10 +1,10 @@
 'use client';
 
-import { useDeputationMasters } from '@/hooks/timetable/transaction/useDeputation';
+import { useDeputationMasters } from '@/hooks/timetable/useTransactions';
 import { useState } from 'react';
-import DeputationAssignmentTable from './components/deputationAssignmentTable';
-import DeputationForm from './components/deputationForm';
-import DeputationReport from './components/deputationReport';
+import DeputationAssignmentTable from './_components/deputationAssignmentTable';
+import DeputationForm from './_components/deputationForm';
+import DeputationReport from './_components/deputationReport';
 
 export default function DeputationPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -23,3 +23,5 @@ export default function DeputationPage() {
         </div>
     );
 }
+
+

@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RECRUITMENT_QUERY_KEYS } from '@/constants/query-keys';
-import { getInstitutionByLogin, getMasterJobByIdData, getMasterGridData as getMasterJobGridData, saveOrUpdateJob, type saveOrUpdateJobPayload, toggleJobStatusData } from '@/server/hrms/recruitment/masters/masterJob';
+import { getCandidateDropDownDataByInstitution, getInstitutionByLogin, getMasterJobByIdData, getMasterGridData as getMasterJobGridData, saveOrUpdateJob, type saveOrUpdateJobPayload, toggleJobStatusData } from '@/server/hrms/recruitment/masters/masterJob';
 
 import { getMasterLocation, getMasterLocationGridData, saveOrUpdateLocation, type saveOrUpdateLocationPayload, toggleLocationStatusData } from '@/server/hrms/recruitment/masters/masterLocation';
 import { getMasterPositionGridData, saveOrUpdatePosition, togglePositionStatusData, type saveOrUpdatePositionPayload } 
@@ -17,6 +17,17 @@ export function useGetInstitutionByLogin() {
         queryKey: [RECRUITMENT_QUERY_KEYS.MASTER_INSTITUTION_BY_LOGIN],
         queryFn: async () => getInstitutionByLogin(),
         staleTime: 0
+    });
+}
+
+// ---------------------- Login Based Institution Candidate Dropdown Hook -----------------
+
+export function useGetCandidateDropDown(enabled: boolean = true) {
+    return useQuery({
+        queryKey: [RECRUITMENT_QUERY_KEYS.CANDIDATE_DROPDOWN],
+        queryFn: async () => getCandidateDropDownDataByInstitution(),
+        staleTime: 0,
+        enabled: enabled,
     });
 }
 

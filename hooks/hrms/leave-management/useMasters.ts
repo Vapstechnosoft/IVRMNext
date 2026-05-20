@@ -22,7 +22,6 @@ import {
     updateMasterLeaveOrder as updateMasterLeaveOrderAPI
 } from '@/server/hrms/leave-management/masters/master-leave';
 import { getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
-import { getTimetableData } from '@/server/timetable/transactions/staff-replacement-in-unallocated-period';
 import type { ApiSearchparams } from '@/types';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
 import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest, MasterLeaveDTOO } from '@/types/hrms/leave-management/master-leave';
