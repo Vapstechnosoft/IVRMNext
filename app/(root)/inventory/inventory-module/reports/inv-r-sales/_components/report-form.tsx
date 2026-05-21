@@ -123,11 +123,33 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
         }
     }, [classId, sectionId, individualflag, refetchStudentList, setValue]);
 
+    const getGenericDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+        if (Array.isArray(resData)) return resData;
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+        if (resData?.get_customer) {
+            if (Array.isArray(resData.get_customer)) return resData.get_customer;
+            if (resData.get_customer.$values) return resData.get_customer.$values;
+        }
+        if (resData?.get_salesdetails) {
+            if (Array.isArray(resData.get_salesdetails)) return resData.get_salesdetails;
+            if (resData.get_salesdetails.$values) return resData.get_salesdetails.$values;
+        }
+        if (resData?.get_salesDetails) {
+            if (Array.isArray(resData.get_salesDetails)) return resData.get_salesDetails;
+            if (resData.get_salesDetails.$values) return resData.get_salesDetails.$values;
+        }
+        if (Array.isArray(data.get_customer)) return data.get_customer;
+        if (data.get_customer?.$values) return data.get_customer.$values;
+        return [];
+    };
+
     const grnSalesOptions = useMemo(() => {
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
-            const id = item.invmsL_Id ?? item.invmsl_Id ?? item.INVMSL_Id;
-            const no = item.invmsL_SalesNo ?? item.invmsl_SalesNo ?? item.INVMSL_SalesNo;
+            const id = item.id ?? item.invmsL_Id ?? item.invmsl_Id ?? item.INVMSL_Id;
+            const no = item.name ?? item.invmsL_SalesNo ?? item.invmsl_SalesNo ?? item.INVMSL_SalesNo;
             return {
                 label: no?.toString() || '',
                 value: id?.toString() || ''
@@ -178,7 +200,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             })).filter((o: any) => o.value);
         }
         // Fallback to detailsData (existing behaviour)
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
             const id = item.invmI_Id ?? item.invmi_Id ?? item.INVMI_Id;
             const name = item.invmI_ItemName ?? item.invmi_ItemName ?? item.INVMI_ItemName;
@@ -198,7 +220,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             })).filter((o: any) => o.value);
         }
         // Fallback to detailsData (existing behaviour)
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
             const id = item.hrmE_Id ?? item.hrme_Id ?? item.HRME_Id;
             const name = item.employeename ?? item.employeeName ?? item.HRME_EmployeeName;
@@ -210,10 +232,11 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     }, [detailsData, staffDetailsArray, optionflag]);
 
     const customerOptions = useMemo(() => {
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
+
         return details.map((item: any) => {
-            const id = item.invmC_Id ?? item.invmc_Id ?? item.INVMC_Id;
-            const name = item.invmC_CustomerName ?? item.invmc_CustomerName ?? item.INVMC_CustomerName;
+            const id = item.id ?? item.invmC_Id ?? item.invmc_Id ?? item.INVMC_Id;
+            const name = item.name ?? item.invmC_CustomerName ?? item.invmc_CustomerName ?? item.INVMC_CustomerName ?? item.customerName;
             return {
                 label: name?.toString() || '',
                 value: id?.toString() || ''
@@ -402,7 +425,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Sale No <span className="text-destructive">*</span></Label>
                                 <Controller name="salesArray" control={control} render={({ field }) => (
-                                    <MultiSelect options={grnSalesOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_salesdetails?.filter((i: any) => val.includes(i.invmsL_Id.toString())))} defaultValue={field.value?.map((v: any) => v.invmsL_Id.toString())} placeholder="Select Sale No..." />
+                                    <MultiSelect options={grnSalesOptions} onValueChange={(val) => field.onChange(getGenericDetailsArray(detailsData).filter((i: any) => val.includes((i.id ?? i.invmsL_Id ?? i.invmsl_Id ?? i.INVMSL_Id)?.toString())))} defaultValue={field.value?.map((v: any) => (v.id ?? v.invmsL_Id ?? v.invmsl_Id ?? v.INVMSL_Id)?.toString())} placeholder="Select Sale No..." />
                                 )} />
                                 {errors.salesArray && <FormError>{errors.salesArray.message}</FormError>}
                             </div>
@@ -419,8 +442,8 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                                 ? itemDetailsArray
                                                     .filter((i: any) => val.includes((i.id || i.invmI_Id)?.toString()))
                                                     .map((i: any) => ({ ...i, checked: true }))
-                                                : (detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [])
-                                                    .filter((i: any) => val.includes(i.invmI_Id?.toString()))
+                                                : getGenericDetailsArray(detailsData)
+                                                    .filter((i: any) => val.includes((i.invmI_Id ?? i.invmi_Id ?? i.INVMI_Id)?.toString()))
                                                     .map((i: any) => ({ ...i, checked: true }));
                                             field.onChange(selectedObjects);
                                         }}

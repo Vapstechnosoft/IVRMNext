@@ -35,10 +35,10 @@ export const useInvRSalesStaffLoadData = (enabled: boolean) => {
     });
 };
 
-export const useInvRSalesDetails = (optionflag: string | undefined) => {
+export const useInvRSalesDetails = (optionflag: string | undefined, typeflag?: string) => {
     return useQuery({
-        queryKey: ['invRSalesDetails', optionflag],
-        queryFn: () => getInvRSalesDetails(optionflag!),
+        queryKey: ['invRSalesDetails', optionflag, typeflag],
+        queryFn: () => getInvRSalesDetails(optionflag!, typeflag),
         enabled: !!optionflag,
     });
 };
