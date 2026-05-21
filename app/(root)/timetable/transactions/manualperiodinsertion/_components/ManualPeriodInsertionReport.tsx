@@ -56,8 +56,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
     // Always show all standard days so user can assign to any day
     const gridDays = DAYS;
 
-    const gridPeriods = reportData?.periodslst?.length 
-        ? reportData.periodslst.map((p: any) => p.ttmP_PeriodName || p.periodName || p.ttcP_PeriodName) 
+    const gridPeriods = reportData?.periodslst?.length
+        ? reportData.periodslst.map((p: any) => p.ttmP_PeriodName || p.periodName || p.ttcP_PeriodName)
         : PERIODS;
 
     useEffect(() => {
@@ -100,7 +100,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
 
         selectedKeys.forEach((key) => {
             const [dayName, periodName] = key.split('-');
-            const dayObj = reportData?.gridweeks?.find((d: any) => 
+            const dayObj = reportData?.gridweeks?.find((d: any) =>
                 (d.ttmD_DayName?.toLowerCase() || d.dayName?.toLowerCase()) === dayName
             );
             const periodObj = reportData?.periodslst?.find(
@@ -123,6 +123,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             return;
         }
 
+        console.log("payload", payloadTimeTable)
+
         const finalPayload = {
             ASMAY_Id: Number(data.asmaY_Id),
             TTMC_Id: Number(data.ttmC_Id),
@@ -139,7 +141,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             onSuccess: (res: any) => {
                 if (res?.success || res?.returnval) {
                     toast.success('Saved Successfully', { description: res.message || 'Periods mapped to staff/subject.' });
-                    
+
                     // Update UI Optimistically or rely on React Query invalidation
                     const selectedStaff = masters?.staff?.find((s) => s.hrmE_Id.toString() === tempSelection.hrmE_Id);
                     const selectedSubject = masters?.subjects?.find((s) => s.ismS_Id.toString() === tempSelection.ismS_Id);
@@ -231,8 +233,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                                                 isSelected
                                                     ? 'z-10 bg-purple-600 ring-2 ring-purple-400 ring-inset'
                                                     : isAssigned
-                                                      ? 'bg-purple-100 text-purple-900'
-                                                      : 'bg-white'
+                                                        ? 'bg-purple-100 text-purple-900'
+                                                        : 'bg-white'
                                             )}>
                                             {isBreak ? (
                                                 'Break'

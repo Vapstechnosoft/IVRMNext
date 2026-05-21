@@ -144,9 +144,11 @@ export default function AINotemaker() {
 
             // Clean markdown markers for PDF
             const cleanedContent = content
-                .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markers
-                .replace(/^\s*[\*\-]\s+/gm, '• ') // Replace bullets with a clean dot
-                .replace(/^#+\s+/gm, ''); // Remove heading markers
+                .replace(/\r/g, '') // Remove carriage returns first to avoid CRLF issues
+                .replace(/\*\*([\s\S]*?)\*\*/g, '$1') // Remove bold markers (multiline-safe)
+                .replace(/\*([\s\S]*?)\*/g, '$1') // Remove italic markers (multiline-safe)
+                .replace(/^\s*#+\s+/gm, '') // Remove heading markers (even with leading spaces)
+                .replace(/^\s*[\*\-\+]\s+/gm, '• '); // Replace bullets with a clean dot
 
             const lines = doc.splitTextToSize(cleanedContent, maxWidth);
 
@@ -442,24 +444,27 @@ export default function AINotemaker() {
                                             <div className='prose prose-blue max-w-none'>
                                                 <div className='whitespace-pre-wrap font-sans text-slate-800'>
                                                     {result.notes.split('\n').map((line, i) => {
+                                                        const trimmedLine = line.trim();
                                                         if (
-                                                            line.startsWith('#') ||
-                                                            (line.toUpperCase() === line && line.length > 3 && !line.includes(' '))
+                                                            trimmedLine.startsWith('#') ||
+                                                            (trimmedLine.toUpperCase() === trimmedLine &&
+                                                                trimmedLine.length > 3 &&
+                                                                !trimmedLine.includes(' '))
                                                         ) {
                                                             return (
                                                                 <h3
                                                                     key={i}
                                                                     className='mt-6 mb-3 border-b pb-2 font-bold text-primary text-xl'>
-                                                                    {renderWithBold(line.replace(/^#+\s*/, ''))}
+                                                                    {renderWithBold(trimmedLine.replace(/^#+\s*/, ''))}
                                                                 </h3>
                                                             );
                                                         }
-                                                        if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
+                                                        if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
                                                             return (
                                                                 <li key={i} className='mb-2 ml-4 flex list-none items-start'>
                                                                     <span className='mt-1.5 mr-2 text-primary'>•</span>
                                                                     <span className='flex-1'>
-                                                                        {renderWithBold(line.trim().substring(1).trim())}
+                                                                        {renderWithBold(trimmedLine.substring(1).trim())}
                                                                     </span>
                                                                 </li>
                                                             );
