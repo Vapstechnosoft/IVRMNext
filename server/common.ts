@@ -2151,6 +2151,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/collegefeetransaction',
                                             title: 'College Fee Transaction',
                                             description: 'College Fee Transaction'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Fee Third Party Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feethirdpartyreport',
+                                            title: 'Fee Third Party Report',
+                                            description: 'Fee Third Party Report'
                                         }
                                     ]
                                 }
