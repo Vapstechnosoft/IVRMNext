@@ -30,7 +30,12 @@ interface UpdateMasterAcademicYearFormProps {
     institutionList?: { mI_Id: number; mI_Name: string }[];
 }
 
-export default function UpdateMasterAcademicYearForm({ onSuccess, className = '', selectedRow: row, institutionList = [] }: UpdateMasterAcademicYearFormProps) {
+export default function UpdateMasterAcademicYearForm({
+    onSuccess,
+    className = '',
+    selectedRow: row,
+    institutionList = []
+}: UpdateMasterAcademicYearFormProps) {
     const { refetchAll } = usePreAdmissionAcademicYear();
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const {
@@ -255,7 +260,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         setOpenPopover(null);
                                                     }}
                                                     fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
-                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 20, 11, 31)}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -292,8 +301,18 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : (academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined)}
-                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 20, 11, 31)}
+                                                    fromDate={
+                                                        academicFromDate
+                                                            ? addDays(new Date(academicFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -334,7 +353,13 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
-                                                    toDate={academicFromDate ? new Date(academicFromDate) : (academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 20, 11, 31))}
+                                                    toDate={
+                                                        academicFromDate
+                                                            ? new Date(academicFromDate)
+                                                            : academicToYear
+                                                              ? new Date(Number(academicToYear), 11, 31)
+                                                              : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -368,8 +393,18 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : (academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined)}
-                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 20, 11, 31)}
+                                                    fromDate={
+                                                        preAdmFromDate
+                                                            ? addDays(new Date(preAdmFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -446,7 +481,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         setOpenPopover(null);
                                                     }}
                                                     fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
-                                                    toDate={academicToYear ? new Date(Number(academicToYear), 11, 31) : new Date(new Date().getFullYear() + 20, 11, 31)}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>

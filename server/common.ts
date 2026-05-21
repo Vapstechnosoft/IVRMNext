@@ -1398,21 +1398,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        }
-                                    ]
-                                }
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -6802,11 +6802,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30017,
-                                            name: 'LOST BOOK',
+                                            name: 'Lost Book',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
-                                            title: 'LOST BOOK',
-                                            description: 'LOST BOOK Details'
+                                            title: 'Lost Book',
+                                            description: 'Lost Book Details'
                                         }
                                     ]
                                 },

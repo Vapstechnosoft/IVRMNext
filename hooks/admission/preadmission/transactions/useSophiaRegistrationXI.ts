@@ -162,7 +162,7 @@ export const useSophiaRegistrationXICountry = () => {
 
 export const useSophiaRegistrationXISaveHealthCertificateDetail = () => {
     return useMutation({
-        mutationFn: (pashdId: number) => server.saveHealthCertificateDetail(pashdId),
+        mutationFn: (payload: any) => server.saveHealthCertificateDetail(payload),
     });
 };
 

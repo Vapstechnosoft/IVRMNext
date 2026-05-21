@@ -4,12 +4,17 @@ import { getUserAccessibleModules } from '@/server/common';
 
 // Initialize Groq clients for different portals
 const adminGroq = new Groq({
-    apiKey: process.env.chat_Groq_api_key || ''
+    apiKey: process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || ''
+});
+
+const staffGroq = new Groq({
+    apiKey: process.env.staff_chat_groq_api_key || process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || ''
 });
 
 const studentGroq = new Groq({
-    apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || ''
+    apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || ''
 });
+
 
 
 // Helper to flatten modules into a searchable text format
@@ -39,6 +44,12 @@ async function getNavigationContext() {
         };
 
         traverse(modulesResponse.data, []);
+        
+        // Truncate to avoid exceeding LLM token limits (Groq has ~8k token limit for this model, so max ~20000 chars)
+        if (contextText.length > 20000) {
+            contextText = contextText.substring(0, 20000) + "\n...[List truncated for size]";
+        }
+        
         return contextText;
     } catch (error) {
         console.error("Error generating navigation context:", error);
@@ -267,7 +278,11 @@ Overall Percentage = (255/300) × 100 = 85%
             'pay online',
             'fee structure',
             'current charges',
-            'pay my fees'
+            'pay my fees',
+            'check my fees',
+            'where to check my fees',
+            'view fees',
+            'my fees'
         ],
         response: `In the **Fee Online Payment** page, you can view and pay your fees:
 
@@ -836,7 +851,7 @@ const STUDENT_KNOWLEDGE_BASE = {
 
     // --- FEES ---
     payFees: {
-        keywords: ['pay fees', 'pay online', 'fee payment', 'due fees', 'outstanding fees'],
+        keywords: ['pay fees', 'pay online', 'fee payment', 'due fees', 'outstanding fees', 'check my fees', 'where to check my fees', 'my fees'],
         response: `You can securely pay fees in **Masters > Fee Online Payment**. Select the fee group and proceed to payment via Card/UPI.`
     },
     feeReceipt: {
@@ -880,7 +895,7 @@ export async function POST(req: NextRequest) {
         const { messages, context } = await req.json();
 
         // Select the appropriate Groq client based on context
-        const groq = context === 'StudentPortal' ? studentGroq : adminGroq;
+        const groq = context === 'StudentPortal' ? studentGroq : (context === 'Staff Support' ? staffGroq : adminGroq);
 
         // Select appropriate knowledge base
         const currentKnowledgeBase = context === 'StudentPortal' ? STUDENT_KNOWLEDGE_BASE : KNOWLEDGE_BASE;

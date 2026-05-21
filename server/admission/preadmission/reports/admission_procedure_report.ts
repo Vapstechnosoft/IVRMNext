@@ -3,8 +3,8 @@
 import { api } from '@/lib/apiService';
 
 export async function getAdmissionProcedureInitialDetails() {
-    const url = '/AttendanceReport/getdetails/';
-    return await api.get<any>('admission', url);
+    const url = '/AttendanceReport/getinitialdata';
+    return await api.post<any>('admission', url);
 }
 
 export async function getAdmissionProcedureClass(data: { ASMAY_Id: number; AMC_Id: number }) {
@@ -19,7 +19,7 @@ export async function getAdmissionProcedureReport(data: {
     ASMC_Id: number;
     AMC_Id: number;
 }) {
-    const url = '/AttendanceReport/GetReport';
+    const url = `/AttendanceReport/GetReport?ASMAY_Id=${data.ASMAY_Id}`;
     return await api.post<any>('admission', url, data);
 }
 
@@ -28,6 +28,6 @@ export async function viewAdmissionDetails(data: {
     ASMCL_Id: number;
     ASMAY_Id: number;
 }) {
-    const url = '/AttendanceReport/viewadmission';
+    const url = `/AttendanceReport/viewadmission?AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url, data);
 }
