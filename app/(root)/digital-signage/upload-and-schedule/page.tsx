@@ -1,5 +1,15 @@
 'use client';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
@@ -58,6 +68,12 @@ export default function UploadAndSchedule() {
     const [schedulePage, setSchedulePage] = useState(1);
     const [displaysPage, setDisplaysPage] = useState(1);
 
+    // Modal / Dialog States
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [mediaToDelete, setMediaToDelete] = useState<{ mediaId: number; name: string } | null>(null);
+    const [isForceDeleteOpen, setIsForceDeleteOpen] = useState(false);
+    const [mediaToForceDelete, setMediaToForceDelete] = useState<{ mediaId: number; name: string } | null>(null);
+
     // Fetch Data
     const { data: libraryRes, isLoading: isLibraryLoading } = useLibrary(libraryPage, displayId ? Number.parseInt(displayId) : undefined);
     const { data: scheduleRes, isLoading: isScheduleLoading } = useSchedule(
@@ -94,7 +110,10 @@ export default function UploadAndSchedule() {
                     size='sm'
                     className='h-8 px-2'
                     disabled={deleteMedia.isPending}
-                    onClick={() => deleteMedia.mutate({ mediaId: row.original.mediaId })}>
+                    onClick={() => {
+                        setMediaToDelete({ mediaId: row.original.mediaId, name: row.original.name });
+                        setIsConfirmOpen(true);
+                    }}>
                     <Trash2 className='h-4 w-4' />
                 </Button>
             )
@@ -170,6 +189,42 @@ export default function UploadAndSchedule() {
                 if (fileInput) fileInput.value = '';
             }
         });
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!mediaToDelete) return;
+
+        deleteMedia.mutate(
+            { mediaId: mediaToDelete.mediaId },
+            {
+                onSuccess: (res) => {
+                    setIsConfirmOpen(false);
+                    if (!res.success) {
+                        const isInUseError = res.message?.includes('422') || res.message?.includes('in use');
+                        if (isInUseError) {
+                            // Open force delete prompt
+                            setMediaToForceDelete({ mediaId: mediaToDelete.mediaId, name: mediaToDelete.name });
+                            setIsForceDeleteOpen(true);
+                        }
+                    }
+                    setMediaToDelete(null);
+                }
+            }
+        );
+    };
+
+    const handleForceDeleteConfirm = () => {
+        if (!mediaToForceDelete) return;
+
+        deleteMedia.mutate(
+            { mediaId: mediaToForceDelete.mediaId, forceDelete: true },
+            {
+                onSuccess: () => {
+                    setIsForceDeleteOpen(false);
+                    setMediaToForceDelete(null);
+                }
+            }
+        );
     };
 
     return (
@@ -354,6 +409,53 @@ export default function UploadAndSchedule() {
                     </Card>
                 </motion.div>
             </div>
+
+            {/* Standard Delete Confirmation */}
+            <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the media asset{' '}
+                            <span className='font-semibold text-foreground'>"{mediaToDelete?.name}"</span> from the Xibo CMS library.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setMediaToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteConfirm}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+                            Yes, Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Force Delete Confirmation (Library Item In Use) */}
+            <AlertDialog open={isForceDeleteOpen} onOpenChange={setIsForceDeleteOpen}>
+                <AlertDialogContent className='border-orange-200'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className='text-orange-600'>Library Item In Use</AlertDialogTitle>
+                        <AlertDialogDescription className='space-y-2'>
+                            <p>
+                                The media asset <span className='font-semibold text-foreground'>"{mediaToForceDelete?.name}"</span> is
+                                currently active or scheduled in layout broadcasts.
+                            </p>
+                            <p className='font-medium text-destructive'>
+                                Force deleting this media will permanently remove it from all active schedules, playlists, and layouts. This
+                                cannot be undone.
+                            </p>
+                            <p>Do you want to proceed with a force delete?</p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setMediaToForceDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleForceDeleteConfirm} className='bg-orange-600 text-white hover:bg-orange-700'>
+                            Yes, Force Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
