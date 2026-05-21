@@ -62,10 +62,10 @@ function StudentApplicationPageContent({
     const session = useSession();
 
     useEffect(() => {
-        if (session?.data?.role === undefined) {
+        if (session?.status === 'authenticated' && session?.data?.role === undefined) {
             window.location.reload();
         }
-    }, [session?.data?.role]);
+    }, [session?.data?.role, session?.status]);
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);

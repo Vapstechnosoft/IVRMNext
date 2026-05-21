@@ -51,7 +51,7 @@ export const Chatbot = () => {
         }
     ]);
 
-    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'FEES' | 'OFFICE' | 'ENABLE_CHAT';
+    type MenuState = 'ROOT' | 'ACADEMIC' | 'ANALYSIS' | 'STUDENT' | 'FEES' | 'OFFICE' | 'ENABLE_CHAT' | 'ATTENDANCE' | 'EXAMS' | 'UPLOAD' | 'LEAVE' | 'INTERACTION';
     const [menuState, setMenuState] = useState<MenuState>('ROOT');
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -95,6 +95,7 @@ export const Chatbot = () => {
         pathname?.toLowerCase().includes('sign-in') ||
         pathname === `/${sub_domain}`;
     const isStudentPortal = pathname?.toLowerCase().includes('studentportal');
+    const isStaffPortal = pathname?.toLowerCase().includes('staffportal');
 
     if (!mounted || isStudentPortal || isAuthPage) return null;
 
@@ -157,6 +158,44 @@ export const Chatbot = () => {
         ]
     };
 
+    const STAFF_MENU_STRUCTURE: Record<string, any> = {
+        ROOT: [
+            { label: 'Attendance & Entry', id: 'ATTENDANCE' },
+            { label: 'Exams & Evaluation', id: 'EXAMS' },
+            { label: 'Upload & Notice Board', id: 'UPLOAD' },
+            { label: 'Leave & Biometrics ESS', id: 'LEAVE' },
+            { label: 'Interactions', id: 'INTERACTION' },
+            { label: 'Detailed Query', id: 'ENABLE_CHAT' }
+        ],
+        ATTENDANCE: [
+            { label: 'Attendance Entry', response: 'Record daily attendance in Attendance > Transaction > Attendance Entry.', pageName: 'Attendance Entry', link: '/admission/preadmission/attendance-entry/student-attendance' },
+            { label: 'Attendance Report', response: 'View attendance history in Attendance > Report > Student Attendance Report.', pageName: 'Student Attendance Report', link: '/admission/preadmission/reports/student-attendance-report' },
+        ],
+        EXAMS: [
+            { label: 'AI MCQ Quiz', response: 'Manage online MCQ quizzes in Exam > Exam > AI MCQ Quiz.', pageName: 'AI MCQ Quiz', link: '/StaffPortal/ai-mcq-quiz' },
+            { label: 'OMR Sheet Evaluator', response: 'Evaluate scanned OMR sheets using AI in Exam > Exam > OMR Sheet Evaluator.', pageName: 'OMR Sheet Evaluator', link: '/StaffPortal/omr-sheet-evaluator' },
+            { label: 'Marks Entry', response: 'Direct marks entry in Exam > Marks Entry > Marks Entry.', pageName: 'Marks Entry', link: '/Exam/exam-module/marks-entry/exam-marks-entry' },
+            { label: 'Cumulative Report', response: 'View cumulative exam report in Exam > Report > Cumulative Report.', pageName: 'Cumulative Report', link: '/Exam/exam-module/reports/cumulative-report' },
+        ],
+        UPLOAD: [
+            { label: 'Homework Upload', response: 'Upload student homework in Upload > Transaction > Homework.', pageName: 'Homework', link: '/StaffPortal/Upload/ivrm-homework' },
+            { label: 'Homework Marks Entry', response: 'Enter homework grades in Upload > Transaction > Homework Marks Entry.', pageName: 'Homework Marks Entry', link: '/StaffPortal/Upload/HomeWork_Marks_Enter' },
+            { label: 'Notice Board', response: 'Post notices on notice board in Upload > Transaction > Notice Board.', pageName: 'Notice Board', link: '/StaffPortal/Upload/notice-board' },
+            { label: 'Classwork Upload', response: 'Upload classwork files in Upload > Transaction > Classwork.', pageName: 'Classwork', link: '/StaffPortal/Upload/ivrm-classwork' },
+        ],
+        LEAVE: [
+            { label: 'Leave Application', response: 'Apply for leaves in Leave > Leave Management > Leave Application.', pageName: 'Leave Application', link: '/StaffPortal/leave-management/online-leave-application' },
+            { label: 'Leave Approval', response: 'Approve or Reject leave requests in Leave > Leave Management > Leave Approval.', pageName: 'Leave Approval', link: '/StaffPortal/leave-management/leave-approval' },
+            { label: 'Biometric Punch Report', response: 'View employee punch report in Biometric Report > Report > Employee Punch Report.', pageName: 'Employee Punch Report', link: '/StaffPortal/BiometricReport/employeePunchAttendence' },
+        ],
+        INTERACTION: [
+            { label: 'IVRM Interaction', response: 'View interactions in Interaction > Transaction > IVRM Interaction.', pageName: 'IVRM Interaction', link: '/StaffPortal/Interactions/IVRM_Interactions' },
+            { label: 'SCS Interaction', response: 'View SCS interactions in Interaction > Transaction > SCS Interaction.', pageName: 'SCS Interaction', link: '/StaffPortal/Interactions/SCS_IVRM_Interactions' },
+        ]
+    };
+
+    const ACTIVE_MENU_STRUCTURE = isStaffPortal ? STAFF_MENU_STRUCTURE : MENU_STRUCTURE;
+
 
     const handleOptionClick = (option: any) => {
         if (option.id === 'ENABLE_CHAT') {
@@ -178,7 +217,7 @@ export const Chatbot = () => {
         }
 
         // Category transition
-        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'FEES', 'OFFICE'].includes(option.id)) {
+        if (['ACADEMIC', 'ANALYSIS', 'STUDENT', 'FEES', 'OFFICE', 'ATTENDANCE', 'EXAMS', 'UPLOAD', 'LEAVE', 'INTERACTION'].includes(option.id)) {
             setMenuState(option.id as MenuState);
             const userMsg: Message = {
                 id: `${Date.now()}-user`,
@@ -384,7 +423,7 @@ export const Chatbot = () => {
                                     {!isLoading && (
                                         <div className="flex flex-col gap-2 mt-2 px-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             <div className="flex flex-wrap gap-2">
-                                                {MENU_STRUCTURE[menuState]?.map((opt: any, i: number) => (
+                                                {ACTIVE_MENU_STRUCTURE[menuState]?.map((opt: any, i: number) => (
                                                     <button
                                                         key={i}
                                                         onClick={() => handleOptionClick(opt)}
