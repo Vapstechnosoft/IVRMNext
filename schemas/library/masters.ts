@@ -261,20 +261,28 @@ export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
         lmS_ParentId: z.coerce.number().min(1, 'Please Select Parent Subject'),
-        lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
+        lmS_Level: z
+            .string()
+            .regex(/^\d{0,25}$/, 'Enter only numeric value')
+            .optional()
+            .or(z.literal('')),
         lmS_ClassNo: z
             .string()
             .max(27, 'Maximum 27 characters')
-            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No'),
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No')
+            .optional()
+            .or(z.literal('')),
         ismS_SubjectName: z
             .string()
             .min(1, 'Enter the Subject Name')
             .max(50)
-            .regex(/^[a-zA-Z\s]*$/, 'Only letters allowed'),
+            .regex(/^[a-zA-Z0-9\s\-&(),\.\/\+\*#_\[\]:]*$/, 'Only letters, numbers, spaces and standard characters allowed'),
         lmS_SubjectNo: z
             .string()
             .max(50)
-            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No')
+            .optional()
+            .or(z.literal('')),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
         lmS_ActiveFlg: z.boolean().optional()
     }),

@@ -154,7 +154,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Level :'
-                            required
                             placeholder='Enter Level'
                             {...register('lmS_Level')}
                             error={errors.lmS_Level?.message}
