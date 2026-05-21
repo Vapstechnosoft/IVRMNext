@@ -1199,7 +1199,18 @@ export function MappingForm({ initialData, onSuccess, onCancel }: MappingFormPro
                                                 <FormItem>
                                                     <FormLabel>Mobile No: <span className="text-destructive">*</span></FormLabel>
                                                     <FormControl>
-                                                        <Input {...field} maxLength={10} placeholder="Mobile Start with 7,8 or 9" />
+                                                        <Input {...field} maxLength={10} placeholder="Mobile Start with 7,8 or 9"
+                                                            onKeyDown={(e) => {
+                                                                if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                                                                    e.preventDefault();
+                                                                }
+                                                            }}
+                                                            onInput={(e) => {
+                                                                const target = e.target as HTMLInputElement;
+                                                                target.value = target.value.replace(/[^0-9]/g, '');
+                                                                field.onChange(target.value);
+                                                            }}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

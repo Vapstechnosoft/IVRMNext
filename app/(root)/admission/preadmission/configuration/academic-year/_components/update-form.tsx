@@ -166,7 +166,7 @@ export default function UpdateMasterAcademicYearForm({
                             placeholder='Enter Code'
                             {...register('asmaY_AcademicYearCode', {
                                 onChange: (e) => {
-                                    e.target.value = e.target.value.replace(/\D/g, '');
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9-]/g, '');
                                 }
                             })}
                             defaultValue={row.asmaY_AcademicYearCode}

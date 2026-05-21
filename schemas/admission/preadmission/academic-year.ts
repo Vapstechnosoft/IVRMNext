@@ -57,9 +57,9 @@ export const PreAdmissionAcademicYearSchema = {
                 message: 'Order must be a valid number'
             }),
 
-        // Academic Year Code - required with length validation and numeric constraint
-        asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20).regex(/^\d+$/, {
-            message: 'Academic Year Code must only contain numbers'
+        // Academic Year Code - required with length validation
+        asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20).regex(/^[a-zA-Z0-9-]+$/, {
+            message: 'Academic Year Code must only contain letters, numbers, and hyphens'
         }),
 
         // Date fields with ISO string validation
