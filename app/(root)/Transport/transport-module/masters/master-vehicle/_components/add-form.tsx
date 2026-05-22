@@ -14,12 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useMasterFuelType, useMasterVehicle, useMasterVehicleType } from '@/hooks/transport/transportmodule/usemasters';
-import { saveMasterVehicle, uploadVehicleFile } from '@/server/transport/transport-module/masters/master-vehicle';
+import { uploadDocument } from '@/server/document_upload';
+import { saveMasterVehicle } from '@/server/transport/transport-module/masters/master-vehicle';
+
 import type { IMasterVehicleDocument } from '@/types/transport/transport-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Plus, Trash2, Upload } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { FileText, Plus, Trash2, Upload, Loader2, Eye, Minus, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -27,7 +29,7 @@ const formSchema = z.object({
     TRMV_VehicleName: z.string().min(1, 'Vehicle Name is required').regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMFT_Id: z.coerce.number().min(1, 'Fuel Type is required'),
     TRMVT_Id: z.coerce.number().min(1, 'Vehicle Type is required'),
-    TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required' }),
+    TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required', invalid_type_error: 'Date of Purchase is required' }),
     TRMV_VehicleNo: z.string().min(1, 'Vehicle No is required').regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
     TRMV_ChassisNo: z.string().min(1, 'Chassis No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
     TRMV_EngineNo: z.string().min(1, 'Engine No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
@@ -71,15 +73,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    const [tempDocs, setTempDocs] = useState<{ file: File, desc: string }[]>([]);
-    const [currentDocDesc, setCurrentDocDesc] = useState('');
-    const [currentDocFile, setCurrentDocFile] = useState<File | null>(null);
+    const [isViewing, setIsViewing] = useState(false);
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const fileInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         mode: 'onChange',
         defaultValues: {
+            TRMV_PurchaseDate: undefined as unknown as Date,
             TRMV_VehicleName: '',
             TRMFT_Id: 0,
             TRMVT_Id: 0,
@@ -105,6 +108,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
             TRMV_UnladenWeight: 0,
             TRMV_CC: '',
             TRMV_TaxUpTo: '',
+            vehicleDocuments: [{ cfilepath: '', cfilename: '', cfiledesc: '', isUploading: false }],
         }
     });
 
@@ -116,23 +120,52 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const handleAddDocument = () => {
-        if (currentDocFile && currentDocDesc) {
-            setTempDocs([...tempDocs, { file: currentDocFile, desc: currentDocDesc }]);
-            setCurrentDocFile(null);
-            setCurrentDocDesc('');
-            // Optional: reset file input value
-            const fileInput = document.getElementById('doc-upload') as HTMLInputElement;
-            if (fileInput) fileInput.value = '';
-        } else {
-            toast.error('Please select a file and enter a description');
+    const { fields: fileFields, append: appendFile, remove: removeFile, update: updateFile } = useFieldArray({
+        control: form.control,
+        name: 'vehicleDocuments'
+    });
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        updateFile(index, { ...fileFields[index], isUploading: true, cfilename: file.name });
+
+        const formData = new FormData();
+        formData.append('File', file);
+
+        try {
+            const uploadRes: any = await uploadDocument(formData);
+
+            console.log("response", uploadRes)
+            let path = '';
+            if (uploadRes?.success && typeof uploadRes.data === 'string') {
+                path = uploadRes.data;
+            } else if (uploadRes?.success && Array.isArray(uploadRes.data) && uploadRes.data.length > 0) {
+                path = uploadRes.data[0].path || uploadRes.data[0];
+            } else if (typeof uploadRes === 'string') {
+                path = uploadRes;
+            } else if (uploadRes?.path) {
+                path = uploadRes.path as string;
+            } else if (Array.isArray(uploadRes) && uploadRes.length > 0 && uploadRes[0].path) {
+                path = uploadRes[0].path;
+            }
+
+            if (path) {
+                updateFile(index, { ...fileFields[index], isUploading: false, cfilename: file.name, cfilepath: path });
+            } else {
+                updateFile(index, { ...fileFields[index], isUploading: false });
+                toast.error('Failed to get file path');
+            }
+        } catch (error) {
+            updateFile(index, { ...fileFields[index], isUploading: false });
+            toast.error('Failed to upload file');
         }
     };
 
-    const handleRemoveDocument = (index: number) => {
-        const newDocs = [...tempDocs];
-        newDocs.splice(index, 1);
-        setTempDocs(newDocs);
+    const handleViewImage = (url: string) => {
+        setViewingImage(url);
+        setIsViewing(true);
     };
 
     // Fields that live on the START tab — must all be valid before proceeding
@@ -178,37 +211,28 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
             if (selectedImage) {
                 const formData = new FormData();
                 formData.append('File', selectedImage);
-                const uploadRes = await uploadVehicleFile(formData);
-                if (uploadRes.success && uploadRes.data && uploadRes.data.length > 0) {
-                    vehicleImagePath = uploadRes.data[0].path;
+                const uploadRes: any = await uploadDocument(formData);
+                if (uploadRes?.success && typeof uploadRes.data === 'string') {
+                    vehicleImagePath = uploadRes.data;
+                } else if (uploadRes?.success && Array.isArray(uploadRes.data) && uploadRes.data.length > 0) {
+                    vehicleImagePath = uploadRes.data[0].path || uploadRes.data[0];
                 } else if (typeof uploadRes === 'string') {
                     vehicleImagePath = uploadRes;
-                } else if (uploadRes.path) {
+                } else if (uploadRes?.path) {
                     vehicleImagePath = uploadRes.path as string;
+                } else if (Array.isArray(uploadRes) && uploadRes.length > 0 && uploadRes[0].path) {
+                    vehicleImagePath = uploadRes[0].path;
                 }
             }
 
             // 2. Upload Documents
-            const uploadedDocs: IMasterVehicleDocument[] = [];
-            for (const doc of tempDocs) {
-                const formData = new FormData();
-                formData.append('File', doc.file);
-                const uploadRes = await uploadVehicleFile(formData);
-                let path = '';
-                if (uploadRes.success && uploadRes.data && uploadRes.data.length > 0) {
-                    path = uploadRes.data[0].path;
-                } else if (uploadRes.path) {
-                    path = uploadRes.path as string;
-                }
-
-                if (path) {
-                    uploadedDocs.push({
-                        cfilename: doc.file.name,
-                        cfiledesc: doc.desc,
-                        cfilepath: path
-                    });
-                }
-            }
+            const uploadedDocs: IMasterVehicleDocument[] = (values.vehicleDocuments || [])
+                .filter(doc => doc.cfilepath)
+                .map(doc => ({
+                    cfilename: doc.cfilename || '',
+                    cfiledesc: doc.cfiledesc || doc.cfilename || '',
+                    cfilepath: doc.cfilepath as string
+                }));
 
             const payload = {
                 ...values,
@@ -220,7 +244,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 TRMV_VehicleImage: vehicleImagePath,
                 vehicleDocuments: uploadedDocs
             };
-
+            console.log("pay vehicle", payload);
             const response = await saveMasterVehicle(payload);
 
             if (response.message === 'Add') {
@@ -716,58 +740,163 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                         {/* Documents Section in End Tab */}
                         <div className="mt-6 border-t pt-4">
                             <h3 className="text-lg font-semibold mb-4">Transport Documents</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4 bg-gray-50 p-4 rounded-md">
-                                <div className="space-y-2">
-                                    <FormLabel>File Description</FormLabel>
-                                    <Input
-                                        value={currentDocDesc}
-                                        onChange={(e) => setCurrentDocDesc(e.target.value)}
-                                        placeholder="e.g., Insurance Policy"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <FormLabel>Select File</FormLabel>
-                                    <Input
-                                        type="file"
-                                        id="doc-upload"
-                                        onChange={(e) => setCurrentDocFile(e.target.files?.[0] || null)}
-                                        className="cursor-pointer"
-                                    />
-                                </div>
-                                <Button type="button" onClick={handleAddDocument} className="bg-secondary text-white">
-                                    <Plus className="h-4 w-4 mr-2" /> Add Document
-                                </Button>
-                            </div>
-
-                            {tempDocs.length > 0 && (
-                                <div className="border rounded-md overflow-hidden">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-gray-100">
-                                            <tr>
-                                                <th className="p-2 text-left">Document Name</th>
-                                                <th className="p-2 text-left">Description</th>
-                                                <th className="p-2 text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tempDocs.map((doc, index) => (
-                                                <tr key={index} className="border-t">
-                                                    <td className="p-2 flex items-center gap-2">
-                                                        <FileText className="h-4 w-4 text-blue-500" />
-                                                        {doc.file.name}
-                                                    </td>
-                                                    <td className="p-2">{doc.desc}</td>
-                                                    <td className="p-2 text-center">
-                                                        <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveDocument(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                                                            <Trash2 className="h-4 w-4" />
+                            <div className='overflow-x-auto'>
+                                <table className='w-full table-auto border-collapse border text-left text-sm'>
+                                    <thead className='bg-muted'>
+                                        <tr>
+                                            <th className='w-12 border p-2 text-center'>SL. NO</th>
+                                            <th className='border p-2 text-center'>Description</th>
+                                            <th className='border p-2 text-center'>Upload File</th>
+                                            <th className='border p-2 text-center'>File Name</th>
+                                            <th className='w-16 border p-2 text-center'>View</th>
+                                            <th className='w-16 border p-2 text-center'>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {fileFields.map((item, index) => (
+                                            <tr key={item.id} className='border-b'>
+                                                <td className='border p-2 text-center'>{index + 1}</td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfiledesc`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                placeholder='e.g., Insurance Policy'
+                                                                className='h-9 text-xs'
+                                                                value={field.value || ''}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <div className='flex justify-center'>
+                                                        <input
+                                                            ref={(el) => {
+                                                                fileInputRefs.current[index] = el;
+                                                            }}
+                                                            type='file'
+                                                            accept='image/*'
+                                                            className='hidden'
+                                                            onChange={(e) => handleFileUpload(e, index)}
+                                                        />
+                                                        <Button
+                                                            type='button'
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => fileInputRefs.current[index]?.click()}
+                                                            className='h-8'
+                                                            disabled={(item as any).isUploading}>
+                                                            {(item as any).isUploading ? (
+                                                                <>
+                                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                                    Uploading...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Upload className='mr-2 h-4 w-4' />
+                                                                    Choose File
+                                                                </>
+                                                            )}
                                                         </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                                                    </div>
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfilename`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                readOnly
+                                                                disabled
+                                                                placeholder='No file chosen'
+                                                                className='h-9 bg-muted text-xs'
+                                                                value={field.value || ''}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfilepath`}
+                                                        render={({ field }) => (
+                                                            <Button
+                                                                type='button'
+                                                                variant='ghost'
+                                                                size='sm'
+                                                                onClick={() => handleViewImage(field.value || '')}
+                                                                disabled={!field.value || (item as any).isUploading}
+                                                                className={!field.value ? 'cursor-not-allowed opacity-50' : ''}>
+                                                                {(item as any).isUploading ? (
+                                                                    <Loader2 className='h-4 w-4 animate-spin text-gray-400' />
+                                                                ) : (
+                                                                    <Eye className='h-4 w-4 text-blue-600' />
+                                                                )}
+                                                            </Button>
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2 text-center'>
+                                                    <div className='flex justify-center gap-1'>
+                                                        {fileFields.length > 1 && (
+                                                            <Button
+                                                                type='button'
+                                                                size='icon'
+                                                                variant='destructive'
+                                                                className='h-8 w-8'
+                                                                onClick={() => removeFile(index)}
+                                                                disabled={(item as any).isUploading}>
+                                                                <Minus className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
+                                                        {index === fileFields.length - 1 && (
+                                                            <Button
+                                                                type='button'
+                                                                size='icon'
+                                                                variant='outline'
+                                                                className='h-8 w-8'
+                                                                onClick={() =>
+                                                                    appendFile({
+                                                                        cfilepath: '',
+                                                                        cfilename: '',
+                                                                        cfiledesc: '',
+                                                                        isUploading: false
+                                                                    })
+                                                                }>
+                                                                <Plus className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {isViewing && viewingImage && (
+                                    <div
+                                        onClick={() => {
+                                            setIsViewing(false);
+                                            setViewingImage(null);
+                                        }}
+                                        className='fixed inset-0 z-50 flex items-center justify-center bg-black/80'>
+                                        <img src={viewingImage} alt='preview' className='max-h-[90%] max-w-[90%] rounded-lg shadow-lg' />
+                                        <Button
+                                            onClick={() => {
+                                                setIsViewing(false);
+                                                setViewingImage(null);
+                                            }}
+                                            className='absolute top-4 right-4'
+                                            variant='destructive'
+                                            size='icon'>
+                                            <X className='h-4 w-4' />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className='flex justify-between gap-2 mt-4'>

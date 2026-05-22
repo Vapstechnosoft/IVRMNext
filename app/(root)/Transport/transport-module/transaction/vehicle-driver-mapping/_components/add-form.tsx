@@ -28,6 +28,7 @@ export default function AddForm({ onClose }: AddFormProps) {
 
     // Fetch master data directly in the form
     const { data: vehicleData } = useVehicleDropDown();
+    console.log("vehi--------------------", vehicleData);
     const { data: driverData } = useDriverDropDown();
     const { data: sessionData } = useSessionDropDown();
 

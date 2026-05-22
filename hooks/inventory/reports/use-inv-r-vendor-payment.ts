@@ -36,7 +36,13 @@ export const useInvVendorPaymentReportQuery = (payload: IInvVendorPaymentReportP
         queryKey: ['invVendorPaymentReport', payload, searchParams],
         queryFn: () => {
             if (!payload) return { success: true, data: [], total: 0, message: '', page: 1, page_size: 10 };
-            return getInvVendorPaymentReport(payload, searchParams);
+            // Inject search parameters into payload for backend compatibility
+            const enhancedPayload = {
+                ...payload,
+                search_query: searchParams.search_query || '',
+                search_columns: searchParams.search_columns || ''
+            };
+            return getInvVendorPaymentReport(enhancedPayload, searchParams);
         },
         enabled: !!payload
     });

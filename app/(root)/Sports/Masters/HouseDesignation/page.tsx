@@ -13,17 +13,20 @@ import { MasterHouseDesignationColumns } from './_components/columns';
 import UpdateMasterHouseDesignationForm from './_components/update-form';
 import ToggleMasterHouseDesignationForm from './_components/toggle-form';
 
-export default function MasterHouseDesignationPage() {
-    const { data: response, isPending, isFetching, error, refetchAll } = useMasterHouseDesignation();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterHouseDesignationPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useMasterHouseDesignation(searchParams);
 
     return (
         <FormProvider<IMasterHouseDesignation>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
                     <MasterHouseDesignationPageContent
-                        response={response}
-                        isLoading={isPending || isFetching}
-                        error={error}
+                        response={loadData.data}
+                        isLoading={loadData.isPending || loadData.isFetching}
+                        error={loadData.error}
                         refetchAll={refetchAll}
                     />
                 </div>

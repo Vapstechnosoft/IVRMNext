@@ -114,6 +114,7 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
 
                 <InputText
                     label='Item Group Name'
+                    placeholder='Enter Item Group Name'
                     required
                     id='invmG_GroupName'
                     {...register('invmG_GroupName')}
@@ -122,6 +123,7 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
 
                 <InputText
                     label='Alias Name'
+                    placeholder='Enter Alias Name'
                     id='invmG_AliasName'
                     {...register('invmG_AliasName')}
                     error={errors.invmG_AliasName?.message}

@@ -16,6 +16,9 @@ interface SelectionFormProps {
     trusts: TrustDTO[];
     institutions: InstitutionDTO[];
     staffList: StaffDTO[];
+    isOnloadLoading?: boolean;
+    isStaffListLoading?: boolean;
+    isStaffDataLoading?: boolean;
     onStaffCheckboxChange?: (id: number, checked: boolean) => void;
     onSelectAllStaff?: () => void;
     onViewUsernames?: () => void;
@@ -29,6 +32,9 @@ export default function SelectionForm({
     trusts,
     institutions,
     staffList,
+    isOnloadLoading = false,
+    isStaffListLoading = false,
+    isStaffDataLoading = false,
     onStaffCheckboxChange,
     onSelectAllStaff,
     onViewUsernames,
@@ -65,9 +71,9 @@ export default function SelectionForm({
                     control={control}
                     name="roleType"
                     render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
                             <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="-- SELECT ROLE --" />
+                                <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT ROLE --"} />
                             </SelectTrigger>
                             <SelectContent>
                                 {roleTypes.map((role) => (
@@ -84,7 +90,7 @@ export default function SelectionForm({
 
             {/* Selection Mode (Single/Multiple) */}
             <div className="space-y-4">
-                <Label className="text-sm font-semibold italic">Individual Or Multiple Staff Mapping:</Label>
+                <Label className="text-sm font-semibold ">Individual Or Multiple Staff Mapping:</Label>
                 <Controller
                     control={control}
                     name="filterData"
@@ -133,9 +139,9 @@ export default function SelectionForm({
                     control={control}
                     name="trust"
                     render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
                             <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="-- SELECT TRUST --" />
+                                <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT TRUST --"} />
                             </SelectTrigger>
                             <SelectContent>
                                 {trusts.map((trust) => (
@@ -150,7 +156,7 @@ export default function SelectionForm({
             </div>
 
             {/* Institution */}
-            <div className={`space-y-4 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>
+            <div className={`space-y-2 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>
                 <Label className="text-sm font-semibold">Select Institution Name: <span className="text-red-500">*</span></Label>
 
                 {isAdmin && filterData === 'Multiple' ? (
@@ -167,20 +173,24 @@ export default function SelectionForm({
                             </div>
                         </div>
                         <ScrollArea className="h-32">
-                            <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {institutions.map((inst) => (
-                                    <div key={inst.mI_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
-                                        <Checkbox
-                                            id={`inst-${inst.mI_Id}`}
-                                            checked={inst.Selected}
-                                            onCheckedChange={(checked) => onInstitutionCheckboxChange?.(inst.mI_Id, !!checked)}
-                                        />
-                                        <Label htmlFor={`inst-${inst.mI_Id}`} className="text-xs cursor-pointer select-none leading-none">
-                                            {inst.mI_Name}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
+                            {isOnloadLoading ? (
+                                <p className="text-center text-xs text-gray-500 p-4">Loading institutions...</p>
+                            ) : (
+                                <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {institutions.map((inst) => (
+                                        <div key={inst.mI_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
+                                            <Checkbox
+                                                id={`inst-${inst.mI_Id}`}
+                                                checked={inst.Selected}
+                                                onCheckedChange={(checked) => onInstitutionCheckboxChange?.(inst.mI_Id, !!checked)}
+                                            />
+                                            <Label htmlFor={`inst-${inst.mI_Id}`} className="text-xs cursor-pointer select-none leading-none">
+                                                {inst.mI_Name}
+                                            </Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </ScrollArea>
                     </div>
                 ) : (
@@ -188,9 +198,9 @@ export default function SelectionForm({
                         control={control}
                         name="institution"
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
                                 <SelectTrigger className="bg-white">
-                                    <SelectValue placeholder="-- SELECT INSTITUTION --" />
+                                    <SelectValue placeholder={isOnloadLoading ? "Loading..." : "-- SELECT INSTITUTION --"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutions.map((inst) => (
@@ -231,9 +241,9 @@ export default function SelectionForm({
                         control={control}
                         name="staffId"
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={isStaffListLoading || isStaffDataLoading || staffList?.length === 0}>
                                 <SelectTrigger className="bg-white max-w-md">
-                                    <SelectValue placeholder="-- SELECT STAFF --" />
+                                    <SelectValue placeholder={isStaffListLoading ? "Loading list..." : isStaffDataLoading ? "Loading data..." : "-- SELECT STAFF --"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {staffList.map((staff) => (
@@ -269,20 +279,24 @@ export default function SelectionForm({
                             </div>
                         </div>
                         <ScrollArea className="h-48">
-                            <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {filteredStaff.map((staff) => (
-                                    <div key={staff.hrmE_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
-                                        <Checkbox
-                                            id={`staff-${staff.hrmE_Id}`}
-                                            checked={staff.Selected}
-                                            onCheckedChange={(checked) => onStaffCheckboxChange?.(staff.hrmE_Id, !!checked)}
-                                        />
-                                        <Label htmlFor={`staff-${staff.hrmE_Id}`} className="text-xs cursor-pointer select-none leading-none">
-                                            {staff.stafname}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
+                            {isStaffListLoading ? (
+                                <p className="text-center text-xs text-gray-500 p-4">Loading staff...</p>
+                            ) : (
+                                <div className="p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {filteredStaff.map((staff) => (
+                                        <div key={staff.hrmE_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded border border-gray-100 transition-colors">
+                                            <Checkbox
+                                                id={`staff-${staff.hrmE_Id}`}
+                                                checked={staff.Selected}
+                                                onCheckedChange={(checked) => onStaffCheckboxChange?.(staff.hrmE_Id, !!checked)}
+                                            />
+                                            <Label htmlFor={`staff-${staff.hrmE_Id}`} className="text-xs cursor-pointer select-none leading-none">
+                                                {staff.stafname}
+                                            </Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </ScrollArea>
                     </div>
                 )}

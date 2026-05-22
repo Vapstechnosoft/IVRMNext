@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MessageSquare, Mail, MessageCircle, Send, XCircle } from 'lucide-react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { type IBirthdayFormValues, birthdayFormSchema } from './schema';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,12 +17,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface BirthdayFormProps {
     initialData: any;
     onTypeChange: (type: string, values: any) => void;
+    onChannelChange: (channels: { sms: boolean; email: boolean; Whatsapp: boolean }) => void;
     onSubmit: (values: IBirthdayFormValues) => void;
     onCancel: () => void;
     isLoading: boolean;
 }
 
-export default function BirthdayForm({ initialData, onTypeChange, onSubmit, onCancel, isLoading }: BirthdayFormProps) {
+export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading }: BirthdayFormProps) {
     const form = useForm<IBirthdayFormValues>({
         resolver: zodResolver(birthdayFormSchema),
         defaultValues: {
@@ -40,12 +41,21 @@ export default function BirthdayForm({ initialData, onTypeChange, onSubmit, onCa
     const isAnySelected = form.watch('sms') || form.watch('email') || form.watch('Whatsapp');
     const radioption = form.watch('radioption');
 
+    // Watch for changes and notify parent
+    const sms = form.watch('sms');
+    const email = form.watch('email');
+    const Whatsapp = form.watch('Whatsapp');
+
+    React.useEffect(() => {
+        onChannelChange({ sms, email, Whatsapp });
+    }, [sms, email, Whatsapp, onChannelChange]);
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 animate-in fade-in slide-in-from-top-4 duration-500'>
-                <Card className="border shadow-sm rounded-none overflow-hidden bg-white border-t-4 border-t-orange-400">
+                <Card className="border shadow-sm rounded-b-3xl overflow-hidden bg-white border-t-4 border-t-orange-400 border-x-1 border-b-1">
                     <CardContent className="p-8">
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-12 py-6 border rounded-sm bg-slate-50/30">
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-12 py-8 border rounded-[2rem] bg-slate-50/50">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-slate-700">Please Select Radio Button:</span>
                                 <span className="text-red-500 font-bold">*</span>
@@ -66,16 +76,13 @@ export default function BirthdayForm({ initialData, onTypeChange, onSubmit, onCa
                                                 className='flex items-center gap-8'
                                             >
                                                 {['student', 'Staff', 'Alumni'].map((cat) => (
-                                                    <div key={cat} className="flex items-center space-x-2 cursor-pointer group" onClick={() => {
-                                                        field.onChange(cat);
-                                                        onTypeChange(cat, form.getValues());
-                                                    }}>
+                                                    <div key={cat} className="flex items-center space-x-2 cursor-pointer group">
                                                         <RadioGroupItem value={cat} id={`cat-${cat}`} className="h-5 w-5 text-primary border-slate-300" />
                                                         <label 
                                                             htmlFor={`cat-${cat}`} 
                                                             className="text-sm font-bold text-slate-600 cursor-pointer group-hover:text-primary capitalize"
                                                         >
-                                                            {cat}
+                                                            {cat === 'student' ? 'Student' : cat}
                                                         </label>
                                                     </div>
                                                 ))}
@@ -86,151 +93,51 @@ export default function BirthdayForm({ initialData, onTypeChange, onSubmit, onCa
                             />
                         </div>
 
-                        {/* Filters & Channels */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-10 pt-10 border-t border-dashed">
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-6 w-1 bg-primary rounded-full" />
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Filtering Criteria</h3>
+                        {/* Checkboxes Row - Only show when a radio button is selected */}
+                        {radioption && (
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-12 py-8 border rounded-[2rem] bg-slate-50/50 mt-6 animate-in zoom-in-95 fade-in duration-500 shadow-sm">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-slate-700">Please Select Check Box:</span>
+                                    <span className="text-red-500 font-bold">*</span>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="asmaY_Id"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Academic Year</FormLabel>
-                                                <Select 
-                                                    onValueChange={(val) => {
-                                                        field.onChange(Number(val));
-                                                        onTypeChange(radioption, { ...form.getValues(), asmaY_Id: Number(val) });
-                                                    }} 
-                                                    value={field.value?.toString()}
-                                                >
-                                                    <FormControl>
-                                                        <SelectTrigger className="h-11 rounded-xl border-slate-200">
-                                                            <SelectValue placeholder="Year" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {initialData?.academiclist?.map((year: any) => (
-                                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                                {year.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    {radioption === 'student' && (
-                                        <>
-                                            <FormField
-                                                control={form.control}
-                                                name="asmcL_Id"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Class</FormLabel>
-                                                        <Select 
-                                                            onValueChange={(val) => {
-                                                                field.onChange(Number(val));
-                                                                onTypeChange(radioption, { ...form.getValues(), asmcL_Id: Number(val) });
-                                                            }} 
-                                                            value={field.value?.toString()}
-                                                        >
-                                                            <FormControl>
-                                                                <SelectTrigger className="h-11 rounded-xl border-slate-200">
-                                                                    <SelectValue placeholder="Class" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                {initialData?.classDrpDwn?.map((cls: any) => (
-                                                                    <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                                        {cls.asmcL_ClassName}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </FormItem>
-                                                )}
-                                            />
-
-                                            <FormField
-                                                control={form.control}
-                                                name="asmS_Id"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section</FormLabel>
-                                                        <Select 
-                                                            onValueChange={(val) => {
-                                                                field.onChange(Number(val));
-                                                                onTypeChange(radioption, { ...form.getValues(), asmS_Id: Number(val) });
-                                                            }} 
-                                                            value={field.value?.toString()}
-                                                        >
-                                                            <FormControl>
-                                                                <SelectTrigger className="h-11 rounded-xl border-slate-200">
-                                                                    <SelectValue placeholder="Section" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                {initialData?.sectionDrpDwn?.map((sec: any) => (
-                                                                    <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
-                                                                        {sec.asmC_SectionName}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-6 w-1 bg-emerald-500 rounded-full" />
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Delivery Channels</h3>
-                                </div>
-                                <div className='flex flex-wrap gap-4'>
+                                
+                                <div className='flex items-center gap-8'>
                                     {[
-                                        { name: 'sms', label: 'SMS', icon: <MessageSquare className="h-4 w-4" />, color: 'bg-blue-500' },
-                                        { name: 'email', label: 'EMAIL', icon: <Mail className="h-4 w-4" />, color: 'bg-rose-500' },
-                                        { name: 'Whatsapp', label: 'WHATSAPP', icon: <MessageCircle className="h-4 w-4" />, color: 'bg-emerald-500' }
+                                        { name: 'sms', label: 'SMS' },
+                                        { name: 'email', label: 'EMAIL' },
+                                        { name: 'Whatsapp', label: 'WHATSAPP' }
                                     ].map((channel) => (
                                         <FormField
                                             key={channel.name}
                                             control={form.control}
                                             name={channel.name as any}
                                             render={({ field }) => (
-                                                <div 
-                                                    className={cn(
-                                                        "flex items-center gap-4 px-5 py-3 rounded-xl border transition-all cursor-pointer",
-                                                        field.value 
-                                                            ? `border-emerald-500 bg-emerald-50/50` 
-                                                            : "bg-slate-50/50 border-slate-100 hover:border-slate-200"
-                                                    )}
-                                                    onClick={() => field.onChange(!field.value)}
-                                                >
-                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-5 w-5 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500" />
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={cn("p-1.5 rounded-lg text-white", field.value ? channel.color : "bg-slate-300")}>
-                                                            {channel.icon}
-                                                        </div>
-                                                        <span className={cn("text-[10px] font-black uppercase tracking-widest", field.value ? "text-emerald-700" : "text-slate-400")}>
-                                                            {channel.label}
-                                                        </span>
-                                                    </div>
+                                                <div className="flex items-center space-x-3 cursor-pointer group">
+                                                    <input 
+                                                        type="checkbox"
+                                                        id={`check-${channel.name}`}
+                                                        checked={field.value}
+                                                        onChange={(e) => field.onChange(e.target.checked)}
+                                                        className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                                    />
+                                                    <label 
+                                                        htmlFor={`check-${channel.name}`}
+                                                        className={cn(
+                                                            "text-sm font-bold cursor-pointer transition-colors uppercase tracking-wider",
+                                                            field.value ? "text-primary" : "text-slate-500 group-hover:text-primary"
+                                                        )}
+                                                    >
+                                                        {channel.label}
+                                                    </label>
                                                 </div>
                                             )}
                                         />
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Filtering Criteria - Removed as per request */}
 
                         {isAnySelected && (
                             <div className='flex items-center justify-center gap-6 pt-10 mt-10 border-t border-slate-100 animate-in zoom-in-95 duration-300'>

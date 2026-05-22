@@ -28,7 +28,8 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             purchase_Date: new Date(),
             lmbanO_AvialableStatus: 'Available',
             with_Accessories: false,
-            accessionList: [{ lmbanO_No: '' }]
+            accessionList: [{ lmbanO_No: '' }],
+            attachementList: [{ lmbA_FileName: '', lmbA_FilePath: '' }]
         }
     });
 

@@ -1,15 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
     Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
 } from '@/components/ui/form';
 import {
     Select,
@@ -19,6 +14,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useSRKVSSportsReport } from '@/hooks/sports/useSRKVSSportsReport';
 import {
     SRKVSSportsReportFormSchema,
@@ -114,7 +110,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
     const form = useForm<SRKVSSportsReportFormSchema>({
         resolver: zodResolver(SRKVSSportsReportSchema),
         defaultValues: {
-            Type: 'Record',
+            Type: undefined as any,
             ASMAY_Id: undefined,
             SPCCME_Id: undefined,
             selectedCompetitionLevels: [],
@@ -122,6 +118,12 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             selectedSubSubEvents: [],
         },
     });
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = form;
 
     const watchedType = useWatch({ control: form.control, name: 'Type' });
     const watchedYear = useWatch({ control: form.control, name: 'ASMAY_Id' });
@@ -254,430 +256,388 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 border rounded-md shadow-sm bg-white">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Academic Year */}
-                    <FormField
-                        control={form.control}
-                        name="ASMAY_Id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString()}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
+                    <div className="flex flex-col gap-2">
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Academic Year</Label>
+                        <Controller
+                            control={control}
+                            name="ASMAY_Id"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value?.toString()}
+                                    >
+                                        <SelectTrigger className={errors.ASMAY_Id ? 'border-destructive ring-destructive/20' : ''}>
                                             <SelectValue placeholder="Select Academic Year" />
                                         </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {academicYears.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                        <SelectContent>
+                                            {academicYears.map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.ASMAY_Id && <span className="text-xs font-medium text-destructive">{errors.ASMAY_Id.message}</span>}
+                                </div>
+                            )}
+                        />
+                    </div>
 
                     {/* Event */}
-                    <FormField
-                        control={form.control}
-                        name="SPCCME_Id"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Event <span className="text-red-500">*</span></FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString()}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
+                    <div className="flex flex-col gap-2">
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Event</Label>
+                        <Controller
+                            control={control}
+                            name="SPCCME_Id"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value?.toString()}
+                                    >
+                                        <SelectTrigger className={errors.SPCCME_Id ? 'border-destructive ring-destructive/20' : ''}>
                                             <SelectValue placeholder="Select Event" />
                                         </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {masterEvents.map((item) => (
-                                            <SelectItem key={item.spccmE_Id} value={item.spccmE_Id.toString()}>
-                                                {item.spccmE_EventName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                        <SelectContent>
+                                            {masterEvents.map((item) => (
+                                                <SelectItem key={item.spccmE_Id} value={item.spccmE_Id.toString()}>
+                                                    {item.spccmE_EventName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.SPCCME_Id && <span className="text-xs font-medium text-destructive">{errors.SPCCME_Id.message}</span>}
+                                </div>
+                            )}
+                        />
+                    </div>
 
-                    {/* Result Type */}
-                    <FormField
-                        control={form.control}
-                        name="Type"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Result <span className="text-red-500">*</span></FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Result Type" />
+                    <div className="flex flex-col gap-2">
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Result</Label>
+                        <Controller
+                            control={control}
+                            name="Type"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                    >
+                                        <SelectTrigger className={errors.Type ? 'border-destructive ring-destructive/20' : ''}>
+                                            <SelectValue placeholder="Select Result" />
                                         </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="Record">Records</SelectItem>
-                                        <SelectItem value="Start">Start List</SelectItem>
-                                        <SelectItem value="Finish">Finish</SelectItem>
-                                        <SelectItem value="Consolidated">Consolidated</SelectItem>
-                                        <SelectItem value="Indoor">Indoor</SelectItem>
-                                        <SelectItem value="Outdoor">Outdoor</SelectItem>
-                                        <SelectItem value="Team">Team</SelectItem>
-                                        <SelectItem value="Externals">Externals</SelectItem>
-                                        <SelectItem value="Selection">Selection</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                        <SelectContent>
+                                            <SelectItem value="Record">Records</SelectItem>
+                                            <SelectItem value="Start">Start List</SelectItem>
+                                            <SelectItem value="Finish">Finish List</SelectItem>
+                                            <SelectItem value="Consolidated">Consolidated</SelectItem>
+                                            <SelectItem value="Indoor">Indoor</SelectItem>
+                                            <SelectItem value="Outdoor">Outdoor</SelectItem>
+                                            <SelectItem value="Team">Team</SelectItem>
+                                            <SelectItem value="Externals">Externals</SelectItem>
+                                            <SelectItem value="Selection">Selection</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.Type && <span className="text-xs font-medium text-destructive">{errors.Type.message}</span>}
+                                </div>
+                            )}
+                        />
+                    </div>
 
                     {/* Competition Level */}
                     {watchedType && (
                         <>
                             {isMultiLevel ? (
-                                <FormField
-                                    control={form.control}
-                                    name="selectedCompetitionLevels"
-                                    render={() => (
-                                        <FormItem>
-                                            <div className="mb-2">
-                                                <FormLabel>Competition Level <span className="text-red-500">*</span></FormLabel>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Level</Label>
+                                    <Controller
+                                        control={control}
+                                        name="selectedCompetitionLevels"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedCompetitionLevels ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                    {competitionLevels.map((item) => (
+                                                        <div key={item.spccmcL_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
+                                                            <Checkbox
+                                                                checked={field.value?.some(val => val.spccmcL_Id === item.spccmcL_Id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current = field.value || [];
+                                                                    return checked
+                                                                        ? field.onChange([...current, { spccmcL_Id: item.spccmcL_Id }])
+                                                                        : field.onChange(current.filter(val => val.spccmcL_Id !== item.spccmcL_Id));
+                                                                }}
+                                                            />
+                                                            <label className="text-sm font-normal">
+                                                                {item.spccmcL_CompitionLevel}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </ScrollArea>
+                                                {errors.selectedCompetitionLevels && <span className="text-xs font-medium text-destructive">{errors.selectedCompetitionLevels.message}</span>}
                                             </div>
-                                            <ScrollArea className="h-[150px] w-full border rounded-md p-2">
-                                                {competitionLevels.map((item) => (
-                                                    <FormField
-                                                        key={item.spccmcL_Id}
-                                                        control={form.control}
-                                                        name="selectedCompetitionLevels"
-                                                        render={({ field }) => {
-                                                            return (
-                                                                <FormItem
-                                                                    key={item.spccmcL_Id}
-                                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={field.value?.some(val => val.spccmcL_Id === item.spccmcL_Id)}
-                                                                            onCheckedChange={(checked) => {
-                                                                                const current = field.value || [];
-                                                                                return checked
-                                                                                    ? field.onChange([...current, { spccmcL_Id: item.spccmcL_Id }])
-                                                                                    : field.onChange(current.filter(val => val.spccmcL_Id !== item.spccmcL_Id));
-                                                                            }}
-                                                                        />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                        {item.spccmcL_CompitionLevel}
-                                                                    </FormLabel>
-                                                                </FormItem>
-                                                            );
-                                                        }}
-                                                    />
-                                                ))}
-                                            </ScrollArea>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                        )}
+                                    />
+                                </div>
                             ) : (
-                                <FormField
-                                    control={form.control}
-                                    name="spccmcL_Id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Competition Level <span className="text-red-500">*</span></FormLabel>
-                                            <Select
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                                value={field.value?.toString()}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Level</Label>
+                                    <Controller
+                                        control={control}
+                                        name="spccmcL_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString()}
+                                                >
+                                                    <SelectTrigger className={errors.spccmcL_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                         <SelectValue placeholder="Select Competition Level" />
                                                     </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {competitionLevels.map((item) => (
-                                                        <SelectItem key={item.spccmcL_Id} value={item.spccmcL_Id.toString()}>
-                                                            {item.spccmcL_CompitionLevel}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                    <SelectContent>
+                                                        {competitionLevels.map((item) => (
+                                                            <SelectItem key={item.spccmcL_Id} value={item.spccmcL_Id.toString()}>
+                                                                {item.spccmcL_CompitionLevel}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.spccmcL_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcL_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
                         </>
                     )}
 
                     {/* From Date */}
-                    <FormField
-                        control={form.control}
-                        name="FromDate"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Date <span className="text-red-500">*</span></FormLabel>
-                                <FormControl>
+                    <div className="flex flex-col gap-2">
+                        <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Date</Label>
+                        <Controller
+                            control={control}
+                            name="FromDate"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-1">
                                     <DatePicker
                                         date={field.value}
                                         setDate={field.onChange}
                                         placeholder="Select Date"
+                                        className={errors.FromDate ? 'border-destructive ring-destructive/20' : ''}
                                     />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                    {errors.FromDate && <span className="text-xs font-medium text-destructive">{errors.FromDate.message}</span>}
+                                </div>
+                            )}
+                        />
+                    </div>
 
 
                     {/* Competition Category */}
                     {watchedType && (
                         <>
                             {isMultiCategory ? (
-                                <FormField
-                                    control={form.control}
-                                    name="selectedCategories"
-                                    render={() => (
-                                        <FormItem>
-                                            <div className="mb-2">
-                                                <FormLabel>Competition Category <span className="text-red-500">*</span></FormLabel>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Category</Label>
+                                    <Controller
+                                        control={control}
+                                        name="selectedCategories"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedCategories ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                    {categories.map((item) => (
+                                                        <div key={item.spccmcC_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
+                                                            <Checkbox
+                                                                checked={field.value?.some(val => val.spccmcC_Id === item.spccmcC_Id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current = field.value || [];
+                                                                    return checked
+                                                                        ? field.onChange([...current, { spccmcC_Id: item.spccmcC_Id }])
+                                                                        : field.onChange(current.filter(val => val.spccmcC_Id !== item.spccmcC_Id));
+                                                                }}
+                                                            />
+                                                            <label className="text-sm font-normal">
+                                                                {item.spccmcC_CompitionCategory}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </ScrollArea>
+                                                {errors.selectedCategories && <span className="text-xs font-medium text-destructive">{errors.selectedCategories.message}</span>}
                                             </div>
-                                            <ScrollArea className="h-[150px] w-full border rounded-md p-2">
-                                                {categories.map((item) => (
-                                                    <FormField
-                                                        key={item.spccmcC_Id}
-                                                        control={form.control}
-                                                        name="selectedCategories"
-                                                        render={({ field }) => {
-                                                            return (
-                                                                <FormItem
-                                                                    key={item.spccmcC_Id}
-                                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={field.value?.some(val => val.spccmcC_Id === item.spccmcC_Id)}
-                                                                            onCheckedChange={(checked) => {
-                                                                                const current = field.value || [];
-                                                                                return checked
-                                                                                    ? field.onChange([...current, { spccmcC_Id: item.spccmcC_Id }])
-                                                                                    : field.onChange(current.filter(val => val.spccmcC_Id !== item.spccmcC_Id));
-                                                                            }}
-                                                                        />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                        {item.spccmcC_CompitionCategory}
-                                                                    </FormLabel>
-                                                                </FormItem>
-                                                            );
-                                                        }}
-                                                    />
-                                                ))}
-                                            </ScrollArea>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                        )}
+                                    />
+                                </div>
                             ) : (
-                                <FormField
-                                    control={form.control}
-                                    name="spccmcC_Id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Competition Category <span className="text-red-500">*</span></FormLabel>
-                                            <Select
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                                value={field.value?.toString()}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Competition Category</Label>
+                                    <Controller
+                                        control={control}
+                                        name="spccmcC_Id"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString()}
+                                                >
+                                                    <SelectTrigger className={errors.spccmcC_Id ? 'border-destructive ring-destructive/20' : ''}>
                                                         <SelectValue placeholder="Select Category" />
                                                     </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {categories.map((item) => (
-                                                        <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
-                                                            {item.spccmcC_CompitionCategory}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                    <SelectContent>
+                                                        {categories.map((item) => (
+                                                            <SelectItem key={item.spccmcC_Id} value={item.spccmcC_Id.toString()}>
+                                                                {item.spccmcC_CompitionCategory}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.spccmcC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmcC_Id.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
                         </>
                     )}
 
                     {/* Meet Year */}
-                    <FormField
-                        control={form.control}
-                        name="Meet_Year"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Meet Year</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Enter Meet Year" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-sm font-semibold">Meet Year</Label>
+                        <Controller
+                            control={control}
+                            name="Meet_Year"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-1">
+                                    <Input placeholder="Enter Meet Year" {...field} className={errors.Meet_Year ? 'border-destructive ring-destructive/20' : ''} />
+                                    {errors.Meet_Year && <span className="text-xs font-medium text-destructive">{errors.Meet_Year.message}</span>}
+                                </div>
+                            )}
+                        />
+                    </div>
 
                     {/* Conditional Event Fields */}
                     {['Start', 'Finish', 'Indoor', 'Outdoor', 'Team', 'Externals'].includes(watchedType) && (
                         <>
                             {/* Main Event */}
-                            <FormField
-                                control={form.control}
-                                name="spccmsccG_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Main Event <span className="text-red-500">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value?.toString()}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Main Event" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {mainEvents.map((item) => (
-                                                    <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
-                                                        {item.spccmsccG_SportsCCGroupName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Sub Event */}
-                            <FormField
-                                control={form.control}
-                                name="spccmscC_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Sub Event <span className="text-red-500">*</span></FormLabel>
-                                        <Select
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value?.toString()}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Sub Event" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {subEvents.map((item) => (
-                                                    <SelectItem key={item.spccmscC_Id} value={item.spccmscC_Id.toString()}>
-                                                        {item.spccmscC_SportsCCName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Sub Sub Event */}
-                            {/* Multi for Indoor, Outdoor, Externals */}
-                            {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
-                                <FormField
-                                    control={form.control}
-                                    name="selectedSubSubEvents"
-                                    render={() => (
-                                        <FormItem>
-                                            <div className="mb-2">
-                                                <FormLabel>Sub Sub Event <span className="text-red-500">*</span></FormLabel>
-                                            </div>
-                                            <ScrollArea className="h-[150px] w-full border rounded-md p-2">
-                                                {subSubEvents.map((item) => (
-                                                    <FormField
-                                                        key={item.spccmsccG_Id}
-                                                        control={form.control}
-                                                        name="selectedSubSubEvents"
-                                                        render={({ field }) => {
-                                                            return (
-                                                                <FormItem
-                                                                    key={item.spccmsccG_Id}
-                                                                    className="flex flex-row items-start space-x-3 space-y-0 mb-2"
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={field.value?.some(val => val.spccmsccG_Id === item.spccmsccG_Id)}
-                                                                            onCheckedChange={(checked) => {
-                                                                                const current = field.value || [];
-                                                                                return checked
-                                                                                    ? field.onChange([...current, { spccmsccG_Id: item.spccmsccG_Id }])
-                                                                                    : field.onChange(current.filter(val => val.spccmsccG_Id !== item.spccmsccG_Id));
-                                                                            }}
-                                                                        />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal">
-                                                                        {item.spccmsccG_SportsCCGroupName}
-                                                                    </FormLabel>
-                                                                </FormItem>
-                                                            );
-                                                        }}
-                                                    />
-                                                ))}
-                                            </ScrollArea>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
-
-                            {/* Single for Start, Team, Finish */}
-                            {['Start', 'Team', 'Finish'].includes(watchedType) && (
-                                <FormField
-                                    control={form.control}
-                                    name="spccmsccG_Idsub"
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Main Event</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmsccG_Id"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Sub Sub Event <span className="text-red-500">*</span></FormLabel>
+                                        <div className="flex flex-col gap-1">
                                             <Select
                                                 onValueChange={(val) => field.onChange(Number(val))}
                                                 value={field.value?.toString()}
                                             >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select Sub Sub Event" />
-                                                    </SelectTrigger>
-                                                </FormControl>
+                                                <SelectTrigger className={errors.spccmsccG_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder="Select Main Event" />
+                                                </SelectTrigger>
                                                 <SelectContent>
-                                                    {subSubEvents.map((item) => (
+                                                    {mainEvents.map((item) => (
                                                         <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
                                                             {item.spccmsccG_SportsCCGroupName}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage />
-                                        </FormItem>
+                                            {errors.spccmsccG_Id && <span className="text-xs font-medium text-destructive">{errors.spccmsccG_Id.message}</span>}
+                                        </div>
                                     )}
                                 />
+                            </div>
+
+                            {/* Sub Event */}
+                            <div className="flex flex-col gap-2">
+                                <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Event</Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmscC_Id"
+                                    render={({ field }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <Select
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                                value={field.value?.toString()}
+                                            >
+                                                <SelectTrigger className={errors.spccmscC_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder="Select Sub Event" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {subEvents.map((item) => (
+                                                        <SelectItem key={item.spccmscC_Id} value={item.spccmscC_Id.toString()}>
+                                                            {item.spccmscC_SportsCCName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.spccmscC_Id && <span className="text-xs font-medium text-destructive">{errors.spccmscC_Id.message}</span>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Sub Sub Event */}
+                            {/* Multi for Indoor, Outdoor, Externals */}
+                            {['Indoor', 'Outdoor', 'Externals'].includes(watchedType) && (
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Sub Event</Label>
+                                    <Controller
+                                        control={control}
+                                        name="selectedSubSubEvents"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <ScrollArea className={`h-[150px] w-full border rounded-md p-2 ${errors.selectedSubSubEvents ? 'border-destructive ring-destructive/20' : ''}`}>
+                                                    {subSubEvents.map((item) => (
+                                                        <div key={item.spccmsccG_Id} className="flex flex-row items-start space-x-3 space-y-0 mb-2">
+                                                            <Checkbox
+                                                                checked={field.value?.some(val => val.spccmsccG_Id === item.spccmsccG_Id)}
+                                                                onCheckedChange={(checked) => {
+                                                                    const current = field.value || [];
+                                                                    return checked
+                                                                        ? field.onChange([...current, { spccmsccG_Id: item.spccmsccG_Id }])
+                                                                        : field.onChange(current.filter(val => val.spccmsccG_Id !== item.spccmsccG_Id));
+                                                                }}
+                                                            />
+                                                            <label className="text-sm font-normal">
+                                                                {item.spccmsccG_SportsCCGroupName}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </ScrollArea>
+                                                {errors.selectedSubSubEvents && <span className="text-xs font-medium text-destructive">{errors.selectedSubSubEvents.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Single for Start, Team, Finish */}
+                            {['Start', 'Team', 'Finish'].includes(watchedType) && (
+                                <div className="flex flex-col gap-2">
+                                    <Label className="after:ml-0.5 after:text-red-500 after:content-['*'] text-sm font-semibold">Sub Sub Event</Label>
+                                    <Controller
+                                        control={control}
+                                        name="spccmsccG_Idsub"
+                                        render={({ field }) => (
+                                            <div className="flex flex-col gap-1">
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString()}
+                                                >
+                                                    <SelectTrigger className={errors.spccmsccG_Idsub ? 'border-destructive ring-destructive/20' : ''}>
+                                                        <SelectValue placeholder="Select Sub Sub Event" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {subSubEvents.map((item) => (
+                                                            <SelectItem key={item.spccmsccG_Id} value={item.spccmsccG_Id.toString()}>
+                                                                {item.spccmsccG_SportsCCGroupName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.spccmsccG_Idsub && <span className="text-xs font-medium text-destructive">{errors.spccmsccG_Idsub.message}</span>}
+                                            </div>
+                                        )}
+                                    />
+                                </div>
                             )}
                         </>
                     )}
@@ -689,7 +649,7 @@ export const ReportForm = ({ onReportGenerated, onTypeChange }: ReportFormProps)
                         {generateReport.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-list-alt mr-2" aria-hidden="true"></i>}
                         Report
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => form.reset()}>
+                    <Button type="button" variant="destructive" onClick={() => window.location.reload()}>
                         <i className="fa fa-times mr-2" aria-hidden="true"></i>
                         Cancel
                     </Button>

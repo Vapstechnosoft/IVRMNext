@@ -13,7 +13,7 @@ import {
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getTermsCalcutta } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -34,7 +34,9 @@ export default function CalcuttaPromotionReportItoIXForm({
             allTerm: false,
             empG_GroupName: '',
             studentList: [],
-            issueDate: new Date()
+            issueDate: new Date(),
+            academicDate: new Date(),
+            reportPrintedDate: new Date()
         } as any
     });
 
@@ -44,7 +46,7 @@ export default function CalcuttaPromotionReportItoIXForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [terms, setTerms] = useState<{ empG_GroupName: string }[]>([]);
+    const [terms, setTerms] = useState<{ empG_GroupName: string, empG_DisplayName?: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -127,35 +129,38 @@ export default function CalcuttaPromotionReportItoIXForm({
                 setLoadingStudents(true);
                 setLoadingTerms(true);
 
-                const dataPayload = {
-                    ASMAY_Id: selectedYear,
-                    ASMCL_Id: selectedClass,
-                    ASMS_Id: selectedSection,
-                    Left_Flag: true,
-                    Deactive_Flag: true
-                };
+                // Load Students
+                const studentRes = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    selectedYear,
+                    selectedClass,
+                    selectedSection
+                );
 
-                const res = await getTermsCalcutta(dataPayload);
-                if (res?.subjectwisetotal && Array.isArray(res.subjectwisetotal)) {
-                    setTerms(res.subjectwisetotal);
+                const valid = Array.isArray(studentRes?.data)
+                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
+                    : [];
+
+                const formattedStudents = valid.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    amsT_AdmNo: s.amsT_AdmNo,
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                }));
+
+                if (formattedStudents.length === 0) {
+                    toast.info('No students found');
+                }
+                setStudents(formattedStudents);
+
+                // Load Terms
+                try {
+                    const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
+                    setTerms(Array.isArray(termsData) ? termsData : []);
+                } catch (e) {
+                    setTerms([]);
                 }
 
-                if (res?.studentlistdetails && Array.isArray(res.studentlistdetails)) {
-                    const valid = res.studentlistdetails.filter((s: any) => !!s?.amsT_Id && s.amsT_SOL === "S");
-                    const formattedStudents = valid.map((s: any) => ({
-                        amsT_Id: s.amsT_Id,
-                        amsT_AdmNo: s.amsT_AdmNo,
-                        studentName: s.amsT_FirstName || ''
-                    }));
+                setValue('studentList', []);
 
-                    if (formattedStudents.length === 0) {
-                        toast.info('No students found');
-                    }
-
-                    setStudents(formattedStudents);
-                    setValue('studentList', []);
-                }
-                
             } catch {
                 toast.error('Failed to load students and terms');
             } finally {
@@ -180,7 +185,10 @@ export default function CalcuttaPromotionReportItoIXForm({
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: data.allTerm ? '' : data.empG_GroupName,
-            flag: "4"
+            flag: "4",
+            academicDate: data.academicDate,
+            issueDate: data.issueDate,
+            reportPrintedDate: data.reportPrintedDate
         };
 
         const dates = {
@@ -350,7 +358,7 @@ export default function CalcuttaPromotionReportItoIXForm({
                                                     ) : (
                                                         terms.map((t, idx) => (
                                                             <SelectItem key={idx} value={t.empG_GroupName}>
-                                                                {t.empG_GroupName}
+                                                                {t.empG_DisplayName || t.empG_GroupName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -381,7 +389,45 @@ export default function CalcuttaPromotionReportItoIXForm({
                                     </div>
                                 )}
                             />
-                            
+
+                            <Controller
+                                control={control}
+                                name='academicDate'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-40'>
+                                            New Academic Date <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <DatePicker
+                                                date={field.value}
+                                                setDate={field.onChange}
+                                            />
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='reportPrintedDate'
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                        <Label className='font-medium text-sm sm:w-40'>
+                                            Report Printed On
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <DatePicker
+                                                date={field.value}
+                                                setDate={field.onChange}
+                                            />
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
                             <Controller
                                 control={control}
                                 name='issueDate'
