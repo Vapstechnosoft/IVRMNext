@@ -9,7 +9,7 @@ import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-tabl
 export const studentRequestConfirmColumns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
     {
         accessorKey: 'sn',
-        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <ColumnHeader column={column} title='SL.No.' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -23,20 +23,24 @@ export const studentRequestConfirmColumns = (onApprove: (data: any) => void): Co
         header: ({ column }) => <ColumnHeader column={column} title='Student Name' />,
     },
     {
-        accessorKey: 'ASMCL_ClassName',
-        header: ({ column }) => <ColumnHeader column={column} title='Class' />,
+        accessorKey: 'AMCO_CourseName',
+        header: ({ column }) => <ColumnHeader column={column} title='Course' />,
+    },
+    {
+        accessorKey: 'AMCST_RegistrationNo',
+        header: ({ column }) => <ColumnHeader column={column} title='Registration No' />,
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Requested Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: ({ column }) => <ColumnHeader column={column} title='Category' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room Category' />,
     },
     {
         accessorKey: 'HLHSREQ_RequestDate',
-        header: ({ column }) => <ColumnHeader column={column} title='Req. Date' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Request Date' />,
         cell: ({ row }) => {
             const date = row.original.HLHSREQ_RequestDate;
             return date ? format(new Date(date), 'dd/MM/yyyy') : '';
@@ -48,9 +52,9 @@ export const studentRequestConfirmColumns = (onApprove: (data: any) => void): Co
         cell: ({ row }) => {
             const status = row.original.HLHSREQ_BookingStatus;
             return (
-                <Badge variant={status === 'Waiting' ? 'outline' : status === 'Approved' ? 'secondary' : 'destructive'}>
+                <div className="font-semibold text-xs">
                     {status}
-                </Badge>
+                </div>
             );
         }
     },
@@ -59,9 +63,16 @@ export const studentRequestConfirmColumns = (onApprove: (data: any) => void): Co
         header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
         cell: ({ row }) => (
             row.original.HLHSREQ_BookingStatus === 'Waiting' && (
-                <Button variant="outline" size="sm" onClick={() => onApprove(row.original)}>
-                    Process
-                </Button>
+                <div className="text-center">
+                    <Button 
+                        variant="link" 
+                        size="sm" 
+                        onClick={() => onApprove(row.original)}
+                        className="text-blue-600 font-bold hover:underline"
+                    >
+                        Process
+                    </Button>
+                </div>
             )
         )
     }

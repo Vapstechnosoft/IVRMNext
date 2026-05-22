@@ -6697,11 +6697,11 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 30010,
-                                            name: 'MASTER BOOKS CATEGORY ',
+                                            name: 'Master Books Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
-                                            title: 'MASTER BOOKS CATEGORY ',
-                                            description: 'MASTER BOOKS CATEGORY '
+                                            title: 'Master Books Category',
+                                            description: 'Master Books Category'
                                         },
 
                                         {
