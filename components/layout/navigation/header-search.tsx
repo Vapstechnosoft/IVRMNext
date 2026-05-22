@@ -335,7 +335,11 @@ export function HeaderSearch() {
         const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
-            return searchTerms.every(term => text.includes(term));
+            return searchTerms.every(term => {
+                if (text.includes(term)) return true;
+                if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                return false;
+            });
         }).slice(0, 7); // Limit suggestions
         setResults(filteredPages);
 
@@ -360,8 +364,12 @@ export function HeaderSearch() {
                             // Re-filter client pages using translated string
                             const translatedTerms = searchTerm.toLowerCase().split(' ');
                             const newFilteredPages = allPages.filter(item => {
-                                const text = `${item.title} ${item.subtitle}`.toLowerCase();
-                                return translatedTerms.every(term => text.includes(term));
+                                const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
+                                return translatedTerms.every(term => {
+                                    if (text.includes(term)) return true;
+                                    if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                                    return false;
+                                });
                             }).slice(0, 7);
                             setResults(newFilteredPages);
                         }

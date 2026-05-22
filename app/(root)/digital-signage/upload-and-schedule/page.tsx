@@ -20,7 +20,7 @@ import { useSignage } from '@/hooks/digital-signage/useSignage';
 import type { ColumnDef } from '@tanstack/react-table';
 import { motion } from 'framer-motion';
 import { Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // Interfaces for our data
@@ -85,6 +85,13 @@ export default function UploadAndSchedule() {
     const mediaData: MediaItem[] = Array.isArray(libraryRes?.data) ? libraryRes.data : [];
     const scheduleData: ScheduleItem[] = Array.isArray(scheduleRes?.data) ? scheduleRes.data : [];
     const displayData: DisplayItem[] = Array.isArray(displaysRes?.data) ? displaysRes.data : [];
+
+    // Automatically select the first available display when loaded
+    useEffect(() => {
+        if (displayData.length > 0 && !displayId) {
+            setDisplayId(displayData[0].displayId.toString());
+        }
+    }, [displayData, displayId]);
 
     // Column Definitions
     const mediaColumns: ColumnDef<MediaItem>[] = [
@@ -167,8 +174,22 @@ export default function UploadAndSchedule() {
     ];
 
     const handleUpload = async () => {
-        if (!file || !startDt || !endDt || !displayId) {
-            toast.error('All fields are required');
+        console.log('Form State Values:', { file, startDt, endDt, displayId });
+
+        if (!file) {
+            toast.error('Please select a media file to upload');
+            return;
+        }
+        if (!startDt) {
+            toast.error('Please specify a start date & time');
+            return;
+        }
+        if (!endDt) {
+            toast.error('Please specify an end date & time');
+            return;
+        }
+        if (!displayId) {
+            toast.error('Please select a target display');
             return;
         }
 
