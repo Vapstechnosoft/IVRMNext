@@ -1,11 +1,12 @@
-'use server';
- 
+'use client';
+
 import { api } from '@/lib/apiService';
 import { format } from 'date-fns';
  
 export interface ConfirmReportDto {
     grid_list: Array<{
         studentname?: string;
+        
         empname?: string;
         ASMCL_ClassName?: string;
         HRMD_DepartmentName?: string;
@@ -17,8 +18,8 @@ export interface ConfirmReportDto {
         [key: string]: any;
     }>;
 }
- 
-export async function getConfirmReport(values: any): Promise<ConfirmReportDto> {
+
+export async function getConfirmReport(values: any): Promise<ConfirmReportDto | null> {
     try {
         const payload = {
             "type": values.type,
