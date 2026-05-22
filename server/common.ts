@@ -173,6 +173,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Oral Test ReSchedule',
                                             description: 'Oral Test ReSchedule'
                                         }
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'Written Test Schedule',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/interview-schedule/written-test-schedule',
+                                        //     title: 'Written Test Schedule',
+                                        //     description: 'Written Test Schedule'
+                                        // }
                                     ]
                                 }
                             ]
