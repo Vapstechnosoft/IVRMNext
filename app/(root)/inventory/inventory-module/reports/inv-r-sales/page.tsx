@@ -65,8 +65,8 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
         const p: any = {
             ...payload,
-            startdate: payload.startdate ? format(payload.startdate, 'yyyy-MM-dd') : "",
-            enddate: payload.enddate ? format(payload.enddate, 'yyyy-MM-dd') : "",
+            startdate: payload.startdate ? format(payload.startdate, 'dd/MM/yyyy') : "",
+            enddate: payload.enddate ? format(payload.enddate, 'dd/MM/yyyy') : "",
             selectionflag: payload.individualflag,
         };
 
