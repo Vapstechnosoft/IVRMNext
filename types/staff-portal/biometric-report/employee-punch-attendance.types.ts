@@ -8,11 +8,12 @@ export interface IEmployeeDetails {
     hrmdeS_DesignationName: string;
 }
 
-export interface IEmployeePunchAttendanceReportData {
-    emp_punchDetails: IPunchDetail[] | null;
-}
+export type IEmployeePunchAttendanceReportData = IPunchDetail[] | undefined;
 
 export interface IPunchDetail {
+    ecode:string;
+    ename:string;
+    HRME_Id:number;
     punchdate: string;
     punchINtime: string;
     punchOUTtime: string;

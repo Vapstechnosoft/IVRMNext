@@ -84,13 +84,21 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'Settings',
                                     pages: [
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Preadmission Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/application-form',
+                                        //     title: 'Preadmission Form',
+                                        //     description: 'Apply for Preadmission'
+                                        // },
                                         {
                                             id: 2,
-                                            name: 'Preadmission Form',
+                                            name: 'Application Form',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Preadmission Form',
-                                            description: 'Apply for Preadmission'
+                                            url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
+                                            title: 'Application Form',
+                                            description: 'Application Form'
                                         },
                                         // {
                                         //     id: 20000000,
@@ -1168,6 +1176,14 @@ export async function getUserAccessibleModules() {
                                             description: 'St. Thomas Admission Form'
                                         },
                                         {
+                                            id: 161,
+                                            name: 'STTHOMAS Application Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
+                                            title: 'STTHOMAS Application Form',
+                                            description: 'STTHOMAS Application Form'
+                                        },
+                                        {
                                             id: 62,
                                             name: 'Total Strength',
                                             icon: 'Settings',
@@ -1375,36 +1391,36 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 25,
-                                    name: 'Local ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 77,
-                                            name: 'SVP Class Wise Student Details',
-                                            icon: 'Settings',
-                                            url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                            title: 'SVP Class Wise Student Details',
-                                            description: 'SVP Class Wise Student Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        }
-                                    ]
-                                }
+                                // {
+                                //     id: 25,
+                                //     name: 'Local ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 77,
+                                //             name: 'SVP Class Wise Student Details',
+                                //             icon: 'Settings',
+                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                //             title: 'SVP Class Wise Student Details',
+                                //             description: 'SVP Class Wise Student Details'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -6223,87 +6239,87 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                // {
-                //     id: 27,
+                {
+                    id: 27,
 
-                //     name: 'BirthDay',
+                    name: 'BirthDay',
 
-                //     icon: 'Settings',
+                    icon: 'Settings',
 
-                //     menu: [
-                //         {
-                //             id: 1,
+                    menu: [
+                        {
+                            id: 1,
 
-                //             name: 'BirthDay',
+                            name: 'BirthDay',
 
-                //             icon: 'Settings',
+                            icon: 'Settings',
 
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
+                            sub_menu: [
+                                {
+                                    id: 1,
 
-                //                     name: 'Master',
+                                    name: 'Master',
 
-                //                     icon: 'Settings',
+                                    icon: 'Settings',
 
-                //                     pages: [
-                //                         {
-                //                             id: 1,
+                                    pages: [
+                                        {
+                                            id: 1,
 
-                //                             name: 'BirthDay',
+                                            name: 'BirthDay',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/master/masterbirthday',
+                                            url: '/birthday/master/masterbirthday',
 
-                //                             title: 'Master BirthDay',
+                                            title: 'Master BirthDay',
 
-                //                             description: 'Manage Master BirthDay Details'
-                //                         }
-                //                     ]
-                //                 },
+                                            description: 'Manage Master BirthDay Details'
+                                        }
+                                    ]
+                                },
 
-                //                 {
-                //                     id: 2,
+                                {
+                                    id: 2,
 
-                //                     name: 'Report',
+                                    name: 'Report',
 
-                //                     icon: 'Settings',
+                                    icon: 'Settings',
 
-                //                     pages: [
-                //                         {
-                //                             id: 1,
+                                    pages: [
+                                        {
+                                            id: 1,
 
-                //                             name: 'Student BirthDay Report',
+                                            name: 'Student BirthDay Report',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/report/studentbirthdayreport',
+                                            url: '/birthday/report/studentbirthdayreport',
 
-                //                             title: 'Student BirthDay Report',
+                                            title: 'Student BirthDay Report',
 
-                //                             description: 'Manage Student BirthDay Report'
-                //                         },
+                                            description: 'Manage Student BirthDay Report'
+                                        },
 
-                //                         {
-                //                             id: 2,
+                                        {
+                                            id: 2,
 
-                //                             name: 'Staff BirthDay Report',
+                                            name: 'Staff BirthDay Report',
 
-                //                             icon: 'Settings',
+                                            icon: 'Settings',
 
-                //                             url: '/birthday/report/staffbirthdayreport',
+                                            url: '/birthday/report/staffbirthdayreport',
 
-                //                             title: 'Staff BirthDay Report',
+                                            title: 'Staff BirthDay Report',
 
-                //                             description: 'Manage Staff BirthDay Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
+                                            description: 'Manage Staff BirthDay Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
 
                 {
                     id: 60006,
@@ -6500,7 +6516,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'Manual Period Insertion',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            url: '/timetable/transactions/manualperiodinsertion',
                                             title: 'Manual Period Insertion',
                                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
                                         },
@@ -6508,7 +6524,7 @@ export async function getUserAccessibleModules() {
                                             id: 4,
                                             name: 'Staff Period Transfer',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            url: '/timetable/transactions/staffperiodtransfer',
                                             title: 'Staff Period Transfer',
                                             description: 'Transfer Staff Periods Between Classes and Sections'
                                         },
@@ -6516,7 +6532,7 @@ export async function getUserAccessibleModules() {
                                             id: 5,
                                             name: 'Staff Replacement Existing To New',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            url: '/timetable/transactions/staffreplacementexistingtonew',
                                             title: 'Staff Replacement Existing To New',
                                             description: 'Replacing staff Existing To New'
                                         },
@@ -6524,7 +6540,7 @@ export async function getUserAccessibleModules() {
                                             id: 6,
                                             name: 'Staff Replacement In Their TimeTable',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            url: '/timetable/transactions/staffreplacementintheirtimetable',
                                             title: 'Staff Replacement In Their TimeTable',
                                             description: 'Staff Replacement In Their TimeTable'
                                         },
@@ -6532,7 +6548,7 @@ export async function getUserAccessibleModules() {
                                             id: 7,
                                             name: 'Staff Replacement In Unallocated Period',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            url: '/timetable/transactions/staffreplacementinunallocatedperiod',
                                             title: 'Staff Replacement In Unallocated Period',
                                             description: 'Staff Replacement In Unallocated Period'
                                         },
@@ -6540,7 +6556,7 @@ export async function getUserAccessibleModules() {
                                             id: 8,
                                             name: 'Time Table Generation',
                                             icon: 'Clock',
-                                            url: '/timetable/transactions/time-table-generation',
+                                            url: '/timetable/transactions/timetablegeneration',
                                             title: 'Time Table Generation',
                                             description: 'Time Table Generation'
                                         }
@@ -6673,11 +6689,11 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 30010,
-                                            name: 'MASTER BOOKS CATEGORY ',
+                                            name: 'Master Books Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
-                                            title: 'MASTER BOOKS CATEGORY ',
-                                            description: 'MASTER BOOKS CATEGORY '
+                                            title: 'Master Books Category',
+                                            description: 'Master Books Category'
                                         },
 
                                         {
@@ -6794,11 +6810,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30017,
-                                            name: 'LOST BOOK',
+                                            name: 'Lost Book',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
-                                            title: 'LOST BOOK',
-                                            description: 'LOST BOOK Details'
+                                            title: 'Lost Book',
+                                            description: 'Lost Book Details'
                                         }
                                     ]
                                 },

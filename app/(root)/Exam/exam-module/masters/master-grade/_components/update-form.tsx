@@ -26,6 +26,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
     const [isLoading, setIsLoading] = useState(true);
     const { refetchAll } = useMasterGrade();
 
+    console.log("selected row", gradeData)
+
     const {
         control,
         register,
@@ -42,7 +44,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             emgR_Id: gradeData.emgR_Id,
             mI_Id: gradeData.mI_Id ?? 0,
             emgR_GradeName: gradeData.emgR_GradeName ?? '',
-            emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag as 'm' | 'p') ?? 'm',
+            emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'P' : 'M'),
             emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
             grade_list: []
         }
@@ -61,26 +63,31 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             setIsLoading(true);
             try {
                 const result = await getGradeDetailsById(gradeData.emgR_Id);
+                console.log(result, "result")
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                              emgD_Id: Number(g.emgD_Id ?? 0),
-                              emgR_Id: Number(g.emgR_Id ?? 0),
-                              emgD_Name: g.emgD_Name || '',
-                              emgD_From: Number(g.emgD_From ?? null),
-                              emgD_To: Number(g.emgD_To ?? null),
-                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                              emgD_Remarks: g.emgD_Remarks || '',
-                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                          }))
+                            emgD_Id: Number(g.emgD_Id ?? 0),
+                            emgR_Id: Number(g.emgR_Id ?? 0),
+                            emgD_Name: g.emgD_Name || '',
+                            emgD_From: Number(g.emgD_From ?? null),
+                            emgD_To: Number(g.emgD_To ?? null),
+                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                            emgD_Remarks: g.emgD_Remarks || '',
+                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                            emgR_MarksPerFlag:g.emgR_MarksPerFlag
+                        }))
                         : [];
+
+                    const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
+                    const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
 
                     reset(
                         {
                             emgR_Id: gradeData.emgR_Id,
                             mI_Id: gradeData.mI_Id ?? 0,
                             emgR_GradeName: gradeData.emgR_GradeName ?? '',
-                            emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag as 'm' | 'p') ?? 'm',
+                            emgR_MarksPerFlag: marksPerFlag,
                             emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
                             grade_list: data
                         },
@@ -111,6 +118,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
 
         fetchGradeDetails();
     }, [gradeData.emgR_Id, reset, replace, trigger, gradeData]);
+  
 
     // ✅ Submit handler
     const onSubmit: SubmitHandler<z.infer<typeof masterGradeSchema.addOrUpdate>> = async (data) => {
@@ -186,23 +194,27 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                          emgD_Id: Number(g.emgD_Id ?? 0),
-                          emgR_Id: Number(g.emgR_Id ?? 0),
-                          emgD_Name: g.emgD_Name || '',
-                          emgD_From: Number(g.emgD_From ?? null),
-                          emgD_To: Number(g.emgD_To ?? null),
-                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                          emgD_Remarks: g.emgD_Remarks || '',
-                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                      }))
+                        emgD_Id: Number(g.emgD_Id ?? 0),
+                        emgR_Id: Number(g.emgR_Id ?? 0),
+                        emgD_Name: g.emgD_Name || '',
+                        emgD_From: Number(g.emgD_From ?? null),
+                        emgD_To: Number(g.emgD_To ?? null),
+                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                        emgD_Remarks: g.emgD_Remarks || '',
+                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                        emgR_MarksPerFlag:g.emgR_MarksPerFlag
+                    }))
                     : [];
+
+                const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
+                const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
 
                 // ⬅ Reset form with original values
                 reset({
                     emgR_Id: gradeData.emgR_Id,
                     mI_Id: gradeData.mI_Id ?? 0,
                     emgR_GradeName: gradeData.emgR_GradeName ?? '',
-                    emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag as 'm' | 'p') ?? 'm',
+                    emgR_MarksPerFlag: marksPerFlag,
                     emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
                     grade_list: restoredRows
                 });
@@ -265,11 +277,11 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         render={({ field }) => (
                             <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='m' id='marks' />
+                                    <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='p' id='percentage' />
+                                    <RadioGroupItem value='P' id='percentage' />
                                     <Label htmlFor='percentage'>Percentage</Label>
                                 </div>
                             </RadioGroup>

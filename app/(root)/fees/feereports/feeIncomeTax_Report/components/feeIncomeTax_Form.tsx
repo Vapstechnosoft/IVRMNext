@@ -8,7 +8,7 @@ import { feeIncomeTaxReportSchema } from '@/schemas/fees/reports';
 import { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileText, RotateCcw } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -17,9 +17,11 @@ type FormFields = z.infer<typeof feeIncomeTaxReportSchema>;
 
 interface FeeIncomeTaxFormProps {
     onReportGenerated: (data: IFeeIncomeTaxReportResult[]) => void;
+    onReset: () => void;
 }
 
-export default function FeeIncomeTaxForm({ onReportGenerated }: FeeIncomeTaxFormProps) {
+export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeIncomeTaxFormProps) {
+    const [resetKey, setResetKey] = useState(0);
     const {
         data: academicYears,
         isLoading: isAcademicYearsLoading,
@@ -110,12 +112,21 @@ export default function FeeIncomeTaxForm({ onReportGenerated }: FeeIncomeTaxForm
         }
     };
     const handleReset = () => {
-        reset();
+        reset({
+            asmaY_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            amst_Id: undefined
+        });
+        setResetKey(prev => prev + 1);
+        if (onReset) {
+            onReset();
+        }
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
+            <div key={resetKey} className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                 {/* Academic Year */}
                 <div className='space-y-2'>
                     <Label>
@@ -161,7 +172,7 @@ export default function FeeIncomeTaxForm({ onReportGenerated }: FeeIncomeTaxForm
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value?.toString()}>
+                                value={field.value ? String(field.value) : ""}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
@@ -195,7 +206,7 @@ export default function FeeIncomeTaxForm({ onReportGenerated }: FeeIncomeTaxForm
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value?.toString()}
+                                value={field.value ? String(field.value) : ""}
                                 disabled={!selectedYear || !selectedClass}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Section' />
@@ -230,7 +241,7 @@ export default function FeeIncomeTaxForm({ onReportGenerated }: FeeIncomeTaxForm
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value?.toString()}
+                                value={field.value ? String(field.value) : ""}
                                 disabled={!selectedSection}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Student' />

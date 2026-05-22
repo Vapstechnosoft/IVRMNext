@@ -10,10 +10,10 @@ export default function Page() {
     const router = useRouter();
 
     useEffect(() => {
-        if (session?.data?.role === undefined) {
+        if (session?.status === 'authenticated' && session?.data?.role === undefined) {
             window.location.reload();
         }
-    }, [session?.data?.role]);
+    }, [session?.data?.role, session?.status]);
 
     // Move router.push to useEffect
     useEffect(() => {

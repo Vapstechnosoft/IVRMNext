@@ -39,13 +39,13 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
         if (row) {
             reset({
                 lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName,
-                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName,
-                lmaU_AuthorLastName: row.lmaU_AuthorLastName,
-                lmaU_MobileNo: row.lmaU_MobileNo,
-                lmaU_Address: row.lmaU_Address,
-                lmaU_EmailId: row.lmaU_EmailId,
-                lmaU_PhoneNo: row.lmaU_PhoneNo,
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName || '',
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName || '',
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName || '',
+                lmaU_MobileNo: row.lmaU_MobileNo || '',
+                lmaU_Address: row.lmaU_Address || '',
+                lmaU_EmailId: row.lmaU_EmailId || '',
+                lmaU_PhoneNo: row.lmaU_PhoneNo || '',
                 lmaU_ActiveFlg: row.lmaU_ActiveFlg
             });
         }

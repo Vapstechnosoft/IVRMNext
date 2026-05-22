@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Package } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductTab from "./_components/product-tab";
@@ -39,27 +38,25 @@ function InvMasterProductContent() {
     };
 
     return (
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <div className="flex items-center space-x-2 pb-2">
-                <Package className="h-8 w-8 text-primary" />
-                <h2 className="text-3xl font-bold tracking-tight">Product Master</h2>
-            </div>
-            <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="product">Product</TabsTrigger>
-                    <TabsTrigger value="productQty">Product Quantity</TabsTrigger>
-                </TabsList>
-                <TabsContent value="product" className="space-y-4">
-                    <ProductTab />
-                </TabsContent>
-                <TabsContent value="productQty" className="space-y-4">
-                    {activeTab === 'productQty' && <ProductQtyTab />}
-                </TabsContent>
-            </Tabs>
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-4">
+                    <TabsList>
+                        <TabsTrigger value="product">Product</TabsTrigger>
+                        <TabsTrigger value="productQty">Product Quantity</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="product" className="space-y-4">
+                        <ProductTab />
+                    </TabsContent>
+                    <TabsContent value="productQty" className="space-y-4">
+                        {activeTab === 'productQty' && <ProductQtyTab />}
+                    </TabsContent>
+                </Tabs>
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleProductForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleProductForm rowData={selectedRow} onClose={closeToggleForm} />
+                )}
+            </div>
         </div>
     );
 }

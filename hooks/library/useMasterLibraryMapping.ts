@@ -1,6 +1,6 @@
 'use client';
 
-import { getMasterLibraryList, getMasterLibraryMappedClassList, getMasterLibraryEditClass, getMasterLibraryEditStaff, addOrUpdateMasterLibrary, getMasterLibraryById } from '@/server/library/masters/master_library';
+import { getMasterLibraryList, getMasterLibraryMappedClassList, getMasterLibraryEditClass, getMasterLibraryEditStaff, addOrUpdateMasterLibrary, getMasterLibraryById, saveClassMapping, saveStaffMapping } from '@/server/library/masters/master_library';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LIBRARY_QUERY_KEYS } from '@/constants/query-keys';
 
@@ -27,8 +27,8 @@ export function useMasterLibraryMapping() {
         staff: mappingResponse?.stafflist || mappingResponse?.user_list || mappingResponse?.employee_list || mappingResponse?.staffList || mappingResponse?.ivrmuL_List || [],
         isLoading: libraryQuery.isLoading || mappingListQuery.isLoading,
         refetchAll: () => {
-            queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA] });
-            queryClient.invalidateQueries({ queryKey: ['MASTER_LIBRARY_MAPPED_LIST_DATA'] });
+            libraryQuery.refetch();
+            mappingListQuery.refetch();
         }
     };
 }
@@ -60,3 +60,27 @@ export function useMasterLibrarySaveMapping() {
         },
     });
 }
+
+export function useMasterLibrarySaveClassMapping() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { LMAL_Id: number; classlst: { ASMCL_Id: number }[] }) => saveClassMapping(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA] });
+            queryClient.invalidateQueries({ queryKey: ['MASTER_LIBRARY_MAPPED_LIST_DATA'] });
+        },
+    });
+}
+
+export function useMasterLibrarySaveStaffMapping() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { LUL_Id: number; LMAL_Id: number; IVRMUL_Id: number }) => saveStaffMapping(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.MASTER_LIBRARY_LIST_DATA] });
+            queryClient.invalidateQueries({ queryKey: ['MASTER_LIBRARY_MAPPED_LIST_DATA'] });
+        },
+    });
+}
+
+
