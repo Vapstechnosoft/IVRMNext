@@ -126,7 +126,7 @@ export function useSaveInterviewerFeedback() {
         mutationFn: (data: InterviewSchedule) => saveInterviewerFeedback(data),
         onSuccess: (response) => {
             if (response.success) {
-                toast.success(response.message || 'Feedback saved successfully');
+                // toast.success(response.message || 'Feedback saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [RECRUITMENT_QUERY_KEYS.TRANSACTION_INTERVIEW_FEEDBACK_LIST]
                 });

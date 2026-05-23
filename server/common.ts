@@ -4430,14 +4430,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Candidate Interview List',
                                             description: 'View All Candidate Interviews'
                                         },
-                                        // {
-                                        //     id: 4,
-                                        //     name: 'Interviewer Feedback',
-                                        //     icon: 'MessageSquare',
-                                        //     url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
+                                        {
+                                            id: 4,
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
+                                        },
                                         //         {
                                         //             id: 5,
                                         //             name: 'Job List',
