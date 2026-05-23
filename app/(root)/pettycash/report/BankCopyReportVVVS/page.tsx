@@ -291,14 +291,7 @@ export default function BankCopyReportPage() {
 
     return (
         <div className="container mx-auto p-4 space-y-8 bg-gray-50/50 min-h-screen">
-<<<<<<< HEAD
-            <div className="flex flex-col space-y-1">
-                <div className="flex items-center gap-2">
-                </div>
-            </div>
-=======
 
->>>>>>> 5ca93d3ce8bbbf333408414cf90d4b2d3bdcad4f
 
             <BankCopyReportForm
                 onSearch={handleSearch}

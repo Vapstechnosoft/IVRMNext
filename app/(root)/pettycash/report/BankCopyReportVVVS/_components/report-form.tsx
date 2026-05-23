@@ -8,11 +8,7 @@ import * as z from 'zod';
 import { useAcademicYearList } from '@/hooks/pettycash/report/usePDAReport';
 import { Label } from '@/components/ui/extension/field';
 import { FileDown, Printer, Search, RotateCcw } from 'lucide-react';
-<<<<<<< HEAD
-
-=======
 import { useEffect, useMemo } from 'react';
->>>>>>> 5ca93d3ce8bbbf333408414cf90d4b2d3bdcad4f
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, { message: 'Academic Year is required' }),
@@ -78,8 +74,6 @@ export default function BankCopyReportForm({
         return (raw as any)?.acayyearbind || (raw as any)?.$values || [];
     }, [yearList?.data]);
 
-<<<<<<< HEAD
-=======
     const selectedAcademicYearId = useWatch({
         control,
         name: 'ASMAY_Id'
@@ -105,7 +99,6 @@ export default function BankCopyReportForm({
         return [];
     }, [selectedAcademicYearId, years]);
 
->>>>>>> 5ca93d3ce8bbbf333408414cf90d4b2d3bdcad4f
 
 
     function onSubmit(values: BankCopyFormValues) {
