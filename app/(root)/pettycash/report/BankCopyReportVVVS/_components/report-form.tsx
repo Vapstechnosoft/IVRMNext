@@ -2,13 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAcademicYearList } from '@/hooks/pettycash/report/usePDAReport';
 import { Label } from '@/components/ui/extension/field';
 import { FileDown, Printer, Search, RotateCcw } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const formSchema = z.object({
     ASMAY_Id: z.string().min(1, { message: 'Academic Year is required' }),
@@ -66,17 +66,38 @@ export default function BankCopyReportForm({
         },
     });
 
-    const yearsRaw = yearList?.data;
-    const years: any[] = Array.isArray(yearsRaw) 
-        ? yearsRaw 
-        : (yearsRaw as any)?.acayyearbind || (yearsRaw as any)?.$values || [];
+    const years = useMemo(() => {
+        const raw = yearList?.data;
+        if (Array.isArray(raw)) return raw;
+        return (raw as any)?.acayyearbind || (raw as any)?.$values || [];
+    }, [yearList?.data]);
 
-    useEffect(() => {
-        if (years.length > 0 && !getValues('ASMAY_Id')) {
-            setValue('ASMAY_Id', years[0].asmaY_Id.toString());
-            setValue('ASMAY_Year', years[0].asmaY_Year);
+    const selectedAcademicYearId = useWatch({
+        control,
+        name: 'ASMAY_Id'
+    });
+
+    const splitYears = useMemo(() => {
+        if (selectedAcademicYearId && years.length > 0) {
+            const selectedYear = years.find((y: any) => y.asmaY_Id.toString() === selectedAcademicYearId);
+            if (selectedYear && selectedYear.asmaY_Year) {
+                const yearStr = selectedYear.asmaY_Year.toString();
+                const s1 = yearStr.substring(0, 4);
+                const s2 = yearStr.length > 5 ? yearStr.substring(5, yearStr.length) : '';
+
+                const temp = [
+                    { id: '0', year: s1 },
+                ];
+                if (s2) {
+                    temp.push({ id: '1', year: s2 });
+                }
+                return temp;
+            }
         }
-    }, [years, setValue, getValues]);
+        return [];
+    }, [selectedAcademicYearId, years]);
+
+
 
     function onSubmit(values: BankCopyFormValues) {
         onSearch(values);
@@ -101,11 +122,10 @@ export default function BankCopyReportForm({
                         render={({ field }) => (
                             <Select onValueChange={(val) => {
                                 field.onChange(val);
-                                const selectedYear = years.find(y => y.asmaY_Id.toString() === val);
-                                if (selectedYear) setValue('ASMAY_Year', selectedYear.asmaY_Year);
+                                setValue('ASMAY_Year', ''); // Reset year when academic year changes
                             }} value={field.value}>
                                 <SelectTrigger className='w-full h-9 text-xs'>
-                                    <SelectValue placeholder='Select Year' />
+                                    <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {years?.map((year: any) => (
@@ -160,9 +180,9 @@ export default function BankCopyReportForm({
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {years?.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Year} className="text-xs">
-                                            {year.asmaY_Year}
+                                    {splitYears?.map((y) => (
+                                        <SelectItem key={y.id} value={y.year} className="text-xs">
+                                            {y.year}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -174,33 +194,31 @@ export default function BankCopyReportForm({
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-purple-50">
-                <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-                    <Button
-                        onClick={handleSubmit(onSubmit)}
-                        className="bg-gradient-to-r from-indigo-600 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white px-6 h-9 rounded-md font-bold shadow-md transition-all active:scale-95 text-xs"
-                    >
-                        <Search className="mr-2 h-4 w-4" />
-                        Report
-                    </Button>
+            <div className="flex flex-row items-center justify-center gap-4 pt-6 border-t border-purple-50 overflow-x-auto">
+                <Button
+                    onClick={handleSubmit(onSubmit)}
+                    className="bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-700 hover:to-orange-800 text-white px-6 h-9 rounded-md font-bold shadow-md transition-all active:scale-95 text-xs uppercase tracking-wider"
+                >
+                    <Search className="mr-2 h-4 w-4" />
+                    Report
+                </Button>
 
-                    <Button
-                        variant="outline"
-                        onClick={handleReset}
-                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 h-9 px-6 rounded-md font-bold shadow-sm transition-all text-xs"
-                    >
-                        <RotateCcw className="mr-2 h-4 w-4" />
-                        Clear
-                    </Button>
-                </div>
+                <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 h-9 px-6 rounded-md font-bold shadow-sm transition-all text-xs uppercase tracking-wider"
+                >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Clear
+                </Button>
 
                 {showReportButtons && (
-                    <div className="flex flex-wrap items-center gap-3">
+                    <>
                         <Button
                             type='button'
                             variant='outline'
                             onClick={onExport}
-                            className='h-9 w-auto rounded-md border-green-200 bg-white px-6 text-[10px] font-bold text-green-700 shadow-sm hover:bg-green-50 hover:text-green-800 uppercase tracking-wider'
+                            className='h-9 rounded-md border-green-200 bg-white px-6 text-[10px] font-bold text-green-700 shadow-sm hover:bg-green-50 hover:text-green-800 uppercase tracking-wider'
                         >
                             <FileDown className='mr-1.5 h-4 w-4' />
                             Export to Excel
@@ -210,12 +228,12 @@ export default function BankCopyReportForm({
                             type='button'
                             variant='outline'
                             onClick={onPrint}
-                            className='h-9 w-auto rounded-md border-blue-200 bg-white px-6 text-[10px] font-bold text-blue-700 shadow-sm hover:bg-blue-50 hover:text-blue-800 uppercase tracking-wider'
+                            className='h-9 rounded-md border-blue-200 bg-white px-6 text-[10px] font-bold text-blue-700 shadow-sm hover:bg-blue-50 hover:text-blue-800 uppercase tracking-wider'
                         >
                             <Printer className='mr-1.5 h-4 w-4' />
                             Print
                         </Button>
-                    </div>
+                    </>
                 )}
             </div>
         </div>
