@@ -7206,6 +7206,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
                                             title: 'Vendor Payment Report',
                                             description: 'Generate Vendor Payment Reports'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'GRN Report Hollycross',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-grn-hollycross',
+                                            title: 'GRN Report Hollycross',
+                                            description: 'Generate GRN Report Hollycross'
                                         }
                                     ]
                                 }
