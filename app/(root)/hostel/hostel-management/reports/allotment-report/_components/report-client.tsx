@@ -174,7 +174,7 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
                                     name="ASMAY_Id"
                                     render={({ field }) => (
                                         <div className="space-y-1">
-                                            <Label >Academic Year <span className="text-red-500">*</span></Label>
+                                            <Label >Academic Year</Label>
                                             <Select
                                                 value={String(field.value || '')}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -200,7 +200,7 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
                                     name="HLMH_Id"
                                     render={({ field }) => (
                                         <div className="space-y-1">
-                                            <Label>Hostel <span className="text-red-500">*</span></Label>
+                                            <Label>Hostel</Label>
                                             <Select
                                                 value={String(field.value || '')}
                                                 onValueChange={(v) => field.onChange(Number(v))}
