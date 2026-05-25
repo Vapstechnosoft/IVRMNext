@@ -67,3 +67,5 @@ export const deactivateMasterSportsCCGroup = async (data: any): Promise<ApiRespo
         return { success: false, message: 'Failed to deactivate data', data: null };
     }
 };
+
+export const getMasterSportsCCGroups = fetchMasterSportsCCGroup;

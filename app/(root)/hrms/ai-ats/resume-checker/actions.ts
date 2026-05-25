@@ -782,7 +782,7 @@ export async function analyzeResume(formData: FormData) {
                     ],
                     model: 'llama-3.1-8b-instant',
                     temperature: 0.7,
-                    max_tokens: 200
+                    max_tokens: 1024
                 });
 
                 data.report = {
