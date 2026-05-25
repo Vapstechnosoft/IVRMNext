@@ -423,7 +423,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                                 <td className='border-gray-300 border-r px-3 text-center'>
                                                     <Checkbox
                                                         checked={!!row.check_save}
-                                                        onCheckedChange={c => updateRow(idx, 'check_save', c ? '1' : '0')}
+                                                        onCheckedChange={c => updateRow(idx, 'check_save', c ? 1 : 0)}
                                                     />
                                                 </td>
                                                 <td className='border-gray-300 border-r px-3 font-medium'>{row.ismS_SubjectName}</td>
