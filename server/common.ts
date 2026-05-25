@@ -173,6 +173,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Oral Test ReSchedule',
                                             description: 'Oral Test ReSchedule'
                                         }
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'Written Test Schedule',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/interview-schedule/written-test-schedule',
+                                        //     title: 'Written Test Schedule',
+                                        //     description: 'Written Test Schedule'
+                                        // }
                                     ]
                                 }
                             ]
@@ -6689,11 +6697,11 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 30010,
-                                            name: 'MASTER BOOKS CATEGORY ',
+                                            name: 'Master Books Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
-                                            title: 'MASTER BOOKS CATEGORY ',
-                                            description: 'MASTER BOOKS CATEGORY '
+                                            title: 'Master Books Category',
+                                            description: 'Master Books Category'
                                         },
 
                                         {

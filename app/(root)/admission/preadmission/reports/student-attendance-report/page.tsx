@@ -3,7 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -23,6 +24,7 @@ import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdo
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import type { ApiSearchparams } from '@/types';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
 import { attendanceColumns, getAttendanceColumns } from './_components/columns';
@@ -104,8 +106,17 @@ const parseAttendanceList = (list: any[]) => {
 
 /* ---------------- Component ---------------- */
 
-export default function StudyCertificateReportPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudyCertificateReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = (React as any).use(props.searchParams);
+    const router = useRouter();
+    const pathname = usePathname();
+
     const {
+
         control,
         handleSubmit,
         reset,
@@ -136,6 +147,36 @@ export default function StudyCertificateReportPage() {
     const dailyDate = useWatch({ control, name: 'dailyDate' });
     const selectionMode = useWatch({ control, name: 'selectionMode' });
 
+    const [searchValue, setSearchValue] = useState(String(searchParams?.search_query || ''));
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            const currentQuery = String(searchParams?.search_query || '');
+            if (searchValue !== currentQuery) {
+                const params = new URLSearchParams(window.location.search);
+                if (searchValue) {
+                    params.set('search_query', searchValue);
+                    params.set('page', '1');
+                } else {
+                    params.delete('search_query');
+                }
+                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [searchValue, searchParams?.search_query, pathname, router]);
+
+    const apiSearchParams: ApiSearchparams | undefined = searchParams
+        ? {
+              page: Number(searchParams.page) || 1,
+              page_size: Number(searchParams.page_size) || 10,
+              sort_column: String(searchParams.sort_column || ''),
+              sort_direction: String(searchParams.sort_direction || 'asc'),
+              search_query: String(searchParams.search_query || ''),
+              search_columns: String(searchParams.search_columns || '')
+          }
+        : undefined;
+
     const { data: academicYears } = useAcademicYearDropdown();
     const { data: classes } = useMasterClassDropdown();
     const { data: sections } = useMasterSectionDropdown();
@@ -159,7 +200,7 @@ export default function StudyCertificateReportPage() {
         dailyDate,
         selectionMode,
         studentStatus,
-        undefined,
+        apiSearchParams,
         showGrid
     );
 
@@ -703,6 +744,8 @@ export default function StudyCertificateReportPage() {
                                             type='text'
                                             placeholder='search here...'
                                             className='h-8 w-64 border border-gray-300 px-2 text-xs focus:outline-none'
+                                            value={searchValue}
+                                            onChange={(e) => setSearchValue(e.target.value)}
                                         />
                                         <div className='absolute right-0 top-0 flex h-8 w-8 items-center justify-center border border-l-0 border-gray-300 bg-gray-50'>
                                             <Search className='h-4 w-4 text-gray-500' />
