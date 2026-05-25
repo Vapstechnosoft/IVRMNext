@@ -665,6 +665,7 @@ export const RECRUITMENT_QUERY_KEYS = {
     MASTER_PRIORITY_GRID: 'master_priority_grid',
     TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
     TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
-    TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list'
+    TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list',
+    CANDIDATE_DROPDOWN: 'candidate_dropdown'
    
 }

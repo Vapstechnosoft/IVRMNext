@@ -99,6 +99,7 @@ export default function ReportForm({ onReport, onReset, onPrint, onExcel, hasDat
         reset();
         setShowStudentList(false);
         onReset();
+        window.location.reload();
     };
 
     // Toggle Select All

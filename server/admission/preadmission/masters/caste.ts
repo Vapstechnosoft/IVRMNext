@@ -19,3 +19,8 @@ export async function addOrUpdateMasterCaste(data: any) {
     const url = '/master_caste';
     return await api.post<any>('admission', url, data);
 }
+
+export async function deleteMasterCaste(imC_Id: number, imcC_Id: number) {
+    const url = `/master_caste/MasterDeleteModulesDATA?IMC_Id=${imC_Id}&IC_Id=${imcC_Id}`;
+    return await api.post<any>('admission', url);
+}

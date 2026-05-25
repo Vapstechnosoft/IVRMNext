@@ -1,21 +1,21 @@
 import { z } from 'zod';
 
 export interface IStudentAgeReport {
-    AMST_Id: number;
-    AMST_FirstName?: string;
-    AMST_MiddleName?: string;
-    AMST_LastName?: string;
-    AMST_Name: string; // From backend: AMST_Name
-    AMST_AdmNo: string;
-    ASMCL_ClassName: string;
-    ASMC_SectionName: string;
-    SPCCMH_HouseName?: string;
-    AMST_DOB: string | Date;
-    Years: number;
-    Months: number; // Age Months
-    Monthsd: number; // Months
-    Days: number;
-    SPCCMCL_CompitionLevel?: string; // Competition Category
+    amsT_Id: number;
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    amsT_Name: string;
+    amsT_Admno: string;
+    asmcL_Classname: string;
+    asmC_Sectionname: string;
+    spccmH_Housename?: string;
+    amsT_DOb: string | Date;
+    years: number;
+    months: number;
+    monthsd: number;
+    days?: number;
+    spccmcL_compitionLevel?: string;
 }
 
 export interface IReportRequest {
@@ -25,6 +25,8 @@ export interface IReportRequest {
     spccmcC_Id?: number;
     selectedhouselist?: { spccmH_Id: number }[];
     selectedSectionlist?: { asmS_Id: number }[];
+    search_column?: string;
+    search_query?: string;
 }
 
 export interface IStudentAgeCalculationDropdowns {
@@ -53,32 +55,41 @@ export interface IStudentAgeCalculationDropdowns {
 
 export const StudentAgeReportSchema = z.object({
     type: z.enum(['House', 'CS']),
-    asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-    spccmcC_Id: z.coerce.number().optional(),
+    asmaY_Id: z.number({ required_error: "Select Academic Year", invalid_type_error: "Select Academic Year" }).min(1, 'Select Academic Year'),
+    spccmcC_Id: z.number().optional(),
     asmcL_Id: z.number().optional(),
-    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).optional(),
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
-}).refine(data => {
+    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })),
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })),
+}).superRefine((data, ctx) => {
+    // Academic Year is already handled by .min(1) above, 
+    // but we can be extra sure if needed.
+
     if (data.type === 'CS') {
-        return !!data.asmcL_Id;
+        if (!data.asmcL_Id || data.asmcL_Id === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select Class",
+                path: ["asmcL_Id"],
+            });
+        }
+        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select at least one section",
+                path: ["selectedSectionlist"],
+            });
+        }
     }
-    return true;
-}, {
-    message: "Class is required for Class/Section report",
-    path: ["asmcL_Id"]
-}).refine(data => {
-    if (data.type === 'CS') {
-        return data.selectedSectionlist && data.selectedSectionlist.length > 0;
+    
+    // House selection is mandatory for both types in this report? 
+    // Usually yes, if it's displayed and has an asterisk.
+    if (!data.selectedhouselist || data.selectedhouselist.length === 0) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Select at least one house",
+            path: ["selectedhouselist"],
+        });
     }
-    return true;
-}, {
-    message: "At least one section must be selected",
-    path: ["selectedSectionlist"]
-}).refine(data => {
-    return data.selectedhouselist && data.selectedhouselist.length > 0;
-}, {
-    message: "At least one house must be selected",
-    path: ["selectedhouselist"]
 });
 
 export type StudentAgeReportFormSchema = z.infer<typeof StudentAgeReportSchema>;

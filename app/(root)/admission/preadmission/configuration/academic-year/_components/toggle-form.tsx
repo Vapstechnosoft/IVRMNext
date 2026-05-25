@@ -44,7 +44,11 @@ export default function TogglePreAdmissionAcademicYearForm({ rowData, onClose }:
             const response = await togglePreAdmissionAcademicYear(Number(rowData.asmaY_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                if (isActive) {
+                    toast.error(response.message);
+                } else {
+                    toast.success(response.message);
+                }
                 refetchAll();
                 closeDialog();
             } else {

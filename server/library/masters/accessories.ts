@@ -16,6 +16,13 @@ export async function addOrUpdateMasterAccessories(data: any) {
 }
 
 export async function deactivateMasterAccessories(data: any) {
-    const url = '/MasterAccessoriesFacade/toggle-master-accessories';
-    return await api.post<any>('library', url, data);
+    try {
+        const id = typeof data === 'object' ? data.lmaC_Id : data;
+        const url = `/MasterAccessoriesFacade/toggle-master-accessories/${id}`;
+        return await api.put<any>('library', url);
+
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to toggle record' };
+    }
 }
+

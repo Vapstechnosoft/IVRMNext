@@ -68,12 +68,14 @@ export default function AddMasterAccessoriesForm({ onSuccess, className = '' }: 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Accessories Name'
+                            placeholder='Enter Accessories Name'
                             required
                             {...register('lmaC_AccessoriesName')}
                             error={errors.lmaC_AccessoriesName?.message}
                         />
                         <InputText
                             label='Accessories Description'
+                            placeholder='Enter Accessories Description'
                             required
                             {...register('lmaC_AccessoriesDesc')}
                             error={errors.lmaC_AccessoriesDesc?.message}

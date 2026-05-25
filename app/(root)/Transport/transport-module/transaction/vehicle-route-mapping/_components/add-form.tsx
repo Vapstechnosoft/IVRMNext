@@ -36,6 +36,10 @@ export default function AddForm({ onClose }: AddFormProps) {
     const routes = Array.isArray(routeData) ? routeData : routeData?.data || [];
     const sessions = Array.isArray(sessionData) ? sessionData : sessionData?.data || [];
 
+
+    console.log("vehicleData", vehicles);
+    console.log("routeData", routes);
+    console.log("sessionData", sessions);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {

@@ -1,151 +1,170 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
-import { AddForm } from './_components/add-form';
-import { columns } from './_components/columns';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useStudentHouseMapping } from '@/hooks/sports/useStudentHouseMapping';
 import { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
-import {
-    getStudentHouseMappings,
-    deleteStudentHouseMapping,
-} from '@/actions/sports/masters/student-house-mapping';
-import { toast } from 'sonner';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import AddForm from './_components/add-form';
+import { columns } from './_components/columns';
+import UpdateForm from './_components/update-form';
+import ToggleForm from './_components/toggle-form';
 
-export default function StudentHouseMappingPage() {
-    const [data, setData] = useState<StudentHouseMappingDTO[]>([]);
-    const [isAdding, setIsAdding] = useState(false);
-    const [editingData, setEditingData] = useState<StudentHouseMappingDTO | null>(null);
-    const [loading, setLoading] = useState(true);
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    // Confirmation Dialog State
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [actionType, setActionType] = useState<'activate' | 'deactivate' | null>(null);
-    const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [selectedActiveFlag, setSelectedActiveFlag] = useState<boolean | null>(null);
-
-
-    const loadData = async () => {
-        setLoading(true);
-        try {
-            const result = await getStudentHouseMappings();
-            setData(result);
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to load data');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const handleEdit = (record: StudentHouseMappingDTO) => {
-        setEditingData(record);
-        setIsAdding(true);
-    };
-
-    const handleDeleteClick = (id: number, activeFlag: boolean) => {
-        setSelectedId(id);
-        setSelectedActiveFlag(activeFlag);
-        setActionType(activeFlag ? 'deactivate' : 'activate');
-        setConfirmOpen(true);
-    };
-
-    const handleConfirmAction = async () => {
-        if (selectedId !== null && selectedActiveFlag !== null) {
-            try {
-                const result = await deleteStudentHouseMapping(selectedId, selectedActiveFlag);
-                if (result.success) {
-                    toast.success(result.message);
-                    loadData();
-                } else {
-                    toast.error(result.message);
-                }
-            } catch (error) {
-                console.error(error);
-                console.error(error);
-                toast.error('Something went wrong');
-            }
-        }
-        setConfirmOpen(false);
-        setSelectedId(null);
-        setSelectedActiveFlag(null);
-        setActionType(null);
-    };
-
-    const handleSuccess = () => {
-        setIsAdding(false);
-        setEditingData(null);
-        loadData();
-    };
-
-    const handleCancel = () => {
-        setIsAdding(false);
-        setEditingData(null);
-    };
+export default function StudentHouseMappingPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useStudentHouseMapping(searchParams);
 
     return (
-        <div className="space-y-6">
+        <FormProvider<StudentHouseMappingDTO>>
+            <StudentHouseMappingContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
+        </FormProvider>
+    );
+}
 
+function StudentHouseMappingContent({
+    response,
+    isLoading,
+    error,
+    refetchAll
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: () => void;
+}) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<StudentHouseMappingDTO>();
 
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Student House Mapping</CardTitle>
-                    {!isAdding && (
-                        <Button onClick={() => setIsAdding(true)}>
-                            <Plus className="mr-2 h-4 w-4" /> Add Mapping
-                        </Button>
-                    )}
-                </CardHeader>
-                <CardContent>
-                    {isAdding ? (
-                        <AddForm
-                            onSuccess={handleSuccess}
-                            onCancel={handleCancel}
-                            initialData={editingData}
-                        />
-                    ) : (
-                        <DataTable<StudentHouseMappingDTO, unknown>
-                            columns={columns(handleEdit, handleDeleteClick)}
-                            data={data}
-                            isLoading={loading}
-                            totalItems={data.length}
-                        />
-                    )}
-                </CardContent>
-            </Card>
+    const tableProps = useDataTableProps(response, { dataKey: 'alldata' });
 
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Do you want to {actionType} this record?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmAction}>
-                            Yes, {actionType} it!
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+    return (
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Mapping
+                    </Button>
+                </div>
+
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    title="Student House Mapping List"
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<StudentHouseMappingDTO>
+                        {...tableProps}
+                        totalItems={tableProps.totalItems || tableProps.data.length}
+                        columns={columns}
+                        isLoading={isLoading}
+                        error={error}
+                        manualPagination={true}
+                        manualSorting={true}
+                        manualFiltering={true}
+                        showSearchColumns={true}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading student house mappings...'
+                        noDataTitle='No Mappings Found'
+                        noDataDescription='Get started by creating your first mapping'
+                        errorTitle='Error Loading Mappings'
+                    />
+                </CollapsibleSection>
+
+                {/* Forms */}
+                {/* Add Form */}
+                {isAddFormOpen && (
+                    <div ref={addFormRef}>
+                        <CollapsibleSection
+                            title='Add New Student House Mapping'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeAddForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <AddForm
+                                    onSuccess={() => {
+                                        refetchAll();
+                                        closeAddForm();
+                                    }}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+                {/* Edit Form */}
+                {isEditFormOpen && selectedRow && (
+                    <div ref={editFormRef}>
+                        <CollapsibleSection
+                            title='Edit Student House Mapping'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeEditForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <UpdateForm
+                                    selectedRow={selectedRow}
+                                    onSuccess={() => {
+                                        refetchAll();
+                                        closeEditForm();
+                                    }}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+                {/* Toggle Form */}
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleForm
+                        rowData={selectedRow}
+                        onClose={closeToggleForm}
+                        onSuccess={refetchAll}
+                    />
+                )}
+            </div>
         </div>
     );
 }

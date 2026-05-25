@@ -1,63 +1,62 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as server from "@/server/admission/preadmission/transactions/student_attendance_entry";
 
-export const useStudentAttendanceInitialData = (yearId: number) => {
+export const useStudentAttendanceInitialData = (portalType?: string) => {
   return useQuery({
-    queryKey: ["student-attendance-initial-data", yearId],
-    queryFn: () => server.getInitialData(yearId),
-    enabled: !!yearId || yearId === 0,
+    queryKey: ["student-attendance-initial-data", portalType],
+    queryFn: () => server.getInitialData(portalType),
   });
 };
 
-export const useStudentAttendanceGetStudentData = () => {
+export const useGetStudentData = () => {
   return useMutation({
     mutationFn: (payload: any) => server.getStudentData(payload),
   });
 };
 
-export const useStudentAttendanceGetMonthClassHeld = () => {
+export const useGetMonthClassHeld = () => {
   return useMutation({
     mutationFn: (payload: any) => server.getMonthClassHeld(payload),
   });
 };
 
-export const useStudentAttendanceGetDateWiseAttendance = () => {
+export const useGetDateWiseAttendance = () => {
   return useMutation({
     mutationFn: (payload: any) => server.getDateWiseAttendance(payload),
   });
 };
 
-export const useStudentAttendanceGetBatchList = () => {
+export const useGetBatchList = () => {
   return useMutation({
     mutationFn: (payload: any) => server.getBatchList(payload),
   });
 };
 
-export const useStudentAttendanceGetStdListPeriod = () => {
+export const useGetStdListPeriod = () => {
   return useMutation({
     mutationFn: (payload: any) => server.getStdListPeriod(payload),
   });
 };
 
-export const useStudentAttendanceSave = () => {
+export const useSaveAttendance = () => {
   return useMutation({
     mutationFn: (payload: any) => server.saveAttendance(payload),
   });
 };
 
-export const useStudentAttendanceViewDetails = () => {
+export const useViewAttendance = () => {
   return useMutation({
     mutationFn: (payload: any) => server.viewAttendanceDetailsStaffWise(payload),
   });
 };
 
-export const useStudentAttendanceDelete = () => {
+export const useDeleteAttendance = () => {
   return useMutation({
     mutationFn: (payload: any) => server.deleteAttendance(payload),
   });
 };
 
-export const useStudentAttendanceDeleteRecordWise = () => {
+export const useDeleteAttendanceRecordWise = () => {
   return useMutation({
     mutationFn: (payload: any) => server.deleteAttendanceRecordWise(payload),
   });

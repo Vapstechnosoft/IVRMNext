@@ -42,13 +42,13 @@ export interface IInvRStockReportData {
 
 export interface IInvRStockPayload {
     optionflag: string; // All, Item, Store, Group
-    overallflag: boolean; // mapped to "Overall" or ""
+    overallflag: string; // mapped to "Overall" or ""
     bw_dates: boolean;
     startdate?: string;
     enddate?: string;
 
     // IDs
-    invmI_Id?: number;
-    invmsT_Id?: number;
-    invmG_Id?: number;
+    INVMI_Id?: number;
+    INVMST_Id?: number;
+    INVMG_Id?: number;
 }

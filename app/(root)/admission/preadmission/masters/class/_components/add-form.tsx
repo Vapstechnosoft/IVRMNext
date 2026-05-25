@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -36,14 +36,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         resolver: zodResolver(masterClassSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            asmcl_maxcapacity: 0,
-            asmcl_order: 0,
-            asmcl_minageyear: 0,
-            asmcl_minagemonth: 0,
-            asmcl_minagedays: 0,
-            asmcl_maxageyear: 0,
-            asmcl_maxagemonth: 0,
-            asmcl_maxagedays: 0,
             asmcl_preadmflag: 0
         }
     });
@@ -86,6 +78,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 reset();
                 refetchAll();
                 onSuccess?.();
+                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
@@ -107,6 +100,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             label='Class Code'
                             required
                             id='asmcl_classcode'
+                            placeholder='Enter Class Code (e.g. C01)'
                             {...register('asmcl_classcode')}
                             error={errors.asmcl_classcode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -115,7 +109,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             label='Class Name'
                             required
                             id='asmcl_classname'
+                            placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
+                            onKeyDown={(e) => {
+                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
+                                if (e.key.length > 1) return;
+                                // Allow only letters and spaces, block numbers and special characters
+                                if (!/^[A-Za-z\s]$/.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -126,10 +129,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Max Capacity'
+                                        placeholder='Enter Max Capacity'
                                         required
                                         id='asmcl_maxcapacity'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -144,10 +148,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Order'
+                                        placeholder='Enter Class Order'
                                         required
                                         id='asmcl_order'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -164,10 +169,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Year)'
+                                        placeholder='Enter Min Age Year'
                                         required
                                         id='asmcl_minageyear'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -183,10 +189,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Month)'
+                                        placeholder='Enter Min Age Month'
                                         required
                                         id='asmcl_minagemonth'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -202,10 +209,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Min Age (Days)'
+                                        placeholder='Enter Min Age Days'
                                         required
                                         id='asmcl_minagedays'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
@@ -223,10 +231,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Year)'
+                                        placeholder='Enter Max Age Year'
                                         required
                                         id='asmcl_maxageyear'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -242,10 +251,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Month)'
+                                        placeholder='Enter Max Age Month'
                                         required
                                         id='asmcl_maxagemonth'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -261,10 +271,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Class Max Age (Days)'
+                                        placeholder='Enter Max Age Days'
                                         required
                                         id='asmcl_maxagedays'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        value={field.value}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
@@ -275,28 +286,26 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                         </div>
                     </div>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
+                        <div className='flex items-center gap-2 pt-6'>
+                            <Controller
+                                name='asmcl_preadmflag'
+                                control={control}
+                                render={({ field }) => (
+                                    <Checkbox
+                                        id='asmcl_preadmflag'
+                                        checked={field.value === 1}
+                                        onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                                    />
+                                )}
+                            />
+                            <Label
+                                aria-label='Preadmission Class'
+                                htmlFor='asmcl_preadmflag'
+                                className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                 Preadmission Class <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <RadioGroup
-                                value={String(watch('asmcl_preadmflag'))}
-                                onValueChange={(value) => setValue('asmcl_preadmflag', Number(value))}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='1' id='yes' />
-                                    <Label aria-label='Yes' htmlFor='yes'>
-                                        Yes
-                                    </Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='0' id='no' />
-                                    <Label aria-label='No' htmlFor='no'>
-                                        No
-                                    </Label>
-                                </div>
-                            </RadioGroup>
                         </div>
+                        {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}
                     </div>
 
                     {/* Root Error */}

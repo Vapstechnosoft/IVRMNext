@@ -34,7 +34,13 @@ export const useInvRGRNReportQuery = (payload: IInvRGRNPayload | null, searchPar
         queryKey: ['invRGRNReport', payload, searchParams],
         queryFn: () => {
             if (!payload) return { success: true, data: { get_grnreport: [], get_grn_item_supplier: [] }, total: 0, message: '' };
-            return getInvRGRNReport(payload, searchParams);
+            // Inject search parameters into payload as some backend methods expect them there
+            const enhancedPayload = {
+                ...payload,
+                search_query: searchParams.search_query || '',
+                search_column: searchParams.search_column || 'All'
+            };
+            return getInvRGRNReport(enhancedPayload, searchParams);
         },
         enabled: !!payload
     });

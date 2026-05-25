@@ -85,6 +85,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         {/* Document Name */}
                         <InputText
                             label='Document Name'
+                            placeholder='Enter document name'
                             required
                             id='amsmD_DocumentName'
                             {...register('amsmD_DocumentName')}
@@ -95,8 +96,8 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         {/* Description */}
                         <InputTextarea
                             label='Description'
-                            id='amsmD_Description'
                             placeholder='Enter description'
+                            id='amsmD_Description'
                             {...register('amsmD_Description')}
                             error={errors.amsmD_Description?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

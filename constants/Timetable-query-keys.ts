@@ -92,5 +92,8 @@ export const TIMETABLE_QUERY_KEYS = {
 
     STAFF_WISE_WORKING_HOURS_REPORT: 'staff_wise_working_hours_report',
     STAFF_WISE_WORKING_HOURS_ACADEMIC_YEAR: 'staff_wise_working_hours_academic_year',
-    LAB_CONSTRAINTS_DETAILS: 'lab_constraints_details'
+    LAB_CONSTRAINTS_DETAILS: 'lab_constraints_details',
+
+    MASTER_TT_SECTIONDROPDOWN: 'master_tt_sectiondropdown',
+    STAFF_REPLACEMENT_CLASS_SECTION_REPORT: 'staff_replacement_class_section_report'
 };

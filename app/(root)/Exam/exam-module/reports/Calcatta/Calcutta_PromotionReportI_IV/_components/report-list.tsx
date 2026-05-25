@@ -98,8 +98,8 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                     </div>
                                 </div>
                                 <div className='flex h-[80px] w-[80px] items-center justify-center border border-black ml-auto mr-1'>
-                                    {student.amsT_Photoname ? (
-                                        <img src={student.amsT_Photoname} alt="Student" className="h-full w-full object-contain" />
+                                    {student.amsT_Photoname || student.student_photo ? (
+                                        <img src={student.amsT_Photoname || student.student_photo} alt="Student" className="h-full w-full object-contain" />
                                     ) : (
                                         <span className="text-gray-400 text-xs">Photo</span>
                                     )}
@@ -139,32 +139,24 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                                 let cellValue: any = '';
 
                                                                 if (exam.EME_Id === 9800000) {
-                                                                    const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
+                                                                    const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 9800000 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
                                                                     if (mr1) {
-                                                                        if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                            cellValue = mr1.estmpS_ObtainedMarks || mr1.ObtainedMarks;
-                                                                        } else {
-                                                                            cellValue = 'AB';
-                                                                        }
+                                                                        cellValue = mr1.obtainedMarks || mr1.ObtainedMarks || mr1.estmpS_ObtainedMarks;
+                                                                    } else {
+                                                                        cellValue = subj.estmppsG_GroupObtMarks || '';
                                                                     }
                                                                 } else if (exam.EME_Id === 98000012) {
-                                                                    const mr1 = student.examwisetotal?.find((t: any) => t.empG_DistplayName === exam.EMPG_DistplayName && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
+                                                                    const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 98000012 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
                                                                     if (mr1) {
-                                                                        if (mr1.estmpS_PassFailFlg !== 'AB') {
-                                                                            cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest;
-                                                                        } else {
-                                                                            cellValue = 'AB';
-                                                                        }
+                                                                        cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest || mr1.obtainedMarks;
                                                                     }
                                                                 } else {
-                                                                    const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id));
+                                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && (m.ismS_Id === subj.ismS_Id));
                                                                     if (mr) {
-                                                                        if (mr.ESTMPS_PassFailFlg !== 'AB' && mr.ESTMPS_PassFailFlg !== 'M') {
-                                                                            cellValue = mr.ESTMPS_ObtainedMarks || mr.ObtainedMarks;
-                                                                        } else if (mr.ESTMPS_PassFailFlg === 'AB') {
-                                                                            cellValue = 'AB';
-                                                                        } else if (mr.ESTMPS_PassFailFlg === 'M') {
-                                                                            cellValue = 'M';
+                                                                        if (mr.passFailFlag !== 'AB' && mr.passFailFlag !== 'M') {
+                                                                            cellValue = mr.obtainedMarks || mr.ObtainedMarks;
+                                                                        } else {
+                                                                            cellValue = mr.passFailFlag;
                                                                         }
                                                                     }
                                                                 }
@@ -182,8 +174,8 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                         {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                             let totalValue: any = '';
                                                             if (exam.EME_Id === 9800000) {
-                                                                const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                                if (mr) totalValue = `${mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxmarks}`;
+                                                                const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                                if (mr) totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
                                                             }
                                                             return <td key={eIdx} className='border-black border-b border-l p-1 text-center font-bold'>{totalValue}</td>;
                                                         })}
@@ -195,8 +187,8 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                         {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                             let percValue: any = '';
                                                             if (exam.EME_Id === 9800000) {
-                                                                const mr = student.student_marks?.find((m: any) => m.EME_Id === exam.EME_Id && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                                if (mr && mr.TotalPercentage) percValue = `${mr.TotalPercentage.toFixed(2)}%`;
+                                                                const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
+                                                                if (mr && mr.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
                                                             }
                                                             return <td key={eIdx} className='border-black border-b border-l p-1 text-center font-bold'>{percValue}</td>;
                                                         })}
@@ -207,9 +199,10 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                         <td className='border-black border-r p-1 text-left uppercase'>Attendance</td>
                                                         {getgroupdetails?.map((grp: any, gIdx: number) => {
                                                             const att = student.attendance?.find((a: any) => a.term === EMPG_GroupName || a.term === grp.empG_DistplayName);
+                                                            const attText = att?.percentage ? `${att.percentage}%` : (student.attendancepercentage ? `${student.attendancepercentage}%` : '');
                                                             return (
                                                                 <td key={gIdx} colSpan={grp.groupewiseexam?.length || 1} className='border-black border-l p-1 text-center font-bold'>
-                                                                    {att?.percentage ? `${att.percentage}%` : ''}
+                                                                    {attText}
                                                                 </td>
                                                             );
                                                         })}

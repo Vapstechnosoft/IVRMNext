@@ -11,17 +11,22 @@ import { AddForm } from './_components/add-form';
 import { UpdateForm } from './_components/update-form';
 import { ToggleForm } from './_components/toggle-form';
 import { useSportsCCNames } from '@/hooks/sports/useSportsCCNames';
-import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import type { SportsCCNameDTO, ISportsCCName } from '@/types/sports/masters/sports-cc-name';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function SportsCCNamePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useSportsCCNames(searchParams);
+    const { loadData, refetchAll } = useSportsCCNames(searchParams);
 
     return (
-        <FormProvider<SportsCCNameDTO>>
-            <SportsCCNamePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+        <FormProvider<ISportsCCName>>
+            <SportsCCNamePageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
