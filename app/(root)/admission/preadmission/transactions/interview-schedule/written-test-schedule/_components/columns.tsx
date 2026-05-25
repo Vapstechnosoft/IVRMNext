@@ -8,6 +8,7 @@ import { Trash2, Edit2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useDeleteWrittenTestSchedule } from '@/hooks/admission/preadmission/transactions/use-written-test-schedule';
+import Swal from 'sweetalert2';
 
 const formatTime = (time: string) => {
     if (!time) return 'N/A';
@@ -72,8 +73,8 @@ function ScheduledNameCell({ rowData }: { rowData: IWrittenTestSchedule }) {
     return (
         <div className="flex items-center justify-between w-full pr-2">
             <span className="font-medium text-sm">{rowData.pawtS_ScheduleName}</span>
-            <Button 
-                variant="link" 
+            <Button
+                variant="link"
                 className="p-0 h-auto text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase flex items-center"
                 onClick={() => openDetailsView(rowData)}
             >
@@ -89,14 +90,50 @@ function ActionButtons({ rowData }: { rowData: IWrittenTestSchedule }) {
     const { openEditForm } = useFormContext<IWrittenTestSchedule>();
 
     const handleDelete = () => {
-        if (confirm('Are you sure you want to delete this schedule?')) {
-            deleteSchedule(rowData.pawtS_Id);
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Are you sure you want to delete this schedule?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteSchedule(rowData.pawtS_Id, {
+                    onSuccess: (res: any) => {
+                        if (res?.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: res.message || 'Schedule deleted successfully',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: res?.message || 'Failed to delete schedule',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    onError: (err: any) => {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: err?.message || 'An error occurred while deleting',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
+        });
     };
 
     return (
         <div className="flex items-center gap-2">
-            <Button 
+            {/* <Button 
                 variant="ghost" 
                 size="icon" 
                 className="h-8 w-8 text-blue-600 hover:bg-blue-100" 
@@ -104,13 +141,13 @@ function ActionButtons({ rowData }: { rowData: IWrittenTestSchedule }) {
                 title="Edit"
             >
                 <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive hover:bg-destructive/10" 
-                onClick={handleDelete} 
-                disabled={isDeleting} 
+            </Button> */}
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                onClick={handleDelete}
+                disabled={isDeleting}
                 title="Delete"
             >
                 <Trash2 className="h-4 w-4" />

@@ -3,6 +3,7 @@
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useWrittenTestScheduleDetails } from '@/hooks/admission/preadmission/transactions/use-written-test-schedule';
 import { IWrittenTestSchedule } from '@/types/admission/preadmission/transactions/written-test-schedule';
+import React from 'react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { writtenTestScheduleColumns } from './_components/columns';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -13,6 +14,8 @@ import StudentListModal from './_components/student-list-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
 
 export default function WrittenTestSchedulePage() {
     return (
@@ -30,8 +33,45 @@ function WrittenTestScheduleContent() {
         isDetailsViewOpen, closeDetailsView
     } = useFormContext<IWrittenTestSchedule>();
 
-    const tableProps = useDataTableProps(response, { dataKey: 'writtenTestSchedule' });
+    const mappedScheduleData = React.useMemo(() => {
+        if (!response?.writtenTestSchedule) return [];
+        return response.writtenTestSchedule.map((schedule: any) => {
+            // Find the count for this schedule in the studentDetails array
+            const countObj = response.studentDetails?.find(
+                (sd: any) => sd.pawts_id === schedule.pawtS_Id || sd.pawtS_Id === schedule.pawtS_Id
+            );
+            return {
+                ...schedule,
+                count: countObj?.count || 0
+            };
+        });
+    }, [response]);
 
+    const handleExportExcel = () => {
+        if (!mappedScheduleData || mappedScheduleData.length === 0) return;
+
+        const exportData = mappedScheduleData.map((item, index) => ({
+            'Sl.No': index + 1,
+            'Schedule Name': item.pawtS_ScheduleName || '',
+            'Student Count': item.count || 0,
+            'Schedule Date': item.pawtS_ScheduleDate ? format(new Date(item.pawtS_ScheduleDate), 'dd-MM-yyyy') : '',
+            'Time From': item.pawtS_ScheduleTime || '',
+            'Time To': item.pawtS_ScheduleTimeTo || '',
+            'Remarks': item.pawtS_Remarks || 'N/A'
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        XLSX.utils.book_append_sheet(wb, ws, "WrittenTestSchedule");
+        XLSX.writeFile(wb, `Written_Test_Schedule_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+    };
+
+    const tableProps = {
+        data: mappedScheduleData,
+        totalItems: mappedScheduleData.length,
+        success: true,
+    };
     return (
         <div className="container space-y-4 py-6">
             <div className="flex items-center justify-between no-print">
@@ -44,7 +84,7 @@ function WrittenTestScheduleContent() {
                     disabled={isAddFormOpen || isEditFormOpen}
                     className="shadow-lg hover:shadow-xl transition-all"
                 >
-                    <Plus className="mr-2 h-4 w-4" /> Add Schedule
+                    <Plus className="mr-2 h-4 w-4" /> Add Written Test Schedule
                 </Button>
             </div>
 
@@ -112,10 +152,22 @@ function WrittenTestScheduleContent() {
                                 <Label htmlFor="printBrake" className="text-[10px] font-bold">Print Page Brake</Label>
                             </div>
                             <div className="flex items-center gap-2 border-l pl-4">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-700">
+                                {/* <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 text-slate-700"
+                                    onClick={() => window.print()}
+                                    title="Print Schedule"
+                                >
                                     <Printer className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-green-700">
+                                </Button> */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-green-700"
+                                    onClick={handleExportExcel}
+                                    title="Export to Excel"
+                                >
                                     <FileSpreadsheet className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -141,7 +193,7 @@ function WrittenTestScheduleContent() {
                         </div>
                     </div>
 
-                    <div className="[&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-3 [&_thead_tr_th]:border-r [&_thead_tr_th]:border-slate-200 [&_thead_tr_th:last-child]:border-r-0 [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50/50">
+                    <div className="printable-content [&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-3 [&_thead_tr_th]:border-r [&_thead_tr_th]:border-slate-200 [&_thead_tr_th:last-child]:border-r-0 [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50/50">
                         <GenericDataTable<IWrittenTestSchedule>
                             {...tableProps}
                             columns={writtenTestScheduleColumns}

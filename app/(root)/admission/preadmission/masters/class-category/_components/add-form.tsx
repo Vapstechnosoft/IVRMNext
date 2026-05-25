@@ -248,6 +248,14 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                             'Save'
                         )}
                     </Button>
+                    <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        className='w-full sm:w-auto'
+                        onClick={() => window.location.reload()}>
+                        Clear
+                    </Button>
                 </div>
             </form>
         </Form>

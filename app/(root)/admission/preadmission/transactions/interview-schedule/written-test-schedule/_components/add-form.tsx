@@ -3,11 +3,12 @@
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { writtenTestScheduleSchema, WrittenTestScheduleFormValues } from '@/schemas/admission/preadmission/transactions/written-test-schedule';
-import { 
-    useWrittenTestScheduleDetails, 
+import {
+    useWrittenTestScheduleDetails,
     useSaveWrittenTestSchedule,
-    useWrittenTestSelectedRowDetails 
+    useWrittenTestSelectedRowDetails
 } from '@/hooks/admission/preadmission/transactions/use-written-test-schedule';
+import { getWrittenTestScheduleDetails } from '@/server/admission/preadmission/transactions/written_test_schedule';
 import { IWrittenTestSchedule, IStudentDetails } from '@/types/admission/preadmission/transactions/written-test-schedule';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -34,9 +35,11 @@ interface WrittenTestScheduleFormProps {
 
 export default function WrittenTestScheduleForm({ onSuccess, initialData }: WrittenTestScheduleFormProps) {
     const [selectedClassId, setSelectedClassId] = useState<number>(0);
-    const { data: details, isLoading: isDetailsLoading } = useWrittenTestScheduleDetails(selectedClassId);
-    const { data: editData } = useWrittenTestSelectedRowDetails(initialData?.pawtS_Id);
+    // Fetch initial details once (classId = 0)
+    const { data: details, isLoading: isDetailsLoading } = useWrittenTestScheduleDetails(0);
+    const { data: editData, isLoading: isEditLoading } = useWrittenTestSelectedRowDetails(initialData?.pawtS_Id);
     const { mutate: saveSchedule, isPending: isSaving } = useSaveWrittenTestSchedule();
+    const [isFetchingStudents, setIsFetchingStudents] = useState(false);
 
     const [selectedStudents, setSelectedStudents] = useState<IStudentDetails[]>([]);
     const [allStudents, setAllStudents] = useState<IStudentDetails[]>([]);
@@ -57,12 +60,21 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
         }
     });
 
+    if (isDetailsLoading || (initialData && isEditLoading)) {
+        return (
+            <div className="flex flex-col items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Loading schedule details...</p>
+            </div>
+        );
+    }
+
     // Initialize edit data
     useEffect(() => {
         if (editData && initialData) {
             const data = editData.writtenTestSchedule[0];
             const firstStudent = editData.selectedStudentDetails?.[0];
-            
+
             form.reset({
                 pawtS_Id: data.pawtS_Id,
                 pawtS_ScheduleName: data.pawtS_ScheduleName || '',
@@ -83,19 +95,56 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
             if (editData.selectedStudentDetails) {
                 // To avoid overriding the whole list, we set all students to the edited ones 
                 // and selected ones to the edited ones initially.
-                setAllStudents(editData.selectedStudentDetails);
-                setSelectedStudents(editData.selectedStudentDetails);
+                const mappedEditStudents = editData.selectedStudentDetails.map((s: any) => ({
+                    ...s,
+                    pasR_Id: s.pasR_Id || s.pasr_id,
+                    classname: s.classname || details?.admissioncatdrpall?.find(c => c.asmcL_Id === s.asmcL_Id)?.asmcL_ClassName || ''
+                }));
+                setAllStudents(mappedEditStudents);
+                setSelectedStudents(mappedEditStudents);
             }
         }
     }, [editData, initialData, form]);
 
-    // Handle class change
-    useEffect(() => {
-        if (details?.studentDetails && !initialData) {
-            setAllStudents(details.studentDetails);
+    // The initial load useEffect was incorrectly using the studentDetails array from ASMCL_ID=0 
+    // which contains schedule counts instead of actual student data. Removed to keep the table empty 
+    // until a valid class is selected from the dropdown.
+    const handleClassChange = async (classId: number) => {
+        setSelectedClassId(classId);
+        setIsFetchingStudents(true);
+        try {
+            const response = await getWrittenTestScheduleDetails(classId);
+            // Handle both studentDetails and allname5 array formats from the backend
+            const studentsData = (response as any)?.allname5?.length
+                ? (response as any).allname5
+                : ((response as any)?.allname5 || []);
+
+            if (studentsData.length > 0) {
+                // Normalize the properties so the data table columns render correctly
+                const mappedStudents = studentsData.map((s: any) => ({
+                    ...s,
+                    pasR_Id: s.pasR_Id || s.pasr_id,
+                    pasR_FirstName: s.pasR_FirstName || s.studentname || s.name || '',
+                    pasR_RegistrationNo: s.pasR_RegistrationNo || s.registrationNo || s.regno || '',
+                    pasR_Sex: s.pasR_Sex || s.gender || '',
+                    pasR_emailId: s.pasR_emailId || s.email || '',
+                    pasR_MobileNo: s.pasR_MobileNo || s.mobileNumber || '',
+                    asmcL_Id: s.asmcL_Id || s.classid || 0,
+                    classname: s.classname || s.className || details?.admissioncatdrpall?.find(c => c.asmcL_Id === (s.asmcL_Id || s.classid))?.asmcL_ClassName || '',
+                }));
+                setAllStudents(mappedStudents);
+            } else {
+                setAllStudents([]);
+            }
             setSelectedStudents([]);
+        } catch (error) {
+            console.error('Failed to fetch students for class', error);
+            setAllStudents([]);
+            setSelectedStudents([]);
+        } finally {
+            setIsFetchingStudents(false);
         }
-    }, [details?.studentDetails, initialData]);
+    };
 
     // Auto-select students logic
     const noOfStud = form.watch('NoOfStud');
@@ -120,7 +169,12 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
             {
                 accessorKey: 'pasR_FirstName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title="Student Name" />,
-                cell: ({ row }) => `${row.original.pasR_FirstName} ${row.original.pasR_MiddleName || ''} ${row.original.pasR_LastName || ''}`,
+                cell: ({ row }) => {
+                    const firstName = row.original.pasR_FirstName || '';
+                    const middleName = row.original.pasR_MiddleName ? ` ${row.original.pasR_MiddleName}` : '';
+                    const lastName = row.original.pasR_LastName ? ` ${row.original.pasR_LastName}` : '';
+                    return `${firstName}${middleName}${lastName}`.trim();
+                },
             },
             {
                 accessorKey: 'pasR_RegistrationNo',
@@ -139,8 +193,8 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                 header: ({ column }) => <DataTableColumnHeader column={column} title="Mobile Number" />,
             },
             {
-                accessorKey: 'pasR_EmailId',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Email No" />,
+                accessorKey: 'pasR_emailId',
+                header: ({ column }) => <DataTableColumnHeader column={column} title="Email Id" />,
             },
             {
                 id: 'select',
@@ -223,20 +277,52 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
         }
 
         const payload = {
-            PAWTS_ScheduleName: values.pawtS_ScheduleName,
-            PAWTS_ScheduleTime: values.pawtS_ScheduleTime,
-            PAWTS_ScheduleTimeTo: values.pawtS_ScheduleTimeTo,
-            PAWTS_ScheduleDate: format(values.pawtS_ScheduleDate, 'yyyy-MM-dd'),
-            PAWTS_AM_PM: from.getHours() >= 12 ? 'PM' : 'AM',
-            PAWTS_Remarks: values.pawtS_Remarks || "",
-            SelectedStudentData: selectedStudents,
-            SelectedStudentDataForEdit: editData?.selectedStudentDetails || [],
-            PAWTS_Superviser: values.pawtS_Superviser || "",
-            PAWTS_Skills: values.pawtS_Skills || ""
+            pawtS_Id: Number(values.pawtS_Id),
+            pawtS_ScheduleName: values.pawtS_ScheduleName,
+            pawtS_ScheduleDate: values.pawtS_ScheduleDate.toISOString(),
+            pawtS_ScheduleTime: values.pawtS_ScheduleTime,
+            pawtS_ScheduleTimeTo: values.pawtS_ScheduleTimeTo,
+            pawtS_AM_PM: from.getHours() >= 12 ? 'PM' : 'AM',
+            pawtS_Remarks: values.pawtS_Remarks || "",
+            pawtS_Superviser: values.pawtS_Superviser || "",
+            pawtS_Skills: values.pawtS_Skills || "",
+            selectedStudentData: selectedStudents.map(s => ({
+                pasR_Id: s.pasR_Id,
+                pasR_emailId: s.pasR_emailId || "",
+                pasR_MobileNo: Number(s.pasR_MobileNo) || 0,
+                pasr_RegistrationNo: s.pasR_RegistrationNo || ""
+            })),
+            selectedStudentDataForEdit: editData?.selectedStudentDetails || []
         };
 
         saveSchedule(payload, {
-            onSuccess: () => onSuccess()
+            onSuccess: (res: any) => {
+                if (res?.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: res.message || 'Schedule created successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        onSuccess(); // Close form and refetch
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: res?.message || 'Failed to save schedule',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            onError: (err: any) => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: err?.message || 'An error occurred while saving',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
     }
 
@@ -266,11 +352,11 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                             render={({ field }: any) => (
                                 <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
                                     <FormLabel className="text-right">Class: <span className="text-red-500">*</span></FormLabel>
-                                    <Select 
+                                    <Select
                                         onValueChange={(val: any) => {
                                             field.onChange(val);
-                                            setSelectedClassId(Number(val));
-                                        }} 
+                                            handleClassChange(Number(val));
+                                        }}
                                         value={field.value}
                                         disabled={!!initialData}
                                     >
@@ -301,10 +387,11 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                                 <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
                                     <FormLabel className="text-right">Date: <span className="text-red-500">*</span></FormLabel>
                                     <div className="col-span-3">
-                                        <DatePicker 
-                                            date={field.value} 
-                                            setDate={field.onChange} 
+                                        <DatePicker
+                                            date={field.value}
+                                            setDate={field.onChange}
                                             placeholder="Schedule Date"
+                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                         />
                                     </div>
                                     <FormMessage className="col-start-2 col-span-3" />
@@ -393,10 +480,10 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                                     <FormItem className="flex items-center gap-4">
                                         <FormLabel className="font-bold w-40 text-right">Auto Select Students: </FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                type="number" 
-                                                {...field} 
-                                                className="h-10 w-48 bg-slate-100" 
+                                            <Input
+                                                type="number"
+                                                {...field}
+                                                className="h-10 w-48 bg-slate-100"
                                                 placeholder="Enter Students Count"
                                                 onChange={(e) => field.onChange(Number(e.target.value))}
                                             />
@@ -426,7 +513,7 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                             <GenericDataTable
                                 data={allStudents}
                                 columns={studentColumns}
-                                isLoading={isDetailsLoading}
+                                isLoading={isDetailsLoading || isFetchingStudents}
                                 isSearchRequired={true}
                                 loadingMessage="Fetching students..."
                             />
@@ -435,7 +522,7 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                 </Card>
 
                 <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline" onClick={() => form.reset()} disabled={isSaving}>
+                    <Button type="button" variant="outline" onClick={() => window.location.reload()} disabled={isSaving}>
                         <RotateCcw className="mr-2 h-4 w-4" /> Reset
                     </Button>
                     <Button type="submit" disabled={isSaving}>
@@ -496,13 +583,13 @@ function TimeSpinnerField({
             <div className="flex items-center gap-4">
                 <Label className="text-right w-40 font-bold">{label}</Label>
                 <div className="flex items-center border rounded-md px-3 py-1 shadow-sm bg-white hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 w-fit">
-                    
+
                     {/* HOURS */}
                     <div className="flex flex-col items-center">
                         <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h === 12 ? 1 : h + 1, m, ap)}>
                             <ChevronUp className="h-4 w-4" />
                         </button>
-                        <div 
+                        <div
                             ref={hoursRef}
                             className="w-8 text-center text-lg focus:outline-none focus:bg-blue-50 rounded"
                             contentEditable
@@ -528,7 +615,7 @@ function TimeSpinnerField({
                         <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, (m + 1) % 60, ap)}>
                             <ChevronUp className="h-4 w-4" />
                         </button>
-                        <div 
+                        <div
                             ref={minutesRef}
                             className="w-8 text-center text-lg focus:outline-none focus:bg-blue-50 rounded"
                             contentEditable
@@ -552,7 +639,7 @@ function TimeSpinnerField({
                         <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
                             <ChevronUp className="h-4 w-4" />
                         </button>
-                        <div 
+                        <div
                             ref={ampmRef}
                             className="w-10 text-center font-medium focus:outline-none focus:bg-blue-50 rounded cursor-pointer select-none"
                             onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}
