@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import Swal from 'sweetalert2';
 
 interface StudentListModalProps {
     rowData: IWrittenTestSchedule;
@@ -21,12 +22,52 @@ export default function StudentListModal({ rowData, isOpen, onClose }: StudentLi
     const students = details?.selectedStudentDetails || [];
 
     const handleDelete = (student: IStudentDetails) => {
-        if (confirm(`Are you sure you want to remove ${student.pasR_FirstName} from this schedule?`)) {
-            deleteStudent({
-                PAWTS_Id: rowData.pawtS_Id,
-                PASR_Id: student.pasR_Id
-            });
-        }
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Are you sure you want to remove ${student.pasR_FirstName} from this schedule?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!',
+            customClass: { container: 'pointer-events-auto' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteStudent({
+                    PAWTS_Id: rowData.pawtS_Id,
+                    PASR_Id: student.pasR_Id || student.pasr_id || 0
+                }, {
+                    onSuccess: (res: any) => {
+                        if (res?.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: res.message || 'Student removed successfully',
+                                icon: 'success',
+                                confirmButtonText: 'OK',
+                                customClass: { container: 'pointer-events-auto' }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: res?.message || 'Failed to remove student',
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                                customClass: { container: 'pointer-events-auto' }
+                            });
+                        }
+                    },
+                    onError: (err: any) => {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: err?.message || 'An error occurred while removing the student',
+                            icon: 'error',
+                            confirmButtonText: 'OK',
+                            customClass: { container: 'pointer-events-auto' }
+                        });
+                    }
+                });
+            }
+        });
     };
 
     return (
@@ -63,8 +104,8 @@ export default function StudentListModal({ rowData, isOpen, onClose }: StudentLi
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {students.map((student, index) => (
-                                    <TableRow key={student.pasR_Id}>
+                                {students.map((student: IStudentDetails, index: number) => (
+                                    <TableRow key={student.pasR_Id || student.pasr_id}>
                                         <TableCell>{index + 1}</TableCell>
                                         <TableCell className="font-medium">
                                             {[student.pasR_FirstName, student.pasR_MiddleName, student.pasR_LastName]

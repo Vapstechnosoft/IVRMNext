@@ -42,6 +42,8 @@ export interface IStudentDetails {
     scheduletimeto?: string;
     regno?: string;
     pasr_id?: number;
+    count?: number;
+    pawts_id?: number;
 }
 
 export interface IWrittenTestScheduleDetails {
