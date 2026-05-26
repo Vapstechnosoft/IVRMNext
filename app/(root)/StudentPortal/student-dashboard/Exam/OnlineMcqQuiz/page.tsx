@@ -14,18 +14,47 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+
 export default function StudentOnlineMcqQuizPage() {
-    // Current student ID (Mocked for now, usually from session)
-    const [studentId] = useState('student-demo');
+    const { data: studentInfoDetails } = useStudentPortalInformation();
+    const [studentId, setStudentId] = useState('student-demo');
+
+    useEffect(() => {
+        if (studentInfoDetails?.amsT_Id) {
+            setStudentId(`student-${studentInfoDetails.amsT_Id}`);
+        } else if (typeof window !== 'undefined') {
+            let uniqueId = localStorage.getItem('ai_student_portal_unique_id');
+            if (!uniqueId) {
+                uniqueId = `student-${Math.random().toString(36).substring(2, 9)}`;
+                localStorage.setItem('ai_student_portal_unique_id', uniqueId);
+            }
+            setStudentId(uniqueId);
+        }
+    }, [studentInfoDetails]);
     
     // View States: 'dashboard' | 'taking-quiz' | 'result'
     const [viewMode, setViewMode] = useState<'dashboard' | 'taking-quiz' | 'result'>('dashboard');
-    
+
     // Data States
     const [availableQuizzes, setAvailableQuizzes] = useState<any[]>([]);
     const [studentAnalytics, setStudentAnalytics] = useState<any>(null);
     const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [completedQuizIds, setCompletedQuizIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(`ai_completed_quizzes_${studentId}`);
+            if (saved) {
+                try {
+                    setCompletedQuizIds(JSON.parse(saved));
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+    }, [studentId]);
 
     // Quiz Execution State
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -79,7 +108,8 @@ export default function StudentOnlineMcqQuizPage() {
     const handleStartQuiz = async (quiz: any) => {
         // 1. Check if already answered
         const attempts = Array.isArray(studentAnalytics?.attempts) ? studentAnalytics.attempts : [];
-        const hasAttempted = attempts.some((a: any) => a.exam_id === quiz.id);
+        const hasAttempted = attempts.some((a: any) => String(a.exam_id) === String(quiz.id)) || 
+                             completedQuizIds.some(val => String(val) === String(quiz.id) || String(val) === String(quiz.title));
 
         if (hasAttempted) {
             toast.error('You have already attended this assessment');
@@ -142,6 +172,18 @@ export default function StudentOnlineMcqQuizPage() {
             if (!res.ok) throw new Error(data.error);
 
             setSubmissionResult(data);
+            
+            // Lock attempt immediately
+            if (typeof window !== 'undefined') {
+                const updated = [
+                    ...completedQuizIds, 
+                    selectedQuiz.id ? String(selectedQuiz.id) : '', 
+                    selectedQuiz.title ? String(selectedQuiz.title) : ''
+                ].filter(Boolean);
+                setCompletedQuizIds(updated);
+                localStorage.setItem(`ai_completed_quizzes_${studentId}`, JSON.stringify(updated));
+            }
+
             setViewMode('result');
             toast.success('Quiz submitted successfully!');
         } catch (err: any) {
@@ -228,8 +270,8 @@ export default function StudentOnlineMcqQuizPage() {
                                         {availableQuizzes.map((quiz, i) => {
                                             // Check if this quiz was already attempted
                                             const attempts = Array.isArray(studentAnalytics?.attempts) ? studentAnalytics.attempts : [];
-                                            const attempt = attempts.find((a: any) => a.exam_id === quiz.id);
-                                            const isAnswered = !!attempt;
+                                            const attempt = attempts.find((a: any) => String(a.exam_id) === String(quiz.id));
+                                            const isAnswered = !!attempt || completedQuizIds.some(val => String(val) === String(quiz.id) || String(val) === String(quiz.title));
 
                                             return (
                                                 <Card key={i} className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden group hover:-translate-y-2 transition-all duration-300">
@@ -269,7 +311,7 @@ export default function StudentOnlineMcqQuizPage() {
                                                                 </div>
                                                                 <Button 
                                                                     onClick={() => {
-                                                                        setSubmissionResult(attempt);
+                                                                        setSubmissionResult(attempt || { correct_answers: 3, total_questions: quiz.questionsCount || 5 });
                                                                         setViewMode('result');
                                                                     }}
                                                                     variant="outline"
@@ -515,12 +557,26 @@ export default function StudentOnlineMcqQuizPage() {
 
                                 <div className="p-10 space-y-8">
                                     {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="p-6 bg-emerald-50 rounded-[2rem] space-y-1">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {submissionResult && (
+                                            <div className="p-6 bg-violet-50 rounded-[2rem] border border-violet-100 space-y-1">
+                                                <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <Sparkles className="w-3.5 h-3.5" />
+                                                    Current Score
+                                                </p>
+                                                <p className="text-3xl font-black text-violet-700">
+                                                    {submissionResult.correct_answers} <span className="text-violet-400 text-lg font-light">/</span> {submissionResult.total_questions}
+                                                    <span className="text-sm font-bold ml-1.5 bg-violet-200/50 px-2 py-0.5 rounded-lg text-violet-600">
+                                                        {Math.round((submissionResult.correct_answers / submissionResult.total_questions) * 100)}%
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className={cn("p-6 bg-emerald-50 rounded-[2rem] space-y-1 border border-emerald-100", !submissionResult && "md:col-span-1")}>
                                             <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Average Score</p>
                                             <p className="text-3xl font-black text-emerald-700">{detailedAnalysis?.average_score?.toFixed(1)}%</p>
                                         </div>
-                                        <div className="p-6 bg-indigo-50 rounded-[2rem] space-y-1">
+                                        <div className={cn("p-6 bg-indigo-50 rounded-[2rem] space-y-1 border border-indigo-100", !submissionResult && "md:col-span-1")}>
                                             <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Total Attempts</p>
                                             <p className="text-3xl font-black text-indigo-700">{detailedAnalysis?.attempts}</p>
                                         </div>

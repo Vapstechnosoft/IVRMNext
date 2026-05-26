@@ -214,6 +214,7 @@ export function HeaderSearch() {
 
     const startRecording = async () => {
         try {
+            setQuery(""); // Clear search bar input to reveal the listening placeholder
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const recorder = new MediaRecorder(stream);
             chunksRef.current = [];
@@ -509,7 +510,7 @@ export function HeaderSearch() {
                     <Search size={16} />
                 </span>
                 <Input
-                    placeholder='Search pages or data...'
+                    placeholder={isTranscribing ? 'Transcribing audio...' : isRecording ? 'Listening... Speak now...' : 'Search pages or data...'}
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
