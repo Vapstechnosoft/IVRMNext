@@ -163,7 +163,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Academic Year */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                             <Controller
                                 control={control}
                                 name="asmaY_Id"
@@ -241,7 +241,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* House Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>House Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmH_Id"
@@ -267,7 +267,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Program Master (Events) */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Program Master</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Program Master</Label>
                             <Controller
                                 control={control}
                                 name="spccE_Id"
@@ -299,7 +299,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Event Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Event Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Event Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmE_Id"
@@ -328,7 +328,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
                         {/* Division Name */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Division Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Division Name</Label>
                             <Controller
                                 control={control}
                                 name="spccmD_Id"

@@ -199,7 +199,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                     <div className="space-y-6">
                         {/* Academic Year */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Academic Year</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Academic Year</Label>
                             <Controller
                                 control={control}
                                 name="asmaY_Id"
@@ -262,7 +262,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                         {/* Class (CS Only) */}
                         {watchedType === 'CS' && (
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Class</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                 <Controller
                                     control={control}
                                     name="asmcL_Id"
@@ -295,7 +295,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                     <div className="space-y-6">
                         {/* House Selection */}
                         <div className="flex flex-col gap-2">
-                            <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>House Name</Label>
+                            <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">House Name</Label>
                             <Controller
                                 control={control}
                                 name="selectedhouselist"
@@ -350,7 +350,7 @@ export default function ReportForm({ onReportGenerated, onReset, isPending }: Re
                         {/* Section Selection (CS Only) */}
                         {watchedType === 'CS' && (
                             <div className="flex flex-col gap-2">
-                                <Label className='font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']'>Section Name</Label>
+                                <Label className="font-semibold text-sm after:ml-0.5 after:text-red-500 after:content-['*']">Section Name</Label>
                                 <Controller
                                     control={control}
                                     name="selectedSectionlist"

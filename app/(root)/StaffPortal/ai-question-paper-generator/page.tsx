@@ -308,7 +308,7 @@ export default function AIQuestionPaperGenerator() {
                                     </CardHeader>
                                     <CardContent className='space-y-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
                                         <div className="grid w-full items-center gap-1.5">
-                                            <Label htmlFor="pdf-upload" className='after:ml-0.5 after:text-red-500 after:content-['*']'>Textbook (PDF)</Label>
+                                            <Label htmlFor="pdf-upload" className="after:ml-0.5 after:text-red-500 after:content-['*']">Textbook (PDF)</Label>
                                             {file ? (
                                                 <div className='fade-in slide-in-from-top-1 flex animate-in items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 duration-300'>
                                                     <div className="flex items-center gap-3">
@@ -343,7 +343,7 @@ export default function AIQuestionPaperGenerator() {
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2">
-                                            <Label htmlFor="chapters" className='after:ml-0.5 after:text-red-500 after:content-['*']'>Chapter Numbers</Label>
+                                            <Label htmlFor="chapters" className="after:ml-0.5 after:text-red-500 after:content-['*']">Chapter Numbers</Label>
                                             <Input
                                                 id="chapters"
                                                 placeholder="e.g. 1, 2, 5"
