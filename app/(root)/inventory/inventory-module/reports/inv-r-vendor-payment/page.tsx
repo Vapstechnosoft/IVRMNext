@@ -62,14 +62,35 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
+    const extractReportData = (result: any) => {
+        if (!result?.data) return [];
+        
+        // 1. data is directly an array
+        if (Array.isArray(result.data)) return result.data;
+        
+        // 2. data.$values is an array
+        if (result.data.$values && Array.isArray(result.data.$values)) return result.data.$values;
+        
+        // 3. getreportdata is an array (common in some facades)
+        if (Array.isArray(result.data.getreportdata)) return result.data.getreportdata;
+        
+        // 4. getreportdata.$values is an array
+        if (result.data.getreportdata?.$values && Array.isArray(result.data.getreportdata.$values)) {
+            return result.data.getreportdata.$values;
+        }
+
+        return [];
+    };
+
     const { data: reportResult, isFetching } = useInvVendorPaymentReportQuery(currentPayload, {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        search_columns: 'invmS_SupplierName,invmgrN_GRNNo,invspT_Remarks,invspT_ModeOfPayment'
     });
 
-    const reportData = reportResult?.data || [];
+    const reportData = extractReportData(reportResult);
     const totalRecords = reportResult?.total || 0;
 
     const { mutate: fetchDetails, isPending: isDetailsLoading } = useInvVendorDetails();
@@ -93,8 +114,12 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
 
     // Show toast for empty search results or initial empty report
     useEffect(() => {
-        if (!isFetching && currentPayload && totalRecords === 0) {
-            toast.error("No record found");
+        if (!isFetching && currentPayload && totalRecords === 0 && !isFetching) {
+            // Only show if we've actually finished fetching and there's a payload
+            const timer = setTimeout(() => {
+                if (totalRecords === 0) toast.error("No record found");
+            }, 500);
+            return () => clearTimeout(timer);
         }
     }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
@@ -184,11 +209,11 @@ export default function VendorPaymentReportPage(props: { searchParams: Promise<a
             };
 
             const response = await getInvVendorPaymentReport(
-                { ...currentPayload, search_query: searchQuery || '' }, 
+                { ...currentPayload, search_query: searchQuery || '', search_columns: 'invmS_SupplierName,invmgrN_GRNNo,invspT_Remarks,invspT_ModeOfPayment' }, 
                 { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' }
             );
             
-            const allData = response?.data || [];
+            const allData = extractReportData(response);
             
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');

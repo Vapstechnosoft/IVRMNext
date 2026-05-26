@@ -335,7 +335,11 @@ export function HeaderSearch() {
         const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
-            return searchTerms.every(term => text.includes(term));
+            return searchTerms.every(term => {
+                if (text.includes(term)) return true;
+                if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                return false;
+            });
         }).slice(0, 7); // Limit suggestions
         setResults(filteredPages);
 
@@ -360,8 +364,12 @@ export function HeaderSearch() {
                             // Re-filter client pages using translated string
                             const translatedTerms = searchTerm.toLowerCase().split(' ');
                             const newFilteredPages = allPages.filter(item => {
-                                const text = `${item.title} ${item.subtitle}`.toLowerCase();
-                                return translatedTerms.every(term => text.includes(term));
+                                const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
+                                return translatedTerms.every(term => {
+                                    if (text.includes(term)) return true;
+                                    if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                                    return false;
+                                });
                             }).slice(0, 7);
                             setResults(newFilteredPages);
                         }
@@ -541,7 +549,7 @@ export function HeaderSearch() {
                     className={cn(
                         "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
                         isRecording
-                            ? "bg-white shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-110 z-10"
+                            ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.5)] scale-110 z-10 animate-bounce"
                             : "hover:bg-purple-50 text-muted-foreground hover:text-purple-600 group/mic"
                     )}
                     title={isRecording ? "Stop recording" : "Voice search"}
@@ -553,12 +561,7 @@ export function HeaderSearch() {
                             <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" />
                         </div>
                     ) : isRecording ? (
-                        <div className="flex gap-1 items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-purple-dot-1" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-purple-dot-2" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-purple-dot-3" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-700 animate-purple-dot-4" />
-                        </div>
+                        <Mic className="h-5 w-5 text-white animate-pulse" />
                     ) : (
                         <Mic className="h-5 w-5 text-purple-600 transition-colors" />
                     )}

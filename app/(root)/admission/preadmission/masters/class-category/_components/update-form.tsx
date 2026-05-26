@@ -349,7 +349,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                 </div>
 
                 {/* Update Button */}
-                <div className='flex items-center justify-center pt-4'>
+                <div className='flex items-center justify-center gap-2 pt-4'>
                     <Button
                         type='submit'
                         size='sm'
@@ -364,6 +364,14 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                         ) : (
                             'Update'
                         )}
+                    </Button>
+                    <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        className='min-w-[100px]'
+                        onClick={() => window.location.reload()}>
+                        Clear
                     </Button>
                 </div>
             </form>

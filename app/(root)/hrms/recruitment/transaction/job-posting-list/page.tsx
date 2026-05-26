@@ -37,10 +37,10 @@ function JobPostingListPageContent({
     const tableProps = useDataTableProps(response);
     const session = useSession();
     useEffect(() => {
-        if (session?.data?.role === undefined) {
+        if (session?.status === 'authenticated' && session?.data?.role === undefined) {
             window.location.reload();
         }
-    }, [session?.data?.role]);
+    }, [session?.data?.role, session?.status]);
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>

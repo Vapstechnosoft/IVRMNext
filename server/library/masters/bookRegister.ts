@@ -1,11 +1,11 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-import { getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { bookRegisterSchema } from '@/schemas/library/bookRegister';
 import type { ApiSearchparams } from '@/types';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import type { IBookRegisterList } from '@/types/library/transactions/transactions';
+import { ensureArray } from '@/lib/utils';
 
 const BASE_URL = 'BookRegister/';
 
@@ -34,12 +34,15 @@ export async function saveBookRegister(data: BookRegisterPayload) {
     }
 }
 
-export async function deactivateBookRegister(data: { LMB_Id: number; LMB_BookTitle?: string }) {
+export async function deactivateBookRegister(data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string }) {
     try {
-        const response = await api.post<any>('library', `${BASE_URL}deactiveY`, data);
+        const payload = {
+            LMBANO_Id: Number(data.LMBANO_Id || (data as any).lmbanO_Id || data.LMB_Id)
+        };
+        const response = await api.post<any>('library', `/BookRegister/deactiveY`, payload);
         return response;
     } catch (error) {
-        return { success: false, message: 'Failed to delete record' };
+        return { success: false, message: 'Failed to toggle status' };
     }
 }
 
@@ -56,19 +59,19 @@ export async function getLanguageDropdown() {
 export async function getInitialData() {
     try {
         // Fetch main load data (contains most dropdowns)
-        const mainLoadUrl = `/BookRegister/book-register-main-load/21602`;
+        const mainLoadUrl = 'BookRegister/book-register-main-load/21602';
         const mainLoadResponse = await api.get<any>('library', mainLoadUrl);
 
         // Fetch category list specifically as it seems to be missing from main-load
-        const categoryUrl = `/MasterCategory/master-books-category-list`;
+        const categoryUrl = 'MasterCategory/master-books-category-list';
         const categoryResponse = await api.get<any>('library', categoryUrl);
 
         // Fetch subject list
-        const subjectUrl = `/BookRegister/book-regester-subject-dropdown`;
+        const subjectUrl = 'BookRegister/book-register-subject-dropdown';
         const subjectResponse = await api.get<any>('library', subjectUrl);
 
         // Fetch department list
-        const departmentUrl = `/BookRegister/department-dropdown`;
+        const departmentUrl = 'MasterDepartmentFacade/get-master-department-list';
         const departmentResponse = await api.get<any>('library', departmentUrl);
 
         // Fetch language list
@@ -76,10 +79,10 @@ export async function getInitialData() {
 
         return {
             ...(mainLoadResponse || {}),
-            categorylist: categoryResponse?.data || mainLoadResponse?.categorylist || [],
-            subjectlist: subjectResponse?.subjectlist || subjectResponse?.subjectList || subjectResponse?.data || mainLoadResponse?.subjectlist || [],
-            deptlist: departmentResponse?.deptlist || departmentResponse?.deptList || departmentResponse?.data || mainLoadResponse?.deptlist || [],
-            langlist: Array.isArray(languageResponse) ? languageResponse : languageResponse?.data || []
+            categorylist: ensureArray(categoryResponse),
+            subjectlist: ensureArray(subjectResponse),
+            deptlist: ensureArray(departmentResponse),
+            langlist: Array.isArray(languageResponse) ? languageResponse : ensureArray(languageResponse)
         };
     } catch (error) {
         return { success: false, message: 'Failed to fetch initial data' };

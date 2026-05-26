@@ -222,6 +222,10 @@ export default function TabBookDetails({
                     <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
                     <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
                     <InputText label='Book PageNo' {...register('lmBkf_PageNo')} error={errors.lmBkf_PageNo?.message} />
+                    
+                    <InputText label='First Summary' {...register('lmB_FirstSummary')} />
+                    <InputText label='Second Summary' {...register('lmB_SecondSummary')} />
+                    <InputText label='Third Summary' {...register('lmB_ThirdSummary')} />
 
                     <div className='flex flex-col gap-1.5'>
                         <Label>
@@ -348,25 +352,28 @@ function PhotoUploadBox({
             {!value ? (
                 <label
                     className={cn(
-                        'flex h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-all hover:border-primary hover:bg-white',
+                        'flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-all hover:border-primary hover:bg-white',
                         isUploading ? 'border-blue-400 bg-blue-100' : 'border-gray-300 bg-white'
                     )}>
                     {isUploading ? (
-                        <div className='flex flex-col items-center gap-2'>
-                            <Loader2 className='h-6 w-6 animate-spin text-primary' />
-                            <span className='font-medium text-primary text-xs'>Uploading...</span>
+                        <div className='flex flex-col items-center gap-1'>
+                            <Loader2 className='h-5 w-5 animate-spin text-primary' />
+                            <span className='font-medium text-primary text-[10px]'>Uploading...</span>
                         </div>
                     ) : (
-                        <>
-                            <Upload className='h-8 w-8 text-primary' />
-                            <span className='mt-2 font-medium text-gray-700 text-xs'>Upload {label}</span>
-                        </>
+                        <div className='flex flex-col items-center gap-2'>
+                            <Upload className='h-6 w-6 text-blue-600' />
+                            <div className='flex h-7 w-44 items-center justify-center rounded border border-gray-400 bg-yellow-400 px-2 text-[10px] font-bold text-black transition-colors hover:bg-yellow-500'>
+                                Choose File
+                            </div>
+                            <span className='font-bold text-gray-500 text-[9px] uppercase tracking-wider'>Upload {label}</span>
+                        </div>
                     )}
                     <input type='file' className='hidden' accept='image/*' onChange={handlePhotoUpload} disabled={isUploading} />
                 </label>
             ) : (
                 <div className='space-y-2'>
-                    <div className='relative h-40 overflow-hidden rounded-lg border-2 border-green-300 shadow-sm'>
+                    <div className='relative h-32 overflow-hidden rounded-lg border-2 border-green-300 shadow-sm'>
                         <img src={value} alt={label} className='h-full w-full object-cover' />
                         <div className='absolute right-1 top-1 flex gap-1'>
                             <Button

@@ -27,6 +27,8 @@ export default function LibraryCreationTab({
     const { openAddForm } = useFormContext<IMasterLibraryList>();
     const tableProps = useDataTableProps(
         Array.isArray(response) ? { data: response, success: true } :
+        response?.data?.liballdata ? { ...response, data: response.data.liballdata } :
+        response?.data?.list ? { ...response, data: response.data.list } :
         response?.alldata ? { ...response, data: response.alldata } : 
         response?.get_master_library ? { ...response, data: response.get_master_library } : 
         response?.['master-library-list'] ? { ...response, data: response['master-library-list'] } : 

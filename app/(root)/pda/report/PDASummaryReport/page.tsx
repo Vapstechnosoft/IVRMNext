@@ -204,8 +204,6 @@ export default function PDASummaryReportPage() {
                 </CardHeader>
                 <CardContent className="p-8">
                     <PDASummaryReportForm
-                        academicYears={loadData?.academicyearlist?.length > 0 ? loadData.academicyearlist : (loadData?.fillyear?.$values || [])}
-                        classes={loadData?.classlist?.$values || []}
                         onSubmit={handleFormSubmit}
                         onReset={() => window.location.reload()}
                     />

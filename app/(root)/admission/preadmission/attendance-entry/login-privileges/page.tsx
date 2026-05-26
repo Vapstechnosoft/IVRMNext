@@ -27,7 +27,7 @@ export default function LoginPrivilegePage() {
 }
 
 function LoginPrivilegePageContent() {
-    const [role, setRole] = useState<string>('2');
+    const [role, setRole] = useState<string>('');
     const [selectedStaffId, setSelectedStaffId] = useState<string>('0');
 
     const {
@@ -56,7 +56,7 @@ function LoginPrivilegePageContent() {
                 let data: any[] = [];
                 let total = 0;
                 
-                const candidate = rawData.loginPData;
+                const candidate = rawData.loginPrivileges || rawData.loginPData;
                 if (Array.isArray(candidate)) {
                     data = candidate;
                 } else if (Array.isArray(rawData)) {
@@ -67,7 +67,8 @@ function LoginPrivilegePageContent() {
                 
                 setTableData(data);
                 setTotalItems(total);
-                setShowList(true);
+                // Grid will only show when onSearchSuccess is called
+                // setShowList(true);
 
                 // Extract mapping data (Available classes and subjects)
                 const rawClassList = rawData.classsectionList || [];
@@ -304,7 +305,8 @@ function PrivilegeForm({
             });
 
             if (result) {
-                const csList = (result.classsectionList || result.data?.classsectionList || []).map((item: any) => ({
+                const rawClassList = result.classSectionList || result.data?.classSectionList || result.classsectionList || result.data?.classsectionList || [];
+                const csList = rawClassList.map((item: any) => ({
                     ...item,
                     id: `${item.asmcL_Id}-${item.asmC_Id}`,
                     label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
@@ -314,7 +316,7 @@ function PrivilegeForm({
                 const subList = result.subjectList || result.data?.subjectList || [];
                 setMappingSubjects(subList);
 
-                const privileges = result.loginPData || result.data?.loginPData || [];
+                const privileges = result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
                 const total = result.total || result.data?.count || privileges.length;
                 onSearchSuccess(privileges, total);
                 setShowMapping(true);
@@ -471,148 +473,108 @@ function PrivilegeForm({
                 size='md'
                 className='border-t-4 border-t-primary shadow-lg'>
                 <div className='p-6'>
-                    {/* Role Selection - Compact */}
-                    <div className='mb-6'>
-                        <Label className='mb-3 block font-medium text-muted-foreground text-sm'>
-                            Select Entry Type <span className='text-destructive'>*</span>
-                        </Label>
-                        <RadioGroup
-                            value={role}
-                            onValueChange={async (val) => {
-                                setRole(val);
-                                // Reset selections and mapping visibility
-                                setShowMapping(false);
-                                setSelectedClsSecSubs([]);
-                                setSelectedClassSections([]);
-                                setSelectedSubjects([]);
-                                setMappingClassSections([]);
-                                setMappingSubjects([]);
-
-                                // Only fetch if Year and Staff are selected and valid
-                                if (selectedYearId && selectedStaffId && !isNaN(Number(selectedYearId)) && !isNaN(Number(selectedStaffId))) {
-                                    try {
-                                        const entryTypeFlag = Number(val);
-                                        const result: any = await fetchDataByType({
-                                            ASMAY_Id: Number(selectedYearId),
-                                            ASALU_EntryTypeFlag: entryTypeFlag,
-                                            HRME_Id: Number(selectedStaffId)
-                                        });
-
-                                        if (result) {
-                                            // Populate Mapping Class Sections
-                                            const classSecListRaw = result.classsectionList || [];
-                                            let csList: any[] = [];
-                                            if (Array.isArray(classSecListRaw)) {
-                                                const seenIds = new Set();
-                                                csList = classSecListRaw.reduce((acc: any[], item: any) => {
-                                                    const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
-                                                    if (!seenIds.has(uniqueId)) {
-                                                        seenIds.add(uniqueId);
-                                                        acc.push({
-                                                            id: uniqueId,
-                                                            label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
-                                                            classId: item.asmcL_Id,
-                                                            sectionId: item.asmC_Id
-                                                        });
-                                                    }
-                                                    return acc;
-                                                }, []);
-                                                setMappingClassSections(csList);
-                                            }
-
-                                            // Populate Mapping Subjects
-                                            if (Array.isArray(result.subjectList)) {
-                                                setMappingSubjects(result.subjectList);
-                                            } else if (Array.isArray(result.data?.subjectList)) {
-                                                setMappingSubjects(result.data.subjectList);
-                                            }
-
-                                            setShowMapping(true);
-                                        }
-                                    } catch (error) {
-                                        console.error('Error fetching data on role change:', error);
-                                        toast.error('Failed to fetch details for selected type');
-                                    }
-                                }
-                            }}
-                            className='flex flex-wrap items-center gap-6'>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='1' id='r_sub' />
-                                <Label htmlFor='r_sub' className='cursor-pointer font-normal'>
-                                    Subject Teacher
-                                </Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='2' id='r_class' />
-                                <Label htmlFor='r_class' className='cursor-pointer font-normal'>
-                                    Class Teacher
-                                </Label>
-                            </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='3' id='r_others' />
-                                <Label htmlFor='r_others' className='cursor-pointer font-normal'>
-                                    Others
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-
-                    <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        {/* Academic Year */}
-                        <div className='space-y-2'>
-                            <Label className='font-medium text-sm'>
-                                Academic Year <span className='text-destructive'>*</span>
-                            </Label>
-                            <Select
-                                value={selectedYearId}
-                                onValueChange={(val) => {
-                                    setSelectedYearId(val);
-                                    setShowMapping(false);
+                    {/* Role Selection - Centered like legacy */}
+                    <div className='mb-8 flex justify-center'>
+                        <div className='flex items-center gap-8 rounded-md border px-8 py-3 shadow-sm'>
+                            <RadioGroup
+                                value={role}
+                                onValueChange={async (val) => {
+                                    setRole(val);
+                                    // Reset selections but keep mapping visible
+                                    setShowMapping(true);
+                                    setSelectedClsSecSubs([]);
+                                    setSelectedClassSections([]);
+                                    setSelectedSubjects([]);
                                     setMappingClassSections([]);
                                     setMappingSubjects([]);
-                                }}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {academicYears.map((y: any) => (
-                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                            {y.asmaY_Year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+
+                                    // Only fetch if Year and Staff are selected and valid
+                                    if (selectedYearId && selectedStaffId && !isNaN(Number(selectedYearId)) && !isNaN(Number(selectedStaffId))) {
+                                        handleSearch(selectedYearId, val, selectedStaffId);
+                                    }
+                                }}
+                                className='flex flex-wrap items-center gap-8'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='1' id='r_sub' />
+                                    <Label htmlFor='r_sub' className='cursor-pointer font-normal'>
+                                        Subject Teacher
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='2' id='r_class' />
+                                    <Label htmlFor='r_class' className='cursor-pointer font-normal'>
+                                        Class Teacher
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='3' id='r_others' />
+                                    <Label htmlFor='r_others' className='cursor-pointer font-normal'>
+                                        Others
+                                    </Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    <div className='mx-auto max-w-xl space-y-4'>
+                        {/* Academic Year */}
+                        <div className='flex items-center'>
+                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
+                                Academic Year:<span className='text-destructive ml-1'>*</span>
+                            </Label>
+                            <div className='w-2/3'>
+                                <Select
+                                    value={selectedYearId}
+                                    onValueChange={(val) => {
+                                        setSelectedYearId(val);
+                                        setMappingClassSections([]);
+                                        setMappingSubjects([]);
+                                        // Auto-search if staff is also selected
+                                        if (selectedStaffId && val && selectedStaffId !== '0' && val !== '0') {
+                                            handleSearch(val, role, selectedStaffId);
+                                        }
+                                    }}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Please Select' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYears.map((y: any) => (
+                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                {y.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         {/* User/Staff */}
-                        <div className='space-y-2 text-black'>
-                            <Label className='font-medium text-sm'>
-                                User / Staff {staffList.length > 0 && <span className='text-muted-foreground text-xs'>({staffList.length})</span>} <span className='text-destructive'>*</span>
+                        <div className='flex items-center'>
+                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
+                                User/ Staff:<span className='text-destructive ml-1'>*</span>
                             </Label>
-                            <Select value={selectedStaffId} onValueChange={(val) => setSelectedStaffId(val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={staffList.length > 0 ? 'Select Staff' : 'No Staff Found'} />
-                                </SelectTrigger>
-                                <SelectContent className='max-h-[300px]'>
-                                    {staffList.map((s: any) => (
-                                        <SelectItem key={String(s.id || s.hrmE_Id)} value={String(s.id || s.hrmE_Id)}>
-                                            {s.userName || s.hrmE_EmployeeName || 'Unknown Staff'}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Search Button */}
-                        <div className='pt-2'>
-                            <Button
-                                type='button'
-                                className='w-full bg-[#f97316] text-white hover:bg-[#ea580c]'
-                                onClick={() => handleSearch()}
-                                disabled={isSearching}>
-                                {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-                                Search
-                            </Button>
+                            <div className='w-2/3'>
+                                <Select 
+                                    value={selectedStaffId} 
+                                    onValueChange={(val) => {
+                                        setSelectedStaffId(val);
+                                        // Auto-search if year is also selected
+                                        if (selectedYearId && val && selectedYearId !== '0' && val !== '0') {
+                                            handleSearch(selectedYearId, role, val);
+                                        }
+                                    }}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={staffList.length > 0 ? 'Select Staff' : 'No Staff Found'} />
+                                    </SelectTrigger>
+                                    <SelectContent className='max-h-[300px]'>
+                                        {staffList.map((s: any) => (
+                                            <SelectItem key={String(s.id || s.hrmE_Id)} value={String(s.id || s.hrmE_Id)}>
+                                                {s.userName || s.hrmE_EmployeeName || 'Unknown Staff'}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -751,9 +713,9 @@ function PrivilegeForm({
                         {(role === '2' || role === '3') && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm'>
-                                    <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
-                                        Class-Section:<span className='text-red-400'>*</span>
+                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>
+                                        Class-Section<span className='text-red-400 ml-1'>*</span>
                                     </div>
                                     <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
@@ -781,29 +743,23 @@ function PrivilegeForm({
                                 </div>
 
                                 {/* Selected Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm'>
-                                    <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>Selected Class-Section</div>
-                                    <ScrollArea className='h-[300px] bg-background p-2'>
+                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>Class-Section</div>
+                                    <ScrollArea className='h-[300px] p-2'>
                                         {classSectionList
                                             .filter((x) => selectedClassSections.includes(x.id))
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className='flex items-center justify-between rounded bg-muted/30 py-1 pl-1 pr-2 hover:bg-accent'>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id={`cs-sel-${item.id}`}
-                                                            checked={true}
-                                                            onCheckedChange={() => handleClassSectionToggle(item.id)}
-                                                        />
-                                                        <Label htmlFor={`cs-sel-${item.id}`} className='cursor-pointer font-medium text-sm'>
-                                                            {item.label}
-                                                        </Label>
-                                                    </div>
-                                                    <X 
-                                                        className='h-3 w-3 cursor-pointer text-destructive' 
-                                                        onClick={() => handleClassSectionToggle(item.id)} 
+                                                    className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
+                                                    <Checkbox
+                                                        id={`cs-sel-${item.id}`}
+                                                        checked={true}
+                                                        onCheckedChange={() => handleClassSectionToggle(item.id)}
                                                     />
+                                                    <Label htmlFor={`cs-sel-${item.id}`} className='cursor-pointer font-normal text-sm'>
+                                                        {item.label}
+                                                    </Label>
                                                 </div>
                                             ))}
                                         {selectedClassSections.length === 0 && (

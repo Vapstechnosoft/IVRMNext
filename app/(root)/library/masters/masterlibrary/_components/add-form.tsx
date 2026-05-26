@@ -40,8 +40,8 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
         try {
             const { lmaL_LibraryName } = data;
             const payload = {
-                IMCC_ID: 0,
-                LMAL_LibraryName: lmaL_LibraryName
+                lmaL_Id: 0,
+                lmaL_LibraryName: lmaL_LibraryName
             };
 
             const response = await addOrUpdateMasterLibrary(payload);

@@ -194,72 +194,83 @@ export default function CalcuttaPromotionReportI_IXList() {
 
                                                         {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => {
                                                             const isGrouped = subj.GropuFlag || subj.gropuFlag;
-                                                            // Legacy condition: ng-if="(subj.GropuFlag !=1 || grpexam.EME_Id!=9800000 || subj.colspan!=-1)"
                                                             if (isGrouped && grpexam.EME_Id === 9800000 && subj.colspan === -1) return null;
 
-                                                            // Legacy rowspan logic
                                                             const rs = (subj.colspan > 1 && isGrouped && grpexam.EME_Id !== 98000012 && grpexam.EME_Id === 9800000) ? subj.colspan : 1;
 
                                                             return (
                                                                 <td key={eIdx} rowSpan={rs} className="border border-black p-1 text-center">
-                                                                    {report.studentmarks.map((mrks: any, mIdx: number) => {
-                                                                        if (
-                                                                            (mrks.ISMS_Id === subj.ISMS_Id || mrks.ismS_Id === subj.ismS_Id) &&
-                                                                            (mrks.EME_Id === grpexam.EME_Id || mrks.emE_Id === grpexam.EME_Id) &&
-                                                                            (mrks.EMPSG_DisplayName === grpexam.EMPG_DistplayName || mrks.empsG_DisplayName === grpexam.EMPG_DistplayName)
-                                                                        ) {
-                                                                            const passFail = mrks.PassFailFlag || mrks.passFailFlag;
-                                                                            const isAbsent = ['AB', 'M', 'L'].includes(passFail);
-                                                                            const isGroup = mrks.GropuFlag || mrks.gropuFlag;
-                                                                            const isGradeExam = grpexam.EME_ExamName === 'Grade';
-                                                                            const isHighestExam = grpexam.EME_ExamName === 'Highest in Class';
-                                                                            const displayMarks = mrks.EYCES_MarksDisplayFlg || mrks.eyceS_MarksDisplayFlg;
-                                                                            const displayGrade = mrks.EYCES_GradeDisplayFlg || mrks.eyceS_GradeDisplayFlg;
-                                                                            const subjCode = mrks.ISMS_SubjectCode || mrks.ismS_SubjectCode;
-                                                                            const obtained = mrks.ObtainedMarks || mrks.obtainedMarks || 0;
-                                                                            const maxMarks = mrks.maxmarks || mrks.EMPS_MaxMarks || 0;
+                                                                    {report.studentmarks.filter((mrks: any) => {
+                                                                        const mSubjId = mrks.ISMS_Id || mrks.ismS_Id;
+                                                                        const sSubjId = subj.ISMS_Id || subj.ismS_Id;
+                                                                        const mEmeId = mrks.EME_Id || mrks.emE_Id;
+                                                                        const gEmeId = grpexam.EME_Id || grpexam.emE_Id;
+                                                                        const mGrpName = mrks.EMPSG_DisplayName || mrks.empsG_DisplayName;
+                                                                        const gGrpName = grpexam.EMPG_DistplayName || grpexam.empG_DistplayName;
 
-                                                                            if (isAbsent) {
-                                                                                if (!isGroup && !isGradeExam && displayMarks && obtained > 0) {
-                                                                                    return <span key={mIdx}>{passFail} ({obtained})</span>;
-                                                                                }
-                                                                                if (grpexam.EME_Id !== 98000012 && grpexam.EME_Id !== 9800000) {
-                                                                                    if (displayGrade && subjCode === 'ME') return <span key={mIdx}>-</span>;
-                                                                                    if (subjCode !== 'ME') return <span key={mIdx}>{passFail}</span>;
-                                                                                }
+                                                                        const subjMatch = mSubjId && sSubjId && Number(mSubjId) === Number(sSubjId);
+                                                                        const grpMatch = !mGrpName || !gGrpName || mGrpName === gGrpName;
+
+                                                                        // Special handling for Highest in Class column
+                                                                        if (grpexam.EME_ExamName === 'Highest in Class') {
+                                                                            return subjMatch && grpMatch && (Number(mEmeId) === 9800000 || Number(mEmeId) === Number(gEmeId));
+                                                                        }
+
+                                                                        return subjMatch && grpMatch && Number(mEmeId) === Number(gEmeId);
+                                                                    }).map((mrks: any, mIdx: number) => {
+                                                                        const passFail = mrks.PassFailFlag || mrks.passFailFlag;
+                                                                        const isAbsent = ['AB', 'M', 'L'].includes(passFail);
+                                                                        const isGroup = mrks.GropuFlag || mrks.gropuFlag;
+                                                                        const isGradeExam = grpexam.EME_ExamName === 'Grade';
+                                                                        const isHighestExam = grpexam.EME_ExamName === 'Highest in Class';
+                                                                        const displayMarks = mrks.EYCES_MarksDisplayFlg || mrks.eyceS_MarksDisplayFlg;
+                                                                        const displayGrade = mrks.EYCES_GradeDisplayFlg || mrks.eyceS_GradeDisplayFlg;
+                                                                        const subjCode = mrks.ISMS_SubjectCode || mrks.ismS_SubjectCode;
+                                                                        const obtained = mrks.ObtainedMarks !== undefined ? mrks.ObtainedMarks : mrks.obtainedMarks;
+                                                                        const maxMarks = mrks.maxmarks || mrks.EMPS_MaxMarks || 0;
+
+                                                                        if (isHighestExam) {
+                                                                            return <span key={mIdx}>{mrks.ESTMPPS_ClassHighest || mrks.estmppS_ClassHighest || ''}</span>;
+                                                                        }
+
+                                                                        if (isAbsent) {
+                                                                            if (!isGroup && !isGradeExam && displayMarks && obtained > 0) {
+                                                                                return <span key={mIdx}>{passFail} ({obtained})</span>;
                                                                             }
+                                                                            if (grpexam.EME_Id !== 98000012 && grpexam.EME_Id !== 9800000) {
+                                                                                if (displayGrade && subjCode === 'ME') return <span key={mIdx}>-</span>;
+                                                                                if (subjCode !== 'ME') return <span key={mIdx}>{passFail}</span>;
+                                                                            }
+                                                                        }
 
-                                                                            if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id !== 9800000) {
+                                                                        if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id !== 9800000) {
+                                                                            return <span key={mIdx}>{obtained} {subjCode === 'SE' && `/ ${maxMarks}`}</span>;
+                                                                        }
+
+                                                                        if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id === 9800000) {
+                                                                            if (obtained !== 0 && obtained !== null) {
                                                                                 return <span key={mIdx}>{obtained} {subjCode === 'SE' && `/ ${maxMarks}`}</span>;
+                                                                            } else if (subjCode === 'SE' && (obtained === 0 || obtained === null)) {
+                                                                                return <span key={mIdx}>AB</span>;
+                                                                            } else {
+                                                                                return <span key={mIdx}>{obtained}</span>;
                                                                             }
+                                                                        }
 
-                                                                            if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id === 9800000) {
-                                                                                if (obtained !== 0) {
-                                                                                    return <span key={mIdx}>{obtained} {subjCode === 'SE' && `/ ${maxMarks}`}</span>;
-                                                                                } else if (subjCode === 'SE' && obtained === 0) {
-                                                                                    return <span key={mIdx}>AB</span>;
-                                                                                }
-                                                                            }
+                                                                        if (!isAbsent && isGroup && !isGradeExam && !isHighestExam && mrks.GroupMarks > 0) {
+                                                                            return <span key={mIdx}>{mrks.GroupMarks}</span>;
+                                                                        }
 
-                                                                            if (!isAbsent && isHighestExam && displayMarks) {
-                                                                                return <span key={mIdx}>{mrks.ESTMPPS_ClassHighest || mrks.estmppS_ClassHighest}</span>;
-                                                                            }
+                                                                        if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id !== 9800000) {
+                                                                            return <span key={mIdx}>-</span>;
+                                                                        }
 
-                                                                            if (!isAbsent && isGroup && !isGradeExam && !isHighestExam && mrks.GroupMarks > 0) {
-                                                                                return <span key={mIdx}>{mrks.GroupMarks}</span>;
-                                                                            }
+                                                                        if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id === 9800000) {
+                                                                            return <span key={mIdx}>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>;
+                                                                        }
 
-                                                                            if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id !== 9800000) {
-                                                                                return <span key={mIdx}>-</span>;
-                                                                            }
-
-                                                                            if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id === 9800000) {
-                                                                                return <span key={mIdx}>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>;
-                                                                            }
-
-                                                                            if (!isAbsent && !isGroup && isGradeExam && displayGrade && grpexam.EME_Id === 98000012) {
-                                                                                return <span key={mIdx}>{mrks.ESTMPPS_ObtainedGrade || mrks.estmppS_ObtainedGrade}</span>;
-                                                                            }
+                                                                        if (!isAbsent && !isGroup && isGradeExam && displayGrade && grpexam.EME_Id === 98000012) {
+                                                                            return <span key={mIdx}>{mrks.ESTMPPS_ObtainedGrade || mrks.estmppS_ObtainedGrade}</span>;
                                                                         }
                                                                         return null;
                                                                     })}
@@ -270,10 +281,10 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                         {/* Grand Total Column */}
                                                         {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
                                                             <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarks}</span>}
+                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarks || subj.groupMarks}</span>}
                                                                 {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) && (
                                                                     <span>
-                                                                        {subj.ESTMPPSG_GroupObtMarks || subj.estmppsG_GroupObtMarks} {(subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'SE' && `/ ${subj.EMPS_MaxMarks || subj.empS_MaxMarks}`}
+                                                                        {subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? subj.ESTMPPSG_GroupObtMarks} {(subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'SE' && `/ ${subj.EMPS_MaxMarks || subj.empS_MaxMarks}`}
                                                                     </span>
                                                                 )}
                                                                 {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
@@ -283,8 +294,8 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                         {/* Yearly Avg Column */}
                                                         {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
                                                             <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarksnew}</span>}
-                                                                {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.YeralyGroupObtMarks || subj.yeralyGroupObtMarks}</span>}
+                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarksnew || subj.groupMarksnew}</span>}
+                                                                {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks}</span>}
                                                                 {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
                                                             </td>
                                                         )}

@@ -12,7 +12,7 @@ export const masterFloorSchema = z.object({
     })).optional(),
     
     // For UI handling of multi-select (array of string IDs)
-    selectedFacilityIds: z.array(z.string()).optional()
+    selectedFacilityIds: z.array(z.string()).min(1, 'At least one facility must be selected')
 });
 
 export type IMasterFloorForm = z.infer<typeof masterFloorSchema>;

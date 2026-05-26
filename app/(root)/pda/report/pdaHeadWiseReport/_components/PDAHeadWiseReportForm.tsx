@@ -13,9 +13,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Download, Printer } from "lucide-react";
+import { CalendarIcon, Download, Printer, Search, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { usePDAHeadWiseInitialData, usePDAHeadWiseReportMutation } from "@/hooks/pettycash/report/usePDAHeadWiseReport";
+import { 
+    usePDAAcademicYear, 
+    usePDAClass, 
+    usePDASection,
+    usePDACategory
+} from "@/hooks/pda/usePDACommon";
+import { useMasterHead } from "@/hooks/pda/master/useMasterHead";
+import { usePDAHeadWiseReportMutation } from "@/hooks/pettycash/report/usePDAHeadWiseReport";
 import * as XLSX from 'xlsx';
 
 const formSchema = z.object({
@@ -43,7 +50,7 @@ interface PDAHeadWiseReportFormProps {
 }
 
 export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWiseReportFormProps) {
-  const { data: initialData, isLoading: isInitialLoading } = usePDAHeadWiseInitialData();
+  const { data: masterHeadRes } = useMasterHead();
   const reportMutation = usePDAHeadWiseReportMutation();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,6 +65,18 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
       left: false,
     },
   });
+
+  const watchedYear = form.watch("ASMAY_Id");
+  const watchedClass = form.watch("asmcL_Id");
+
+  const { data: yearsRes } = usePDAAcademicYear();
+  const { data: classesRes } = usePDAClass(Number(watchedYear));
+  const { data: sectionsRes } = usePDASection(Number(watchedYear), Number(watchedClass));
+
+  const yearsList = (Array.isArray(yearsRes?.data) ? yearsRes?.data : yearsRes?.data?.data) || yearsRes?.data?.fillyear?.$values || [];
+  const classesList = (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
+  const sectionsList = (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
+  const pdaHeads = masterHeadRes?.data?.pdadata || [];
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const payload = {
@@ -222,7 +241,7 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {initialData?.data?.fillyear?.map((year: any) => (
+                        {yearsList.map((year: any) => (
                           <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                             {year.asmaY_Year}
                           </SelectItem>
@@ -248,7 +267,7 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="0">--All--</SelectItem>
-                        {initialData?.data?.pdadata?.map((head: any) => (
+                        {pdaHeads.map((head: any) => (
                           <SelectItem key={head.pdamH_Id} value={head.pdamH_Id.toString()}>
                             {head.pdamH_HeadName}
                           </SelectItem>
@@ -273,7 +292,7 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {initialData?.data?.classlist?.map((cls: any) => (
+                        {classesList.map((cls: any) => (
                           <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                             {cls.asmcL_ClassName}
                           </SelectItem>
@@ -299,7 +318,7 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="0">All</SelectItem>
-                        {initialData?.data?.searcharray?.map((sec: any) => (
+                        {sectionsList.map((sec: any) => (
                           <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
                             {sec.asmC_SectionName}
                           </SelectItem>
@@ -399,18 +418,33 @@ export function PDAHeadWiseReportForm({ setReportData, reportData }: PDAHeadWise
             </div>
 
             <div className="flex justify-center gap-4 mt-6">
-              <Button type="submit" disabled={reportMutation.isPending}>
-                {reportMutation.isPending ? "Loading..." : "Report"}
+              <Button 
+                type="submit" 
+                disabled={reportMutation.isPending}
+                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white w-32 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
+              >
+                {reportMutation.isPending ? "Loading..." : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Report
+                  </>
+                )}
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancel}
+                className="w-32 h-10 rounded-md font-bold shadow-md border-gray-200 hover:bg-gray-50 hover:scale-105 active:scale-95"
+              >
+                <RotateCcw className="mr-2 h-4 w-4 text-gray-500" />
                 Cancel
               </Button>
               {reportData && (
                 <>
-                  <Button type="button" variant="secondary" onClick={exportToExcel}>
-                    <Download className="mr-2 h-4 w-4" /> Export to Excel
+                  <Button type="button" variant="secondary" onClick={exportToExcel} className="h-10 rounded-md">
+                    <Download className="mr-2 h-4 w-4" /> Export
                   </Button>
-                  <Button type="button" variant="secondary" onClick={printData}>
+                  <Button type="button" variant="secondary" onClick={printData} className="h-10 rounded-md">
                     <Printer className="mr-2 h-4 w-4" /> Print
                   </Button>
                 </>

@@ -42,6 +42,10 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [searchColumn] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('All')
+    );
 
     // Prepare payload for hook (convert Dates to strings to avoid serialization issues/hook unnecessary updates)
     const payloadForHook = currentPayload ? {
@@ -54,10 +58,31 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        search_column: searchColumn
     });
 
-    const reportData = reportResult?.data?.get_ICReport || [];
+    const extractReportData = (result: any) => {
+        if (!result?.data) return [];
+        
+        // 1. data is directly an array
+        if (Array.isArray(result.data)) return result.data;
+        
+        // 2. data.$values is an array
+        if (result.data.$values && Array.isArray(result.data.$values)) return result.data.$values;
+        
+        // 3. get_ICReport is an array
+        if (Array.isArray(result.data.get_ICReport)) return result.data.get_ICReport;
+        
+        // 4. get_ICReport.$values is an array
+        if (result.data.get_ICReport?.$values && Array.isArray(result.data.get_ICReport.$values)) {
+            return result.data.get_ICReport.$values;
+        }
+
+        return [];
+    };
+
+    const reportData = extractReportData(reportResult);
     const totalRecords = reportResult?.total || 0;
 
     const handleReportGenerated = (payload: any) => {
@@ -85,12 +110,8 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
 
     const columns = getColumns(currentPayload?.typeflag || 'All', currentPayload?.optionflag);
 
-    const tableProps = useDataTableProps({
-        enablePagination: true,
-        enableSorting: true,
-        enableSearching: true,
-        isSearchRequired: true,
-    });
+    // Manual filtering should be true for server-side search
+    const manualFiltering = totalRecords > reportData.length;
 
     const handlePrintContent = useReactToPrint({
         contentRef: componentRef,
@@ -109,8 +130,7 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
             };
 
             const response = await getInvRItemConsumptionReport(p, { ...searchParams, page: 1, page_size: 100000, search_query: searchQuery || '' });
-            console.log('response', response?.data);
-            const allData = response?.data?.get_ICReport || [];
+            const allData = extractReportData(response);
 
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
@@ -248,12 +268,12 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
                         </div>
 
                         <GenericDataTable
-                            {...tableProps}
                             data={reportData}
                             columns={columns}
                             isLoading={isFetching}
                             totalItems={totalRecords}
                             isSearchRequired={true}
+                            manualFiltering={manualFiltering}
                             noDataTitle="No Consumption Found"
                             noDataDescription="No records found matching your selection or search criteria."
                         />

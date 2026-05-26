@@ -7,8 +7,18 @@ export async function getInvRSalesLoadData() {
     return await api.get<any>('inventory', '/INV_R_SalesFacade/getloaddata');
 }
 
-export async function getInvRSalesDetails(optionflag: string) {
-    const url = `/INV_R_SalesFacade/mainradiochange?type=${optionflag}`;
+export async function getInvRSalesItemLoadData(optionflag: string) {
+    const url = `/INV_R_GRNFacade/getloaddata?flg=${optionflag}`;
+    return await api.get<any>('inventory', url, {});
+}
+
+export async function getInvRSalesStaffLoadData() {
+    const url = `/INV_ItemConsumptionReportFacade/getloaddata?optionflag=Staff`;
+    return await api.get<any>('inventory', url);
+}
+
+export async function getInvRSalesDetails(optionflag: string, typeflag: string = '') {
+    const url = `/INV_R_SalesFacade/mainradiochange?type=${optionflag}&typeflag=${typeflag || optionflag}`;
     return await api.get<any>('inventory', url);
 }
 
@@ -25,5 +35,6 @@ export async function getInvRSalesStudentList(payload: any) {
 export async function getInvRSalesReport(payload: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_R_SalesFacade/onreport?${urlParams}`;
+    console.log("getInvRSalesReport Payload:", payload);
     return await api.post<any>('inventory', url, payload);
 }

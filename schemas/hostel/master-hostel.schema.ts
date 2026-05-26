@@ -45,7 +45,8 @@ export const masterHostelSchema = z.object({
 
   hlmH_Address: z
     .string()
-    .min(1, 'Enter the Address'),
+    .optional()
+    .or(z.literal('')),
 
   ivrmmC_Id: z
     .union([z.string(), z.number()])

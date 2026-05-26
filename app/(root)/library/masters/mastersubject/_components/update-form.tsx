@@ -38,7 +38,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onSubmit'
     });
 
     useEffect(() => {
@@ -47,9 +47,9 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_Id: row.lmS_Id,
                 lmS_ParentId: row.lmS_ParentId,
                 ismS_SubjectName: row.lmS_SubjectName,
-                lmS_Level: row.lmS_Level,
-                lmS_SubjectNo: row.lmS_SubjectNo,
-                lmS_ClassNo: row.lmS_ClassNo,
+                lmS_Level: row.lmS_Level?.toString(),
+                lmS_SubjectNo: row.lmS_SubjectNo?.toString(),
+                lmS_ClassNo: row.lmS_ClassNo?.toString(),
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             });
         }
@@ -58,7 +58,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                mI_Id: 30,
                 lmS_Id: row.lmS_Id,
                 lmS_ParentId: data.lmS_ParentId,
                 lmS_SubjectName: data.ismS_SubjectName,
@@ -68,7 +67,8 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             };
 
-            const response = await addOrUpdateMasterSubject(payload);
+
+            const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master Subject updated successfully');
@@ -83,18 +83,14 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
     };
 
     const handleReset = () => {
-        if (row) {
-            reset({
-                lmS_Id: row.lmS_Id,
-                lmS_ParentId: row.lmS_ParentId,
-                ismS_SubjectName: row.lmS_SubjectName,
-                lmS_Level: row.lmS_Level,
-                lmS_SubjectNo: row.lmS_SubjectNo,
-                lmS_ClassNo: row.lmS_ClassNo,
-                lmS_ActiveFlg: row.lmS_ActiveFlg
-            });
-            setResetKey((prev) => prev + 1);
-        }
+        reset({
+            lmS_ParentId: undefined,
+            ismS_SubjectName: '',
+            lmS_Level: '',
+            lmS_SubjectNo: '',
+            lmS_ClassNo: ''
+        });
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -114,7 +110,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                         <Select 
                                             key={resetKey}
                                             onValueChange={(val) => field.onChange(Number(val))} 
-                                            value={field.value ? field.value.toString() : undefined}
+                                            value={field.value?.toString() || undefined}
                                         >
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
@@ -158,7 +154,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Level :'
-                            required
                             placeholder='Enter Level'
                             {...register('lmS_Level')}
                             error={errors.lmS_Level?.message}
@@ -166,7 +161,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         />
                         <InputText
                             label='Subject No :'
-                            required
                             {...register('lmS_SubjectNo')}
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -178,7 +172,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Class No  :'
-                            required
                             {...register('lmS_ClassNo')}
                             error={errors.lmS_ClassNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -189,23 +182,22 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Update Master Subject
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

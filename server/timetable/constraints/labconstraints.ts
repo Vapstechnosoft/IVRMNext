@@ -59,7 +59,7 @@ import type { labConstraints } from '@/types/timetable/constraints/labconstraint
 
 export async function LabConstraintsGrid(searchParams?: any) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmayYear,categoryName,ttlaB_LABLIBName,ttlaB_Id,ttlaB_ActiveFlag');
-    const url = `/LabconstraintsFacade/LabConstraintsGrid?${urlParams}`;
+    const url = `/LabconstraintsFacade/LabConstraintsGridData?${urlParams}`;
     console.log('day staff grid data', url);
     return await api.get<labConstraints[]>('timetable', url);
 }
@@ -114,6 +114,7 @@ export async function deactivateLabConstraints(id: number) {
     return await api.put<any>('timetable', url, {});
 }
 
+//delete
 export async function deleteLabConstraints(id: number) {
     const url = `/LabconstraintsFacade/LabConstraintsDelete/${id}`;
     console.log('Lab Constraints Delete URL:', url);

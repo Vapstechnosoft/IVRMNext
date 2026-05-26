@@ -623,13 +623,14 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 <input
                                     type='radio'
                                     name='NameReg.NoFlg'
+                                    // aria-disabled
                                     value='NameReg.No'
-                                    className='form-radio h-4 w-4 text-blue-600'
+                                    className='form-radio hidden h-4 w-4 text-blue-600'
                                     checked={nameType === 'NameReg.No'}
                                     onChange={(e) => setnameType(e.target.value)}
-                                    disabled={true}
+                                    // disabled={true}
                                 />
-                                <span className='text-gray-900 text-sm'>Name:Reg.No</span>
+                                <span className='text-gray-900 text-sm '>Name:Reg.No</span>
                             </label>
 
                             <label className='inline-flex cursor-pointer items-center space-x-2'>
@@ -640,7 +641,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     className='form-radio h-4 w-4 text-gray-600'
                                     checked={nameType === 'Reg.NoName'}
                                     onChange={(e) => setnameType(e.target.value)}
-                                    disabled={true}
+                                    // disabled={true}
                                 />
                                 <span className='text-gray-900 text-sm'>Reg.No:Name</span>
                             </label>
@@ -744,9 +745,9 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                     setDateOpen(false);
                                                 }}
                                                 initialFocus
-                                                disabled={(date) => {
-                                                    return date < new Date(new Date().setHours(0, 0, 0, 0));
-                                                }}
+                                                // disabled={(date) => {
+                                                //     return date < new Date(new Date().setHours(0, 0, 0, 0));
+                                                // }}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -766,6 +767,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                         type='radio'
                                         name='RefundableFlg'
                                         value='Refundable'
+                                        aria-disabled
                                         className='form-radio h-4 w-4 text-blue-600'
                                         checked={refundableType === 'Refundable'}
                                         onChange={(e) => setRefundableType(e.target.value)}
@@ -778,6 +780,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     <input
                                         type='radio'
                                         name='RefundableFlg'
+                                        aria-disabled
                                         value='NonRefundable'
                                         className='form-radio h-4 w-4 text-gray-600'
                                         checked={refundableType === 'NonRefundable'}
