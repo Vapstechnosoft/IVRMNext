@@ -237,13 +237,14 @@ export default function SalaryCalculationPage() {
       toast.error("Please perform a search first before generating salary");
       return;
     }
+    console.log("selected employees", selectedEmployees);
     const payload: NewSalaryCalculationGenerateRequest = {
       hreS_Year: currentSearchData.salaryYear,
       hreS_Month: currentSearchData.salaryMonth,
       comm: "cashbank", //"cashbank",
       masterEmployeeList: selectedEmployees.map((empId) => ({
         hrmE_Id: empId,
-        type: "string",
+        type: "cashbank",
         imC_Id: 0,
       })),
     };

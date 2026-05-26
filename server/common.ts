@@ -4508,23 +4508,23 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        }
-                                        //         {
-                                        //             id: 3,
-                                        //             name: 'Candidate Interview List',
-                                        //             icon: 'List',
-                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                        //             title: 'Candidate Interview List',
-                                        //             description: 'View All Candidate Interviews'
-                                        //         },
-                                        //         {
-                                        //             id: 4,
-                                        //             name: 'Interviewer Feedback',
-                                        //             icon: 'MessageSquare',
-                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Candidate Interview List',
+                                            icon: 'List',
+                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                            title: 'Candidate Interview List',
+                                            description: 'View All Candidate Interviews'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
+                                        },
                                         //         {
                                         //             id: 5,
                                         //             name: 'Job List',

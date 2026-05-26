@@ -313,7 +313,7 @@ function EmployeeProfileReportContent() {
 
             {/* ... other imports ... */}
 
-            {reportData && (
+            {reportData && reportData?.length > 0 && (
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}
