@@ -46,7 +46,17 @@ export async function getOpeningAcademicYearDropdownData() {
 
 export async function getOpeningClassDropdownData() {
     const url = 'FeeOpeningBalance/class-dropdown';
-    return await api.get<IFeeOpeningClassDropdownList[]>('fees', url);
+    console.log('Calling API:', url);
+
+    // Try with full path or check if baseURL is correct
+    try {
+        const response = await api.get<IFeeOpeningClassDropdownList[]>('fees', url);
+        console.log('API response:', response);
+        return response;
+    } catch (error) {
+        console.error('API call failed:', error);
+        throw error;
+    }
 }
 export async function getOpeningSectionDropdownData(asmaY_Id: number, asmcL_Id: number) {
     const url = `FeeOpeningBalance/section-dropdown-by-class?asmay_Id=${asmaY_Id || 0}&asmcl_Id=${asmcL_Id || 0}`;

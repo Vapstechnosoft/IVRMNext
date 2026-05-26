@@ -89,3 +89,8 @@ export async function getSaletypes(invmsL_Id: number, saletype: string) {
     const url = `/INV_T_SalesFacade/getSaletypes?INVMSL_Id=${invmsL_Id}&saletype=${saletype}`;
     return await api.get<any>('inventory', url);
 }
+
+export async function deleteInvTSales(data: any) {
+    const url = `/INV_T_SalesFacade/deactiveS?id=${data.invmsL_Id}`;
+    return await api.post<any>('inventory', url, {});
+}

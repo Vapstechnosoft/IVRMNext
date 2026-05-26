@@ -8,7 +8,10 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
-    usePDAReportLoadData,
+    usePDAAcademicYear,
+    usePDAClass,
+} from '@/hooks/pda/usePDACommon';
+import {
     usePDASectionsSRS,
     usePDAStudentsSRS,
     useGeneratePDAReportSRS
@@ -43,14 +46,6 @@ export default function PDADebitCreditReportForm({
     onExport,
     showReportButtons
 }: PDADebitCreditReportFormProps) {
-    const { data: initialData, isLoading: isInitialLoading } = usePDAReportLoadData();
-    const sectionsMutation = usePDASectionsSRS();
-    const studentsMutation = usePDAStudentsSRS();
-    const reportMutation = useGeneratePDAReportSRS();
-
-    const [sections, setSections] = useState<{ value: string; label: string }[]>([]);
-    const [students, setStudents] = useState<{ value: string; label: string }[]>([]);
-
     const {
         control,
         handleSubmit,
@@ -74,59 +69,22 @@ export default function PDADebitCreditReportForm({
     const watchedClasses = watch('classIds');
     const watchedSections = watch('sectionIds');
 
-    // Handle Class Change -> Fetch Sections
-    useEffect(() => {
-        if (watchedYear && watchedClasses && watchedClasses.length > 0) {
-            sectionsMutation.mutate(
-                {
-                    ASMAY_Id: watchedYear,
-                    classlsttwo: watchedClasses.map((id) => ({ ASMCL_Id: id }))
-                },
-                {
-                    onSuccess: (res) => {
-                        const data = res?.data;
-                        const raw = getArray(data?.fillsection);
-                        setSections(raw.map((s: any) => ({ value: s.AMSC_Id.toString(), label: s.asmc_sectionname })));
-                        setValue('sectionIds', []);
-                        setValue('amst_Id', 0);
-                        setStudents([]);
-                    }
-                }
-            );
-        } else {
-            setSections([]);
-            setValue('sectionIds', []);
-            setValue('amst_Id', 0);
-            setStudents([]);
-        }
-    }, [watchedYear, watchedClasses]);
+    const { data: yearsRes } = usePDAAcademicYear();
+    const { data: classesRes } = usePDAClass(Number(watchedYear));
 
-    // Handle Section Change -> Fetch Students
+    const sectionsRes = usePDASectionsSRS(Number(watchedYear), watchedClasses[0]);
+    const studentsRes = usePDAStudentsSRS(Number(watchedYear), watchedClasses[0], watchedSections[0]);
+    const reportMutation = useGeneratePDAReportSRS();
+
+    // Handle selection resets
     useEffect(() => {
-        if (watchedYear && watchedClasses && watchedClasses.length > 0 && watchedSections && watchedSections.length > 0) {
-            studentsMutation.mutate(
-                {
-                    ASMAY_Id: watchedYear,
-                    classlsttwo: watchedClasses.map((id) => ({ ASMCL_Id: id })),
-                    sectionlistarray: watchedSections.map((id) => ({ AMSC_Id: id }))
-                },
-                {
-                    onSuccess: (res) => {
-                        const data = res?.data;
-                        const raw = getArray(data?.fillstudent);
-                        setStudents(raw.map((s: any) => ({
-                            value: s.Amst_Id.toString(),
-                            label: `${s.amsT_AdmNo} :: ${s.amsT_FirstName}`
-                        })));
-                        setValue('amst_Id', 0);
-                    }
-                }
-            );
-        } else {
-            setStudents([]);
-            setValue('amst_Id', 0);
-        }
-    }, [watchedSections]);
+        setValue('sectionIds', []);
+        setValue('amst_Id', 0);
+    }, [watchedYear, watchedClasses, setValue]);
+
+    useEffect(() => {
+        setValue('amst_Id', 0);
+    }, [watchedSections, setValue]);
 
     const onSubmit = (values: PDADebitCreditReportFormValues) => {
         const payload = {
@@ -179,16 +137,23 @@ export default function PDADebitCreditReportForm({
 
     const handleReset = () => {
         reset();
-        setSections([]);
-        setStudents([]);
         onCancel();
     };
 
-    const initialApiData = initialData?.data;
-    const years = getArray(initialApiData?.fillyear);
-    const classes = getArray(initialApiData?.classlist).map((c: any) => ({
+    const years = getArray((yearsRes?.data as any)?.data || yearsRes?.data);
+    const classes = getArray((classesRes?.data as any)?.data || classesRes?.data).map((c: any) => ({
         value: c.asmcL_Id.toString(),
         label: c.asmcL_ClassName
+    }));
+
+    const sections = getArray((sectionsRes?.data as any)?.data || (sectionsRes?.data as any)?.fillsection || []).map((s: any) => ({
+        value: (s.AMSC_Id || s.asmS_Id).toString(),
+        label: (s.asmc_sectionname || s.asmC_SectionName)
+    }));
+
+    const students = getArray((studentsRes?.data as any)?.data || (studentsRes?.data as any)?.fillstudent || []).map((s: any) => ({
+        value: (s.Amst_Id || s.amsT_Id).toString(),
+        label: `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
     }));
 
     return (
@@ -295,9 +260,9 @@ export default function PDADebitCreditReportForm({
                                     options={sections}
                                     onValueChange={(vals) => field.onChange(vals.map(Number))}
                                     defaultValue={field.value.map(String)}
-                                    placeholder='Select Sections'
+                                    placeholder={sectionsRes.isPending ? 'Loading Sections...' : 'Select Sections'}
                                     maxCount={2}
-                                    disabled={sections.length === 0}
+                                    disabled={sections.length === 0 && !sectionsRes.isPending}
                                 />
                             )}
                         />
@@ -314,10 +279,10 @@ export default function PDADebitCreditReportForm({
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value ? field.value.toString() : ''}
-                                    disabled={students.length === 0}
+                                    disabled={students.length === 0 && !studentsRes.isPending}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder='Select Student' />
+                                        <SelectValue placeholder={studentsRes.isPending ? 'Loading Students...' : 'Select Student'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {students.map((s) => (
@@ -359,11 +324,11 @@ export default function PDADebitCreditReportForm({
                     </div>
                 </div>
 
-                <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
+                <div >
                     <Button
                         type='submit'
                         disabled={reportMutation.isPending}
-                        className='bg-primary text-white px-8 shadow-md hover:scale-105 transition-transform'>
+                        className='bg-orange-600 hover:bg-orange-700 text-white w-32 shadow-md'>
                         <Search className='mr-2 h-4 w-4' />
                         {reportMutation.isPending ? 'Generating...' : 'Report'}
                     </Button>
@@ -371,7 +336,7 @@ export default function PDADebitCreditReportForm({
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        className='px-8 hover:bg-destructive/10 hover:text-destructive'>
+                        className='w-32 hover:bg-destructive/10 hover:text-destructive'>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>

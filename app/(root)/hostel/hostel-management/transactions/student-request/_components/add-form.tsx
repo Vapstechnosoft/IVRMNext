@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getStudentRequestLoadData, saveStudentRequest } from '@/server/hostel/hostel-management/transactions/student-request-actions';
 import { HostelList, RoomCategoryList, StudentProfileData } from '@/types/hostel/hostel-management/transactions';
@@ -40,6 +40,7 @@ export default function StudentRequestForm({
             HLHSREQ_SingleRoomFlg: false,
             HLHSREQ_VegMessFlg: false,
             HLHSREQ_NonVegMessFlg: false,
+            preferredPartner: false,
         },
     });
 
@@ -59,6 +60,7 @@ export default function StudentRequestForm({
                 HLHSREQ_VegMessFlg: editData.HLHSREQ_VegMessFlg,
                 HLHSREQ_NonVegMessFlg: editData.HLHSREQ_NonVegMessFlg,
                 HLHSREQ_Remarks: editData.HLHSREQ_Remarks || '',
+                preferredPartner: false,
             });
         }
     }, [editData]);
@@ -96,6 +98,7 @@ export default function StudentRequestForm({
                     HLHSREQ_SingleRoomFlg: false,
                     HLHSREQ_VegMessFlg: false,
                     HLHSREQ_NonVegMessFlg: false,
+                    preferredPartner: false,
                     HLHSREQ_Remarks: '',
                     HLMH_Id: '',
                     HLMRCA_Id: '',
@@ -114,12 +117,15 @@ export default function StudentRequestForm({
 
     return (
         <Card>
+            <CardHeader>
+                <CardTitle>Hostel Student Request</CardTitle>
+            </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-muted/20 rounded-lg">
-                    <p><strong>Name:</strong> {studentProfile?.studentName || '-'}</p>
+                    <p><strong>Student Name:</strong> {studentProfile?.studentName || '-'}</p>
+                    <p><strong>Registration No:</strong> {studentProfile?.AMST_RegistrationNo || '-'}</p>
                     <p><strong>Class:</strong> {studentProfile?.ASMCL_ClassName || '-'}</p>
                     <p><strong>Adm No:</strong> {studentProfile?.AMST_AdmNo || '-'}</p>
-                    <p><strong>Reg No:</strong> {studentProfile?.AMST_RegistrationNo || '-'}</p>
                 </div>
 
                 <FormProvider {...form}>
@@ -130,9 +136,9 @@ export default function StudentRequestForm({
                                 name="HLMH_Id"
                                 render={({ field, fieldState }) => (
                                     <div>
-                                        <Label>Hostel</Label>
+                                        <Label>Hostel Name <span className="text-destructive">*</span></Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="h-8 text-sm md:w-72">
                                                 <SelectValue placeholder="Select Hostel" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -153,9 +159,9 @@ export default function StudentRequestForm({
                                 name="HLMRCA_Id"
                                 render={({ field, fieldState }) => (
                                     <div>
-                                        <Label>Room Category</Label>
+                                        <Label>Room Category <span className="text-destructive">*</span></Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="h-8 text-sm md:w-72">
                                                 <SelectValue placeholder="Select Category" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -176,13 +182,13 @@ export default function StudentRequestForm({
                                 name="HLHSREQ_RequestDate"
                                 render={({ field, fieldState }) => (
                                     <div className="flex flex-col">
-                                        <Label>Request Date</Label>
+                                        <Label>Request Date <span className="text-destructive">*</span></Label>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     variant={"outline"}
                                                     className={cn(
-                                                        "w-full pl-3 text-left font-normal",
+                                                        "w-full md:w-72 h-8 pl-3 text-left font-normal text-sm",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
@@ -210,8 +216,19 @@ export default function StudentRequestForm({
                                     </div>
                                 )}
                             />
+                            
+                            <div className="flex gap-4">
+                                <div className="space-y-1 w-full md:w-[136px]">
+                                    <Label>Single Sharing Amount</Label>
+                                    <div className="text-sm font-medium p-2 bg-muted/20 rounded-md border min-h-8 h-8 flex items-center">-</div>
+                                </div>
+                                <div className="space-y-1 w-full md:w-[136px]">
+                                    <Label>Multiple Sharing Amount</Label>
+                                    <div className="text-sm font-medium p-2 bg-muted/20 rounded-md border min-h-8 h-8 flex items-center">-</div>
+                                </div>
+                            </div>
 
-                            <div className="grid grid-cols-2 gap-2 pt-8">
+                            <div className="grid grid-cols-2 gap-2 pt-6">
                                 <Controller
                                     control={form.control}
                                     name="HLHSREQ_VegMessFlg"
@@ -234,21 +251,21 @@ export default function StudentRequestForm({
                                 />
                                 <Controller
                                     control={form.control}
-                                    name="HLHSREQ_ACRoomFlg"
+                                    name="HLHSREQ_SingleRoomFlg"
                                     render={({ field }) => (
                                         <div className="flex items-center space-x-2 space-y-0">
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                            <Label>AC Room</Label>
+                                            <Label>Entire Room Required?</Label>
                                         </div>
                                     )}
                                 />
                                 <Controller
                                     control={form.control}
-                                    name="HLHSREQ_SingleRoomFlg"
+                                    name="preferredPartner"
                                     render={({ field }) => (
                                         <div className="flex items-center space-x-2 space-y-0">
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                            <Label>Single Room</Label>
+                                            <Label>Preferred Partner</Label>
                                         </div>
                                     )}
                                 />
@@ -261,17 +278,19 @@ export default function StudentRequestForm({
                             render={({ field, fieldState }) => (
                                 <div>
                                     <Label>Remarks</Label>
-                                    <Textarea {...field} />
+                                    <Textarea {...field} className="md:w-96" />
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </div>
                             )}
                         />
 
-                        <div className="flex justify-end space-x-2">
-                            <Button type="button" variant="outline" onClick={() => form.reset()} disabled={loading}>Cancel</Button>
-                            <Button type="submit" disabled={loading}>
+                        <div className="flex justify-center space-x-2 pt-4">
+                            <Button type="submit" className="h-8 w-24 text-sm px-3" disabled={loading}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Submit Request
+                                Save
+                            </Button>
+                            <Button type="button" variant="outline" className="h-8 w-24 text-sm px-3" onClick={() => form.reset()} disabled={loading}>
+                                Cancel
                             </Button>
                         </div>
                     </form>

@@ -2215,6 +2215,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/collegefeetransaction',
                                             title: 'College Fee Transaction',
                                             description: 'College Fee Transaction'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Fee Third Party Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feethirdpartyreport',
+                                            title: 'Fee Third Party Report',
+                                            description: 'Fee Third Party Report'
                                         }
                                     ]
                                 }
@@ -4508,23 +4516,23 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        }
-                                        //         {
-                                        //             id: 3,
-                                        //             name: 'Candidate Interview List',
-                                        //             icon: 'List',
-                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                        //             title: 'Candidate Interview List',
-                                        //             description: 'View All Candidate Interviews'
-                                        //         },
-                                        //         {
-                                        //             id: 4,
-                                        //             name: 'Interviewer Feedback',
-                                        //             icon: 'MessageSquare',
-                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Candidate Interview List',
+                                            icon: 'List',
+                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                            title: 'Candidate Interview List',
+                                            description: 'View All Candidate Interviews'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
+                                        },
                                         //         {
                                         //             id: 5,
                                         //             name: 'Job List',
@@ -5934,14 +5942,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Gatepass Report',
                                             description: 'View Student Gatepass Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Student Attendance Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/student-attendance-report',
-                                            title: 'Student Attendance Report',
-                                            description: 'View Student Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Student Attendance Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/hostel/hostel-management/reports/student-attendance-report',
+                                        //     title: 'Student Attendance Report',
+                                        //     description: 'View Student Attendance Report'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Food Conveyance Report',
@@ -7163,6 +7171,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
                                             title: 'Vendor Payment Report',
                                             description: 'Generate Vendor Payment Reports'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'GRN Report Hollycross',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-grn-hollycross',
+                                            title: 'GRN Report Hollycross',
+                                            description: 'Generate GRN Report Hollycross'
                                         }
                                     ]
                                 }
@@ -8352,6 +8368,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+                //PDA commented here    
                 // {
                 //     id: 999021,
                 //     name: 'PDA',

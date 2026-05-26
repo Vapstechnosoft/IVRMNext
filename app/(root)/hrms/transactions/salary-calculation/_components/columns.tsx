@@ -17,6 +17,8 @@ export interface Employee extends Omit<Partial<EmployeeDropdown>, 'HRME_Employee
     allowances?: number;
     deductions?: number;
     netSalary?: number;
+    imC_Id?: number;
+    type?: string;
 }
 interface SalaryCalculationColumnsProps {
     employees: Employee[];
