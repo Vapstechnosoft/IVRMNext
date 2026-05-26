@@ -146,7 +146,7 @@ function EmployeeDetailsReportContent() {
   // Queries
   const { data: onloadData, isLoading: isLoadingOnload } =
     useEmployeeDetailsReportOnload();
-  const { data: groupTypesData } = useReportGroupTypes();
+  const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
   const { mutate: searchReport, isPending: isSearching } =
     useSearchEmployeeDetailsReport();
   const { mutate: filterEmployees } = useFilterEmployeeDetails();
@@ -244,9 +244,9 @@ function EmployeeDetailsReportContent() {
   }, [onloadData]);
   // Cascading Dropdowns for Format 2
   const groupTypeIdsArray = watchedGroupType?.join(",") || "";
-  const { data: departmentsData } = useReportDepartments(groupTypeIdsArray);
+  const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIdsArray);
   const groupDepartmentIdsArray = watchedDepartment?.join(",") || "";
-  const { data: designationsData } = useReportDesignations(
+  const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(
     groupTypeIdsArray,
     groupDepartmentIdsArray,
   );
@@ -829,7 +829,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Group Types"
+                      placeholder={isLoadingGroupTypes ? "Loading..." : "Select Group Types"}
+                      disabled={isLoadingGroupTypes}
                     />
                   )}
                 />
@@ -851,7 +852,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Departments"
+                      placeholder={isLoadingDepartments ? "Loading..." : "Select Departments"}
+                      disabled={isLoadingDepartments || departmentsData?.data?.length == 0}
                     />
                   )}
                 />
@@ -873,7 +875,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Designations"
+                      placeholder={isLoadingDesignations ? "Loading..." : "Select Designations"}
+                      disabled={isLoadingDesignations || designationsData?.data?.length == 0}
                     />
                   )}
                 />

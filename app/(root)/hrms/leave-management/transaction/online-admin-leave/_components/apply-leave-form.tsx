@@ -95,6 +95,7 @@ export default function ApplyLeaveForm({
         }
     });
     const [previewFile, setPreviewFile] = useState<any>(null);
+    const [isReportingDateOpen, setIsReportingDateOpen] = useState(false);
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const hrmL_Id = form.watch('hrmL_Id');
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -292,7 +293,7 @@ export default function ApplyLeaveForm({
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1 block'>Date Reporting Back</FormLabel>
-                                    <Popover>
+                                    <Popover open={isReportingDateOpen} onOpenChange={setIsReportingDateOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
                                                 <Button variant='outline' className={cn('w-full h-11 text-left font-normal border-slate-200 rounded-xl bg-white', !field.value && 'text-muted-foreground')}>
@@ -302,7 +303,16 @@ export default function ApplyLeaveForm({
                                             </FormControl>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                            <Calendar
+                                                mode='single'
+                                                selected={field.value}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setIsReportingDateOpen(false);
+                                                }}
+                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                     <FormMessage />

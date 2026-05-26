@@ -4344,6 +4344,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/EmployeeSalarySlipStMary',
                                             title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id:39,
+                                            name: 'Employee Salary Statement',
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/cumulative-salary-report',
+                                            title: 'Employee Salary Statement',
+                                            description: 'Employee Salary Statement'
                                         }
                                     ]
                                 }
