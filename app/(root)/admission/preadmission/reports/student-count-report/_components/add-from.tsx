@@ -10,7 +10,7 @@ import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { useAcademicYearDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { cn } from '@/lib/utils';
 import { masterStudentCountReportSchema } from '@/schemas/admission/preadmission/reports';
-import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
+import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -91,7 +91,13 @@ export default function AddStudentCountReportForm({
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
-            const response = await addOrUpdateStudentCountReport(payload, searchParams);
+            
+            const [response, dashboardResponse] = await Promise.all([
+                addOrUpdateStudentCountReport(payload, searchParams),
+                getParentDashboardDetails(payload.asmay_id)
+            ]);
+
+            console.log('Dashboard details fetched:', dashboardResponse);
 
             // Update parent state with the current filter payload
             if (onFilterChange) {
@@ -378,11 +384,14 @@ export default function AddStudentCountReportForm({
                                                                 Error loading Class
                                                             </SelectItem>
                                                         ) : (
-                                                            masterClass?.data?.map((item) => (
-                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                    {item.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
+                                                            <>
+                                                                <SelectItem value='0'>All</SelectItem>
+                                                                {masterClass?.data?.map((item) => (
+                                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                        {item.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </>
                                                         )}
                                                     </SelectContent>
                                                 </Select>
