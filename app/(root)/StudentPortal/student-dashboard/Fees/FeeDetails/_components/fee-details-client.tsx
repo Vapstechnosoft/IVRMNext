@@ -17,7 +17,7 @@ interface FeeDetailsClientProps {
     initialData: FeeDetailsLoadData;
 }
 
-const COLORS = ['#3498DB', '#76D7C4', '#808B96', '#80DEEA', '#C5E1A5', '#AAB7B8'];
+const _COLORS = ['#3498DB', '#76D7C4', '#808B96', '#80DEEA', '#C5E1A5', '#AAB7B8'];
 
 export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps) {
     const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
@@ -63,11 +63,10 @@ export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps)
         setDetailedData([]);
 
         try {
-            const response =
-                await getFeeDetails({
-                    ASMAY_Id: parseInt(yearId),
-                    type: mode
-                });
+            const response = await getFeeDetails({
+                ASMAY_Id: Number.parseInt(yearId),
+                type: mode
+            });
 
             if (response && Array.isArray(response.getfeedetails) && response.getfeedetails.length > 0) {
                 setHasData(true);

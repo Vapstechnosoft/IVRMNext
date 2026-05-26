@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import type React from 'react';
 
 interface ApplicationPrintViewProps {
     data: any;
@@ -14,14 +13,14 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
 
     const details = data.details?.[0] || data.details || {};
     const academicYear = data.academic_year || '';
-    const className = data.asmcL_ClassName || '';
+    const _className = data.asmcL_ClassName || '';
 
     // Helper to format date
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '';
         try {
             return format(new Date(dateStr), 'dd/MM/yyyy');
-        } catch (e) {
+        } catch (_e) {
             return dateStr;
         }
     };
@@ -33,8 +32,10 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
     const dobYear = dob ? format(dob, 'yyyy') : '';
 
     return (
-        <div ref={printRef} className="bg-white p-4 text-black overflow-auto max-h-[80vh]">
-            <style dangerouslySetInnerHTML={{ __html: `
+        <div ref={printRef} className='max-h-[80vh] overflow-auto bg-white p-4 text-black'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 .img-style {
                     width: 110px;
                     height: 100px;
@@ -80,140 +81,154 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                 .text-right { text-align: right; }
                 .font-bold { font-weight: bold; }
                 .uppercase { text-transform: uppercase; }
-            ` }} />
+            `
+                }}
+            />
 
-            <div id="printSectionId">
+            <div id='printSectionId'>
                 {/* Header Section */}
-                <div className="flex justify-between items-start mb-6">
-                    <div className="inlineTable1">
-                        <table className="w-full">
+                <div className='mb-6 flex items-start justify-between'>
+                    <div className='inlineTable1'>
+                        <table className='w-full'>
                             <tbody>
                                 <tr>
-                                    <td className="w-32">Registration No.</td>
-                                    <td className="border-bottom">{details.PASR_RegistrationNo}</td>
+                                    <td className='w-32'>Registration No.</td>
+                                    <td className='border-bottom'>{details.PASR_RegistrationNo}</td>
                                 </tr>
                                 <tr>
                                     <td>Date:</td>
-                                    <td className="border-bottom">{formatDate(details.PASR_Date)}</td>
+                                    <td className='border-bottom'>{formatDate(details.PASR_Date)}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div className="inlineTable2 text-center">
-                        <h2 className="text-xl font-bold uppercase">Baldwin Girls' High School</h2>
-                        <p className="text-sm"># Richmond Road, Bangalore - 560 025</p>
-                        <h3 className="text-lg font-bold mt-2">PRE-ADMISSION REGISTRATION FORM</h3>
-                        <p className="font-bold">Academic Year {academicYear}</p>
+                    <div className='inlineTable2 text-center'>
+                        <h2 className='font-bold text-xl uppercase'>Baldwin Girls' High School</h2>
+                        <p className='text-sm'># Richmond Road, Bangalore - 560 025</p>
+                        <h3 className='mt-2 font-bold text-lg'>PRE-ADMISSION REGISTRATION FORM</h3>
+                        <p className='font-bold'>Academic Year {academicYear}</p>
                     </div>
 
-                    <div className="inlineTable3">
-                        <img src={details.PASR_Student_Pic_Path || '/placeholder-user.png'} className="img-style" alt="Student" />
+                    <div className='inlineTable3'>
+                        <img src={details.PASR_Student_Pic_Path || '/placeholder-user.png'} className='img-style' alt='Student' />
                     </div>
                 </div>
 
-                <div className="clear-both"></div>
+                <div className='clear-both' />
 
                 {/* Form Content */}
-                <div className="mt-4">
-                    <table className="w-full border-t border-l border-r border-b border-black">
+                <div className='mt-4'>
+                    <table className='w-full border-black border-t border-r border-b border-l'>
                         <tbody>
                             <tr>
-                                <td className="w-1/4 font-bold border-r border-b border-black">Name of the Candidate</td>
-                                <td className="border-b border-black uppercase">
+                                <td className='w-1/4 border-black border-r border-b font-bold'>Name of the Candidate</td>
+                                <td className='border-black border-b uppercase'>
                                     {details.PASR_FirstName} {details.PASR_MiddleName} {details.PASR_LastName}
                                 </td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Date of Birth</td>
-                                <td className="border-b border-black">
-                                    <span className="mr-4">Day: <span className="border-bottom px-2">{dobDay}</span></span>
-                                    <span className="mr-4">Month: <span className="border-bottom px-2">{dobMonth}</span></span>
-                                    <span>Year: <span className="border-bottom px-4">{dobYear}</span></span>
+                                <td className='border-black border-r border-b font-bold'>Date of Birth</td>
+                                <td className='border-black border-b'>
+                                    <span className='mr-4'>
+                                        Day: <span className='border-bottom px-2'>{dobDay}</span>
+                                    </span>
+                                    <span className='mr-4'>
+                                        Month: <span className='border-bottom px-2'>{dobMonth}</span>
+                                    </span>
+                                    <span>
+                                        Year: <span className='border-bottom px-4'>{dobYear}</span>
+                                    </span>
                                 </td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Place of Birth</td>
-                                <td className="border-b border-black">{details.PASR_BirthPlace}</td>
+                                <td className='border-black border-r border-b font-bold'>Place of Birth</td>
+                                <td className='border-black border-b'>{details.PASR_BirthPlace}</td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Nationality</td>
-                                <td className="border-b border-black">{details.PASR_Nationality}</td>
+                                <td className='border-black border-r border-b font-bold'>Nationality</td>
+                                <td className='border-black border-b'>{details.PASR_Nationality}</td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Religion & Caste</td>
-                                <td className="border-b border-black">
+                                <td className='border-black border-r border-b font-bold'>Religion & Caste</td>
+                                <td className='border-black border-b'>
                                     {details.PASR_Religion} / {details.PASR_Caste}
                                 </td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Residential Address</td>
-                                <td className="border-b border-black">
+                                <td className='border-black border-r border-b font-bold'>Residential Address</td>
+                                <td className='border-black border-b'>
                                     {details.PASR_PerStreet}, {details.PASR_PerCity}, {details.PASR_PerState} - {details.PASR_PerPincode}
                                 </td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Mobile No.</td>
-                                <td className="border-b border-black">{details.PASR_MobileNo}</td>
+                                <td className='border-black border-r border-b font-bold'>Mobile No.</td>
+                                <td className='border-black border-b'>{details.PASR_MobileNo}</td>
                             </tr>
                             <tr>
-                                <td className="font-bold border-r border-b border-black">Email ID</td>
-                                <td className="border-b border-black">{details.PASR_EmailId}</td>
+                                <td className='border-black border-r border-b font-bold'>Email ID</td>
+                                <td className='border-black border-b'>{details.PASR_EmailId}</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <h4 className="font-bold mt-4 mb-2 underline">Parent Details</h4>
-                    <table className="w-full border border-black">
+                    <h4 className='mt-4 mb-2 font-bold underline'>Parent Details</h4>
+                    <table className='w-full border border-black'>
                         <thead>
-                            <tr className="border-b border-black">
-                                <th className="border-r border-black p-2">Particulars</th>
-                                <th className="border-r border-black p-2">Father</th>
-                                <th className="p-2">Mother</th>
+                            <tr className='border-black border-b'>
+                                <th className='border-black border-r p-2'>Particulars</th>
+                                <th className='border-black border-r p-2'>Father</th>
+                                <th className='p-2'>Mother</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-b border-black">
-                                <td className="border-r border-black font-bold">Name</td>
-                                <td className="border-r border-black">{details.PASR_FatherName}</td>
+                            <tr className='border-black border-b'>
+                                <td className='border-black border-r font-bold'>Name</td>
+                                <td className='border-black border-r'>{details.PASR_FatherName}</td>
                                 <td>{details.PASR_MotherName}</td>
                             </tr>
-                            <tr className="border-b border-black">
-                                <td className="border-r border-black font-bold">Qualification</td>
-                                <td className="border-r border-black">{details.PASR_FatherEducation}</td>
+                            <tr className='border-black border-b'>
+                                <td className='border-black border-r font-bold'>Qualification</td>
+                                <td className='border-black border-r'>{details.PASR_FatherEducation}</td>
                                 <td>{details.PASR_MotherEducation}</td>
                             </tr>
-                            <tr className="border-b border-black">
-                                <td className="border-r border-black font-bold">Occupation</td>
-                                <td className="border-r border-black">{details.PASR_FatherOccupation}</td>
+                            <tr className='border-black border-b'>
+                                <td className='border-black border-r font-bold'>Occupation</td>
+                                <td className='border-black border-r'>{details.PASR_FatherOccupation}</td>
                                 <td>{details.PASR_MotherOccupation}</td>
                             </tr>
-                            <tr className="border-b border-black">
-                                <td className="border-r border-black font-bold">Designation</td>
-                                <td className="border-r border-black">{details.PASR_FatherDesignation}</td>
+                            <tr className='border-black border-b'>
+                                <td className='border-black border-r font-bold'>Designation</td>
+                                <td className='border-black border-r'>{details.PASR_FatherDesignation}</td>
                                 <td>{details.PASR_MotherDesignation}</td>
                             </tr>
                             <tr>
-                                <td className="border-r border-black font-bold">Mobile No.</td>
-                                <td className="border-r border-black">{details.PASR_FatherMobleNo}</td>
+                                <td className='border-black border-r font-bold'>Mobile No.</td>
+                                <td className='border-black border-r'>{details.PASR_FatherMobleNo}</td>
                                 <td>{details.PASR_MotherMobleNo}</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div className="mt-6 flex justify-between">
-                        <div className="text-center pt-10 border-t border-black w-48">Parent Signature</div>
-                        <div className="text-center pt-10 border-t border-black w-48">Principal Signature</div>
+                    <div className='mt-6 flex justify-between'>
+                        <div className='w-48 border-black border-t pt-10 text-center'>Parent Signature</div>
+                        <div className='w-48 border-black border-t pt-10 text-center'>Principal Signature</div>
                     </div>
                 </div>
 
                 {/* Office Use Box */}
-                <div className="office-use-box mt-10">
-                    <p className="font-bold text-center underline">FOR OFFICE USE ONLY</p>
-                    <div className="mt-4 space-y-2">
-                        <p>Admitted to Class: <span className="border-bottom w-32 ml-2"></span></p>
-                        <p>Date of Admission: <span className="border-bottom w-32 ml-2"></span></p>
-                        <p>Admission No: <span className="border-bottom w-32 ml-4"></span></p>
+                <div className='office-use-box mt-10'>
+                    <p className='text-center font-bold underline'>FOR OFFICE USE ONLY</p>
+                    <div className='mt-4 space-y-2'>
+                        <p>
+                            Admitted to Class: <span className='ml-2 w-32 border-bottom' />
+                        </p>
+                        <p>
+                            Date of Admission: <span className='ml-2 w-32 border-bottom' />
+                        </p>
+                        <p>
+                            Admission No: <span className='ml-4 w-32 border-bottom' />
+                        </p>
                     </div>
                 </div>
             </div>

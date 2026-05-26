@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getStpeterStudentIdCardLoadData() {
-    const url = `/StudentIdCardFormat/OnLoadStudentIdCardDetails`;
+    const url = '/StudentIdCardFormat/OnLoadStudentIdCardDetails';
     const res = await api.post<any>('admission', url);
     return res?.data || res;
 }
@@ -24,7 +24,6 @@ export async function changeSectionStpeterStudentIdCard(data: { ASMAY_Id: number
     const res = await api.post<any>('admission', url);
     return res?.data || res;
 }
-
 
 export async function getStpeterStudentIdCardReport(data: {
     ASMAY_Id: number;

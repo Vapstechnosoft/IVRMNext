@@ -4,17 +4,23 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useCountryDropdownList, useFacilityDropdownList, useMasterHostel, useMessDropdownList, useWardenDropdownList } from '@/hooks/hostel/useMasterHostel';
-import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
-import AddMasterHostelForm from './_components/add-form';
-import UpdateMasterHostelForm from './_components/update-form';
-import { masterHostelColumns } from './_components/columns';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { toast } from 'sonner';
-import { ViewDocumentsModal, ViewFacilitiesModal, ViewWardensModal } from './_components/view-modals';
-import { ICountry, IEmployee, IFacility, IHostel, IMess, IState } from '@/types/hostel/hostel-management/masters';
+import {
+    useCountryDropdownList,
+    useFacilityDropdownList,
+    useMasterHostel,
+    useMessDropdownList,
+    useWardenDropdownList
+} from '@/hooks/hostel/useMasterHostel';
 import { deleteHostel } from '@/server/hostel/hostel-management/masters/hostel';
+import type { ICountry, IEmployee, IFacility, IHostel, IMess } from '@/types/hostel/hostel-management/masters';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import { toast } from 'sonner';
+import AddMasterHostelForm from './_components/add-form';
+import { masterHostelColumns } from './_components/columns';
+import UpdateMasterHostelForm from './_components/update-form';
+import { ViewDocumentsModal, ViewFacilitiesModal, ViewWardensModal } from './_components/view-modals';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -167,7 +173,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterHostelForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 countries={countries}
                                 facilities={facilities}
                                 messes={messes}
@@ -199,7 +208,10 @@ function FormSections({
                             </Button>
                             <UpdateMasterHostelForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 countries={countries}
                                 facilities={facilities}
                                 messes={messes}
@@ -212,36 +224,20 @@ function FormSections({
 
             {/* Toggle Form (Simulated inline or using Wrapper) */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterHostelForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterHostelForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
 
             {/* View Modals */}
-            <ViewFacilitiesModal
-                isOpen={isFacilityViewOpen}
-                onClose={closeFacilityView}
-                hostel={selectedRow as IHostel}
-            />
-            <ViewWardensModal
-                isOpen={isWardenViewOpen}
-                onClose={closeWardenView}
-                hostel={selectedRow as IHostel}
-            />
-            <ViewDocumentsModal
-                isOpen={isDocumentViewOpen}
-                onClose={closeDocumentView}
-                hostel={selectedRow as IHostel}
-            />
+            <ViewFacilitiesModal isOpen={isFacilityViewOpen} onClose={closeFacilityView} hostel={selectedRow as IHostel} />
+            <ViewWardensModal isOpen={isWardenViewOpen} onClose={closeWardenView} hostel={selectedRow as IHostel} />
+            <ViewDocumentsModal isOpen={isDocumentViewOpen} onClose={closeDocumentView} hostel={selectedRow as IHostel} />
         </>
     );
 }
 
 // Inline Toggle Form for simplicity
 
-function ToggleMasterHostelForm({ rowData, onClose, onSuccess }: { rowData: IHostel, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterHostelForm({ rowData, onClose, onSuccess }: { rowData: IHostel; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deleteHostel(rowData.hlmH_Id);
@@ -251,7 +247,7 @@ function ToggleMasterHostelForm({ rowData, onClose, onSuccess }: { rowData: IHos
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

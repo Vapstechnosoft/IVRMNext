@@ -128,7 +128,7 @@ function ActionButtonsCell({
         [openEditForm]
     );
 
-    const handleToggle = useCallback(
+    const _handleToggle = useCallback(
         (data: IFeeThirdPartyTransaction) => {
             openToggleForm(data);
         },
@@ -153,7 +153,7 @@ function ActionButtonsCell({
                 onEdit={handleEdit}
                 //onToggle={handleToggle}
                 onDelete={handleDelete}
-            //toggleConditionKey='fmH_ActiveFlag'
+                //toggleConditionKey='fmH_ActiveFlag'
             />
         </div>
     );

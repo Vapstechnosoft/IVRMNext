@@ -40,8 +40,6 @@ export default function AddMasterBuildingForm({ onSuccess, buildingname = '' }: 
                 ttmB_BuildingName: ttmB_BuildingName
             };
 
-            console.log(payload);
-
             const response = await addOrUpdateMasterBuilding(payload);
             if (response.success) {
                 toast.success(response.message);

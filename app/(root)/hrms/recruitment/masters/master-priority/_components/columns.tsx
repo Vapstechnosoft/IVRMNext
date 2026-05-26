@@ -4,15 +4,15 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { ColumnDef } from '@tanstack/react-table';
 
 export interface MasterPriority {
-  hrmpR_Id: number;
-  hrmP_Name: string;
-  hrmP_Order: number;
-  hrmP_ActiveFlag: boolean;
-  mI_Id: number;
-  hrmP_CreatedBy: number;
-  hrmP_UpdatedBy: number;
-  createdDate: string;
-  updatedDate: string;
+    hrmpR_Id: number;
+    hrmP_Name: string;
+    hrmP_Order: number;
+    hrmP_ActiveFlag: boolean;
+    mI_Id: number;
+    hrmP_CreatedBy: number;
+    hrmP_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
 }
 
 interface MasterPriorityColumnsProps {
@@ -30,12 +30,12 @@ export const getMasterPriorityColumns = ({ onEdit, onToggle }: MasterPriorityCol
     {
         accessorKey: 'hrmP_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Priority Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Name}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Name}</div>
     },
     {
         accessorKey: 'hrmP_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Priority Order' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Order}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmP_Order}</div>
     },
     {
         id: 'actions',

@@ -52,11 +52,8 @@ export default function DeleteFeeRefundableForm({ rowData, onClose }: DeleteFeeR
         onClose();
         reset();
     }
-
-    console.log('rowData', rowData);
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            console.log('rowData', rowData.fR_ID);
             const response = await deleteFeeRefundableDetails(Number(rowData.fR_ID));
             if (response?.success) {
                 toast.success(response.message);

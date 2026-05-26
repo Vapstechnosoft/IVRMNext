@@ -17,12 +17,10 @@ import { CalendarIcon, Printer, RefreshCw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as z from 'zod';
 
-import { EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
+import { type EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
 
 // Define the form schema and types
-
 
 const mockEmployees = [
     { key: '1208', value: 'ANUSHA T' },
@@ -830,9 +828,9 @@ export default function SalaryCertificatePage() {
                                                     <td className='border border-white-300 px-4 py-2 text-right text-sm'>
                                                         {earnings[index]
                                                             ? `₹${earnings[index].Amount.toLocaleString('en-IN', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}`
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
                                                             : ''}
                                                     </td>
                                                     <td className='border border-white-300 px-4 py-2 text-sm'>
@@ -841,9 +839,9 @@ export default function SalaryCertificatePage() {
                                                     <td className='border border-white-300 px-4 py-2 text-right text-sm'>
                                                         {deductions[index]
                                                             ? `₹${deductions[index].Amount.toLocaleString('en-IN', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}`
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
                                                             : ''}
                                                     </td>
                                                 </tr>

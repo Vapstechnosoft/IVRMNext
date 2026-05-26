@@ -1,4 +1,4 @@
-export const printDepartmentSalaryReport = (reportData: any, month: string, year: string, departmentNames: string = '') => {
+export const printDepartmentSalaryReport = (reportData: any, month: string, year: string, departmentNames = '') => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
@@ -14,43 +14,39 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     const earnings = firstRecord.earningresult || [];
     const deductions = firstRecord.deductionresult || [];
 
-    const earningHeaders = earnings.map((head: any) =>
-        `<th class="text-right">${head.hrmeD_Name}</th>`
-    ).join('');
+    const earningHeaders = earnings.map((head: any) => `<th class="text-right">${head.hrmeD_Name}</th>`).join('');
 
-    const deductionHeaders = deductions.map((head: any) =>
-        `<th class="text-right">${head.hrmeD_Name}</th>`
-    ).join('');
+    const deductionHeaders = deductions.map((head: any) => `<th class="text-right">${head.hrmeD_Name}</th>`).join('');
 
     // Calculate totals across all rows
     let grandTotalGross = 0;
     let grandTotalDed = 0;
     let grandTotalNet = 0;
 
-    const tableRows = departmentDetails.map((record: any, index: number) => {
-        // Per record calculations
-        const recordEarnings = record.earningresult || [];
-        const recordDeductions = record.deductionresult || [];
+    const tableRows = departmentDetails
+        .map((record: any, index: number) => {
+            // Per record calculations
+            const recordEarnings = record.earningresult || [];
+            const recordDeductions = record.deductionresult || [];
 
-        const earningCells = recordEarnings.map((head: any) =>
-            `<td class="text-right">${Number(head.hresD_Amount || 0).toFixed(2)}</td>`
-        ).join('');
+            const earningCells = recordEarnings
+                .map((head: any) => `<td class="text-right">${Number(head.hresD_Amount || 0).toFixed(2)}</td>`)
+                .join('');
 
-        const deductionCells = recordDeductions.map((head: any) =>
-            `<td class="text-right">${Number(head.hresD_Amount || 0).toFixed(2)}</td>`
-        ).join('');
+            const deductionCells = recordDeductions
+                .map((head: any) => `<td class="text-right">${Number(head.hresD_Amount || 0).toFixed(2)}</td>`)
+                .join('');
 
-        // Use pre-calculated totals from backend if available, or calc
-        const gross = Number(record.grossEarning) || 0; // Or sum manually
-        const totalDed = Number(record.grossDeduction) || 0;
-        // Net salary might be missing in some payloads, calculate if 0
-        const netPay = (Number(record.netSalary) || (gross - totalDed));
+            // Use pre-calculated totals from backend if available, or calc
+            const gross = Number(record.grossEarning) || 0; // Or sum manually
+            const totalDed = Number(record.grossDeduction) || 0;
+            // Net salary might be missing in some payloads, calculate if 0
+            const netPay = Number(record.netSalary) || gross - totalDed;
 
-        grandTotalGross += gross;
-        grandTotalDed += totalDed;
-        grandTotalNet += netPay;
-        console.log(record);
-        return `
+            grandTotalGross += gross;
+            grandTotalDed += totalDed;
+            grandTotalNet += netPay;
+            return `
           <tr>
               <td class="text-center">${index + 1}</td>
               <td>${record.hrmD_DepartmentName || ''}</td>
@@ -62,7 +58,8 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
               <td class="text-right font-bold">${netPay.toFixed(2)}</td>
           </tr>
       `;
-    }).join('');
+        })
+        .join('');
 
     const footerRow = `
       <tr class="font-bold bg-gray-100">
@@ -192,4 +189,4 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

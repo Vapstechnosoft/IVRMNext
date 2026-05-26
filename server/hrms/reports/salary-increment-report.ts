@@ -1,7 +1,7 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-import { type SalaryIncrementReportItem, type SalaryIncrementReportRequest } from '@/types/hrms/reports/salary-increment-report';
+import { type ApiResponse, api } from '@/lib/apiService';
+import type { SalaryIncrementReportItem, SalaryIncrementReportRequest } from '@/types/hrms/reports/salary-increment-report';
 
 /**
  * Get salary increment report

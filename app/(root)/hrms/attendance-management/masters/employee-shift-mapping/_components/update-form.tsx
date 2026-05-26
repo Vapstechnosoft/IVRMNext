@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -15,10 +15,10 @@ import {
     useShiftSettingMaster
 } from '@/hooks/hrms/attendance-management/useMasters';
 import {
-    useReportGroupTypes,
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByGroupTypeDeptAndDesignation
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateEmployeeShiftMapping } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
@@ -30,7 +30,6 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { ShiftTimingFields } from '../../_components/shift-timing-fields';
-import { parse } from 'node:path';
 
 type FormFields = z.infer<typeof hrmsMasterSchemas.employeeShiftMapping.update>;
 
@@ -52,15 +51,13 @@ export default function UpdateEmployeeShiftMappingForm({
     const dayTypeMapped = useRef(false);
     const employeeMapped = useRef(false);
 
-    console.log("row DATA", row);
-
     // Data Hooks from Reports
     const { data: groupTypesData } = useReportGroupTypes();
     const { data: employeeDetailsData } = useEmployeeShiftMappingDetailsById(row?.foesT_Id || 0);
 
     // Fetch shift master data from API to get fomS_Id
     const { data: shiftMasterData } = useShiftSettingMaster();
-    const shiftMasterList = useMemo(() => {
+    const _shiftMasterList = useMemo(() => {
         // Handle both array response and object with report_list
         if (!shiftMasterData?.data) return [];
         if (Array.isArray(shiftMasterData.data)) {
@@ -71,20 +68,18 @@ export default function UpdateEmployeeShiftMappingForm({
         return dataWithReportList?.report_list || [];
     }, [shiftMasterData]);
 
-
     // Fetch holiday types
     const { data: holidayTypesData } = useEmployeeShiftMappingHolidayTypes();
 
     // Fetch shift names list
     const { data: shiftNamesListData } = useEmployeeShiftMappingShiftNamesList();
-    console.log("shiftNamesListData", shiftNamesListData);
     // Generate unique IDs for form fields
     const typeId = useId();
     const departmentId = useId();
     const designationId = useId();
     const dayTypeId = useId();
     const shiftNameId = useId();
-    const applicableDateId = useId();
+    const _applicableDateId = useId();
     const employeesId = useId();
 
     // Initialize form with default values immediately from row data
@@ -115,7 +110,7 @@ export default function UpdateEmployeeShiftMappingForm({
             foest_GroupType: row?.hrmgT_Id ? String(row.hrmgT_Id) : '',
             foest_Department: row?.hrmD_Id ? String(row.hrmD_Id) : '',
             foest_Designation: row?.hrmdeS_Id ? String(row.hrmdeS_Id) : '',
-            foest_HolidayType: row?.fohwdT_Id ? String(row.fohwdT_Id) : '',
+            foest_HolidayType: row?.fohwdT_Id ? String(row.fohwdT_Id) : ''
         }
     });
 
@@ -147,7 +142,7 @@ export default function UpdateEmployeeShiftMappingForm({
                     foest_HolidayType: row.fohwdT_Id ? String(row.fohwdT_Id) : '',
                     foest_Department: row.hrmD_Id ? String(row.hrmD_Id) : '',
                     foest_Designation: row.hrmdeS_Id ? String(row.hrmdeS_Id) : '',
-                    foest_GroupType: row.hrmgT_Id ? String(row.hrmgT_Id) : '',
+                    foest_GroupType: row.hrmgT_Id ? String(row.hrmgT_Id) : ''
                 },
                 { keepDefaultValues: false }
             );
@@ -161,9 +156,18 @@ export default function UpdateEmployeeShiftMappingForm({
     const watchedDesignation = watch('foest_Designation');
 
     // Mapped ID arrays for hook dependencies
-    const groupTypeIds = useMemo(() => (watchedGroupType ? watchedGroupType.split(', ').map(Number).filter(Boolean) : []), [watchedGroupType]);
-    const deptIds = useMemo(() => (watchedDepartment ? watchedDepartment.split(', ').map(Number).filter(Boolean) : []), [watchedDepartment]);
-    const desigIds = useMemo(() => (watchedDesignation ? watchedDesignation.split(', ').map(Number).filter(Boolean) : []), [watchedDesignation]);
+    const groupTypeIds = useMemo(
+        () => (watchedGroupType ? watchedGroupType.split(', ').map(Number).filter(Boolean) : []),
+        [watchedGroupType]
+    );
+    const deptIds = useMemo(
+        () => (watchedDepartment ? watchedDepartment.split(', ').map(Number).filter(Boolean) : []),
+        [watchedDepartment]
+    );
+    const desigIds = useMemo(
+        () => (watchedDesignation ? watchedDesignation.split(', ').map(Number).filter(Boolean) : []),
+        [watchedDesignation]
+    );
 
     // Fetch departments when group type is selected
     const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
@@ -172,11 +176,7 @@ export default function UpdateEmployeeShiftMappingForm({
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
 
     // Fetch employees when group types, departments, or designations are selected
-    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(
-        groupTypeIds,
-        deptIds,
-        desigIds
-    );
+    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const selectedShiftName = watch('foest_ShiftName');
 
@@ -207,7 +207,7 @@ export default function UpdateEmployeeShiftMappingForm({
 
             // Merge API results, avoiding duplicates with the seed
             Array.from(uniqueShifts.values()).forEach((opt: any) => {
-                if (!options.some(o => o.label === opt.label || o.value === opt.value)) {
+                if (!options.some((o) => o.label === opt.label || o.value === opt.value)) {
                     options.push(opt);
                 }
             });
@@ -220,7 +220,7 @@ export default function UpdateEmployeeShiftMappingForm({
     const selectedShiftId = useMemo(() => {
         if (selectedShiftName) {
             const selectedShift = shiftOptions.find((shift: { value: string; id?: number }) => shift.value === selectedShiftName);
-            // If we found a shift and it has a valid ID, return it. 
+            // If we found a shift and it has a valid ID, return it.
             // If it's the seed option with id 0, return 0 to prevent accidental fetch with invalid ID.
             return selectedShift?.id && selectedShift.id > 0 ? selectedShift.id : 0;
         }
@@ -283,7 +283,7 @@ export default function UpdateEmployeeShiftMappingForm({
     }, [selectedShiftId, shiftDetailsData, isLoadingShiftDetails]);
 
     // Helper function to remove duplicates by value
-    const removeDuplicateOptions = (options: Array<{ label: string; value: string }>) => {
+    const _removeDuplicateOptions = (options: Array<{ label: string; value: string }>) => {
         const seen = new Set<string>();
         return options.filter((option) => {
             if (seen.has(option.value)) {
@@ -296,15 +296,17 @@ export default function UpdateEmployeeShiftMappingForm({
 
     const groupTypesOptions = useMemo(() => {
         const list = groupTypesData?.data || groupTypesData || [];
-        const options = Array.isArray(list) ? list.map((gt: any) => ({
-            value: String(gt.key || gt.hrmgT_Id || gt.id),
-            label: gt.value || gt.hrmgT_EmployeeGroupType || gt.name
-        })) : [];
+        const options = Array.isArray(list)
+            ? list.map((gt: any) => ({
+                  value: String(gt.key || gt.hrmgT_Id || gt.id),
+                  label: gt.value || gt.hrmgT_EmployeeGroupType || gt.name
+              }))
+            : [];
 
         // Seed with current row data for instant display
         if (row?.hrmgT_Id && row?.hrmgT_EmployeeGroupType) {
             const val = String(row.hrmgT_Id);
-            if (!options.some(o => o.value === val)) {
+            if (!options.some((o) => o.value === val)) {
                 options.unshift({ value: val, label: row.hrmgT_EmployeeGroupType });
             }
         }
@@ -313,15 +315,17 @@ export default function UpdateEmployeeShiftMappingForm({
 
     const departmentsOptions = useMemo(() => {
         const list = departmentsData?.data || departmentsData || [];
-        const options = Array.isArray(list) ? list.map((d: any) => ({
-            value: String(d.hrmD_Id || d.hrmd_id || d.key || d.id),
-            label: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
-        })) : [];
+        const options = Array.isArray(list)
+            ? list.map((d: any) => ({
+                  value: String(d.hrmD_Id || d.hrmd_id || d.key || d.id),
+                  label: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
+              }))
+            : [];
 
         // Seed with current row data
         if (row?.hrmD_Id && row?.hrmD_DepartmentName) {
             const val = String(row.hrmD_Id);
-            if (!options.some(o => o.value === val)) {
+            if (!options.some((o) => o.value === val)) {
                 options.unshift({ value: val, label: row.hrmD_DepartmentName });
             }
         }
@@ -330,15 +334,17 @@ export default function UpdateEmployeeShiftMappingForm({
 
     const designationsOptions = useMemo(() => {
         const list = designationsData?.data || designationsData || [];
-        const options = Array.isArray(list) ? list.map((d: any) => ({
-            value: String(d.hrmdeS_Id || d.hrmdes_id || d.key || d.id),
-            label: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
-        })) : [];
+        const options = Array.isArray(list)
+            ? list.map((d: any) => ({
+                  value: String(d.hrmdeS_Id || d.hrmdes_id || d.key || d.id),
+                  label: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
+              }))
+            : [];
 
         // Seed with current row data
         if (row?.hrmdeS_Id && row?.hrmdeS_DesignationName) {
             const val = String(row.hrmdeS_Id);
-            if (!options.some(o => o.value === val)) {
+            if (!options.some((o) => o.value === val)) {
                 options.unshift({ value: val, label: row.hrmdeS_DesignationName });
             }
         }
@@ -351,7 +357,7 @@ export default function UpdateEmployeeShiftMappingForm({
         // Seed with current row data for instant display even during loading
         if (row?.hrmE_EmployeeFirstName) {
             const labels = row.hrmE_EmployeeFirstName.split(/,\s*/).filter(Boolean);
-            labels.forEach(label => {
+            labels.forEach((label) => {
                 options.push({
                     id: label as any,
                     employeeName: label,
@@ -367,7 +373,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 if (!id) return;
 
                 const name = emp.employeeFullName || 'Unknown Employee';
-                if (!options.some(o => o.employeeName === name)) {
+                if (!options.some((o) => o.employeeName === name)) {
                     options.push({
                         id: Number(id),
                         employeeName: name,
@@ -383,15 +389,19 @@ export default function UpdateEmployeeShiftMappingForm({
     // Prepare holiday type options for Day Type dropdown
     const dayTypeOptionsMerged = React.useMemo(() => {
         const raw = holidayTypesData?.data || [];
-        const options = Array.isArray(raw) ? raw.map((item: any) => ({
-            label: item.Value || item.value || '',
-            value: String(item.Key || item.key || ''),
-        })).filter(o => o.value && o.value !== '0') : [];
+        const options = Array.isArray(raw)
+            ? raw
+                  .map((item: any) => ({
+                      label: item.Value || item.value || '',
+                      value: String(item.Key || item.key || '')
+                  }))
+                  .filter((o) => o.value && o.value !== '0')
+            : [];
 
         // Seed with current row data
         if (row?.fohwdT_Id && row?.fohtwD_HolidayWDType) {
             const val = String(row.fohwdT_Id);
-            if (!options.some(o => o.value === val)) {
+            if (!options.some((o) => o.value === val)) {
                 options.unshift({ value: val, label: row.fohtwD_HolidayWDType });
             }
         }
@@ -404,7 +414,8 @@ export default function UpdateEmployeeShiftMappingForm({
         // 1. Map Shift Name to ID if not yet mapped
         if (!shiftMapped.current && shiftOptions.length > 0) {
             const shiftOption = shiftOptions.find(
-                (s: any) => s.label === row.fomS_ShiftName || String(s.label).toLowerCase() === String(row.fomS_ShiftName || '').toLowerCase()
+                (s: any) =>
+                    s.label === row.fomS_ShiftName || String(s.label).toLowerCase() === String(row.fomS_ShiftName || '').toLowerCase()
             );
             if (shiftOption && shiftOption.id > 0) {
                 const shiftId = shiftOption.value;
@@ -445,7 +456,6 @@ export default function UpdateEmployeeShiftMappingForm({
             setValue('foest_HolidayType', String(row.fohwdT_Id), { shouldDirty: false });
             dayTypeMapped.current = true;
         }
-
     }, [row, shiftOptions, employeesDataTransformed, setValue]);
 
     // Cleanup initial load flag
@@ -458,19 +468,14 @@ export default function UpdateEmployeeShiftMappingForm({
         }
     }, [shiftMapped.current, dayTypeMapped.current]);
 
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('Final Payload:', data);
             // Get shift master ID from selected value (which is the stringified fomS_Id)
             // Find the shift object to verify it exists and get label if needed
-            const foundShift = shiftNamesListData?.data?.find((s: any) => 
-                String(s.fomS_Id) === String(data.foest_ShiftName) || 
-                s.fomS_ShiftName === data.foest_ShiftName
+            const foundShift = shiftNamesListData?.data?.find(
+                (s: any) => String(s.fomS_Id) === String(data.foest_ShiftName) || s.fomS_ShiftName === data.foest_ShiftName
             );
-            console.log("foundShift", foundShift);
             const shiftIdToUse = foundShift?.fomS_Id || 0;
-            console.log("shiftIdToUse", shiftIdToUse);
             // Convert employee strings to IDs from dropdown data
             const employeeIds = (data.foest_Employee?.split(', ') || [])
                 .map((empString) => {
@@ -513,7 +518,7 @@ export default function UpdateEmployeeShiftMappingForm({
             // Sample payload structure following project architecture
             // Note: mI_Id is handled by JWT, not included in request body
             // Get group type IDs from selected values (Type field - can be multiple)
-            const groupTypeIds = (data.foest_GroupType ? data.foest_GroupType.split(', ') : [])
+            const _groupTypeIds = (data.foest_GroupType ? data.foest_GroupType.split(', ') : [])
                 .map((idStr) => {
                     const id = Number.parseInt(idStr.trim(), 10);
                     return id > 0 ? id : null;
@@ -521,7 +526,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 .filter((id): id is number => id !== null);
 
             // Get department IDs from selected values (Department field - can be multiple)
-            const departmentIds = (data.foest_Department ? data.foest_Department.split(', ') : [])
+            const _departmentIds = (data.foest_Department ? data.foest_Department.split(', ') : [])
                 .map((idStr) => {
                     const id = Number.parseInt(idStr.trim(), 10);
                     return id > 0 ? id : null;
@@ -529,7 +534,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 .filter((id): id is number => id !== null);
 
             // Get designation IDs from selected values (Designation field - can be multiple)
-            const designationIds = (data.foest_Designation ? data.foest_Designation.split(', ') : [])
+            const _designationIds = (data.foest_Designation ? data.foest_Designation.split(', ') : [])
                 .map((idStr) => {
                     const id = Number.parseInt(idStr.trim(), 10);
                     return id > 0 ? id : null;
@@ -538,7 +543,7 @@ export default function UpdateEmployeeShiftMappingForm({
 
             // Get shift name label for display
             const selectedShift = shiftOptions.find((shift: { value: string; label: string }) => shift.value === data.foest_ShiftName);
-            const shiftNameLabel = selectedShift?.label || '';
+            const _shiftNameLabel = selectedShift?.label || '';
 
             // Payload structure matching API requirements
             // POST /api/EmployeeShiftMapping/add_or_update_employee_shift
@@ -559,7 +564,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 foesT_BlockAttendance: 'true',
                 foesT_FixTimings: 'true',
                 FOEST_BlockAttendance: 'true', // Dual casing for robustness
-                FOEST_FixTimings: 'true',    // Dual casing for robustness
+                FOEST_FixTimings: 'true', // Dual casing for robustness
                 foesT_Date: data.foest_ApplicableDate ? new Date(data.foest_ApplicableDate).toISOString() : new Date().toISOString(),
                 hrmE_Ids: [finalEmployeeId],
                 fohwdT_Ids: dayTypeIds
@@ -702,7 +707,9 @@ export default function UpdateEmployeeShiftMappingForm({
                                 onValueChange={(value) => setValue('foest_ShiftName', value)}
                                 disabled={false}>
                                 <SelectTrigger id={shiftNameId} className={errors.foest_ShiftName ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={shiftOptions.length === 0 ? 'No shifts available' : '--Select Shift Name--'} />
+                                    <SelectValue
+                                        placeholder={shiftOptions.length === 0 ? 'No shifts available' : '--Select Shift Name--'}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {shiftOptions
@@ -736,13 +743,13 @@ export default function UpdateEmployeeShiftMappingForm({
                         control={control}
                         render={({ field }) => (
                             <MultiSelect
-                                options={employeesDataTransformed.map(emp => ({
+                                options={employeesDataTransformed.map((emp) => ({
                                     label: emp.employeeName,
                                     value: String(emp.id)
                                 }))}
                                 onValueChange={(values) => field.onChange(values.join(', '))}
                                 defaultValue={field.value ? field.value.split(', ').filter(Boolean) : []}
-                                placeholder="Select Employees"
+                                placeholder='Select Employees'
                                 maxCount={3}
                                 disabled={!isNewEntry}
                             />

@@ -220,7 +220,6 @@ export default function ConsecutiveConstraintsFormnew({ onSuccess, onCancel }: C
                 TTC_AllotedFlag: 'N'
             };
             const response = await saveConsecutiveConstraintsDetail(payload);
-            console.log('response', response);
 
             if (response.success) {
                 toast.success(response.message);

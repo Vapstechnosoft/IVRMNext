@@ -87,7 +87,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     });
 
     const installmentType = watch('fmI_Installment_Type');
-    console.log('installmentType', installmentType);
     // === 1. DEFINE INSTALLMENT_TYPES HERE ===
     const INSTALLMENT_TYPES = [
         { value: 'general', label: 'General', count: 0 },
@@ -194,7 +193,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             if (row?.fmI_Id) {
                 // Get installments from API
                 const installments = await getfeeInstallmentsByFmiId(row.fmI_Id);
-                console.log('installmentsnames', installments);
 
                 // Use API data if available, otherwise fallback to defaults
                 const newInstallments =

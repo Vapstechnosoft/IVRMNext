@@ -1,22 +1,21 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { rainbowProgressCardReportSchema, type RainbowProgressCardReportSchema } from '@/schemas/exam/exam-module/reports';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type RainbowProgressCardReportSchema, rainbowProgressCardReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getExamAcademicYearDropdown,
     getRainbowProgressCardReport,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    updateStudentDetails
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/RainBow/rainbow-progress-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, RefreshCcw, FileText, Search } from 'lucide-react';
+import { FileText, Loader2, RefreshCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -102,10 +101,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             (async () => {
                 try {
                     setLoadingSections(true);
-                    const response = await getSectionsDropDownByAcademicYearandClasslist(
-                        Number(watchClass),
-                        Number(watchYear)
-                    );
+                    const response = await getSectionsDropDownByAcademicYearandClasslist(Number(watchClass), Number(watchYear));
                     if (response?.success && Array.isArray(response.data)) {
                         setSections(response.data);
                     }
@@ -139,7 +135,10 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                     // Auto-select all students
                     if (Array.isArray(studentList)) {
-                        setValue('selectedStudents', studentList.map((s: any) => String(s.amsT_Id)));
+                        setValue(
+                            'selectedStudents',
+                            studentList.map((s: any) => String(s.amsT_Id))
+                        );
                     }
                 } catch (err) {
                     console.error(err);
@@ -157,16 +156,15 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const onSubmit = async (data: RainbowProgressCardReportSchema) => {
         try {
             const payload = {
-                "ASMAY_Id": Number(data.ASMAY_Id),
-                "ASMCL_Id": Number(data.ASMCL_Id),
-                "ASMS_Id": Number(data.ASMS_Id),
-                "Temp_AmstIds": data.selectedStudents.map((id) => ({ AMST_Id: Number(id) })),
-                "EMPSG_PercentValue": Number(data.empsG_PercentValue),
-                "flag": "RAINBOW"
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                Temp_AmstIds: data.selectedStudents.map((id) => ({ AMST_Id: Number(id) })),
+                EMPSG_PercentValue: Number(data.empsG_PercentValue),
+                flag: 'RAINBOW'
             };
 
             const response = await getRainbowProgressCardReport(payload);
-            console.log('response', response?.data);
             const academicYear = years.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
 
             if (response?.success && response.data) {
@@ -181,12 +179,12 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         }
     };
 
-    const handleUpdate = async () => {
-        const data = methods.getValues();
-        // This requires the report to be generated first to get the HTML template, 
+    const _handleUpdate = async () => {
+        const _data = methods.getValues();
+        // This requires the report to be generated first to get the HTML template,
         // usually handled in the report-list component after rendering.
         // For now, we'll show a toast.
-        toast.info("Update is typically used after generating the report to save the formatted template.");
+        toast.info('Update is typically used after generating the report to save the formatted template.');
     };
 
     const handleClear = () => {
@@ -195,13 +193,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         onReset();
     };
 
-    const filteredStudents = students.filter(s =>
-        (s.studentName || s.studentname)?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredStudents = students.filter((s) => (s.studentName || s.studentname)?.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
-            setValue('selectedStudents', students.map(s => String(s.amsT_Id)));
+            setValue(
+                'selectedStudents',
+                students.map((s) => String(s.amsT_Id))
+            );
         } else {
             setValue('selectedStudents', []);
         }
@@ -209,39 +208,39 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     if (loading) {
         return (
-            <div className="flex justify-center p-8">
-                <Loader2 className="animate-spin text-primary h-8 w-8" />
+            <div className='flex justify-center p-8'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="w-full bg-white rounded-lg border border-gray-200 p-4 shadow-md transition-all duration-300 hover:shadow-lg">
-            <div className="mb-4 flex items-center justify-between border-b pb-2">
-                <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
+        <div className='w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md transition-all duration-300 hover:shadow-lg'>
+            <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                <h3 className='flex items-center gap-2 font-semibold text-gray-800 text-lg'>
+                    <FileText className='h-5 w-5' />
                     6_8 Progress Card Report
                 </h3>
             </div>
 
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-6'>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Left Column: Dropdowns */}
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             {/* Academic Year */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Academic Year <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {years.map((year) => (
@@ -258,25 +257,24 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             </div>
 
                             {/* Class */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Class <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Class <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMCL_Id"
+                                    name='ASMCL_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchYear || loadingClasses}
-                                            >
-                                                <SelectTrigger className="w-full">
+                                                disabled={!watchYear || loadingClasses}>
+                                                <SelectTrigger className='w-full'>
                                                     {loadingClasses ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin' />
                                                     ) : (
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     )}
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -294,25 +292,24 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             </div>
 
                             {/* Section */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Section <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Section <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMS_Id"
+                                    name='ASMS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchClass || loadingSections}
-                                            >
-                                                <SelectTrigger className="w-full">
+                                                disabled={!watchClass || loadingSections}>
+                                                <SelectTrigger className='w-full'>
                                                     {loadingSections ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin' />
                                                     ) : (
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     )}
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -330,21 +327,16 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             </div>
 
                             {/* Percentage */}
-                            <div className="space-y-2">
-                                <Label className="text-sm font-medium">
-                                    Percentage <span className="text-red-500">*</span>
+                            <div className='space-y-2'>
+                                <Label className='font-medium text-sm'>
+                                    Percentage <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
-                                    name="empsG_PercentValue"
+                                    name='empsG_PercentValue'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Input
-                                                {...field}
-                                                placeholder="Enter Percentage"
-                                                maxLength={3}
-                                                className="w-full"
-                                            />
+                                            <Input {...field} placeholder='Enter Percentage' maxLength={3} className='w-full' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
@@ -353,43 +345,45 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         {/* Right Column: Student Selection */}
-                        <div className="space-y-3 border rounded-lg p-4 bg-slate-50/50">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                        <div className='space-y-3 rounded-lg border bg-slate-50/50 p-4'>
+                            <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2'>
                                     <Checkbox
-                                        id="selectAll"
+                                        id='selectAll'
                                         checked={students.length > 0 && watchSelectedStudents.length === students.length}
                                         onCheckedChange={(checked) => toggleSelectAll(!!checked)}
                                         disabled={students.length === 0}
                                     />
-                                    <Label htmlFor="selectAll" className="text-sm font-semibold cursor-pointer">
-                                        Student : <span className="text-red-500">*</span>
+                                    <Label htmlFor='selectAll' className='cursor-pointer font-semibold text-sm'>
+                                        Student : <span className='text-red-500'>*</span>
                                     </Label>
                                 </div>
-                                <div className="relative w-48">
-                                    <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                                <div className='relative w-48'>
+                                    <Search className='absolute top-2.5 left-2 h-3.5 w-3.5 text-muted-foreground' />
                                     <Input
-                                        placeholder="search here..."
+                                        placeholder='search here...'
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-8 h-8 text-xs font-normal"
+                                        className='h-8 pl-8 font-normal text-xs'
                                     />
                                 </div>
                             </div>
 
-                            <ScrollArea className="h-[200px] w-full border rounded-md bg-white shadow-inner">
-                                <div className="p-2 space-y-1">
+                            <ScrollArea className='h-[200px] w-full rounded-md border bg-white shadow-inner'>
+                                <div className='space-y-1 p-2'>
                                     {loadingStudents ? (
-                                        <div className="flex flex-col items-center justify-center h-[180px] text-muted-foreground">
-                                            <Loader2 className="h-6 w-6 animate-spin mb-2" />
-                                            <span className="text-xs">Loading students...</span>
+                                        <div className='flex h-[180px] flex-col items-center justify-center text-muted-foreground'>
+                                            <Loader2 className='mb-2 h-6 w-6 animate-spin' />
+                                            <span className='text-xs'>Loading students...</span>
                                         </div>
                                     ) : filteredStudents.length > 0 ? (
                                         filteredStudents.map((student) => (
-                                            <div key={student.amsT_Id} className="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-sm transition-colors">
+                                            <div
+                                                key={student.amsT_Id}
+                                                className='flex items-center space-x-2 rounded-sm p-1.5 transition-colors hover:bg-slate-50'>
                                                 <Controller
                                                     control={control}
-                                                    name="selectedStudents"
+                                                    name='selectedStudents'
                                                     render={({ field }) => (
                                                         <Checkbox
                                                             id={`student-${student.amsT_Id}`}
@@ -406,48 +400,35 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                 />
                                                 <Label
                                                     htmlFor={`student-${student.amsT_Id}`}
-                                                    className="text-xs font-medium cursor-pointer flex-1 py-1"
-                                                >
+                                                    className='flex-1 cursor-pointer py-1 font-medium text-xs'>
                                                     {student.studentname || student.studentName}
                                                 </Label>
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="flex items-center justify-center h-[180px] text-muted-foreground text-xs italic">
-                                            {watchSection ? "No students found" : "Select Section to load students"}
+                                        <div className='flex h-[180px] items-center justify-center text-muted-foreground text-xs italic'>
+                                            {watchSection ? 'No students found' : 'Select Section to load students'}
                                         </div>
                                     )}
                                 </div>
                             </ScrollArea>
                             <Controller
                                 control={control}
-                                name="selectedStudents"
-                                render={({ fieldState }) => (
-                                    fieldState.error ? <FormError className="text-xs">{fieldState.error.message}</FormError> : <></>
-                                )}
+                                name='selectedStudents'
+                                render={({ fieldState }) =>
+                                    fieldState.error ? <FormError className='text-xs'>{fieldState.error.message}</FormError> : <></>
+                                }
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-4 pt-6 border-t">
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <FileText className="mr-2 h-4 w-4" />
-                            )}
+                    <div className='flex items-center justify-center gap-4 border-t pt-6'>
+                        <Button type='submit' disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                             REPORT
                         </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                        >
-                            <RefreshCcw className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
+                            <RefreshCcw className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
                     </div>

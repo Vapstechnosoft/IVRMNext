@@ -23,26 +23,27 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
     const earnings = Array.from(uniqueEarnings.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
     const deductions = Array.from(uniqueDeductions.values()).sort((a: any, b: any) => a.hrmeD_Order - b.hrmeD_Order);
 
-    const earningHeaders = earnings.map((head: any) =>
-        `<th class="text-right">${head.hrmeD_Name}</th>`
-    ).join('');
+    const earningHeaders = earnings.map((head: any) => `<th class="text-right">${head.hrmeD_Name}</th>`).join('');
 
-    const deductionHeaders = deductions.map((head: any) =>
-        `<th class="text-right">${head.hrmeD_Name}</th>`
-    ).join('');
+    const deductionHeaders = deductions.map((head: any) => `<th class="text-right">${head.hrmeD_Name}</th>`).join('');
 
-    const tableRows = records.map((record: any, index: number) => {
-        const earningCells = earnings.map((head: any) => {
-            const val = (record.earningresult || []).find((e: any) => e.hrmeD_Id === head.hrmeD_Id);
-            return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
-        }).join('');
+    const tableRows = records
+        .map((record: any, index: number) => {
+            const earningCells = earnings
+                .map((head: any) => {
+                    const val = (record.earningresult || []).find((e: any) => e.hrmeD_Id === head.hrmeD_Id);
+                    return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
+                })
+                .join('');
 
-        const deductionCells = deductions.map((head: any) => {
-            const val = (record.deductionresult || []).find((d: any) => d.hrmeD_Id === head.hrmeD_Id);
-            return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
-        }).join('');
+            const deductionCells = deductions
+                .map((head: any) => {
+                    const val = (record.deductionresult || []).find((d: any) => d.hrmeD_Id === head.hrmeD_Id);
+                    return `<td class="text-right">${val ? val.hresD_Amount : 0}</td>`;
+                })
+                .join('');
 
-        return `
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td>${record.hrmE_EmployeeCode || ''}</td>
@@ -57,7 +58,8 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
                 <td class="text-right font-bold">${record.netSalary || 0}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>
@@ -212,4 +214,4 @@ export const printCumulativeSalaryReport = (reportData: any, month: string, year
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

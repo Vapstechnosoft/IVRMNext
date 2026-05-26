@@ -6,7 +6,7 @@ import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports'
 import type { IApiResponse, IAttendanceData, IAttendanceYear, ICOEData } from '@/types/student-portal/masters/attendance-details';
 import type { IStudentFeedbackList } from '@/types/student-portal/masters/attendance-details';
 
-export async function getAttendanceInitialData(searchParams?: ApiSearchparams) {
+export async function getAttendanceInitialData(_searchParams?: ApiSearchparams) {
     const url = '/AttendanceDetails/get-academic-dropdown';
     return await api.get<IApiResponse<IAttendanceYear[]>>('portal', url);
 }
@@ -30,7 +30,13 @@ export async function saveStudentFeedback(data: any) {
     return await api.post<any>('portal', url, data);
 }
 
-export async function getCOEList(amst_id: number, asmay_id: number, asmcl_id: number, month_id: number, searchParams?: ApiSearchparams) {
+export async function getCOEList(
+    _amst_id: number,
+    _asmay_id: number,
+    _asmcl_id: number,
+    _month_id: number,
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'coemE_EventName');
     //const url = `/COE/coe-events-list?AMST_Id=${amst_id}&ASMAY_Id=${asmay_id}&ASMCL_Id=${asmcl_id}&Month_Id=${month_id}&${urlParams}`;
     const url = `/COE/coe-events-list?asmcl_id=397&month_id=1&${urlParams}`;

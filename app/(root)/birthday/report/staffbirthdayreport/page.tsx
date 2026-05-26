@@ -1,32 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
+import { AlertCircle, Cake, Calendar, ChevronDown, ChevronUp, FileSpreadsheet, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { format } from 'date-fns';
-import {
-    Cake,
-    Calendar,
-    FileSpreadsheet,
-    Printer,
-    Search,
-    RotateCcw,
-    ChevronDown,
-    ChevronUp,
-    Briefcase,
-    MapPin,
-    AlertCircle,
-    Loader2
-} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getStaffBirthdayReportDetails } from '@/server/admission/staff-birthday-action';
 
 const MONTHS = [
@@ -101,9 +89,8 @@ export default function StaffBirthdayReportPage() {
     const isFormValid = (): boolean => {
         if (all1 === '1') {
             return !!fromdate && !!todate;
-        } else {
-            return !!month;
         }
+        return !!month;
     };
 
     // Form submission
@@ -151,7 +138,7 @@ export default function StaffBirthdayReportPage() {
                     if (staff.HRME_EmployeeFirstName && staff.HRME_EmployeeFirstName.length > 0) {
                         return {
                             ...staff,
-                            HRME_EmployeeFirstName: staff.HRME_EmployeeFirstName.replace(/  +/g, ' ')
+                            HRME_EmployeeFirstName: staff.HRME_EmployeeFirstName.replace(/ {2,}/g, ' ')
                         };
                     }
                     return staff;
@@ -187,20 +174,20 @@ export default function StaffBirthdayReportPage() {
 
     const handleToggleRow = (checked: boolean, staff: any) => {
         if (checked) {
-            setSelectedRows(prev => [...prev, staff]);
+            setSelectedRows((prev) => [...prev, staff]);
         } else {
-            setSelectedRows(prev => prev.filter(item => item.HRME_Id !== staff.HRME_Id));
+            setSelectedRows((prev) => prev.filter((item) => item.HRME_Id !== staff.HRME_Id));
         }
     };
 
     const isRowSelected = (staff: any) => {
-        return selectedRows.some(item => item.HRME_Id === staff.HRME_Id);
+        return selectedRows.some((item) => item.HRME_Id === staff.HRME_Id);
     };
 
     // Columns sorting helper
     const handleSort = (key: string) => {
         if (sortKey === key) {
-            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+            setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
         } else {
             setSortKey(key);
             setSortDirection('asc');
@@ -214,12 +201,12 @@ export default function StaffBirthdayReportPage() {
         // Search Filter
         if (searchValue.trim() !== '') {
             const query = searchValue.toLowerCase();
-            result = result.filter(item => {
+            result = result.filter((item) => {
                 return (
-                    (item.HRME_EmployeeFirstName && item.HRME_EmployeeFirstName.toLowerCase().includes(query)) ||
-                    (item.HRME_EmployeeCode && item.HRME_EmployeeCode.toLowerCase().includes(query)) ||
-                    (item.HRMD_DepartmentName && item.HRMD_DepartmentName.toLowerCase().includes(query)) ||
-                    (item.HRMDES_DesignationName && item.HRMDES_DesignationName.toLowerCase().includes(query))
+                    item.HRME_EmployeeFirstName?.toLowerCase().includes(query) ||
+                    item.HRME_EmployeeCode?.toLowerCase().includes(query) ||
+                    item.HRMD_DepartmentName?.toLowerCase().includes(query) ||
+                    item.HRMDES_DesignationName?.toLowerCase().includes(query)
                 );
             });
         }
@@ -264,8 +251,8 @@ export default function StaffBirthdayReportPage() {
             'SL.No': index + 1,
             'Emp Code': row.HRME_EmployeeCode || '',
             'Staff Name': row.HRME_EmployeeFirstName || '',
-            'Department': row.HRMD_DepartmentName || '',
-            'Designation': row.HRMDES_DesignationName || '',
+            Department: row.HRMD_DepartmentName || '',
+            Designation: row.HRMDES_DesignationName || '',
             'Date of Birth': row.HRME_DOB ? format(new Date(row.HRME_DOB), 'dd/MMM/yyyy') : ''
         }));
 
@@ -290,13 +277,13 @@ export default function StaffBirthdayReportPage() {
         if (!dateString) return '';
         try {
             return format(new Date(dateString), 'dd/MMM/yyyy');
-        } catch (e) {
+        } catch (_e) {
             return dateString;
         }
     };
 
     return (
-        <div className='container mx-auto space-y-8 p-4 md:p-6 min-h-screen'>
+        <div className='container mx-auto min-h-screen space-y-8 p-4 md:p-6'>
             {/* Embedded Print Styling */}
             <style jsx global>{`
                 @media print {
@@ -352,22 +339,22 @@ export default function StaffBirthdayReportPage() {
             `}</style>
 
             {/* Header section with gradient design */}
-            <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b pb-4 no-print'>
+            <div className='no-print flex flex-col gap-2 border-b pb-4 md:flex-row md:items-center md:justify-between'>
                 <div>
-                    <h1 className='text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent flex items-center gap-3'>
-                        <Cake className='h-8 w-8 text-primary animate-bounce' />
+                    <h1 className='flex items-center gap-3 bg-gradient-to-r from-primary to-violet-600 bg-clip-text font-extrabold text-3xl text-transparent tracking-tight'>
+                        <Cake className='h-8 w-8 animate-bounce text-primary' />
                         Staff Birthday Report
                     </h1>
-                    <p className='text-muted-foreground text-sm mt-1'>
+                    <p className='mt-1 text-muted-foreground text-sm'>
                         Modern dashboard to generate, analyze, print, and export birthday reports for institution staff.
                     </p>
                 </div>
             </div>
 
             {/* Config criteria card */}
-            <Card className='shadow-xl border-t-4 border-t-primary/80 transition-shadow duration-300 hover:shadow-2xl no-print'>
+            <Card className='no-print border-t-4 border-t-primary/80 shadow-xl transition-shadow duration-300 hover:shadow-2xl'>
                 <CardHeader>
-                    <CardTitle className='text-lg font-bold flex items-center gap-2'>
+                    <CardTitle className='flex items-center gap-2 font-bold text-lg'>
                         <Calendar className='h-5 w-5 text-primary' />
                         Report Configuration Criteria
                     </CardTitle>
@@ -375,22 +362,22 @@ export default function StaffBirthdayReportPage() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleShowReport} className='space-y-6'>
-                        <div className='row text-center flex justify-center'>
+                        <div className='row flex justify-center text-center'>
                             {/* Between Days or Month Wise Selection */}
-                            <div className='space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10 w-full max-w-xl'>
-                                <Label className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+                            <div className='w-full max-w-xl space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10'>
+                                <Label className='font-semibold text-muted-foreground text-sm uppercase tracking-wide'>
                                     Report Selection Filter
                                 </Label>
                                 <RadioGroup value={all1} onValueChange={setAll1} className='flex justify-center gap-8 pt-2'>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='1' id='r1' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='r1' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='r1' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Between Days
                                         </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='0' id='r0' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='r0' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='r0' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Month Wise
                                         </Label>
                                     </div>
@@ -399,9 +386,9 @@ export default function StaffBirthdayReportPage() {
                         </div>
 
                         {/* Date selection or Month selection container */}
-                        <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 items-end pt-2 max-w-4xl mx-auto'>
+                        <div className='mx-auto grid max-w-4xl grid-cols-1 items-end gap-6 pt-2 sm:grid-cols-2'>
                             {all1 === '0' && (
-                                <div className='space-y-2 col-span-2 max-w-md mx-auto w-full'>
+                                <div className='col-span-2 mx-auto w-full max-w-md space-y-2'>
                                     <Label className='flex items-center gap-1 font-semibold text-sm'>
                                         Select Month <span className='text-destructive'>*</span>
                                     </Label>
@@ -410,7 +397,7 @@ export default function StaffBirthdayReportPage() {
                                             <SelectValue placeholder='--Select Month--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {MONTHS.map(item => (
+                                            {MONTHS.map((item) => (
                                                 <SelectItem key={item.value} value={item.value}>
                                                     {item.label}
                                                 </SelectItem>
@@ -418,7 +405,7 @@ export default function StaffBirthdayReportPage() {
                                         </SelectContent>
                                     </Select>
                                     {submitted && !month && (
-                                        <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                        <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                             <AlertCircle className='h-3 w-3' /> Select Month Name
                                         </p>
                                     )}
@@ -428,29 +415,33 @@ export default function StaffBirthdayReportPage() {
                             {all1 === '1' && (
                                 <>
                                     <div className='space-y-2'>
-                                        <Label className='font-semibold text-sm'>From Date <span className='text-destructive'>*</span></Label>
+                                        <Label className='font-semibold text-sm'>
+                                            From Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
                                             type='date'
                                             value={fromdate}
-                                            onChange={e => setFromdate(e.target.value)}
+                                            onChange={(e) => setFromdate(e.target.value)}
                                             className='shadow-sm focus:ring-2 focus:ring-primary'
                                         />
                                         {submitted && !fromdate && (
-                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                            <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                                 <AlertCircle className='h-3 w-3' /> Select Date
                                             </p>
                                         )}
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label className='font-semibold text-sm'>To Date <span className='text-destructive'>*</span></Label>
+                                        <Label className='font-semibold text-sm'>
+                                            To Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
                                             type='date'
                                             value={todate}
-                                            onChange={e => setTodate(e.target.value)}
+                                            onChange={(e) => setTodate(e.target.value)}
                                             className='shadow-sm focus:ring-2 focus:ring-primary'
                                         />
                                         {submitted && !todate && (
-                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                            <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                                 <AlertCircle className='h-3 w-3' /> Select Date
                                             </p>
                                         )}
@@ -460,20 +451,18 @@ export default function StaffBirthdayReportPage() {
                         </div>
 
                         {/* Submit and Cancel Buttons */}
-                        <div className='flex justify-end gap-4 border-t pt-6 max-w-4xl mx-auto'>
+                        <div className='mx-auto flex max-w-4xl justify-end gap-4 border-t pt-6'>
                             <Button
                                 type='button'
                                 variant='outline'
                                 onClick={handleReset}
-                                className='px-6 transition-all duration-200 hover:bg-muted/80'
-                            >
+                                className='px-6 transition-all duration-200 hover:bg-muted/80'>
                                 <RotateCcw className='mr-2 h-4 w-4' /> Cancel
                             </Button>
                             <Button
                                 type='submit'
                                 disabled={loading}
-                                className='px-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/95 hover:to-violet-650 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
-                            >
+                                className='hover:-translate-y-0.5 transform bg-gradient-to-r from-primary to-violet-600 px-8 shadow-md transition-all duration-300 hover:from-primary/95 hover:to-violet-650 hover:shadow-lg'>
                                 {loading ? (
                                     <>
                                         <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
@@ -489,35 +478,40 @@ export default function StaffBirthdayReportPage() {
 
             {/* Results Grid Details Section */}
             {hasSearched && staffs.length > 0 && (
-                <CollapsibleSection title='STAFF BIRTHDAY REPORT DETAILS' defaultOpen={true} className='no-print shadow-xl rounded-xl border border-border/80'>
+                <CollapsibleSection
+                    title='STAFF BIRTHDAY REPORT DETAILS'
+                    defaultOpen={true}
+                    className='no-print rounded-xl border border-border/80 shadow-xl'>
                     <div className='space-y-6 p-1'>
                         {/* Summary Metrics & Dynamic Search / Options */}
-                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4'>
+                        <div className='flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between'>
                             <div className='flex flex-wrap gap-4'>
-                                <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
-                                    Total Grid Records: <span className='rounded-full bg-primary/10 text-primary px-2.5 py-0.5'>{staffs.length}</span>
+                                <div className='flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 font-semibold text-xs shadow-sm md:text-sm'>
+                                    Total Grid Records:{' '}
+                                    <span className='rounded-full bg-primary/10 px-2.5 py-0.5 text-primary'>{staffs.length}</span>
                                 </div>
                                 {searchValue.trim() !== '' && (
-                                    <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
-                                        Total Records Searched: <span className='rounded-full bg-violet-600/10 text-violet-600 px-2.5 py-0.5'>{filteredAndSortedStaffs.length}</span>
+                                    <div className='flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 font-semibold text-xs shadow-sm md:text-sm'>
+                                        Total Records Searched:{' '}
+                                        <span className='rounded-full bg-violet-600/10 px-2.5 py-0.5 text-violet-600'>
+                                            {filteredAndSortedStaffs.length}
+                                        </span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Export and Print Buttons */}
-                            <div className='flex gap-3 flex-wrap'>
+                            <div className='flex flex-wrap gap-3'>
                                 <Button
                                     onClick={handleExportToExcel}
                                     variant='outline'
-                                    className='border-emerald-200 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20'
-                                >
+                                    className='border-emerald-200 bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20'>
                                     <FileSpreadsheet className='mr-2 h-4 w-4' /> Export to Excel
                                 </Button>
                                 <Button
                                     onClick={handlePrint}
                                     variant='outline'
-                                    className='border-violet-200 text-violet-600 bg-violet-50/50 hover:bg-violet-50 hover:text-violet-750 dark:hover:bg-violet-950/20'
-                                >
+                                    className='border-violet-200 bg-violet-50/50 text-violet-600 hover:bg-violet-50 hover:text-violet-750 dark:hover:bg-violet-950/20'>
                                     <Printer className='mr-2 h-4 w-4' /> Print Report
                                 </Button>
                             </div>
@@ -526,11 +520,11 @@ export default function StaffBirthdayReportPage() {
                         {/* Search bar input */}
                         <div className='flex max-w-sm items-center gap-2'>
                             <div className='relative w-full'>
-                                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                                <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
                                 <Input
                                     placeholder='search here...'
                                     value={searchValue}
-                                    onChange={e => {
+                                    onChange={(e) => {
                                         setSearchValue(e.target.value);
                                         setCurrentPage(1);
                                     }}
@@ -540,45 +534,83 @@ export default function StaffBirthdayReportPage() {
                         </div>
 
                         {/* Responsive Data Grid */}
-                        <div className='overflow-x-auto rounded-xl border border-muted-foreground/20 shadow-inner bg-card'>
-                            <table className='w-full border-collapse text-left text-sm text-foreground' id='tabel'>
+                        <div className='overflow-x-auto rounded-xl border border-muted-foreground/20 bg-card shadow-inner'>
+                            <table className='w-full border-collapse text-left text-foreground text-sm' id='tabel'>
                                 <thead>
                                     <tr className='border-b bg-accent/15 font-semibold text-muted-foreground shadow-sm transition-colors'>
-                                        <th className='p-4 text-center w-12'>
+                                        <th className='w-12 p-4 text-center'>
                                             <Checkbox
-                                                checked={filteredAndSortedStaffs.length > 0 && selectedRows.length === filteredAndSortedStaffs.length}
+                                                checked={
+                                                    filteredAndSortedStaffs.length > 0 &&
+                                                    selectedRows.length === filteredAndSortedStaffs.length
+                                                }
                                                 onCheckedChange={handleToggleAll}
                                             />
                                         </th>
-                                        <th className='p-4 text-center w-16'>SL.No</th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-32' onClick={() => handleSort('HRME_EmployeeCode')}>
+                                        <th className='w-16 p-4 text-center'>SL.No</th>
+                                        <th
+                                            className='w-32 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('HRME_EmployeeCode')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Emp code
-                                                {sortKey === 'HRME_EmployeeCode' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'HRME_EmployeeCode' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-48' onClick={() => handleSort('HRME_EmployeeFirstName')}>
+                                        <th
+                                            className='w-48 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('HRME_EmployeeFirstName')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Staff Name
-                                                {sortKey === 'HRME_EmployeeFirstName' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'HRME_EmployeeFirstName' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-44' onClick={() => handleSort('HRMD_DepartmentName')}>
+                                        <th
+                                            className='w-44 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('HRMD_DepartmentName')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Department
-                                                {sortKey === 'HRMD_DepartmentName' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'HRMD_DepartmentName' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-44' onClick={() => handleSort('HRMDES_DesignationName')}>
+                                        <th
+                                            className='w-44 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('HRMDES_DesignationName')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Designation
-                                                {sortKey === 'HRMDES_DesignationName' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'HRMDES_DesignationName' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-40' onClick={() => handleSort('HRME_DOB')}>
+                                        <th
+                                            className='w-40 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('HRME_DOB')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Date of Birth
-                                                {sortKey === 'HRME_DOB' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'HRME_DOB' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
                                     </tr>
@@ -586,7 +618,7 @@ export default function StaffBirthdayReportPage() {
                                 <tbody>
                                     {paginatedStaffs.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className='p-8 text-center text-muted-foreground font-medium'>
+                                            <td colSpan={7} className='p-8 text-center font-medium text-muted-foreground'>
                                                 No records match the search filter.
                                             </td>
                                         </tr>
@@ -596,12 +628,11 @@ export default function StaffBirthdayReportPage() {
                                             return (
                                                 <tr
                                                     key={`${row.HRME_Id || ''}_${row.HRME_EmployeeCode || ''}_${slNo}`}
-                                                    className='border-b hover:bg-accent/5 transition-colors duration-150'
-                                                >
+                                                    className='border-b transition-colors duration-150 hover:bg-accent/5'>
                                                     <td className='p-4 text-center'>
                                                         <Checkbox
                                                             checked={isRowSelected(row)}
-                                                            onCheckedChange={checked => handleToggleRow(!!checked, row)}
+                                                            onCheckedChange={(checked) => handleToggleRow(!!checked, row)}
                                                         />
                                                     </td>
                                                     <td className='p-4 text-center font-medium'>{slNo}</td>
@@ -620,8 +651,8 @@ export default function StaffBirthdayReportPage() {
 
                         {/* Pagination controls */}
                         {totalPages > 1 && (
-                            <div className='flex justify-between items-center bg-accent/5 p-4 rounded-xl border border-muted-foreground/10'>
-                                <span className='text-xs text-muted-foreground font-semibold'>
+                            <div className='flex items-center justify-between rounded-xl border border-muted-foreground/10 bg-accent/5 p-4'>
+                                <span className='font-semibold text-muted-foreground text-xs'>
                                     Showing page {currentPage} of {totalPages}
                                 </span>
                                 <div className='flex gap-2'>
@@ -629,18 +660,16 @@ export default function StaffBirthdayReportPage() {
                                         variant='outline'
                                         size='sm'
                                         disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        className='text-xs'
-                                    >
+                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                        className='text-xs'>
                                         Previous
                                     </Button>
                                     <Button
                                         variant='outline'
                                         size='sm'
                                         disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        className='text-xs'
-                                    >
+                                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                        className='text-xs'>
                                         Next
                                     </Button>
                                 </div>
@@ -653,54 +682,48 @@ export default function StaffBirthdayReportPage() {
             {/* Printable Area - Hidden on Screen, formats cleanly during print */}
             <div id='printSectionId' className='hidden'>
                 {logoPath ? (
-                    <div className='text-center mb-6'>
-                        <img src={logoPath} className='mx-auto max-h-24 object-contain mb-3' alt='Institution Logo' />
+                    <div className='mb-6 text-center'>
+                        <img src={logoPath} className='mx-auto mb-3 max-h-24 object-contain' alt='Institution Logo' />
                     </div>
                 ) : (
-                    <div className='text-center mb-6 font-bold text-xl uppercase tracking-wider'>
-                        BALDWIN INSTITUTIONS
-                    </div>
+                    <div className='mb-6 text-center font-bold text-xl uppercase tracking-wider'>BALDWIN INSTITUTIONS</div>
                 )}
 
-                <div className='text-center mb-6'>
-                    <h2 className='text-2xl font-bold uppercase underline tracking-wide'>Staff Birthday Report</h2>
-                    <p className='text-xs italic text-gray-700 mt-1'>
-                        Report Filter: {all1 === '1' ? 'Between Days' : 'Month Wise'} Wise
-                    </p>
+                <div className='mb-6 text-center'>
+                    <h2 className='font-bold text-2xl uppercase tracking-wide underline'>Staff Birthday Report</h2>
+                    <p className='mt-1 text-gray-700 text-xs italic'>Report Filter: {all1 === '1' ? 'Between Days' : 'Month Wise'} Wise</p>
                     {all1 === '1' && fromdate && todate && (
-                        <p className='text-xs text-gray-800 font-semibold mt-1'>
+                        <p className='mt-1 font-semibold text-gray-800 text-xs'>
                             Period: {format(new Date(fromdate), 'dd/MM/yyyy')} to {format(new Date(todate), 'dd/MM/yyyy')}
                         </p>
                     )}
                     {all1 === '0' && month && (
-                        <p className='text-xs text-gray-800 font-semibold mt-1'>
-                            Month: {MONTHS.find(m => m.value === month)?.label}
-                        </p>
+                        <p className='mt-1 font-semibold text-gray-800 text-xs'>Month: {MONTHS.find((m) => m.value === month)?.label}</p>
                     )}
                 </div>
 
                 {/* Print grid table */}
-                <table className='w-full border-collapse border border-black text-xs text-center mt-6' id='table1'>
+                <table className='mt-6 w-full border-collapse border border-black text-center text-xs' id='table1'>
                     <thead>
-                        <tr className='bg-gray-100 font-bold border-b border-black'>
-                            <th className='border border-black p-2 w-12'>SL.No.</th>
+                        <tr className='border-black border-b bg-gray-100 font-bold'>
+                            <th className='w-12 border border-black p-2'>SL.No.</th>
                             <th className='border border-black p-2'>Emp code</th>
                             <th className='border border-black p-2 text-left'>Staff Name</th>
                             <th className='border border-black p-2'>Department</th>
                             <th className='border border-black p-2'>Designation</th>
-                            <th className='border border-black p-2 w-28'>Date of Birth</th>
+                            <th className='w-28 border border-black p-2'>Date of Birth</th>
                         </tr>
                     </thead>
                     <tbody>
                         {selectedRows.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className='border border-black p-4 italic text-gray-500'>
+                                <td colSpan={6} className='border border-black p-4 text-gray-500 italic'>
                                     No records selected for printing.
                                 </td>
                             </tr>
                         ) : (
                             selectedRows.map((row, index) => (
-                                <tr key={`${row.HRME_Id || ''}_${row.HRME_EmployeeCode || ''}_${index}`} className='border-b border-black'>
+                                <tr key={`${row.HRME_Id || ''}_${row.HRME_EmployeeCode || ''}_${index}`} className='border-black border-b'>
                                     <td className='border border-black p-2 font-medium'>{index + 1}</td>
                                     <td className='border border-black p-2 font-medium'>{row.HRME_EmployeeCode}</td>
                                     <td className='border border-black p-2 text-left font-bold'>{row.HRME_EmployeeFirstName}</td>
@@ -713,7 +736,9 @@ export default function StaffBirthdayReportPage() {
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colSpan={6} className='border border-black p-3 text-center font-semibold text-[10px] text-gray-700 bg-gray-50'>
+                            <td
+                                colSpan={6}
+                                className='border border-black bg-gray-50 p-3 text-center font-semibold text-[10px] text-gray-700'>
                                 Date: {format(new Date(), 'dd/MM/yyyy')} | UserName: {userName} | {copyright}
                             </td>
                         </tr>

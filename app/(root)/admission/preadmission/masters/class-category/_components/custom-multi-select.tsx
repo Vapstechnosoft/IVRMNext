@@ -166,7 +166,7 @@ export const CustomMultiSelect = React.forwardRef<HTMLButtonElement, CustomMulti
             onValueChange(newSelectedValues);
         };
 
-        const toggleAll = () => {
+        const _toggleAll = () => {
             if (selectedValues.length === options.length) {
                 handleClear();
             } else {

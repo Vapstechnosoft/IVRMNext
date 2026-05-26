@@ -10,7 +10,6 @@ export async function getSchoolTopicData(searchParams?: ApiSearchparams) {
     try {
         const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lpmmT_TopicName');
         const url = `/MasterSchoolTopic/Get_details?${urlParams}`;
-        console.log('[getSchoolTopicData] URL:', url);
         const result = await api.get<IMasterSchoolTopicResponse>('lessonplanner', url);
         return result;
     } catch (error) {
@@ -23,7 +22,6 @@ export async function getSchoolTopicData(searchParams?: ApiSearchparams) {
 export async function saveSchoolTopic(data: any) {
     try {
         const url = '/MasterSchoolTopic/savedetails';
-        console.log('[saveSchoolTopic] URL:', url, 'Payload:', data);
         const result = await api.post('lessonplanner', url, data);
         return result;
     } catch (error) {
@@ -36,17 +34,14 @@ export async function saveSchoolTopic(data: any) {
 export async function editSchoolTopic(id: number) {
     try {
         const url = `/MasterSchoolTopic/editdeatils/${id}`;
-        console.log('[editSchoolTopic] Attempting GET URL:', url);
 
         try {
             const result = await api.get<IMasterSchoolTopicResponse>('lessonplanner', url);
-            console.log('[editSchoolTopic] GET Success:', result);
             return result;
         } catch (getError: any) {
             console.warn('[editSchoolTopic] GET failed, trying POST...', getError.message);
             // Fallback to POST with body as some legacy APIs require it even with path params
             const postResult = await api.post<IMasterSchoolTopicResponse>('lessonplanner', url, { LPMMT_Id: id });
-            console.log('[editSchoolTopic] POST Success:', postResult);
             return postResult;
         }
     } catch (error: any) {

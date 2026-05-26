@@ -9,7 +9,7 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
 
     const tableRows = rows.map((row) => `<tr>${columns.map((col) => `<td>${row[col] ?? ''}</td>`).join('')}</tr>`).join('');
 
-    const totalRow = sumRow
+    const _totalRow = sumRow
         ? `<tr style="font-weight:bold;background:#f3f3f3">
             ${columns.map((col) => `<td>${sumRow[col] ?? ''}</td>`).join('')}
            </tr>`
@@ -79,9 +79,7 @@ export function printTableAll(rows: any[], installments: any[]) {
   `;
 
     // HEADER ROW 2
-    const headerRow2 = `<tr>${installments
-        .map(() => '<th>Receipt No</th>' + '<th>Date</th>' + '<th>Cheque No</th>' + '<th>Amount</th>')
-        .join('')}</tr>`;
+    const headerRow2 = `<tr>${installments.map(() => '<th>Receipt No</th><th>Date</th><th>Cheque No</th><th>Amount</th>').join('')}</tr>`;
 
     // BODY
     const bodyRows = rows
@@ -164,7 +162,7 @@ export function exportToExcelAll(rows: any[], installments: any[], fileName: str
     let colIndex = baseCols;
     const merges: XLSX.Range[] = []; // For merged cells
 
-    installments.forEach((inst, instIndex) => {
+    installments.forEach((inst, _instIndex) => {
         // Merge 4 columns for installment name
         const startCol = colIndex;
         const endCol = colIndex + colsPerInstallment - 1;

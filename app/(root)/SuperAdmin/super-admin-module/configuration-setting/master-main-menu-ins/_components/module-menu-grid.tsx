@@ -86,7 +86,7 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
     const [isOpen, setIsOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, _setItemsPerPage] = useState(5);
 
     useEffect(() => {
         // Initialize local state with data and default values
@@ -255,7 +255,7 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                             <td className='border p-2 text-center'>
                                                 {item.selectedIcon && item.selectedColor && (
                                                     <div
-                                                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full`}
+                                                        className={'inline-flex h-8 w-8 items-center justify-center rounded-full'}
                                                         style={{
                                                             backgroundColor:
                                                                 item.selectedColor === 'color1'
@@ -264,13 +264,11 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                                                       ? 'blue'
                                                                       : 'gray' /* Simple preview logic, expand if needed */
                                                         }}>
-                                                        <i className={`fa fa-${item.selectedIcon} text-white`}></i>
+                                                        <i className={`fa fa-${item.selectedIcon} text-white`} />
                                                     </div>
                                                 )}
                                                 {/* Fallback text preview if visual color map is too complex for simple string */}
-                                                {item.selectedIcon && !item.selectedColor && (
-                                                    <i className={`fa fa-${item.selectedIcon}`}></i>
-                                                )}
+                                                {item.selectedIcon && !item.selectedColor && <i className={`fa fa-${item.selectedIcon}`} />}
                                             </td>
 
                                             {/* Checkbox Action */}

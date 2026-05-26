@@ -6,12 +6,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useScheduleReportInitialDetails } from '@/hooks/admission/preadmission/useReports';
 import {
     useActivePreadmissionDetails,
     useDocumentView,
     usePreadmissionDocumentsDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
-import { useScheduleReportInitialDetails } from '@/hooks/admission/preadmission/useReports';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,16 +30,6 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: initialDetails, isLoading: initialDetailsLoading, isError: initialDetailsError } = useScheduleReportInitialDetails();
     const { data: masterDocs } = usePreadmissionDocumentsDropdown();
-
-    console.log('initialDetails', {
-        data: initialDetails,
-        isLoading: initialDetailsLoading,
-        isError: initialDetailsError
-    });
-
-    console.log('masterDocs', {
-        data: masterDocs
-    });
 
     // Filters
     const [classId, setClassId] = useState(0);
@@ -75,8 +65,8 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         if (!response?.data) return [];
 
         const { studentList, documentList } = response.data as any;
-        const students = Array.isArray(studentList) ? studentList : (studentList?.$values || []);
-        const docListGlobal = Array.isArray(documentList) ? documentList : (documentList?.$values || []);
+        const students = Array.isArray(studentList) ? studentList : studentList?.$values || [];
+        const docListGlobal = Array.isArray(documentList) ? documentList : documentList?.$values || [];
         const masterDocsList = masterDocs?.data || [];
 
         return students.map((student: any) => {

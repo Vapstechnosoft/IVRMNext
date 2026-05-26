@@ -1,8 +1,6 @@
 'use client';
-
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { staffAllotmentColumns, type StaffAllotmentColumn } from './columns';
 import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
+import { type StaffAllotmentColumn, staffAllotmentColumns } from './columns';
 
 interface StaffAllotmentListProps {
     data: StaffAllotmentColumn[];

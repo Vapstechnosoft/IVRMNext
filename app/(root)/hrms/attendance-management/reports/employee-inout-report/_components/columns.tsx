@@ -1,15 +1,14 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
-const formatDate = (date: unknown): string => {
+const _formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
     if (!date) return 'N/A';
     try {
         return format(new Date(date), 'dd-MM-yyyy');
-    } catch (e) {
+    } catch (_e) {
         return 'N/A';
     }
 };
@@ -100,23 +99,23 @@ export const getEmployeeInOutReportColumns = (dateColumns: string[]): ColumnDef<
         const dateObj = new Date(dateStr);
         let title = dateStr;
         try {
-            if (!isNaN(dateObj.getTime())) {
+            if (!Number.isNaN(dateObj.getTime())) {
                 title = `${format(dateObj, 'dd-MMM')} ${format(dateObj, 'EEEE').substring(0, 3)}`;
             }
-        } catch (e) { }
+        } catch (_e) {}
 
         return {
             accessorKey: dateStr,
             header: ({ column }) => (
-                <DataTableColumnHeader 
-                    column={column} 
-                    title={title} 
-                    className="flex flex-col items-center justify-center text-center text-xs"
+                <DataTableColumnHeader
+                    column={column}
+                    title={title}
+                    className='flex flex-col items-center justify-center text-center text-xs'
                 />
             ),
             cell: ({ row }) => {
                 const val = row.getValue(dateStr) as any;
-                
+
                 if (typeof val === 'object' && val !== null) {
                     return (
                         <div className='flex flex-col items-center justify-center gap-1 py-1'>
@@ -129,12 +128,8 @@ export const getEmployeeInOutReportColumns = (dateColumns: string[]): ColumnDef<
                         </div>
                     );
                 }
-                
-                return (
-                    <div className="flex h-8 items-center justify-center font-medium">
-                        {val || '--'}
-                    </div>
-                );
+
+                return <div className='flex h-8 items-center justify-center font-medium'>{val || '--'}</div>;
             },
             enableSorting: false,
             enableHiding: false

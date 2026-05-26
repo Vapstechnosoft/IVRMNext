@@ -2,7 +2,7 @@
 
 import { api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
-import { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
+import type { IPDADebitCreditReportParams } from '@/types/pettycash/report/PDADebitCreditReport';
 
 export async function getPDADebitCreditReportInitialData() {
     const session = await auth();
@@ -15,7 +15,7 @@ export async function getPDADebitCreditReportSections(data: {
     ASMAY_Id: number;
     ASMCL_Id: number;
 }) {
-    const url = `/PDAReport/getsection`;
+    const url = '/PDAReport/getsection';
     return await api.post<any>('pettycashandassettracking', url, data);
 }
 
@@ -24,11 +24,11 @@ export async function getPDADebitCreditReportStudents(data: {
     ASMCL_Id: number;
     AMSC_Id: number;
 }) {
-    const url = `/PDAReport/getstudent`;
+    const url = '/PDAReport/getstudent';
     return await api.post<any>('pettycashandassettracking', url, data);
 }
 
 export async function getPDADebitCreditReport(data: IPDADebitCreditReportParams) {
-    const url = `/PDAReport/pdadebicreditreport`;
+    const url = '/PDAReport/pdadebicreditreport';
     return await api.post<any>('pettycashandassettracking', url, data);
 }

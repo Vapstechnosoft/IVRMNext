@@ -1,7 +1,7 @@
 'use server';
 
+import type { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 import { revalidatePath } from 'next/cache';
-import { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 
 // --- Mock Data ---
 
@@ -275,11 +275,10 @@ export async function saveBed(data: any) {
                 return { success: true, message: 'Bed updated successfully' };
             }
             return { success: false, message: 'Bed not found' };
-        } else {
-            MOCK_BEDS.push(newBed);
-            revalidatePath('/hostel/masters/master-bed');
-            return { success: true, message: 'Bed saved successfully' };
         }
+        MOCK_BEDS.push(newBed);
+        revalidatePath('/hostel/masters/master-bed');
+        return { success: true, message: 'Bed saved successfully' };
     } catch (error) {
         console.error(error);
         return { success: false, message: 'Failed to save bed' };

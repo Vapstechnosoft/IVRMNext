@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterRoom } from '@/hooks/hostel/useMasterRoom';
+import { deactivateRoom } from '@/server/hostel/hostel-management/masters/room';
+import type { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import { toast } from 'sonner';
 import AddMasterRoomForm from './_components/add-form';
 import { masterRoomColumns } from './_components/columns';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { toast } from 'sonner';
-import { deactivateRoom } from '@/server/hostel/hostel-management/masters/room';
-import { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,11 +22,7 @@ export default function MasterRoomPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IRoomDisplay>>
-            <PageContent
-                roomList={roomList}
-                isLoading={isLoading}
-                refetch={refetchAll}
-            />
+            <PageContent roomList={roomList} isLoading={isLoading} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -115,7 +111,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterRoomForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <AddMasterRoomForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -142,7 +143,10 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                             </Button>
                             <AddMasterRoomForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -151,17 +155,13 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterRoomForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterRoomForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomDisplay, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomDisplay; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deactivateRoom(rowData.hrmrM_Id);
@@ -171,7 +171,7 @@ function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomD
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

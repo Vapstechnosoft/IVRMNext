@@ -36,7 +36,7 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subjectList, setSubjectList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [_isClassLoading, setIsClassLoading] = useState(false);
 
     // Grid selection state
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
@@ -119,7 +119,7 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
                     item.className ||
                     globalClassList.find((c: any) => c.asmcL_Id === cid || c.ASMCL_Id === cid)?.asmcL_ClassName ||
                     globalClassList.find((c: any) => c.asmcL_Id === cid || c.ASMCL_Id === cid)?.className ||
-                    'Class ' + cid;
+                    `Class ${cid}`;
 
                 const sectName =
                     item.asmS_SectionName ||
@@ -127,14 +127,14 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
                     item.sectionName ||
                     globalSectionList.find((s: any) => s.asmS_Id === sid || s.ASMS_Id === sid || s.asmC_Id === sid)?.asmC_SectionName ||
                     globalSectionList.find((s: any) => s.asmS_Id === sid || s.ASMS_Id === sid || s.asmC_Id === sid)?.asmS_SectionName ||
-                    'Sec ' + sid;
+                    `Sec ${sid}`;
 
                 const subName =
                     item.ismS_SubjectName ||
                     item.subjectName ||
                     globalSubjectList.find((s: any) => s.ismS_Id === isid || s.ISMS_Id === isid)?.ismS_SubjectName ||
                     globalSubjectList.find((s: any) => s.ismS_Id === isid || s.ISMS_Id === isid)?.subjectName ||
-                    'Subj ' + isid;
+                    `Subj ${isid}`;
 
                 append({
                     asmcL_Id: cid,
@@ -156,11 +156,8 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
         }
         setIsClassLoading(true);
         try {
-            console.log('Fetching classes for:', { yearId, categoryId });
             const data = await getFixingClassDropdown(yearId, categoryId);
-            console.log('Class API raw response:', data);
             const list = extractList(data, 'classbycategory');
-            console.log('Extracted Class List:', list);
             setClassList(list || []);
         } catch (error) {
             console.error('Error fetching classes:', error);
@@ -203,11 +200,8 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
         setSubjectList([]);
         if (watchedYear && watchedCategory && classId) {
             try {
-                console.log('Fetching sections for:', { watchedYear, classId, watchedCategory });
                 const response = await getSectionDropdownByClassCategory(watchedYear, classId, watchedCategory);
-                console.log('Section API raw response:', response);
                 const sections = extractList(response, 'get_period_section1');
-                console.log('Extracted Section List:', sections);
                 setSectionList(sections || []);
             } catch (error) {
                 console.error(error);
@@ -222,29 +216,17 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
 
         const classId = selectedClass;
 
-        console.log('Section Change Debug:', {
-            watchedYear,
-            watchedCategory,
-            classId,
-            sectionId
-        });
-
         if (watchedYear && watchedCategory && classId && sectionId) {
             try {
                 // Using general subject dropdown as requested/implemented in other pages
                 const res = await getSubjectDropDown();
 
-                console.log('Subject API response:', res);
-
                 const list = extractList(res, 'subjectlist');
-
-                console.log('Resolved Subject List:', list);
                 setSubjectList(list || []);
             } catch (error) {
                 console.error('Subject fetch error:', error);
             }
         } else {
-            console.log('Missing values for subject fetch', { watchedYear, watchedCategory, classId, sectionId });
         }
     };
 
@@ -452,7 +434,7 @@ export default function LabConstraintsForm({ initialData, editData, subGridData,
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {subjectList?.map((item: any, idx: number) => {
+                                    {subjectList?.map((item: any, _idx: number) => {
                                         const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
                                         const name = item.ismS_SubjectName ?? item.subjectName ?? '';
                                         if (!id) return null;

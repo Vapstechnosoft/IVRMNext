@@ -15,7 +15,7 @@ export async function addOrUpdateMasterConcession(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterConcession(mi_id: number, id: number) {
+export async function toggleMasterConcession(_mi_id: number, id: number) {
     const url = `FeeMasterConcession/ToggleConcession/${id}`;
     return await api.put('fees', url);
 }

@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { useRoomTariff } from '@/hooks/hostel/useRoomTariff';
+import type { IRoomTariff } from '@/types/hostel/hostel-management/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddRoomTariffForm from './_components/add-form';
 import { roomTariffColumns } from './_components/columns';
 import ToggleRoomTariff from './_components/toggle-form';
-import { IRoomTariff } from '@/types/hostel/hostel-management/masters';
 import UpdateRoomTariffForm from './_components/update-form';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -23,14 +23,9 @@ export default function RoomTariffPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, refetchAll } = useRoomTariff(searchParams);
 
-
     return (
         <FormProvider<IRoomTariff>>
-            <PageContent
-                response={response}
-                isLoading={isLoading}
-                refetchAll={refetchAll}
-            />
+            <PageContent response={response} isLoading={isLoading} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -49,10 +44,8 @@ function PageContent({
 }) {
     const { openAddForm } = useFormContext<IRoomTariff>();
     const { data: yearData } = useAcademicYearDropdown();
-    const { data: roomData } = { data: [] }
-    useEffect(() => {
-        console.log(response);
-    }, [response]);
+    const { data: roomData } = { data: [] };
+    useEffect(() => {}, [response]);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -87,11 +80,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetchAll}
-                    yearList={yearData?.data ?? []}
-                    roomList={roomData ?? []}
-                />
+                <FormSections onSuccess={refetchAll} yearList={yearData?.data ?? []} roomList={roomData ?? []} />
             </div>
         </div>
     );
@@ -143,7 +132,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddRoomTariffForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeAddForm}
                                 yearList={yearList}
                                 roomList={roomList}
@@ -174,7 +166,10 @@ function FormSections({
                             </Button>
                             <UpdateRoomTariffForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeEditForm}
                                 yearList={yearList}
                                 roomList={roomList}
@@ -189,7 +184,10 @@ function FormSections({
                 <ToggleRoomTariff
                     data={selectedRow}
                     onCancel={closeToggleForm}
-                    onSuccess={() => { closeToggleForm(); onSuccess(); }}
+                    onSuccess={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
                 />
             )}
         </>

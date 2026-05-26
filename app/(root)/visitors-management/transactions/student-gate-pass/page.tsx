@@ -5,7 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentGatePass } from '@/hooks/visitors-management/transactions/useStudentGatePass';
-import { StudentGatePassData } from '@/types/visitors-management/transactions';
+import type { StudentGatePassData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { studentGatePassColumns } from './_components/columns';
 import StudentGatePassForm from './_components/student-gate-pass-form';
@@ -53,7 +53,7 @@ function StudentGatePassPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Generate Gate Pass
                     </Button>
                 </div>
@@ -64,7 +64,7 @@ function StudentGatePassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    title="Student Gate Pass List">
+                    title='Student Gate Pass List'>
                     <GenericDataTable<StudentGatePassData>
                         {...tableProps}
                         columns={studentGatePassColumns}

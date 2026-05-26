@@ -24,8 +24,6 @@ export default function SubjectAbbreviationPage(props: { searchParams: SearchPar
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useSSubjectAbbreviation(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<ISubjectAbbreviationList>>
             <SubjectAbbreviationContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

@@ -85,18 +85,18 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
     const [filterType, setFilterType] = useState<string>('alldata');
     const [classWise, setClassWise] = useState(false);
     const [areaWise, setAreaWise] = useState(false);
-    const [academicYear, setAcademicYear] = useState(0);
-    const [feeClassCategory, setFeeClassCategory] = useState<string>('');
-    const [admClassCategory, setAdmClassCategory] = useState<string>('');
-    const [feeBusRouting, setFeeBusRouting] = useState<string>('');
-    const [feeCasteCategory, setFeeCasteCategory] = useState<string>('');
-    const [studentClass, setStudentClass] = useState<string>('');
-    const [section, setSection] = useState<string>('');
-    const [area, setArea] = useState<string>('');
+    const [academicYear, _setAcademicYear] = useState(0);
+    const [_feeClassCategory, setFeeClassCategory] = useState<string>('');
+    const [_admClassCategory, setAdmClassCategory] = useState<string>('');
+    const [_feeBusRouting, setFeeBusRouting] = useState<string>('');
+    const [_feeCasteCategory, setFeeCasteCategory] = useState<string>('');
+    const [_studentClass, setStudentClass] = useState<string>('');
+    const [_section, setSection] = useState<string>('');
+    const [_area, setArea] = useState<string>('');
     const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
     const [collapsedHeads, setCollapsedHeads] = useState<Record<string, boolean>>({});
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
-    const [masterStudentClassMapping, setMasterStudentClassMapping] = useState<any[]>([]);
+    const [_masterStudentClassMapping, setMasterStudentClassMapping] = useState<any[]>([]);
     const [masterStudentClassMappingLoading, setMasterStudentClassMappingLoading] = useState(false);
     const [masterStudentClassMappingError, setMasterStudentClassMappingError] = useState<any>(null);
     const [masterFeeStudentGroupList, setMasterFeeStudentGroupList] = useState<any[]>([]);
@@ -134,7 +134,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
 
     //-------------Academic Year---------------
 
-    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
+    const [_academicYearOptions, _setAcademicYearOptions] = useState<DropdownOption[]>([]);
     // useEffect(() => {
     //     if (academicYearError) {
     //         toast.error(academicYearError.message || 'Error fetching academic years');
@@ -444,7 +444,8 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
             setSelectedGroups((p) => {
                 if (shouldGroupBeSelected && !p.includes(groupId)) {
                     return [...p, groupId];
-                } else if (!shouldGroupBeSelected && p.includes(groupId)) {
+                }
+                if (!shouldGroupBeSelected && p.includes(groupId)) {
                     return p.filter((g) => g !== groupId);
                 }
                 return p;
@@ -535,8 +536,6 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                 studentMappings
             };
         };
-
-        console.log('Payload to save:', JSON.stringify(buildPayload()));
         const payload = buildPayload();
         try {
             const res = await getStudentFeeSave(payload);

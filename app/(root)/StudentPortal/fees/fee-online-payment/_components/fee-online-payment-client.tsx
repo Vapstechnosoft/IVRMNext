@@ -19,7 +19,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const [selectedGroups, setSelectedGroups] = useState<Set<number>>(new Set());
     const [selectedPaymentGateway, setSelectedPaymentGateway] = useState<string>('');
-    const [showChargesModal, setShowChargesModal] = useState(false);
+    const [_showChargesModal, setShowChargesModal] = useState(false);
     const [totalAmount, setTotalAmount] = useState<number>(0);
     const [concessionAmount, setConcessionAmount] = useState<number>(0);
     const [fineAmount, setFineAmount] = useState<number>(0);
@@ -159,7 +159,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
         }
     };
 
-    const toggleGroupExpansion = (groupId: string) => {
+    const _toggleGroupExpansion = (groupId: string) => {
         const newExpanded = new Set(expandedGroups);
         if (newExpanded.has(groupId)) {
             newExpanded.delete(groupId);
@@ -236,7 +236,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
         }
     };
 
-    const initializeRazorpayPayment = (amount: number, gateway: any) => {
+    const initializeRazorpayPayment = (amount: number, _gateway: any) => {
         alert(`Initializing Razorpay payment for ₹${amount.toLocaleString()}...`);
 
         // Placeholder for actual Razorpay integration
@@ -260,7 +260,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
         // rzp.open();
     };
 
-    const initializeEasebuzzPayment = (amount: number, gateway: any) => {
+    const initializeEasebuzzPayment = (amount: number, _gateway: any) => {
         alert(`Initializing Easebuzz payment for ₹${amount.toLocaleString()}...`);
 
         // Placeholder for actual Easebuzz integration
@@ -356,7 +356,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
                         </CardHeader>
                         <CardContent>
                             <div className='max-h-64 space-y-2 overflow-y-auto'>
-                                {initialData?.customgrplist?.map((group: any, groupIndex: number) => (
+                                {initialData?.customgrplist?.map((group: any, _groupIndex: number) => (
                                     <div key={group.fmgG_Id}>
                                         <div className='flex items-center gap-2'>
                                             <Checkbox
@@ -369,7 +369,7 @@ export default function FeeOnlinePaymentClient({ initialData }: FeeOnlinePayment
                                         <div className='ml-6 space-y-1'>
                                             {initialData?.termlst
                                                 ?.filter((term: any) => term.fmgG_Id === group.fmgG_Id)
-                                                .map((term: any, termIndex: number) => (
+                                                .map((term: any, _termIndex: number) => (
                                                     <div key={term.fmT_Id} className='flex items-center gap-2'>
                                                         <Checkbox
                                                             checked={term.checkedheadlst || false}

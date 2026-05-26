@@ -34,13 +34,13 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
     const { data: masterHeads, isLoading: masterHeadsLoading, error: headerror, refetchAll: refetchMasterHeads } = MASTER_HEADS_DROPDOWN();
 
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
-    const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
-    const [selectedHead, setSelectedHead] = useState<number | null>(null);
+    const [_selectedTerm, setSelectedTerm] = useState<number | null>(null);
+    const [_selectedHead, _setSelectedHead] = useState<number | null>(null);
     const [splitAcademicYear, setSplitAcademicYear] = useState<any>(null); // store API result
 
     const [isSplitLoading, setIsSplitLoading] = useState(false);
 
-    const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
+    const [_selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
 
     const [filterType, setFilterType] = useState<string>('');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -78,7 +78,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
         }
     });
     const fromMonth = watch('from_Month');
-    const toMonth = watch('to_Month');
+    const _toMonth = watch('to_Month');
 
     // useEffect(() => {
     //     if (
@@ -108,7 +108,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
         refetchMasterHeads();
     }
 
-    const handleFilterChange = (value: string) => {
+    const _handleFilterChange = (value: string) => {
         setFilterType(value);
     };
 
@@ -120,7 +120,6 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                 setSelectedSplitYear(null); // 🔥 Reset selected option
                 try {
                     const response = await get_split_year(Number(selectedAcademicYear));
-                    console.log('Split Academic Year:', response);
                     setSplitAcademicYear(response.data); // store result if needed
                 } catch (err) {
                     console.error('Failed to fetch split academic year', err);
@@ -152,8 +151,6 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                 fmtP_TO_MONTH: data.to_Month
                 // user_id: 21602
             };
-
-            console.log('Payload JSON:', JSON.stringify(payload));
 
             const response = await addOrUpdateTermsPeriod(payload);
 

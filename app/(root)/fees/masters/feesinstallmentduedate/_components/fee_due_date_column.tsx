@@ -111,7 +111,6 @@ function CalendarCell({
     minDate?: Date | null; // Add this
     maxDate?: Date | null;
 }) {
-    console.log('minDate', minDate, 'maxDate', maxDate);
     const fdateRaw = row.original.fdate;
     const tdateRaw = row.original.tdate;
 

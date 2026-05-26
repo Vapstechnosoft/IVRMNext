@@ -1,8 +1,8 @@
 'use client';
 
+import { getPromotionReportStdIX2021 } from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
 import { useState } from 'react';
 import { ReportForm } from '../_components/report-form';
-import { getPromotionReportStdIX2021 } from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
 import { ReportList } from './_components/report-list';
 
 export default function PromotionReportStdIX2021Page() {
@@ -28,12 +28,7 @@ export default function PromotionReportStdIX2021Page() {
                 apiAction={getPromotionReportStdIX2021}
             />
 
-            {reportData && (
-                <ReportList
-                    data={reportData}
-                    params={reportParams}
-                />
-            )}
+            {reportData && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

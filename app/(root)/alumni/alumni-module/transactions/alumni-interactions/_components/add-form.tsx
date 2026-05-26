@@ -63,7 +63,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                 if (res.success && res.data) {
                     setAlumniList(res.data.getdetails || []);
                 }
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to load alumni list');
             } finally {
                 setLoadingAlumni(false);
@@ -95,7 +95,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                     toast.success('File uploaded');
                 }
             } catch (err: any) {
-                toast.error('Upload failed: ' + err.message);
+                toast.error(`Upload failed: ${err.message}`);
             } finally {
                 setUploading(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -293,7 +293,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                                         className='group relative rounded-lg border border-green-200 bg-white p-3 shadow-sm transition-all hover:shadow-md'>
                                         <div className='mb-2 flex items-center justify-between'>
                                             <span className='max-w-[80%] truncate font-medium text-green-800 text-xs' title={file.name}>
-                                                {file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}
+                                                {file.name.length > 15 ? `${file.name.substring(0, 12)}...` : file.name}
                                             </span>
                                             <button
                                                 type='button'

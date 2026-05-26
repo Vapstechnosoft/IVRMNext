@@ -1,7 +1,16 @@
 'use client';
 
-import { IMasterHostelForm } from '@/schemas/hostel/master-hostel.schema';
-import { getHostelPhotos, getMappedEmployees, getMappedFacilities, getMappedMesses, ICountry, IEmployee, IFacility, IMess, IState } from '@/server/hostel/hostel-management/masters/hostel';
+import type { IMasterHostelForm } from '@/schemas/hostel/master-hostel.schema';
+import {
+    type ICountry,
+    type IEmployee,
+    type IFacility,
+    type IMess,
+    getHostelPhotos,
+    getMappedEmployees,
+    getMappedFacilities,
+    getMappedMesses
+} from '@/server/hostel/hostel-management/masters/hostel';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterHostelForm from './add-form';
@@ -43,12 +52,11 @@ export default function UpdateMasterHostelForm({
 
                 // Fetch mapped details using the specific API functions
                 const [facilitiesRes, wardensRes, messesRes, photosRes] = await Promise.all([
-                    getMappedFacilities(hostelId).catch(e => ({ data: [] })),
-                    getMappedEmployees(hostelId).catch(e => ({ data: [] })),
-                    getMappedMesses(hostelId).catch(e => ({ data: [] })),
-                    getHostelPhotos(hostelId).catch(e => ({ data: [] }))
+                    getMappedFacilities(hostelId).catch((_e) => ({ data: [] })),
+                    getMappedEmployees(hostelId).catch((_e) => ({ data: [] })),
+                    getMappedMesses(hostelId).catch((_e) => ({ data: [] })),
+                    getHostelPhotos(hostelId).catch((_e) => ({ data: [] }))
                 ]);
-
 
                 // Extract IDs for multi-selects
                 // Facilities
@@ -86,8 +94,8 @@ export default function UpdateMasterHostelForm({
                     hostelPhotos
                 });
             } catch (error) {
-                console.error("Failed to fetch hostel details", error);
-                toast.error("Failed to load some hostel details.");
+                console.error('Failed to fetch hostel details', error);
+                toast.error('Failed to load some hostel details.');
                 // Fallback to basic data
                 setInitialData({
                     ...rowData,

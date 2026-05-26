@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -15,27 +15,27 @@ export default function GeneralSettingWizardPage() {
                     animate={{
                         scale: [1, 1.2, 1],
                         rotate: [0, 90, 0],
-                        opacity: [0.3, 0.5, 0.3],
+                        opacity: [0.3, 0.5, 0.3]
                     }}
                     transition={{
                         duration: 20,
                         repeat: Number.POSITIVE_INFINITY,
-                        ease: 'linear',
+                        ease: 'linear'
                     }}
-                    className='absolute -left-[10%] -top-[10%] h-[500px] w-[500px] rounded-full bg-blue-400/20 blur-3xl filter dark:bg-blue-600/10'
+                    className='-left-[10%] -top-[10%] absolute h-[500px] w-[500px] rounded-full bg-blue-400/20 blur-3xl filter dark:bg-blue-600/10'
                 />
                 <motion.div
                     animate={{
                         scale: [1, 1.5, 1],
                         rotate: [0, -45, 0],
-                        opacity: [0.3, 0.5, 0.3],
+                        opacity: [0.3, 0.5, 0.3]
                     }}
                     transition={{
                         duration: 15,
                         repeat: Number.POSITIVE_INFINITY,
-                        ease: 'linear',
+                        ease: 'linear'
                     }}
-                    className='absolute -bottom-[10%] -right-[10%] h-[600px] w-[600px] rounded-full bg-teal-400/20 blur-3xl filter dark:bg-teal-600/10'
+                    className='-bottom-[10%] -right-[10%] absolute h-[600px] w-[600px] rounded-full bg-teal-400/20 blur-3xl filter dark:bg-teal-600/10'
                 />
             </div>
 
@@ -43,8 +43,7 @@ export default function GeneralSettingWizardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
-                className='relative z-10 w-full max-w-lg'
-            >
+                className='relative z-10 w-full max-w-lg'>
                 <Card className='overflow-hidden border-0 bg-white/80 shadow-2xl backdrop-blur-xl dark:bg-slate-900/80'>
                     <div className='absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-teal-400' />
                     <CardContent className='flex flex-col items-center p-12 text-center'>
@@ -52,22 +51,18 @@ export default function GeneralSettingWizardPage() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.2, duration: 0.5 }}
-                            className='mb-8'
-                        >
+                            className='mb-8'>
                             <CircularProgress />
                         </motion.div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                        >
-                            <h2 className='mb-3 flex items-center justify-center gap-2 text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100'>
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                            <h2 className='mb-3 flex items-center justify-center gap-2 font-bold text-3xl text-slate-800 tracking-tight dark:text-slate-100'>
                                 <Settings className='h-8 w-8 text-blue-500' />
                                 Setting Wizard
                             </h2>
-                            <p className='mx-auto mb-8 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400'>
-                                Initial configuration required for the Institution level forms. Complete this wizard to unlock full system capabilities.
+                            <p className='mx-auto mb-8 max-w-sm text-slate-600 text-sm leading-relaxed dark:text-slate-400'>
+                                Initial configuration required for the Institution level forms. Complete this wizard to unlock full system
+                                capabilities.
                             </p>
                         </motion.div>
 
@@ -75,8 +70,7 @@ export default function GeneralSettingWizardPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6 }}
-                            className='w-full'
-                        >
+                            className='w-full'>
                             <GettingStartedButton />
                         </motion.div>
                     </CardContent>
@@ -93,7 +87,6 @@ function GettingStartedButton() {
     const handleStart = () => {
         setIsLoading(true);
         setTimeout(() => {
-            console.log("Navigating to module...");
             setIsLoading(false);
             router.push('/SuperAdmin/super-admin-module/general-setting/module');
         }, 1500);
@@ -104,13 +97,12 @@ function GettingStartedButton() {
             onClick={handleStart}
             disabled={isLoading}
             size='lg'
-            className='group relative w-full overflow-hidden bg-gradient-to-r from-blue-600 to-teal-500 text-lg font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl'
-        >
+            className='group relative w-full overflow-hidden bg-gradient-to-r from-blue-600 to-teal-500 font-semibold text-lg text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl'>
             <span className='z-10 flex items-center justify-center gap-2'>
                 {isLoading ? 'Initializing...' : 'Get Started'}
                 {!isLoading && <ArrowRight className='h-5 w-5 transition-transform group-hover:translate-x-1' />}
             </span>
-            <div className='absolute inset-0 -z-10 bg-gradient-to-r from-teal-500 to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+            <div className='-z-10 absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
         </Button>
     );
 }
@@ -130,9 +122,7 @@ function CircularProgress() {
 
             // Custom bouncy ease-out
             const c4 = (2 * Math.PI) / 3;
-            const ease = progressRatio === 1
-                ? 1
-                : Math.pow(2, -10 * progressRatio) * Math.sin((progressRatio * 10 - 0.75) * c4) + 1;
+            const ease = progressRatio === 1 ? 1 : 2 ** (-10 * progressRatio) * Math.sin((progressRatio * 10 - 0.75) * c4) + 1;
 
             setProgress(Math.round(start + (end - start) * (progressRatio < 1 ? ease : 1)));
 
@@ -156,7 +146,7 @@ function CircularProgress() {
             {/* Soft Glow Behind */}
             <div className='absolute inset-0 rounded-full bg-blue-400/20 blur-xl' />
 
-            <svg className='relative h-full w-full -rotate-90 transform'>
+            <svg className='-rotate-90 relative h-full w-full transform'>
                 {/* Background Track */}
                 <circle
                     className='text-slate-100 dark:text-slate-800'
@@ -199,14 +189,9 @@ function CircularProgress() {
                 key={progress}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className='absolute flex flex-col items-center'
-            >
-                <span className='text-5xl font-extrabold tracking-tighter text-slate-800 dark:text-slate-100'>
-                    {progress}%
-                </span>
-                <span className='text-xs font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400'>
-                    Setup
-                </span>
+                className='absolute flex flex-col items-center'>
+                <span className='font-extrabold text-5xl text-slate-800 tracking-tighter dark:text-slate-100'>{progress}%</span>
+                <span className='font-medium text-slate-500 text-xs uppercase tracking-widest dark:text-slate-400'>Setup</span>
             </motion.div>
         </div>
     );

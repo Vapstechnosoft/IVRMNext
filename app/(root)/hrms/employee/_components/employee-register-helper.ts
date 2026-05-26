@@ -405,7 +405,6 @@ export function ensureNonEmptyValue(value: any, fallback: any = null): string | 
  * Converts API response structure to form field structure
  */
 export function mapApiResponseToFormFields(apiData: any, targetId?: number): Partial<FormFields> & { photo?: string } {
-    console.log('🔍 [DEBUG] root apiData keys:', apiData ? Object.keys(apiData) : 'null');
     const data = extractDataObject(apiData, targetId);
 
     let finalData = data;
@@ -414,7 +413,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     }
     // Update local variable reference to be safe
     let safeData = finalData;
-    console.log('🔍 [DEBUG] safeData keys:', Object.keys(safeData));
 
     // DEEP MERGE STRATEGY:
     // If the found object doesn't have address keys, but valid address data exists elsewhere in the tree, find and merge it.
@@ -446,10 +444,8 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
     // If address is missing in main object, try to find it
     if (!safeData.hrmE_LocStreet && !safeData.hrmE_PerStreet && !safeData.HRME_LocStreet) {
-        console.log('🔍 [HELPER] Address keys missing in main object. Searching tree for address data...');
         const addressObj = findObjectWithKey(apiData, 'LocStreet') || findObjectWithKey(apiData, 'PerStreet');
         if (addressObj) {
-            console.log('✅ [HELPER] Found separate Address object. Merging...');
             safeData = { ...safeData, ...addressObj };
         }
     }
@@ -493,7 +489,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             if (first && typeof first === 'object') {
                 const hasKey = Object.keys(first).some((k) => k.toLowerCase().includes(keyFragment.toLowerCase()));
                 if (hasKey) {
-                    console.log(`✅ [HELPER] Found heuristic match for array with key fragment '${keyFragment}'`);
                     return obj;
                 }
             }
@@ -537,7 +532,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                     (k) => k.toLowerCase().includes(lowerKey) || k.toLowerCase().includes(normalizedKey)
                 );
                 if (partialMatchKey && Array.isArray(obj[partialMatchKey])) {
-                    console.log(`⚠️ [HELPER] Found fuzzy match for '${key}': '${partialMatchKey}'`);
                     return obj[partialMatchKey];
                 }
             }
@@ -551,7 +545,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                 const lowerK = key.toLowerCase();
                 const matchedKey = apiKeys.find((ak) => ak.toLowerCase() === lowerK);
                 if (matchedKey && Array.isArray(apiData[matchedKey])) {
-                    console.log(`✅ [HELPER] Found array '${matchedKey}' (matched from '${key}') directly in apiData`);
                     return apiData[matchedKey];
                 }
             }
@@ -568,7 +561,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                     if (first && typeof first === 'object') {
                         const fKeys = Object.keys(first).join(',').toLowerCase();
                         if (fKeys.includes('qual') || fKeys.includes('college') || fKeys.includes('course') || fKeys.includes('degree')) {
-                            console.log('✅ [HELPER] Found fuzzy-matched qualification array via keys:', fKeys);
                             return obj;
                         }
                     }
@@ -643,13 +635,12 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
     // Map qualification details
     // console.log('🔍 [HELPER] Root apiData keys:', apiData ? Object.keys(apiData) : 'null');
-    if (apiData?.data) console.log('🔍 [HELPER] apiData.data keys:', Object.keys(apiData.data));
+    if (apiData?.data) 
 
     let qualificationData: any[] = [];
 
     // 1. DIRECT CHECK for structure confirmed by user JSON: { data: { qualification: [...] } }
     if (apiData?.data?.qualification && Array.isArray(apiData.data.qualification)) {
-        console.log('✅ [HELPER] Found qualification array at apiData.data.qualification (Direct Match)');
         qualificationData = apiData.data.qualification;
     }
     // 2. FALLBACK to fuzzy search
@@ -675,7 +666,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     // 2. SEARCH BY KEYWORDS (Nuclear Option)
     // If not found by direct path, search the ENTIRE object tree for an array containing items with specific keys
     if (!qualificationData || qualificationData.length === 0) {
-        console.log('🔍 [HELPER] Direct paths failed, starting AGGRESSIVE recursive search for Qualification data...');
 
         const findVapsArray = (obj: any, keySignatures: string[], visited = new WeakSet()): any[] | null => {
             if (!obj || typeof obj !== 'object') return null;
@@ -689,7 +679,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                     const keys = Object.keys(first).map((k) => k.toLowerCase());
                     const match = keySignatures.some((sig) => keys.some((k) => k.includes(sig.toLowerCase())));
                     if (match) {
-                        console.log(`✅ [HELPER] Found AGGRESSIVE match with keys: ${keys.join(', ')}`);
                         return obj;
                     }
                 }
@@ -710,13 +699,11 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         qualificationData =
             findVapsArray(apiData, ['hrmeQ_Id', 'hrmeQ_QualificationName', 'hrmeQ_YearOfPassing', 'hrmeQ_UniversityName']) || [];
     }
-    console.log('✅ [HELPER] Final qualificationData length:', qualificationData.length);
 
     const qualificationDetails =
         qualificationData.length > 0
             ? qualificationData.map((qual: any, qIndex: number) => {
                 if (qIndex === 0) {
-                    console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
                 }
                 // Use exact keys found in JSON
                 const courseVal =
@@ -771,7 +758,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     let experienceData: any[] = [];
     // Explicit check for structure: apiData.data.experience
     if (apiData?.data?.experience && Array.isArray(apiData.data.experience)) {
-        console.log('✅ [HELPER] Found experience array at apiData.data.experience');
         experienceData = apiData.data.experience;
     } else {
         experienceData = getArrayFromResponse(
@@ -790,7 +776,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
     // 2. SEARCH BY KEYWORDS (Nuclear Option)
     if (!experienceData || experienceData.length === 0) {
-        console.log('🔍 [HELPER] Direct paths failed, starting AGGRESSIVE recursive search for Experience data...');
 
         const findVapsArrayExp = (obj: any, keySignatures: string[], visited = new WeakSet()): any[] | null => {
             if (!obj || typeof obj !== 'object') return null;
@@ -804,7 +789,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                     const keys = Object.keys(first).map((k) => k.toLowerCase());
                     const match = keySignatures.some((sig) => keys.some((k) => k.includes(sig.toLowerCase())));
                     if (match) {
-                        console.log(`✅ [HELPER] Found AGGRESSIVE match for Experience with keys: ${keys.join(', ')}`);
                         return obj;
                     }
                 }
@@ -884,7 +868,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
     // Nuclear search for Documents if not found
     if (!documentData || documentData.length === 0) {
-        console.log('🔍 [HELPER] Direct paths failed for Documents, starting recursive search...');
         const findVapsArrayDoc = (obj: any, keySignatures: string[], visited = new WeakSet()): any[] | null => {
             if (!obj || typeof obj !== 'object') return null;
             if (visited.has(obj)) return null;
@@ -936,11 +919,9 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             : [];
 
     const mobileData = getArrayFromResponse('hrmemno_MobileNo', 'selectedmobile_list_dto', 'mobileList', 'mobile', 'selectedMobileList', 'selectedmobile_list');
-    console.log('🔍 [DEBUG] hrmE_MobileNo from safeData:', v('hrmE_MobileNo'));
-    console.log('🔍 [DEBUG] mobileData array from response:', mobileData);
     let mobileDetails =
         mobileData.length > 0
-            ? mobileData.map((mobile: any, idx: number) => {
+            ? mobileData.map((mobile: any, _idx: number) => {
                 const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
                 const resolvedType = rawFlag === 'Y' ? 'Default' : (rawFlag || 'Default');
 
@@ -954,7 +935,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                     ),
                     type: resolvedType
                 };
-                console.log(`  - mobile[${idx}] mapped to:`, mapped);
                 return mapped;
             })
             : [];
@@ -965,13 +945,11 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     if (!hasActualData) {
         const primaryMobile = v('hrmE_MobileNo') || v('hrme_MobileNo') || v('MobileNo') || v('hrmE_Mobile_No') || v('hrmE_Phno');
         if (primaryMobile) {
-            console.log('🔍 [DEBUG] Falling back to primary mobile number:', primaryMobile);
             mobileDetails = [{ hrmemnO_Id: 0, mobileNo: numToString(primaryMobile), type: 'Default' }];
         } else if (mobileDetails.length === 0) {
             mobileDetails = [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
         }
     }
-    console.log('🔍 [DEBUG] final mobileDetails mapped:', mobileDetails);
 
     const emailData = getArrayFromResponse('hrmem_EmailId', 'selectedemail_list_dto', 'emailList', 'email', 'selectedEmailList', 'selectedemail_list');
     const emailDetails =
@@ -1108,15 +1086,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         ...spouseDetails
     } as any;
 
-    // Debug: Log final mapped address values
-    console.log('🔍 [HELPER] Final Mapped Address Values:');
-    console.log('  - contactAddress:', mappedData.contactAddress);
-    console.log('  - contactArea:', mappedData.contactArea);
-    console.log('  - contactCity:', mappedData.contactCity);
-    console.log('  - contactState:', mappedData.contactState);
-    console.log('  - contactCountry:', mappedData.contactCountry);
-    console.log('  - contactPincode:', mappedData.contactPincode);
-
     return mappedData;
 }
 
@@ -1138,7 +1107,7 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
     const idKey = Object.keys(obj).find((k) => k.toLowerCase() === 'hrme_id');
     if (idKey) {
         foundId = obj[idKey];
-        if (foundId) console.log(`🔍 [DEBUG] findDataRoot checking object with ID: ${foundId} (Target: ${targetId})`);
+        if (foundId) 
     }
 
     if (foundId !== undefined && foundId !== null) {
@@ -1146,7 +1115,7 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
         if (targetId !== undefined && targetId !== 0) {
             // Loose equality check to handle string/number differences
             // eslint-disable-next-line eqeqeq
-            if (foundId == targetId) {
+            if (foundId === targetId) {
                 if (obj.hrmE_EmployeeCode || obj.HRME_EmployeeCode || obj.hrmE_EmployeeFirstName || obj.HRME_EmployeeFirstName) {
                     return obj;
                 }
@@ -1266,8 +1235,8 @@ export function getValue(data: any, key: string): any {
     const variations = [
         key,
         key.toLowerCase(),
-        key.startsWith('hrmE_') ? 'HRME_' + key.substring(5) : null,
-        key.startsWith('hrm') ? 'HRM' + key.substring(3) : null,
+        key.startsWith('hrmE_') ? `HRME_${key.substring(5)}` : null,
+        key.startsWith('hrm') ? `HRM${key.substring(3)}` : null,
         key.toUpperCase()
     ].filter(Boolean) as string[];
 
@@ -1510,7 +1479,6 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
     }
     const qualificationDetails = Array.isArray(qualificationData)
         ? qualificationData.map((qual: any) => {
-            console.log('🔍 [HELPER] Mapping Qualification Item:', qual);
             return {
                 hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || getValue(qual, 'HRMEQ_Id') || 0, // Preserve ID for updates - CRITICAL!
                 qualification:

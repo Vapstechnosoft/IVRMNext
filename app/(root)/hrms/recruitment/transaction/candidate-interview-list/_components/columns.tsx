@@ -1,6 +1,4 @@
 'use client';
-
-import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -43,7 +41,7 @@ export const candidateInterviewListColumns: ColumnDef<CandidateInterviewListItem
             // Otherwise, attempt standard parsing and format as DD-MM-YYYY
             try {
                 const date = new Date(dateStr);
-                if (!isNaN(date.getTime())) {
+                if (!Number.isNaN(date.getTime())) {
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear();

@@ -1,7 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 interface StJamesReportListProps {
     data: any;
@@ -30,10 +29,20 @@ export default function StJamesReportList({ data, reporttype, displayAttendance 
         });
     } else {
         // Promotion
-        const promoExamDetails = [...getexamdetails, { empG_GroupName: "Final Average", empsG_Order: 10001 }];
+        const promoExamDetails = [...getexamdetails, { empG_GroupName: 'Final Average', empsG_Order: 10001 }];
         promoExamDetails.forEach((dd: any) => {
-            tempexamdetails.push({ Groupname: dd.empG_GroupName, columnid: dd.empsG_Order, columname: "Paper", empG_DistplayName: dd.empG_DistplayName });
-            tempexamdetails.push({ Groupname: dd.empG_GroupName, columnid: dd.empsG_Order, columname: "Subject", empG_DistplayName: dd.empG_DistplayName });
+            tempexamdetails.push({
+                Groupname: dd.empG_GroupName,
+                columnid: dd.empsG_Order,
+                columname: 'Paper',
+                empG_DistplayName: dd.empG_DistplayName
+            });
+            tempexamdetails.push({
+                Groupname: dd.empG_GroupName,
+                columnid: dd.empsG_Order,
+                columname: 'Subject',
+                empG_DistplayName: dd.empG_DistplayName
+            });
         });
     }
 
@@ -59,7 +68,9 @@ export default function StJamesReportList({ data, reporttype, displayAttendance 
     const formatDate = (date: any) => {
         if (!date) return '';
         const d = new Date(date);
-        return isNaN(d.getTime()) ? date : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+        return Number.isNaN(d.getTime())
+            ? date
+            : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
     };
 
     const getMarksVal = (mrks: any, colm: any) => {
@@ -142,8 +153,10 @@ export default function StJamesReportList({ data, reporttype, displayAttendance 
 
                             <div className='mb-2 flex justify-between font-bold'>
                                 <div className='w-1/3'>{report.studentname}</div>
-                                <div className='w-1/3 flex justify-between px-4'>
-                                    <span>Class : {report.classname} {report.sectionname}</span>
+                                <div className='flex w-1/3 justify-between px-4'>
+                                    <span>
+                                        Class : {report.classname} {report.sectionname}
+                                    </span>
                                     <span>Roll : {report.rollno}</span>
                                 </div>
                                 <div className='w-1/3 text-right'>Reg.No. : {report.admno}</div>
@@ -156,135 +169,232 @@ export default function StJamesReportList({ data, reporttype, displayAttendance 
                         </div>
 
                         <div className='overflow-x-auto'>
-                            <table className='w-full border-collapse border-2 border-gray-400 text-sm font-bold'>
-                                <thead className='border-double border-4 border-gray-400'>
+                            <table className='w-full border-collapse border-2 border-gray-400 font-bold text-sm'>
+                                <thead className='border-4 border-gray-400 border-double'>
                                     <tr>
-                                        <th className='border border-gray-400 p-2 text-left w-[250px]' rowSpan={2}></th>
+                                        <th className='w-[250px] border border-gray-400 p-2 text-left' rowSpan={2} />
                                         {getexamdetails.map((exam: any, eIdx: number) => (
                                             <th key={eIdx} className='border border-gray-400 p-2 text-center' colSpan={2}>
                                                 {reporttype === 'indi' ? exam.emE_ExamName : exam.empG_GroupName}
                                             </th>
                                         ))}
                                         {reporttype === 'promotion' && (
-                                            <th className='border border-gray-400 p-2 text-center' colSpan={2}>Final Average</th>
+                                            <th className='border border-gray-400 p-2 text-center' colSpan={2}>
+                                                Final Average
+                                            </th>
                                         )}
                                     </tr>
                                     <tr>
                                         {tempexamdetails.map((colm: any, cIdx: number) => (
                                             <th key={cIdx} className='border border-gray-400 p-2 text-center'>
-                                                {colm.emE_ExamDescription === 'UAT' || colm.empG_DistplayName === 'Internal Assessment' ? (
-                                                    colm.columname === 'Paper' ? 'Out Of' : (colm.columname === 'Subject' ? (colm.emE_ExamDescription === 'UAT' ? '50' : '100') : colm.columname)
-                                                ) : colm.columname}
+                                                {colm.emE_ExamDescription === 'UAT' || colm.empG_DistplayName === 'Internal Assessment'
+                                                    ? colm.columname === 'Paper'
+                                                        ? 'Out Of'
+                                                        : colm.columname === 'Subject'
+                                                          ? colm.emE_ExamDescription === 'UAT'
+                                                              ? '50'
+                                                              : '100'
+                                                          : colm.columname
+                                                    : colm.columname}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className='border-double border-4 border-gray-400'>
-                                    {report.subjects.filter((s: any) => s.eyceS_AplResultFlg).map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) => 
-                                                    reporttype === 'indi' 
-                                                        ? (m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder)
-                                                        : (m.EMPSG_GroupName === colm.Groupname && m.EMPS_SubjOrder === subj.subjectorder)
-                                                );
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center'>{getMarksVal(mrks, colm)}</td>;
-                                            })}
-                                        </tr>
-                                    ))}
-                                    {report.subjects.filter((s: any) => !s.eyceS_AplResultFlg && s.ismS_SubjectName !== 'Discipline').map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) => 
-                                                    reporttype === 'indi' 
-                                                        ? (m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder)
-                                                        : (m.EMPSG_GroupName === colm.Groupname && m.EMPS_SubjOrder === subj.subjectorder)
-                                                );
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center'>{getGradeVal(mrks, colm, subj.ismS_SubjectCode === 'CCA')}</td>;
-                                            })}
-                                        </tr>
-                                    ))}
+                                <tbody className='border-4 border-gray-400 border-double'>
+                                    {report.subjects
+                                        .filter((s: any) => s.eyceS_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find((m: any) =>
+                                                        reporttype === 'indi'
+                                                            ? m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder
+                                                            : m.EMPSG_GroupName === colm.Groupname && m.EMPS_SubjOrder === subj.subjectorder
+                                                    );
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {getMarksVal(mrks, colm)}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    {report.subjects
+                                        .filter((s: any) => !s.eyceS_AplResultFlg && s.ismS_SubjectName !== 'Discipline')
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find((m: any) =>
+                                                        reporttype === 'indi'
+                                                            ? m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder
+                                                            : m.EMPSG_GroupName === colm.Groupname && m.EMPS_SubjOrder === subj.subjectorder
+                                                    );
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {getGradeVal(mrks, colm, subj.ismS_SubjectCode === 'CCA')}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
                                 </tbody>
 
                                 <tbody>
-                                    <tr className='border-none'><td className='p-2' colSpan={tempexamdetails.length + 1}>&nbsp;</td></tr>
+                                    <tr className='border-none'>
+                                        <td className='p-2' colSpan={tempexamdetails.length + 1}>
+                                            &nbsp;
+                                        </td>
+                                    </tr>
                                 </tbody>
 
-                                <tbody className='border-double border-4 border-gray-400'>
+                                <tbody className='border-4 border-gray-400 border-double'>
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Total</td>
-                                        {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
+                                        {(reporttype === 'indi'
+                                            ? getexamdetails
+                                            : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                        ).map((exam: any, eIdx: number) => {
+                                            const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(exam.emE_Id) && exam.emE_ExamCode !== 'IA1' && exam.emE_ExamCode !== 'IA2' && exam.emE_ExamDescription !== 'UAT')
-                                                    : (t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(exam.emE_Id) &&
+                                                      exam.emE_ExamCode !== 'IA1' &&
+                                                      exam.emE_ExamCode !== 'IA2' &&
+                                                      exam.emE_ExamDescription !== 'UAT'
+                                                    : t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment'
                                             );
-                                            const val = totl ? (reporttype === 'indi' ? totl.estmP_TotalObtMarks : totl.TOTALOBTAINEDMARKS) : '';
-                                            return <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>{val}</td>;
+                                            const val = totl
+                                                ? reporttype === 'indi'
+                                                    ? totl.estmP_TotalObtMarks
+                                                    : totl.TOTALOBTAINEDMARKS
+                                                : '';
+                                            return (
+                                                <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Average %</td>
-                                        {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
+                                        {(reporttype === 'indi'
+                                            ? getexamdetails
+                                            : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                        ).map((exam: any, eIdx: number) => {
+                                            const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(exam.emE_Id) && exam.emE_ExamCode !== 'IA1' && exam.emE_ExamCode !== 'IA2' && exam.emE_ExamDescription !== 'UAT')
-                                                    : (t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(exam.emE_Id) &&
+                                                      exam.emE_ExamCode !== 'IA1' &&
+                                                      exam.emE_ExamCode !== 'IA2' &&
+                                                      exam.emE_ExamDescription !== 'UAT'
+                                                    : t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment'
                                             );
-                                            const val = totl ? (reporttype === 'indi' ? totl.estmP_Percentage : totl.PERCENTAGEOBTAINED) : '';
-                                            return <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>{val}</td>;
+                                            const val = totl
+                                                ? reporttype === 'indi'
+                                                    ? totl.estmP_Percentage
+                                                    : totl.PERCENTAGEOBTAINED
+                                                : '';
+                                            return (
+                                                <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                     {displayAttendance && (
                                         <tr>
                                             <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Attendance</td>
-                                            {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => {
-                                                const att = report.attendance.find((a: any) => 
+                                            {(reporttype === 'indi'
+                                                ? getexamdetails
+                                                : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                            ).map((exam: any, eIdx: number) => {
+                                                const att = report.attendance.find((a: any) =>
                                                     reporttype === 'indi'
-                                                        ? (Number(a.emE_Id) === Number(exam.emE_Id) && exam.emE_ExamCode !== 'IA1' && exam.emE_ExamCode !== 'IA2' && exam.emE_ExamDescription !== 'UAT')
-                                                        : (a.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment')
+                                                        ? Number(a.emE_Id) === Number(exam.emE_Id) &&
+                                                          exam.emE_ExamCode !== 'IA1' &&
+                                                          exam.emE_ExamCode !== 'IA2' &&
+                                                          exam.emE_ExamDescription !== 'UAT'
+                                                        : a.GROUPNAME === exam.empG_GroupName &&
+                                                          exam.empG_GroupName !== 'Internal Assessment'
                                                 );
-                                                const val = att ? (reporttype === 'indi' ? `${att.percentage} %` : `${att.PERCENTAGEOBTAINED} %`) : '';
-                                                return <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>{val}</td>;
+                                                const val = att
+                                                    ? reporttype === 'indi'
+                                                        ? `${att.percentage} %`
+                                                        : `${att.PERCENTAGEOBTAINED} %`
+                                                    : '';
+                                                return (
+                                                    <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>
+                                                        {val}
+                                                    </td>
+                                                );
                                             })}
                                         </tr>
                                     )}
-                                    {report.subjects.filter((s: any) => !s.eyceS_AplResultFlg && s.ismS_SubjectName === 'Discipline').map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>{subj.ismS_SubjectName}</td>
-                                            {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => {
-                                                const mrks = report.marks.find((m: any) => 
-                                                    reporttype === 'indi' 
-                                                        ? (m.emeid === exam.emE_Id && m.subjectorder === subj.subjectorder)
-                                                        : (m.EMPSG_GroupName === exam.empG_GroupName && m.EMPS_SubjOrder === subj.subjectorder)
-                                                );
-                                                const obtGrade = mrks ? (reporttype === 'indi' ? mrks.ObtainedGrade : mrks.ESTMPPSG_GroupObtGrade) : '';
-                                                return <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>{obtGrade}</td>;
-                                            })}
-                                        </tr>
-                                    ))}
+                                    {report.subjects
+                                        .filter((s: any) => !s.eyceS_AplResultFlg && s.ismS_SubjectName === 'Discipline')
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>
+                                                    {subj.ismS_SubjectName}
+                                                </td>
+                                                {(reporttype === 'indi'
+                                                    ? getexamdetails
+                                                    : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                                ).map((exam: any, eIdx: number) => {
+                                                    const mrks = report.marks.find((m: any) =>
+                                                        reporttype === 'indi'
+                                                            ? m.emeid === exam.emE_Id && m.subjectorder === subj.subjectorder
+                                                            : m.EMPSG_GroupName === exam.empG_GroupName &&
+                                                              m.EMPS_SubjOrder === subj.subjectorder
+                                                    );
+                                                    const obtGrade = mrks
+                                                        ? reporttype === 'indi'
+                                                            ? mrks.ObtainedGrade
+                                                            : mrks.ESTMPPSG_GroupObtGrade
+                                                        : '';
+                                                    return (
+                                                        <td
+                                                            key={eIdx}
+                                                            className='border border-gray-400 p-2 text-center font-bold'
+                                                            colSpan={2}>
+                                                            {obtGrade}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Position</td>
-                                        {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
+                                        {(reporttype === 'indi'
+                                            ? getexamdetails
+                                            : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                        ).map((exam: any, eIdx: number) => {
+                                            const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(exam.emE_Id) && exam.emE_ExamCode !== 'IA1' && exam.emE_ExamCode !== 'IA2' && exam.emE_ExamDescription !== 'UAT')
-                                                    : (t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(exam.emE_Id) &&
+                                                      exam.emE_ExamCode !== 'IA1' &&
+                                                      exam.emE_ExamCode !== 'IA2' &&
+                                                      exam.emE_ExamDescription !== 'UAT'
+                                                    : t.GROUPNAME === exam.empG_GroupName && exam.empG_GroupName !== 'Internal Assessment'
                                             );
                                             const val = totl ? (reporttype === 'indi' ? totl.estmP_SectionPosition : totl.POSITION) : '';
-                                            return <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>{val}</td>;
+                                            return (
+                                                <td key={eIdx} className='border border-gray-400 p-2 text-center font-bold' colSpan={2}>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div className='mt-8 text-sm font-bold'>
+                        <div className='mt-8 font-bold text-sm'>
                             {reporttype === 'promotion' && (
-                                <p className='mb-4 font-normal italic text-gray-700'>
-                                    The 'Position' in the Second Term and Final Average is calculated after adding the Total Marks and the marks obtained in the Co-curricular activities
+                                <p className='mb-4 font-normal text-gray-700 italic'>
+                                    The 'Position' in the Second Term and Final Average is calculated after adding the Total Marks and the
+                                    marks obtained in the Co-curricular activities
                                 </p>
                             )}
                             <div className='mb-12'>Class Teacher's Comment :</div>
@@ -294,7 +404,7 @@ export default function StJamesReportList({ data, reporttype, displayAttendance 
                                     <div className='text-xs'>Principal</div>
                                 </div>
                                 <div className='flex flex-col items-center text-center'>
-                                    <div className='w-48 border-black border-t-[1.5px] pt-1 font-bold capitalize lowercase first-letter:capitalize'>
+                                    <div className='w-48 border-black border-t-[1.5px] pt-1 font-bold lowercase capitalize first-letter:capitalize'>
                                         {report.classteacher || report.Classteacher || 'Class Teacher'}
                                     </div>
                                     <div className='text-xs'>Class Teacher</div>

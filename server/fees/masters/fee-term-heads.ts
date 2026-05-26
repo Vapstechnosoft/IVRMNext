@@ -21,7 +21,7 @@ export async function addOrUpdateFeeTermHead(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function deleteFeeTermHead(mi_id: number, id: number) {
+export async function deleteFeeTermHead(_mi_id: number, id: number) {
     const url = `/FeeMasterTerms/delete_mapped_term_heads?fmtfh_Id=${id}`;
     console.info('deleted url', url);
 

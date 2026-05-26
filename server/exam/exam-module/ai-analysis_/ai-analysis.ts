@@ -1,10 +1,6 @@
 'use server';
 
-import type {
-    ClassAnalysis,
-    IndividualAnalysis,
-    StudentPerformance
-} from '@/types/exam/exam-module/ai-analysis';
+import type { ClassAnalysis, IndividualAnalysis, StudentPerformance } from '@/types/exam/exam-module/ai-analysis';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -247,7 +243,6 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
             ...s,
             index: idx + 1
         }));
-
     } catch (error: any) {
         console.error('PDF Extraction failed:', error);
         throw new Error(`Failed to parse PDF: ${error.message}`);

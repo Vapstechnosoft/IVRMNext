@@ -9,9 +9,8 @@ export async function getLibLostBookReportInitialData(): Promise<ILibLostBookRep
     // GET AvailableBooksReport/getdetails
     // api.get() returns the HTTP body directly:
     // { success, message, data: { libraryList: [{ lmaL_Id, lmaL_LibraryName, lmaL_ActiveFlag }] } }
-    const response = await api.get<any>('library', `AvailableBooksReport/getdetails`);
-    const libraryList: ILibLostBookReportInitialData =
-        response?.data?.libraryList ?? [];
+    const response = await api.get<any>('library', 'AvailableBooksReport/getdetails');
+    const libraryList: ILibLostBookReportInitialData = response?.data?.libraryList ?? [];
     return Array.isArray(libraryList) ? libraryList : [];
 }
 

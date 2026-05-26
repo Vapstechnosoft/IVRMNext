@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
-import { IMasterFacility, masterFacilitySchema } from '@/schemas/hostel/masters';
+import { type IMasterFacility, masterFacilitySchema } from '@/schemas/hostel/masters';
 import { addOrUpdateMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface UpdateMasterFacilityFormProps {
@@ -101,9 +101,7 @@ export default function UpdateMasterFacilityForm({ selectedRow, onSuccess, class
                     {/* Facility Description */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='hlmftY_FacilityDesc'>
-                                Description
-                            </Label>
+                            <Label htmlFor='hlmftY_FacilityDesc'>Description</Label>
                             <textarea
                                 id='hlmftY_FacilityDesc'
                                 {...register('hlmftY_FacilityDesc')}
@@ -123,7 +121,7 @@ export default function UpdateMasterFacilityForm({ selectedRow, onSuccess, class
                                     type='file'
                                     id='file-upload'
                                     onChange={handleFileUpload}
-                                    className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+                                    className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
                                 />
                                 {(fileName || selectedRow.hlmftY_FacilityFileName) && (
                                     <Button
@@ -139,7 +137,7 @@ export default function UpdateMasterFacilityForm({ selectedRow, onSuccess, class
 
                             {/* Show current or selected file */}
                             {(fileName || selectedRow.hlmftY_FacilityFileName) && (
-                                <p className='text-xs text-muted-foreground mt-1'>
+                                <p className='mt-1 text-muted-foreground text-xs'>
                                     {fileName ? `Selected: ${fileName}` : `Current file: ${selectedRow.hlmftY_FacilityFileName}`}
                                 </p>
                             )}

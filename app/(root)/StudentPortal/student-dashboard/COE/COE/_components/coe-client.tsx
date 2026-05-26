@@ -14,7 +14,7 @@ interface COEClientProps {
 
 export default function COEClient({ initialData }: COEClientProps) {
     const [academicYear, setAcademicYear] = useState<string>(String(initialData.currentyear?.[0]?.asmaY_Id || ''));
-    const [month, setMonth] = useState<string>(('0' + (new Date().getMonth() + 1)).slice(-2));
+    const [month, setMonth] = useState<string>(`0${new Date().getMonth() + 1}`.slice(-2));
     const [events, setEvents] = useState<COEReport[]>([]);
     const [loading, setLoading] = useState(false);
 

@@ -11,31 +11,31 @@ export interface OnlineTCData {
 }
 
 export async function getTransferCertificateDetails(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/getdetails`;
+    const url = '/StudentPortal/OnlineTransferCertificate/getdetails';
     return await api.post<any>('default', url, data);
 }
 
 export async function applyTransferCertificate(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/save`;
+    const url = '/StudentPortal/OnlineTransferCertificate/save';
     return await api.post<any>('default', url, data);
 }
 
 export async function editTransferCertificate(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/getdetails`;
+    const url = '/StudentPortal/OnlineTransferCertificate/getdetails';
     return await api.post<any>('default', url, data);
 }
 
 export async function deactivateTransferCertificate(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/deactivate`;
+    const url = '/StudentPortal/OnlineTransferCertificate/deactivate';
     return await api.post<any>('default', url, data);
 }
 
 export async function approveTransferCertificate(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/approve`;
+    const url = '/StudentPortal/OnlineTransferCertificate/approve';
     return await api.post<any>('default', url, data);
 }
 
 export async function rejectTransferCertificate(data: any) {
-    const url = `/StudentPortal/OnlineTransferCertificate/reject`;
+    const url = '/StudentPortal/OnlineTransferCertificate/reject';
     return await api.post<any>('default', url, data);
 }

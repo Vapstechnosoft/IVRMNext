@@ -30,13 +30,7 @@ interface Props {
     institutionDetails?: any[];
 }
 
-export default function AdmissionMonthEndReport({
-    reportData,
-    month,
-    year,
-    implementationName,
-    institutionDetails
-}: Props) {
+export default function AdmissionMonthEndReport({ reportData, month, year, implementationName, institutionDetails }: Props) {
     const todayDate = new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
@@ -44,11 +38,11 @@ export default function AdmissionMonthEndReport({
     });
 
     const inst = institutionDetails?.[0] || {};
-    const instTitle = inst.mI_Name || inst.mi_name;
-    const address = `${inst.mI_Address1 || ''} ${inst.mI_Address2 || ''} ${inst.mI_Address3 || ''}`.trim();
-    const city = inst.ivrmmcT_Name || '';
-    const pincode = inst.mI_Pincode || '';
-    const contact = inst.mI_ContactDetails || '';
+    const _instTitle = inst.mI_Name || inst.mi_name;
+    const _address = `${inst.mI_Address1 || ''} ${inst.mI_Address2 || ''} ${inst.mI_Address3 || ''}`.trim();
+    const _city = inst.ivrmmcT_Name || '';
+    const _pincode = inst.mI_Pincode || '';
+    const _contact = inst.mI_ContactDetails || '';
     const logoUrl = inst.mI_Logo;
 
     const chartData = reportData.map((x) => ({

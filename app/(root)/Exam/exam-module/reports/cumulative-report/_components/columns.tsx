@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { ICumulativeReport, IMasterInstitution, Institution, IReportHeader, ISubject } from '@/types/exam/exam-module/report';
+import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject, Institution } from '@/types/exam/exam-module/report';
 import { FileSpreadsheetIcon, Printer } from 'lucide-react';
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
@@ -381,8 +381,8 @@ export default function CumulativeReportGridView({
                                             {isAbsent
                                                 ? '-'
                                                 : student.estmP_Percentage
-                                                    ? `${Number(student.estmP_Percentage).toFixed(1)}%`
-                                                    : '-'}
+                                                  ? `${Number(student.estmP_Percentage).toFixed(1)}%`
+                                                  : '-'}
                                         </td>
                                         <td className='border border-gray-400 py-2 text-center'>
                                             {isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}

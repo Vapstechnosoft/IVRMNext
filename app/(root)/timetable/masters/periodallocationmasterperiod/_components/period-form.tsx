@@ -66,7 +66,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
         reset();
     };
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         try {
             const payload = {
                 tempperiods: periods.map((p) => ({
@@ -74,8 +74,6 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
                     TTMP_PeriodName: p.label
                 }))
             };
-
-            console.log('Payload to be sent:', JSON.stringify(payload));
             const response = await savePeriod(payload);
             if (response.success) {
                 toast.success(response.message);

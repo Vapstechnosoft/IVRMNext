@@ -117,7 +117,7 @@ function DataTableInner<TData, TValue>(
     };
 
     // Generate a unique key for this table instance based on current page/filters
-    const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
+    const _tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
 
     // Initialize from ref to preserve across re-renders
     const rowSelectionRef = useRef<Record<string, boolean>>({});
@@ -395,21 +395,21 @@ function DataTableInner<TData, TValue>(
                                                 // Complex range logic
                                                 if (currentPage <= 3) {
                                                     return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
-                                                } else if (currentPage >= totalPages - 2) {
-                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                                                } else {
-                                                    return [
-                                                        1,
-                                                        2,
-                                                        '...',
-                                                        currentPage - 1,
-                                                        currentPage,
-                                                        currentPage + 1,
-                                                        '...',
-                                                        totalPages - 1,
-                                                        totalPages
-                                                    ];
                                                 }
+                                                if (currentPage >= totalPages - 2) {
+                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                                }
+                                                return [
+                                                    1,
+                                                    2,
+                                                    '...',
+                                                    currentPage - 1,
+                                                    currentPage,
+                                                    currentPage + 1,
+                                                    '...',
+                                                    totalPages - 1,
+                                                    totalPages
+                                                ];
                                             };
 
                                             return getRange().map((page, i) => {

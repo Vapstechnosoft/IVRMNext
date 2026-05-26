@@ -1,21 +1,16 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import { FormProvider } from '@/components/ui/form/form-provider';
 import { UsePcRequisitionReport } from '@/hooks/pettycash/report/PcRequisitionReport';
+import { getParticularDetail } from '@/server/pettycash/report/PcRequisitionReport';
 import type { ApiSearchparams } from '@/types';
 import type { RequisitionReport } from '@/types/pettycash/report/PcRequisitionReport';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 import { use, useState } from 'react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import SimpleRequisitionReport from './components/report-form';
 import RequisitionReportGrid from './components/Report';
-import { getParticularDetail } from '@/server/pettycash/report/PcRequisitionReport';
+import SimpleRequisitionReport from './components/report-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -44,7 +39,7 @@ function PcRequisitionPageContent({
     });
 
     const { data: response, isLoading } = UsePcRequisitionReport(apiParams);
-    const [isAddFormOpen, setIsAddFormOpen] = useState(true);
+    const [isAddFormOpen, _setIsAddFormOpen] = useState(true);
 
     const reportRef = useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
@@ -67,12 +62,12 @@ function PcRequisitionPageContent({
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/30">
-            <div className="container space-y-6 p-6">
+        <div className='min-h-screen bg-gray-50/30'>
+            <div className='container space-y-6 p-6'>
                 {/* Report Form */}
                 {isAddFormOpen && (
-                    <CollapsibleSection title="Report Generation Parameters" defaultOpen>
-                        <div className="relative">
+                    <CollapsibleSection title='Report Generation Parameters' defaultOpen>
+                        <div className='relative'>
                             <SimpleRequisitionReport onSearch={(params) => setApiParams({ ...apiParams, ...params })} />
                         </div>
                     </CollapsibleSection>
@@ -92,21 +87,22 @@ function PcRequisitionPageContent({
                 )}
 
                 {!isLoading && reportData.length === 0 && apiParams.fromDate && (
-                    <div className="flex flex-col items-center justify-center p-20 bg-white rounded-xl border border-dashed border-gray-300">
-                        <X className="h-12 w-12 text-gray-200 mb-4" />
-                        <p className="text-gray-500 font-medium">No records found for the selected period.</p>
-                        <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or date range.</p>
+                    <div className='flex flex-col items-center justify-center rounded-xl border border-gray-300 border-dashed bg-white p-20'>
+                        <X className='mb-4 h-12 w-12 text-gray-200' />
+                        <p className='font-medium text-gray-500'>No records found for the selected period.</p>
+                        <p className='mt-1 text-gray-400 text-sm'>Try adjusting your filters or date range.</p>
                     </div>
                 )}
 
                 {isLoading && (
-                    <div className="flex flex-col items-center justify-center p-20">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
-                        <p className="text-indigo-600 font-bold uppercase tracking-widest text-[10px] animate-pulse">Generating Report Analytics...</p>
+                    <div className='flex flex-col items-center justify-center p-20'>
+                        <div className='mb-4 h-10 w-10 animate-spin rounded-full border-indigo-600 border-b-2' />
+                        <p className='animate-pulse font-bold text-[10px] text-indigo-600 uppercase tracking-widest'>
+                            Generating Report Analytics...
+                        </p>
                     </div>
                 )}
             </div>
         </div>
     );
 }
-

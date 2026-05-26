@@ -1,31 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Save, X, FileText, RotateCcw, CalendarIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { feeChequeBounceSchema } from '@/schemas/fees/reports';
-import type { z } from 'zod';
 import {
     useFeeAcademicYearReport,
-    useFeeclassYearReport,
     useFeeSectionYearReport,
-    useFeeStudentsYearReport
+    useFeeStudentsYearReport,
+    useFeeclassYearReport
 } from '@/hooks/fees/useReports';
 import { useFeeChequeBounceReceipts } from '@/hooks/fees/useTrasactions';
+import { feeChequeBounceSchema } from '@/schemas/fees/reports';
 import { saveFeeChequeBounce } from '@/server/fees/trasactions/fee_cheque_bounce';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 type FormFields = z.infer<typeof feeChequeBounceSchema>;
 
@@ -101,7 +96,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                 FCB_Remarks: data.FCB_Remarks
             };
 
-            const result = await saveFeeChequeBounce(payload) as any;
+            const result = (await saveFeeChequeBounce(payload)) as any;
             const validationValue = result?.validationvalue || result?.data?.validationvalue;
 
             if (validationValue === 'Saved' || validationValue === 'Updated') {
@@ -112,103 +107,111 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
             } else {
                 toast.error(String(validationValue || 'Failed to save record'));
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving the record');
         }
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Academic Year */}
                 <div className='space-y-2'>
-                    <Label>Academic Year <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Academic Year <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmaY_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? String(field.value) : ""}
-                            >
+                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={loadingAcademicYear ? 'Loading...' : 'Select Academic Year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYears?.data?.map((yr: any) => (
-                                        <SelectItem key={yr.asmaY_Id} value={String(yr.asmaY_Id)}>{yr.asmaY_Year}</SelectItem>
+                                        <SelectItem key={yr.asmaY_Id} value={String(yr.asmaY_Id)}>
+                                            {yr.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmaY_Id && <p className='text-xs text-destructive'>{errors.asmaY_Id.message}</p>}
+                    {errors.asmaY_Id && <p className='text-destructive text-xs'>{errors.asmaY_Id.message}</p>}
                 </div>
 
                 {/* Class */}
                 <div className='space-y-2'>
-                    <Label>Class <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Class <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? String(field.value) : ""}
-                                disabled={!asmayId || loadingClasses}
-                            >
+                                value={field.value ? String(field.value) : ''}
+                                disabled={!asmayId || loadingClasses}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {classes?.data?.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>{cls.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmcL_Id && <p className='text-xs text-destructive'>{errors.asmcL_Id.message}</p>}
+                    {errors.asmcL_Id && <p className='text-destructive text-xs'>{errors.asmcL_Id.message}</p>}
                 </div>
 
                 {/* Section */}
                 <div className='space-y-2'>
-                    <Label>Section <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Section <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmS_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? String(field.value) : ""}
-                                disabled={!classId || loadingSections}
-                            >
+                                value={field.value ? String(field.value) : ''}
+                                disabled={!classId || loadingSections}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {sections?.data?.map((sec: any) => (
-                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>{sec.asmC_SectionName}</SelectItem>
+                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                            {sec.asmC_SectionName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.asmS_Id && <p className='text-xs text-destructive'>{errors.asmS_Id.message}</p>}
+                    {errors.asmS_Id && <p className='text-destructive text-xs'>{errors.asmS_Id.message}</p>}
                 </div>
 
                 {/* Student */}
                 <div className='space-y-2'>
-                    <Label>Student Name <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Student Name <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='amst_Id'
                         control={control}
                         render={({ field }) => (
                             <Select
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? String(field.value) : ""}
-                                disabled={!sectionId || loadingStudents}
-                            >
+                                value={field.value ? String(field.value) : ''}
+                                disabled={!sectionId || loadingStudents}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={loadingStudents ? 'Loading...' : 'Select Student'} />
                                 </SelectTrigger>
@@ -222,12 +225,14 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                             </Select>
                         )}
                     />
-                    {errors.amst_Id && <p className='text-xs text-destructive'>{errors.amst_Id.message}</p>}
+                    {errors.amst_Id && <p className='text-destructive text-xs'>{errors.amst_Id.message}</p>}
                 </div>
 
                 {/* Receipt No */}
                 <div className='space-y-2'>
-                    <Label>Receipt No <span className='text-destructive'>*</span></Label>
+                    <Label>
+                        Receipt No <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='FYP_ID'
                         control={control}
@@ -238,7 +243,9 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {receiptData?.data?.fillreceipt?.map((rec: any) => (
-                                        <SelectItem key={rec.fyP_ID} value={String(rec.fyP_ID)}>{rec.fyP_Receipt_No}</SelectItem>
+                                        <SelectItem key={rec.fyP_ID} value={String(rec.fyP_ID)}>
+                                            {rec.fyP_Receipt_No}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -255,14 +262,10 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                         name='FCB_DATE'
                         control={control}
                         render={({ field }) => (
-                            <DatePicker
-                                date={field.value}
-                                setDate={(date) => field.onChange(date)}
-                                className='w-full sm:w-96'
-                            />
+                            <DatePicker date={field.value} setDate={(date) => field.onChange(date)} className='w-full sm:w-96' />
                         )}
                     />
-                    {errors.FCB_DATE && <p className='text-xs text-destructive'>{errors.FCB_DATE.message}</p>}
+                    {errors.FCB_DATE && <p className='text-destructive text-xs'>{errors.FCB_DATE.message}</p>}
                 </div>
 
                 {/* Remarks */}
@@ -271,9 +274,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                     <Controller
                         name='FCB_Remarks'
                         control={control}
-                        render={({ field }) => (
-                            <Input {...field} placeholder='Enter remarks...' />
-                        )}
+                        render={({ field }) => <Input {...field} placeholder='Enter remarks...' />}
                     />
                 </div>
             </div>

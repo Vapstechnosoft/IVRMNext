@@ -73,8 +73,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                 }))
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateFeeTermHead(payload);
 

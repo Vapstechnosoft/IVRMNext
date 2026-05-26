@@ -221,7 +221,7 @@ export function useDataTableProps(
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
     const extractedData = response?.[dataKey] || [];
-    
+
     return {
         data: extractedData,
         totalItems: response?.[totalKey] || extractedData.length || 0,

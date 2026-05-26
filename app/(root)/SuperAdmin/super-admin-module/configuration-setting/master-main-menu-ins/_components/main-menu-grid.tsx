@@ -19,7 +19,7 @@ export default function MainMenuGrid({ data: initialData, onDelete, onOrder, onC
     const [isOpen, setIsOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, _setItemsPerPage] = useState(5);
 
     useEffect(() => {
         setData(initialData);

@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -16,11 +16,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
     const { reportFormat, accyear, examname } = params ?? {};
 
-    const {
-        datareport: mainList = [],
-        subarray: subList = [],
-        institute = []
-    } = data ?? {};
+    const { datareport: mainList = [], subarray: subList = [], institute = [] } = data ?? {};
 
     // Get logo path from institute data
     const imgname = (institute || []).length > 0 ? institute[0].mI_Logo : '';
@@ -42,20 +38,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     }
 
     // Helper: subjects for a student
-    const getStudentSubjects = (studentId: number) =>
-        (subList || []).filter((s: any) => s.amsT_Id === studentId);
+    const getStudentSubjects = (studentId: number) => (subList || []).filter((s: any) => s.amsT_Id === studentId);
 
     // ── Format 1 – Grid View (daily) ─────────────────────────────────────────
     // Matches: ng-show="dailybtedates == 'daily'"
     const renderFormat1 = () => (
-        <div className='p-4 bg-white'>
+        <div className='bg-white p-4'>
             {/* School logo */}
-            <div className='text-center mb-4'>
+            <div className='mb-4 text-center'>
                 {imgname && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgname} alt='School Logo' className='max-w-[400px] mx-auto' />
+                    <img src={imgname} alt='School Logo' className='mx-auto max-w-[400px]' />
                 )}
-                <h3 className='text-2xl font-bold mt-2'>Hall Ticket Report {accyear}</h3>
+                <h3 className='mt-2 font-bold text-2xl'>Hall Ticket Report {accyear}</h3>
             </div>
 
             {/* Student listing table */}
@@ -99,11 +94,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <td className='p-4'>
                                 <div style={{ width: '60%', margin: 'auto' }}>
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={imgname} alt='School Logo' className='max-w-full h-auto' />
+                                    <img src={imgname} alt='School Logo' className='h-auto max-w-full' />
                                 </div>
-                                <h4 className='text-center font-bold text-lg mt-2'> {examname} - {accyear}</h4>
+                                <h4 className='mt-2 text-center font-bold text-lg'>
+                                    {' '}
+                                    {examname} - {accyear}
+                                </h4>
                                 <h4 className='text-center font-bold text-lg uppercase'>ADMIT CARD</h4>
-                                
+
                                 <div className='mt-4 flex items-start gap-4'>
                                     <div className='flex-1'>
                                         <table className='w-full'>
@@ -122,7 +120,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 </tr>
                                                 <tr>
                                                     <td style={{ paddingTop: '10px' }}> Class/Section </td>
-                                                    <td style={{ paddingTop: '10px' }}>: {user.asmcL_ClassName} {user.asmC_SectionName} </td>
+                                                    <td style={{ paddingTop: '10px' }}>
+                                                        : {user.asmcL_ClassName} {user.asmC_SectionName}{' '}
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -130,7 +130,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     {user.amsT_Photoname && (
                                         <div style={{ marginRight: '10px' }}>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={user.amsT_Photoname} style={{ height: '120px' }} className='max-w-full' alt='Student' />
+                                            <img
+                                                src={user.amsT_Photoname}
+                                                style={{ height: '120px' }}
+                                                className='max-w-full'
+                                                alt='Student'
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -145,8 +150,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <tr>
                                 <th className='border border-black p-2 text-center'>Subjects</th>
                                 <th className='border border-black p-2 text-center'>Date</th>
-                                <th className='border border-black p-2 text-center' colSpan={2}>Timings</th>
-                                <th className='border border-black p-2 text-center' colSpan={2}>Invigilator&apos;s Signature</th>
+                                <th className='border border-black p-2 text-center' colSpan={2}>
+                                    Timings
+                                </th>
+                                <th className='border border-black p-2 text-center' colSpan={2}>
+                                    Invigilator&apos;s Signature
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -159,22 +168,22 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <td className='border border-black p-2 text-center' colSpan={2}>
                                         {exm.ettS_StartTime} TO {exm.ettS_EndTime}
                                     </td>
-                                    <td className='border border-black p-2' colSpan={2}></td>
+                                    <td className='border border-black p-2' colSpan={2} />
                                 </tr>
                             ))}
                         </tbody>
                         <tbody>
                             <tr>
-                                <td className='p-4 border-0' colSpan={3} style={{ border: '0px' }}>
-                                    <div style={{ height: '30px' }}></div>
+                                <td className='border-0 p-4' colSpan={3} style={{ border: '0px' }}>
+                                    <div style={{ height: '30px' }} />
                                     Class Teacher&apos;s Signature
                                 </td>
-                                <td className='p-4 border-0 text-right' colSpan={3} style={{ border: '0px' }}>
+                                <td className='border-0 p-4 text-right' colSpan={3} style={{ border: '0px' }}>
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img 
-                                        style={{ width: '100px', height: 'auto', display: 'block', marginLeft: 'auto' }} 
-                                        src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/a836bd34-3291-4b17-9971-8cbfb2d6667b.png" 
-                                        alt="Signature"
+                                    <img
+                                        style={{ width: '100px', height: 'auto', display: 'block', marginLeft: 'auto' }}
+                                        src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/a836bd34-3291-4b17-9971-8cbfb2d6667b.png'
+                                        alt='Signature'
                                     />
                                     Headmistress / Principal Signature
                                 </td>
@@ -183,7 +192,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     </table>
                 </div>
                 <div className='no-screen mt-10'>
-                    <br /><br /><br /><br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
                 </div>
             </section>
         );
@@ -201,7 +213,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 </div>
             </div>
 
-            <CardContent className='p-6 overflow-auto'>
+            <CardContent className='overflow-auto p-6'>
                 <div ref={printRef} className='print-container bg-white p-4'>
                     {/* Format 1: Grid listing */}
                     {reportFormat === 'format1' && renderFormat1()}
@@ -213,8 +225,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {renderAdmitCard(user)}
                                 {index < mainList.length - 1 && <div className='page-break' />}
                             </div>
-                        ))
-                    }
+                        ))}
                 </div>
             </CardContent>
 

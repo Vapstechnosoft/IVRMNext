@@ -57,7 +57,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         });
     }, [selectedRow]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         const buildpayload = () => {
             return {
                 // mI_Id: 30,

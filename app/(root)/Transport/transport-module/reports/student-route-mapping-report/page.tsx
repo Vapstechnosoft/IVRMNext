@@ -60,7 +60,6 @@ export default function StudentRouteMappingReportPage() {
     const { mutate: generateReport, isPending: isGenerating } = useMutation({
         mutationFn: StudentRouteMappingReportData,
         onSuccess: (response: any) => {
-            console.log('Report Response:', response); // Keep for debugging data structure
             if (response.success) {
                 if (response.data && response.data.length > 0) {
                     setReportData(response.data);
@@ -113,8 +112,6 @@ export default function StudentRouteMappingReportPage() {
             feeflag: values.feeGroupWise,
             FMG_Id: values.feeGroupWise ? Number(values.FMG_Id) : 0
         };
-
-        console.log('Report Payload:', payload);
         generateReport(payload);
     };
 

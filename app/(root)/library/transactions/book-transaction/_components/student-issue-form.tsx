@@ -17,7 +17,7 @@ interface StudentIssueFormProps {
 }
 
 export function StudentIssueForm({ bookType, bookCategory }: StudentIssueFormProps) {
-    const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
+    const [_selectedStudent, _setSelectedStudent] = useState<number | null>(null);
     const [selectedBooks, setSelectedBooks] = useState<any[]>([]);
 
     const { control, watch, setValue } = useForm({
@@ -69,7 +69,7 @@ export function StudentIssueForm({ bookType, bookCategory }: StudentIssueFormPro
 
     const issueBookMutation = useIssueBook();
 
-    const handleAddBook = (book: any) => {
+    const _handleAddBook = (book: any) => {
         if (selectedBooks.find((b) => b.lmbanO_Id === book.lmbanO_Id)) {
             toast.error('Book already added');
             return;

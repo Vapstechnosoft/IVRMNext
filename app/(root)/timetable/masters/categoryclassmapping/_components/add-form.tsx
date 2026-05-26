@@ -29,14 +29,14 @@ interface AddMasterBuildingProps {
 export default function AddCategoryClassMappingForm({ onSuccess, buildingname = '' }: AddMasterBuildingProps) {
     const { refetchAll } = useTimeTableCategoryClassMapping();
 
-    const [classseach, setClassseach] = useState('');
+    const [_classseach, _setClassseach] = useState('');
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
-    const [selectedClassItems, setSelectedClassItems] = useState<{ asmcl_Id: string }[]>([]);
+    const [_selectedClassItems, setSelectedClassItems] = useState<{ asmcl_Id: string }[]>([]);
     const [classdata, setClassdata] = useState<ClassDropDownDataTT[]>([]);
     const [classSearch, setClassSearch] = useState('');
 
-    const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
+    const [_selectedcalssidsItems, _setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
     const {
         data: academicyeardata,
         isLoading: academicyearloading,
@@ -87,8 +87,6 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
                 try {
                     setIsLoadingClasses(true);
                     const res = await getuseTimeTableClassDropdownDataDetailsNew(academicyear, category);
-
-                    console.log('getuseTimeTableClassDropdownDataDetails res', res);
 
                     const classes = res?.data?.querydata || res?.querydata || [];
                     const selected = res?.data?.binddetails || res?.binddetails || [];
@@ -184,9 +182,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
                 ttmC_Id: ttmC_Id,
                 clssids: classes
             };
-            console.log('payload', JSON.stringify(payload));
             const response = await addOrUpdateCategoryClassMapping(payload);
-            console.log('response', response);
             if (response.success) {
                 toast.success(response.message);
                 reset();

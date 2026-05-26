@@ -1,7 +1,13 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { InstitutionDTO, ModuleDTO, RoleDTO, InstitutionRolePrivilegeDTO, PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
+import type {
+    InstitutionDTO,
+    InstitutionRolePrivilegeDTO,
+    ModuleDTO,
+    PageDTO,
+    RoleDTO
+} from '@/types/super-admin/configuration-setting/institution-module-page';
 
 const API_KEY = 'sadmin';
 
@@ -16,8 +22,10 @@ export async function getPageList(moduleId: number) {
             records: PageDTO[];
         }
 
-        const response = await api.get<PageListResponse>(API_KEY, `MasterInstitutionRoleandModuleMappingFacade/get_page_list_onchange_module/${moduleId}`);
-        console.log("getPageList API Response:", JSON.stringify(response, null, 2));
+        const response = await api.get<PageListResponse>(
+            API_KEY,
+            `MasterInstitutionRoleandModuleMappingFacade/get_page_list_onchange_module/${moduleId}`
+        );
 
         if (response.success && response.data?.records) {
             return {
@@ -29,9 +37,8 @@ export async function getPageList(moduleId: number) {
         }
 
         return { success: false, message: response.message || 'Failed to fetch page list', data: null };
-
     } catch (error: any) {
-        console.error("getPageList error:", error);
+        console.error('getPageList error:', error);
         return { success: false, message: error.message || 'Failed to fetch page list', data: null };
     }
 }
@@ -41,41 +48,39 @@ export async function getPageList(moduleId: number) {
 export async function saveInstitutionRolePrivileges(payload: any) {
     try {
         const response = await api.post(API_KEY, 'MasterInstitutionRoleandModuleMappingFacade/', payload);
-        console.log("saveInstitutionRolePrivileges API Response:", JSON.stringify(response, null, 2));
 
         if (response.success) {
             return { success: true, message: response.message || 'Saved successfully' };
         }
         return { success: false, message: response.message || 'Failed to save' };
-
     } catch (error: any) {
-        console.error("saveInstitutionRolePrivileges error:", error);
+        console.error('saveInstitutionRolePrivileges error:', error);
         return { success: false, message: error.message || 'Failed to save' };
     }
 }
 
 export async function getInstitutionDropdown() {
     try {
-        return await api.get<{ institutionList: InstitutionDTO[] }>(API_KEY, 'MasterInstitutionRoleandModuleMappingFacade/get_institution_drop_down');
+        return await api.get<{ institutionList: InstitutionDTO[] }>(
+            API_KEY,
+            'MasterInstitutionRoleandModuleMappingFacade/get_institution_drop_down'
+        );
     } catch (error: any) {
-        console.error("getInstitutionDropdown error:", error);
+        console.error('getInstitutionDropdown error:', error);
         return { success: false, message: error.message || 'Failed to fetch institutions', data: null };
     }
 }
 
 export async function deleteInstitutionRolePrivileges(payload: any) {
     try {
-        console.log("deleteInstitutionRolePrivileges Payload Sent to API:", JSON.stringify(payload, null, 2));
         const response = await api.post(API_KEY, 'MasterInstitutionRoleandModuleMappingFacade/delete_saved_records', payload);
-        console.log("deleteInstitutionRolePrivileges API Response:", JSON.stringify(response, null, 2));
 
         if (response.success) {
             return { success: true, message: response.message || 'Deleted successfully' };
         }
         return { success: false, message: response.message || 'Failed to delete' };
-
     } catch (error: any) {
-        console.error("deleteInstitutionRolePrivileges error:", error);
+        console.error('deleteInstitutionRolePrivileges error:', error);
         return { success: false, message: error.message || 'Failed to delete' };
     }
 }
@@ -99,7 +104,7 @@ export async function getModuleDropdown() {
 
         return { success: false, message: response.message || 'Failed to fetch modules', data: null, page: 0, total: 0, page_Size: 0 };
     } catch (error: any) {
-        console.error("getModuleDropdown error:", error);
+        console.error('getModuleDropdown error:', error);
         return { success: false, message: error.message || 'Failed to fetch modules', data: null, page: 0, total: 0, page_Size: 0 };
     }
 }
@@ -120,9 +125,8 @@ export async function getRoleDropdown() {
             };
         }
         return { success: false, message: response.message || 'Failed to fetch roles', data: null, page: 0, total: 0, page_Size: 0 };
-
     } catch (error: any) {
-        console.error("getRoleDropdown error:", error);
+        console.error('getRoleDropdown error:', error);
         return { success: false, message: error.message || 'Failed to fetch roles', data: null, page: 0, total: 0, page_Size: 0 };
     }
 }
@@ -138,10 +142,8 @@ export async function getInstitutionRolePrivileges() {
         }
 
         const response = await api.get<GridResponse>(API_KEY, 'MasterInstitutionRoleandModuleMappingFacade/get_onload_grid_seach_list');
-        console.log("getInstitutionRolePrivileges API Response:", JSON.stringify(response, null, 2));
 
         if (response.success && response.data?.records) {
-            console.log("Mapped Records:", response.data.records.length);
             return {
                 success: true,
                 message: response.message,
@@ -154,11 +156,10 @@ export async function getInstitutionRolePrivileges() {
             };
         }
 
-        console.warn("API succeeded but no records found or success false:", response);
+        console.warn('API succeeded but no records found or success false:', response);
         return { success: false, message: response.message || 'Failed to fetch grid data', data: null, page: 0, total: 0, page_Size: 0 };
-
     } catch (error: any) {
-        console.error("getInstitutionRolePrivileges error:", error);
+        console.error('getInstitutionRolePrivileges error:', error);
         return { success: false, message: error.message || 'Failed to fetch grid data', data: null, page: 0, total: 0, page_Size: 0 };
     }
 }

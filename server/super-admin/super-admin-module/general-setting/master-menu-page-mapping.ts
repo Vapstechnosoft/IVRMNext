@@ -1,7 +1,6 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { IMasterMenuPageMapping } from '@/types/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
 
 const FACADE_URL = '/MasterMenuPageMappingFacade';
 
@@ -32,15 +31,15 @@ export async function getOnLoadData(searchParams: any) {
 
         return {
             success: false,
-            message: response.message || "Failed to fetch data",
+            message: response.message || 'Failed to fetch data',
             data: { GridDetails: [], modulename: [], pages: [] },
             total: 0
         };
     } catch (error) {
-        console.error("Error fetching Master Menu Page Mapping data:", error);
+        console.error('Error fetching Master Menu Page Mapping data:', error);
         return {
             success: false,
-            message: "Failed to fetch data",
+            message: 'Failed to fetch data',
             data: { GridDetails: [], modulename: [], pages: [] },
             total: 0
         };
@@ -55,16 +54,15 @@ export async function deleteMasterMenuPageMapping(id: number) {
                 success: true,
                 message: 'Deleted Successfully'
             };
-        } else {
-            return {
-                success: false,
-                message: 'Record Already Mapped'
-            };
         }
-    } catch (error) {
         return {
             success: false,
-            message: 'Failed to delete data',
+            message: 'Record Already Mapped'
+        };
+    } catch (_error) {
+        return {
+            success: false,
+            message: 'Failed to delete data'
         };
     }
 }
@@ -74,10 +72,10 @@ export async function saveMasterMenuPageMapping(data: any) {
     try {
         const response = await api.post('sadmin', url, data);
         return response;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: 'Failed to save data',
+            message: 'Failed to save data'
         };
     }
 }
@@ -95,11 +93,11 @@ export async function getMainMenuDropdown(moduleId: number) {
             };
         }
         return response;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch main menu dropdown",
-            data: [],
+            message: 'Failed to fetch main menu dropdown',
+            data: []
         };
     }
 }
@@ -126,11 +124,11 @@ export async function getSubMenuDropdown(moduleId: number) {
             };
         }
         return response;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch sub menu dropdown",
-            data: [],
+            message: 'Failed to fetch sub menu dropdown',
+            data: []
         };
     }
 }
@@ -149,14 +147,14 @@ export async function getModuleDropdown() {
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch module dropdown",
+            message: response.message || 'Failed to fetch module dropdown',
             data: []
         };
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch module dropdown",
-            data: [],
+            message: 'Failed to fetch module dropdown',
+            data: []
         };
     }
 }
@@ -175,14 +173,14 @@ export async function getMasterPagesOnChangeSubMenu(subMenuId: number) {
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch master pages",
+            message: response.message || 'Failed to fetch master pages',
             data: [],
             total: 0
         };
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch master pages",
+            message: 'Failed to fetch master pages',
             data: [],
             total: 0
         };
@@ -197,19 +195,19 @@ export async function getSavedMasterMenuOnChangeSubMenu(moduleId: number, subMen
             return {
                 success: true,
                 message: response.message,
-                data: response.data.records,
+                data: response.data.records
             };
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch saved master menus",
-            data: [],
+            message: response.message || 'Failed to fetch saved master menus',
+            data: []
         };
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch saved master menus",
-            data: [],
+            message: 'Failed to fetch saved master menus',
+            data: []
         };
     }
 }

@@ -33,8 +33,8 @@ function HomeworkMarksUpdateContent() {
         <div className='container min-h-screen space-y-4 p-1'>
             <CollapsibleSection title='HOMEWORK MARKS UPDATE' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='space-y-4'>
-                    <SearchForm 
-                        onSearchResults={(results, topicsList) => setSearchResults(results)}
+                    <SearchForm
+                        onSearchResults={(results, _topicsList) => setSearchResults(results)}
                         onVerifiedList={(list) => setVerifiedRecords(list)}
                         onTopicsLoaded={(topics) => setTopics(topics)}
                     />
@@ -42,13 +42,13 @@ function HomeworkMarksUpdateContent() {
             </CollapsibleSection>
 
             <MarksEntrySection searchResults={searchResults} topics={topics} />
-            
+
             <VerifiedRecordsSection records={verifiedRecords} />
         </div>
     );
 }
 
-function MarksEntrySection({ searchResults, topics }: { searchResults: any[], topics: any[] }) {
+function MarksEntrySection({ searchResults, topics }: { searchResults: any[]; topics: any[] }) {
     if (searchResults.length === 0 && topics.length === 0) return null;
 
     return (
@@ -69,12 +69,7 @@ function VerifiedRecordsSection({ records }: { records: any[] }) {
     if (records.length === 0) return null;
 
     return (
-        <CollapsibleSection
-            title='HomeWork Details'
-            defaultOpen={!isDetailsViewOpen}
-            variant='outline'
-            size='md'
-            className='shadow-lg'>
+        <CollapsibleSection title='HomeWork Details' defaultOpen={!isDetailsViewOpen} variant='outline' size='md' className='shadow-lg'>
             <VerifiedRecordsGrid records={records} />
         </CollapsibleSection>
     );

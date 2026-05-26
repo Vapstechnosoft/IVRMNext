@@ -4,7 +4,7 @@
 import { api } from '@/lib/apiService';
 export async function getBonafiedLoadData() {
     //return await api.get<any>('admission', '/HHSBonafiedCertificate/sjgetdata');
-    return await api.get<any>('admission', `/HHSStudyCertificate/getdetails/`);
+    return await api.get<any>('admission', '/HHSStudyCertificate/getdetails/');
 }
 
 export async function getBonafiedStudentStatusChange(data: {

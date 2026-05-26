@@ -1,14 +1,13 @@
-
 'use server';
 
 import { api } from '@/lib/apiService';
-import {
-    IStudentAttendanceReportInitialData,
+import type {
     IClass,
-    ISection,
-    IStudentItem,
+    IReportFilterRequest,
     IReportResponse,
-    IReportFilterRequest
+    ISection,
+    IStudentAttendanceReportInitialData,
+    IStudentItem
 } from '@/types/staff-portal/student-attendance-report';
 
 const BASE_URL = 'StudentAttendanceReport';
@@ -25,7 +24,7 @@ export async function getInitialReportData() {
     }
 }
 
-export async function getReportClasses(asmaY_Id: number, amC_Id: number = 0) {
+export async function getReportClasses(asmaY_Id: number, amC_Id = 0) {
     try {
         const url = `/${BASE_URL}/getclass`;
         const response = await api.post<{ fillclass: IClass[] }>('portal', url, {
@@ -42,7 +41,7 @@ export async function getReportClasses(asmaY_Id: number, amC_Id: number = 0) {
 
 export async function getReportSections(asmaY_Id: number, classList: { ASMCL_Id: number }[]) {
     try {
-        const url = `/Classwisestudentconteoller/getsection`;
+        const url = '/Classwisestudentconteoller/getsection';
         const response = await api.post<{ fillsection: ISection[] }>('portal', url, {
             ASMAY_Id: asmaY_Id,
             classlsttwo: classList
@@ -79,7 +78,7 @@ export async function getReportDetails(data: IReportFilterRequest) {
     }
 }
 
-export async function sendAbsentNotice(students: any[], template: string = 'AbsentNotice') {
+export async function sendAbsentNotice(students: any[], template = 'AbsentNotice') {
     try {
         const url = `/${BASE_URL}/OnChangeClassAbsent`;
         const response = await api.post<{ message: string }>('portal', url, {

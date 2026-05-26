@@ -127,7 +127,8 @@ function InputBox({
     const handleBlur = () => {
         if (inputValue === '') {
             return;
-        } else if (pad && inputValue !== '0') {
+        }
+        if (pad && inputValue !== '0') {
             setInputValue(inputValue.padStart(2, '0'));
         }
     };

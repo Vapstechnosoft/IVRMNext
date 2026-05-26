@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { StudentAllotmentSchema } from '@/schemas/hostel/transactions/student-allotment.schema';
+import type { StudentAllotmentSchema } from '@/schemas/hostel/transactions/student-allotment.schema';
 import { revalidatePath } from 'next/cache';
 
 const URL_BASE = 'HostelAllotForStudent/';
@@ -33,7 +33,7 @@ export interface StudentAllotmentLoadData {
 
 export const getStudentAllotmentLoadData = async (ASMAY_Id?: number): Promise<ApiResponse<StudentAllotmentLoadData>> => {
     try {
-        let url = URL_BASE + 'loaddata/' + (ASMAY_Id || 0); // Assuming 0 or empty for default
+        const url = `${URL_BASE}loaddata/${ASMAY_Id || 0}`; // Assuming 0 or empty for default
         const response = await api.get<StudentAllotmentLoadData>('default', url);
         return response;
     } catch (error) {
@@ -61,7 +61,7 @@ export interface StudentInfo {
 
 export const getStudentInfo = async (HLMH_Id: number): Promise<ApiResponse<StudentInfo>> => {
     try {
-        const response = await api.get<StudentInfo>('default', URL_BASE + `get_studInfo/${HLMH_Id}`);
+        const response = await api.get<StudentInfo>('default', `${URL_BASE}get_studInfo/${HLMH_Id}`);
         return response;
     } catch (error) {
         console.error('Error fetching student info:', error);
@@ -75,7 +75,7 @@ export const getStudentInfo = async (HLMH_Id: number): Promise<ApiResponse<Stude
 
 export const getRoomDetails = async (HRMRM_Id: number): Promise<ApiResponse<any>> => {
     try {
-        const response = await api.get<any>('default', URL_BASE + `get_roomdetails/${HRMRM_Id}`);
+        const response = await api.get<any>('default', `${URL_BASE}get_roomdetails/${HRMRM_Id}`);
         return response;
     } catch (error) {
         console.error('Error fetching room details:', error);
@@ -90,11 +90,11 @@ export const getRoomDetails = async (HRMRM_Id: number): Promise<ApiResponse<any>
 export const saveStudentAllotment = async (data: StudentAllotmentSchema): Promise<ApiResponse<any>> => {
     try {
         const payload = {
-            ...data,
+            ...data
             // formatted dates if needed
         };
 
-        const response = await api.post<any>('default', URL_BASE + 'savedata', payload);
+        const response = await api.post<any>('default', `${URL_BASE}savedata`, payload);
         if (response.data?.returnval) {
             revalidatePath('/hostel/hostel-management/transactions/student-allotment');
         }

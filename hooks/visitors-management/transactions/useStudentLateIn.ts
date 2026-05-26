@@ -1,13 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { 
-    getStudentLateInData, 
-    saveStudentLateIn,
+import {
+    deactivateStudentLateIn,
     getClasses,
     getSections,
+    getStudentLateInData,
     getStudents,
-    deactivateStudentLateIn
+    saveStudentLateIn
 } from '@/server/visitors-management/transactions/student-late-in';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export const STUDENT_LATE_IN_KEY = ['student-late-in'] as const;
 
@@ -22,7 +22,7 @@ export function useStudentLateIn() {
                 throw new Error(response.message || 'Failed to fetch student late in data');
             }
             return response.data;
-        },
+        }
     });
 
     const mutation = useMutation({
@@ -39,7 +39,7 @@ export function useStudentLateIn() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to save record');
-        },
+        }
     });
 
     const statusMutation = useMutation({
@@ -56,7 +56,7 @@ export function useStudentLateIn() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to change status');
-        },
+        }
     });
 
     return {

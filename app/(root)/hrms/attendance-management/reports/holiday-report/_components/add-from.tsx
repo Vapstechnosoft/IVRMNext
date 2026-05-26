@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { holidayReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getHolidayReport } from '@/server/hrms/hrmsConfig/reports/holiday-report';
 import { useEmployeeShiftMappingHolidayTypes } from '@/hooks/hrms/attendance-management/useMasters';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { holidayReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { getHolidayReport } from '@/server/hrms/hrmsConfig/reports/holiday-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,20 +25,24 @@ interface AddHolidayReportFormProps {
 }
 
 export default function AddHolidayReportForm({ onSuccess, className = '', onReportData, onReset }: AddHolidayReportFormProps) {
-
-    const { data: leaveYearData,isLoading: isLeaveYearLoading } = useLeaveYearDropdown();
-    const { data: holidayTypeData, error: holidayTypeError, status: holidayTypeStatus, isLoading: isHolidayTypeLoading } = useEmployeeShiftMappingHolidayTypes();
+    const { data: leaveYearData, isLoading: isLeaveYearLoading } = useLeaveYearDropdown();
+    const {
+        data: holidayTypeData,
+        error: holidayTypeError,
+        status: holidayTypeStatus,
+        isLoading: isHolidayTypeLoading
+    } = useEmployeeShiftMappingHolidayTypes();
 
     useEffect(() => {
         if (holidayTypeStatus === 'error') {
-            console.error("❌ [HOLIDAY TYPE ERROR]:", holidayTypeError);
+            console.error('❌ [HOLIDAY TYPE ERROR]:', holidayTypeError);
         }
     }, [holidayTypeError, holidayTypeStatus]);
 
     const leaveYearOptions = useMemo(() => {
         const rawData = leaveYearData as any;
         if (!rawData) return [];
-        const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.data) ? rawData.data : []);
+        const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData.data) ? rawData.data : [];
 
         return list.map((year: any) => ({
             label: year.hrmlY_LeaveYear || '',
@@ -55,16 +59,18 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
             list = rawData;
         } else if (rawData.data && Array.isArray(rawData.data)) {
             list = rawData.data;
-        } else if (rawData.data && rawData.data.$values && Array.isArray(rawData.data.$values)) {
+        } else if (rawData.data?.$values && Array.isArray(rawData.data.$values)) {
             list = rawData.data.$values;
         } else if (rawData.$values && Array.isArray(rawData.$values)) {
             list = rawData.$values;
         }
 
-        return list.map((type: any) => ({
-            label: type.value || type.Value || '',
-            value: String(type.key || type.Key || '')
-        })).filter((opt: any) => opt.value && opt.value !== 'undefined');
+        return list
+            .map((type: any) => ({
+                label: type.value || type.Value || '',
+                value: String(type.key || type.Key || '')
+            }))
+            .filter((opt: any) => opt.value && opt.value !== 'undefined');
     }, [holidayTypeData]);
 
     const {
@@ -133,7 +139,9 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
                                     control={control}
                                     render={({ field }) => (
                                         <Select value={field.value || undefined} onValueChange={field.onChange}>
-                                            <SelectTrigger className={errors.hrmlY_Id ? 'border-red-500' : ''} disabled={isLeaveYearLoading || leaveYearOptions.length === 0}>
+                                            <SelectTrigger
+                                                className={errors.hrmlY_Id ? 'border-red-500' : ''}
+                                                disabled={isLeaveYearLoading || leaveYearOptions.length === 0}>
                                                 <SelectValue placeholder={isLeaveYearLoading ? 'Loading...' : 'Select Calendar Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -159,7 +167,10 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
                                     name='fohwdT_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select value={field.value || undefined} onValueChange={field.onChange} disabled={isHolidayTypeLoading || holidayTypeOptions.length === 0}>
+                                        <Select
+                                            value={field.value || undefined}
+                                            onValueChange={field.onChange}
+                                            disabled={isHolidayTypeLoading || holidayTypeOptions.length === 0}>
                                             <SelectTrigger className={errors.fohwdT_Id ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder={isHolidayTypeLoading ? 'Loading...' : 'Select Holiday Type'} />
                                             </SelectTrigger>

@@ -68,8 +68,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                 fmfS_ActiveFlag: fmfS_ActiveFlag
             };
 
-            console.log('Payload to be sent:', JSON.stringify(payload));
-
             const response = await addOrUpdateFineSlab(payload);
 
             if (response.success) {

@@ -30,7 +30,7 @@ export default function FeesReceiptImport(props: { searchParams: SearchParams })
     const [tableHeaders, setTableHeaders] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filename, setFilename] = useState<string>('');
-    const [isSaving, setIsSaving] = useState(false);
+    const [isSaving, _setIsSaving] = useState(false);
 
     const { data: response, isLoading, error } = useFeeRefundableList(Number(selectedAsmayId), searchParams);
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
@@ -178,7 +178,7 @@ export default function FeesReceiptImport(props: { searchParams: SearchParams })
 
         try {
             // Prepare data for API call (similar to Angular logic)
-            const data1 = {
+            const _data1 = {
                 newlstget1: filteredData
             };
 

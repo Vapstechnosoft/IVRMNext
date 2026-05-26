@@ -1,13 +1,12 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { extractListData, normalizeEmployeeList } from '@/app/(root)/hrms/employee/_components/employee-register-helper';
+import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
-import { extractListData, normalizeEmployeeList } from '@/app/(root)/hrms/employee/_components/employee-register-helper';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
-
     ICasteCategoryDropdown,
     ICasteDropdown,
     IContactTypeDropdown,
@@ -16,7 +15,6 @@ import type {
     IDepartmentDropdown,
     IDesignationDropdown,
     IEmployeeDetailResponse,
-    IEmployeeList,
     IEmployeeSaveRequest,
     IEmployeeSaveResponse,
     IEmployeeTypeDropdown,
@@ -34,7 +32,6 @@ import type {
     IStateDropdown,
     ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
-import type { EmployeeRegisterOnloadResponse } from '@/types/hrms/employee-register';
 
 // ==================== Dropdown Endpoints ====================
 
@@ -59,10 +56,8 @@ export async function getGradeDropdown(): Promise<ApiResponse<IGradeDropdown[]>>
  */
 export async function getEmployeeTypeDropdown(): Promise<ApiResponse<IEmployeeTypeDropdown[]>> {
     const url = '/api/MasterDropDown/GetEmployeeType';
-    console.log('🔍 [API DEBUG] Fetching Employee Type Dropdown from:', url);
     try {
         const response = await api.get<IEmployeeTypeDropdown[]>('hrms', url);
-        console.log('✅ [API DEBUG] Employee Type Dropdown Response:', JSON.stringify(response, null, 2));
         return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Employee Type Dropdown:', error);
@@ -91,10 +86,8 @@ export async function getGroupTypeDropdown(): Promise<ApiResponse<IGroupTypeDrop
  */
 export async function getDepartmentDropdown(): Promise<ApiResponse<IDepartmentDropdown[]>> {
     const url = '/api/MasterDropDown/GetDepartments';
-    console.log('🔍 [API DEBUG] Fetching Departments from:', url);
     try {
         const response = await api.get<IDepartmentDropdown[]>('hrms', url);
-        console.log('✅ [API DEBUG] Departments Response:', response);
         return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Department Dropdown:', error);
@@ -153,10 +146,8 @@ export async function getMaritalStatusDropdown(): Promise<ApiResponse<IMaritalSt
  */
 export async function getReligionDropdown(): Promise<ApiResponse<IReligionDropdown[]>> {
     const url = '/api/MasterDropDown/get_religion_drop_down';
-    console.log('🔍 [API DEBUG] Fetching Religions from:', url);
     try {
         const response = await api.get<IReligionDropdown[]>('hrms', url);
-        console.log('✅ [API DEBUG] Religions Response:', response);
         return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Religion Dropdown:', error);
@@ -262,10 +253,8 @@ export async function getCourseDropdown(): Promise<ApiResponse<ICourseDropdown[]
  */
 export async function getSpecializationDropdown(): Promise<ApiResponse<ISpecializationDropdown[]>> {
     const url = '/api/MasterSpecialisation';
-    console.log('🔍 [API DEBUG] Fetching Specializations from:', url);
     try {
         const response = await api.get<ISpecializationDropdown[]>('hrms', url);
-        console.log('✅ [API DEBUG] Specializations Response:', response);
         return response;
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Specializations:', error);
@@ -450,7 +439,6 @@ export async function getEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number)
     if (HRME_Id && HRME_Id > 0) {
         url += `&HRME_Id=${HRME_Id}`;
     }
-    console.log('🔍 [API DEBUG] Fetching Employee Onload from:', url);
     try {
         const response = await api.get<any>('hrms', url);
         return response || { success: false, data: {} };
@@ -475,8 +463,7 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
     const MI_Id = session?.user?.mi_id || 30;
 
     // Define columns to search against if not already specified
-    const searchColumns =
-        searchParams?.search_columns || 'HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmployeeCode';
+    const searchColumns = searchParams?.search_columns || 'HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmployeeCode';
 
     // Build query parameters carefully
     let queryUrl = `MI_Id=${MI_Id}`;
@@ -496,11 +483,7 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
 
     try {
         const response = await api.get<any>('hrms', url);
-
-        // Log basic structure for debugging
-        console.log('✅ [API DEBUG] getEmployeeList response type:', typeof response);
         if (response && typeof response === 'object') {
-            console.log('✅ [API DEBUG] getEmployeeList response keys:', Object.keys(response));
         }
 
         // Use robust extraction logic from helper
@@ -509,14 +492,8 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
         // Normalize the list to ensure keys match frontend expectations (columns.tsx)
         const normalizedGridData = normalizeEmployeeList(gridData);
 
-        console.log(`✅ [API DEBUG] getEmployeeList final normalized array length: ${normalizedGridData.length}`);
-
         // Determine total count
-        const total = response?.total ||
-            (response?.data && response.data.total) ||
-            response?.totalItems ||
-            normalizedGridData.length;
-
+        const total = response?.total || response?.data?.total || response?.totalItems || normalizedGridData.length;
 
         return {
             success: response?.success !== false,
@@ -526,7 +503,6 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
             page: response?.page || 1,
             page_size: response?.page_size || 10
         };
-
     } catch (error: any) {
         console.error('❌ [API ERROR] getEmployeeList:', error.message);
         return {
@@ -560,10 +536,8 @@ export async function getEmployeeById(id: number) {
  */
 export async function saveEmployee(data: IEmployeeSaveRequest) {
     const url = '/api/EmployeeRegistration/employee_registration_save_employee_details';
-    console.log('📦 [API DEBUG] saveEmployee Payload:', JSON.stringify(data, null, 2));
     try {
         const response = await api.post<IEmployeeSaveResponse>('hrms', url, data);
-        console.log('✅ [API DEBUG] saveEmployee Response:', JSON.stringify(response, null, 2));
         return response;
     } catch (error: any) {
         console.error('❌ [API ERROR] saveEmployee Failed:', error);
@@ -687,7 +661,6 @@ export async function saveEmployeeOtherDetails(data: any) {
  */
 export async function uploadStaffPhoto(formData: FormData) {
     const url = '/api/EmployeeRegistration/upload_staff_photo';
-    console.log('🟠 [SERVER] POST Request URL:', url);
     try {
         const response = await api.postMultipart<any>('hrms', url, formData);
         const res = response as any;
@@ -746,8 +719,6 @@ export async function saveEmployeeArrears(data: any) {
     }
 }
 
-
-
 /**
  * Save Employee Bank Details
  * POST /api/EmployeeRegistration/employee_registration_save_bank_details
@@ -795,9 +766,7 @@ export async function updateEmployeeSalaryDetailsByHead(data: any) {
 export async function saveEmployeeSalaryDetails(hrme_id: number, MI_Id: number) {
     const url = `/api/EmployeeRegistration/save_employee_salary_details/${hrme_id}?MI_Id=${MI_Id}`;
     try {
-        console.log('📡 [API DEBUG] Calling saveEmployeeSalaryDetails (GET):', url);
         const response = await api.get<any>('hrms', url);
-        console.log('✅ [API DEBUG] saveEmployeeSalaryDetails Response:', response);
         return response;
     } catch (error: any) {
         console.error('❌ [API ERROR] saveEmployeeSalaryDetails:', error);
@@ -812,9 +781,7 @@ export async function saveEmployeeSalaryDetails(hrme_id: number, MI_Id: number) 
 export async function getEmployeeEarningsDeductions(hrme_id: number): Promise<ApiResponse<any[]>> {
     const url = `/api/EmployeeRegistration/get_employee_earnings_deduction_details/${hrme_id}`;
     try {
-        console.log('📡 [API DEBUG] Calling getEmployeeEarningsDeductions (GET):', url);
         const response = await api.get<any>('hrms', url);
-        console.log('✅ [API DEBUG] getEmployeeEarningsDeductions Response:', response);
         // The API returns { success, data: [...] }
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             return response as ApiResponse<any[]>;

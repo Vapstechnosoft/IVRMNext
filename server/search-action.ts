@@ -1,8 +1,8 @@
 'use server';
 
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
+import util from 'node:util';
 import path from 'path';
-import util from 'util';
 
 const execPromise = util.promisify(exec);
 
@@ -29,7 +29,6 @@ export async function searchDatabase(query: string) {
             console.error('JSON Parse Error:', e);
             return { success: false, error: 'Invalid response from search engine' };
         }
-
     } catch (error: any) {
         console.error('Search Execution Error:', error);
         return { success: false, error: error.message };

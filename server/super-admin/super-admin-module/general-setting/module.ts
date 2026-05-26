@@ -1,11 +1,11 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { masterModuleSchema } from '@/schemas/super-admin/super-admin-module/general-setting/module';
 import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import { revalidatePath } from 'next/cache';
 
-const API_URL = '/v1/general-setting/master-module'; // Stub URL
+const _API_URL = '/v1/general-setting/master-module'; // Stub URL
 
 export async function saveMasterModule(data: any) {
     const validation = masterModuleSchema.safeParse(data);
@@ -14,7 +14,7 @@ export async function saveMasterModule(data: any) {
         return {
             success: false,
             message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            errors: validation.error.flatten().fieldErrors
         };
     }
 
@@ -24,7 +24,7 @@ export async function saveMasterModule(data: any) {
         ivrmM_Id: data.ivrmM_Id ?? 0,
         userid: data.userid ?? 0,
         createdDate: data.createdDate ?? new Date().toISOString(),
-        updatedDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString()
     };
 
     const response = await api.post<any>('sadmin', 'MastersModuleFacade', payload);
@@ -34,13 +34,13 @@ export async function saveMasterModule(data: any) {
         return {
             success: true,
             message: response.message || 'Master Module saved successfully!',
-            data: response.data,
+            data: response.data
         };
     }
 
     return {
         success: false,
-        message: response.message || 'Failed to save module',
+        message: response.message || 'Failed to save module'
     };
 }
 
@@ -98,12 +98,12 @@ export async function activateDeactivateMasterModule(id: number) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/module');
         return {
             success: true,
-            message: response.message || 'Module status updated successfully',
+            message: response.message || 'Module status updated successfully'
         };
     }
 
     return {
         success: false,
-        message: response.message || 'Failed to update module status',
+        message: response.message || 'Failed to update module status'
     };
 }

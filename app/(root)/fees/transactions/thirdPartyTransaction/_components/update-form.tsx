@@ -41,9 +41,9 @@ interface UpdateThirdPartyFormProps {
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
     const { refetchAll } = useFeeThirdParty();
 
-    const receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
+    const _receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
 
-    const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
+    const [_selectedPaymentMode, _setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
     const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
     const {
@@ -111,8 +111,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         refetchEditData()
             .then(() => {
                 const editeddata = editDataResponse?.data?.[0];
-
-                console.log('Edited Data:', editeddata);
                 if (editeddata) {
                     const matchedBank = bankdata?.data?.find((b) => b.fmbanK_BankName === editeddata.fyP_Bank_Name);
                     reset({
@@ -172,8 +170,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 fyP_Id: row.fyP_Id
             };
 
-            const payloaddata = JSON.stringify(payload);
-            console.log('Payload to be sent:', payloaddata);
+            const _payloaddata = JSON.stringify(payload);
 
             const response = await saveorUpdateThirdPartyTrasaction(payload);
 

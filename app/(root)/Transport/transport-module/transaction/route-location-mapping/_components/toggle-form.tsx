@@ -21,9 +21,7 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
     const handleToggle = async () => {
         setIsLoading(true);
         try {
-
             const response = await activeDeactiveRouteLocationMapping(rowData.trmrL_Id);
-            console.log("active deactive response", response);
 
             if (response.success) {
                 toast.success(response.message);
@@ -44,7 +42,8 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this mapping for <strong>{rowData.routename || rowData.trmR_RouteName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this mapping for{' '}
+                        <strong>{rowData.routename || rowData.trmR_RouteName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

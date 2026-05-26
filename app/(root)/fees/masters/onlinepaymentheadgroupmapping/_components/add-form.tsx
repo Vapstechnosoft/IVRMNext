@@ -53,8 +53,6 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         academicYear ?? undefined
     );
 
-    console.log('masterSubMerchant', masterSubMerchant);
-
     const { data: masterGroupName, isLoading: masterGroupNameLoading } = useMasterOnlinePaymentHeadGroupGroupName(
         academicYear ?? undefined
     );
@@ -293,8 +291,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
 
             // submitted payload
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addMasterOnlinePaymentHeadGroup(payload);
 

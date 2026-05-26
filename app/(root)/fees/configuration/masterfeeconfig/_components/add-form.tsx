@@ -108,9 +108,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                 // userid: 22
             };
 
-            const jsondata = JSON.stringify(payload);
-
-            console.log('Payload to be sent:', jsondata);
+            const _jsondata = JSON.stringify(payload);
 
             const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {

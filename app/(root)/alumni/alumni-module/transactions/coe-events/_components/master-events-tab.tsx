@@ -54,7 +54,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
             } else {
                 toast.error(res.message || 'Failed to save event');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving');
         }
     };
@@ -80,7 +80,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
             } else {
                 toast.error('Failed to fetch event details');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while fetching details');
         }
     };
@@ -93,7 +93,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                 // refreshData();
                 window.location.reload();
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         }
     };
@@ -105,7 +105,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
             const res = await getViewRecordsMaster(row.COEME_Id);
             const details = (res as any).event_mapping_list || (res as any).view_records || (res as any).details || [];
             setViewDetails(details);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to fetch details');
         } finally {
             setIsLoadingDetails(false);
@@ -233,7 +233,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                                                 size='sm'
                                                 onClick={() => {
                                                     const current = form.getValues('COEME_SMSMessage') || '';
-                                                    form.setValue('COEME_SMSMessage', current + ` ${p.ismP_NAME || p.name} `);
+                                                    form.setValue('COEME_SMSMessage', `${current} ${p.ismP_NAME || p.name} `);
                                                 }}>
                                                 {p.ismP_NAME || p.name}
                                             </Button>
@@ -299,7 +299,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                                                 size='sm'
                                                 onClick={() => {
                                                     const current = form.getValues('COEME_Mail_Message') || '';
-                                                    form.setValue('COEME_Mail_Message', current + ` ${p.ismP_NAME || p.name} `);
+                                                    form.setValue('COEME_Mail_Message', `${current} ${p.ismP_NAME || p.name} `);
                                                 }}>
                                                 {p.ismP_NAME || p.name}
                                             </Button>

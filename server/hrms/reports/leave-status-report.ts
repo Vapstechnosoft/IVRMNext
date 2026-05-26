@@ -9,7 +9,6 @@ export interface LeaveStatusReportRequest {
 }
 
 export async function getLeaveStatusReport(data: LeaveStatusReportRequest) {
-    console.log('data', data);
     const url = `/api/LeaveStatusReport/get_leave_status_report/${data.hrmlY_Id}/${data.hrml_Ids}/${data.hrme_Ids}`;
     try {
         const response = await api.get<any>('hmslms', url);

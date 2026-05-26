@@ -31,15 +31,6 @@ export default function LeaveReportPage() {
     const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
     const { data: leavesData, isLoading: isLoadingLeaves } = useMasterLeaveDropdown();
 
-    // Fetch employees based on selected departments and designations
-    // NOTE: Using PeriodLeaveReportEmployees API which is specifically designed for leave reports
-    // This API returns full employee details including employee code and name
-    console.log('📊 [DEBUG] Filter state:', {
-        departments: filters.selectedDepartments,
-        designations: filters.selectedDesignations,
-        willFetchEmployees: filters.selectedDepartments.length > 0 && filters.selectedDesignations.length > 0
-    });
-
     const { data: employeesData, isLoading: isLoadingEmployees } = usePeriodLeaveReportEmployees(
         filters.selectedDepartments,
         filters.selectedDesignations
@@ -65,7 +56,6 @@ export default function LeaveReportPage() {
     }, [leavesData]);
 
     const departmentsDataTransformed = useMemo(() => {
-        console.log('🔍 [DEBUG] Raw departmentsData:', departmentsData);
         return (
             departmentsData?.data?.map((d: any) => ({
                 id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
@@ -75,7 +65,6 @@ export default function LeaveReportPage() {
     }, [departmentsData]);
 
     const designationsDataTransformed = useMemo(() => {
-        console.log('🔍 [DEBUG] Raw designationsData:', designationsData);
         return (
             designationsData?.data?.map((d: any) => ({
                 id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
@@ -88,10 +77,7 @@ export default function LeaveReportPage() {
     // API returns full employee objects with HRME_Id, HRME_EmployeeCode, etc.
     // Enhanced to support multiple formats (Level 1: specialized, Level 2: MasterDropDown)
     const employeesDataTransformed = useMemo(() => {
-        console.log('🔍 [DEBUG] Raw employeesData:', employeesData);
-
         if (!employeesData || !Array.isArray(employeesData)) {
-            console.log('⚠️ [DEBUG] No employees data or not an array');
             return [];
         }
 
@@ -120,13 +106,10 @@ export default function LeaveReportPage() {
                 };
             })
             .filter((emp): emp is { id: number; employeeCode: string; employeeName: string } => emp !== null);
-
-        console.log('✅ [DEBUG] Transformed employees:', transformed);
         return transformed;
     }, [employeesData]);
 
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
-        console.log(`🔄 [DEBUG] Filter changed: ${key} =`, value);
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
 

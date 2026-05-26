@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IPDAReportParams, IPDAReportResponse } from '@/types/pettycash/report/PDAReport';
 import { auth } from '@/lib/auth';
+import type { IPDAReportParams, IPDAReportResponse } from '@/types/pettycash/report/PDAReport';
 
 //incomereport
 
@@ -15,11 +15,8 @@ export async function getPDAReportInitialData() {
 
 export async function getPDAReport(data: IPDAReportParams) {
     const url = `/Expenses/get_daily_income_expense_report/${data.From_Date}`;
-    console.log("url", url)
-    console.log("data", data)
     return await api.get<IPDAReportResponse>('pettycashandassettracking', url);
 }
-
 
 export async function getAcademicYearList() {
     const url = '/PDACommonFacade/GetAcademicYearData';
@@ -27,10 +24,7 @@ export async function getAcademicYearList() {
     return await api.get<any[]>('pettycashandassettracking', url);
 }
 
-
-
 export async function getinstitutionDetails() {
     const url = '/FeesCommon/institution-details';
     return await api.get<any[]>('fees', url);
 }
-

@@ -32,8 +32,6 @@ export function useCumulativeFeeAnalysis() {
         queryFn: async () => {
             try {
                 const response = await getAcademicYears();
-
-                console.log('Academic Years Response:', response);
                 if (response?.data && response.data.length > 0) {
                     if (!form.getValues('asmaY_Id')) {
                         const defaultYear = response.data[0];

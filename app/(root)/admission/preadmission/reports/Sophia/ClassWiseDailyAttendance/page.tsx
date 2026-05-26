@@ -1,39 +1,32 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { FileText, Printer, RotateCcw, X, FileSpreadsheet, Send, Search } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { FileSpreadsheet, FileText, Printer, RotateCcw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DatePicker } from '@/components/ui/date-picker';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { ClassWiseDailyAttendanceSchema } from '@/schemas/admission/preadmission/reports';
 import {
-    useClassWiseDailyAttendanceInitialDetails,
     useClassWiseDailyAttendanceClasses,
-    useClassWiseDailyAttendanceSections,
+    useClassWiseDailyAttendanceInitialDetails,
     useClassWiseDailyAttendanceReport,
+    useClassWiseDailyAttendanceSections,
     useSendClassWiseDailyAttendanceSMS
 } from '@/hooks/admission/preadmission/useClassWiseDailyAttendance';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { ClassWiseDailyAttendanceSchema } from '@/schemas/admission/preadmission/reports';
 import { ClassWiseDailyAttendancePrint } from './_components/classwise-daily-attendance-print';
 
 export default function ClassWiseDailyAttendancePage() {
@@ -41,10 +34,12 @@ export default function ClassWiseDailyAttendancePage() {
 
     const { data: initialData, isLoading: isInitialLoading } = useClassWiseDailyAttendanceInitialDetails();
     const { data: ayData, isLoading: isAYLoading } = useAcademicYearDropdown();
-    const [reportPayload, setReportPayload] = useState<{ asmaY_Id: number; fromDate: Date; asmcL_Id: number; asmS_Id: number } | null>(null);
+    const [reportPayload, setReportPayload] = useState<{ asmaY_Id: number; fromDate: Date; asmcL_Id: number; asmS_Id: number } | null>(
+        null
+    );
     const [showReport, setShowReport] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
-    const [printTimestamp, setPrintTimestamp] = useState('');
+    const [_printTimestamp, setPrintTimestamp] = useState('');
     const printRef = useRef<HTMLDivElement>(null);
 
     const {
@@ -66,13 +61,17 @@ export default function ClassWiseDailyAttendancePage() {
 
     const watchedYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
-    const watchedSection = watch('asmS_Id');
+    const _watchedSection = watch('asmS_Id');
     const watchedDate = watch('fromDate');
 
     const { data: classData, isFetching: isClassesLoading } = useClassWiseDailyAttendanceClasses(watchedYear);
     const { data: sectionData, isFetching: isSectionsLoading } = useClassWiseDailyAttendanceSections(watchedYear, watchedClass);
 
-    const { data: reportResponse, isFetching: isReportLoading, refetch: refetchReport } = useClassWiseDailyAttendanceReport(
+    const {
+        data: reportResponse,
+        isFetching: isReportLoading,
+        refetch: refetchReport
+    } = useClassWiseDailyAttendanceReport(
         reportPayload?.asmaY_Id ?? 0,
         reportPayload?.fromDate,
         reportPayload?.asmcL_Id ?? 0,
@@ -84,16 +83,29 @@ export default function ClassWiseDailyAttendancePage() {
 
     /* ---------------- Memoized Data ---------------- */
 
-    const years = initialData?.data?.data?.yearList || initialData?.data?.yearList ||
-        initialData?.data?.data?.academicList || initialData?.data?.academicList ||
-        initialData?.data?.data?.academicYearList || initialData?.data?.academicYearList ||
-        ayData?.data || [];
+    const years =
+        initialData?.data?.data?.yearList ||
+        initialData?.data?.yearList ||
+        initialData?.data?.data?.academicList ||
+        initialData?.data?.academicList ||
+        initialData?.data?.data?.academicYearList ||
+        initialData?.data?.academicYearList ||
+        ayData?.data ||
+        [];
 
-    const classes = classData?.data?.data?.classList || classData?.data?.classList ||
-        initialData?.data?.data?.classList || initialData?.data?.classList || [];
+    const classes =
+        classData?.data?.data?.classList ||
+        classData?.data?.classList ||
+        initialData?.data?.data?.classList ||
+        initialData?.data?.classList ||
+        [];
 
-    const sections = sectionData?.data?.data?.sectionList || sectionData?.data?.sectionList ||
-        initialData?.data?.data?.sectionList || initialData?.data?.sectionList || [];
+    const sections =
+        sectionData?.data?.data?.sectionList ||
+        sectionData?.data?.sectionList ||
+        initialData?.data?.data?.sectionList ||
+        initialData?.data?.sectionList ||
+        [];
 
     const reportData = useMemo(() => {
         const rawData = reportResponse?.data?.data || reportResponse?.data;
@@ -148,7 +160,7 @@ export default function ClassWiseDailyAttendancePage() {
         window.location.reload();
     };
 
-    const handleSendSMS = async () => {
+    const _handleSendSMS = async () => {
         if (!selectedStudents.length) {
             toast.warning('Please select at least one student to send SMS.');
             return;
@@ -183,19 +195,24 @@ export default function ClassWiseDailyAttendancePage() {
         }
     };
 
-
     const exportToExcel = () => {
         if (!reportData.length) return;
-        const ws = XLSX.utils.json_to_sheet(reportData.map((row: any, idx: number) => ({
-            'SL. No.': idx + 1,
-            'Student Name': row.studentname || row.AMST_FirstName,
-            'Roll No.': row.amay_rollno || row.AMAY_RollNo,
-            'Admission No.': row.amst_admno || row.AMST_AdmNo,
-            'Class': row.asmcl_classname,
-            'Section': row.asmc_sectionname,
-            'Status': (row.asa_class_attended === 1 || row.ASA_Class_Attended === 1) ? 'Present' :
-                (row.asa_class_attended === 0.5 || row.ASA_Class_Attended === 0.5) ? 'Half Day' : 'Absent'
-        })));
+        const ws = XLSX.utils.json_to_sheet(
+            reportData.map((row: any, idx: number) => ({
+                'SL. No.': idx + 1,
+                'Student Name': row.studentname || row.AMST_FirstName,
+                'Roll No.': row.amay_rollno || row.AMAY_RollNo,
+                'Admission No.': row.amst_admno || row.AMST_AdmNo,
+                Class: row.asmcl_classname,
+                Section: row.asmc_sectionname,
+                Status:
+                    row.asa_class_attended === 1 || row.ASA_Class_Attended === 1
+                        ? 'Present'
+                        : row.asa_class_attended === 0.5 || row.ASA_Class_Attended === 0.5
+                          ? 'Half Day'
+                          : 'Absent'
+            }))
+        );
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Attendance_Report');
         XLSX.writeFile(wb, `ClassWiseDailyAttendance_${format(watchedDate, 'dd-MM-yyyy')}.xlsx`);
@@ -217,7 +234,7 @@ export default function ClassWiseDailyAttendancePage() {
 
     /* ---------------- Table Config ---------------- */
 
-    const classColumns: any[] = [
+    const _classColumns: any[] = [
         { header: 'SL. No.', cell: (info: any) => info.row.index + 1, size: 70 },
         { header: 'Class Name', accessorKey: 'asmcL_ClassName' },
         { header: 'Class Code', accessorKey: 'asmcL_ClassCode' },
@@ -225,7 +242,7 @@ export default function ClassWiseDailyAttendancePage() {
         { header: 'Order', accessorKey: 'asmcL_Order' }
     ];
 
-    const sectionColumns: any[] = [
+    const _sectionColumns: any[] = [
         { header: 'SL. No.', cell: (info: any) => info.row.index + 1, size: 70 },
         { header: 'Section Name', accessorKey: 'asmC_SectionName' },
         { header: 'Section Code', accessorKey: 'asmC_SectionCode' },
@@ -238,11 +255,13 @@ export default function ClassWiseDailyAttendancePage() {
     return (
         <div className='container min-h-screen space-y-4 p-2'>
             <CollapsibleSection title='ClassWise Daily Attendance' defaultOpen>
-                <form onSubmit={handleSubmit(onSubmit)} className='p-4 space-y-6'>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         {/* Academic Year */}
                         <div className='space-y-1.5'>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='asmaY_Id'
                                 control={control}
@@ -253,8 +272,7 @@ export default function ClassWiseDailyAttendancePage() {
                                             setValue('asmcL_Id', 0);
                                             setValue('asmS_Id', 0);
                                         }}
-                                        value={field.value ? field.value.toString() : ''}
-                                    >
+                                        value={field.value ? field.value.toString() : ''}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
@@ -268,12 +286,14 @@ export default function ClassWiseDailyAttendancePage() {
                                     </Select>
                                 )}
                             />
-                            {errors.asmaY_Id && <p className='text-xs text-red-500 font-medium'>{errors.asmaY_Id.message}</p>}
+                            {errors.asmaY_Id && <p className='font-medium text-red-500 text-xs'>{errors.asmaY_Id.message}</p>}
                         </div>
 
                         {/* Date */}
                         <div className='space-y-1.5'>
-                            <Label>Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='fromDate'
                                 control={control}
@@ -287,12 +307,14 @@ export default function ClassWiseDailyAttendancePage() {
                                     />
                                 )}
                             />
-                            {errors.fromDate && <p className='text-xs text-red-500 font-medium'>{errors.fromDate.message}</p>}
+                            {errors.fromDate && <p className='font-medium text-red-500 text-xs'>{errors.fromDate.message}</p>}
                         </div>
 
                         {/* Class */}
                         <div className='space-y-1.5'>
-                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='asmcL_Id'
                                 control={control}
@@ -303,8 +325,7 @@ export default function ClassWiseDailyAttendancePage() {
                                             setValue('asmS_Id', 0);
                                         }}
                                         value={field.value ? field.value.toString() : ''}
-                                        disabled={(!watchedYear && classes.length === 0) || isClassesLoading}
-                                    >
+                                        disabled={(!watchedYear && classes.length === 0) || isClassesLoading}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isClassesLoading ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -318,12 +339,14 @@ export default function ClassWiseDailyAttendancePage() {
                                     </Select>
                                 )}
                             />
-                            {errors.asmcL_Id && <p className='text-xs text-red-500 font-medium'>{errors.asmcL_Id.message}</p>}
+                            {errors.asmcL_Id && <p className='font-medium text-red-500 text-xs'>{errors.asmcL_Id.message}</p>}
                         </div>
 
                         {/* Section */}
                         <div className='space-y-1.5'>
-                            <Label>Section <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='asmS_Id'
                                 control={control}
@@ -331,8 +354,7 @@ export default function ClassWiseDailyAttendancePage() {
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value !== undefined ? field.value.toString() : ''}
-                                        disabled={(!watchedClass && sections.length === 0) || isSectionsLoading}
-                                    >
+                                        disabled={(!watchedClass && sections.length === 0) || isSectionsLoading}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isSectionsLoading ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
@@ -346,11 +368,11 @@ export default function ClassWiseDailyAttendancePage() {
                                     </Select>
                                 )}
                             />
-                            {errors.asmS_Id && <p className='text-xs text-red-500 font-medium'>{errors.asmS_Id.message}</p>}
+                            {errors.asmS_Id && <p className='font-medium text-red-500 text-xs'>{errors.asmS_Id.message}</p>}
                         </div>
                     </div>
 
-                    <div className='flex justify-center gap-2 pt-4 border-t'>
+                    <div className='flex justify-center gap-2 border-t pt-4'>
                         <Button type='submit' isLoading={isReportLoading}>
                             <FileText className='mr-2 h-4 w-4' />
                             Report
@@ -359,21 +381,11 @@ export default function ClassWiseDailyAttendancePage() {
                             <RotateCcw className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
-                        <Button
-                            variant='outline'
-                            type='button'
-                            disabled={!showReport || !reportData.length}
-                            onClick={exportToExcel}
-                        >
+                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={exportToExcel}>
                             <FileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
                             Export
                         </Button>
-                        <Button
-                            variant='outline'
-                            type='button'
-                            disabled={!showReport || !reportData.length}
-                            onClick={handlePrint}
-                        >
+                        <Button variant='outline' type='button' disabled={!showReport || !reportData.length} onClick={handlePrint}>
                             <Printer className='mr-2 h-4 w-4 text-blue-600' />
                             Print
                         </Button>
@@ -393,20 +405,26 @@ export default function ClassWiseDailyAttendancePage() {
 
             {showReport && (
                 <CollapsibleSection title='Report Details' defaultOpen>
-                    <div className='p-4 space-y-4'>
+                    <div className='space-y-4 p-4'>
                         {summary && (
-                            <div className='flex flex-wrap gap-4 p-4 rounded-xl border-dashed border-2 border-primary/20 bg-primary/5 uppercase text-xs font-bold'>
+                            <div className='flex flex-wrap gap-4 rounded-xl border-2 border-primary/20 border-dashed bg-primary/5 p-4 font-bold text-xs uppercase'>
                                 <div className='flex items-center gap-2'>
-                                    Total Records: <Badge variant='secondary' className='rounded-full'>{summary.total}</Badge>
+                                    Total Records:{' '}
+                                    <Badge variant='secondary' className='rounded-full'>
+                                        {summary.total}
+                                    </Badge>
                                 </div>
                                 <div className='flex items-center gap-2'>
-                                    Total Present: <Badge className='bg-blue-500 rounded-full hover:bg-blue-600'>{summary.present}</Badge>
+                                    Total Present: <Badge className='rounded-full bg-blue-500 hover:bg-blue-600'>{summary.present}</Badge>
                                 </div>
                                 <div className='flex items-center gap-2 text-red-700'>
-                                    Total Absent: <Badge variant='destructive' className='rounded-full'>{summary.absent}</Badge>
+                                    Total Absent:{' '}
+                                    <Badge variant='destructive' className='rounded-full'>
+                                        {summary.absent}
+                                    </Badge>
                                 </div>
                                 <div className='flex items-center gap-2 text-yellow-700'>
-                                    Half Day: <Badge className='bg-yellow-500 rounded-full hover:bg-yellow-600'>{summary.halfDay}</Badge>
+                                    Half Day: <Badge className='rounded-full bg-yellow-500 hover:bg-yellow-600'>{summary.halfDay}</Badge>
                                 </div>
                             </div>
                         )}
@@ -477,9 +495,23 @@ export default function ClassWiseDailyAttendancePage() {
                                     size: 130,
                                     cell: (info: any) => {
                                         const val = info.getValue() ?? info.row.original.ASA_Class_Attended;
-                                        if (val === 1) return <Badge variant='outline' className='text-blue-600 border-blue-200'>Present</Badge>;
-                                        if (val === 0.5) return <Badge variant='outline' className='text-yellow-600 border-yellow-200'>Half Day</Badge>;
-                                        return <Badge variant='outline' className='text-red-600 border-red-200'>Absent</Badge>;
+                                        if (val === 1)
+                                            return (
+                                                <Badge variant='outline' className='border-blue-200 text-blue-600'>
+                                                    Present
+                                                </Badge>
+                                            );
+                                        if (val === 0.5)
+                                            return (
+                                                <Badge variant='outline' className='border-yellow-200 text-yellow-600'>
+                                                    Half Day
+                                                </Badge>
+                                            );
+                                        return (
+                                            <Badge variant='outline' className='border-red-200 text-red-600'>
+                                                Absent
+                                            </Badge>
+                                        );
                                     }
                                 }
                             ]}
@@ -494,8 +526,6 @@ export default function ClassWiseDailyAttendancePage() {
                 </CollapsibleSection>
             )}
 
-
-
             {/* Hidden Print Content */}
             <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
                 <ClassWiseDailyAttendancePrint
@@ -503,7 +533,11 @@ export default function ClassWiseDailyAttendancePage() {
                     data={selectedStudents}
                     academicYear={years.find((y: any) => y.asmaY_Id === reportPayload?.asmaY_Id)?.asmaY_Year}
                     className={classes.find((c: any) => c.asmcL_Id === reportPayload?.asmcL_Id)?.asmcL_ClassName}
-                    sectionName={reportPayload?.asmS_Id === 0 ? 'All' : sections.find((s: any) => s.asmS_Id === reportPayload?.asmS_Id)?.asmC_SectionName}
+                    sectionName={
+                        reportPayload?.asmS_Id === 0
+                            ? 'All'
+                            : sections.find((s: any) => s.asmS_Id === reportPayload?.asmS_Id)?.asmC_SectionName
+                    }
                     date={reportPayload?.fromDate}
                     logoUrl={reportLogoUrl || logoUrl}
                     username={username}

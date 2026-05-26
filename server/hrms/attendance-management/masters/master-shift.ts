@@ -103,20 +103,19 @@ export async function addOrUpdateMasterShift(data: {
                 success: false,
                 message: 'Master shift not found'
             };
-        } else {
-            const created = store.create({
-                shiftName: data.shiftName,
-                startTime: data.startTime,
-                endTime: data.endTime,
-                remarks: data.remarks,
-                specificDay: data.specificDay
-            });
-            return {
-                success: true,
-                data: created,
-                message: 'Master shift created successfully'
-            };
         }
+        const created = store.create({
+            shiftName: data.shiftName,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            remarks: data.remarks,
+            specificDay: data.specificDay
+        });
+        return {
+            success: true,
+            data: created,
+            message: 'Master shift created successfully'
+        };
     } catch (error: any) {
         return {
             success: false,

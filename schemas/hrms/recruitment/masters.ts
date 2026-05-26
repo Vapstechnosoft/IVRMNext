@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Master Job Schema
 export const recruitmentMasterJobSchema = z.object({
@@ -11,7 +11,7 @@ export const recruitmentMasterJobSchema = z.object({
         .string({ message: 'Job Title is required' })
         .min(1, { message: 'Job Title is required' })
         .max(100, { message: 'Job Title must not exceed 100 characters' }),
-    hrmlO_Id: z.coerce.number({ message: "Job Location is required" }).min(1, 'Job Location is required'),
+    hrmlO_Id: z.coerce.number({ message: 'Job Location is required' }).min(1, 'Job Location is required'),
     hrC_Id: z.number().optional().default(0)
 });
 
@@ -50,9 +50,15 @@ export const recruitmentMasterPositionTypeSchema = z.object({
     mI_Id: z.number().optional().default(0),
     hrmpT_Id: z.number().optional(),
     hrmpT_Institution: z.string({ message: 'Institution is required' }).min(1, 'Institution is required'),
-    hrmpT_Name: z.string().min(1, 'Position Type Name is required').regex(/^[A-Za-z\s\-,'.]+$/, 'Position Type Name must contain only letters'),
-    hrmpT_Desc: z.string().min(1, 'Description is required').regex(/^[A-Za-z\s\-,'.]+$/, 'Description must contain only letters'),
-    hrmpT_ActiveFlg: z.boolean().default(true),
+    hrmpT_Name: z
+        .string()
+        .min(1, 'Position Type Name is required')
+        .regex(/^[A-Za-z\s\-,'.]+$/, 'Position Type Name must contain only letters'),
+    hrmpT_Desc: z
+        .string()
+        .min(1, 'Description is required')
+        .regex(/^[A-Za-z\s\-,'.]+$/, 'Description must contain only letters'),
+    hrmpT_ActiveFlg: z.boolean().default(true)
 });
 
 // Master Priority Schema
@@ -67,5 +73,5 @@ export const recruitmentMasterPrioritySchema = z.object({
         .string({ message: 'Order is required' })
         .min(1, 'Order is required')
         .regex(/^[0-9]+$/, 'Order must be a number'),
-   hrmP_ActiveFlag: z.boolean().default(true)
+    hrmP_ActiveFlag: z.boolean().default(true)
 });

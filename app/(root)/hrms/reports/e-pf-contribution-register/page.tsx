@@ -1,32 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider } from '@/components/ui/form/form-provider';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import {
-    useReportDepartments,
-    useReportDesignations,
-    useReportGroupTypes,
-    useSearchEmployeeContribution,
-    useEmployeeContributionOnload
-} from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { useReportDepartments, useReportDesignations, useReportGroupTypes, useSearchEmployeeContribution } from '@/hooks/hrms/useReports';
 import { exportToExcel } from '@/lib/export-to-file';
+import { format } from 'date-fns';
+import { Download, Loader2, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 interface FilterFormValues {
@@ -103,7 +105,8 @@ function EmployeeContributionContent() {
     };
 
     const handleExport = () => {
-        const dataForExport = reportData?.alldata || reportData?.employeeDetails || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        const dataForExport =
+            reportData?.alldata || reportData?.employeeDetails || reportData?.list || (Array.isArray(reportData) ? reportData : []);
         if (!dataForExport || dataForExport.length === 0) {
             toast.error('No data to export');
             return;
@@ -176,7 +179,7 @@ function EmployeeContributionContent() {
         {
             accessorKey: 'hrmE_DOB',
             header: 'DOB',
-            cell: ({ row }: any) => row.original.hrmE_DOB ? format(new Date(row.original.hrmE_DOB), 'dd-MM-yyyy') : '-'
+            cell: ({ row }: any) => (row.original.hrmE_DOB ? format(new Date(row.original.hrmE_DOB), 'dd-MM-yyyy') : '-')
         },
         {
             accessorKey: 'ivrmmG_GenderName',
@@ -185,7 +188,7 @@ function EmployeeContributionContent() {
         {
             accessorKey: 'hrmE_PFDate',
             header: 'PF Date',
-            cell: ({ row }: any) => row.original.hrmE_PFDate ? format(new Date(row.original.hrmE_PFDate), 'dd-MM-yyyy') : '-'
+            cell: ({ row }: any) => (row.original.hrmE_PFDate ? format(new Date(row.original.hrmE_PFDate), 'dd-MM-yyyy') : '-')
         },
         {
             accessorKey: 'hrmE_PFAccNo',
@@ -246,101 +249,130 @@ function EmployeeContributionContent() {
     return (
         <div className='container min-h-screen space-y-4 p-2'>
             <div className='flex items-center justify-between'>
-                <h2 className='text-2xl font-bold tracking-tight'>E-PF Contribution Register</h2>
+                <h2 className='font-bold text-2xl tracking-tight'>E-PF Contribution Register</h2>
             </div>
 
-            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+            <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {yearsData?.data?.map((y: any) => (
-                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
-                                                {y.hrmlY_LeaveYear}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='year'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Year' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {yearsData?.data?.map((y: any) => (
+                                                <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                    {y.hrmlY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {MONTH_LIST.map((m: any) => (
-                                            <SelectItem key={m.id} value={m.name}>
-                                                {m.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='month'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Month' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MONTH_LIST.map((m: any) => (
+                                                <SelectItem key={m.id} value={m.name}>
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
-
 
                         <div className='space-y-2'>
                             <Label>Group Type</Label>
-                            <Controller name='groupType' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={groupTypesData?.data?.map((gt: any) => ({
-                                        label: gt.value,
-                                        value: gt.key.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={(vals) => {
-                                        field.onChange(vals);
-                                        setValue('department', []);
-                                        setValue('designation', []);
-                                    }}
-                                    placeholder="Select Group Types"
-                                />
-                            )} />
+                            <Controller
+                                name='groupType'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            groupTypesData?.data?.map((gt: any) => ({
+                                                label: gt.value,
+                                                value: gt.key.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={(vals) => {
+                                            field.onChange(vals);
+                                            setValue('department', []);
+                                            setValue('designation', []);
+                                        }}
+                                        placeholder='Select Group Types'
+                                    />
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
                             <Label>Department</Label>
-                            <Controller name='department' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={departmentsData?.data?.map((d: any) => ({
-                                        label: d.hrmD_DepartmentName,
-                                        value: d.hrmD_Id.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={(vals) => {
-                                        field.onChange(vals);
-                                        setValue('designation', []);
-                                    }}
-                                    placeholder="Select Departments"
-                                    disabled={!watchedGroupType.length}
-                                />
-                            )} />
+                            <Controller
+                                name='department'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            departmentsData?.data?.map((d: any) => ({
+                                                label: d.hrmD_DepartmentName,
+                                                value: d.hrmD_Id.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={(vals) => {
+                                            field.onChange(vals);
+                                            setValue('designation', []);
+                                        }}
+                                        placeholder='Select Departments'
+                                        disabled={!watchedGroupType.length}
+                                    />
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
                             <Label>Designation</Label>
-                            <Controller name='designation' control={control} render={({ field }) => (
-                                <MultiSelect
-                                    options={designationsData?.data?.map((d: any) => ({
-                                        label: d.hrmdeS_DesignationName,
-                                        value: d.hrmdeS_Id.toString()
-                                    })) || []}
-                                    defaultValue={field.value}
-                                    onValueChange={field.onChange}
-                                    placeholder="Select Designations"
-                                    disabled={!watchedDepartment.length}
-                                />
-                            )} />
+                            <Controller
+                                name='designation'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            designationsData?.data?.map((d: any) => ({
+                                                label: d.hrmdeS_DesignationName,
+                                                value: d.hrmdeS_Id.toString()
+                                            })) || []
+                                        }
+                                        defaultValue={field.value}
+                                        onValueChange={field.onChange}
+                                        placeholder='Select Designations'
+                                        disabled={!watchedDepartment.length}
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 
@@ -354,7 +386,10 @@ function EmployeeContributionContent() {
             </CollapsibleSection>
 
             {reportData && (
-                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                <CollapsibleSection
+                    title='Report Details'
+                    defaultOpen={true}
+                    className='border shadow-md'
                     rightElement={
                         <div className='flex gap-2'>
                             <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
@@ -362,12 +397,23 @@ function EmployeeContributionContent() {
                                 Export
                             </Button>
                         </div>
-                    }
-                >
+                    }>
                     <GenericDataTable
-                        data={reportData?.alldata || reportData?.employeeDetails || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
+                        data={
+                            reportData?.alldata ||
+                            reportData?.employeeDetails ||
+                            reportData?.list ||
+                            (Array.isArray(reportData) ? reportData : [])
+                        }
                         columns={columns}
-                        totalItems={(reportData?.alldata || reportData?.employeeDetails || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
+                        totalItems={
+                            (
+                                reportData?.alldata ||
+                                reportData?.employeeDetails ||
+                                reportData?.list ||
+                                (Array.isArray(reportData) ? reportData : [])
+                            ).length
+                        }
                         isPaginationRequired={false}
                         isSearchRequired={false}
                         isLoading={isPending}

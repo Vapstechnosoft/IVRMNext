@@ -1,4 +1,4 @@
-import { IInvRMonthEndReportData, IInvRMonthEndReportTableRow } from '@/types/inventory/reports/inv-r-month-end-report';
+import type { IInvRMonthEndReportData, IInvRMonthEndReportTableRow } from '@/types/inventory/reports/inv-r-month-end-report';
 import { format } from 'date-fns';
 import React from 'react';
 
@@ -15,16 +15,17 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
 
         if (!data || !payload) {
             return (
-                <div ref={ref} className='p-5 text-center bg-white text-black'>
+                <div ref={ref} className='bg-white p-5 text-center text-black'>
                     No data available for printing.
                 </div>
             );
         }
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full p-8'>
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white p-8 text-black'>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                         @media print {
                             @page {
                                 margin: 15mm;
@@ -167,11 +168,14 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
                             }
                         }
                     `
-                }} />
+                    }}
+                />
 
                 <div className='header-section'>
-                    <h2 className='text-2xl font-bold uppercase'>Inventory Month End Report</h2>
-                    <p className='text-lg font-semibold mt-2'>{payload.Month_Name} - {payload.ASMAY_Year}</p>
+                    <h2 className='font-bold text-2xl uppercase'>Inventory Month End Report</h2>
+                    <p className='mt-2 font-semibold text-lg'>
+                        {payload.Month_Name} - {payload.ASMAY_Year}
+                    </p>
                 </div>
 
                 <div className='info-grid'>
@@ -209,7 +213,7 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
                 </div>
 
                 <div className='mt-5'>
-                    <h4 className='font-bold text-sm uppercase mb-2'>Detailed Statistics</h4>
+                    <h4 className='mb-2 font-bold text-sm uppercase'>Detailed Statistics</h4>
                     <table className='data-table'>
                         <thead>
                             <tr>
@@ -230,8 +234,10 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
                                     <td className='text-center'>{row.email}</td>
                                 </tr>
                             ))}
-                            <tr className='font-bold bg-gray-50'>
-                                <td colSpan={2} className='text-right'>Summary Totals</td>
+                            <tr className='bg-gray-50 font-bold'>
+                                <td colSpan={2} className='text-right'>
+                                    Summary Totals
+                                </td>
                                 <td className='text-center'>{(data?.grnCount || 0) + (data?.salesCount || 0) + (data?.itemCount || 0)}</td>
                                 <td className='text-center'>{data?.sms || 0}</td>
                                 <td className='text-center'>{data?.email || 0}</td>
@@ -244,16 +250,13 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
                 <div className='chart-container'>
                     <div className='chart-title'>Graphical Representation</div>
                     {chartData.map((item, idx) => {
-                        const maxVal = Math.max(...chartData.map(c => c.count), 1);
+                        const maxVal = Math.max(...chartData.map((c) => c.count), 1);
                         const percentage = (item.count / maxVal) * 100;
                         return (
                             <div key={idx} className='bar-wrapper'>
                                 <div className='bar-label'>{item.name}</div>
                                 <div className='bar-track'>
-                                    <div 
-                                        className='bar-fill' 
-                                        style={{ width: `${percentage}%` }}
-                                    ></div>
+                                    <div className='bar-fill' style={{ width: `${percentage}%` }} />
                                 </div>
                                 <div className='bar-value'>{item.count}</div>
                             </div>
@@ -266,7 +269,7 @@ export const InvRMonthEndReportPrint = React.forwardRef<HTMLDivElement, InvRMont
                         <div className='signature-line'>Implementation Engineer</div>
                     </div>
                     <div className='signature-box'>
-                        <div className='h-8'></div>
+                        <div className='h-8' />
                         <div>Printed Date: {currentDate}</div>
                     </div>
                     <div className='signature-box'>

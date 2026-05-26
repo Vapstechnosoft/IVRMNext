@@ -16,23 +16,24 @@ export async function getTBSchoolPrimaryReport(data: any) {
             ASMS_Id: data.ASMS_Id,
             Temp_AmstIds: data.Temp_AmstIds || [],
             examlist: data.examlist || [],
-            EMGR_Id: 0,
+            EMGR_Id: 0
         };
-        
+
         const response = await api.post<any>('exam', url, payload);
-        
+
         if (response?.success && response.data) {
             return {
                 ...response,
                 data: transformPrimaryReportData(response.data)
             };
-        } else if (response && !response.data && response.getstudentdetails) {
+        }
+        if (response && !response.data && response.getstudentdetails) {
             return {
                 success: true,
                 data: transformPrimaryReportData(response)
             };
         }
-        
+
         return response;
     } catch (error) {
         console.error('TBSchoolPrimaryController error:', error);
@@ -49,17 +50,13 @@ export async function getTBSchoolPrimaryReport(data: any) {
  * Data Transformation logic for Primary School Report
  */
 function transformPrimaryReportData(data: any) {
-    const {
-        getstudentdetails = [],
-        getstudentwisesubjectlist = [],
-        getstudentwiseattendancedetails = [],
-    } = data;
+    const { getstudentdetails = [], getstudentwisesubjectlist = [], getstudentwiseattendancedetails = [] } = data;
 
     // 1. Group unique subjects
     const uniqueSubjects: any[] = [];
     if (getstudentwisesubjectlist && getstudentwisesubjectlist.length > 0) {
         getstudentwisesubjectlist.forEach((dev: any) => {
-            const exists = uniqueSubjects.find(s => s.ISMS_Id === dev.ISMS_Id && s.AMST_Id === dev.AMST_Id);
+            const exists = uniqueSubjects.find((s) => s.ISMS_Id === dev.ISMS_Id && s.AMST_Id === dev.AMST_Id);
             if (!exists) {
                 uniqueSubjects.push(dev);
             }
@@ -70,7 +67,7 @@ function transformPrimaryReportData(data: any) {
     const transformedStudents = getstudentdetails.map((stu: any) => {
         const studentAttendance = getstudentwiseattendancedetails.filter((att: any) => att.AMST_Id === stu.AMST_Id);
         const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => sub.AMST_Id === stu.AMST_Id);
-        
+
         return {
             ...stu,
             getstudentwiseattendancedetails: studentAttendance,

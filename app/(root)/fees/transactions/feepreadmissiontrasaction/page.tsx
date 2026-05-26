@@ -78,10 +78,6 @@ export default function FeePreadmissionTransactionPage(props: { searchParams: Se
     }, [transactionType, selectedAsmayId]);
 
     const activeQuery = transactionType === 'admission' ? preAdmissionQuery : prospectusQuery;
-
-    //const { data: response, isLoading, error, refetch } = activeQuery;
-
-    console.log('activeQuery', transactionType);
     const { data: response, isLoading, error, refetch } = activeQuery;
 
     return (

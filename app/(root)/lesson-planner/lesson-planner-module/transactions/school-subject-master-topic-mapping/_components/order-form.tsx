@@ -171,7 +171,7 @@ export default function OrderSchoolSubjectTopicMappingForm({
             toast.success('Order updated successfully');
             onSuccess();
             onClose();
-        } catch (e) {
+        } catch (_e) {
             toast.error('Failed to save order');
         } finally {
             setIsSaving(false);

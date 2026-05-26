@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterUom } from '@/hooks/inventory/masters/use-inv-master-uom';
-import { invMasterUOMSchema, type InvMasterUOMType } from '@/schemas/inventory/masters/inv-master-uom';
+import { type InvMasterUOMType, invMasterUOMSchema } from '@/schemas/inventory/masters/inv-master-uom';
 import { deactivateInvMasterUOM, saveInvMasterUOM } from '@/server/inventory/masters/inv-master-uom';
 import type { IInvMasterUOM } from '@/types/inventory/masters/inv-master-uom';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,7 +64,6 @@ export default function UOMForm({ onSuccess, className = '', selectedRow }: UOMF
     };
 
     const onSubmit: SubmitHandler<InvMasterUOMType> = async (data) => {
-        console.log('UOMForm: Submitting data:', data);
         try {
             const response = await saveInvMasterUOM(data);
             if (response.success || response.returnval) {
@@ -171,7 +170,7 @@ export function ToggleUOMForm({ rowData, onClose }: ToggleUOMFormProps) {
         }
     });
 
-    const onSubmit: SubmitHandler<any> = async (data) => {
+    const onSubmit: SubmitHandler<any> = async (_data) => {
         try {
             const response = await deactivateInvMasterUOM(rowData);
             if (response.success || response.returnval) {

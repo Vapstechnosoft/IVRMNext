@@ -43,15 +43,12 @@ interface UpdateFeePrivilegeFormProps {
 type FormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate>;
 
 export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, className = '' }: UpdateFeePrivilegeFormProps) {
-    console.log('selectedRow', selectedRow);
-
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     const { data: rolesData, isLoading: loadingRoles, error: rolesError } = useRolesDropdown();
 
     const [isInitializing, setIsInitializing] = useState(false);
     const queryClient = useQueryClient();
-    console.log('selectedRow', selectedRow);
     const {
         control,
         handleSubmit,
@@ -99,7 +96,7 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
     const [headOptions, setHeadOptions] = useState<DropdownOption[]>([]);
     const [userSearch, setUserSearch] = useState('');
     const [headSearchTerm, setHeadSearchTerm] = useState('');
-    const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
+    const [_isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
 
     // Initialize form with selected row data
     useEffect(() => {
@@ -288,13 +285,13 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
 
-    const toggleHead = (id: string) => {
+    const _toggleHead = (id: string) => {
         const cur = headsValue || [];
         const updated = cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id];
         setValue('heads', updated, { shouldValidate: hasSubmitted });
     };
 
-    const selectAllHeads = () => {
+    const _selectAllHeads = () => {
         if ((headsValue || []).length === headOptions.length && headOptions.length) {
             setValue('heads', [], { shouldValidate: hasSubmitted });
         } else {
@@ -303,13 +300,13 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
         }
     };
 
-    const toggleUser = (id: string) => {
+    const _toggleUser = (id: string) => {
         const cur = usersValue || [];
         const updated = cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id];
         setValue('users', updated, { shouldValidate: hasSubmitted });
     };
 
-    const selectAllUsers = () => {
+    const _selectAllUsers = () => {
         if ((usersValue || []).length === userOptions.length && userOptions.length) {
             setValue('users', [], { shouldValidate: hasSubmitted });
         } else {

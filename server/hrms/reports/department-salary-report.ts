@@ -5,9 +5,9 @@ import { api } from '@/lib/apiService';
 export interface DepartmentSalaryReportRequest {
     hreS_Year: string;
     hreS_Month: string;
-    hrmd_ids: string;      // Comma separated IDs
-    hrmdes_ids: string;    // Comma separated IDs
-    hrmgt_ids: string;     // Comma separated IDs
+    hrmd_ids: string; // Comma separated IDs
+    hrmdes_ids: string; // Comma separated IDs
+    hrmgt_ids: string; // Comma separated IDs
 }
 
 export async function getDepartmentSalaryReport(data: DepartmentSalaryReportRequest) {
@@ -46,7 +46,7 @@ export async function getGroupTypes() {
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
@@ -56,7 +56,7 @@ export async function getDepartmentsByGroupType(groupTypeIds: string) {
     // Reuse logic from mass-updation/cumulative logic
     if (!groupTypeIds) return { success: false, data: [] };
 
-    // Check if the API supports comma separated. 
+    // Check if the API supports comma separated.
     // Based on mass-updation: `/api/MasterDropDown/department_drop_down_by_group_Type/${ids}`
     const url = `/api/MasterDropDown/department_drop_down_by_group_Type/${groupTypeIds}`;
     try {
@@ -65,7 +65,7 @@ export async function getDepartmentsByGroupType(groupTypeIds: string) {
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
@@ -80,7 +80,7 @@ export async function getDesignationsByGroupAndDept(groupTypeIds: string, deptId
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }

@@ -1,10 +1,15 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IHomeWorkAttachmentResponse, IHomeWorkInitialData, IHomeWorkReportPayload, IHomeWorkReportResponse } from '@/types/upload/reports/homework-upload-report';
+import type {
+    IHomeWorkAttachmentResponse,
+    IHomeWorkInitialData,
+    IHomeWorkReportPayload,
+    IHomeWorkReportResponse
+} from '@/types/upload/reports/homework-upload-report';
 
 export async function getHomeWorkInitialData() {
-    const url = `/HomeworkUpload/Getdata_class`;
+    const url = '/HomeworkUpload/Getdata_class';
     return await api.post<IHomeWorkInitialData>('portal', url, 0);
 }
 

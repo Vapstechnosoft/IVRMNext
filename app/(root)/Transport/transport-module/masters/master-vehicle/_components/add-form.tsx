@@ -149,8 +149,6 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
 
         try {
             const uploadRes: any = await uploadDocument(formData);
-
-            console.log('response', uploadRes);
             let path = '';
             if (uploadRes?.success && typeof uploadRes.data === 'string') {
                 path = uploadRes.data;
@@ -170,7 +168,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 updateFile(index, { ...fileFields[index], isUploading: false });
                 toast.error('Failed to get file path');
             }
-        } catch (error) {
+        } catch (_error) {
             updateFile(index, { ...fileFields[index], isUploading: false });
             toast.error('Failed to upload file');
         }
@@ -257,7 +255,6 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 TRMV_VehicleImage: vehicleImagePath,
                 vehicleDocuments: uploadedDocs
             };
-            console.log('pay vehicle', payload);
             const response = await saveMasterVehicle(payload);
 
             if (response.message === 'Add') {

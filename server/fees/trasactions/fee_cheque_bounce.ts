@@ -3,14 +3,12 @@
 import { api } from '@/lib/apiService';
 import type {
     IFeeChequeBounceDropdowns,
-    IFeeChequeBounceSection,
-    IFeeChequeBounceStudent,
     IFeeChequeBounceReceipt,
     IFeeChequeBounceSavePayload,
     IFeeChequeBounceSearchPayload,
-    IFeeChequeBounceGrid
+    IFeeChequeBounceSection,
+    IFeeChequeBounceStudent
 } from '@/types/fees/transactions/feeChequeBounce';
-
 
 /**
  * Initial load data
@@ -23,7 +21,7 @@ export async function getFeeChequeBounceInitialData(pageId: number) {
 
 //Get academic year for dropdown
 export async function getFeeChequeBounceAcademicYear() {
-    const url = `FeeChequeBounce/getacademicyear`;
+    const url = 'FeeChequeBounce/getacademicyear';
     return await api.get<IFeeChequeBounceDropdowns>('fees', url);
 }
 
@@ -44,14 +42,6 @@ export async function getStudentDropDownDetails(data: any) {
     const url = '/feeitreport/get-student-list';
     return await api.get<any>('fees', url, { params: data });
 }
-
-
-
-
-
-
-
-
 
 /**
  * Get section list on class change

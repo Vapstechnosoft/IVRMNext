@@ -1,6 +1,4 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type { MasterLocationInitialData } from '@/types/visitors-management/masters';
 
@@ -30,8 +28,7 @@ export async function getMasterLocationData(): Promise<ApiResponse<MasterLocatio
     };
 }
 
-export async function saveMasterLocation(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Location:', data);
-    await new Promise(resolve => setTimeout(resolve, 500));
+export async function saveMasterLocation(_data: any): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { success: true, message: 'Saved Successfully', data: null };
 }

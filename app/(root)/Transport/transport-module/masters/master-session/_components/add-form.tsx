@@ -45,8 +45,6 @@ export default function AddSessionForm({ onSuccess, className = '' }: AddSession
                 ...data,
                 TRMS_Id: 0
             };
-
-            console.log("session payload", payload);
             const response = await saveMasterSession(payload);
 
             if (response.success) {
@@ -93,20 +91,16 @@ export default function AddSessionForm({ onSuccess, className = '' }: AddSession
                                 name='TRMS_Flag'
                                 control={control}
                                 render={({ field }) => (
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className='flex gap-4 pt-2'
-                                    >
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex gap-4 pt-2'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Pick Up' id='pickup' />
-                                            <Label htmlFor='pickup' className='font-normal cursor-pointer text-sm'>
+                                            <Label htmlFor='pickup' className='cursor-pointer font-normal text-sm'>
                                                 Pick Up
                                             </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Drop' id='drop' />
-                                            <Label htmlFor='drop' className='font-normal cursor-pointer text-sm'>
+                                            <Label htmlFor='drop' className='cursor-pointer font-normal text-sm'>
                                                 Drop
                                             </Label>
                                         </div>

@@ -38,12 +38,7 @@ export default function AddRouteForm({ onSuccess, className = '' }: AddRouteForm
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-
-
-
-
         try {
-            console.log("master route payload", data);
             const response = await saveMasterRoute(data);
 
             if (response.success) {

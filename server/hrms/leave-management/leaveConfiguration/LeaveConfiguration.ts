@@ -1,6 +1,6 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     LeaveConfigurationData,
     LeaveConfigurationGetResponse,
@@ -16,12 +16,10 @@ import type {
 
 export async function getLeaveConfiguration(): Promise<ApiResponse<LeaveConfigurationData>> {
     const url = '/api/LeaveConfig/get_leave_configuartion';
-    console.log('🔵 [SERVER] GET Request URL:', url);
 
     try {
         // CHANGED: api.post -> api.get based on user request "GET /api/LeaveConfig/get_leave_configuartion"
         const response = await api.get<LeaveConfigurationGetResponse>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         // Check for success flag in the response structure provided by user
@@ -73,7 +71,7 @@ export async function saveLeaveConfiguration(data: LeaveConfigurationSaveRequest
     const requestBody = {
         hrlpC_Id: data.hrlpC_Id || 0,
         mI_Id: data.mI_Id || HRMS_MI_ID,
-        hrlpC_SpOrGenFlg: data.hrlpC_SpOrGenFlg || "G",
+        hrlpC_SpOrGenFlg: data.hrlpC_SpOrGenFlg || 'G',
         hrlpC_PunchGAPTime: data.hrlpC_PunchGAPTime,
         hrlpC_AbsentFlag: data.hrlpC_AbsentFlag,
         hrlpC_LateInEarlyOutFlag: data.hrlpC_LateInEarlyOutFlag,
@@ -98,12 +96,8 @@ export async function saveLeaveConfiguration(data: LeaveConfigurationSaveRequest
         hrlpC_UpdatedBy: data.hrlpC_UpdatedBy || 0
     };
 
-    console.log('🟠 [SERVER] POST Request URL:', url);
-    console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<any>('hmslms', url, requestBody);
-        console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';

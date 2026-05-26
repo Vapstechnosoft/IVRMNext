@@ -7,7 +7,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Database } from 'lucide-react'; // Added Database icon
 import { useCallback } from 'react';
 
-const columnHelper = createColumnHelper<IClassWork>();
+const _columnHelper = createColumnHelper<IClassWork>();
 
 // export const verifyClassWorkColumns = [
 //     columnHelper.accessor((row, index) => index + 1, {

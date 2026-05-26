@@ -1,13 +1,13 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Truck, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterSupplier } from '@/hooks/inventory/masters/use-inv-master-supplier';
 import type { IInvMasterSupplier } from '@/types/inventory/masters/inv-master-supplier';
+import { Pencil, Plus, PlusCircle, Truck, X } from 'lucide-react';
+import { use } from 'react';
 import AddInvMasterSupplierForm from './_components/add-form';
 import { invMasterSupplierColumns } from './_components/columns';
 import ToggleInvMasterSupplierForm from './_components/toggle-form';

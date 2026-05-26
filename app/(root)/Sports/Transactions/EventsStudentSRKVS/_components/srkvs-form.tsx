@@ -1,22 +1,22 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
-import { eventsStudentSRKVSSchema, EventsStudentSRKVSFormSchema, IStudentSRKVSValues } from '@/types/sports/events-student-srkvs';
 import { Button } from '@/components/ui/button';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
+import { type EventsStudentSRKVSFormSchema, type IStudentSRKVSValues, eventsStudentSRKVSSchema } from '@/types/sports/events-student-srkvs';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 // import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from 'sonner';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
 
 interface EventsStudentSRKVSFormProps {
     onSuccess: () => void;
@@ -60,8 +60,8 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
         if (asmaY_Id) {
             fetchClassHouse.mutate(Number(asmaY_Id), {
                 onSuccess: (data: any) => {
-                    if (data && data.listof_class) setClassList(data.listof_class);
-                    if (data && data.sectionList) setSectionList(data.sectionList);
+                    if (data?.listof_class) setClassList(data.listof_class);
+                    if (data?.sectionList) setSectionList(data.sectionList);
                     // if (data && data.houseList) setHouseList(data.houseList); // Removed to use independent HouseList API
                 }
             });
@@ -155,7 +155,6 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
 
     const onSubmit = (data: EventsStudentSRKVSFormSchema) => {
-        console.log("onSubmit triggered", data);
 
         if (selectedStudentIds.length === 0) {
             toast.warning('Please select at least one student to save.');
@@ -193,10 +192,10 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
 
     return (
         <FormProvider {...form}>
-            <form className="space-y-6 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
+            <form className='space-y-6 rounded-lg border bg-card p-4 text-card-foreground shadow-sm'>
 
                 {/* 1. Filters Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                     <FormField
                         control={form.control}
                         name="asmaY_Id"
@@ -462,21 +461,21 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                 </div>
 
                 {/* 2. Student Selection Area */}
-                <div className="grid grid-cols-1 gap-4 border p-4 rounded-md">
-                    <div className="flex justify-between items-center mb-2">
-                        <Label className="text-lg font-semibold">Select Students</Label>
+                <div className='grid grid-cols-1 gap-4 rounded-md border p-4'>
+                    <div className='mb-2 flex items-center justify-between'>
+                        <Label className='font-semibold text-lg'>Select Students</Label>
                         <div className="relative w-64">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
                             <Input placeholder="Search..." className="pl-8" value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
                         </div>
                     </div>
 
-                    <ScrollArea className="h-[200px] border rounded-md p-2">
+                    <ScrollArea className='h-[200px] rounded-md border p-2'>
                         {fetchedStudents.length === 0 ? (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">No students found. Use filters to fetch.</div>
+                            <div className='flex h-full items-center justify-center text-muted-foreground'>No students found. Use filters to fetch.</div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                <div className="col-span-full pb-2 border-b mb-2 flex items-center space-x-2">
+                            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3'>
+                                <div className='col-span-full mb-2 flex items-center space-x-2 border-b pb-2'>
                                     <Checkbox
                                         id="select-all-source"
                                         checked={fetchedStudents.length > 0 && selectedStudentIds.length === fetchedStudents.length}
@@ -497,7 +496,7 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                                                 else setSelectedStudentIds(prev => prev.filter(id => id !== student.amsT_Id));
                                             }}
                                         />
-                                        <Label htmlFor={`student-${student.amsT_Id}`} className="text-sm font-normal cursor-pointer">
+                                        <Label htmlFor={`student-${student.amsT_Id}`} className='cursor-pointer font-normal text-sm'>
                                             {student.studentName} ({student.amsT_AdmNo})
                                         </Label>
                                     </div>
@@ -508,7 +507,7 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                 </div>
 
                 {/* 4. Filter Remarks (Form Level - if applicable) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     <FormField
                         control={form.control}
                         name="spccesT_Remarks"
@@ -524,8 +523,8 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                     />
                 </div>
 
-                <div className="flex justify-center space-x-4 mt-8">
-                    <Button type="button" disabled={saveData.isPending} onClick={form.handleSubmit(onSubmit, (errors) => console.log("Form Errors:", errors))}>
+                <div className='mt-8 flex justify-center space-x-4'>
+                    <Button type="button" disabled={saveData.isPending} onClick={form.handleSubmit(onSubmit, (_errors) => )}>
                         {saveData.isPending ? 'Saving...' : 'Save'}
                     </Button>
                     <Button type="button" variant="destructive" onClick={() => onSuccess()}>Cancel</Button>

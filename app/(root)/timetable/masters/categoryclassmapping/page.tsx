@@ -22,8 +22,6 @@ export default function MasterCategoryClassMappingPage(props: { searchParams: Se
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useTimeTableCategoryClassMapping(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<ICategoryClassMapping>>
             <MasterCategroyClassMappingContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

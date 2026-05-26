@@ -43,8 +43,6 @@ async function getAccessToken(): Promise<string> {
         console.error('Xibo Auth Failed. Response:', payload);
         throw new Error('CMS did not return a valid access token');
     }
-
-    console.log('Xibo Auth Successful. Token acquired.');
     _cachedToken = access_token as string;
     _tokenExpiry = now + (Number(expires_in) || 3600) * 1000;
     return _cachedToken;
@@ -148,7 +146,7 @@ export async function uploadMedia(file: File) {
         let filename = file.name;
         // Automatically rename .jfif to .jpg to bypass Xibo's extension restrictions
         if (filename.toLowerCase().endsWith('.jfif')) {
-            filename = filename.slice(0, -5) + '.jpg';
+            filename = `${filename.slice(0, -5)}.jpg`;
         }
 
         const blob = file; // Use the File object directly as it is already a subclass of Blob
@@ -180,7 +178,7 @@ export async function getLibrary(page = 1, pageSize = 10, displayId?: number) {
             start: (page - 1) * pageSize,
             length: pageSize
         };
-        if (displayId) params['displayId'] = displayId;
+        if (displayId) params.displayId = displayId;
 
         return xiboRequest({
             method: 'GET',
@@ -250,7 +248,7 @@ export async function getSchedule(page = 1, pageSize = 10, displayId?: number) {
             start: (page - 1) * pageSize,
             length: pageSize
         };
-        if (displayId) params['displayId'] = displayId;
+        if (displayId) params.displayId = displayId;
 
         return xiboRequest({
             method: 'GET',

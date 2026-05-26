@@ -17,9 +17,7 @@ export default function ToggleMasterSchoolUnitForm({ rowData, onClose, onSuccess
     const handleConfirm = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            console.log(`[Toggle-Unit] rowData.lpmU_Id: ${rowData.lpmU_Id}, activeFlag: ${rowData.lpmU_ActiveFlag}`);
             const res: any = await deactivateSchoolMasterUnit(rowData.lpmU_Id, rowData.lpmU_ActiveFlag);
-            console.log('[Toggle-Unit] Deactivate Response:', res);
 
             const getVal = (obj: any, keys: string[]) => {
                 if (!obj) return null;

@@ -1,11 +1,11 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     getCategoryWiseAttendanceInitialDetails,
     getCategoryWiseAttendanceReport
 } from '@/server/admission/preadmission/reports/category_wise_attendance';
 import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const QUERY_KEYS = {
     CATEGORY_WISE_ATTENDANCE_INITIAL: 'category_wise_attendance_initial',
@@ -19,7 +19,7 @@ export const useCategoryWiseAttendanceInitialDetails = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.CATEGORY_WISE_ATTENDANCE_INITIAL],
         queryFn: () => getCategoryWiseAttendanceInitialDetails(),
-        staleTime: Infinity
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 

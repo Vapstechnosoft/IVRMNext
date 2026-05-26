@@ -29,10 +29,9 @@ export default function AlumniReportPage() {
         const fetchInitialData = async () => {
             try {
                 const initialRes = await getInitialData();
-                console.log('Alumni Report Initial Data Response:', initialRes);
 
                 const iRes = initialRes as any;
-                if (iRes && iRes.success) {
+                if (iRes?.success) {
                     const dataVal = iRes.data || iRes;
                     const data = { ...(dataVal.data || dataVal) };
 

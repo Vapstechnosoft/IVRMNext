@@ -1,12 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AppointmentApprovalSchema, FeedbackSchema } from '@/schemas/visitors-management/appointment-approval-schema';
 import {
     getAppointmentApprovalData,
     saveAppointmentApproval,
     saveFeedback,
-    getFeedback,
     sendMOM
 } from '@/server/visitors-management/transactions/appointment-approval';
-import { AppointmentApprovalSchema, FeedbackSchema } from '@/schemas/visitors-management/appointment-approval-schema';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const useAppointmentApproval = () => {
@@ -31,7 +30,7 @@ export const useAppointmentApproval = () => {
                 toast.error(data.message || 'Failed to save record');
             }
         },
-        onError: (error) => {
+        onError: (_error) => {
             toast.error('An error occurred while saving');
         }
     });

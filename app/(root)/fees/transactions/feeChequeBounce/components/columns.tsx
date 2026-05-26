@@ -1,11 +1,11 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 export const feeChequeBounceColumns: ColumnDef<IFeeChequeBounceGrid>[] = [
     {
@@ -51,8 +51,7 @@ function ActionButtons({ row }: { row: IFeeChequeBounceGrid }) {
                 size='icon'
                 onClick={() => openDeleteForm(row)}
                 className='h-8 w-8 text-destructive hover:bg-destructive/10'
-                title='Delete'
-            >
+                title='Delete'>
                 <Trash2 className='h-4 w-4' />
             </Button>
         </div>

@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
+import { deactivateFloor } from '@/server/hostel/hostel-management/masters/floor';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterFloorForm from './_components/add-form';
-import { masterFloorColumns, IMasterFloor } from './_components/columns';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
-import { deactivateFloor } from '@/server/hostel/hostel-management/masters/floor';
+import AddMasterFloorForm from './_components/add-form';
+import { type IMasterFloor, masterFloorColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,7 @@ export default function MasterFloorPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterFloor>>
-            <PageContent
-                floorList={floorList}
-                isLoading={isLoading}
-                refetch={refetch}
-            />
+            <PageContent floorList={floorList} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -114,7 +110,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterFloorForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <AddMasterFloorForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +142,10 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                             </Button>
                             <AddMasterFloorForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -150,17 +154,13 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterFloorForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterFloorForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterFloorForm({ rowData, onClose, onSuccess }: { rowData: IMasterFloor, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterFloorForm({ rowData, onClose, onSuccess }: { rowData: IMasterFloor; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deactivateFloor(rowData.hlmF_Id);
@@ -170,7 +170,7 @@ function ToggleMasterFloorForm({ rowData, onClose, onSuccess }: { rowData: IMast
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

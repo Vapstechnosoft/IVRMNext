@@ -18,7 +18,7 @@ interface SubSubjectMark {
 
 interface BrsReportData extends IExamReportCard {
     amaY_RollNo?: any;
-    userName?: string;           // House
+    userName?: string; // House
     _MotherName?: string;
     sub_subject?: SubSubject[];
     sub_subjectmarks?: SubSubjectMark[];
@@ -41,16 +41,7 @@ interface Props {
     onPrint?: () => void;
 }
 
-export default function BrsProgressCardReport({
-    reportData,
-    subjects,
-    examName,
-    examCode,
-    year,
-    institution,
-    headerInfo,
-    onPrint
-}: Props) {
+export default function BrsProgressCardReport({ reportData, subjects, examName, examCode, year, institution, headerInfo, onPrint }: Props) {
     const formatDate = (dateStr?: string | null) => {
         if (!dateStr) return 'N/A';
         try {
@@ -154,7 +145,6 @@ export default function BrsProgressCardReport({
                 </Button>
             </div>
 
-
             <div id='brs-print-area' className='brs-report-container'>
                 {reportData.map((report, index) => {
                     // Gather sub-subjects unique list from report
@@ -176,20 +166,14 @@ export default function BrsProgressCardReport({
 
                             {/* PROGRESS REPORT Banner */}
                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                <div
-                                    className='brs-goldenrod-banner'
-                                    style={{ width: '23%', marginLeft: '38%', height: '37px' }}>
-                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '16px' }}>
-                                        PROGRESS REPORT
-                                    </h3>
+                                <div className='brs-goldenrod-banner' style={{ width: '23%', marginLeft: '38%', height: '37px' }}>
+                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '16px' }}>PROGRESS REPORT</h3>
                                 </div>
                             </div>
 
                             {/* Exam Name + Session Banner */}
                             <div style={{ marginTop: '6px', marginBottom: '6px' }}>
-                                <div
-                                    className='brs-goldenrod-banner'
-                                    style={{ width: '100%', height: '46px' }}>
+                                <div className='brs-goldenrod-banner' style={{ width: '100%', height: '46px' }}>
                                     <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '16px' }}>
                                         {examName} (SESSION : {year})
                                     </h3>
@@ -204,7 +188,9 @@ export default function BrsProgressCardReport({
                                             &nbsp;&nbsp;&nbsp;&nbsp;<b>Name : {report.amsT_FirstName}</b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
-                                            <b>Class &amp; Section : {report.asmcL_ClassName}/{report.asmC_SectionName}</b>
+                                            <b>
+                                                Class &amp; Section : {report.asmcL_ClassName}/{report.asmC_SectionName}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
                                             <b>Roll No : {report.amaY_RollNo || 'N/A'}</b>
@@ -223,7 +209,10 @@ export default function BrsProgressCardReport({
                                     </tr>
                                     <tr>
                                         <td style={{ textAlign: 'left' }}>
-                                            <b>&nbsp;&nbsp;&nbsp;&nbsp;Mother's Name : {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}</b>
+                                            <b>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;Mother's Name :{' '}
+                                                {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
                                             <b>Father's Name : {report.amsT_FatherName}</b>
@@ -267,9 +256,7 @@ export default function BrsProgressCardReport({
                                                     <td style={{ textAlign: 'left', fontWeight: 'bold' }}>
                                                         {subj?.ismS_SubjectName || 'N/A'}
                                                     </td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                                        {mark.estmpS_MaxMarks}
-                                                    </td>
+                                                    <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{mark.estmpS_MaxMarks}</td>
                                                     {/* Sub-subject mark columns */}
                                                     {subSubjects.map((sub) => {
                                                         const ssm = subSubjectMarks.find(
@@ -280,26 +267,18 @@ export default function BrsProgressCardReport({
                                                                 {ssm?.ESTMPSSS_PassFailFlg === 'AB'
                                                                     ? 'AB'
                                                                     : showMarks
-                                                                        ? ssm?.ESTMPSSS_ObtainedMarks ?? '-'
-                                                                        : '-'}
+                                                                      ? (ssm?.ESTMPSSS_ObtainedMarks ?? '-')
+                                                                      : '-'}
                                                             </td>
                                                         );
                                                     })}
                                                     {/* Marks Obtained */}
                                                     <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                                        {isAbsent
-                                                            ? 'AB'
-                                                            : showMarks
-                                                                ? mark.estmpS_ObtainedMarks ?? '-'
-                                                                : '-'}
+                                                        {isAbsent ? 'AB' : showMarks ? (mark.estmpS_ObtainedMarks ?? '-') : '-'}
                                                     </td>
                                                     {/* Grade */}
                                                     <td style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                                        {isAbsent
-                                                            ? 'AB'
-                                                            : showGrade
-                                                                ? mark.estmpS_ObtainedGrade || '-'
-                                                                : '-'}
+                                                        {isAbsent ? 'AB' : showGrade ? mark.estmpS_ObtainedGrade || '-' : '-'}
                                                     </td>
                                                 </tr>
                                             );
@@ -317,9 +296,7 @@ export default function BrsProgressCardReport({
                                 }}>
                                 {/* Place & Date */}
                                 <div style={{ flex: 1, textAlign: 'left' }}>
-                                    <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                                        &nbsp;&nbsp;&nbsp;&nbsp;Place : Burnpur
-                                    </span>
+                                    <span style={{ fontSize: '16px', fontWeight: 'bold' }}>&nbsp;&nbsp;&nbsp;&nbsp;Place : Burnpur</span>
                                     <br />
                                     <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
                                         &nbsp;&nbsp;&nbsp;&nbsp;Date : {todayFormatted}
@@ -327,14 +304,28 @@ export default function BrsProgressCardReport({
                                 </div>
 
                                 {/* Class Teacher */}
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-end'
+                                    }}>
                                     <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
                                         Signature of <br /> Class Teacher
                                     </span>
                                 </div>
 
                                 {/* Principal Signature Image */}
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-end'
+                                    }}>
                                     <img
                                         src='https://vapsclg.blob.core.windows.net/files/73/NoticeUpload/14abfc5e-3e03-4eb9-a5e7-c2725944cc3d.png'
                                         alt='Principal Signature'
@@ -343,7 +334,14 @@ export default function BrsProgressCardReport({
                                 </div>
 
                                 {/* Co-ordinator Signature */}
-                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-end'
+                                    }}>
                                     <img
                                         src='https://vapsclg.blob.core.windows.net/files/73/NoticeUpload/8ff47850-8524-423c-92a7-30c37099e292.png'
                                         alt='Coordinator Signature'
@@ -354,7 +352,6 @@ export default function BrsProgressCardReport({
                                     </span>
                                 </div>
                             </div>
-
 
                             {/* Page Break between students */}
                             {index < reportData.length - 1 && <div className='brs-page-break' />}

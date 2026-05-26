@@ -5,7 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStaffGatePass } from '@/hooks/visitors-management/transactions/useStaffGatePass';
-import { StaffGatePassData } from '@/types/visitors-management/transactions';
+import type { StaffGatePassData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { staffGatePassColumns } from './_components/columns';
 import StaffGatePassForm from './_components/staff-gate-pass-form';
@@ -61,7 +61,7 @@ function StaffGatePassPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Generate Gate Pass
                     </Button>
                 </div>
@@ -72,7 +72,7 @@ function StaffGatePassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    title="Staff Gate Pass List">
+                    title='Staff Gate Pass List'>
                     <GenericDataTable<StaffGatePassData>
                         {...tableProps}
                         columns={staffGatePassColumns}

@@ -18,7 +18,7 @@ export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
     return await api.get<IFeeThirdPartyTransaction[]>('fees', url);
 }
 
-export async function getThirdPartyTrasactionGroupDropDown(searchParams?: ApiSearchparams) {
+export async function getThirdPartyTrasactionGroupDropDown(_searchParams?: ApiSearchparams) {
     //const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = '/ThirdPartyTransaction/group_drop_down_list';
     return await api.get<IFeeThirdPartyTransactionGroupDropDown[]>('fees', url);

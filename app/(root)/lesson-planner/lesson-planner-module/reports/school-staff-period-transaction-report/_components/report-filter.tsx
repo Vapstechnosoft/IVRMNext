@@ -36,7 +36,7 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
     const [sections, setSections] = useState<ISection[]>([]);
     const [employees, setEmployees] = useState<IEmployee[]>([]);
     const [isPending, startTransition] = useTransition();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [_searchTerm, _setSearchTerm] = useState('');
 
     const findValue = (obj: any, keys: string[]) => {
         if (!obj) return null;
@@ -51,7 +51,7 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         if (Array.isArray(res)) return res;
         if (res.data && Array.isArray(res.data)) return res.data;
         if (res[fallbackKey] && Array.isArray(res[fallbackKey])) return res[fallbackKey];
-        if (res.data && res.data[fallbackKey] && Array.isArray(res.data[fallbackKey])) return res.data[fallbackKey];
+        if (res.data?.[fallbackKey] && Array.isArray(res.data[fallbackKey])) return res.data[fallbackKey];
 
         // Nuclear fallback: find the first array property
         for (const key in res) {
@@ -75,15 +75,9 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         }
     });
 
-    useEffect(() => {
-        console.log('State - Classes:', classes);
-    }, [classes]);
-    useEffect(() => {
-        console.log('State - Sections:', sections);
-    }, [sections]);
-    useEffect(() => {
-        console.log('State - Employees:', employees);
-    }, [employees]);
+    useEffect(() => {}, [classes]);
+    useEffect(() => {}, [sections]);
+    useEffect(() => {}, [employees]);
 
     const handleYearChange = async (yearId: string) => {
         form.setValue('ASMAY_Id', yearId);
@@ -96,11 +90,8 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log('Fetching classes for year:', yearId);
                 const res: any = await onChangeYear(Number(yearId));
-                console.log('onChangeYear Response:', res);
                 const classes = extractArray(res, 'masterclass');
-                console.log('Extracted classes:', classes);
                 if (classes.length > 0) setClasses(classes);
             } catch (error) {
                 console.error('Error in handleYearChange:', error);
@@ -120,11 +111,8 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log('Fetching sections for:', { yearId, classId });
                 const res: any = await onChangeClass(Number(yearId), Number(classId));
-                console.log('onChangeClass Response:', res);
                 const sections = extractArray(res, 'mastersection');
-                console.log('Extracted sections:', sections);
                 if (sections.length > 0) setSections(sections);
             } catch (error) {
                 console.error('Error in handleClassChange:', error);
@@ -144,24 +132,20 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         startTransition(async () => {
             try {
                 const params = { yearId: Number(yearId), classId: Number(classId), sectionId: Number(sectionId) };
-                console.log('Main: Fetching employees with params:', params);
                 const res: any = await onChangeSection(params.yearId, params.classId, params.sectionId);
-                console.log('Main RAW Response Keys:', Object.keys(res || {}));
 
                 let extracted: any[] = [];
                 if (res && Array.isArray(res.data)) {
                     extracted = res.data;
                 } else if (Array.isArray(res)) {
                     extracted = res;
-                } else if (res && res.data && Array.isArray(res.data.data)) {
+                } else if (res?.data && Array.isArray(res.data.data)) {
                     extracted = res.data.data;
-                } else if (res && res.employeedetails && Array.isArray(res.employeedetails)) {
+                } else if (res?.employeedetails && Array.isArray(res.employeedetails)) {
                     extracted = res.employeedetails;
                 } else {
                     extracted = extractArray(res, 'employeedetails');
                 }
-
-                console.log('Main Final Extracted:', extracted);
                 setEmployees(extracted);
 
                 if (extracted.length === 0) {

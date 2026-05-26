@@ -1,11 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterActivity } from '@/hooks/admission/preadmission/useMasters';
-import type { IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -16,7 +10,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { useMasterActivity } from '@/hooks/admission/preadmission/useMasters';
+import type { IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
 import { deleteMasterActivityData } from '@/server/admission/preadmission/masters/master_activity';
 import { Plus, Trash2, X } from 'lucide-react';
 import { use, useState } from 'react';
@@ -121,7 +121,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
             } else {
                 toast.error(res.message || 'Failed to delete Master Activity');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while deleting');
         } finally {
             setIsDeleting(false);
@@ -197,8 +197,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the activity{' '}
-                            <span className='font-bold text-foreground'>"{selectedRow?.amA_Activity}"</span> and remove it
-                            from our servers.
+                            <span className='font-bold text-foreground'>"{selectedRow?.amA_Activity}"</span> and remove it from our servers.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

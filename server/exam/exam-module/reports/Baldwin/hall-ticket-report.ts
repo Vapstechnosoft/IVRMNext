@@ -18,11 +18,7 @@ export async function getSectionsByYearAndClass(ASMAY_Id: number, ASMCL_Id: numb
 }
 
 // ─── Dropdown: exams + students by year + class + section ─────────────────────
-export async function getExamsAndStudentsBySection(
-    ASMAY_Id: number,
-    ASMCL_Id: number,
-    ASMS_Id: number
-) {
+export async function getExamsAndStudentsBySection(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number) {
     if (!ASMAY_Id) throw new Error('Academic Year ID is required');
     if (!ASMCL_Id) throw new Error('Class ID is required');
     if (!ASMS_Id) throw new Error('Section ID is required');

@@ -7,7 +7,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select as UISelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select as UISelect } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
     useMasterClassDropdown,
@@ -98,7 +98,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
         isError: StudentListError
     } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
 
-    const students = StudentListData?.data;
+    const _students = StudentListData?.data;
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -162,7 +162,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('amsT_SOL', 'S' as any);
         setSelectedStudents(new Set());
         setStudentData(new Map());
-        
+
         if (tableRef.current) {
             tableRef.current.resetRowSelection();
         }
@@ -399,32 +399,27 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                     onRowSelectionChange={handleSelectStudent}
                                 />
 
-                                <div className="flex flex-col items-center gap-6 py-4 border-t mt-4">
-                                    <div className="flex items-center gap-8 p-4 bg-muted/30 rounded-lg">
-                                        <div className="flex items-center space-x-2">
+                                <div className='mt-4 flex flex-col items-center gap-6 border-t py-4'>
+                                    <div className='flex items-center gap-8 rounded-lg bg-muted/30 p-4'>
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={amst_sol === 'D'} disabled />
-                                            <Label className="text-sm font-medium leading-none">Activate the Students</Label>
+                                            <Label className='font-medium text-sm leading-none'>Activate the Students</Label>
                                         </div>
-                                        <div className="flex items-center space-x-2">
+                                        <div className='flex items-center space-x-2'>
                                             <Checkbox checked={amst_sol === 'S'} disabled />
-                                            <Label className="text-sm font-medium leading-none">Deactivate the Students</Label>
+                                            <Label className='font-medium text-sm leading-none'>Deactivate the Students</Label>
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4">
+                                    <div className='flex gap-4'>
                                         <Button
-                                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
-                                            onClick={handleSave}
-                                        >
-                                            <Save className="w-4 h-4 mr-2" />
+                                            className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'
+                                            onClick={handleSave}>
+                                            <Save className='mr-2 h-4 w-4' />
                                             Save
                                         </Button>
-                                        <Button
-                                            variant="destructive"
-                                            className="min-w-[120px]"
-                                            onClick={handleClear}
-                                        >
-                                            <X className="w-4 h-4 mr-2" />
+                                        <Button variant='destructive' className='min-w-[120px]' onClick={handleClear}>
+                                            <X className='mr-2 h-4 w-4' />
                                             Clear
                                         </Button>
                                     </div>

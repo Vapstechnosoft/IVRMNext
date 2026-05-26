@@ -1,13 +1,12 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
 
 const baseUrl = 'lessonplanner';
 
 // Get initial details (masteryear, employeedetails) for the transaction form
 export async function getStaffPeriodTransactionInitialData() {
-    const url = `/SchoolStaffperiodmapping/Getdetailstransaction`;
+    const url = '/SchoolStaffperiodmapping/Getdetailstransaction';
     return await api.get<any>(baseUrl, url);
 }
 

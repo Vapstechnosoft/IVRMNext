@@ -1,9 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import { promisify } from 'node:util';
 import path from 'path';
-import fs from 'fs/promises';
-import os from 'os';
+import type { NextRequest } from 'next/server';
 
 const execAsync = promisify(exec);
 
@@ -20,8 +20,6 @@ export async function POST(req: NextRequest) {
             return Response.json({ error: 'No audio file provided' }, { status: 400 });
         }
 
-        console.log('[Header Voice] Forwarding audio to external STT API: https://stt-mobile.onrender.com/transcribe');
-
         // --- PRIMARY: CALL EXTERNAL RENDER STT API ---
         try {
             const apiFormData = new FormData();
@@ -29,12 +27,11 @@ export async function POST(req: NextRequest) {
 
             const externalRes = await fetch('https://stt-mobile.onrender.com/transcribe', {
                 method: 'POST',
-                body: apiFormData,
+                body: apiFormData
             });
 
             if (externalRes.ok) {
                 const resData = await externalRes.json();
-                console.log('[Header Voice] External STT response:', resData);
 
                 // Extremely robust parsing for common transcription API return formats
                 let transcribedText = '';
@@ -42,20 +39,19 @@ export async function POST(req: NextRequest) {
                     if (typeof resData === 'string') {
                         transcribedText = resData;
                     } else {
-                        transcribedText = 
-                            resData.text || 
-                            resData.transcript || 
-                            resData.transcription || 
-                            resData.transcribedText || 
-                            resData.data?.text || 
-                            resData.data?.transcript || 
-                            resData.data?.transcription || 
+                        transcribedText =
+                            resData.text ||
+                            resData.transcript ||
+                            resData.transcription ||
+                            resData.transcribedText ||
+                            resData.data?.text ||
+                            resData.data?.transcript ||
+                            resData.data?.transcription ||
                             '';
                     }
                 }
 
                 if (transcribedText?.trim()) {
-                    console.log('[Header Voice] Successfully transcribed via external API:', transcribedText);
                     return Response.json({
                         success: true,
                         text: transcribedText.trim(),
@@ -69,9 +65,6 @@ export async function POST(req: NextRequest) {
             console.error('[Header Voice] Failed calling external STT API:', apiError);
             // Safe fallback to local python processing below
         }
-
-        // --- FALLBACK: LOCAL PYTHON SPEECH PROCESSOR ---
-        console.log('[Header Voice] Executing local Python speech processor fallback...');
         const buffer = Buffer.from(await file.arrayBuffer());
         tempFilePath = path.join(os.tmpdir(), `header_voice_${Date.now()}.wav`);
         await fs.writeFile(tempFilePath, buffer);
@@ -90,7 +83,7 @@ export async function POST(req: NextRequest) {
             const result = JSON.parse(match[1]);
 
             // Clean up
-            if (tempFilePath) await fs.unlink(tempFilePath).catch(() => { });
+            if (tempFilePath) await fs.unlink(tempFilePath).catch(() => {});
 
             if (!result.success) {
                 return Response.json({ error: result.error }, { status: 500 });
@@ -103,19 +96,20 @@ export async function POST(req: NextRequest) {
                 language: result.detected_lang,
                 provider: 'local'
             });
-
         } catch (execError: any) {
             console.error('[Header Voice] Execution error:', execError);
             const errorOutput = execError.stdout || execError.message || 'Python execution failed';
-            return Response.json({
-                error: 'Python processing failed',
-                details: errorOutput
-            }, { status: 500 });
+            return Response.json(
+                {
+                    error: 'Python processing failed',
+                    details: errorOutput
+                },
+                { status: 500 }
+            );
         }
-
     } catch (error: unknown) {
         console.error('Header Voice API error:', error);
-        if (tempFilePath) await fs.unlink(tempFilePath).catch(() => { });
+        if (tempFilePath) await fs.unlink(tempFilePath).catch(() => {});
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return Response.json({ error: 'Server error', details: errorMessage }, { status: 500 });
     }

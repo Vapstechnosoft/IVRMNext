@@ -174,8 +174,6 @@ export default function UploadAndSchedule() {
     ];
 
     const handleUpload = async () => {
-        console.log('Form State Values:', { file, startDt, endDt, displayId });
-
         if (!file) {
             toast.error('Please select a media file to upload');
             return;

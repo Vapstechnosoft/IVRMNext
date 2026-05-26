@@ -54,23 +54,22 @@ export async function addOrUpdateEmployeeMissingLog(data: {
                 success: false,
                 message: 'Employee missing log not found'
             };
-        } else {
-            const created = store.create({
-                employeeName: data.employeeName,
-                date: data.date,
-                time: data.time,
-                inOut: data.inOut,
-                file: data.file,
-                remarks: data.remarks,
-                reportedBy: data.reportedBy,
-                status: data.status
-            });
-            return {
-                success: true,
-                data: created,
-                message: 'Employee missing log created successfully'
-            };
         }
+        const created = store.create({
+            employeeName: data.employeeName,
+            date: data.date,
+            time: data.time,
+            inOut: data.inOut,
+            file: data.file,
+            remarks: data.remarks,
+            reportedBy: data.reportedBy,
+            status: data.status
+        });
+        return {
+            success: true,
+            data: created,
+            message: 'Employee missing log created successfully'
+        };
     } catch (error: any) {
         return {
             success: false,

@@ -33,7 +33,7 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
     {
         accessorKey: 'hrmL_LeaveCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Code' />,
-        cell: ({ row }) => <div className="font-mono text-xs">{row.getValue('hrmL_LeaveCode')}</div>
+        cell: ({ row }) => <div className='font-mono text-xs'>{row.getValue('hrmL_LeaveCode')}</div>
     },
     {
         accessorKey: 'hrmL_LeaveType',
@@ -41,9 +41,13 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
         cell: ({ row }) => {
             const type = row.getValue('hrmL_LeaveType') as string;
             return (
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${type === 'CL' ? 'bg-blue-100 text-blue-800' :
-                    type === 'EL' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
+                <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium text-xs ${
+                        type === 'CL'
+                            ? 'bg-blue-100 text-blue-800'
+                            : type === 'EL'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
                     }`}>
                     {type}
                 </span>
@@ -61,9 +65,13 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
         cell: ({ row }) => (
             <div className='flex justify-center'>
                 {row.original.hrmL_LeaveCreditFlg ? (
-                    <div className="rounded-full bg-green-100 p-1"><Check className='h-3 w-3 text-green-600' /></div>
+                    <div className='rounded-full bg-green-100 p-1'>
+                        <Check className='h-3 w-3 text-green-600' />
+                    </div>
                 ) : (
-                    <div className="rounded-full bg-red-100 p-1"><X className='h-3 w-3 text-red-600' /></div>
+                    <div className='rounded-full bg-red-100 p-1'>
+                        <X className='h-3 w-3 text-red-600' />
+                    </div>
                 )}
             </div>
         )
@@ -74,9 +82,13 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
         cell: ({ row }) => (
             <div className='flex justify-center'>
                 {row.original.hrmL_LateDeductFlag ? (
-                    <div className="rounded-full bg-green-100 p-1"><Check className='h-3 w-3 text-green-600' /></div>
+                    <div className='rounded-full bg-green-100 p-1'>
+                        <Check className='h-3 w-3 text-green-600' />
+                    </div>
                 ) : (
-                    <div className="rounded-full bg-red-100 p-1"><X className='h-3 w-3 text-red-600' /></div>
+                    <div className='rounded-full bg-red-100 p-1'>
+                        <X className='h-3 w-3 text-red-600' />
+                    </div>
                 )}
             </div>
         )
@@ -93,7 +105,7 @@ export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: Mast
                     onEdit={onEdit}
                     onDelete={() => onDelete(entity.id)}
                     onToggle={() => onToggleStatus(entity)}
-                    toggleConditionKey="isActive"
+                    toggleConditionKey='isActive'
                 />
             );
         }

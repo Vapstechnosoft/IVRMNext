@@ -14,12 +14,6 @@ import {
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { saveMasterEarningsDeductions } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
 import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
-import type {
-    IAmountOrPercentageDropdown,
-    IEarningsDeductionsTypeDropdown,
-    IRoundingTypeDropdown,
-    ISalaryComponentTypeDropdown
-} from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -101,8 +95,8 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                     !k.toLowerCase().endsWith('id')
             );
 
-            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
-            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
+            const finalKey = idField ? item[idField] : (keyVal ?? (keys[0] ? item[keys[0]] : ''));
+            const finalValue = nameField ? item[nameField] : (displayVal ?? finalKey);
 
             return {
                 key: String(finalKey ?? '').trim(),
@@ -114,16 +108,25 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     // dropdown data
     const { data: earningsDeductionsTypeDropdownResponse, isLoading: isLoadingEarningsDeductionsTypes } =
         useEarningsDeductionsTypeDropdown();
-    const earningsDeductionsTypeDropdown = useMemo(() => mapToDropdownItems(earningsDeductionsTypeDropdownResponse), [earningsDeductionsTypeDropdownResponse]);
+    const earningsDeductionsTypeDropdown = useMemo(
+        () => mapToDropdownItems(earningsDeductionsTypeDropdownResponse),
+        [earningsDeductionsTypeDropdownResponse]
+    );
 
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
     const roundingTypeDropdown = useMemo(() => mapToDropdownItems(roundingTypeDropdownResponse), [roundingTypeDropdownResponse]);
 
     const { data: amountOrPercentageDropdownResponse, isLoading: isLoadingAmountOrPercentage } = useAmountOrPercentageDropdown();
-    const amountOrPercentageDropdown = useMemo(() => mapToDropdownItems(amountOrPercentageDropdownResponse), [amountOrPercentageDropdownResponse]);
+    const amountOrPercentageDropdown = useMemo(
+        () => mapToDropdownItems(amountOrPercentageDropdownResponse),
+        [amountOrPercentageDropdownResponse]
+    );
 
     const { data: salaryComponentTypeDropdownResponse, isLoading: isLoadingSalaryComponentType } = useSalaryComponentTypeDropdown();
-    const salaryComponentTypeDropdown = useMemo(() => mapToDropdownItems(salaryComponentTypeDropdownResponse), [salaryComponentTypeDropdownResponse]);
+    const salaryComponentTypeDropdown = useMemo(
+        () => mapToDropdownItems(salaryComponentTypeDropdownResponse),
+        [salaryComponentTypeDropdownResponse]
+    );
 
     const {
         register,
@@ -180,7 +183,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         return undefined; // Return undefined if no mapping found
     };
 
-    const findValue = (list: DropdownItem[], val: any) => {
+    const _findValue = (list: DropdownItem[], val: any) => {
         if (val === undefined || val === null) return undefined;
         const stringVal = String(val).trim();
         if (stringVal === '') return undefined;
@@ -210,19 +213,22 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     // Consolidated row data binding
     useEffect(() => {
         if (row && reset) {
-            reset({
-                HRMED_Id: row.hrmeD_Id,
-                MI_Id: row.mI_Id || 0,
-                HRMED_Name: row.hrmeD_Name || '',
-                HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
-                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
-                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
-                HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
-                HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
-                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag),
-                HRMED_Order: row.hrmeD_Order,
-                HRMED_ReviseFlg: row.hrmeD_ReviseFlg
-            }, { keepDefaultValues: false });
+            reset(
+                {
+                    HRMED_Id: row.hrmeD_Id,
+                    MI_Id: row.mI_Id || 0,
+                    HRMED_Name: row.hrmeD_Name || '',
+                    HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
+                    HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
+                    HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
+                    HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
+                    HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
+                    HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag),
+                    HRMED_Order: row.hrmeD_Order,
+                    HRMED_ReviseFlg: row.hrmeD_ReviseFlg
+                },
+                { keepDefaultValues: false }
+            );
         }
     }, [row, reset]); // Trigger when row changes
 
@@ -545,12 +551,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                         />
                     </div>
                     <div className='group flex items-center gap-2'>
-                        <Input
-                            type='checkbox'
-                            id='HRMED_ReviseFlg'
-                            className='h-4 w-4'
-                            {...register('HRMED_ReviseFlg')}
-                        />
+                        <Input type='checkbox' id='HRMED_ReviseFlg' className='h-4 w-4' {...register('HRMED_ReviseFlg')} />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>
                             Revise
                         </Label>

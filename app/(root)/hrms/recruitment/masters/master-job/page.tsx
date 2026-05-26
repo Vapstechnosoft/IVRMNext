@@ -1,21 +1,21 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetMasterJobGrid, useSaveOrUpdateJob, useGetMasterLocationDropDown } from '@/hooks/hrms/recruitment/masters/useMasters';
+import { useGetMasterJobGrid, useGetMasterLocationDropDown, useSaveOrUpdateJob } from '@/hooks/hrms/recruitment/masters/useMasters';
+import { recruitmentMasterJobSchema } from '@/schemas/hrms/recruitment/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, RefreshCw, Save, X } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getMasterJobColumns } from './_components/columns';
-import ToggleMasterJobModal from './_components/toggle-modal';
-import type { MasterJob } from './_components/columns';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { recruitmentMasterJobSchema } from '@/schemas/hrms/recruitment/masters';
 import type { z } from 'zod';
+import { getMasterJobColumns } from './_components/columns';
+import type { MasterJob } from './_components/columns';
+import ToggleMasterJobModal from './_components/toggle-modal';
 
 type MasterJobForm = z.infer<typeof recruitmentMasterJobSchema>;
 export default function MasterJobPage() {
@@ -28,8 +28,6 @@ export default function MasterJobPage() {
     const { data: masterGridData, isLoading: masterGridLoading, refetchAll: masterGridRefetch } = useGetMasterJobGrid();
     const { data: locationData, isLoading: locationLoading } = useGetMasterLocationDropDown();
     const { mutateAsync: saveMutation, isPending: isSubmitting } = useSaveOrUpdateJob();
-    
-
 
     const locations = locationData?.data || [];
 
@@ -84,7 +82,6 @@ export default function MasterJobPage() {
     };
 
     const onSubmit: SubmitHandler<MasterJobForm> = async (data: MasterJobForm) => {
-        console.log("data----", data);
         try {
             const payload = {
                 ...data,
@@ -134,7 +131,7 @@ export default function MasterJobPage() {
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 justify-end md:flex-row md:items-center md:justify-end'>
+                <div className='flex flex-col justify-end gap-4 md:flex-row md:items-center md:justify-end'>
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -156,9 +153,7 @@ export default function MasterJobPage() {
                         isLoading={masterGridLoading}
                         totalItems={masterGridData?.data.length || 0}
                         showViewOptions={false}
-
                     />
-
                 </CollapsibleSection>
                 {selectedJob && (
                     <ToggleMasterJobModal
@@ -223,19 +218,24 @@ export default function MasterJobPage() {
                                                             onValueChange={(value) => field.onChange(Number(value))}
                                                             value={field.value ? String(field.value) : ''}>
                                                             <SelectTrigger id='hrmlO_Id' disabled={locationLoading}>
-                                                                <SelectValue placeholder={locationLoading ? 'Loading...' : 'Select Location'} />
+                                                                <SelectValue
+                                                                    placeholder={locationLoading ? 'Loading...' : 'Select Location'}
+                                                                />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {
-                                                                    locations?.length === 0 ? (
-                                                                        <div className='text-center text-muted-foreground'>No locations found.</div>
-                                                                    ) : (
-                                                                        locations?.map((location: any) => (
-                                                                            <SelectItem key={location.hrmlO_Id} value={String(location.hrmlO_Id)}>
-                                                                                {location.hrmlO_LocationName}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
+                                                                {locations?.length === 0 ? (
+                                                                    <div className='text-center text-muted-foreground'>
+                                                                        No locations found.
+                                                                    </div>
+                                                                ) : (
+                                                                    locations?.map((location: any) => (
+                                                                        <SelectItem
+                                                                            key={location.hrmlO_Id}
+                                                                            value={String(location.hrmlO_Id)}>
+                                                                            {location.hrmlO_LocationName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -243,7 +243,6 @@ export default function MasterJobPage() {
                                                 {errors.hrmlO_Id && <FormError>{errors.hrmlO_Id.message}</FormError>}
                                             </div>
                                         </div>
-                                       
                                     </div>
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

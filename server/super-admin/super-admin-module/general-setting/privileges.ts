@@ -16,12 +16,10 @@ export async function getRoleDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching role dropdown", error);
+        console.error('Error fetching role dropdown', error);
     }
     return { success: false, roles: [] };
 }
-
-
 
 const PageMappingFacade = 'MasterPageModuleMappingFacade';
 
@@ -36,7 +34,7 @@ export async function getModulesList() {
             };
         }
     } catch (error) {
-        console.error("Error fetching modules list", error);
+        console.error('Error fetching modules list', error);
     }
     return { success: false, modules: [] };
 }
@@ -52,7 +50,7 @@ export async function getModuleDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching module dropdown", error);
+        console.error('Error fetching module dropdown', error);
     }
     return { success: false, modules: [] };
 }
@@ -70,7 +68,7 @@ export async function getOnLoadData() {
             };
         }
     } catch (error) {
-        console.error("Error fetching onload data", error);
+        console.error('Error fetching onload data', error);
     }
     return { success: false, roles: [], modules: [] };
 }
@@ -87,7 +85,7 @@ export async function searchPages(data: any) {
             };
         }
     } catch (error) {
-        console.error("Error searching pages", error);
+        console.error('Error searching pages', error);
     }
     return { success: false, pages: [], savedPrivileges: [] };
 }
@@ -102,16 +100,16 @@ export async function savePrivileges(data: any) {
         }
         return { success: false, message: response.message || 'Failed to save' };
     } catch (error) {
-        console.error("Error saving privileges", error);
+        console.error('Error saving privileges', error);
         return { success: false, message: 'An unexpected error occurred' };
     }
 }
 
 export async function deletePrivilege(data: any) {
-    const url = `${FACADE}/deletesecondgriddata`; // Use legacy endpoint name if possible, or standard delete
+    const _url = `${FACADE}/deletesecondgriddata`; // Use legacy endpoint name if possible, or standard delete
     try {
-        // Legacy 'deletesecondgriddata' implies deleting from cart or DB? 
-        // HTML 'deletesecondgriddata' removes from UI grid. 
+        // Legacy 'deletesecondgriddata' implies deleting from cart or DB?
+        // HTML 'deletesecondgriddata' removes from UI grid.
         // 'deletrec' removes from DB (Rolewise Module Page list - Grid 4).
 
         // Let's implement 'deletrec' equivalent for DB deletion
@@ -124,7 +122,7 @@ export async function deletePrivilege(data: any) {
         }
         return { success: false, message: response.message || 'Failed to delete' };
     } catch (error) {
-        console.error("Error deleting privilege", error);
+        console.error('Error deleting privilege', error);
         return { success: false, message: 'An unexpected error occurred' };
     }
 }
@@ -144,7 +142,7 @@ export async function getRolePrivilegesList(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching role privileges list", error);
+        console.error('Error fetching role privileges list', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 10 };
 }

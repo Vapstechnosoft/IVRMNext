@@ -46,9 +46,8 @@ export default function DeleteAdminOnDutyForm({ rowData, onClose }: DeleteAdminO
                         <strong>{rowData.employeeName || 'this record'}</strong>?
                     </p>
                     {rowData.fromDate && rowData.toDate && (
-                        <p className='text-sm text-muted-foreground'>
-                            Period: {new Date(rowData.fromDate).toLocaleDateString()} to{' '}
-                            {new Date(rowData.toDate).toLocaleDateString()}
+                        <p className='text-muted-foreground text-sm'>
+                            Period: {new Date(rowData.fromDate).toLocaleDateString()} to {new Date(rowData.toDate).toLocaleDateString()}
                         </p>
                     )}
                     <FormError>{error || ''}</FormError>

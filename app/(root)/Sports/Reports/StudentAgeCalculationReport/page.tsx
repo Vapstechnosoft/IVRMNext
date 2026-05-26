@@ -1,10 +1,10 @@
 'use client';
 
-import type { IReportRequest, IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
+import { useStudentAgeCalculationReport } from '@/hooks/sports/useStudentAgeCalculationReport';
+import type { IReportRequest } from '@/types/sports/reports/student-age-calculation';
 import { use, useState } from 'react';
 import ReportForm from './_components/report-form';
 import ReportGrid from './_components/report-grid';
-import { useStudentAgeCalculationReport } from '@/hooks/sports/useStudentAgeCalculationReport';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -25,12 +25,7 @@ export default function StudentAgeCalculationReportPage(props: { searchParams: S
                 }}
                 isPending={reportQuery.isFetching}
             />
-            {lastPayload && (
-                <ReportGrid
-                    data={reportQuery.data || []}
-                    isLoading={reportQuery.isFetching}
-                />
-            )}
+            {lastPayload && <ReportGrid data={reportQuery.data || []} isLoading={reportQuery.isFetching} />}
         </div>
     );
 }

@@ -67,7 +67,7 @@ export default function PushNotificationPage() {
     });
 
     const selectedStudents = watch('students');
-    const fromDate = watch('fromDate');
+    const _fromDate = watch('fromDate');
 
     /* ------------------ Student Logic ------------------ */
     const toggleStudent = (id: number) => {
@@ -83,12 +83,10 @@ export default function PushNotificationPage() {
 
     /* ------------------ Submit ------------------ */
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const payload = {
+        const _payload = {
             ...data,
             fromDate: format(data.fromDate, 'dd-MM-yyyy')
         };
-
-        console.log('Final Payload:', payload);
         toast.success('Push Notification Saved');
 
         reset();

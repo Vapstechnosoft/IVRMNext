@@ -1,12 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { deactivateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 interface ToggleTimeSlabFormProps {
     rowData: IMasterTimeSlab;
@@ -44,16 +44,14 @@ export default function ToggleTimeSlabForm({ rowData, onClose }: ToggleTimeSlabF
     };
 
     return (
-        <AdaptiveDialog
-            title={isActive ? 'Deactivate Time Slab' : 'Activate Time Slab'}
-            isOpen={true}
-            onClose={onClose}>
+        <AdaptiveDialog title={isActive ? 'Deactivate Time Slab' : 'Activate Time Slab'} isOpen={true} onClose={onClose}>
             <div className='flex flex-col gap-4'>
                 <p className='text-sm'>
                     Are you sure you want to {isActive ? 'deactivate' : 'activate'} the record{' '}
                     <strong className='font-bold'>
                         {rowData.lfsE_UserType} ({rowData.lfsE_FromDay} - {rowData.lfsE_ToDay || '∞'})
-                    </strong>?
+                    </strong>
+                    ?
                 </p>
                 <div className='flex justify-end gap-3 pt-2'>
                     <Button variant='outline' onClick={onClose} disabled={mutation.isPending}>
@@ -65,12 +63,15 @@ export default function ToggleTimeSlabForm({ rowData, onClose }: ToggleTimeSlabF
                         disabled={mutation.isPending}
                         className='min-w-[100px]'>
                         {mutation.isPending
-                            ? isActive ? 'Deactivating...' : 'Activating...'
-                            : isActive ? 'Yes, Deactivate' : 'Yes, Activate'}
+                            ? isActive
+                                ? 'Deactivating...'
+                                : 'Activating...'
+                            : isActive
+                              ? 'Yes, Deactivate'
+                              : 'Yes, Activate'}
                     </Button>
                 </div>
             </div>
         </AdaptiveDialog>
     );
 }
-

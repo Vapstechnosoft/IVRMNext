@@ -1,5 +1,5 @@
 'use client';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
@@ -33,8 +33,6 @@ function EmployeeSalaryDetailsContent() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-
-
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
 
     const {
@@ -53,20 +51,17 @@ function EmployeeSalaryDetailsContent() {
 
     // API Hooks
     const { data: yearSalaryResponse, isLoading: isYearLoading } = useYearWiseSalaryDetails(selectedYear);
-    const { data: monthSalaryResponse, isLoading: isMonthLoading } = useMonthWiseSalaryDetails(
-        selectedYear,
-        selectedMonth?.month || ''
-    );
+    const { data: monthSalaryResponse, isLoading: isMonthLoading } = useMonthWiseSalaryDetails(selectedYear, selectedMonth?.month || '');
 
     const reportData: MonthlySalaryDetail[] = useMemo(() => {
         return yearSalaryResponse?.success && yearSalaryResponse.data
             ? yearSalaryResponse.data.map((item: any, index: number) => ({
-                id: index + 1,
-                month: item.month,
-                year: selectedYear,
-                netSalary: item.netamount,
-                createdAt: new Date()
-            }))
+                  id: index + 1,
+                  month: item.month,
+                  year: selectedYear,
+                  netSalary: item.netamount,
+                  createdAt: new Date()
+              }))
             : [];
     }, [yearSalaryResponse, selectedYear]);
 
@@ -220,4 +215,3 @@ function EmployeeSalaryDetailsContent() {
         </div>
     );
 }
-

@@ -99,15 +99,13 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
     });
 
     // ✅ Utility to normalize 0/1/true/false to string "0"/"1"
-    const normalizeValue = (val: any) => {
+    const _normalizeValue = (val: any) => {
         if (val === true || val === 1 || val === '1') return '1';
         return '0';
     };
 
     useEffect(() => {
         if (row && !isInitialized.current) {
-            console.log('✅ Received row for edit:', row);
-
             const toStr = (val: any) => String(val ?? '0');
 
             reset({
@@ -167,8 +165,6 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 FMC_ArrearColumn: toStr(row.fmC_ArrearColumn),
                 fmC_AutoRecieptPrintFlag: toStr(row.fmC_AutoRecieptPrintFlag)
             });
-
-            console.log('✅ Form data after binding:', getValues());
             isInitialized.current = true;
         }
     }, [row, reset, getValues]);
@@ -247,9 +243,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 // userid: 22
             };
 
-            const jsondata = JSON.stringify(payload);
-
-            console.log('Payload Data', jsondata);
+            const _jsondata = JSON.stringify(payload);
             const response = await addOrUpdatefeeconfig(payload);
 
             if (response.success) {

@@ -11,7 +11,6 @@ import AddExamTTSessionForm from './_components/add-form';
 import { ExamTTSessionColumns } from './_components/columns';
 import ToggleExamTTSessionForm from './_components/toggle-form';
 
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExamTTSessionPage(props: { searchParams: SearchParams }) {

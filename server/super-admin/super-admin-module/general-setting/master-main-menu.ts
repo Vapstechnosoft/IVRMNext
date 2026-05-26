@@ -2,20 +2,18 @@
 
 import { api } from '@/lib/apiService';
 import { masterMainMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-main-menu';
-import { IMasterMainMenu, IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
+import type { IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
 import { revalidatePath } from 'next/cache';
 
 const FACADE_URL = '/MasterMainMenuFacade';
 
-export async function getMasterMainMenuData(page: number = 1, pageSize: number = 10) {
+export async function getMasterMainMenuData(page = 1, pageSize = 10) {
     // URL provided by user
     // Using query parameters for pagination as path-based failed
     const url = `${FACADE_URL}/get_onload_grid_master_main_menu?page=${page}&page_size=${pageSize}`;
-    console.log("Fetching Master Main Menu data from URL:", url); // Debug log
 
     try {
         const response = await api.get<any>('sadmin', url);
-        console.log("MasterMainMenu Onload Response:", JSON.stringify(response)); // Debug log
 
         // Handle the specific response structure provided by user
         if (response.success) {
@@ -34,11 +32,11 @@ export async function getMasterMainMenuData(page: number = 1, pageSize: number =
 
         return response;
     } catch (error: any) {
-        console.error("Error fetching Master Main Menu data:", error);
+        console.error('Error fetching Master Main Menu data:', error);
         return {
             success: false,
-            message: error?.message || "Failed to fetch data",
-            data: [],
+            message: error?.message || 'Failed to fetch data',
+            data: []
         };
     }
 }
@@ -50,7 +48,7 @@ export async function saveMasterMainMenu(data: any) {
         return {
             success: false,
             message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            errors: validation.error.flatten().fieldErrors
         };
     }
 
@@ -62,21 +60,16 @@ export async function saveMasterMainMenu(data: any) {
         const payload = {
             ivrmmM_Id: data.ivrmmM_Id || 0,
             ivrmM_Id: Number(data.ivrmM_Id),
-            ivrmmM_MenuName: data.ivrmmM_MenuName,
+            ivrmmM_MenuName: data.ivrmmM_MenuName
         };
-
-
-
-        console.log("Saving Master Main Menu with payload:", JSON.stringify(payload));
 
         const response = await api.post('sadmin', url, payload);
         if (response.success) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-main-menu');
         }
         return response;
-
     } catch (error: any) {
-        console.error("Save Error:", error);
+        console.error('Save Error:', error);
 
         let errorMessage = 'Failed to save data';
         if (typeof error === 'string') {
@@ -93,8 +86,6 @@ export async function saveMasterMainMenu(data: any) {
             errorMessage = error.message;
         }
 
-        console.log("Error Message:", errorMessage);
-
         return {
             success: false,
             message: errorMessage,
@@ -110,10 +101,10 @@ export async function deleteMasterMainMenu(id: number) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-main-menu');
         }
         return response;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: 'Failed to delete data',
+            message: 'Failed to delete data'
         };
     }
 }
@@ -124,11 +115,11 @@ export async function getModuleDropdown() {
         const response = await api.get<IModuleDropdownItem[]>('sadmin', url);
         return response;
     } catch (error) {
-        console.error("Error fetching Module Dropdown:", error);
+        console.error('Error fetching Module Dropdown:', error);
         return {
             success: false,
-            message: "Failed to fetch module dropdown",
-            data: [],
+            message: 'Failed to fetch module dropdown',
+            data: []
         };
     }
 }
@@ -139,10 +130,10 @@ export async function getMasterMainMenuDetails(id: number) {
         const response = await api.get<any>('sadmin', url);
         return response; // allowing the component to handle the specific structure for now as it handles multiple variants
     } catch (error) {
-        console.error("Error fetching Master Main Menu details:", error);
+        console.error('Error fetching Master Main Menu details:', error);
         return {
             success: false,
-            message: "Failed to fetch details",
+            message: 'Failed to fetch details'
         };
     }
 }

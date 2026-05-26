@@ -72,7 +72,7 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
     const [availablePeriods, setAvailablePeriods] = useState<number>(0);
     const [editLoaded, setEditLoaded] = useState(false);
     const [classList, setClassList] = useState<any[]>([]);
-    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const [_isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const {
         register,
@@ -100,7 +100,6 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
         id: selectedRow?.ttfpD_Id,
         enabled: !!selectedRow?.ttfpD_Id
     });
-    console.log('Edit data fetched from server', editData);
 
     // Populate form when edit data + dropdowns are ready
     useEffect(() => {
@@ -338,8 +337,6 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
                 nop: item.pedDisplay
             }))
         };
-
-        console.log('UpdatePeriodDistribution payload', JSON.stringify(payload));
         const response = await saveperioddistribution(payload);
         if (response.success) {
             toast.success(response.message);

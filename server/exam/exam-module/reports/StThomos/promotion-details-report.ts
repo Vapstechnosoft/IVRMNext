@@ -2,7 +2,7 @@
 
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
-const ACADEMIC_YEARS = [{ asmaY_Id: 2023, asmaY_Year: '2023-2024' }];
+const _ACADEMIC_YEARS = [{ asmaY_Id: 2023, asmaY_Year: '2023-2024' }];
 
 const CLASSES = [
     { asmcL_Id: 10, asmcL_ClassName: 'I' },
@@ -36,19 +36,19 @@ export async function getDetails() {
     }
 }
 
-export async function getClasses(yearId: any) {
+export async function getClasses(_yearId: any) {
     return {
         ctlist: CLASSES
     };
 }
 
-export async function getSections(classId: any) {
+export async function getSections(_classId: any) {
     return {
         seclist: SECTIONS
     };
 }
 
-export async function getTermsAndStudents(sectionId: any) {
+export async function getTermsAndStudents(_sectionId: any) {
     return {
         termlist: TERMS,
         studentlist: STUDENTS
@@ -57,7 +57,6 @@ export async function getTermsAndStudents(sectionId: any) {
 
 export async function getReportDetails(data: any) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('tabulation payload data', data);
 
     const isSuperAverage = data.superAverage === true || data.superAverage === 'true';
 
@@ -89,29 +88,28 @@ export async function getReportDetails(data: any) {
                 TotalPercentage: 87.5
             }))
         };
-    } else {
-        // Structure for Normal Report
-        return {
-            ...common,
-            piotsubjets: [
-                { ISMS_SubjectName: 'English (100)', SubjectName: 'English', Flag: 0, ISMS_Id: 1 },
-                { ISMS_SubjectName: 'Maths (100)', SubjectName: 'Maths', Flag: 0, ISMS_Id: 2 }
-            ],
-            getskill: [{ ECACT_SkillName: 'Discipline' }],
-            getstudentmarksdetails_temp: studentsFromPayload.map((idStr: string, i: number) => ({
-                AMST_AdmNo: `A00${i + 1}`,
-                studentname: studentNamesFromPayload[i].split(':')[0] || `Mock Student ${idStr}`,
-                AMST_Id: Number.parseInt(idStr) || i + 1,
-                English: 85,
-                Maths: 90,
-                TotalMarks: 175,
-                TotalPercentage: 87.5
-            })),
-            getallgrade: studentsFromPayload.map((idStr: string, i: number) => ({
-                AMST_Id: Number.parseInt(idStr) || i + 1,
-                ECACT_SkillName: 'Discipline',
-                EMGD_Name: 'A'
-            }))
-        };
     }
+    // Structure for Normal Report
+    return {
+        ...common,
+        piotsubjets: [
+            { ISMS_SubjectName: 'English (100)', SubjectName: 'English', Flag: 0, ISMS_Id: 1 },
+            { ISMS_SubjectName: 'Maths (100)', SubjectName: 'Maths', Flag: 0, ISMS_Id: 2 }
+        ],
+        getskill: [{ ECACT_SkillName: 'Discipline' }],
+        getstudentmarksdetails_temp: studentsFromPayload.map((idStr: string, i: number) => ({
+            AMST_AdmNo: `A00${i + 1}`,
+            studentname: studentNamesFromPayload[i].split(':')[0] || `Mock Student ${idStr}`,
+            AMST_Id: Number.parseInt(idStr) || i + 1,
+            English: 85,
+            Maths: 90,
+            TotalMarks: 175,
+            TotalPercentage: 87.5
+        })),
+        getallgrade: studentsFromPayload.map((idStr: string, i: number) => ({
+            AMST_Id: Number.parseInt(idStr) || i + 1,
+            ECACT_SkillName: 'Discipline',
+            EMGD_Name: 'A'
+        }))
+    };
 }

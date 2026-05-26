@@ -1,9 +1,14 @@
 'use server';
 import { api } from '@/lib/apiService';
-import type { MassUpdationOnloadRequest, MassUpdationOnloadResponse, MassUpdationSaveRequest, MassUpdationSearchRequest } from '@/types/hrms/mass-updation';
+import type {
+    MassUpdationOnloadRequest,
+    MassUpdationOnloadResponse,
+    MassUpdationSaveRequest,
+    MassUpdationSearchRequest
+} from '@/types/hrms/mass-updation';
 // Helper function to create a complete nested object structure matching API requirements
 function createCompleteRequestBody(baseFields: any): any {
-    const now = new Date().toISOString();
+    const _now = new Date().toISOString();
     return {
         MI_Id: baseFields.MI_Id || 30,
         retrunMsg: baseFields.retrunMsg || 'string',
@@ -151,21 +156,17 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
     };
 
     try {
-        console.log('🔄 [MASS UPDATION - BACKEND] Fetching onload data...');
         // Fetch both in parallel
         const [facadeResponse, groupTypeResponse] = await Promise.all([
             api.post<any>('hrms', facadeUrl, requestBody),
             api.get<any[]>('hrms', groupTypeUrl)
         ]);
 
-        console.log('✅ [MASS UPDATION - BACKEND] Responses received.');
-
-        const rawData = facadeResponse && facadeResponse.data ? facadeResponse.data : (facadeResponse || {});
+        const rawData = facadeResponse?.data ? facadeResponse.data : facadeResponse || {};
 
         // Use Group Types from MasterDropDown if available
         let groupTypes: any[] = [];
-        if (groupTypeResponse && groupTypeResponse.success && Array.isArray(groupTypeResponse.data)) {
-            console.log(`✅ [MASS UPDATION] Using MasterDropDown GroupTypes (${groupTypeResponse.data.length} items)`);
+        if (groupTypeResponse?.success && Array.isArray(groupTypeResponse.data)) {
             groupTypes = groupTypeResponse.data;
         } else if (rawData.groupTypedropdown && rawData.groupTypedropdown.length > 0) {
             groupTypes = rawData.groupTypedropdown;
@@ -185,7 +186,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
             // Also populate the list variants to be safe
             groupTypedropdownlist: groupTypes.map(mapGroupType),
             departmentdropdownlist: (rawData.departmentdropdown || rawData.departmentdropdownlist || []).map(mapDepartment),
-            designationdropdownlist: (rawData.designationdropdown || rawData.designationdropdownlist || []).map(mapDesignation),
+            designationdropdownlist: (rawData.designationdropdown || rawData.designationdropdownlist || []).map(mapDesignation)
         };
 
         return {
@@ -223,15 +224,11 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
         addRemove: data.AddRemove || 'string'
     };
 
-    console.log('📤 [MASS UPDATION - BACKEND] Save Request body:', JSON.stringify(requestBody, null, 2));
-
     try {
         // Use POST method as requested
         const response = await api.post<any>('hrms', url, requestBody);
 
-        console.log('📥 [MASS UPDATION - BACKEND] Save Response:', JSON.stringify(response, null, 2));
-
-        if (response && response.success) {
+        if (response?.success) {
             return {
                 success: true,
                 message: response.message || 'Mass updation completed successfully',
@@ -259,7 +256,6 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
             message: errorMessage,
             data: undefined
         };
-
     } catch (error: any) {
         console.error('❌ [MASS UPDATION - BACKEND] Error in save:', error);
         return {
@@ -274,31 +270,27 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
  * POST /api/massUpdationFacade/FilterEmployeeData
  */
 export async function searchMassUpdationEmployees(data: MassUpdationSearchRequest) {
-    console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/MassUpdation/search_employees_for_mass_updation';
 
     // Prepare request body matching the API specification exactly as per user request
     const requestBody = {
-        type: "Head", // Seems fixed or derived? The user example showed "Head". Let's use a meaningful default or derive it. Detailed payload suggests it might depend on selection.
+        type: 'Head', // Seems fixed or derived? The user example showed "Head". Let's use a meaningful default or derive it. Detailed payload suggests it might depend on selection.
         // Re-mapping from data input to expected API payload
         hrmeD_Id: data.HRMED_Id || 0,
         groupTypeSelected: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [],
         departmentSelected: data.hrmD_IdList && data.hrmD_IdList.length > 0 ? data.hrmD_IdList : [],
         designationSelected: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [],
         employeeSelected: [],
-        amountPercentage: "string", // User example had "string", likely placeholder or default
+        amountPercentage: 'string', // User example had "string", likely placeholder or default
         hreeD_Amount: 0,
-        hreeD_Percentage: "string",
-        addRemove: "string"
+        hreeD_Percentage: 'string',
+        addRemove: 'string'
     };
-
-    console.log('📤 [MASS UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-
 
     try {
         const response = await api.post<any>('hrms', url, requestBody);
 
-        if (response && response.success) {
+        if (response?.success) {
             // Map the response data. The user example "data" has "employeeDetails" array.
             // But the UI expects "employeedropdown". We need to map it.
             const rawEmployeeDetails = response.data?.employeeDetails || [];
@@ -310,14 +302,14 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
                 HRME_EmployeeFirstName: item.hrmE_EmployeeFirstName || item.HRME_EmployeeFirstName,
                 HRME_EmployeeMiddleName: item.hrmE_EmployeeMiddleName || item.HRME_EmployeeMiddleName || '',
                 HRME_EmployeeLastName: item.hrmE_EmployeeLastName || item.HRME_EmployeeLastName || '',
-                HRME_EmployeeOrder: item.hrmE_EmployeeOrder || 0,
+                HRME_EmployeeOrder: item.hrmE_EmployeeOrder || 0
             }));
 
             return {
                 success: true,
                 message: response.message || 'Employees fetched successfully',
                 data: {
-                    employeedropdown: mappedEmployees,
+                    employeedropdown: mappedEmployees
                     // preserve other fields if necessary, but search mainly needs employees
                 } as any
             };
@@ -342,7 +334,6 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
  * POST /api/massUpdationFacade/getEmployeedetailsBySelection
  */
 export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequest) {
-    console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/massUpdationFacade/getEmployeedetailsBySelection';
     // Prepare request body matching the API specification exactly
     // This function is used for save operations, so it receives the full payload from the UI
@@ -358,14 +349,17 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
         groupTypedropdown: [],
         headdropdown: [],
         eardettypelist: [],
-        groupTypeselected: (data as any).groupTypeselected || (data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]),
+        groupTypeselected:
+            (data as any).groupTypeselected || (data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]),
         departmentselected: (data as any).departmentselected || (data.hrmD_IdList && data.hrmD_IdList.length > 0 ? data.hrmD_IdList : [0]),
-        designationselected: (data as any).designationselected || (data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0]),
+        designationselected:
+            (data as any).designationselected || (data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0]),
         EmployeeCode: 'string',
         HRME_EmployeeFirstName: 'string',
         HRME_EmployeeMiddleName: 'string',
         HRME_EmployeeLastName: 'string',
-        employeeselected: (data as any).employeeselected && (data as any).employeeselected.length > 0 ? (data as any).employeeselected : [0],
+        employeeselected:
+            (data as any).employeeselected && (data as any).employeeselected.length > 0 ? (data as any).employeeselected : [0],
         EarningDeduction: (data as any).EarningDeduction || 'string',
         AmountPercentage: (data as any).AmountPercentage || 'string',
         HREED_Amount: (data as any).HREED_Amount || 0,
@@ -383,7 +377,6 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
         hrmdeS_IdList: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0],
         groupTypeIdList: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]
     };
-    console.log('📤 [MASS UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
     try {
         const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
@@ -391,15 +384,6 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as MassUpdationOnloadResponse;
-            console.log('📊 [MASS UPDATION - BACKEND] Response data summary:', {
-                hasEmployeeDropdown: !!responseData?.employeedropdown,
-                employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
-                hasDepartmentDropdown: !!responseData?.departmentdropdown,
-                departmentCount: Array.isArray(responseData?.departmentdropdown) ? responseData.departmentdropdown.length : 0,
-                hasDesignationDropdown: !!responseData?.designationdropdown,
-                designationCount: Array.isArray(responseData?.designationdropdown) ? responseData.designationdropdown.length : 0,
-                retrunMsg: responseData?.retrunMsg
-            });
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee details loaded successfully',
@@ -426,15 +410,13 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
  * GET /api/MasterDropDown/department_drop_down_by_group_Type/{hrmgt_ids}
  */
 export async function getMassUpdationDepartments(data: { MI_Id?: number; hrmgT_IdList?: number[] }) {
-    console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-
     const ids = data.hrmgT_IdList?.join(',') || '0';
     const url = `/api/MasterDropDown/department_drop_down_by_group_Type/${ids}`;
 
     try {
         const response = await api.get<any>('hrms', url);
 
-        if (response && response.success) {
+        if (response?.success) {
             // Map camelCase to PascalCase
             const mappedData = (response.data || []).map((item: any) => ({
                 HRMD_Id: item.hrmD_Id,
@@ -444,8 +426,6 @@ export async function getMassUpdationDepartments(data: { MI_Id?: number; hrmgT_I
                 HRMD_ActiveFlag: item.hrmD_ActiveFlag || true,
                 HRMDC_ID: item.hrmdC_ID || null
             }));
-
-            console.log(`📊 [MASS UPDATION - BACKEND] Mapped ${mappedData.length} departments`);
 
             return {
                 success: true,
@@ -475,8 +455,6 @@ export async function getMassUpdationDepartments(data: { MI_Id?: number; hrmgT_I
  * GET /api/MasterDropDown/designations_drop_down_by_group_Type_and_Dept/{hrmgt_ids}/{hrmd_ids}
  */
 export async function getMassUpdationDesignations(data: { MI_Id?: number; hrmgT_IdList?: number[]; hrmD_IdList?: number[] }) {
-    console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-
     const groupTypeIds = data.hrmgT_IdList?.join(',') || '0';
     const deptIds = data.hrmD_IdList?.join(',') || '0';
     const url = `/api/MasterDropDown/designations_drop_down_by_group_Type_and_Dept/${groupTypeIds}/${deptIds}`;
@@ -484,7 +462,7 @@ export async function getMassUpdationDesignations(data: { MI_Id?: number; hrmgT_
     try {
         const response = await api.get<any>('hrms', url);
 
-        if (response && response.success) {
+        if (response?.success) {
             // Map camelCase to PascalCase
             const mappedData = (response.data || []).map((item: any) => ({
                 HRMDES_Id: item.hrmdeS_Id,
@@ -497,8 +475,6 @@ export async function getMassUpdationDesignations(data: { MI_Id?: number; hrmgT_
                 HRMDES_ActiveFlag: item.hrmdeS_ActiveFlag,
                 HRMDC_ID: item.hrmdC_ID
             }));
-
-            console.log(`📊 [MASS UPDATION - BACKEND] Mapped ${mappedData.length} designations`);
 
             return {
                 success: true,
@@ -514,7 +490,6 @@ export async function getMassUpdationDesignations(data: { MI_Id?: number; hrmgT_
             message: response.message || 'Failed to fetching designations',
             data: { designationdropdown: [] }
         };
-
     } catch (error: any) {
         return {
             success: false,
@@ -532,7 +507,7 @@ export async function getDepartmentDropdownByGroupType(groupTypeIds: string) {
     const url = `/api/MasterDropDown/department_drop_down_by_group_Type/${groupTypeIds}`;
     try {
         const response = await api.get<any>('hrms', url);
-        if (response && response.success) {
+        if (response?.success) {
             const mappedData = (response.data || []).map(mapDepartment);
             return { departmentdropdown: mappedData };
         }
@@ -550,7 +525,7 @@ export async function getDesignationDropdownByGroupTypeAndDesignation(groupTypeI
     const url = `/api/MasterDropDown/designations_drop_down_by_group_Type_and_Dept/${groupTypeIds}/${deptIds}`;
     try {
         const response = await api.get<any>('hrms', url);
-        if (response && response.success) {
+        if (response?.success) {
             const mappedData = (response.data || []).map(mapDesignation);
             return { designationdropdown: mappedData };
         }
@@ -566,7 +541,7 @@ export async function getGroupTypeDropdown() {
     const url = '/api/MasterDropDown/GroupType';
     try {
         const response = await api.get<any>('hrms', url);
-        if (response && response.success) {
+        if (response?.success) {
             const groupTypes = response.data || [];
             return { groupTypedropdown: groupTypes.map(mapGroupType) };
         }
@@ -582,7 +557,7 @@ export async function getHeadDropdown() {
     const url = '/api/MasterDropDown/earnings_and_deductions_headers';
     try {
         const response = await api.get<any>('hrms', url);
-        if (response && response.success) {
+        if (response?.success) {
             const heads = response.data || [];
             return { headdropdown: heads.map(mapHead) };
         }

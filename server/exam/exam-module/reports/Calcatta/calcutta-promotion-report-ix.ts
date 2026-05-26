@@ -56,44 +56,44 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class",
-            columname: ""
+            examnamedisplay: 'Highest in Class',
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class"
+            examnamedisplay: 'Highest in Class'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -133,17 +133,19 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
-            const dId = d.AMST_Id || d.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
-            return dId && stuId && Number(dId) === Number(stuId);
-        }).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => {
+                const dId = d.AMST_Id || d.amsT_Id;
+                const stuId = stu.amsT_Id || stu.AMST_Id;
+                return dId && stuId && Number(dId) === Number(stuId);
+            })
+            .map((d: any) => ({
+                classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
+                emE_Id: d.EME_Id || d.emE_Id,
+                classatt: d.PRESENTDAYS || d.presentdays,
+                percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+            }));
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
@@ -177,13 +179,13 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
     const activitylist_temp: any[] = [];
 
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        if (!skilllist_temp.find((emp) => emp.ECS_Id === dev.ECS_Id)) {
             skilllist_temp.push({
                 ECS_Id: dev.ECS_Id,
                 ECS_SkillName: dev.ECS_SkillName
             });
         }
-        if (!activitylist_temp.find(act => act.ECSA_Id === dev.ECSA_Id)) {
+        if (!activitylist_temp.find((act) => act.ECSA_Id === dev.ECSA_Id)) {
             activitylist_temp.push({
                 ECS_Id: dev.ECS_Id,
                 ECSA_Id: dev.ECSA_Id,
@@ -201,6 +203,6 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         activitylist_temp,
         getgradelist,
         getpromotionremarksdetails,
-        studentdetails: studentListDetails,
+        studentdetails: studentListDetails
     };
 }

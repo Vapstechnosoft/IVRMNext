@@ -63,7 +63,7 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                 // fmcC_ActiveFlag: row.fmcC_ActiveFlag
             };
 
-            const payloaddata = console.log(JSON.stringify(payload));
+            const _payloaddata = ;
 
             const response = await addOrUpdateMasterConcession(payload);
 

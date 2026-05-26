@@ -29,7 +29,7 @@ export default function StudentList({ data, searchParams, onRefresh }: StudentLi
     const toggleAll = (checked: boolean) => {
         const newSelected: Record<number, boolean> = {};
         if (checked) {
-            tableData.forEach((row, index) => {
+            tableData.forEach((_row, index) => {
                 newSelected[index] = true;
             });
         }

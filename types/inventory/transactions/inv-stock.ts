@@ -1,4 +1,3 @@
-
 export interface InvStock {
     invstO_Id: number;
     invmsT_Id: number;

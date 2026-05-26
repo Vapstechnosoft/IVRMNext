@@ -67,17 +67,6 @@ export default function StaffWiseReportContent() {
         const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tt_Break_list');
         const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tt_Break_list_all');
 
-        console.log('StaffWise Report Deep Analysis:', {
-            rootKeys: root ? Object.keys(root) : 'none',
-            counts: {
-                periods: periodList.length,
-                days: gridWeeks.length,
-                tt: timetable.length,
-                breaks: breakList.length,
-                allBreaks: allBreakList.length
-            }
-        });
-
         selectedStaff.forEach((staff: any) => {
             const hrmE_Id = staff.hrmE_Id || staff.HRME_Id;
             const staffName = staff.staffName || '';
@@ -113,8 +102,8 @@ export default function StaffWiseReportContent() {
             });
 
             // Find complementary names for header
-            const subNameEntry = subjectNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
-            const stfNameEntry = staffNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
+            const _subNameEntry = subjectNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
+            const _stfNameEntry = staffNames.find((s: any) => (s.hrmE_Id || s.HRME_Id || s.hrme_id) === hrmE_Id);
 
             // 2. Map TimeTable entries to the constructed Matrix
             gridWeeks.forEach((day: any) => {

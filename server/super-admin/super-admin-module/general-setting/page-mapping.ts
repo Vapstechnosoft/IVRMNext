@@ -1,10 +1,9 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { pageMappingSchema } from '@/schemas/super-admin/super-admin-module/general-setting/page-mapping';
-import { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
-import { revalidatePath } from 'next/cache';
 import { getSearchParamsUrl } from '@/lib/apiService';
+import { pageMappingSchema } from '@/schemas/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 
 export async function getModulesForDropdown() {
     const url = 'MasterSubMenuFacade/get_module_drop_down';
@@ -22,7 +21,7 @@ export async function getModulesForDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching modules", error);
+        console.error('Error fetching modules', error);
     }
 
     return { success: false, data: [] };
@@ -33,7 +32,7 @@ export async function getAvailablePages(searchParams: any) {
     // URL: MasterPageModuleMappingFacade/get_master_page_details_onchange_of_modulename
     // Accepts query params: ivrmM_Id, page, page_size
 
-    // We construct query from searchParams. 
+    // We construct query from searchParams.
     // searchParams usually comes from nuqs as object { page: 1, page_size: 10, ivrmM_Id: 123 }
 
     const query = getSearchParamsUrl(searchParams);
@@ -60,7 +59,7 @@ export async function getAvailablePages(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching available pages", error);
+        console.error('Error fetching available pages', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }
@@ -77,7 +76,7 @@ export async function getSavedMappings(searchParams: any) {
         const response = await api.get<any>('sadmin', url);
         if (response.success && response.data) {
             // Check if data is directly array or paginated object
-            const dataList = Array.isArray(response.data) ? response.data : (response.data.savedMappings || []);
+            const dataList = Array.isArray(response.data) ? response.data : response.data.savedMappings || [];
             return {
                 success: true,
                 data: dataList as ISavedMapping[],
@@ -87,7 +86,7 @@ export async function getSavedMappings(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching saved mappings", error);
+        console.error('Error fetching saved mappings', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }
@@ -101,8 +100,8 @@ export async function savePageMapping(data: any) {
     const payload = {
         ivrmmP_Id: 0,
         ivrmM_Id: data.ivrmM_Id,
-        ivrmmP_PageName: "string", // Placeholder as per request
-        ivrmM_ModuleName: "string", // Placeholder as per request
+        ivrmmP_PageName: 'string', // Placeholder as per request
+        ivrmM_ModuleName: 'string', // Placeholder as per request
         createdDate: new Date().toISOString(),
         savetmpdata: data.pages.map((p: any) => ({
             ivrmP_Id: p.ivrmP_Id
@@ -118,10 +117,8 @@ export async function savePageMapping(data: any) {
 }
 
 export async function deletePageMapping(id: number) {
-    console.log("deletePageMapping called with ID:", id);
     // Assuming delete endpoint on the same facade
     const response = await api.delete<any>('sadmin', `MasterPageModuleMappingFacade/delete_master_page/${id}`);
-    console.log("deletePageMapping response:", response);
     if (response.success) {
         return { success: true, message: 'Deleted successfully' };
     }
@@ -153,7 +150,7 @@ export async function getSavedPagesMappingList(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching saved pages list", error);
+        console.error('Error fetching saved pages list', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }

@@ -60,7 +60,7 @@ function AmountInputCell({
 
     return (
         <input
-            className={`w-[100px] rounded border border-gray-300 px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+            className={`w-[100px] rounded border border-gray-300 px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${disabled ? 'cursor-not-allowed bg-gray-100 text-gray-400' : 'bg-white'}`}
             placeholder={placeholder ?? '0.00'}
             value={local}
             onChange={handleChange}
@@ -109,7 +109,7 @@ export function buildSalaryEntryColumns(
                             if (checked) {
                                 onSelectionChange([...selectedIds, row.original.HRME_Id]);
                             } else {
-                                onSelectionChange(selectedIds.filter(id => id !== row.original.HRME_Id));
+                                onSelectionChange(selectedIds.filter((id) => id !== row.original.HRME_Id));
                             }
                         }}
                     />
@@ -128,7 +128,7 @@ export function buildSalaryEntryColumns(
 
                 // If manualPagination is true (Server-side), we offset by page * size.
                 // If false (Client-side), row.index already includes the global offset in TanStack.
-                const continuousIndex = isManual ? (page * size + row.index + 1) : (row.index + 1);
+                const continuousIndex = isManual ? page * size + row.index + 1 : row.index + 1;
 
                 return <span className='pl-2'>{continuousIndex}</span>;
             },
@@ -170,9 +170,7 @@ export function buildSalaryEntryColumns(
             columns: earningHeads.map((head) => ({
                 id: `earning_${head.headId}`,
                 header: () => (
-                    <div
-                        className='bg-green-600 text-center text-white'
-                        style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div className='bg-green-600 text-center text-white' style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
                         <div className='px-2 py-1 font-semibold text-xs'>{head.headName}</div>
                     </div>
                 ),
@@ -212,9 +210,7 @@ export function buildSalaryEntryColumns(
             columns: deductionHeads.map((head) => ({
                 id: `deduction_${head.headId}`,
                 header: () => (
-                    <div
-                        className='bg-red-600 text-center text-white'
-                        style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div className='bg-red-600 text-center text-white' style={{ borderLeft: '1px solid rgba(255,255,255,0.2)' }}>
                         <div className='px-2 py-1 font-semibold text-xs'>{head.headName}</div>
                     </div>
                 ),

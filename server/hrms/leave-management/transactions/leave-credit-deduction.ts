@@ -19,14 +19,13 @@ export async function addOrUpdateLeaveCreditDeduction(deduction: LeaveCreditDedu
             data: deduction,
             message: 'Leave credit deduction updated successfully'
         };
-    } else {
-        const newDeduction = db.create(deduction);
-        return {
-            success: true,
-            data: newDeduction,
-            message: 'Leave credit deduction created successfully'
-        };
     }
+    const newDeduction = db.create(deduction);
+    return {
+        success: true,
+        data: newDeduction,
+        message: 'Leave credit deduction created successfully'
+    };
 }
 export async function deleteLeaveCreditDeduction(id: number) {
     const db = createLocalCrud<LeaveCreditDeduction>('leaveCreditDeduction');

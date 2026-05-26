@@ -36,9 +36,9 @@ export default function PeriodStaffUpdate({
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
 
@@ -67,7 +67,7 @@ export default function PeriodStaffUpdate({
         control,
         reset
     } = form;
-    const asmaY_Id = watch('asmaY_Id');
+    const _asmaY_Id = watch('asmaY_Id');
     const ttrpS_SUbSelcFlag = watch('ttrpS_SUbSelcFlag');
 
     const { fields, append, remove, replace, update } = useFieldArray({

@@ -119,8 +119,6 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                     {errors.root?.message && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

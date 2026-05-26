@@ -111,8 +111,6 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
         };
 
-        console.log('Payload to be sent:', JSON.stringify(payload));
-
         try {
             const response = await addOrUpdatepaymentgatewaydetails(payload);
 

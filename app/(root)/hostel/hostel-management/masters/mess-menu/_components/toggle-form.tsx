@@ -2,7 +2,7 @@
 
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toggleMessMenuStatus } from '@/server/hostel/hostel-management/masters/menu';
-import { IMessMenu } from '@/types/hostel/hostel-management/masters';
+import type { IMessMenu } from '@/types/hostel/hostel-management/masters';
 import { toast } from 'sonner';
 
 interface ToggleMessMenuFormProps {
@@ -21,7 +21,7 @@ export const ToggleMessMenuForm = ({ rowData, onClose, onSuccess }: ToggleMessMe
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

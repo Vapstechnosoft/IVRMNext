@@ -1,8 +1,6 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
-import type { StudentLateInInitialData, StudentLateInData } from '@/types/visitors-management/transactions';
+import type { StudentLateInInitialData } from '@/types/visitors-management/transactions';
 
 export async function getStudentLateInData(): Promise<ApiResponse<StudentLateInInitialData>> {
     const mockData: StudentLateInInitialData = {
@@ -29,14 +27,14 @@ export async function getStudentLateInData(): Promise<ApiResponse<StudentLateInI
             }
         ]
     };
-     return {
+    return {
         success: true,
         message: 'Data fetched successfully',
-        data: mockData,
+        data: mockData
     };
 }
 
-export async function getClasses(asmaY_Id: number): Promise<ApiResponse<any>> {
+export async function getClasses(_asmaY_Id: number): Promise<ApiResponse<any>> {
     // Mock classes
     return {
         success: true,
@@ -51,7 +49,7 @@ export async function getClasses(asmaY_Id: number): Promise<ApiResponse<any>> {
     };
 }
 
-export async function getSections(asmaY_Id: number, asmcL_Id: number): Promise<ApiResponse<any>> {
+export async function getSections(_asmaY_Id: number, _asmcL_Id: number): Promise<ApiResponse<any>> {
     // Mock sections
     return {
         success: true,
@@ -65,7 +63,7 @@ export async function getSections(asmaY_Id: number, asmcL_Id: number): Promise<A
     };
 }
 
-export async function getStudents(asmaY_Id: number, asmcL_Id: number, asmS_Id: number): Promise<ApiResponse<any>> {
+export async function getStudents(_asmaY_Id: number, _asmcL_Id: number, _asmS_Id: number): Promise<ApiResponse<any>> {
     // Mock students
     return {
         success: true,
@@ -79,9 +77,8 @@ export async function getStudents(asmaY_Id: number, asmcL_Id: number, asmS_Id: n
     };
 }
 
-export async function saveStudentLateIn(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Student Late In:', data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+export async function saveStudentLateIn(_data: any): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,
         message: 'Record Saved Successfully!!!',
@@ -89,9 +86,8 @@ export async function saveStudentLateIn(data: any): Promise<ApiResponse<any>> {
     };
 }
 
-export async function deactivateStudentLateIn(alieoS_Id: number): Promise<ApiResponse<any>> {
-    console.log('Deactivating Student Late In ID:', alieoS_Id);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+export async function deactivateStudentLateIn(_alieoS_Id: number): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,
         message: 'Status Changed Successfully!!!',

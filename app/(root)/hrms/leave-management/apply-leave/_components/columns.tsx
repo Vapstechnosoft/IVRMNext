@@ -57,7 +57,7 @@ export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow>[] = [
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='font-medium text-center'>{continuousIndex}</div>;
+            return <div className='text-center font-medium'>{continuousIndex}</div>;
         }
     },
     {
@@ -134,8 +134,9 @@ export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): Colu
             };
             return (
                 <span
-                    className={`inline-flex rounded-full px-2 py-1 font-medium text-xs ${statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'
-                        }`}>
+                    className={`inline-flex rounded-full px-2 py-1 font-medium text-xs ${
+                        statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'
+                    }`}>
                     {status}
                 </span>
             );
@@ -177,7 +178,7 @@ export const createLeaveHistoryColumns = (onDelete?: (id: number) => void): Colu
                         variant='ghost'
                         size='sm'
                         onClick={() => onDelete?.(row.original.id)}
-                        className='h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'>
+                        className='h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive'>
                         <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>

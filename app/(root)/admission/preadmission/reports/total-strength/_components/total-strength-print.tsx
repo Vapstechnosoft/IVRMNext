@@ -22,7 +22,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
         };
 
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
+            <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
                 <style>
                     {`
                         @media print {
@@ -96,18 +96,18 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                             <td className='no-border'>
                                 {/* Header */}
                                 <div className='header-section'>
-                                    <div className='flex items-center justify-center gap-4 mb-4'>
-                                        {logoUrl && <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />}
-                                        <div className="text-center">
-                                            <h1 className="text-xl font-bold uppercase">{schoolName || 'Institution Name'}</h1>
-                                            <p className="text-xs">{schoolAddress || 'Institution Address'}</p>
-                                            <p className="text-xs">Ph: {schoolPhone || 'N/A'}</p>
+                                    <div className='mb-4 flex items-center justify-center gap-4'>
+                                        {logoUrl && <img src={logoUrl} alt='Logo' className='h-16 w-16 object-contain' />}
+                                        <div className='text-center'>
+                                            <h1 className='font-bold text-xl uppercase'>{schoolName || 'Institution Name'}</h1>
+                                            <p className='text-xs'>{schoolAddress || 'Institution Address'}</p>
+                                            <p className='text-xs'>Ph: {schoolPhone || 'N/A'}</p>
                                         </div>
                                     </div>
-                                    <h2 className='text-md font-bold border-y border-black inline-block px-4 py-1 uppercase'>
+                                    <h2 className='inline-block border-black border-y px-4 py-1 font-bold text-md uppercase'>
                                         Total Strength Report
                                     </h2>
-                                    <p className='text-xs mt-2'>Date: {currentDate}</p>
+                                    <p className='mt-2 text-xs'>Date: {currentDate}</p>
                                 </div>
                             </td>
                         </tr>
@@ -124,7 +124,7 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                             <th className='text-left'>Section</th>
                                             <th>Boys</th>
                                             <th>Girls</th>
-                                            <th className='text-right w-24'>Total</th>
+                                            <th className='w-24 text-right'>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -146,14 +146,16 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                                                         <td colSpan={3} className='text-right'>
                                                             Total for {sections[0]?.classname || ''}
                                                         </td>
-                                                        <td colSpan={2}></td>
+                                                        <td colSpan={2} />
                                                         <td className='text-right'>{calculateClassTotal(Number(rowNumber))}</td>
                                                     </tr>
                                                 </Fragment>
                                             ))}
                                         <tr className='bg-gray-200 font-bold uppercase'>
-                                            <td colSpan={3} className='text-right'>Grand Total</td>
-                                            <td colSpan={2}></td>
+                                            <td colSpan={3} className='text-right'>
+                                                Grand Total
+                                            </td>
+                                            <td colSpan={2} />
                                             <td className='text-right'>{totalGrand}</td>
                                         </tr>
                                     </tbody>

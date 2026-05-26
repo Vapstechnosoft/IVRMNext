@@ -23,7 +23,6 @@ export default function LanConstraintsUpdate({ initialData, selectedRow, onSucce
 
             try {
                 const response = await getLabConstraintsEditDetails(selectedRow.ttlaB_Id);
-                console.log('Raw Edit API Response:', response);
                 const responseData = response?.data || response;
 
                 let masterArray: any[] = [];

@@ -45,7 +45,7 @@ export default function ToggleMasterProgramForm({ rowData, onClose, onSuccess }:
 
             const response = await deactivateMasterProgram(payload);
 
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Program ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();

@@ -14,7 +14,7 @@ export default function AlumniFriendRequestAcceptPage() {
     const [totalItems, setTotalItems] = useState(0);
     const [apiParams, setApiParams] = useState<any>({ page: 1, page_size: 10 });
 
-    const loadData = useCallback(async (params = apiParams) => {
+    const loadData = useCallback(async (_params = apiParams) => {
         setIsLoading(true);
         try {
             const res = await getAlumniFriendRequestReceivedData();
@@ -31,7 +31,7 @@ export default function AlumniFriendRequestAcceptPage() {
                     ALMST_Id: item.student_id || item.almsT_Id || item.ALMST_Id,
                     // biome-ignore lint/style/useTemplate: <explanation>
                     studentname:
-                        item.studentname || (item.ALMST_FirstName ? item.ALMST_FirstName + ' ' + (item.ALMST_LastName || '') : 'Unknown'),
+                        item.studentname || (item.ALMST_FirstName ? `${item.ALMST_FirstName} ${item.ALMST_LastName || ''}` : 'Unknown'),
                     ASMAY_Year: item.asmay_year || item.asmaY_Year || item.ASMAY_Year,
                     ALSFRND_RequestDate: item.alsfrnd_requestdate || item.alsfrnD_RequestDate || item.ALSFRND_RequestDate,
                     ALSFRND_AcceptedDate: item.alsfrnd_accepteddate || item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate,

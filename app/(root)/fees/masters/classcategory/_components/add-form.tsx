@@ -48,8 +48,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                 fmcC_ActiveFlag: true
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateMasterClassCategory(payload);
 

@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeDetailsReportFilterRequest,
     EmployeeDetailsReportFilterResponse,
@@ -42,7 +42,6 @@ export async function getEmployeeDetailsReportOnload(
 export async function filterEmployeeDetailsReport(
     requestBody: EmployeeDetailsReportFilterRequest
 ): Promise<ApiResponse<EmployeeDetailsReportFilterResponse>> {
-    console.log('📥 [EMPLOYEE DETAILS REPORT - BACKEND] Request payload:', JSON.stringify(requestBody, null, 2));
     const url = '/api/EmployeeDetailsReportFacade/FilterEmployeeData';
     // Prepare request body based on FormatType
     let apiRequestBody: any;
@@ -73,23 +72,13 @@ export async function filterEmployeeDetailsReport(
             Working: requestBody.Working ?? false
         };
     }
-    console.log('📤 [EMPLOYEE DETAILS REPORT - BACKEND] Request body prepared:', JSON.stringify(apiRequestBody, null, 2));
     try {
-        const response = await api.post<EmployeeDetailsReportFilterResponse>(
-            'hrms',
-            url,
-            apiRequestBody
-        );
+        const response = await api.post<EmployeeDetailsReportFilterResponse>('hrms', url, apiRequestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
-            const responseData = response.data as unknown as EmployeeDetailsReportFilterResponse;
-            console.log('📊 [EMPLOYEE DETAILS REPORT - BACKEND] Response data summary:', {
-                hasEmployeedropdown: !!responseData?.employeedropdown,
-                employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
-                retrunMsg: responseData?.retrunMsg
-            });
+            const _responseData = response.data as unknown as EmployeeDetailsReportFilterResponse;
             return response as ApiResponse<EmployeeDetailsReportFilterResponse>;
         }
         // Wrap raw response data

@@ -82,7 +82,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const [heads, setHeads] = useState<HeadRow[]>([]);
     const [saving, setSaving] = useState(false);
     const [selectedStudentAmstId, setSelectedStudentAmstId] = useState<number>(0);
-    const [loadingTermDetails, setLoadingTermDetails] = useState(false);
+    const [_loadingTermDetails, _setLoadingTermDetails] = useState(false);
 
     const searchParams = useSearchParams();
     const academicYearId = watch('academicYearId');
@@ -235,7 +235,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const selectedStudent = students.find((s) => s.checked);
     const selectedAmsT_Id = selectedStudent?.amst_Id || 0;
 
-    const shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
+    const _shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
 
     const selectedTermIds = useMemo(() => {
         return (termIds || []).map(Number).filter(Boolean);
@@ -245,7 +245,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     useEffect(() => {
         // CRITICAL: Skip if in edit mode - heads are already loaded from editResponse
         if (isEditFormOpen) {
-            console.log('Skipping head loading - edit mode active');
             return;
         }
 
@@ -325,11 +324,11 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, type, concessionValue: 0 } : item)));
     }, []);
 
-    const updateHeadConcession = useCallback((index: number, value: number) => {
+    const _updateHeadConcession = useCallback((index: number, value: number) => {
         setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, concessionValue: value } : item)));
     }, []);
 
-    const updateHeadRemarks = useCallback((index: number, remarks: string) => {
+    const _updateHeadRemarks = useCallback((index: number, remarks: string) => {
         setHeads((prev) => prev.map((item, idx) => (idx === index ? { ...item, remarks } : item)));
     }, []);
 
@@ -509,11 +508,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     useEffect(() => {
         if (!isEditFormOpen || !editResponse) return;
 
-        console.log('editResponse', editResponse);
-
         const rows = normalizeArray(editResponse);
-
-        console.log('rows', rows);
         if (rows.length === 0) return;
 
         const firstRow = rows[0];
@@ -587,8 +582,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 checked: true
             };
         });
-
-        console.log('Mapped heads for edit:', mappedHeads);
         setHeads(mappedHeads);
     }, [isEditFormOpen, editResponse, setValue, editAsmaY]);
 
@@ -628,8 +621,6 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                 payload.FSC_Id = Number(selectedRow?.FSC_Id ?? selectedRow?.fsc_Id ?? selectedRow?.fsC_Id ?? 0);
                 payload.FSCI_ID = Number(selectedRow?.FSCI_ID ?? selectedRow?.fsci_Id ?? selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? 0);
             }
-
-            console.log('consession payload:', JSON.stringify(payload));
 
             const response = await saveFeeHead(payload);
 

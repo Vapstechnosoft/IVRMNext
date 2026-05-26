@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     GetEmployeeLeaveDetailsResponse,
     GetEmployeeLeaveStatusDetailsResponse,
@@ -12,7 +12,6 @@ import type {
  */
 export async function getEmployeeLeaveDetails(): Promise<ApiResponse<GetEmployeeLeaveDetailsResponse>> {
     const url = '/api/OnlineLeaveApplication/get_employee_leave_details';
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
@@ -34,7 +33,6 @@ export async function getEmployeeLeaveDetails(): Promise<ApiResponse<GetEmployee
  */
 export async function getEmployeeLeaveStatusDetails(): Promise<ApiResponse<GetEmployeeLeaveStatusDetailsResponse>> {
     const url = '/api/OnlineLeaveApplication/get_employee_leave_status_details';
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
@@ -56,7 +54,6 @@ export async function getEmployeeLeaveStatusDetails(): Promise<ApiResponse<GetEm
  */
 export async function saveOnlineLeaveApplication(data: SaveOnlineLeaveApplicationRequest): Promise<ApiResponse<any>> {
     const url = '/api/OnlineLeaveApplication/save_online_leave_application';
-    console.log('🟠 [SERVER] POST Request URL:', url);
     try {
         const response = await api.post<any>('hmslms', url, data);
         const res = response as any;
@@ -78,7 +75,6 @@ export async function saveOnlineLeaveApplication(data: SaveOnlineLeaveApplicatio
  */
 export async function deleteEmployeeLeaveById(hrelapId: number): Promise<ApiResponse<any>> {
     const url = `/api/OnlineLeaveApplication/delete_employee_leave_by_id/${hrelapId}`;
-    console.log('🔴 [SERVER] DELETE Request URL:', url);
     try {
         const response = await api.delete<any>('hmslms', url);
         const res = response as any;
@@ -100,7 +96,6 @@ export async function deleteEmployeeLeaveById(hrelapId: number): Promise<ApiResp
  */
 export async function saveLeaveRequestDocument(hrmeId: number, formData: FormData): Promise<ApiResponse<string>> {
     const url = `/api/OnlineLeaveApplication/save_leave_request_document/${hrmeId}`;
-    console.log('🟠 [SERVER] POST Request URL:', url);
     try {
         const response = await api.postMultipart<any>('hmslms', url, formData);
         const res = response as any;

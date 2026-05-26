@@ -44,8 +44,8 @@ export function PrintReceiptButton({ htmlContent }: PrintReceiptButtonProps) {
     };
 
     return (
-        <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700 text-white w-24">
-            <Printer className="mr-2 h-4 w-4" />
+        <Button onClick={handlePrint} className='w-24 bg-blue-600 text-white hover:bg-blue-700'>
+            <Printer className='mr-2 h-4 w-4' />
             Print
         </Button>
     );

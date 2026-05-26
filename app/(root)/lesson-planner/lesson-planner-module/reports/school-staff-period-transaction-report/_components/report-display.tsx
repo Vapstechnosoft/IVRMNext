@@ -82,32 +82,27 @@ export default function ReportDisplay({ reportData, employeeData, filterDetails 
                     details
                 };
             });
-        } else {
-            // Fallback for flat data structure - group by isms_id from reportData
-            const groupedMap = new Map<
-                number,
-                { isms_id: number; staffname: string; subjectname: string; details: ITransactionReportDetail[] }
-            >();
-            reportData.forEach((item) => {
-                if (!groupedMap.has(item.isms_id)) {
-                    groupedMap.set(item.isms_id, {
-                        isms_id: item.isms_id,
-                        staffname: item.staffname,
-                        subjectname: (item as any).subjectname || '',
-                        details: []
-                    });
-                }
-                groupedMap.get(item.isms_id)!.details.push(item);
-            });
-            return Array.from(groupedMap.values());
         }
+        // Fallback for flat data structure - group by isms_id from reportData
+        const groupedMap = new Map<
+            number,
+            { isms_id: number; staffname: string; subjectname: string; details: ITransactionReportDetail[] }
+        >();
+        reportData.forEach((item) => {
+            if (!groupedMap.has(item.isms_id)) {
+                groupedMap.set(item.isms_id, {
+                    isms_id: item.isms_id,
+                    staffname: item.staffname,
+                    subjectname: (item as any).subjectname || '',
+                    details: []
+                });
+            }
+            groupedMap.get(item.isms_id)!.details.push(item);
+        });
+        return Array.from(groupedMap.values());
     }, [reportData, employeeData]);
 
     if (!groupedReports.length && !reportData.length) return null;
-
-    // Debug logs
-    console.log('Transaction Report - groupedReports count:', groupedReports.length);
-    console.log('Transaction Report - reportData count:', reportData.length);
 
     return (
         <div className='space-y-4'>

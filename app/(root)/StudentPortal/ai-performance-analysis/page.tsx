@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { FileText, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { read, utils } from 'xlsx';
-import { cn } from '@/lib/utils';
 import { ClassAnalysisView } from './_components/class-analysis-view';
 import { FileUploader } from './_components/file-uploader';
 import { StudentAnalysisView } from './_components/student-analysis-view';
@@ -86,7 +86,7 @@ export default function AiPerformanceAnalysisPage() {
             }
         } catch (error: any) {
             console.error(error);
-            toast.error('Error processing file: ' + error.message);
+            toast.error(`Error processing file: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -320,14 +320,14 @@ export default function AiPerformanceAnalysisPage() {
                 <Separator />
 
                 {/* Introduction Section for Students/Parents */}
-                <div className='bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-1.5'>
-                    <h2 className='text-base font-semibold text-primary flex items-center gap-2'>
-                        <span className='bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]'>?</span>
+                <div className='space-y-1.5 rounded-lg border border-primary/10 bg-primary/5 p-3'>
+                    <h2 className='flex items-center gap-2 font-semibold text-base text-primary'>
+                        <span className='flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white'>?</span>
                         How to use this tool?
                     </h2>
                     <p className='text-muted-foreground text-xs leading-relaxed'>
-                        Get detailed insights into your academic performance. Upload your report card to see strengths,
-                        areas for improvement, and automated analysis. We support PDF reports and Excel/CSV files.
+                        Get detailed insights into your academic performance. Upload your report card to see strengths, areas for
+                        improvement, and automated analysis. We support PDF reports and Excel/CSV files.
                     </p>
                 </div>
 
@@ -337,34 +337,36 @@ export default function AiPerformanceAnalysisPage() {
                     description='Upload your personal report card (PDF/Excel/CSV)'
                     defaultOpen={!allStudents.length}
                     contentClassName='pt-1'>
-                    <div className='px-3 pb-3 pt-0 space-y-3'>
+                    <div className='space-y-3 px-3 pt-0 pb-3'>
                         {/* Sample Format Info */}
                         {!allStudents.length && (
-                            <div className='border border-slate-200 rounded-xl p-3 bg-slate-50/30 space-y-2'>
-                                <h4 className='font-medium text-[11px] flex items-center gap-2 text-slate-700'>
+                            <div className='space-y-2 rounded-xl border border-slate-200 bg-slate-50/30 p-3'>
+                                <h4 className='flex items-center gap-2 font-medium text-[11px] text-slate-700'>
                                     💡 Sample of correct file format:
                                 </h4>
                                 <div className='overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm'>
-                                    <table className='min-w-full text-[10px] border-collapse'>
+                                    <table className='min-w-full border-collapse text-[10px]'>
                                         <thead>
                                             <tr className='bg-slate-50/80'>
-                                                <th className='border-b border-r p-1.5 text-left font-bold text-slate-950 w-[150px]'>Student Name</th>
-                                                <th className='border-b border-r p-1.5 text-center font-bold text-slate-950'>English</th>
-                                                <th className='border-b border-r p-1.5 text-center font-bold text-slate-950'>Hindi</th>
-                                                <th className='border-b border-r p-1.5 text-center font-bold text-slate-950'>Maths</th>
+                                                <th className='w-[150px] border-r border-b p-1.5 text-left font-bold text-slate-950'>
+                                                    Student Name
+                                                </th>
+                                                <th className='border-r border-b p-1.5 text-center font-bold text-slate-950'>English</th>
+                                                <th className='border-r border-b p-1.5 text-center font-bold text-slate-950'>Hindi</th>
+                                                <th className='border-r border-b p-1.5 text-center font-bold text-slate-950'>Maths</th>
                                                 <th className='border-b p-1.5 text-center font-bold text-slate-950'>Science</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr className='hover:bg-slate-50/50 transition-colors'>
-                                                <td className='border-b border-r p-1.5 text-slate-700 font-medium'>Abhishek Kumar</td>
-                                                <td className='border-b border-r p-1.5 text-center text-slate-600'>85</td>
-                                                <td className='border-b border-r p-1.5 text-center text-slate-600'>78</td>
-                                                <td className='border-b border-r p-1.5 text-center text-slate-600'>92</td>
+                                            <tr className='transition-colors hover:bg-slate-50/50'>
+                                                <td className='border-r border-b p-1.5 font-medium text-slate-700'>Abhishek Kumar</td>
+                                                <td className='border-r border-b p-1.5 text-center text-slate-600'>85</td>
+                                                <td className='border-r border-b p-1.5 text-center text-slate-600'>78</td>
+                                                <td className='border-r border-b p-1.5 text-center text-slate-600'>92</td>
                                                 <td className='border-b p-1.5 text-center text-slate-600'>88</td>
                                             </tr>
                                             <tr>
-                                                <td className='border-r p-1.5 text-slate-700 font-medium'>Sneha Reddy</td>
+                                                <td className='border-r p-1.5 font-medium text-slate-700'>Sneha Reddy</td>
                                                 <td className='border-r p-1.5 text-center text-slate-600'>72</td>
                                                 <td className='border-r p-1.5 text-center text-slate-600'>89</td>
                                                 <td className='border-r p-1.5 text-center text-slate-600'>65</td>
@@ -373,7 +375,7 @@ export default function AiPerformanceAnalysisPage() {
                                         </tbody>
                                     </table>
                                 </div>
-                                <p className='text-[10px] text-muted-foreground italic pl-1'>
+                                <p className='pl-1 text-[10px] text-muted-foreground italic'>
                                     Note: File must contain a "Student Name" column.
                                 </p>
                             </div>
@@ -384,9 +386,9 @@ export default function AiPerformanceAnalysisPage() {
                 </CollapsibleSection>
 
                 {allStudents.length > 0 && (
-                    <div className='space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500'>
-                        <div className='bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 rounded-lg flex items-center justify-center gap-2 animate-bounce'>
-                            <span className='text-green-600 dark:text-green-400 font-medium text-sm'>
+                    <div className='fade-in slide-in-from-bottom-4 animate-in space-y-6 duration-500'>
+                        <div className='flex animate-bounce items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950/20'>
+                            <span className='font-medium text-green-600 text-sm dark:text-green-400'>
                                 ✅ File uploaded successfully! Scroll down to see the data and start analysis.
                             </span>
                         </div>
@@ -400,25 +402,24 @@ export default function AiPerformanceAnalysisPage() {
                                     <p className='text-muted-foreground text-sm'>
                                         {allStudents.length === 1
                                             ? `Found report for ${allStudents[0].name}`
-                                            : `${allStudents.length} students found in file`
-                                        }
+                                            : `${allStudents.length} students found in file`}
                                     </p>
                                 </div>
                             </div>
 
                             {allStudents.length > 1 ? (
-                                <div className='border rounded-xl overflow-hidden bg-card shadow-sm'>
+                                <div className='overflow-hidden rounded-xl border bg-card shadow-sm'>
                                     <StudentTable students={allStudents} />
                                 </div>
                             ) : (
                                 <div className='space-y-4'>
-                                    <div className='bg-white dark:bg-slate-900 border rounded-2xl p-6 shadow-sm flex items-center gap-6'>
-                                        <div className='h-16 w-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400'>
+                                    <div className='flex items-center gap-6 rounded-2xl border bg-white p-6 shadow-sm dark:bg-slate-900'>
+                                        <div className='flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'>
                                             <FileText className='h-8 w-8' />
                                         </div>
                                         <div className='flex-1'>
                                             <h4 className='font-bold text-xl'>{allStudents[0].name}</h4>
-                                            <div className='flex gap-4 mt-1 text-sm text-muted-foreground'>
+                                            <div className='mt-1 flex gap-4 text-muted-foreground text-sm'>
                                                 <span>📊 {allStudents[0].subjects.length} Subjects</span>
                                                 <span>📈 Average Score: {allStudents[0].averageScore}%</span>
                                             </div>
@@ -426,25 +427,29 @@ export default function AiPerformanceAnalysisPage() {
                                     </div>
 
                                     {/* Subject-Wise Details Table */}
-                                    <div className='border rounded-xl overflow-hidden bg-white shadow-sm'>
-                                        <div className='bg-slate-50 border-b px-4 py-2 flex items-center justify-between'>
-                                            <span className='text-xs font-bold text-slate-700 uppercase'>Subject-Wise Extracted Marks</span>
-                                            <span className='text-[10px] text-muted-foreground'>Total Score: {allStudents[0].totalScore}</span>
+                                    <div className='overflow-hidden rounded-xl border bg-white shadow-sm'>
+                                        <div className='flex items-center justify-between border-b bg-slate-50 px-4 py-2'>
+                                            <span className='font-bold text-slate-700 text-xs uppercase'>Subject-Wise Extracted Marks</span>
+                                            <span className='text-[10px] text-muted-foreground'>
+                                                Total Score: {allStudents[0].totalScore}
+                                            </span>
                                         </div>
                                         <div className='overflow-x-auto'>
                                             <table className='min-w-full text-sm'>
                                                 <thead>
-                                                    <tr className='bg-slate-50/50 text-slate-500 text-[11px] uppercase'>
-                                                        <th className='px-4 py-2 text-left font-semibold border-r'>Subject</th>
+                                                    <tr className='bg-slate-50/50 text-[11px] text-slate-500 uppercase'>
+                                                        <th className='border-r px-4 py-2 text-left font-semibold'>Subject</th>
                                                         <th className='px-4 py-2 text-center font-semibold'>Marks Obtainted</th>
                                                         <th className='px-4 py-2 text-center font-semibold'>Percentage</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {allStudents[0].subjects.map((sub, idx) => (
-                                                        <tr key={idx} className='border-t hover:bg-slate-50/30 transition-colors'>
-                                                            <td className='px-4 py-2 font-medium text-slate-700 border-r'>{sub.subject}</td>
-                                                            <td className='px-4 py-2 text-center font-semibold text-purple-600'>{sub.score}</td>
+                                                        <tr key={idx} className='border-t transition-colors hover:bg-slate-50/30'>
+                                                            <td className='border-r px-4 py-2 font-medium text-slate-700'>{sub.subject}</td>
+                                                            <td className='px-4 py-2 text-center font-semibold text-purple-600'>
+                                                                {sub.score}
+                                                            </td>
                                                             <td className='px-4 py-2 text-center text-slate-500'>{sub.percentage}%</td>
                                                         </tr>
                                                     ))}
@@ -458,7 +463,11 @@ export default function AiPerformanceAnalysisPage() {
                             <div className='flex justify-end border-t pt-4'>
                                 {/* Only show Class Analysis if more than 1 student exists */}
                                 {allStudents.length > 1 && (
-                                    <Button onClick={handleClassAnalysis} disabled={isLoading} size='lg' className='w-full sm:w-auto shadow-lg'>
+                                    <Button
+                                        onClick={handleClassAnalysis}
+                                        disabled={isLoading}
+                                        size='lg'
+                                        className='w-full shadow-lg sm:w-auto'>
                                         {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                         Analyze Class Performance
                                     </Button>
@@ -466,7 +475,11 @@ export default function AiPerformanceAnalysisPage() {
 
                                 {/* If single student, show 'Analyze My Performance' button */}
                                 {allStudents.length === 1 && !studentAnalysis && (
-                                    <Button onClick={handleStudentAnalysis} disabled={isAnalyzingStudent} size='lg' className='w-full sm:w-auto shadow-lg bg-purple-600 hover:bg-purple-700'>
+                                    <Button
+                                        onClick={handleStudentAnalysis}
+                                        disabled={isAnalyzingStudent}
+                                        size='lg'
+                                        className='w-full bg-purple-600 shadow-lg hover:bg-purple-700 sm:w-auto'>
                                         {isAnalyzingStudent ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                         Analyze My Performance
                                     </Button>
@@ -492,7 +505,9 @@ export default function AiPerformanceAnalysisPage() {
                 {allStudents.length > 0 && (
                     <CollapsibleSection
                         title={allStudents.length === 1 ? '🎓 Detailed Analysis' : '3. Individual Student Analysis'}
-                        description={allStudents.length === 1 ? 'Deep dive into performance' : 'Deep dive into specific student performance'}
+                        description={
+                            allStudents.length === 1 ? 'Deep dive into performance' : 'Deep dive into specific student performance'
+                        }
                         defaultOpen={true}>
                         <div className='space-y-4 p-4'>
                             {/* Only show select if > 1 student */}

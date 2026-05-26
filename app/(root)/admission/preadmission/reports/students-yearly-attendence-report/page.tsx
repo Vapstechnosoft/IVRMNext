@@ -20,12 +20,11 @@ import React, { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
-import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { GetStudentYearlyAttendance } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { useReactToPrint } from 'react-to-print';
+import * as XLSX from 'xlsx';
 import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 import { StudentYearlyReportPrint } from './_components/student-yearly-report-print';
-import * as XLSX from 'xlsx';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -136,8 +135,6 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
 
         const attendanceData = response.data as any;
-        console.log('API Response:', response);
-        console.log('Attendance Data:', attendanceData);
 
         const realData = attendanceData.data || attendanceData;
         const studentList = realData.studentAttendanceList || realData.StudentAttendanceList;
@@ -213,7 +210,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         return createStudentsYearlyAttendenceReportColumns(monthList);
     }, [response?.data]);
 
-    const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
+    const _handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
         setSelectedStudents(selectedRows);
         // If manually selecting rows, disable "all records selected" mode
         if (isAllRecordsSelected && selectedRows.length !== transformedData.length) {
@@ -221,7 +218,7 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
     };
 
-    const handleSelectAllRecords = async () => {
+    const _handleSelectAllRecords = async () => {
         try {
             toast.loading('Fetching all records...', { id: 'select-all-fetch' });
 
@@ -291,14 +288,14 @@ export default function StudentsYearlyAttendenceReport(props: {
         }
     };
 
-    const handleDeselectAll = () => {
+    const _handleDeselectAll = () => {
         setSelectedStudents([]);
         setIsAllRecordsSelected(false);
         handleResetSelection();
         toast.info('All selections cleared');
     };
 
-    const handleReset = () => {
+    const _handleReset = () => {
         setAcademicYearId(0);
         setClassId(0);
         setSectionId(undefined);
@@ -348,7 +345,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                 });
 
                 row[`Total (${totalWorkingDays})`] = Number(student.totalPresent).toFixed(2);
-                row['Percentage'] = student.percentage;
+                row.Percentage = student.percentage;
 
                 return row;
             });

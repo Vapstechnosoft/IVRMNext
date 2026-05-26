@@ -567,14 +567,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         message: 'Duplicate Registration Number'
                     });
                     return true;
-                } else {
-                    clearErrors('amsT_RegistrationNo');
-                    return false;
                 }
-            } else {
                 clearErrors('amsT_RegistrationNo');
                 return false;
             }
+            clearErrors('amsT_RegistrationNo');
+            return false;
         } catch (error) {
             console.error('Error checking duplicate registration number:', error);
             return false;
@@ -618,14 +616,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         message: 'Duplicate Admission Number'
                     });
                     return true;
-                } else {
-                    clearErrors('amsT_AdmissionNo');
-                    return false;
                 }
-            } else {
                 clearErrors('amsT_AdmissionNo');
                 return false;
             }
+            clearErrors('amsT_AdmissionNo');
+            return false;
         } catch (error) {
             console.error('Error checking duplicate admission number:', error);
             return false;
@@ -682,7 +678,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     throw new Error('Validation failed: missing ECS details');
                 }
             }
-            const amsTIdToUse = Number(formData.amsT_Id ?? getValues('amsT_Id' as any) ?? 0);
+            const _amsTIdToUse = Number(formData.amsT_Id ?? getValues('amsT_Id' as any) ?? 0);
             // Build payload expected by server for first tab
             const payload = {
                 amsT_Id: savedAmsTId ?? 0,

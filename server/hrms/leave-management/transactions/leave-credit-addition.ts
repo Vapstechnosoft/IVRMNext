@@ -19,14 +19,13 @@ export async function addOrUpdateLeaveCreditAddition(addition: LeaveCreditAdditi
             data: addition,
             message: 'Leave credit addition updated successfully'
         };
-    } else {
-        const newAddition = db.create(addition);
-        return {
-            success: true,
-            data: newAddition,
-            message: 'Leave credit addition created successfully'
-        };
     }
+    const newAddition = db.create(addition);
+    return {
+        success: true,
+        data: newAddition,
+        message: 'Leave credit addition created successfully'
+    };
 }
 export async function deleteLeaveCreditAddition(id: number) {
     const db = createLocalCrud<LeaveCreditAddition>('leaveCreditAddition');

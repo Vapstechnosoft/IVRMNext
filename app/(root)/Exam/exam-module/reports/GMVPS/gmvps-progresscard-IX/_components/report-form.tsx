@@ -108,17 +108,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                        (
-                            s
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                            amsT_FirstName?: string;
-                            amsT_MiddleName?: string;
-                            amsT_LastName?: string;
-                        } => !!s?.amsT_Id
-                    )
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
                 const mappedStudents = valid.map((s) => ({
@@ -164,17 +164,16 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 asmcL_Id: Number(data.ASMCL_Id),
                 asmS_Id: Number(data.ASMS_Id),
                 empsG_PercentValue: 0,
-                flag: "2",
+                flag: '2',
                 emE_Id: 0,
-                reporttype: "supverage",
-                temp_AmstIds: data.selectedStudents.map(id => ({ amsT_Id: Number(id) })),
-                empG_GroupName: ""
+                reporttype: 'supverage',
+                temp_AmstIds: data.selectedStudents.map((id) => ({ amsT_Id: Number(id) })),
+                empG_GroupName: ''
             };
 
             const response = await getGmvpsProgressCardIXReport(payload);
 
             if (response?.success && response.data) {
-                console.log('response.data', response.data);
                 // Add academic year to response data for display
                 const asmaY_Year = academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
                 onReportGenerated({ ...response.data, asmaY_Year }, data);
@@ -347,7 +346,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     )}
                                 />
                             </div>
-
                         </div>
 
                         {/* Right Column: Student Multi-select */}

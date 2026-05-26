@@ -38,8 +38,6 @@ export default function AttendanceDetailsPage() {
                 //AMST_Id: 123
             });
 
-            console.log('API Response:', response);
-
             const result = response as unknown as IApiResponse<IAttendanceData[]>;
 
             if (result?.data && result.data.length > 0) {

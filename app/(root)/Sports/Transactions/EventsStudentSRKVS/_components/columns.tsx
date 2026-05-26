@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { ColumnDef, Row } from '@tanstack/react-table';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { IEventsStudentSRKVSData, IEventsStudentSRKVSViewDetails } from '@/types/sports/events-student-srkvs';
-import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
-import { ViewDetailsModal } from './view-details-modal';
-import { toast } from 'sonner';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useEventsStudentSRKVS } from '@/hooks/sports/useEventsStudentSRKVS';
+import type { IEventsStudentSRKVSData, IEventsStudentSRKVSViewDetails } from '@/types/sports/events-student-srkvs';
+import type { ColumnDef, Row } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { ViewDetailsModal } from './view-details-modal';
 
 export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
     {
@@ -23,56 +23,56 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
         enableHiding: false
     },
     {
-        accessorKey: "eventName",
-        header: "Event",
+        accessorKey: 'eventName',
+        header: 'Event'
     },
     {
-        accessorKey: "sportsName",
-        header: "Sports Name",
+        accessorKey: 'sportsName',
+        header: 'Sports Name'
     },
     {
-        accessorKey: "spccmsccG_SportsCCGroupName",
-        header: "Group Name",
+        accessorKey: 'spccmsccG_SportsCCGroupName',
+        header: 'Group Name'
     },
     {
-        accessorKey: "categoryName",
-        header: "Category",
+        accessorKey: 'categoryName',
+        header: 'Category'
     },
     {
-        accessorKey: "compitionLevel",
-        header: "Level",
+        accessorKey: 'compitionLevel',
+        header: 'Level'
     },
     {
-        accessorKey: "spccmeV_EventVenue",
-        header: "Venue",
+        accessorKey: 'spccmeV_EventVenue',
+        header: 'Venue'
     },
     {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: 'uomName',
+        header: 'UOM'
     },
     {
-        accessorKey: "asmaY_Year",
-        header: "Academic Year",
+        accessorKey: 'asmaY_Year',
+        header: 'Academic Year'
     },
     {
-        accessorKey: "startDate",
-        header: "Start Date",
+        accessorKey: 'startDate',
+        header: 'Start Date',
         cell: ({ row }) => {
-            const date = row.getValue("startDate") as string;
+            const date = row.getValue('startDate') as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
     },
     {
-        accessorKey: "endDate",
-        header: "End Date",
+        accessorKey: 'endDate',
+        header: 'End Date',
         cell: ({ row }) => {
-            const date = row.getValue("endDate") as string;
+            const date = row.getValue('endDate') as string;
             return date ? new Date(date).toLocaleDateString() : '';
         }
     },
     {
-        id: "actions",
-        header: "Actions",
+        id: 'actions',
+        header: 'Actions',
         cell: ActionsCell
     }
 ];
@@ -89,7 +89,7 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
         try {
             // Check if spccesT_Id exists
             if (!record.spccesT_Id) {
-                toast.error("Record ID missing");
+                toast.error('Record ID missing');
                 return;
             }
 
@@ -98,25 +98,24 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
                 setViewData(response.data);
                 setIsViewOpen(true);
             } else {
-                toast.error(response.message || "Failed to fetch details");
+                toast.error(response.message || 'Failed to fetch details');
             }
         } catch (error) {
-            console.error("View error", error);
-            toast.error("Error fetching details");
+            console.error('View error', error);
+            toast.error('Error fetching details');
         }
     };
 
     return (
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
             <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={handleView}
                 disabled={fetchViewDetails.isPending}
-                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-                <Eye className="h-4 w-4" />
-                <span className="sr-only">View</span>
+                className='h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700'>
+                <Eye className='h-4 w-4' />
+                <span className='sr-only'>View</span>
             </Button>
             <ActionButtons
                 rowData={record}
@@ -133,13 +132,7 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
                 }}
                 toggleConditionKey='spccesT_ActiveFlag'
             />
-            {isViewOpen && (
-                <ViewDetailsModal
-                    isOpen={isViewOpen}
-                    onClose={() => setIsViewOpen(false)}
-                    data={viewData}
-                />
-            )}
+            {isViewOpen && <ViewDetailsModal isOpen={isViewOpen} onClose={() => setIsViewOpen(false)} data={viewData} />}
         </div>
     );
 }

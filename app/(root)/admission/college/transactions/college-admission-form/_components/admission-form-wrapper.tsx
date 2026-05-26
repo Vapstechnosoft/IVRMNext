@@ -1,20 +1,19 @@
 'use client';
 // Force re-scan of imports
 
+import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Save } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { StudentDetailsTab } from './tabs/student-details-tab';
-import { AddressTab } from './tabs/address-tab';
-import { ParentsTab } from './tabs/parents-tab';
-import { OthersTab } from './tabs/others-tab';
 import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Save } from 'lucide-react';
+import * as z from 'zod';
+import { AddressTab } from './tabs/address-tab';
+import { OthersTab } from './tabs/others-tab';
+import { ParentsTab } from './tabs/parents-tab';
+import { StudentDetailsTab } from './tabs/student-details-tab';
 
 const formSchema = z.object({
     // Student Details
@@ -45,7 +44,7 @@ const formSchema = z.object({
     AMCST_PerState: z.string().min(1, 'State is required'),
     AMCST_PerCity: z.string().min(1, 'City is required'),
     AMCST_PerPincode: z.string().length(6, 'Pincode must be 6 digits'),
-    
+
     AMCST_ConStreet: z.string().min(1, 'Communication Address is required'),
     AMCST_ConCountryId: z.string().min(1, 'Country is required'),
     AMCST_ConState: z.string().min(1, 'State is required'),
@@ -56,12 +55,12 @@ const formSchema = z.object({
     AMCST_FatherName: z.string().min(1, 'Father Name is required'),
     AMCST_FatherNationality: z.string().min(1, 'Nationality is required'),
     AMCST_MotherName: z.string().min(1, 'Mother Name is required'),
-    AMCST_MotherNationality: z.string().min(1, 'Nationality is required'),
+    AMCST_MotherNationality: z.string().min(1, 'Nationality is required')
 });
 
 export function AdmissionFormWrapper({ initialData }: { initialData: any }) {
     const [activeTab, setActiveTab] = useState('student-details');
-    
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -73,12 +72,11 @@ export function AdmissionFormWrapper({ initialData }: { initialData: any }) {
             emails: [{ amcsT_FatheremailId: '' }],
             mobiles1: [{ acstpmN_CountryCode: '91', amcsT_MotherMobleNo: '' }],
             emails1: [{ amcsT_MotheremailId: '' }],
-            prevSchoolDetails: [{}],
-        } as any,
+            prevSchoolDetails: [{}]
+        } as any
     });
 
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log('Final Submit:', values);
+    const onSubmit = async (_values: z.infer<typeof formSchema>) => {
         toast.success('Form submitted successfully');
     };
 
@@ -86,38 +84,38 @@ export function AdmissionFormWrapper({ initialData }: { initialData: any }) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 mb-8">
-                        <TabsTrigger value="student-details">Student Details</TabsTrigger>
-                        <TabsTrigger value="address">Address</TabsTrigger>
-                        <TabsTrigger value="parents">Parents</TabsTrigger>
-                        <TabsTrigger value="others">Others</TabsTrigger>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+                    <TabsList className='mb-8 grid w-full grid-cols-4 lg:grid-cols-4'>
+                        <TabsTrigger value='student-details'>Student Details</TabsTrigger>
+                        <TabsTrigger value='address'>Address</TabsTrigger>
+                        <TabsTrigger value='parents'>Parents</TabsTrigger>
+                        <TabsTrigger value='others'>Others</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="student-details">
+                    <TabsContent value='student-details'>
                         <StudentDetailsTab initialData={initialData} onNext={() => nextTab('address')} />
                     </TabsContent>
 
-                    <TabsContent value="address">
+                    <TabsContent value='address'>
                         <AddressTab initialData={initialData} onNext={() => nextTab('parents')} onBack={() => nextTab('student-details')} />
                     </TabsContent>
 
-                    <TabsContent value="parents">
+                    <TabsContent value='parents'>
                         <ParentsTab initialData={initialData} onNext={() => nextTab('others')} onBack={() => nextTab('address')} />
                     </TabsContent>
 
-                    <TabsContent value="others">
+                    <TabsContent value='others'>
                         <OthersTab initialData={initialData} onBack={() => nextTab('parents')} />
                     </TabsContent>
                 </Tabs>
 
-                <div className="flex justify-end gap-4 bg-background/80 backdrop-blur sticky bottom-0 py-4 border-t z-10">
-                    <Button type="button" variant="outline" onClick={() => form.reset()}>
+                <div className='sticky bottom-0 z-10 flex justify-end gap-4 border-t bg-background/80 py-4 backdrop-blur'>
+                    <Button type='button' variant='outline' onClick={() => form.reset()}>
                         Clear All
                     </Button>
-                    <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
+                    <Button type='submit'>
+                        <Save className='mr-2 h-4 w-4' />
                         Final Submit
                     </Button>
                 </div>

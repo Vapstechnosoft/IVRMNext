@@ -99,7 +99,7 @@ export default function AddForm({ masterYear, employees, onSearch, onReset, isLo
                         'classroom'
                     ]);
                     setClasses(classData);
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch classes');
                 }
             };
@@ -124,7 +124,7 @@ export default function AddForm({ masterYear, employees, onSearch, onReset, isLo
                         'section'
                     ]);
                     setSections(sectionData);
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch sections');
                 }
             };
@@ -154,7 +154,7 @@ export default function AddForm({ masterYear, employees, onSearch, onReset, isLo
                         'subject'
                     ]);
                     setSubjects(subjectData);
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch subjects');
                 }
             };

@@ -39,8 +39,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const { data: categoryData, isLoading: loadingCategories, error: categoryError, refetch: refetchAll } = useClassCategoryDropdown();
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
-    const js = JSON.stringify(row);
-    console.log('selecteeddata', js);
+    const _js = JSON.stringify(row);
 
     type MasterClassRowFromAPI = {
         asmaY_Id?: number;
@@ -54,7 +53,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const apiRow = row as MasterClassRowFromAPI;
 
-    const asmaY_Idrow = apiRow.asmaY_Id;
+    const _asmaY_Idrow = apiRow.asmaY_Id;
     const fycC_Idrow = apiRow.fycC_Id;
 
     //apiRow.asmcL_Id = 515;
@@ -81,8 +80,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const classesValue = watch('classes');
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
-    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
+    const [_academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
+    const [_classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
     const [classOptions, setClassOptions] = useState<DropdownOption[]>([]);
     const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -92,7 +91,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const [isClassPopoverOpen, setIsClassPopoverOpen] = useState(false);
 
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [_selectedHeadsItems, _setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [search, setSearch] = useState('');
 
     useEffect(() => {
@@ -154,9 +153,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             setAcademicYearOptions([]);
         }
     }, [academicData, academicError]);
-    //apiRow.fmcC_Id = 151;
-
-    console.log('categoryData', categoryData);
     useEffect(() => {
         if (!academicYear || !categoryData?.data) return;
 
@@ -179,7 +175,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     }, [categoryOptions, apiRow.fycC_Id, setValue]);
 
     useEffect(() => {
-        console.log('calling class api', academicYear);
         const fetchClasses = async () => {
             if (!academicYear || !classCategory) {
                 setClassOptions([]);
@@ -275,9 +270,9 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         setSelectedClasses([classId]);
     }, [classOptions, apiRow.asmcL_Id, setValue]);
 
-    const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
+    const _filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const handleClassChange = (value: string) => {
+    const _handleClassChange = (value: string) => {
         const currentClasses = classesValue || [];
         let updatedClasses: string[];
         if (currentClasses.includes(value)) {
@@ -311,20 +306,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 }))
                 // user_id: 21602 // Static user id
             };
-
-            //    const payload = {
-            //     FYCC_Id: 0,
-            //     MI_Id: 30,
-            //     FMCC_Id: Number(classCategory), // Selected class category ID
-            //     ASMAY_Id: Number(academicYear), // Selected academic year
-            //     ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
-            //     FYCC_ActiveFlag: true,
-            //     ClassList: classes.map((clsId) => ({
-            //         ASMCL_ID: Number(clsId)
-            //     })),
-            //     user_id: 21602 // Static user id
-            // };
-            console.log('Payload:', payload);
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
 
             if (response.success) {

@@ -1,8 +1,5 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,13 +8,16 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { activateDeactivateMasterRoleType } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
+import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { activateDeactivateMasterRoleType } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
 
 const ActionCell = ({ row }: { row: any }) => {
     const { openEditForm } = useFormContext<IMasterRoleType>();
@@ -36,29 +36,32 @@ const ActionCell = ({ row }: { row: any }) => {
 
     return (
         <>
-            <div className="flex items-center justify-center gap-2">
-                <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80" title="Edit" onClick={() => openEditForm(row.original)}>
-                    <Pencil className="h-4 w-4" />
+            <div className='flex items-center justify-center gap-2'>
+                <Button
+                    variant='ghost'
+                    size='icon'
+                    className='text-primary hover:text-primary/80'
+                    title='Edit'
+                    onClick={() => openEditForm(row.original)}>
+                    <Pencil className='h-4 w-4' />
                 </Button>
-                <span className="text-gray-300">|</span>
+                <span className='text-gray-300'>|</span>
                 {row.original.activeFlag === 0 ? (
                     <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50 px-2"
-                        title="Activate"
-                        onClick={() => setOpen(true)}
-                    >
+                        variant='ghost'
+                        size='sm'
+                        className='px-2 text-green-600 hover:bg-green-50 hover:text-green-700'
+                        title='Activate'
+                        onClick={() => setOpen(true)}>
                         Activate
                     </Button>
                 ) : (
                     <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
-                        title="Deactivate"
-                        onClick={() => setOpen(true)}
-                    >
+                        variant='ghost'
+                        size='sm'
+                        className='px-2 text-red-600 hover:bg-red-50 hover:text-red-700'
+                        title='Deactivate'
+                        onClick={() => setOpen(true)}>
                         Deactivate
                     </Button>
                 )}
@@ -75,8 +78,7 @@ const ActionCell = ({ row }: { row: any }) => {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className={row.original.activeFlag === 0 ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-                        >
+                            className={row.original.activeFlag === 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}>
                             {row.original.activeFlag === 0 ? 'Activate' : 'Deactivate'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -94,24 +96,24 @@ export const masterRoleTypeColumns: ColumnDef<IMasterRoleType>[] = [
             const { pagination } = table.getState();
             return pagination.pageIndex * pagination.pageSize + row.index + 1;
         },
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'roleType', // "Role Name" in UI, corresponds to `ivrmrT_Role`/`roleType`
         header: 'Role Name',
         enableSorting: true,
-        cell: ({ row }) => <div className="text-left">{row.original.roleType}</div>
+        cell: ({ row }) => <div className='text-left'>{row.original.roleType}</div>
     },
     {
         accessorKey: 'name', // "Role Type" in UI, corresponds to `name`
         header: 'Role Type',
         enableSorting: true,
-        cell: ({ row }) => <div className="text-left">{row.original.name}</div>
+        cell: ({ row }) => <div className='text-left'>{row.original.name}</div>
     },
     {
         id: 'actions',
         header: 'Edit | Activate/Deactivate',
         cell: ({ row }) => <ActionCell row={row} />,
-        enableSorting: false,
+        enableSorting: false
     }
 ];

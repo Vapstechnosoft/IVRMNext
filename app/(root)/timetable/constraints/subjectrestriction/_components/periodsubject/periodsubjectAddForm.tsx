@@ -6,9 +6,8 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type FixingPeriodSubjectSchema, fixingPeriodSubjectSchema } from '@/schemas/timetable/constraints/fixing';
-import { periodSubjectSchema, PeriodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
-import { getFixingClassSectionStaffsBySubject, saveFixingPeriodSubject } from '@/server/timetable/constraints/fixing';
+import { type PeriodSubjectSchema, periodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
+import { getFixingClassSectionStaffsBySubject } from '@/server/timetable/constraints/fixing';
 import { savePeriodSubjectDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -38,9 +37,23 @@ const extractList = (data: any, preferredKey?: string) => {
     }
 
     const keys = [
-        'academiclist', 'catelist', 'categorylist', 'classlist', 'clsbysubject', 'clssbysub',
-        'sectionlist', 'sectbysubject', 'secsbysub', 'stafflist', 'staffbysubject', 'staffbysub',
-        'staffbyall', 'subjectlist', 'classbycategory', 'sectionbyclass', 'subjectbystaff'
+        'academiclist',
+        'catelist',
+        'categorylist',
+        'classlist',
+        'clsbysubject',
+        'clssbysub',
+        'sectionlist',
+        'sectbysubject',
+        'secsbysub',
+        'stafflist',
+        'staffbysubject',
+        'staffbysub',
+        'staffbyall',
+        'subjectlist',
+        'classbycategory',
+        'sectionbyclass',
+        'subjectbystaff'
     ];
     for (const key of keys) {
         const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
@@ -68,16 +81,16 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
-    const [masterSections, setMasterSections] = useState<any[]>([]);
-    const [masterStaff, setMasterStaff] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterSections, setMasterSections] = useState<any[]>([]);
+    const [_masterStaff, setMasterStaff] = useState<any[]>([]);
 
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedStaff, setSelectedStaff] = useState<number | undefined>();
-    const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
+    const [_selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nod, setNod] = useState<string>('');
 
     const form = useForm<PeriodSubjectSchema>({
@@ -92,7 +105,14 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttrpsU_SUbSelcFlag = watch('ttrpsU_SUbSelcFlag');
 
@@ -107,7 +127,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
     };
-    
+
     const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
     };
@@ -130,9 +150,6 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         try {
             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
 
-            // 🔍 DEBUG: log raw response to identify actual key names
-            console.log('[PeriodSubjectAddForm] get_cls_sec_staffsData raw response:', JSON.stringify(res));
-
             const payload = res?.data ?? res;
 
             const findArrayByField = (fieldName: string): any[] => {
@@ -144,24 +161,31 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
             };
 
             const classes =
-                extractList(res, 'clssbysub').length > 0 ? extractList(res, 'clssbysub') :
-                extractList(res, 'clsbysubject').length > 0 ? extractList(res, 'clsbysubject') :
-                extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') :
-                findArrayByField('asmcL_Id');
+                extractList(res, 'clssbysub').length > 0
+                    ? extractList(res, 'clssbysub')
+                    : extractList(res, 'clsbysubject').length > 0
+                      ? extractList(res, 'clsbysubject')
+                      : extractList(res, 'classlist').length > 0
+                        ? extractList(res, 'classlist')
+                        : findArrayByField('asmcL_Id');
 
             const sections =
-                extractList(res, 'secsbysub').length > 0 ? extractList(res, 'secsbysub') :
-                extractList(res, 'secsbysubject').length > 0 ? extractList(res, 'secsbysubject') :
-                extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') :
-                findArrayByField('asmS_Id');
+                extractList(res, 'secsbysub').length > 0
+                    ? extractList(res, 'secsbysub')
+                    : extractList(res, 'secsbysubject').length > 0
+                      ? extractList(res, 'secsbysubject')
+                      : extractList(res, 'sectionlist').length > 0
+                        ? extractList(res, 'sectionlist')
+                        : findArrayByField('asmS_Id');
 
             const staff =
-                extractList(res, 'staffbysub').length > 0 ? extractList(res, 'staffbysub') :
-                extractList(res, 'staffbysubject').length > 0 ? extractList(res, 'staffbysubject') :
-                extractList(res, 'stafflist').length > 0 ? extractList(res, 'stafflist') :
-                findArrayByField('hrmE_Id');
-
-            console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
+                extractList(res, 'staffbysub').length > 0
+                    ? extractList(res, 'staffbysub')
+                    : extractList(res, 'staffbysubject').length > 0
+                      ? extractList(res, 'staffbysubject')
+                      : extractList(res, 'stafflist').length > 0
+                        ? extractList(res, 'stafflist')
+                        : findArrayByField('hrmE_Id');
 
             setMasterClasses(classes);
             setMasterSections(sections);
@@ -240,7 +264,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
             } else {
                 toast.error(res.message);
             }
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error.message);
         }
     };
@@ -269,7 +293,11 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -289,8 +317,15 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Period</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {periodList.map((item: any) => {
                                             const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
@@ -317,7 +352,11 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {subjectList
                                             .filter((item: any) => item.ismS_Id || item.isms_id)
@@ -364,7 +403,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -387,7 +428,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -406,7 +449,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subStaffList.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;

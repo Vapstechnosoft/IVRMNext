@@ -1,16 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterTimeSlab } from '@/server/library/masters/time-slab';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -54,7 +54,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                 lfsE_Id: 0,
                 lfsE_UserType: data.lfsE_UserType,
                 lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1,
                 lfsE_FromDay: Number(data.lfsE_FromDay),
                 lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
                 lfsE_Amount: Number(data.lfsE_Amount),
@@ -62,7 +62,6 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
-
 
             if (response.success) {
                 toast.success(response.message || 'Record Saved Successfully!!!');
@@ -94,7 +93,9 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                     <div className='space-y-2'>
-                        <Label>User Type <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            User Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='lfsE_UserType'
@@ -126,7 +127,9 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Slab Type <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Slab Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='lfsE_SlabTypeFlg'
@@ -155,31 +158,27 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         {errors.lfsE_SlabTypeFlg && <p className='text-destructive text-sm'>{errors.lfsE_SlabTypeFlg.message}</p>}
                     </div>
 
-                   <div className='flex items-center space-x-4 pt-8'>
-    <Label className='font-normal whitespace-nowrap'>
-        Fine Type :
-    </Label>
+                    <div className='flex items-center space-x-4 pt-8'>
+                        <Label className='whitespace-nowrap font-normal'>Fine Type :</Label>
 
-    <div className='flex items-center space-x-2'>
-        <Controller
-            control={control}
-            name='lfsE_PerDayFlg'
-            render={({ field }) => (
-                <Checkbox
-                    id='perDay'
-                    checked={field.value === 1}
-                    onCheckedChange={(checked) =>
-                        field.onChange(checked ? 1 : 0)
-                    }
-                />
-            )}
-        />
+                        <div className='flex items-center space-x-2'>
+                            <Controller
+                                control={control}
+                                name='lfsE_PerDayFlg'
+                                render={({ field }) => (
+                                    <Checkbox
+                                        id='perDay'
+                                        checked={field.value === 1}
+                                        onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                                    />
+                                )}
+                            />
 
-        <Label htmlFor='perDay' className='font-normal'>
-            Per Day
-        </Label>
-    </div>
-</div>
+                            <Label htmlFor='perDay' className='font-normal'>
+                                Per Day
+                            </Label>
+                        </div>
+                    </div>
 
                     <InputText
                         label='From Day'
@@ -216,7 +215,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit bg-[#4251b1] text-white transition-all duration-200 hover:scale-105 hover:bg-[#35418e]'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
@@ -228,7 +227,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit bg-[#ff5a30] text-white transition-all duration-200 hover:scale-105 hover:bg-[#e64d26]'>
                         Reset
                     </Button>
                 </div>

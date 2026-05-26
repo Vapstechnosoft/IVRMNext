@@ -326,7 +326,6 @@ export async function getOnlinePaymentAmountDetails(
         if (classId) requestData.ASMCL_Id = classId;
 
         const response = await api.post<any>('portal', url, requestData);
-        console.log('response.data', response.data);
         const feeStructures: FeeStructure[] =
             response.data?.fillstudentviewdetails?.map((item: any) => ({
                 fmH_FeeName: item.fmH_FeeName,
@@ -374,13 +373,13 @@ export async function getOnlinePaymentAmountDetails(
 }
 
 export async function generateOnlinePaymentOrder(
-    feeStructures: FeeStructure[],
+    _feeStructures: FeeStructure[],
     totalAmount: number,
     studentInfo: StudentInfo,
     selectedList: GroupTermMapping[],
-    paymentGateway: string,
+    _paymentGateway: string,
     academicYearId: number,
-    classId: number
+    _classId: number
 ): Promise<PaymentOrderResponse> {
     try {
         // TODO: Replace with actual API call when ready
@@ -388,10 +387,10 @@ export async function generateOnlinePaymentOrder(
 
         // Mock response for now
         const mockResponse: PaymentOrderResponse = {
-            fyP_Receipt_No: 'REC_' + Date.now(),
+            fyP_Receipt_No: `REC_${Date.now()}`,
             fmA_Amount: totalAmount,
             merchantkey: 'rzp_test_1234567890abcdef', // Mock Razorpay key
-            trans_id: 'order_' + Date.now(),
+            trans_id: `order_${Date.now()}`,
             fillstudent: [studentInfo],
             splitpayinformation: JSON.stringify(selectedList),
             mI_Id: studentInfo.asmcL_ID.toString(),
@@ -400,17 +399,17 @@ export async function generateOnlinePaymentOrder(
             paydet: [
                 {
                     marchanT_ID: 'rzp_test_1234567890abcdef',
-                    trans_id: 'order_' + Date.now(),
+                    trans_id: `order_${Date.now()}`,
                     amount: (totalAmount * 100).toString(),
                     productinfo: 'Fee Payment',
                     firstname: studentInfo.amsT_FirstName,
                     email: studentInfo.amst_email_id,
                     phone: studentInfo.amst_mobile?.toString(),
-                    ordeR_ID: 'order_' + Date.now(),
+                    ordeR_ID: `order_${Date.now()}`,
                     cusT_ID: studentInfo.amst_Id.toString(),
                     txN_AMOUNT: (totalAmount * 100).toString(),
                     website: 'https://your-school-website.com',
-                    checksumhash: 'mock_hash_' + Date.now()
+                    checksumhash: `mock_hash_${Date.now()}`
                 }
             ]
         };
@@ -427,31 +426,13 @@ export async function generateOnlinePaymentOrder(
 
 export async function processOnlineRazorpayPayment(
     paymentData: PaymentOrderResponse,
-    razorpayResponse: any
+    _razorpayResponse: any
 ): Promise<{
     success: boolean;
     receiptNo?: string;
     message: string;
 }> {
     try {
-        // TODO: Replace with actual API call when ready
-        // const url = '/OnlinePayment/razorpaypaymentresponse';
-        // const response = await api.post<any>('portal', url, {
-        //   razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-        //   razorpay_order_id: razorpayResponse.razorpay_order_id,
-        //   razorpay_signature: razorpayResponse.razorpay_signature,
-        //   receiptNo: paymentData.fyP_Receipt_No,
-        //   ...paymentData
-        // });
-
-        // Mock successful payment response for now
-        console.log('Mock payment processing:', {
-            razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-            razorpay_order_id: razorpayResponse.razorpay_order_id,
-            razorpay_signature: razorpayResponse.razorpay_signature,
-            receiptNo: paymentData.fyP_Receipt_No
-        });
-
         // Simulate API delay
         await new Promise((resolve) => setTimeout(resolve, 1500));
 

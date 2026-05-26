@@ -1,13 +1,10 @@
 'use client';
-
-import { useExamReportLoadData } from '@/hooks/exam/exammodule/reports';
-import { Loader2 } from 'lucide-react';
 import ExamReportClient from './_components/exam-report-client';
 
-const LOAD_PAYLOAD = {};
+const _LOAD_PAYLOAD = {};
 
 export default function ExamReportPage() {
-   // const { data: initialData, isLoading, error } = useExamReportLoadData(LOAD_PAYLOAD);
+    // const { data: initialData, isLoading, error } = useExamReportLoadData(LOAD_PAYLOAD);
 
     // if (isLoading) {
     //     return (
@@ -22,11 +19,11 @@ export default function ExamReportPage() {
     // }
 
     return (
-        <div className="container mx-auto p-4 max-w-7xl">
+        <div className='container mx-auto max-w-7xl p-4'>
             <ExamReportClient
-                // initialYears={initialData.studetiallist || []}
-                // initialExams={initialData.examlist || []}
-                // rcode={initialData.rcode}
+            // initialYears={initialData.studetiallist || []}
+            // initialExams={initialData.examlist || []}
+            // rcode={initialData.rcode}
             />
         </div>
     );

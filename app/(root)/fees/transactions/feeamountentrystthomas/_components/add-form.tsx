@@ -63,7 +63,7 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
     const [isFineSlabModalOpen, setIsFineSlabModalOpen] = useState(false);
     const [currentHeadId, setCurrentHeadId] = useState<number | null>(null);
     const [currentInstallmentId, setCurrentInstallmentId] = useState<number | null>(null);
-    const [savedFineSlabs, setSavedFineSlabs] = useState<{
+    const [_savedFineSlabs, _setSavedFineSlabs] = useState<{
         [key: string]: { regular: FineSlab[]; ecs: FineSlab[] };
     }>({});
 
@@ -187,7 +187,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
     };
     // Add this function to check what's in session storage
     const debugSessionStorage = () => {
-        console.log('=== ALL FINE SLAB DATA IN SESSION STORAGE ===');
         let found = false;
 
         for (let i = 0; i < sessionStorage.length; i++) {
@@ -196,13 +195,10 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
             if (key && key.startsWith('fine_slab_cart_')) {
                 found = true;
                 const data = sessionStorage.getItem(key);
-                console.log(`Key: ${key}`);
-                console.log(`Data: ${data}`);
 
                 // Parse and show the content
                 if (data) {
                     const parsed = JSON.parse(data);
-                    console.log(`HeadId: ${parsed.headId}, InstallmentId: ${parsed.installmentId}`);
                     // biome-ignore lint/suspicious/noConsoleLog: <explanation>
                     console.log('Rows:', parsed.rows);
                 }
@@ -210,9 +206,7 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
         }
 
         if (!found) {
-            console.log('No fine slab data found in session storage!');
         }
-        console.log('===============================================');
     };
 
     // Call this before creating your payload
@@ -245,7 +239,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                 if (savedFineSlabData) {
                     try {
                         const parsedData = JSON.parse(savedFineSlabData);
-                        console.log(`Found fine slab data for ${row.fmH_Id}_${row.ftI_Id}:`, parsedData);
 
                         // Map each row in the CartItem to the required format
                         fineSlabDetails = parsedData.rows.map((slabRow: any) => ({
@@ -256,13 +249,10 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                             fmfS_Duedate: slabRow.date ? new Date(slabRow.date).toISOString() : new Date().toISOString(),
                             ftfS_ID: 0
                         }));
-
-                        console.log(`Mapped fine slab details for ${row.fmH_Id}_${row.ftI_Id}:`, fineSlabDetails);
                     } catch (error) {
                         console.error('Error parsing fine slab data:', error);
                     }
                 } else {
-                    console.log(`No fine slab data found for key: ${storageKey}`);
                 }
 
                 return {
@@ -284,10 +274,6 @@ export default function AddAmountEntryFormStThomas({ onSuccess, headname = '' }:
                 fmA_Flag: 'A',
                 amountEntries: amountEntries
             };
-
-            console.log('Final payload:', JSON.stringify(payload, null, 2));
-
-            console.log('Submitting payload:', payload); // For debugging
 
             const response = await addOrUpdateAmountEntrystthomas(payload);
             if (response.success) {

@@ -1,18 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeYearlyReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddEmployeeYearlyReportForm from './_components/add-from';
-import { getEmployeeYearlyReportColumns, type YearRow } from './_components/columns';
+import { type YearRow, getEmployeeYearlyReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,9 +22,7 @@ export default function EmployeeYearlyReportPage(props: {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeYearlyReport(searchParams);
 
-    return (
-        <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
-    );
+    return <EmployeeYearlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />;
 }
 
 function FormSections({ searchParams }: { searchParams?: any }) {
@@ -61,32 +59,37 @@ function EmployeeYearlyReportPageContent({
     // Extract data from new response structure
     const reportData = useMemo(() => response?.data?.report || response?.data || [], [response]);
     const dynamicMonths = useMemo(() => response?.data?.columns || [], [response]);
-    const totalWorkingDays = response?.data?.tpdays;
-
-    console.log('dynamicMonths', dynamicMonths);
-    console.log('reportData', reportData);
+    const _totalWorkingDays = response?.data?.tpdays;
     // Get modes from searchParams
     const rawModes = searchParams?.mode;
-    const modes = useMemo(() => Array.isArray(rawModes) ? rawModes : rawModes ? [rawModes as string] : [], [rawModes]);
+    const modes = useMemo(() => (Array.isArray(rawModes) ? rawModes : rawModes ? [rawModes as string] : []), [rawModes]);
 
-    const tableProps = useMemo(() => ({
-        ...response,
-        data: reportData,
-        total: response?.total ?? reportData.length,
-        errorMessage: response?.message || response?.errorMessage
-    }), [response, reportData]);
+    const tableProps = useMemo(
+        () => ({
+            ...response,
+            data: reportData,
+            total: response?.total ?? reportData.length,
+            errorMessage: response?.message || response?.errorMessage
+        }),
+        [response, reportData]
+    );
 
     const columns = useMemo(() => {
         return getEmployeeYearlyReportColumns(dynamicMonths, modes);
     }, [dynamicMonths, modes]);
 
-    const handleRowSelectionChange = useCallback((rows: YearRow[]) => {
-        // Only update if selection has actually changed to prevent infinite loops
-        if (rows.length !== selectedRows.length ||
-            JSON.stringify(rows.map(r => r.ecode)) !== JSON.stringify(selectedRows.map(r => r.ecode))) {
-            setSelectedRows(rows);
-        }
-    }, [selectedRows]);
+    const handleRowSelectionChange = useCallback(
+        (rows: YearRow[]) => {
+            // Only update if selection has actually changed to prevent infinite loops
+            if (
+                rows.length !== selectedRows.length ||
+                JSON.stringify(rows.map((r) => r.ecode)) !== JSON.stringify(selectedRows.map((r) => r.ecode))
+            ) {
+                setSelectedRows(rows);
+            }
+        },
+        [selectedRows]
+    );
 
     useEffect(() => {
         if (!isLoading && searchParams?.fromDate && searchParams?.toDate && reportData.length === 0 && response) {
@@ -103,7 +106,7 @@ function EmployeeYearlyReportPageContent({
                 'Sl.No': index + 1,
                 'Employee Code': row.ecode || '',
                 'Employee Name': row.ename || '',
-                'Designation': row.designation || ''
+                Designation: row.designation || ''
             };
 
             // Add dynamic months
@@ -126,7 +129,7 @@ function EmployeeYearlyReportPageContent({
             return exportRow;
         });
 
-        exportToExcel(exportData, `Employee_Yearly_Report_${new Date().getTime()}`);
+        exportToExcel(exportData, `Employee_Yearly_Report_${Date.now()}`);
     };
 
     const handlePrint = () => {
@@ -185,7 +188,9 @@ function EmployeeYearlyReportPageContent({
                         </tr>
                     </thead>
                     <tbody>
-                        ${dataToPrint.map((row: YearRow, index: number) => `
+                        ${dataToPrint
+                            .map(
+                                (row: YearRow, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${row.ecode || ''}</td>
@@ -196,7 +201,9 @@ function EmployeeYearlyReportPageContent({
                                 ${modes.includes('Show Holiday Punch') ? `<td>${row.hwkdays ?? ''}</td>` : ''}
                                 ${modes.includes('Date Of Joining') ? `<td>${row.doj ? format(new Date(row.doj), 'dd-MM-yyyy') : ''}</td>` : ''}
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </tbody>
                 </table>
                 <div class="footer">
@@ -228,15 +235,12 @@ function EmployeeYearlyReportPageContent({
                             variant='default'
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-
                             {/* Action Buttons inside CollapsibleSection */}
                             {reportData.length > 0 && (
                                 <div className='mb-4 flex items-center gap-2 rounded-lg border bg-blue-50/30 p-3 shadow-sm'>
                                     <div className='flex flex-col gap-0.5'>
-                                        <span className='font-semibold text-blue-900 text-sm'>
-                                            Report Actions
-                                        </span>
-                                        <span className='text-blue-700 text-[10px] text-muted-foreground'>
+                                        <span className='font-semibold text-blue-900 text-sm'>Report Actions</span>
+                                        <span className='text-[10px] text-blue-700 text-muted-foreground'>
                                             {selectedRows.length > 0
                                                 ? `${selectedRows.length} of ${reportData.length} records selected`
                                                 : `${reportData.length} total records found`}

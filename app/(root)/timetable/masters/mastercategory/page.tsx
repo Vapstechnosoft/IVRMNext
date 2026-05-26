@@ -19,8 +19,6 @@ export default function MasterCatregoryPage(props: { searchParams: SearchParams 
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useTimeTableMasterCategory(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<ITimeTableMasterCategory>>
             <MasterCategoryPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

@@ -59,7 +59,7 @@ export default function AlumniForm({
 }: AlumniFormProps) {
     const [currentStates, setCurrentStates] = useState<IState[]>(initialStates);
     const [currentDistricts, setCurrentDistricts] = useState<IDistrict[]>(initialDistricts);
-    const [currentCities, setCurrentCities] = useState<ICity[]>(initialCities);
+    const [_currentCities, _setCurrentCities] = useState<ICity[]>(initialCities);
     const [stuPhoto, setStuPhoto] = useState<string>(initialData?.almsT_StudentPhoto || '');
     const [famPhoto, setFamPhoto] = useState<string>(initialData?.almsT_FamilyPhoto || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -158,12 +158,12 @@ export default function AlumniForm({
         const districtId = form.getValues('ALMST_PerDistrict');
 
         let fullAddress = '';
-        if (area) fullAddress += area + '\n';
-        if (street) fullAddress += street + '\n';
+        if (area) fullAddress += `${area}\n`;
+        if (street) fullAddress += `${street}\n`;
         if (city && pincode) {
-            fullAddress += city + ' - ' + pincode + '\n';
+            fullAddress += `${city} - ${pincode}\n`;
         } else if (city) {
-            fullAddress += city + '\n';
+            fullAddress += `${city}\n`;
         }
 
         const stateName = currentStates.find((s) => s.ivrmmS_Id?.toString() === stateId)?.ivrmmS_Name || '';
@@ -171,8 +171,8 @@ export default function AlumniForm({
         const districtName = currentDistricts.find((d) => d.ivrmmD_Id?.toString() === districtId)?.ivrmmD_Name || '';
 
         if (stateName) fullAddress += stateName;
-        if (districtName) fullAddress += ', ' + districtName;
-        if (countryName) fullAddress += ', ' + countryName;
+        if (districtName) fullAddress += `, ${districtName}`;
+        if (countryName) fullAddress += `, ${countryName}`;
 
         form.setValue('ALMST_FullAddess', fullAddress.trim());
     };

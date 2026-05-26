@@ -12,7 +12,7 @@ interface SubjectWiseReportGridProps {
 }
 
 export default function SubjectWiseReportGrid({ reportData, onPrint, initialSize = '10' }: SubjectWiseReportGridProps) {
-    const [size, setSize] = useState(initialSize);
+    const [size, _setSize] = useState(initialSize);
 
     const fontSizeClass =
         {
@@ -35,7 +35,7 @@ export default function SubjectWiseReportGrid({ reportData, onPrint, initialSize
 
         const wb = XLSX.utils.book_new();
 
-        reportData.forEach((tableData, index) => {
+        reportData.forEach((tableData, _index) => {
             const worksheetData: any[] = [];
 
             // Title
@@ -71,7 +71,7 @@ export default function SubjectWiseReportGrid({ reportData, onPrint, initialSize
     return (
         <div className={`screen-only ${fontSizeClass}`}>
             <div className='no-print flex items-center justify-between bg-white px-4 py-2 text-sm'>
-                <span style={{ fontSize: '15px', fontWeight: '300' }}></span>
+                <span style={{ fontSize: '15px', fontWeight: '300' }} />
                 <div className='flex items-center gap-3'>
                     <Button onClick={onPrint} size='sm' className='bg-purple-600 hover:bg-blue-700'>
                         <Printer className='mr-2 h-4 w-4' /> Print

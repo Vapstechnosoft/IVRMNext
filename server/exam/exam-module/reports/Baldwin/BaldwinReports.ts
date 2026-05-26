@@ -1,7 +1,5 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-
 export async function getBBHSFinalPromotionReportBBHS(data: any) {
     return await getBaldwinReportDetails(data);
 }
@@ -15,7 +13,7 @@ export async function getPromotionReportIX(data: any) {
 }
 
 export async function getBaldwinReportDetails(data: any) {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     const { selectedStudents = [], studentDetails = [] } = data;
 
@@ -37,20 +35,24 @@ export async function getBaldwinReportDetails(data: any) {
         { emE_Id: 3, emE_ExamName: 'ANNUAL EXAM', marks: 100, emE_FinalExamFlag: true }
     ];
 
-    const student_list = (studentDetails.length > 0 ? studentDetails : selectedStudents.map((id: any) => ({ amsT_Id: Number(id), studentName: 'MOCK STUDENT', amsT_AdmNo: 'MOCK/001' }))).map((s: any, index: number) => ({
+    const student_list = (
+        studentDetails.length > 0
+            ? studentDetails
+            : selectedStudents.map((id: any) => ({ amsT_Id: Number(id), studentName: 'MOCK STUDENT', amsT_AdmNo: 'MOCK/001' }))
+    ).map((s: any, index: number) => ({
         amsT_Id: s.amsT_Id,
         amsT_FirstName: s.studentName || (index % 2 === 0 ? 'ARAVIND SWAMY' : 'SNEHA REDDY'),
         amsT_AdmNo: s.amsT_AdmNo || `B2023/00${index + 1}`,
         amsT_DOB: s.amsT_DOB || (index % 2 === 0 ? '2009-05-15' : '2009-11-22'),
-        final_subj_marks: subjects.map(sub => ({
+        final_subj_marks: subjects.map((sub) => ({
             sub_details: { ...sub, estmppS_ObtainedMarks: 85, estmppS_Remarks: 'Good' },
-            subj_marks_details: exams.map(e => ({
+            subj_marks_details: exams.map((e) => ({
                 emE_Id: e.emE_Id,
                 estmpS_ObtainedMarks: Math.floor(Math.random() * e.marks),
                 estmpS_ObtainedGrade: 'A'
             }))
         })),
-        stu_subjects: subjects.map(sub => ({ ...sub, estmppS_ObtainedMarks: 90 })),
+        stu_subjects: subjects.map((sub) => ({ ...sub, estmppS_ObtainedMarks: 90 })),
         stu_student_marks: [],
         stu_Total_Array_Grp: [{ total_s_o: 550, total_s_f: 580 }],
         stu_Total_total_grp: 600,
@@ -59,10 +61,22 @@ export async function getBaldwinReportDetails(data: any) {
         total_Exams: 650
     }));
 
-    const attendanceMonths = ['June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'Febrauary', 'March', 'April'];
+    const attendanceMonths = [
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+        'January',
+        'Febrauary',
+        'March',
+        'April'
+    ];
     const generateAttendance = (studentId: number) => {
         const att: any = { AMST_Id: studentId, TotalWorkingDays: 210, TotalPresentDays: 195, Total_Percentage: 92.8 };
-        attendanceMonths.forEach(m => att[m] = Math.floor(Math.random() * 20) + 5);
+        attendanceMonths.forEach((m) => (att[m] = Math.floor(Math.random() * 20) + 5));
         return [att];
     };
 
@@ -73,28 +87,32 @@ export async function getBaldwinReportDetails(data: any) {
             { flag: 'O', Per_val: 20, equal_flag: false },
             { flag: 'F', Per_val: 100, equal_flag: false }
         ],
-        exam_process_details: student_list.flatMap(s => exams.map(e => ({
-            amsT_Id: s.amsT_Id,
-            emE_Id: e.emE_Id,
-            estmP_TotalObtMarks: 150,
-            estmP_Percentage: 75,
-            estmP_SectionRank: 5,
-            estmP_ClassRank: 12
-        }))),
-        promotion_student_marks: student_list.flatMap(s => subjects.map(sub => ({
-            amsT_Id: s.amsT_Id,
-            ismS_Id: sub.ismS_Id,
-            estmppS_ObtainedMarks: 88,
-            estmppS_MaxMarks: 100,
-            estmppS_ObtainedGrade: 'A',
-            estmppS_Remarks: 'Excellent'
-        }))),
-        promotion_main_marks: student_list.map(s => ({
+        exam_process_details: student_list.flatMap((s) =>
+            exams.map((e) => ({
+                amsT_Id: s.amsT_Id,
+                emE_Id: e.emE_Id,
+                estmP_TotalObtMarks: 150,
+                estmP_Percentage: 75,
+                estmP_SectionRank: 5,
+                estmP_ClassRank: 12
+            }))
+        ),
+        promotion_student_marks: student_list.flatMap((s) =>
+            subjects.map((sub) => ({
+                amsT_Id: s.amsT_Id,
+                ismS_Id: sub.ismS_Id,
+                estmppS_ObtainedMarks: 88,
+                estmppS_MaxMarks: 100,
+                estmppS_ObtainedGrade: 'A',
+                estmppS_Remarks: 'Excellent'
+            }))
+        ),
+        promotion_main_marks: student_list.map((s) => ({
             amsT_Id: s.amsT_Id,
             estmpP_SectionRank: 5
         })),
-        stud_work_attendence: student_list.flatMap(s => generateAttendance(s.amsT_Id)),
-        stud_present_attendence: student_list.flatMap(s => generateAttendance(s.amsT_Id)),
+        stud_work_attendence: student_list.flatMap((s) => generateAttendance(s.amsT_Id)),
+        stud_present_attendence: student_list.flatMap((s) => generateAttendance(s.amsT_Id)),
         ExmConfig_PromotionFlag: true,
         EMP_MarksPerFlg: 'P', // Toggle between 'P', 'F', 'T' to see variants
         Year_Name: '2023-24',

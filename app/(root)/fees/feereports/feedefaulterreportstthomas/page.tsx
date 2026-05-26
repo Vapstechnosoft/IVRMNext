@@ -34,7 +34,7 @@ interface IAcademicYear {
 }
 
 export default function FeeDefaulterReportstthomas() {
-    const [loading, setLoading] = useState(false);
+    const [_loading, _setLoading] = useState(false);
     const [filters, setFilters] = useState({
         reportType: 'All',
         academicYearId: '',
@@ -71,10 +71,10 @@ export default function FeeDefaulterReportstthomas() {
 
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
-    const [SectionLoading, setSectionLoading] = useState(false);
+    const [_SectionLoading, setSectionLoading] = useState(false);
 
     const [termSearch, setTermSearch] = useState('');
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [_selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [showPrint, setShowPrint] = useState(false);
 
     type FeeDefaulterRow = {
@@ -160,8 +160,6 @@ export default function FeeDefaulterReportstthomas() {
 
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), Number(classId ?? 0));
-
-                console.log('sectionsdata', result);
 
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
@@ -316,7 +314,7 @@ export default function FeeDefaulterReportstthomas() {
         printTabl(columns, printableRows);
     };
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         // Set loading state
         setReportLoading(true);
 

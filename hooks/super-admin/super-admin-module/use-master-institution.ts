@@ -1,6 +1,11 @@
-import { getCountryDropdown, getInstitutionDropdown, getMasterInstitutionData, getStateDropdown } from '@/server/super-admin/super-admin-module/institution/master-institution';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    getCountryDropdown,
+    getInstitutionDropdown,
+    getMasterInstitutionData,
+    getStateDropdown
+} from '@/server/super-admin/super-admin-module/institution/master-institution';
 import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterInstitutionData = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

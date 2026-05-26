@@ -4,14 +4,17 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useAcademicYearDropDownMasterDayClasswise, useSubjectRestrictionDaySubjectGridData } from '@/hooks/timetable/constraints/subjectrestriction';
+import {
+    useAcademicYearDropDownMasterDayClasswise,
+    useSubjectRestrictionDaySubjectGridData
+} from '@/hooks/timetable/constraints/subjectrestriction';
 import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { daySubjectColumns } from './daysubjectColumns';
 import DaySubjectAddForm from './daysubjectAddForm';
-import DaySubjectUpdate from './daysubjectUpdate';
+import { daySubjectColumns } from './daysubjectColumns';
 import DaySubjectToggle from './daysubjectToggle';
+import DaySubjectUpdate from './daysubjectUpdate';
 
 interface DaySubjectTabProps {
     initialData?: any;
@@ -27,8 +30,15 @@ export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
 
 function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const {
-        isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, closeAllForms,
-        isToggleFormOpen, closeToggleForm, selectedRow
+        isAddFormOpen,
+        isEditFormOpen,
+        openAddForm,
+        closeAddForm,
+        closeEditForm,
+        closeAllForms,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
     } = useFormContext();
 
     const [dayList, setDayList] = useState<any[]>([]);
@@ -37,8 +47,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const { data: academicData } = useAcademicYearDropDownMasterDayClasswise();
     const academicList = (academicData as any)?.data || (Array.isArray(academicData) ? academicData : []);
 
-    const { data: gridData, isLoading: gridLoading, refetchAll } = useSubjectRestrictionDaySubjectGridData({
-        ASMAY_Id: 0, TTMC_Id: 0
+    const {
+        data: gridData,
+        isLoading: gridLoading,
+        refetchAll
+    } = useSubjectRestrictionDaySubjectGridData({
+        ASMAY_Id: 0,
+        TTMC_Id: 0
     });
 
     useEffect(() => {
@@ -49,7 +64,9 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                     setDayList(res.data.daylist || []);
                     setSubjectList(res.data.subjectlist || res.data.sublist || []);
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error(error);
+            }
         };
         loadDropdowns();
     }, []);
@@ -60,7 +77,7 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     };
 
     const dataArray = (gridData as any)?.data || (gridData as any)?.daysubjectlist || (Array.isArray(gridData) ? gridData : []);
-    const totalItems = (gridData as any)?.total || dataArray.length;
+    const _totalItems = (gridData as any)?.total || dataArray.length;
 
     return (
         <div className='space-y-4'>
@@ -79,7 +96,10 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             {(isAddFormOpen || isEditFormOpen) && (
                 <CollapsibleSection
                     title={isEditFormOpen ? 'Edit Day Subject Constraint' : 'Add New Day Subject Constraint'}
-                    defaultOpen={true} variant='outline' size='md' className='shadow-lg'>
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='shadow-lg'>
                     <div className='relative'>
                         <Button
                             type='button'
@@ -89,8 +109,25 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                             <X className='h-4 w-4 text-destructive' /> Close
                         </Button>
-                        {isAddFormOpen && <DaySubjectAddForm academicList={academicList} dayList={dayList} subjectList={subjectList} onSuccess={onFormSuccess} onCancel={closeAddForm} />}
-                        {isEditFormOpen && selectedRow && <DaySubjectUpdate academicList={academicList} dayList={dayList} subjectList={subjectList} selectedRow={selectedRow} onSuccess={onFormSuccess} onCancel={closeEditForm} />}
+                        {isAddFormOpen && (
+                            <DaySubjectAddForm
+                                academicList={academicList}
+                                dayList={dayList}
+                                subjectList={subjectList}
+                                onSuccess={onFormSuccess}
+                                onCancel={closeAddForm}
+                            />
+                        )}
+                        {isEditFormOpen && selectedRow && (
+                            <DaySubjectUpdate
+                                academicList={academicList}
+                                dayList={dayList}
+                                subjectList={subjectList}
+                                selectedRow={selectedRow}
+                                onSuccess={onFormSuccess}
+                                onCancel={closeEditForm}
+                            />
+                        )}
                     </div>
                 </CollapsibleSection>
             )}

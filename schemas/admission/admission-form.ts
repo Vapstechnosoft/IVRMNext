@@ -336,7 +336,6 @@ export const studentAdmissionFormSchema = {
         fatherBankBranch: z.string().optional().nullable(),
         fatherOfficePhone: z.string().optional().nullable(),
 
-
         // Mother Details
         motherAliveFlag: z.boolean().optional(),
         MotherAliveFlag: z.boolean().optional(),
@@ -423,7 +422,6 @@ export const studentAdmissionFormSchema = {
         motherCasteCertificateNo: z.string().optional().nullable(),
         motherPAN: z.string().optional().nullable(),
         motherSelfEmployedFlg: z.boolean().optional(),
-
 
         //Step=4
 
@@ -558,7 +556,6 @@ export const studentAdmissionFormSchema = {
         electivelist_Groups: z.array(z.number()).optional(),
         amsT_Remarks: createOptionalStringSchema('Remarks', 0, 500).optional()
     }),
-
 
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')

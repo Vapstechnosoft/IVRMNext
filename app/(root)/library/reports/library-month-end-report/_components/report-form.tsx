@@ -8,7 +8,6 @@ import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/use
 import type { ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Printer, Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -29,7 +28,7 @@ interface ReportFormProps {
 export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) => {
     const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
     const initialData = (monthEndData as any)?.data || monthEndData;
-    
+
     const {
         control,
         handleSubmit,
@@ -52,11 +51,11 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400'>
-            
-            <div className='flex justify-center mb-6'>
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
+            <div className='mb-6 flex justify-center'>
                 <div className='w-full max-w-2xl space-y-6'>
-                    
                     {/* Academic Year */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -87,7 +86,7 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                     </Select>
                                 )}
                             />
-                            {errors.ASMAY_Id && <p className='text-xs text-destructive mt-1'>{errors.ASMAY_Id.message}</p>}
+                            {errors.ASMAY_Id && <p className='mt-1 text-destructive text-xs'>{errors.ASMAY_Id.message}</p>}
                         </div>
                     </div>
 
@@ -116,15 +115,13 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                     </Select>
                                 )}
                             />
-                            {errors.IVRM_Month_Id && <p className='text-xs text-destructive mt-1'>{errors.IVRM_Month_Id.message}</p>}
+                            {errors.IVRM_Month_Id && <p className='mt-1 text-destructive text-xs'>{errors.IVRM_Month_Id.message}</p>}
                         </div>
                     </div>
 
                     {/* IE (Text Field) */}
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right font-medium text-sm'>
-                            IE:
-                        </Label>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>IE:</Label>
                         <div className='flex-1'>
                             <Controller
                                 control={control}
@@ -138,7 +135,7 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                     />
                                 )}
                             />
-                            {errors.IE_Name && <p className='text-xs text-destructive mt-1'>{errors.IE_Name.message}</p>}
+                            {errors.IE_Name && <p className='mt-1 text-destructive text-xs'>{errors.IE_Name.message}</p>}
                         </div>
                     </div>
 
@@ -160,10 +157,9 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                     />
                                 )}
                             />
-                            {errors.year && <p className='text-xs text-destructive mt-1'>{errors.year.message}</p>}
+                            {errors.year && <p className='mt-1 text-destructive text-xs'>{errors.year.message}</p>}
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -173,28 +169,25 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
             <div className='flex items-center justify-center gap-4'>
                 <Button
                     type='submit'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
-                    disabled={isLoading}
-                >
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'
+                    disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => reset()}
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
                 {onPrint && (
                     <Button
                         type='button'
-                        className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-sm rounded-sm'
+                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#1a73e8] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#1557b0]'
                         onClick={onPrint}
-                        disabled={isLoading}
-                    >
+                        disabled={isLoading}>
                         <Printer className='mr-1.5 h-3.5 w-3.5' />
                         PRINT
                     </Button>

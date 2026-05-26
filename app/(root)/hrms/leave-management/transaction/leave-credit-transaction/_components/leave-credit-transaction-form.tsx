@@ -63,42 +63,41 @@ export function LeaveCreditTransactionForm({
         reset,
         formState: { errors }
     } = useForm<FormData>({
-        defaultValues:
-            (editingRow ? {
-                ...editingRow,
-                selectedTypeIds: [],
-                selectedDeptIds: [],
-                selectedDesignationIds: [],
-                lossOfPayType: '',
-                lossOfPayAmount: 0
-            } : {
-                employeeId: 0,
-                leaveName: '',
-                hrmL_LeaveType: '',
-                hrmlY_Id: activeYearId,
-                fromDate: undefined,
-                toDate: undefined,
-                totalDays: 0,
-                id: 0,
-                transactionId: 0,
-                isActive: true,
-                employeeName: '',
-                createdAt: new Date(),
-                selectedTypeIds: [],
-                selectedDeptIds: [],
-                selectedDesignationIds: [],
-                lossOfPayType: '',
-                lossOfPayAmount: 0
-            }) as unknown as FormData
+        defaultValues: (editingRow
+            ? {
+                  ...editingRow,
+                  selectedTypeIds: [],
+                  selectedDeptIds: [],
+                  selectedDesignationIds: [],
+                  lossOfPayType: '',
+                  lossOfPayAmount: 0
+              }
+            : {
+                  employeeId: 0,
+                  leaveName: '',
+                  hrmL_LeaveType: '',
+                  hrmlY_Id: activeYearId,
+                  fromDate: undefined,
+                  toDate: undefined,
+                  totalDays: 0,
+                  id: 0,
+                  transactionId: 0,
+                  isActive: true,
+                  employeeName: '',
+                  createdAt: new Date(),
+                  selectedTypeIds: [],
+                  selectedDeptIds: [],
+                  selectedDesignationIds: [],
+                  lossOfPayType: '',
+                  lossOfPayAmount: 0
+              }) as unknown as FormData
     });
 
     const fromDate = watch('fromDate');
     const toDate = watch('toDate');
     const totalDays = watch('totalDays');
     const lossOfPayType = watch('lossOfPayType');
-    const lossOfPayAmount = watch('lossOfPayAmount');
-
-
+    const _lossOfPayAmount = watch('lossOfPayAmount');
 
     /* ---------------- TOTAL DAYS CALCULATION ---------------- */
     useEffect(() => {
@@ -122,10 +121,18 @@ export function LeaveCreditTransactionForm({
         if (lossOfPayType && totalDays > 0) {
             let multiplier = 0;
             switch (lossOfPayType) {
-                case 'full':       multiplier = 0;    break;
-                case 'half':       multiplier = 0.5;  break;
-                case 'oneFourth':  multiplier = 0.25; break;
-                case 'threeFourth': multiplier = 0.75; break;
+                case 'full':
+                    multiplier = 0;
+                    break;
+                case 'half':
+                    multiplier = 0.5;
+                    break;
+                case 'oneFourth':
+                    multiplier = 0.25;
+                    break;
+                case 'threeFourth':
+                    multiplier = 0.75;
+                    break;
             }
             setValue('lossOfPayAmount', Number.parseFloat((totalDays - multiplier).toFixed(2)));
         } else {
@@ -139,7 +146,7 @@ export function LeaveCreditTransactionForm({
             try {
                 const date = new Date(fromDate);
                 // Find year where fromDate falls within [year.fromDate, year.toDate]
-                const matchingYear = years.find(y => {
+                const matchingYear = years.find((y) => {
                     if (!y.fromDate || !y.toDate) return false;
                     const start = new Date(y.fromDate);
                     const end = new Date(y.toDate);
@@ -158,7 +165,7 @@ export function LeaveCreditTransactionForm({
                     }
                 }
             } catch (e) {
-                console.error("Error matching leave year", e);
+                console.error('Error matching leave year', e);
             }
         }
     }, [fromDate, years, setValue, activeYearId, editingRow]);
@@ -186,11 +193,8 @@ export function LeaveCreditTransactionForm({
     };
 
     const onSubmitForm: SubmitHandler<FormData> = (data) => {
-        console.log("data", data);
-
         // Strip out the auxiliary filter fields and UI state
         const { selectedTypeIds, selectedDeptIds, selectedDesignationIds, lossOfPayType, lossOfPayAmount, ...transactionData } = data;
-        console.log("transactionData", transactionData);
         const submitData = {
             ...transactionData,
             hrmlY_Id: data.hrmlY_Id || activeYearId || 0,
@@ -207,14 +211,14 @@ export function LeaveCreditTransactionForm({
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Type:</Label>
                     {isLoadingTypes ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
+                        <div className='h-10 w-full animate-pulse rounded-md border bg-muted' />
                     ) : (
                         <Controller
                             control={control}
-                            name="selectedTypeIds"
+                            name='selectedTypeIds'
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={types.map(t => ({ label: t.name, value: String(t.id) }))}
+                                    options={types.map((t) => ({ label: t.name, value: String(t.id) }))}
                                     onValueChange={(vals) => {
                                         field.onChange(vals);
                                         onFilterChange('types', vals.map(Number));
@@ -227,22 +231,20 @@ export function LeaveCreditTransactionForm({
                                 />
                             )}
                         />
-
                     )}
-
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Department:</Label>
                     {isLoadingDepartments ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
+                        <div className='h-10 w-full animate-pulse rounded-md border bg-muted' />
                     ) : (
                         <Controller
                             control={control}
-                            name="selectedDeptIds"
+                            name='selectedDeptIds'
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={departments.map(d => ({ label: d.name, value: String(d.id) }))}
+                                    options={departments.map((d) => ({ label: d.name, value: String(d.id) }))}
                                     onValueChange={(vals) => {
                                         field.onChange(vals);
                                         onFilterChange('departments', vals.map(Number));
@@ -261,14 +263,14 @@ export function LeaveCreditTransactionForm({
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Designation:</Label>
                     {isLoadingDesignations ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
+                        <div className='h-10 w-full animate-pulse rounded-md border bg-muted' />
                     ) : (
                         <Controller
                             control={control}
-                            name="selectedDesignationIds"
+                            name='selectedDesignationIds'
                             render={({ field }) => (
                                 <MultiSelect
-                                    options={designations.map(d => ({ label: d.name, value: String(d.id) }))}
+                                    options={designations.map((d) => ({ label: d.name, value: String(d.id) }))}
                                     onValueChange={(vals) => {
                                         field.onChange(vals);
                                         onFilterChange('designations', vals.map(Number));
@@ -292,7 +294,7 @@ export function LeaveCreditTransactionForm({
                         Employee <span className='text-red-500'>*</span>
                     </Label>
                     {isLoadingEmployees ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
+                        <div className='h-10 w-full animate-pulse rounded-md border bg-muted' />
                     ) : (
                         <Controller
                             name='employeeId'
@@ -405,7 +407,7 @@ export function LeaveCreditTransactionForm({
                         {...control.register('totalDays', { valueAsNumber: true, required: 'Total Days is required', min: 0.5 })}
                         type='text'
                         step='0.5'
-                        disabled = {true}
+                        disabled={true}
                         className={errors.totalDays ? 'border-red-500' : ''}
                     />
                     {errors.totalDays && <FormError>{errors.totalDays.message}</FormError>}
@@ -414,9 +416,7 @@ export function LeaveCreditTransactionForm({
 
             {/* Loss of Pay Options and Calculated Field */}
             <div className='space-y-3'>
-                <Label className={cn('font-medium text-sm', !fromDate || !toDate ? 'text-muted-foreground' : '')}>
-                    Loss Of Pay :
-                </Label>
+                <Label className={cn('font-medium text-sm', !fromDate || !toDate ? 'text-muted-foreground' : '')}>Loss Of Pay :</Label>
                 <Controller
                     name='lossOfPayType'
                     control={control}
@@ -425,29 +425,48 @@ export function LeaveCreditTransactionForm({
                             value={field.value || ''}
                             onValueChange={field.onChange}
                             className='space-y-2'
-                            disabled={!fromDate || !toDate || totalDays <= 0}
-                        >
+                            disabled={!fromDate || !toDate || totalDays <= 0}>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='full' id='loss-of-pay-full' />
-                                <Label htmlFor='loss-of-pay-full' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
+                                <Label
+                                    htmlFor='loss-of-pay-full'
+                                    className={cn(
+                                        'font-normal',
+                                        !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'
+                                    )}>
                                     Loss Of Pay
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='half' id='loss-of-pay-half' />
-                                <Label htmlFor='loss-of-pay-half' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
+                                <Label
+                                    htmlFor='loss-of-pay-half'
+                                    className={cn(
+                                        'font-normal',
+                                        !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'
+                                    )}>
                                     Loss Of Pay Half Day
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='oneFourth' id='loss-of-pay-one-fourth' />
-                                <Label htmlFor='loss-of-pay-one-fourth' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
+                                <Label
+                                    htmlFor='loss-of-pay-one-fourth'
+                                    className={cn(
+                                        'font-normal',
+                                        !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'
+                                    )}>
                                     Loss Of Pay One Fourth Day
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='threeFourth' id='loss-of-pay-three-fourth' />
-                                <Label htmlFor='loss-of-pay-three-fourth' className={cn('font-normal', !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer')}>
+                                <Label
+                                    htmlFor='loss-of-pay-three-fourth'
+                                    className={cn(
+                                        'font-normal',
+                                        !fromDate || !toDate ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'
+                                    )}>
                                     Loss Of Pay Three Fourth Day
                                 </Label>
                             </div>
@@ -460,7 +479,7 @@ export function LeaveCreditTransactionForm({
                             type='number'
                             step='0.01'
                             readOnly
-                            value={watch('lossOfPayAmount') ||''}
+                            value={watch('lossOfPayAmount') || ''}
                             className='w-full md:w-1/2'
                             placeholder='Auto-calculated'
                         />

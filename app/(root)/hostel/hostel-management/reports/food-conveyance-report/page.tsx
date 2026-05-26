@@ -1,21 +1,30 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { hostelFoodConveyanceReportSchema, HostelFoodConveyanceReportValues } from '@/schemas/hostel/reports/hostel-food-conveyance-report.schema';
-import { getHFCReportLoadData, getHFCReport, type HFCReportLoadDataResponse, type HFCReportResponse, type HFCReportStudent } from '@/server/hostel/hostel-management/reports/hostel-food-conveyance-report';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { Loader2, Printer, XCircle, Minus, FileText, FileSpreadsheet } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { exportToExcel } from '@/lib/export-to-file';
-import { Heading } from '@/components/layout/heading';
+import {
+    type HostelFoodConveyanceReportValues,
+    hostelFoodConveyanceReportSchema
+} from '@/schemas/hostel/reports/hostel-food-conveyance-report.schema';
+import {
+    type HFCReportLoadDataResponse,
+    type HFCReportResponse,
+    type HFCReportStudent,
+    getHFCReport,
+    getHFCReportLoadData
+} from '@/server/hostel/hostel-management/reports/hostel-food-conveyance-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { FileSpreadsheet, FileText, Loader2, Minus, Printer, XCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function HostelFoodConveyanceReportPage() {
     const [reportData, setReportData] = useState<HFCReportStudent[]>([]);
@@ -29,8 +38,8 @@ export default function HostelFoodConveyanceReportPage() {
     const form = useForm<HostelFoodConveyanceReportValues>({
         resolver: zodResolver(hostelFoodConveyanceReportSchema),
         defaultValues: {
-            hfcFlag: 'H',
-        },
+            hfcFlag: 'H'
+        }
     });
 
     useEffect(() => {
@@ -70,25 +79,25 @@ export default function HostelFoodConveyanceReportPage() {
         setLoading(true);
         try {
             const data: HFCReportResponse | null = await getHFCReport(values);
-            if (data && data.studentlist && data.studentlist.length > 0) {
+            if (data?.studentlist && data.studentlist.length > 0) {
                 const formattedList = data.studentlist.map((item: HFCReportStudent) => {
                     let name = item.stuFN || '';
-                    if (item.stuMN) name += ' ' + item.stuMN;
-                    if (item.stuLN) name += ' ' + item.stuLN;
+                    if (item.stuMN) name += ` ${item.stuMN}`;
+                    if (item.stuLN) name += ` ${item.stuLN}`;
                     return {
                         ...item,
-                        namme: name.replace(/  +/g, ' ').trim()
+                        namme: name.replace(/ {2,}/g, ' ').trim()
                     };
                 });
                 setReportData(formattedList);
                 toast.success(`Successfully loaded ${formattedList.length} record(s)`);
             } else {
                 setReportData([]);
-                toast.info("No data found");
+                toast.info('No data found');
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to fetch report");
+            toast.error('Failed to fetch report');
         } finally {
             setLoading(false);
         }
@@ -160,45 +169,44 @@ export default function HostelFoodConveyanceReportPage() {
     };
 
     return (
-        <div className="flex-col">
-            <div className="flex items-center justify-end px-8 py-2 text-[10px] text-gray-500 font-medium bg-gray-100/50">
+        <div className='flex-col'>
+            <div className='flex items-center justify-end bg-gray-100/50 px-8 py-2 font-medium text-[10px] text-gray-500'>
                 <span>Report &gt; HostelFoodConveyanceReport</span>
             </div>
-            <div className="flex-1 space-y-4 p-8 pt-4 bg-slate-50/50 min-h-screen">
-                <Heading 
-                    title="Hostel / Food / Conveyance Report" 
-                    description="View and generate hostel food conveyance reports."
-                />
+            <div className='min-h-screen flex-1 space-y-4 bg-slate-50/50 p-8 pt-4'>
+                <Heading title='Hostel / Food / Conveyance Report' description='View and generate hostel food conveyance reports.' />
 
-                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-                    <Card className="shadow-md border-t-4 border-t-[#4255a7]">
-                        <CardHeader className="bg-white py-2 px-4 border-b flex flex-row items-center justify-between">
-                            <CardTitle className="text-[#4255a7] text-sm font-bold uppercase tracking-wider">
+                <div className='fade-in slide-in-from-top-4 animate-in duration-500'>
+                    <Card className='border-t-4 border-t-[#4255a7] shadow-md'>
+                        <CardHeader className='flex flex-row items-center justify-between border-b bg-white px-4 py-2'>
+                            <CardTitle className='font-bold text-[#4255a7] text-sm uppercase tracking-wider'>
                                 HOSTEL / FOOD / CONVEYANCE REPORT
                             </CardTitle>
-                            <Minus className="h-4 w-4 text-gray-400 cursor-pointer" />
+                            <Minus className='h-4 w-4 cursor-pointer text-gray-400' />
                         </CardHeader>
-                        <CardContent className="p-0">
+                        <CardContent className='p-0'>
                             <FormProvider {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-0'>
                                     {/* HFC Type Selection Bar */}
-                                    <div className="bg-gray-50/50 p-4 border-b flex justify-center">
+                                    <div className='flex justify-center border-b bg-gray-50/50 p-4'>
                                         <Controller
                                             control={form.control}
-                                            name="hfcFlag"
+                                            name='hfcFlag'
                                             render={({ field }) => (
-                                                <RadioGroup
-                                                    onValueChange={field.onChange}
-                                                    value={field.value}
-                                                    className="flex space-x-12"
-                                                >
-                                                    <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="H" id="r-hostel" />
-                                                        <Label htmlFor="r-hostel" className="cursor-pointer font-bold uppercase text-xs">Hostel</Label>
+                                                <RadioGroup onValueChange={field.onChange} value={field.value} className='flex space-x-12'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='H' id='r-hostel' />
+                                                        <Label htmlFor='r-hostel' className='cursor-pointer font-bold text-xs uppercase'>
+                                                            Hostel
+                                                        </Label>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <RadioGroupItem value="C" id="r-conveyance" />
-                                                        <Label htmlFor="r-conveyance" className="cursor-pointer font-bold uppercase text-xs">Conveyance</Label>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='C' id='r-conveyance' />
+                                                        <Label
+                                                            htmlFor='r-conveyance'
+                                                            className='cursor-pointer font-bold text-xs uppercase'>
+                                                            Conveyance
+                                                        </Label>
                                                     </div>
                                                 </RadioGroup>
                                             )}
@@ -206,18 +214,22 @@ export default function HostelFoodConveyanceReportPage() {
                                     </div>
 
                                     {/* Form Fields */}
-                                    <div className="p-8">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 max-w-5xl mx-auto">
+                                    <div className='p-8'>
+                                        <div className='mx-auto grid max-w-5xl grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-3'>
                                             {/* Academic Year */}
                                             <Controller
                                                 control={form.control}
-                                                name="asmaY_Id"
+                                                name='asmaY_Id'
                                                 render={({ field, fieldState }) => (
-                                                    <div className="flex flex-col gap-2">
-                                                        <Label className="text-gray-700 font-semibold text-xs uppercase tracking-wider">Academic Year: <span className="text-red-500">*</span></Label>
-                                                        <Select onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
-                                                            <SelectTrigger className="w-full bg-white border border-gray-200">
-                                                                <SelectValue placeholder="Select Academic Year" />
+                                                    <div className='flex flex-col gap-2'>
+                                                        <Label className='font-semibold text-gray-700 text-xs uppercase tracking-wider'>
+                                                            Academic Year: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value ? String(field.value) : undefined}>
+                                                            <SelectTrigger className='w-full border border-gray-200 bg-white'>
+                                                                <SelectValue placeholder='Select Academic Year' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {academicYears.map((y: any) => (
@@ -235,13 +247,17 @@ export default function HostelFoodConveyanceReportPage() {
                                             {/* Class */}
                                             <Controller
                                                 control={form.control}
-                                                name="asmcL_Id"
+                                                name='asmcL_Id'
                                                 render={({ field, fieldState }) => (
-                                                    <div className="flex flex-col gap-2">
-                                                        <Label className="text-gray-700 font-semibold text-xs uppercase tracking-wider">Class: <span className="text-red-500">*</span></Label>
-                                                        <Select onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
-                                                            <SelectTrigger className="w-full bg-white border border-gray-200">
-                                                                <SelectValue placeholder="Select Class" />
+                                                    <div className='flex flex-col gap-2'>
+                                                        <Label className='font-semibold text-gray-700 text-xs uppercase tracking-wider'>
+                                                            Class: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value ? String(field.value) : undefined}>
+                                                            <SelectTrigger className='w-full border border-gray-200 bg-white'>
+                                                                <SelectValue placeholder='Select Class' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {classes.map((c: any) => (
@@ -259,17 +275,23 @@ export default function HostelFoodConveyanceReportPage() {
                                             {/* Section */}
                                             <Controller
                                                 control={form.control}
-                                                name="asmC_Id"
+                                                name='asmC_Id'
                                                 render={({ field, fieldState }) => (
-                                                    <div className="flex flex-col gap-2">
-                                                        <Label className="text-gray-700 font-semibold text-xs uppercase tracking-wider">Section: <span className="text-red-500">*</span></Label>
-                                                        <Select onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
-                                                            <SelectTrigger className="w-full bg-white border border-gray-200">
-                                                                <SelectValue placeholder="Select Section" />
+                                                    <div className='flex flex-col gap-2'>
+                                                        <Label className='font-semibold text-gray-700 text-xs uppercase tracking-wider'>
+                                                            Section: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value ? String(field.value) : undefined}>
+                                                            <SelectTrigger className='w-full border border-gray-200 bg-white'>
+                                                                <SelectValue placeholder='Select Section' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {sections.map((s: any) => (
-                                                                    <SelectItem key={s.asmS_Id || s.asmC_Id} value={String(s.asmS_Id || s.asmC_Id)}>
+                                                                    <SelectItem
+                                                                        key={s.asmS_Id || s.asmC_Id}
+                                                                        value={String(s.asmS_Id || s.asmC_Id)}>
                                                                         {s.asmC_SectionName}
                                                                     </SelectItem>
                                                                 ))}
@@ -282,25 +304,27 @@ export default function HostelFoodConveyanceReportPage() {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex items-center justify-center gap-4 mt-12">
-                                            <Button 
-                                                type="submit" 
+                                        <div className='mt-12 flex items-center justify-center gap-4'>
+                                            <Button
+                                                type='submit'
                                                 disabled={loading}
-                                                className="w-32 bg-[#4255a7] hover:bg-[#354486] text-white rounded-md shadow-md uppercase font-bold text-xs"
-                                            >
-                                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-3 w-3" />}
+                                                className='w-32 rounded-md bg-[#4255a7] font-bold text-white text-xs uppercase shadow-md hover:bg-[#354486]'>
+                                                {loading ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <FileText className='mr-2 h-3 w-3' />
+                                                )}
                                                 REPORT
                                             </Button>
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
+                                            <Button
+                                                type='button'
+                                                variant='outline'
                                                 onClick={() => {
                                                     form.reset();
                                                     setReportData([]);
-                                                }} 
-                                                className="w-32 bg-[#ff5c33] hover:bg-[#e64d26] text-white border-none rounded-md shadow-md uppercase font-bold text-xs"
-                                            >
-                                                <XCircle className="mr-2 h-3 w-3" />
+                                                }}
+                                                className='w-32 rounded-md border-none bg-[#ff5c33] font-bold text-white text-xs uppercase shadow-md hover:bg-[#e64d26]'>
+                                                <XCircle className='mr-2 h-3 w-3' />
                                                 CANCEL
                                             </Button>
                                         </div>
@@ -312,41 +336,49 @@ export default function HostelFoodConveyanceReportPage() {
                 </div>
 
                 {reportData.length > 0 && (
-                    <Card className="shadow-md border-t-4 border-t-[#4255a7] animate-in fade-in slide-in-from-top-4 duration-700">
-                        <CardHeader className="bg-[#4255a7] py-1 px-4 flex flex-row items-center justify-between">
-                            <CardTitle className="text-white text-[11px] font-bold uppercase tracking-wider">REPORT DETAILS</CardTitle>
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" onClick={handleExportExcel} className="h-6 text-white hover:bg-white/20 text-[10px]">
-                                    <FileSpreadsheet className="h-3 w-3 mr-1" /> EXPORT
+                    <Card className='fade-in slide-in-from-top-4 animate-in border-t-4 border-t-[#4255a7] shadow-md duration-700'>
+                        <CardHeader className='flex flex-row items-center justify-between bg-[#4255a7] px-4 py-1'>
+                            <CardTitle className='font-bold text-[11px] text-white uppercase tracking-wider'>REPORT DETAILS</CardTitle>
+                            <div className='flex items-center gap-2'>
+                                <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={handleExportExcel}
+                                    className='h-6 text-[10px] text-white hover:bg-white/20'>
+                                    <FileSpreadsheet className='mr-1 h-3 w-3' /> EXPORT
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={handlePrint} className="h-6 text-white hover:bg-white/20 text-[10px]">
-                                    <Printer className="h-3 w-3 mr-1" /> PRINT
+                                <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={handlePrint}
+                                    className='h-6 text-[10px] text-white hover:bg-white/20'>
+                                    <Printer className='mr-1 h-3 w-3' /> PRINT
                                 </Button>
-                                <Minus className="h-3 w-3 text-white cursor-pointer opacity-70" />
+                                <Minus className='h-3 w-3 cursor-pointer text-white opacity-70' />
                             </div>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="overflow-x-auto">
-                                <Table id="reportTable">
-                                    <TableHeader className="bg-blue-50">
+                        <CardContent className='p-0'>
+                            <div className='overflow-x-auto'>
+                                <Table id='reportTable'>
+                                    <TableHeader className='bg-blue-50'>
                                         <TableRow>
-                                            <TableHead className="w-[80px] text-blue-900 font-bold border text-center">SL.No.</TableHead>
-                                            <TableHead className="text-blue-900 font-bold border">Reg. No.</TableHead>
-                                            <TableHead className="text-blue-900 font-bold border">Adm. No.</TableHead>
-                                            <TableHead className="text-blue-900 font-bold border">Student Name</TableHead>
-                                            <TableHead className="text-blue-900 font-bold border">Class</TableHead>
-                                            <TableHead className="text-blue-900 font-bold border text-center">Section</TableHead>
+                                            <TableHead className='w-[80px] border text-center font-bold text-blue-900'>SL.No.</TableHead>
+                                            <TableHead className='border font-bold text-blue-900'>Reg. No.</TableHead>
+                                            <TableHead className='border font-bold text-blue-900'>Adm. No.</TableHead>
+                                            <TableHead className='border font-bold text-blue-900'>Student Name</TableHead>
+                                            <TableHead className='border font-bold text-blue-900'>Class</TableHead>
+                                            <TableHead className='border text-center font-bold text-blue-900'>Section</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {reportData.map((item, index) => (
-                                            <TableRow key={index} className="hover:bg-gray-50/50 transition-colors">
-                                                <TableCell className="py-2 text-xs border text-center">{index + 1}</TableCell>
-                                                <TableCell className="py-2 text-xs border">{item.regno || '-'}</TableCell>
-                                                <TableCell className="py-2 text-xs border">{item.admno || '-'}</TableCell>
-                                                <TableCell className="py-2 text-xs border font-semibold">{item.namme || '-'}</TableCell>
-                                                <TableCell className="py-2 text-xs border">{item.class || '-'}</TableCell>
-                                                <TableCell className="py-2 text-xs border text-center">{item.section || '-'}</TableCell>
+                                            <TableRow key={index} className='transition-colors hover:bg-gray-50/50'>
+                                                <TableCell className='border py-2 text-center text-xs'>{index + 1}</TableCell>
+                                                <TableCell className='border py-2 text-xs'>{item.regno || '-'}</TableCell>
+                                                <TableCell className='border py-2 text-xs'>{item.admno || '-'}</TableCell>
+                                                <TableCell className='border py-2 font-semibold text-xs'>{item.namme || '-'}</TableCell>
+                                                <TableCell className='border py-2 text-xs'>{item.class || '-'}</TableCell>
+                                                <TableCell className='border py-2 text-center text-xs'>{item.section || '-'}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

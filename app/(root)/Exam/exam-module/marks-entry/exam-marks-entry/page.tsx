@@ -126,15 +126,15 @@ async function fetchSubjectAndStudentsMock(
             marks: '', // keep blank for main mark if subsub/subexam used
             subSubMarks: subjectData.subsubFlag
                 ? subjectData.subsubData.map((sub: { subsubId: any; maxMarks: number }) => ({
-                    subsubId: sub.subsubId,
-                    marks: '' // leave blank for entry
-                }))
+                      subsubId: sub.subsubId,
+                      marks: '' // leave blank for entry
+                  }))
                 : [],
             subExamMarks: subjectData.subexamFlag
                 ? subjectData.subexamData.map((se: { subexamId: any; maxMarks: number }) => ({
-                    subexamId: se.subexamId,
-                    marks: ''
-                }))
+                      subexamId: se.subexamId,
+                      marks: ''
+                  }))
                 : []
         };
     });
@@ -197,7 +197,6 @@ function MarksEntryContent() {
             const yrs = academicDropdownData.data.map((y: any) => ({ asmaY_Id: y.asmaY_Id, asmaY_Year: y.asmaY_Year }));
             setAcademicYears(yrs);
         }
-
     }, [academicDropdownData, academicError, selectedAcademicYear]);
 
     /* -------------------------
@@ -396,62 +395,62 @@ function MarksEntryContent() {
                 minMarks: s.minMarks !== undefined ? Number(s.minMarks) : undefined,
                 subsubData: Array.isArray(s.subsubData)
                     ? s.subsubData.map((x: any) => ({
-                        subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
-                        subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
+                          subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : [],
                 subexamData: Array.isArray(s.subexamData)
                     ? s.subexamData.map((x: any) => ({
-                        subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
-                        subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
+                          subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : []
             };
 
             // normalize students
             const students: IStudentMarksRow[] = Array.isArray(resp.studentData)
                 ? resp.studentData.map((st: any) => {
-                    const row: IStudentMarksRow = {
-                        studentID: st.studentID ?? st.studentId ?? 0,
-                        studentName: st.studentName ?? st.name ?? '',
-                        RegNo: st.RegNo ?? st.Reg_No ?? '',
-                        AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
-                        RollNo: st.RollNo ?? st.rollNo ?? 0
-                    };
+                      const row: IStudentMarksRow = {
+                          studentID: st.studentID ?? st.studentId ?? 0,
+                          studentName: st.studentName ?? st.name ?? '',
+                          RegNo: st.RegNo ?? st.Reg_No ?? '',
+                          AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
+                          RollNo: st.RollNo ?? st.rollNo ?? 0
+                      };
 
-                    if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
-                        row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
-                    } else {
-                        if (subjectMeta.subsubFlag) {
-                            row.subSubMarks = subjectMeta.subsubData.map((ss) => {
-                                const found = Array.isArray(st.subSubMarks)
-                                    ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
-                                    : undefined;
-                                return {
-                                    subsubId: ss.subsubId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                        if (subjectMeta.subexamFlag) {
-                            row.subExamMarks = subjectMeta.subexamData.map((se) => {
-                                const found = Array.isArray(st.subExamMarks)
-                                    ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
-                                    : undefined;
-                                return {
-                                    subexamId: se.subexamId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                    }
+                      if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
+                          row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
+                      } else {
+                          if (subjectMeta.subsubFlag) {
+                              row.subSubMarks = subjectMeta.subsubData.map((ss) => {
+                                  const found = Array.isArray(st.subSubMarks)
+                                      ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
+                                      : undefined;
+                                  return {
+                                      subsubId: ss.subsubId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                          if (subjectMeta.subexamFlag) {
+                              row.subExamMarks = subjectMeta.subexamData.map((se) => {
+                                  const found = Array.isArray(st.subExamMarks)
+                                      ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
+                                      : undefined;
+                                  return {
+                                      subexamId: se.subexamId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                      }
 
-                    return row;
-                })
+                      return row;
+                  })
                 : [];
 
             setSubjectMeta(subjectMeta);
@@ -555,8 +554,6 @@ function MarksEntryContent() {
                                 //id="academicYear"
                                 value={selectedAcademicYear ? String(selectedAcademicYear) : undefined}
                                 onValueChange={(v) => setSelectedAcademicYear(v !== 'none' ? Number(v) : undefined)}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -589,8 +586,6 @@ function MarksEntryContent() {
                                 value={selectedClass ? String(selectedClass) : undefined}
                                 onValueChange={(v) => setSelectedClass(v !== 'none' ? Number(v) : undefined)}
                                 disabled={!selectedAcademicYear || loadingClasses}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
@@ -625,8 +620,6 @@ function MarksEntryContent() {
                                 value={selectedSectionId ? String(selectedSectionId) : undefined}
                                 onValueChange={(v) => setSelectedSectionId(v !== 'none' ? Number(v) : undefined)}
                                 disabled={!selectedClass || loadingSections}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
@@ -659,8 +652,6 @@ function MarksEntryContent() {
                                 value={selectedExam ? String(selectedExam) : undefined}
                                 onValueChange={(v) => setSelectedExam(v !== 'none' && v !== 'disabled' ? Number(v) : undefined)}
                                 disabled={activeTab === 1 || loadingExams}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder={activeTab === 1 ? '-- Disabled for Overall --' : 'Select exam'} />
                                 </SelectTrigger>
@@ -694,8 +685,6 @@ function MarksEntryContent() {
                                 //id="subjectSelect"
                                 value={selectedSubjectId ? String(selectedSubjectId) : undefined}
                                 onValueChange={(v) => setSelectedSubjectId(v !== 'none' ? Number(v) : undefined)}>
-
-
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='Select Subject' />
                                 </SelectTrigger>
@@ -735,7 +724,6 @@ function MarksEntryContent() {
                             CANCEL
                         </Button>
                     </div>
-
                 </div>
 
                 {/* Students Grid */}

@@ -39,7 +39,7 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
     const [periods, setPeriods] = useState<PeriodItem[]>([]);
 
     const [classSearch, setClassSearch] = useState('');
-    const [daySearch, setDaySearch] = useState('');
+    const [_daySearch, _setDaySearch] = useState('');
 
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
@@ -88,8 +88,6 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                         Number(watchedAcademicYear),
                         Number(watchedCategory)
                     );
-
-                    console.log('Fetched classes:', res);
 
                     if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
                         setClassList(res.data);
@@ -170,7 +168,6 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                 try {
                     // Call the specified API to fetch period details
                     const res = await getPeriodDetails(count);
-                    console.log('res', res);
 
                     // biome-ignore lint/complexity/useOptionalChain: <explanation>
                     if (res && res.data && res.data.length > 0) {
@@ -238,8 +235,6 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                     asmcL_ClassName: c.asmcL_ClassName
                 }))
             };
-
-            console.log('Submitting payload:', payload);
 
             const response = await savePeriodClass(payload);
             if (response.success) {

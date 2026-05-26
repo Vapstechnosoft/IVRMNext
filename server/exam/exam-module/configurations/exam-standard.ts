@@ -8,7 +8,6 @@ export async function getExamStandard(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `exam_standard/get_exam_config_list/?${urlParams}`;
     const response = await api.get<IExamStandard>('exam', url);
-    console.log('Exam Standard Response:', response);
     return { ...response };
 }
 export async function UpdateExamStandard(data: any) {

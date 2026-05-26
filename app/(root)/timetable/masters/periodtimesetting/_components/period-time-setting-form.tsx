@@ -40,8 +40,6 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
 
     const { data: periodList, isLoading: perioddataloading, error: perioddataError, refetchAll: perioddataRefetch } = usePeriodDropdown();
 
-    console.log('periodList', periodList);
-
     const {
         data: Masterdaydata,
         isLoading: masterdaydataloading,
@@ -170,8 +168,6 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                 toast.error('To Time must be greater than From Time');
                 return;
             }
-
-            console.log('Submitting Payload:', JSON.stringify(payload));
             const response = await savePeriodTimeSetting(payload);
 
             const isSuccess =

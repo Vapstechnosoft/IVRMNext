@@ -1,22 +1,27 @@
 'use client';
 
-import { useForm, FormProvider } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SelectionForm from './_components/selection-form';
-import SavedGrid from './_components/saved-grid';
+import {
+    deleteInstitutionRolePrivileges,
+    getInstitutionRolePrivileges,
+    getPageList,
+    saveInstitutionRolePrivileges
+} from '@/server/super-admin/configuration-setting/institution-module-page';
+import type { InstitutionRolePrivilegeDTO, PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import DeleteGrid from './_components/delete-grid';
 import PageListGrid from './_components/page-list-grid';
 import PrivilegeGrid from './_components/privilege-grid';
-import DeleteGrid from './_components/delete-grid';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { getInstitutionRolePrivileges, getPageList, saveInstitutionRolePrivileges, deleteInstitutionRolePrivileges } from '@/server/super-admin/configuration-setting/institution-module-page';
-import { useState, useEffect } from 'react';
-import { InstitutionRolePrivilegeDTO, PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
+import SavedGrid from './_components/saved-grid';
+import SelectionForm from './_components/selection-form';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Select institute'),
     module: z.string().min(1, 'Select module'),
-    roleid: z.string().min(1, 'Select Role name'),
+    roleid: z.string().min(1, 'Select Role name')
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,14 +49,11 @@ export default function InstitutionModulePage() {
     };
 
     const handleDelete = async (itemsToDelete: InstitutionRolePrivilegeDTO[]) => {
-        console.log("Deleting items:", itemsToDelete);
-
         const payload = {
-            "privilagedata": itemsToDelete.map(item => ({
-                "ivrmirP_Id": item.ivrmirP_Id
+            privilagedata: itemsToDelete.map((item) => ({
+                ivrmirP_Id: item.ivrmirP_Id
             }))
         };
-        console.log("Delete Payload:", JSON.stringify(payload, null, 2));
 
         const result = await deleteInstitutionRolePrivileges(payload);
         if (result.success) {
@@ -76,7 +78,7 @@ export default function InstitutionModulePage() {
 
     const handleAddToCart = (item: PageDTO) => {
         // Prevent duplicates
-        if (!cartData.some(c => c.ivrmP_Id === item.ivrmP_Id)) {
+        if (!cartData.some((c) => c.ivrmP_Id === item.ivrmP_Id)) {
             const newItem = {
                 ...item,
                 ivrmrP_AddFlag: false,
@@ -95,7 +97,6 @@ export default function InstitutionModulePage() {
     };
 
     const handleSave = async (dataToSave: PageDTO[]) => {
-        console.log("Saving Mapping:", dataToSave);
         const formValues = methods.getValues();
 
         if (!formValues.institution || !formValues.module || !formValues.roleid) {
@@ -104,26 +105,26 @@ export default function InstitutionModulePage() {
         }
 
         const payload = {
-            "ivrmirP_Id": 0,
-            "ivrmrT_Id": Number(formValues.roleid),
-            "ivrmimP_Id": 0,
-            "mI_Id": Number(formValues.institution),
-            "ivrmM_Id": Number(formValues.module),
-            "roleId": Number(formValues.roleid),
+            ivrmirP_Id: 0,
+            ivrmrT_Id: Number(formValues.roleid),
+            ivrmimP_Id: 0,
+            mI_Id: Number(formValues.institution),
+            ivrmM_Id: Number(formValues.module),
+            roleId: Number(formValues.roleid),
             // Mapping cart data to savetmpdata with expected keys
-            "savetmpdata": dataToSave.map(item => ({
-                "ivrmP_Id": item.ivrmP_Id,
-                "ivrmirP_AddFlag": item.ivrmrP_AddFlag || false,
-                "ivrmirP_UpdateFlag": item.ivrmrP_UpdateFlag || false,
-                "ivrmirP_DeleteFlag": item.ivrmrP_DeleteFlag || false,
-                "ivrmirP_ReportFlag": item.ivrmrP_ReportFlag || false,
-                "ivrmirP_SearchFlag": item.ivrmrP_SearchFlag || false,
-                "ivrmirP_ProcessFlag": item.ivrmrP_ProcessFlag || false,
-                "ivrmimP_Id": 0,
-                "ivrmrT_Id": Number(formValues.roleid)
+            savetmpdata: dataToSave.map((item) => ({
+                ivrmP_Id: item.ivrmP_Id,
+                ivrmirP_AddFlag: item.ivrmrP_AddFlag || false,
+                ivrmirP_UpdateFlag: item.ivrmrP_UpdateFlag || false,
+                ivrmirP_DeleteFlag: item.ivrmrP_DeleteFlag || false,
+                ivrmirP_ReportFlag: item.ivrmrP_ReportFlag || false,
+                ivrmirP_SearchFlag: item.ivrmrP_SearchFlag || false,
+                ivrmirP_ProcessFlag: item.ivrmrP_ProcessFlag || false,
+                ivrmimP_Id: 0,
+                ivrmrT_Id: Number(formValues.roleid)
             })),
-            "privilagedata": [], // As per requirements
-            "menuid": []        // As per requirements
+            privilagedata: [], // As per requirements
+            menuid: [] // As per requirements
         };
 
         const result = await saveInstitutionRolePrivileges(payload);
@@ -131,7 +132,7 @@ export default function InstitutionModulePage() {
             alert(result.message);
             setCartData([]);
             // Optionally refresh grid
-            // const response = await getInstitutionRolePrivileges(); 
+            // const response = await getInstitutionRolePrivileges();
             // if(response.success && response.data?.institutionRolePrivilegesList) setGridData(response.data.institutionRolePrivilegesList);
         } else {
             alert(result.message);
@@ -144,9 +145,7 @@ export default function InstitutionModulePage() {
 
     useEffect(() => {
         const fetchGridData = async () => {
-            console.log("Fetching grid data...");
             const response = await getInstitutionRolePrivileges();
-            console.log("Grid Data Response:", response);
             if (response.success && response.data?.institutionRolePrivilegesList) {
                 setGridData(response.data.institutionRolePrivilegesList);
             }
@@ -157,7 +156,6 @@ export default function InstitutionModulePage() {
     useEffect(() => {
         const fetchPageList = async () => {
             if (selectedModule) {
-                console.log("Module Selected:", selectedModule, "Fetching Page List...");
                 const response = await getPageList(Number(selectedModule));
                 if (response.success && response.data?.pageList) {
                     setPageListData(response.data.pageList);
@@ -171,21 +169,19 @@ export default function InstitutionModulePage() {
         fetchPageList();
     }, [selectedModule]);
 
-    const onSubmit = (data: FormValues) => {
-        console.log("Form Submitted", data);
-    };
+    const onSubmit = (_data: FormValues) => {};
 
     return (
-        <div className="container mx-auto p-6">
-            <Card className="w-full">
+        <div className='container mx-auto p-6'>
+            <Card className='w-full'>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center">Institution Module Page</CardTitle>
+                    <CardTitle className='text-center font-bold text-2xl'>Institution Module Page</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <FormProvider {...methods}>
-                        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+                        <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-6'>
                             <SelectionForm />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                 <div>
                                     {/* Page List Grid appears when Module is selected */}
                                     {pageListData.length > 0 && <PageListGrid data={pageListData} onAddToCart={handleAddToCart} />}
@@ -208,11 +204,7 @@ export default function InstitutionModulePage() {
 
                             {/* Delete Grid (appears when items are selected in SavedGrid) */}
                             {deleteCartData.length > 0 && (
-                                <DeleteGrid
-                                    data={deleteCartData}
-                                    onDelete={handleDelete}
-                                    onCancel={handleCancelDelete}
-                                />
+                                <DeleteGrid data={deleteCartData} onDelete={handleDelete} onCancel={handleCancelDelete} />
                             )}
 
                             <SavedGrid data={gridData} onSelectionChange={handleSavedGridSelection} />

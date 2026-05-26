@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Search, X } from 'lucide-react';
 import { searchFeeChequeBounce } from '@/server/fees/trasactions/fee_cheque_bounce';
+import { Search, X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function SearchFeeChequeBounceForm({
@@ -15,7 +15,7 @@ export default function SearchFeeChequeBounceForm({
     onSearchResults
 }: {
     asmayId: number;
-    onSearchResults: (data: any[]) => void
+    onSearchResults: (data: any[]) => void;
 }) {
     const [searchType, setSearchType] = useState<string>('');
     const [searchText, setSearchText] = useState<string>('');
@@ -49,8 +49,7 @@ export default function SearchFeeChequeBounceForm({
                 payload.searchtext = searchText;
             }
 
-            const result = await searchFeeChequeBounce(payload) as any;
-            console.log("result", result);
+            const result = (await searchFeeChequeBounce(payload)) as any;
             const allData = result?.alldata || result?.data?.alldata;
 
             if (Array.isArray(allData) && allData.length > 0) {
@@ -59,7 +58,7 @@ export default function SearchFeeChequeBounceForm({
                 toast.info('Record Does Not Exist For Searched Data');
                 onSearchResults([]);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred during search');
         }
     };
@@ -72,7 +71,7 @@ export default function SearchFeeChequeBounceForm({
     };
 
     return (
-        <div className='flex flex-wrap items-end gap-4 p-4 border rounded-lg bg-muted/50'>
+        <div className='flex flex-wrap items-end gap-4 rounded-lg border bg-muted/50 p-4'>
             <div className='space-y-2'>
                 <Label>Search For</Label>
                 <Select onValueChange={setSearchType} value={searchType}>

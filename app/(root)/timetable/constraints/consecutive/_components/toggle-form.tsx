@@ -44,7 +44,6 @@ export default function ToggleConsecutiveConstraintsForm({ rowData, onClose }: T
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await deactivateConsecutiveConstraints(rowData);
-            console.log('response', response);
 
             if (response.success) {
                 toast.success(response.message);

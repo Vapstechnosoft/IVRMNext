@@ -58,7 +58,6 @@ export default function MasterClassHeldPage() {
         isLoading: preadmissionMonthLoading,
         isError: preadmissionMonthError
     } = useMasterMonthDropDownList();
-    console.log('sectionId', sectionId);
     const {
         control,
         handleSubmit,
@@ -98,8 +97,8 @@ export default function MasterClassHeldPage() {
                 const displayName = `${monthShortName}-${year}`;
 
                 // Handle Leap Year for February
-                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-                const maxDays = (monthNum === 2 && isLeapYear) ? 29 : monthData.ivrM_Month_Max_Days;
+                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+                const maxDays = monthNum === 2 && isLeapYear ? 29 : monthData.ivrM_Month_Max_Days;
 
                 result.push({
                     ivrM_Month_Id: monthData.ivrM_Month_Id,
@@ -470,12 +469,13 @@ export default function MasterClassHeldPage() {
                                                             value={row.ascH_ClassHeld}
                                                             onChange={(e) => handleClassHeldChange(index, e.target.value)}
                                                             disabled={!row.selected}
-                                                            className={`w-full ${row.selected &&
-                                                                    row.ascH_ClassHeld !== '' &&
-                                                                    Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
+                                                            className={`w-full ${
+                                                                row.selected &&
+                                                                row.ascH_ClassHeld !== '' &&
+                                                                Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
                                                                     ? 'border-red-500'
                                                                     : ''
-                                                                }`}
+                                                            }`}
                                                         />
                                                     </div>
                                                 </div>

@@ -172,8 +172,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 // user_id: 21602 // Static user id
             };
 
-            console.log('Payload:', payload);
-
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
 
             if (response.success) {

@@ -17,13 +17,13 @@ export interface IPDAHeadWiseReportParams {
 
 export async function getPDAHeadWiseInitialData() {
     const session = await auth();
-    const mi_id = session?.mi_id || 2;
+    const _mi_id = session?.mi_id || 2;
     // According to Angular code: pageid = 2; getalldetails
-    const url = `/PDAHeadWiseReport/getalldetails/2`;
+    const url = '/PDAHeadWiseReport/getalldetails/2';
     return await api.get<any>('pettycashandassettracking', url);
 }
 
 export async function getPDAHeadWiseReportData(data: IPDAHeadWiseReportParams) {
-    const url = `/PDAHeadWiseReport/radiobtndata`;
+    const url = '/PDAHeadWiseReport/radiobtndata';
     return await api.post('pettycashandassettracking', url, data);
 }

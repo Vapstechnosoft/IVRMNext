@@ -1,31 +1,34 @@
 'use client';
 
-import { forwardRef } from 'react';
 import { format } from 'date-fns';
+import { forwardRef } from 'react';
 
 interface NoObjectionCertPrintProps {
     data: any;
 }
 
-export const NoObjectionCertPrint = forwardRef<HTMLDivElement, NoObjectionCertPrintProps>(
-    ({ data }, ref) => {
-        if (!data) return null;
+export const NoObjectionCertPrint = forwardRef<HTMLDivElement, NoObjectionCertPrintProps>(({ data }, ref) => {
+    if (!data) return null;
 
-        // data could be a single student object or contain a studentList
-        const students = data.studentList || (data.studentname ? [data] : []);
+    // data could be a single student object or contain a studentList
+    const students = data.studentList || (data.studentname ? [data] : []);
 
-        const formatDateWithDay = (dateStr: string) => {
-            if (!dateStr) return '--';
-            try {
-                return format(new Date(dateStr), 'dd MMMM yyyy');
-            } catch (e) {
-                return '--';
-            }
-        };
+    const formatDateWithDay = (dateStr: string) => {
+        if (!dateStr) return '--';
+        try {
+            return format(new Date(dateStr), 'dd MMMM yyyy');
+        } catch (_e) {
+            return '--';
+        }
+    };
 
-        return (
-            <div ref={ref} className="print-container bg-white text-black print:p-0" style={{ width: '210mm', minHeight: '297mm', padding: '0' }}>
-                <style dangerouslySetInnerHTML={{
+    return (
+        <div
+            ref={ref}
+            className='print-container bg-white text-black print:p-0'
+            style={{ width: '210mm', minHeight: '297mm', padding: '0' }}>
+            <style
+                dangerouslySetInnerHTML={{
                     __html: `
                     @font-face {
                         font-family: "Old English Text MT";
@@ -99,76 +102,77 @@ export const NoObjectionCertPrint = forwardRef<HTMLDivElement, NoObjectionCertPr
                     .georgia-text {
                         font-family: Georgia, serif;
                     }
-                `}} />
+                `
+                }}
+            />
 
-                {students.map((student: any, index: number) => (
-                    <div key={student.amsT_Id || index} className={index < students.length - 1 ? 'page-break' : ''}>
-                        <div className="main-container">
-                            <div className="cert-border-outer">
-                                <div className="cert-border-middle">
-                                    <div className="cert-border-inner">
+            {students.map((student: any, index: number) => (
+                <div key={student.amsT_Id || index} className={index < students.length - 1 ? 'page-break' : ''}>
+                    <div className='main-container'>
+                        <div className='cert-border-outer'>
+                            <div className='cert-border-middle'>
+                                <div className='cert-border-inner'>
+                                    {/* Header Image */}
+                                    <div className='mb-8 w-full pt-4'>
+                                        <img
+                                            src={student.milogo || 'https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg'}
+                                            alt='School Logo'
+                                            className='w-full object-fill'
+                                        />
+                                    </div>
 
-                                        {/* Header Image */}
-                                        <div className="w-full mb-8 pt-4">
-                                            <img
-                                                src={student.milogo || "https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg"}
-                                                alt="School Logo"
-                                                className="w-full object-fill"
-                                            />
-                                        </div>
+                                    {/* Title */}
+                                    <div className='mt-6 mb-8 text-center'>
+                                        <h3 className='georgia-text font-bold text-[20px] uppercase tracking-wide underline'>
+                                            TO WHOM IT MAY CONCERN
+                                        </h3>
+                                    </div>
 
-                                        {/* Title */}
-                                        <div className="text-center mt-6 mb-8">
-                                            <h3 className="text-[20px] font-bold underline georgia-text tracking-wide uppercase">
-                                                TO WHOM IT MAY CONCERN
-                                            </h3>
-                                        </div>
+                                    {/* Content */}
+                                    <div className='georgia-text text-justify text-[20px] leading-[36px]'>
+                                        <p>
+                                            It is hereby certified that {student.gender5} {student.studentname} , S/o {student.fathername}{' '}
+                                            is a bonafide student of this school studing in Class {student.class} Section {student.section},
+                                            Roll No. and Scholor No.{student.admno} of this school.
+                                            <br />
+                                            <br />
+                                            The School has no objection to {student.studentname} applying for the Schengen Visa for visiting
+                                            Norway, Denmark and Finland from Tuesday, 30th April 2024 to Wednesday 15th May 2024.
+                                        </p>
+                                    </div>
 
-                                        {/* Content */}
-                                        <div className="georgia-text text-[20px] leading-[36px] text-justify">
-                                            <p>
-                                                It is hereby certified that {student.gender5} {student.studentname} , S/o {student.fathername}
-                                                {' '}is a bonafide student of this school
-                                                studing in Class {student.class} Section {student.section}, Roll No. and Scholor No.{student.admno} of this school.
-                                                <br /><br />
-                                                The School has no objection to {student.studentname} applying for the
-                                                Schengen Visa for visiting Norway, Denmark and Finland from Tuesday, 30th April 2024 to Wednesday 15th May 2024.
-                                            </p>
-                                        </div>
+                                    {/* Signature Section */}
+                                    <div className='mt-20 space-y-0 pr-10 text-right'>
+                                        <p className='georgia-text mb-0 font-bold text-[18px]'> (Raja McGee) </p>
+                                        <p className='georgia-text font-bold text-[18px] leading-none underline'> Principal & Secretary </p>
+                                    </div>
 
-                                        {/* Signature Section */}
-                                        <div className="mt-20 pr-10 text-right space-y-0">
-                                            <p className="georgia-text font-bold text-[18px] mb-0"> (Raja McGee) </p>
-                                            <p className="georgia-text font-bold text-[18px] underline leading-none"> Principal & Secretary </p>
-                                        </div>
+                                    {/* Dated Footer */}
+                                    <div className='mt-12'>
+                                        <p className='georgia-text text-[22px]'>
+                                            Dated:
+                                            <span className='inline-block border-black border-b-2 px-1'>
+                                                {formatDateWithDay(student.date)}
+                                            </span>
+                                        </p>
+                                    </div>
 
-                                        {/* Dated Footer */}
-                                        <div className="mt-12">
-                                            <p className="georgia-text text-[22px]">
-                                                Dated:<span className="border-b-2 border-black inline-block px-1">
-                                                    {formatDateWithDay(student.date)}
-                                                </span>
-                                            </p>
-                                        </div>
-
-                                        {/* Footer Image */}
-                                        <div className="mt-6 pb-2">
-                                            <img
-                                                src="https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg"
-                                                alt="Footer"
-                                                className="w-full object-contain"
-                                            />
-                                        </div>
-
+                                    {/* Footer Image */}
+                                    <div className='mt-6 pb-2'>
+                                        <img
+                                            src='https://calcuttaboy.blob.core.windows.net/files/Bonafied_Footer_cbs.jpg'
+                                            alt='Footer'
+                                            className='w-full object-contain'
+                                        />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                ))}
-            </div>
-        );
-    }
-);
+                </div>
+            ))}
+        </div>
+    );
+});
 
 NoObjectionCertPrint.displayName = 'NoObjectionCertPrint';

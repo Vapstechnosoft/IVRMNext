@@ -1,30 +1,25 @@
 'use server';
 
+import type { superAdminMasterSchema } from '@/schemas/super-admin/super-admin-module/masters';
 import type { ISuperAdminMasterOrder } from '@/types/super-admin/super-admin-module/masters';
-import { superAdminMasterSchema } from '@/schemas/super-admin/super-admin-module/masters';
-import { z } from 'zod';
+import type { z } from 'zod';
 
-export async function addOrUpdateSuperAdminMaster(data: z.infer<typeof superAdminMasterSchema.addOrUpdate>) {
-    console.log('Saving Super Admin Master (Stub):', data);
+export async function addOrUpdateSuperAdminMaster(_data: z.infer<typeof superAdminMasterSchema.addOrUpdate>) {
     return { success: true, message: 'Super Admin Master saved successfully (stub)' };
 }
 
-export async function getSuperAdminMaster(searchParams?: any) {
-    console.log('Fetching Super Admin Master (Stub):', searchParams);
+export async function getSuperAdminMaster(_searchParams?: any) {
     return [];
 }
 
 export async function getSuperAdminMasterOrderData() {
-    console.log('Fetching Super Admin Master Order Data (Stub)');
     return [];
 }
 
-export async function UpdatedOrderdSuperAdminMasters(data: ISuperAdminMasterOrder[]) {
-    console.log('Updating Super Admin Master Order (Stub):', data);
+export async function UpdatedOrderdSuperAdminMasters(_data: ISuperAdminMasterOrder[]) {
     return { status: 200, message: 'Order updated successfully (stub)' };
 }
 
-export async function toggleSuperAdminMaster(data: z.infer<typeof superAdminMasterSchema.toggle>) {
-    console.log('Toggling Super Admin Master (Stub):', data);
+export async function toggleSuperAdminMaster(_data: z.infer<typeof superAdminMasterSchema.toggle>) {
     return { success: true, message: 'Status updated successfully (stub)' };
 }

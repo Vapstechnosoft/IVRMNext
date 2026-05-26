@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Textarea } from '@/components/ui/textarea';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { masterFacilitySchema } from '@/schemas/hostel/masters';
 import { addOrUpdateMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
@@ -78,9 +77,7 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                     {/* Facility Description */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='hlmftY_FacilityDesc'>
-                                Description
-                            </Label>
+                            <Label htmlFor='hlmftY_FacilityDesc'>Description</Label>
                             <textarea
                                 id='hlmftY_FacilityDesc'
                                 {...register('hlmftY_FacilityDesc')}
@@ -110,7 +107,7 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                                                     toast.success('File uploaded successfully');
                                                 }
                                             }}
-                                            className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+                                            className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
                                         />
                                     </div>
                                 )}

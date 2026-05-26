@@ -39,7 +39,7 @@ export default function AdvancePaymentDetails({ isOpen, onClose, studentName = '
     const [advanceFeeRecords, setAdvanceFeeRecords] = useState<AdvanceFeeRecord[]>([
         { slNo: 1, feeHead: 'CBSE TUITION FEES', advanceAmount: 0 }
     ]);
-    const [paymentHistory, setPaymentHistory] = useState<AdvancePaymentHistory[]>([
+    const [paymentHistory, _setPaymentHistory] = useState<AdvancePaymentHistory[]>([
         {
             slNo: 1,
             studentName: 'ASBAH KUNJI',
@@ -75,12 +75,6 @@ export default function AdvancePaymentDetails({ isOpen, onClose, studentName = '
     }, [isOpen]);
 
     const handleSave = () => {
-        console.log('Saving advance payment:', {
-            bankName,
-            chequeDate,
-            chequeNo,
-            advanceFeeRecords
-        });
         // Add your save logic here
         onClose();
     };
@@ -92,12 +86,11 @@ export default function AdvancePaymentDetails({ isOpen, onClose, studentName = '
         onClose();
     };
 
-    const handleEdit = (record: AdvancePaymentHistory) => {
-        console.log('Editing record:', record);
+    const handleEdit = (_record: AdvancePaymentHistory) => {
         // Add edit logic here
     };
 
-    const handleAdvanceAmountChange = (index: number, value: string) => {
+    const _handleAdvanceAmountChange = (index: number, value: string) => {
         const updatedRecords = [...advanceFeeRecords];
         updatedRecords[index].advanceAmount = Number.parseFloat(value) || 0;
         setAdvanceFeeRecords(updatedRecords);

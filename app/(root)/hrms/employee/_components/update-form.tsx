@@ -8,7 +8,6 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { format } from 'date-fns';
 import {
     useArrearsList,
     useBankDropdown,
@@ -79,6 +78,7 @@ import type {
     ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -188,7 +188,7 @@ interface UpdateEmployeeFormProps {
     className?: string;
 }
 
-const DebugPanel = null;
+const _DebugPanel = null;
 
 /**
  * Update Employee Form - Standalone form for updating existing employees
@@ -263,27 +263,26 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const rawData = Array.isArray(departmentDropdownResponse)
             ? departmentDropdownResponse
             : (departmentDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Department Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
                 // Try logging individual item to see structure
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
-                return {
-                    key: Number(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? 0),
-                    value: String(
-                        item.hrmD_DepartmentName ??
-                        item.HRMD_DepartmentName ??
-                        item.hrmD_Name ??
-                        item.HRMD_Name ??
-                        item.name ??
-                        item.departmentName ??
-                        item.HRMD_ProjectName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: Number(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? 0),
+                        value: String(
+                            item.hrmD_DepartmentName ??
+                                item.HRMD_DepartmentName ??
+                                item.hrmD_Name ??
+                                item.HRMD_Name ??
+                                item.name ??
+                                item.departmentName ??
+                                item.HRMD_ProjectName ??
+                                item.value ??
+                                item.label ??
+                                ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [departmentDropdownResponse]);
@@ -310,27 +309,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     const religionDropdown: IReligionDropdown[] = useMemo(() => {
         const rawData = Array.isArray(religionDropdownResponse) ? religionDropdownResponse : (religionDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Religion Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
-                return {
-                    key: Number(
-                        item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? 0
-                    ),
-                    value: String(
-                        item.ivrmmR_Name ??
-                        item.IVRMMR_Name ??
-                        item.hrmR_Name ??
-                        item.name ??
-                        item.religionName ??
-                        item.ReligionName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: Number(
+                            item.ivrmmR_Id ??
+                                item.IVRMMR_Id ??
+                                item.hrmR_Id ??
+                                item.religionId ??
+                                item.ReligionId ??
+                                item.id ??
+                                item.key ??
+                                0
+                        ),
+                        value: String(
+                            item.ivrmmR_Name ??
+                                item.IVRMMR_Name ??
+                                item.hrmR_Name ??
+                                item.name ??
+                                item.religionName ??
+                                item.ReligionName ??
+                                item.value ??
+                                item.label ??
+                                ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== 0);
     }, [religionDropdownResponse]);
@@ -362,27 +367,26 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const rawData = Array.isArray(specializationDropdownResponse)
             ? specializationDropdownResponse
             : (specializationDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Specialization Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Specialization Item:', item);
-                return {
-                    key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
-                    value: String(
-                        item.hrmspL_SpecialisationName ??
-                        item.HRMSPL_SpecialisationName ??
-                        item.hrmS_SpecialisationName ??
-                        item.HRMS_SpecialisationName ??
-                        item.masterSpecialisationName ??
-                        item.specialisationName ??
-                        item.specializationName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        'Unknown'
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
+                        value: String(
+                            item.hrmspL_SpecialisationName ??
+                                item.HRMSPL_SpecialisationName ??
+                                item.hrmS_SpecialisationName ??
+                                item.HRMS_SpecialisationName ??
+                                item.masterSpecialisationName ??
+                                item.specialisationName ??
+                                item.specializationName ??
+                                item.name ??
+                                item.value ??
+                                item.label ??
+                                'Unknown'
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [specializationDropdownResponse]);
@@ -435,8 +439,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Memoize retirement years
     const retirementYrs = useMemo(() => {
-        const years = (payrollStandardResponse as any)?.data?.[0]?.hrC_RetirementYrs || (payrollStandardResponse as any)?.data?.hrC_RetirementYrs || 60;
-        console.log('🔍 [UPDATE-FORM] Fetched Retirement Years:', years);
+        const years =
+            (payrollStandardResponse as any)?.data?.[0]?.hrC_RetirementYrs ||
+            (payrollStandardResponse as any)?.data?.hrC_RetirementYrs ||
+            60;
         return years;
     }, [payrollStandardResponse]);
 
@@ -444,23 +450,22 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
     const courseDropdown: ICourseDropdown[] = useMemo(() => {
         const rawData = Array.isArray(courseDropdownResponse) ? courseDropdownResponse : (courseDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Course Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Course Item:', item);
-                return {
-                    key: String(item.hrmC_Id ?? item.HRMC_Id ?? item.courseId ?? item.id ?? item.key ?? ''),
-                    value: String(
-                        item.hrmC_CourseName ??
-                        item.HRMC_CourseName ??
-                        item.courseName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        'Unknown'
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.hrmC_Id ?? item.HRMC_Id ?? item.courseId ?? item.id ?? item.key ?? ''),
+                        value: String(
+                            item.hrmC_CourseName ??
+                                item.HRMC_CourseName ??
+                                item.courseName ??
+                                item.name ??
+                                item.value ??
+                                item.label ??
+                                'Unknown'
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [courseDropdownResponse]);
@@ -578,15 +583,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const rawData = Array.isArray(casteCategoryDropdownResponse)
             ? casteCategoryDropdownResponse
             : (casteCategoryDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] CasteCategory Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First CasteCategory Item:', item);
-                return {
-                    key: String(item.IMCC_Id ?? item.imcC_Id ?? item.key ?? ''),
-                    value: String(item.IMCC_CategoryName ?? item.imcC_CategoryName ?? item.value ?? item.label ?? '')
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.IMCC_Id ?? item.imcC_Id ?? item.key ?? ''),
+                        value: String(item.IMCC_CategoryName ?? item.imcC_CategoryName ?? item.value ?? item.label ?? '')
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [casteCategoryDropdownResponse]);
@@ -596,15 +600,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     const casteDropdown: ICasteDropdown[] = useMemo(() => {
         const rawData = Array.isArray(casteDropdownResponse) ? casteDropdownResponse : (casteDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Caste Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Caste Item:', item);
-                return {
-                    key: String(item.IMC_Id ?? item.imC_Id ?? item.key ?? ''),
-                    value: String(item.IMC_CasteName ?? item.imC_CasteName ?? item.value ?? item.label ?? '')
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.IMC_Id ?? item.imC_Id ?? item.key ?? ''),
+                        value: String(item.IMC_CasteName ?? item.imC_CasteName ?? item.value ?? item.label ?? '')
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [casteDropdownResponse]);
@@ -730,7 +733,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Effect to refetch when selectedRow changes (ensures fresh data on repeated edits)
     useEffect(() => {
         if (selectedRow?.hrmE_Id) {
-            console.log('🔄 [UPDATE-FORM] Selected row changed to ID:', selectedRow.hrmE_Id);
             setSavedEmployeeId(selectedRow.hrmE_Id);
             setIsFormInitialized(false); // Reset initialization flag
             hasAppliedDetailedData.current = false; // Reset detailed data flag
@@ -775,14 +777,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
-        console.log('🔍 [DEBUG] nextStep called - Step:', currentStep, 'TabKey:', currentTabKey);
-
         if (currentTabFields.length > 0) {
             const isValid = await trigger(currentTabFields as any);
-            console.log('🔍 [DEBUG] Validation result:', isValid);
             if (!isValid) {
                 const formErrors = formState.errors;
-                console.log('🔍 [DEBUG] Form errors:', formErrors);
 
                 // Function to extract error message from nested structure
                 const extractErrorMessage = (errors: any): string | null => {
@@ -868,15 +866,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             return p;
         };
 
-        console.log('🔍 [DEBUG] Proceeding to save - Step ID:', currentStepId);
-        console.log('🔍 [DEBUG] nextStep - Checking conditions:');
-        console.log('  - currentStepId === 1:', currentStepId === 1);
-        console.log('  - currentStepId === 2:', currentStepId === 2);
-        console.log('  - currentStepId === 3:', currentStepId === 3);
-        console.log('  - currentStepId === 4:', currentStepId === 4);
-        console.log('  - currentStepId type:', typeof currentStepId);
-        console.log('  - currentStepId value:', currentStepId);
-
         // For steps 1 and 2, we need to save data via API before moving to next step
         if (currentStepId === 1) {
             // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
@@ -884,27 +873,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             const payload = fixPaymentMode(mapFormDataToApiFormatWithoutAddressLocal(data));
             payload.employee.hrmE_Id = selectedRow?.hrmE_Id || 0; // Use existing employee ID
 
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.employee.hrmE_Id);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check:');
-            console.log(
-                '  - Contact Address:',
-                payload.employee.hrmE_LocStreet,
-                payload.employee.hrmE_LocCity,
-                payload.employee.hrmE_LocStateId
-            );
-            console.log(
-                '  - Permanent Address:',
-                payload.employee.hrmE_PerStreet,
-                payload.employee.hrmE_PerCity,
-                payload.employee.hrmE_PerStateId
-            );
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
-
             savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
                     // Show API response message
                     if (response?.success && response?.message) {
                         toast.success(response.message);
@@ -919,7 +889,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         response?.HRME_Id ||
                         selectedRow?.hrmE_Id ||
                         0;
-                    console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
                     if (employeeId && employeeId > 0) {
                         setSavedEmployeeId(employeeId);
                         setCurrentStep(2);
@@ -948,36 +917,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
             payload.employee.hrmE_Id = employeeId; // Use the employee ID
 
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', employeeId);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
-            console.log('  - Contact Address:', {
-                street: payload.employee.hrmE_LocStreet,
-                area: payload.employee.hrmE_LocArea,
-                city: payload.employee.hrmE_LocCity,
-                stateId: payload.employee.hrmE_LocStateId,
-                countryId: payload.employee.hrmE_LocCountryId,
-                pincode: payload.employee.hrmE_LocPincode
-            });
-            console.log('  - Permanent Address:', {
-                street: payload.employee.hrmE_PerStreet,
-                area: payload.employee.hrmE_PerArea,
-                city: payload.employee.hrmE_PerCity,
-                stateId: payload.employee.hrmE_PerStateId,
-                countryId: payload.employee.hrmE_PerCountryId,
-                pincode: payload.employee.hrmE_PerPincode
-            });
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
-
             savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 2 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Data:', response?.data);
-
                     // Show API response message
                     if (response?.success && response?.message) {
                         toast.success(response.message);
@@ -987,25 +928,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
                         toast.warning('Address saved but API returned success: false. Please verify the data was saved.');
                     }
-
-                    // Verify address fields were sent
-                    console.log('🔍 [DEBUG] Tab 2 - Verification - Address fields sent in payload:');
-                    console.log('  Contact:', {
-                        street: payload.employee.hrmE_LocStreet,
-                        area: payload.employee.hrmE_LocArea,
-                        city: payload.employee.hrmE_LocCity,
-                        stateId: payload.employee.hrmE_LocStateId,
-                        countryId: payload.employee.hrmE_LocCountryId,
-                        pincode: payload.employee.hrmE_LocPincode
-                    });
-                    console.log('  Permanent:', {
-                        street: payload.employee.hrmE_PerStreet,
-                        area: payload.employee.hrmE_PerArea,
-                        city: payload.employee.hrmE_PerCity,
-                        stateId: payload.employee.hrmE_PerStateId,
-                        countryId: payload.employee.hrmE_PerCountryId,
-                        pincode: payload.employee.hrmE_PerPincode
-                    });
 
                     setCurrentStep(3);
                 },
@@ -1017,17 +939,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 }
             });
         } else if (currentStepId === 3) {
-            // Qualification tab - save qualification details
-            console.log('🔍 [DEBUG] Qualification tab - Starting save process');
             const employeeId = savedEmployeeId || selectedRow?.hrmE_Id;
-            console.log(
-                '🔍 [DEBUG] Employee ID:',
-                employeeId,
-                'savedEmployeeId:',
-                savedEmployeeId,
-                'selectedRow?.hrmE_Id:',
-                selectedRow?.hrmE_Id
-            );
 
             if (!employeeId) {
                 console.error('❌ [DEBUG] No employee ID found');
@@ -1037,7 +949,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             }
 
             const qualificationList = data.qualificationDetails || [];
-            console.log('🔍 [DEBUG] Qualification list:', qualificationList, 'Length:', qualificationList.length);
 
             if (qualificationList.length === 0) {
                 console.error('❌ [DEBUG] No qualifications found');
@@ -1048,19 +959,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 toast.error('Please add at least one qualification');
                 return;
             }
-            // Map qualification data to new API format
-            console.log(
-                '🔍 [DEBUG] Qualification IDs Check (nextStep):',
-                qualificationList.map((q: any, i: number) => ({
-                    index: i,
-                    hrmeQ_Id: q.hrmeQ_Id,
-                    HRMEQ_Id: q.HRMEQ_Id,
-                    hasId: !!(q.hrmeQ_Id || q.HRMEQ_Id)
-                }))
-            );
-            const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+            const qualificationsPayload = qualificationList.map((qual: any, _index: number) => {
                 const id = qual.hrmeQ_Id || qual.HRMEQ_Id || 0; // Check both cases
-                console.log(`🔍 [DEBUG] Qualification #${index + 1} (nextStep) - ID from form:`, id);
                 return {
                     hrmeQ_Id: id, // Use existing ID if updating, 0 for new
                     hrmC_Id: Number(qual.course) || 0,
@@ -1089,13 +989,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 };
             });
 
-            console.log('🔍 [DEBUG] Qualification Payload Count:', qualificationsPayload.length);
-            console.log('🔍 [DEBUG] Qualification Payload:', qualificationsPayload);
-            console.log('🔍 [DEBUG] Employee ID:', employeeId);
-            console.log('🔍 [DEBUG] Calling saveQualificationDetails mutation ONCE with array of', qualificationsPayload.length, 'items');
-            console.log('🔍 [DEBUG] saveQualificationDetails function:', typeof saveQualificationDetails);
-            console.log('🔍 [DEBUG] isSavingQualification:', isSavingQualification);
-
             if (!saveQualificationDetails) {
                 console.error('❌ [DEBUG] saveQualificationDetails is not defined!');
                 toast.error('Save qualification function is not available');
@@ -1110,7 +1003,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             // Ensure we only call the API once with the entire array
             saveQualificationDetails(qualificationsPayload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Qualification Save Success:', response);
                     // Show API response message
                     if (response?.success) {
                         if (response.message) toast.success(response.message);
@@ -1127,13 +1019,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     toast.error(errorMessage);
                 }
             });
-
-            console.log('🔍 [DEBUG] Mutation call completed');
         } else if (currentStepId === 4) {
-            // Experience tab - save experience details
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process in nextStep');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId || selectedRow?.hrmE_Id);
-
             const employeeId = savedEmployeeId || selectedRow?.hrmE_Id;
 
             if (!employeeId) {
@@ -1144,29 +1030,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             }
 
             const experienceList = data.experienceDetails || [];
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
             if (experienceList.length === 0) {
-                console.log('🔍 [DEBUG] Tab 4 - No experiences found, skipping to next step');
                 setCurrentStep(5);
                 return;
             }
-
-            // Map experience data to API format (matching API request body format)
-            console.log(
-                '🔍 [DEBUG] Experience IDs Check:',
-                experienceList.map((e: any, i: number) => ({
-                    index: i,
-                    hrmeE_Id: e.hrmeE_Id,
-                    HRMEE_Id: e.HRMEE_Id,
-                    hasId: !!(e.hrmeE_Id || e.HRMEE_Id)
-                }))
-            );
-            const experiencesPayload = experienceList.map((exp: any, index: number) => {
+            const experiencesPayload = experienceList.map((exp: any, _index: number) => {
                 const id = exp.hrmeE_Id || exp.HRMEE_Id || 0; // Check both cases
-                console.log(`🔍 [DEBUG] Experience #${index + 1} - ID from form:`, id, 'Full exp:', exp);
                 const mapped = {
                     hrmeE_Id: id, // Use existing ID if updating, 0 for new
                     hrmE_Id: employeeId,
@@ -1182,22 +1052,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
                     hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
                 };
-                console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
-                    raw: exp,
-                    mapped: mapped
-                });
                 return mapped;
             });
-
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload Count:', experiencesPayload.length);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
-            console.log(
-                '🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails ONCE with array of',
-                experiencesPayload.length,
-                'items'
-            );
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
 
             if (!saveExperienceDetails) {
                 console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
@@ -1208,16 +1064,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             // Ensure we only call the API once with the entire array
             saveExperienceDetails(experiencesPayload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
                     // Verify experience data was saved
                     if (response?.data && Array.isArray(response.data)) {
-                        console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
                     }
 
                     // Show API response message
@@ -1240,22 +1088,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 }
             });
         } else if (currentStepId === 5) {
-            // Document tab - save document details
-            console.log('🔍 [DEBUG] Tab 5 (Document) - handling save via handleDocumentSave');
             await handleDocumentSave();
         } else if (currentStepId === 6) {
-            // Medical tab
-            console.log('🔍 [DEBUG] Tab 6 (Medical) - Starting save process');
             if (!savedEmployeeId) {
                 toast.error('Please save Employee and Address details first');
                 setCurrentStep(1);
                 return;
             }
             const payload = mapFormDataToPascalCaseLocal(data);
-            console.log('Final Medical Payload to API:', JSON.stringify(payload, null, 2));
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
                     if (response?.success) {
                         toast.success(response.message || 'Medical details saved successfully');
                         setCurrentStep(7);
@@ -1271,18 +1113,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 }
             });
         } else if (currentStepId === 7) {
-            // Other Details tab
-            console.log('🔍 [DEBUG] Tab 7 (Other) - Starting save process');
             if (!savedEmployeeId) {
                 toast.error('Please save Employee and Address details first');
                 setCurrentStep(1);
                 return;
             }
             const payload = mapFormDataToPascalCaseLocal(data);
-            console.log('Final Other Details Payload to API:', JSON.stringify(payload, null, 2));
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
                     if (response?.success) {
                         toast.success(response.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
@@ -1290,8 +1128,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             saveSalaryDetails(
                                 { hrme_id: savedEmployeeId, MI_Id: MI_Id },
                                 {
-                                    onSuccess: (salaryResponse: any) => {
-                                        console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
+                                    onSuccess: (_salaryResponse: any) => {
                                         setCurrentStep(8);
                                     },
                                     onError: (salaryError: any) => {
@@ -1316,8 +1153,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 }
             });
         } else {
-            // For other steps, just move to next step without API call
-            console.log('🔍 [DEBUG] nextStep - Falling through to else clause (Step 8)');
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
     };
@@ -1377,12 +1212,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 })
             );
 
-            console.log('🔍 [API DEBUG] Tab 5 (Document) - Array Payload:', JSON.stringify(processedDocuments, null, 2));
-
             // Use mutateAsync to await completion
             await saveDocumentDetailsAsync(processedDocuments, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
                     if (response?.success) {
                         // Toast handled by hook or generic success toast
                         // If hook handles it commit message, we don't need to duplicate success toast here unless logic demands
@@ -1427,7 +1259,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const _originalExperienceIds = useRef<number[]>([]);
     const _hasInitializedTab8 = useRef(false);
     const lastResetEmployeeId = useRef<number | null>(null);
-    const hasRehydratedStep = useRef<Record<number, boolean>>({});
+    const _hasRehydratedStep = useRef<Record<number, boolean>>({});
     // Track if we have applied the full detailed data (to override onload data)
     const hasAppliedDetailedData = useRef(false);
 
@@ -1459,11 +1291,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         retirementDate.setFullYear(retirementDate.getFullYear() + 60);
                     }
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    console.log('🔄 [UPDATE-FORM] Auto-calculating retirement date:', {
-                        dob: dateOfBirth,
-                        retirementYrs,
-                        calculatedRetirementDate: formattedDate
-                    });
 
                     // Only update if it's different to avoid redundant re-renders
                     if (getValues('dateOfRetirement') !== formattedDate) {
@@ -1496,13 +1323,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-            ? Array.isArray(permanentStates)
-                ? permanentStates
-                : []
-            : [];
+          ? Array.isArray(permanentStates)
+              ? permanentStates
+              : []
+          : [];
 
     // Copy communication address to permanent address when checkbox is checked
-    const prevSameAsAddress = useRef(sameAsCommunicationAddress);
+    const _prevSameAsAddress = useRef(sameAsCommunicationAddress);
     const prevContactValues = useRef({
         contactAddress,
         contactArea,
@@ -1515,15 +1342,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
         if (sameAsCommunicationAddress) {
-            console.log('🔄 [DEBUG] Update Form - Syncing address fields:', {
-                contactAddress,
-                contactArea,
-                contactCity,
-                contactState,
-                contactPincode,
-                contactCountry
-            });
-
             // Update permanent address fields with communication address values
             setValue('permanentAddress', contactAddress || '', { shouldValidate: true, shouldDirty: true });
             setValue('permanentArea', contactArea || '', { shouldValidate: true, shouldDirty: true });
@@ -1738,7 +1556,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             }
                         });
                     }
-                } catch (err) {
+                } catch (_err) {
                     // Error mapping data
                 }
             }
@@ -1888,8 +1706,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     };
 
-    
-
     // Show loading for dropdowns or employee details
     if (
         isLoadingGrades ||
@@ -1955,8 +1771,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -2005,8 +1821,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -3136,17 +2952,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
                                                                     {field.value
                                                                         ? (() => {
-                                                                            try {
-                                                                                const date = new Date(field.value);
-                                                                                return date.toLocaleDateString('en-GB', {
-                                                                                    day: '2-digit',
-                                                                                    month: '2-digit',
-                                                                                    year: 'numeric'
-                                                                                });
-                                                                            } catch {
-                                                                                return field.value;
-                                                                            }
-                                                                        })()
+                                                                              try {
+                                                                                  const date = new Date(field.value);
+                                                                                  return date.toLocaleDateString('en-GB', {
+                                                                                      day: '2-digit',
+                                                                                      month: '2-digit',
+                                                                                      year: 'numeric'
+                                                                                  });
+                                                                              } catch {
+                                                                                  return field.value;
+                                                                              }
+                                                                          })()
                                                                         : 'Pick date of retirement'}
                                                                 </div>
                                                                 {fieldState?.error && (
@@ -3311,7 +3127,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
-                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message as string}
+                                                                        error={
+                                                                            (errors.mobileDetails as any)?.[index]?.mobileNo
+                                                                                ?.message as string
+                                                                        }
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3738,11 +3557,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {(errors.bankDetails as any)?.message ||
-                                                                            'Bank Details are required when Mode of Payment is Bank'}
-                                                                    </div>
-                                                                )}
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.bankDetails as any)?.message ||
+                                                                        'Bank Details are required when Mode of Payment is Bank'}
+                                                                </div>
+                                                            )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3833,7 +3652,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message as string}
+                                                                                    error={
+                                                                                        (errors.bankDetails as any)?.[index]?.bankAccountNo
+                                                                                            ?.message as string
+                                                                                    }
                                                                                     className='w-full'
                                                                                 />
                                                                             </div>
@@ -3850,7 +3672,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
                                                                                                 {(options?.contactTypes || []).length ===
-                                                                                                    0 ? (
+                                                                                                0 ? (
                                                                                                     <SelectItem value='no-options' disabled>
                                                                                                         No options available
                                                                                                     </SelectItem>
@@ -3870,8 +3692,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                         .map((item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
+                                                                                                                    item.value ||
+                                                                                                                    item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3887,8 +3709,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                            item.value ||
-                                                                                                                            item.id
+                                                                                                                                item.value ||
+                                                                                                                                item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -3972,13 +3794,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     name='contactCountry'
                                                                     control={control}
                                                                     render={({ field }) => {
-                                                                        console.log('🔍 [DROPDOWN] Contact Country:', {
-                                                                            fieldValue: field.value,
-                                                                            fieldValueType: typeof field.value,
-                                                                            availableCountries: options?.countries?.length,
-                                                                            firstCountryKey: options?.countries?.[0]?.key,
-                                                                            firstCountryKeyType: typeof options?.countries?.[0]?.key
-                                                                        });
                                                                         return (
                                                                             <>
                                                                                 <Label>
@@ -4030,14 +3845,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     name='contactState'
                                                                     control={control}
                                                                     render={({ field }) => {
-                                                                        console.log('🔍 [DROPDOWN] Contact State:', {
-                                                                            fieldValue: field.value,
-                                                                            fieldValueType: typeof field.value,
-                                                                            contactCountryId: contactCountryId,
-                                                                            availableStates: availableContactStates?.length,
-                                                                            firstStateKey: availableContactStates?.[0]?.key,
-                                                                            firstStateKeyType: typeof availableContactStates?.[0]?.key
-                                                                        });
                                                                         return (
                                                                             <>
                                                                                 <Label>
@@ -4427,9 +4234,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 ) => {
                                                                                                                     return (
                                                                                                                         course.key !=
-                                                                                                                        null &&
+                                                                                                                            null &&
                                                                                                                         course.key !==
-                                                                                                                        undefined &&
+                                                                                                                            undefined &&
                                                                                                                         course.key !== 0
                                                                                                                     );
                                                                                                                 }
@@ -4600,15 +4407,23 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 label='Registration No. *'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
                                                                                 maxLength={50}
-                                                                                {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.registrationNo`
+                                                                                )}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]
+                                                                                        ?.registrationNo?.message
+                                                                                }
                                                                             />
                                                                             <InputText
                                                                                 label='Result *'
                                                                                 id={`qualificationDetails.${index}.result`}
                                                                                 maxLength={20}
                                                                                 {...register(`qualificationDetails.${index}.result`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.result?.message}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]?.result
+                                                                                        ?.message
+                                                                                }
                                                                             />
                                                                         </div>
                                                                         {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4720,8 +4535,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }
                                                                                 }}
-                                                                                {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`
+                                                                                )}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]?.[
+                                                                                        cgpaOrPercentage === 'Percentage'
+                                                                                            ? 'percentage'
+                                                                                            : 'cgpa'
+                                                                                    ]?.message
+                                                                                }
                                                                             />
                                                                         </div>
                                                                         {/* Row 6: Area Of Specialization */}
@@ -4749,7 +4572,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 return (
                                                                                                                     spec.key != null &&
                                                                                                                     spec.key !==
-                                                                                                                    undefined &&
+                                                                                                                        undefined &&
                                                                                                                     spec.key !== 0
                                                                                                                 );
                                                                                                             }
@@ -4865,7 +4688,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     `qualificationDetails.${index}.registrationYear`
                                                                                 )}
                                                                                 error={
-                                                                                    (errors.qualificationDetails as any)?.[index]?.registrationYear?.message
+                                                                                    (errors.qualificationDetails as any)?.[index]
+                                                                                        ?.registrationYear?.message
                                                                                 }
                                                                             />
                                                                             <InputText
@@ -5124,7 +4948,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.organisationAddress`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.organisationAddress?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.organisationAddress
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter organisation address...'
                                                                 />
                                                             </div>
@@ -5135,7 +4962,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.reasonForLeaving`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.reasonForLeaving?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.reasonForLeaving
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter reason for leaving...'
                                                                 />
                                                             </div>
@@ -5220,7 +5050,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
                                                                     placeholder='Enter description'
-                                                                    error={(errors.documentList as any)?.[index]?.documentDescription?.message}
+                                                                    error={
+                                                                        (errors.documentList as any)?.[index]?.documentDescription?.message
+                                                                    }
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
                                                                     <Label>Upload Document</Label>
@@ -5272,7 +5104,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     </div>
                                                                     {(errors.documentList as any)?.[index]?.document?.message && (
                                                                         <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                            {String((errors.documentList as any)?.[index]?.document?.message)}
+                                                                            {String(
+                                                                                (errors.documentList as any)?.[index]?.document?.message
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>

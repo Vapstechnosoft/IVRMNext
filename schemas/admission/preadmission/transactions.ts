@@ -50,7 +50,7 @@ export const studentApplicationFormSchema = {
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
         pasR_Sex: createStringSchema('Gender', 1, 50),
-        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((date) => {
+        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((_date) => {
             // This will be validated in the form's custom validation
             return true;
         }),
@@ -232,7 +232,6 @@ export const studentApplicationFormUpdateSchema = {
     update: z.object({
         pasR_Id: z.number().int().optional(), // Made optional for add operation
         pasR_RegistrationNo: z.string().optional(),
-
 
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),

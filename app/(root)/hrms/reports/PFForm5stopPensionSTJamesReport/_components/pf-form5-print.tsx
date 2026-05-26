@@ -1,11 +1,6 @@
 import { format } from 'date-fns';
 
-export const printPFForm5 = (
-    reportData: any,
-    institution: any,
-    reportMonth: string,
-    reportYear: string
-) => {
+export const printPFForm5 = (reportData: any, _institution: any, reportMonth: string, reportYear: string) => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
@@ -14,18 +9,18 @@ export const printPFForm5 = (
 
     const dataList = reportData?.alldata || reportData?.pfreportdetails || [];
 
-    const tableRows = dataList.map((record: any, index: number) => {
-        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`
-            .trim()
-            .toUpperCase();
-        
-        const stopPensionDate = record.hrmE_PensionStoppedDate 
-            ? format(new Date(record.hrmE_PensionStoppedDate), 'dd-MM-yyyy') 
-            : '-';
+    const tableRows = dataList
+        .map((record: any, index: number) => {
+            const empName =
+                `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`
+                    .trim()
+                    .toUpperCase();
 
-        let reason = record.hrmE_RetiredFlg ? 'Stop Pension' : (record.hrmE_LeavingReason || '-');
+            const stopPensionDate = record.hrmE_PensionStoppedDate ? format(new Date(record.hrmE_PensionStoppedDate), 'dd-MM-yyyy') : '-';
 
-        return `
+            const reason = record.hrmE_RetiredFlg ? 'Stop Pension' : record.hrmE_LeavingReason || '-';
+
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td class="text-center">${record.hrmE_PFAccNo || '-'}</td>
@@ -36,7 +31,8 @@ export const printPFForm5 = (
                 <td class="text-center">${record.remarks || '-'}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>

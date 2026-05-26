@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {  ApiResponse } from '@/lib/apiService';
+import type { ApiResponse } from '@/lib/apiService';
 import type {
     IAttendanceReportInitialData,
     IAttendanceReportResponse,

@@ -1,6 +1,6 @@
 'use server';
 import { api } from '@/lib/apiService';
-import { IOralTestScheduleDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import type { IOralTestScheduleDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
 
 export async function getOralTestScheduleDetails() {
     const response = await api.get<IOralTestScheduleDetails>('preadmission', '/OralTestSchedule/Getdata');
@@ -33,7 +33,10 @@ export async function getSelectedRowDetails(id: number) {
 }
 
 export async function deleteOralTestScheduleStudentData(paotsId: number, pasrId: number) {
-    const response = await api.delete<any>('preadmission', `/OralTestSchedule/OralTestSchedule_DeletesStudentData?PASR_Id=${pasrId}&PAOTS_Id=${paotsId}`);
+    const response = await api.delete<any>(
+        'preadmission',
+        `/OralTestSchedule/OralTestSchedule_DeletesStudentData?PASR_Id=${pasrId}&PAOTS_Id=${paotsId}`
+    );
     return response.data;
 }
 

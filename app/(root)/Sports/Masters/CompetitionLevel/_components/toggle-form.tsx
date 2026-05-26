@@ -47,7 +47,7 @@ export default function ToggleMasterCompetitionLevelForm({ rowData, onClose, onS
 
             const response = await deactivateMasterCompetitionLevel(payload);
 
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Level ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();

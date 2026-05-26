@@ -61,7 +61,7 @@ export const ReadOnlyMultiSelect = React.forwardRef<HTMLButtonElement, ReadOnlyM
     ) => {
         const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
         const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-        const [isAnimating, setIsAnimating] = React.useState(false);
+        const [isAnimating, _setIsAnimating] = React.useState(false);
 
         React.useEffect(() => {
             const validDefaultValues = defaultValue.filter((value) => options.some((option) => option.value === value));
@@ -104,7 +104,7 @@ export const ReadOnlyMultiSelect = React.forwardRef<HTMLButtonElement, ReadOnlyM
             onValueChange(newSelectedValues);
         };
 
-        const toggleAll = () => {
+        const _toggleAll = () => {
             if (selectedValues.length === options.length) {
                 handleClear();
             } else {

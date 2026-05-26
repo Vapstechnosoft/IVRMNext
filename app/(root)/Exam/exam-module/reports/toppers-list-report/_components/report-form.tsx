@@ -290,8 +290,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             };
 
             const [result, institutionRes] = await Promise.all([getToppersReportDetails(payload), getMasterInstitution()]);
-            console.log(result);
-            console.log(institutionRes);
             if (!result?.data || (Array.isArray(result.data) && result.data.length === 0)) {
                 toast.error(result?.message || 'No records found');
                 return;

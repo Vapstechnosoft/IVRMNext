@@ -123,7 +123,7 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
     const watchedYear = watch('ASMAY_Id');
     const watchedCategory = watch('TTMC_Id');
     const watchedClass = watch('ASMCL_Id');
-    const watchedSection = watch('ASMS_Id');
+    const _watchedSection = watch('ASMS_Id');
 
     const fetchClasses = async (yearId: number, categoryId: number) => {
         if (!yearId || !categoryId) {
@@ -398,7 +398,6 @@ export default function ConsecutiveConstraintsForm({ editData, onSuccess, onCanc
             };
 
             const response = await saveConsecutiveConstraintsDetail(payload);
-            console.log('response', response);
 
             if (response.success) {
                 toast.success(response.message);

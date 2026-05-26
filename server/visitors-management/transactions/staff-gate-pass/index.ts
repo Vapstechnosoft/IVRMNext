@@ -1,6 +1,4 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type { StaffGatePassInitialData } from '@/types/visitors-management/transactions';
 
@@ -35,17 +33,16 @@ export async function getStaffGatePassData(): Promise<ApiResponse<StaffGatePassI
             }
         ]
     };
-    
+
     return {
         success: true,
         message: 'Data fetched successfully',
-        data: mockData,
+        data: mockData
     };
 }
 
-export async function saveStaffGatePass(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Staff Gate Pass:', data);
-    await new Promise(resolve => setTimeout(resolve, 800));
+export async function saveStaffGatePass(_data: any): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return {
         success: true,
         message: 'Gate Pass Generated Successfully!!!',
@@ -53,8 +50,8 @@ export async function saveStaffGatePass(data: any): Promise<ApiResponse<any>> {
     };
 }
 
-export async function deactivateStaffGatePass(gphsT_Id: number): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 800));
+export async function deactivateStaffGatePass(_gphsT_Id: number): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return {
         success: true,
         message: 'Status Changed Successfully!!!',

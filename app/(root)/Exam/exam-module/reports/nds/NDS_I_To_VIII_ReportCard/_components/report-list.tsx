@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import { useRef, useMemo } from 'react';
 import { format } from 'date-fns';
+import { Printer } from 'lucide-react';
+import { useMemo, useRef } from 'react';
 
 interface ReportListProps {
     data: any;
@@ -29,7 +29,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
     } = data;
 
     const institution = getinstitution?.[0] || {};
-    const classTeacher = clstchname?.[0]?.hrmE_EmployeeFirstName || "";
+    const classTeacher = clstchname?.[0]?.hrmE_EmployeeFirstName || '';
     const generateddate = new Date();
 
     // Replicating legacy AngularJS data transformation logic with added calculations
@@ -49,15 +49,21 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                     counttotal += d.empsgE_ForMaxMarkrs;
 
                     groupwiseexamlist_temp.push({
-                        EMPG_GroupName: d.empG_GroupName, EME_Id: d.emE_Id,
-                        EME_ExamName: d.emE_ExamName, EME_ExamOrder: d.emE_ExamOrder, EMPG_DistplayName: d.empG_DistplayName,
+                        EMPG_GroupName: d.empG_GroupName,
+                        EME_Id: d.emE_Id,
+                        EME_ExamName: d.emE_ExamName,
+                        EME_ExamOrder: d.emE_ExamOrder,
+                        EMPG_DistplayName: d.empG_DistplayName,
                         EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
                         examnamedisplay: d.emE_ExamCode
                     });
 
                     groupwiseexamlist_full.push({
-                        EMPG_GroupName: d.empG_GroupName, EME_Id: d.emE_Id,
-                        EME_ExamName: d.emE_ExamName, EME_ExamOrder: d.emE_ExamOrder, EMPG_DistplayName: d.empG_DistplayName,
+                        EMPG_GroupName: d.empG_GroupName,
+                        EME_Id: d.emE_Id,
+                        EME_ExamName: d.emE_ExamName,
+                        EME_ExamOrder: d.emE_ExamOrder,
+                        EMPG_DistplayName: d.empG_DistplayName,
                         EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
                         examnamedisplay: d.emE_ExamCode
                     });
@@ -65,27 +71,43 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
             });
 
             groupwiseexamlist_temp.push({
-                EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800000,
-                EME_ExamName: "Marks Obtained", EME_ExamOrder: 9800000, EMPG_DistplayName: dd.empG_DistplayName,
-                EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: 'Total'
+                EMPG_GroupName: dd.empG_GroupName,
+                EME_Id: 9800000,
+                EME_ExamName: 'Marks Obtained',
+                EME_ExamOrder: 9800000,
+                EMPG_DistplayName: dd.empG_DistplayName,
+                EMPSGE_ForMaxMarkrs: counttotal,
+                examnamedisplay: 'Total'
             });
 
             groupwiseexamlist_temp.push({
-                EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800001,
-                EME_ExamName: "Grade", EME_ExamOrder: 9800001, EMPG_DistplayName: dd.empG_DistplayName,
-                EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: "Grade"
+                EMPG_GroupName: dd.empG_GroupName,
+                EME_Id: 9800001,
+                EME_ExamName: 'Grade',
+                EME_ExamOrder: 9800001,
+                EMPG_DistplayName: dd.empG_DistplayName,
+                EMPSGE_ForMaxMarkrs: counttotal,
+                examnamedisplay: 'Grade'
             });
 
             groupwiseexamlist_full.push({
-                EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800000,
-                EME_ExamName: "Marks Obtained", EME_ExamOrder: 9800000, EMPG_DistplayName: dd.empG_DistplayName,
-                EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: 'Total'
+                EMPG_GroupName: dd.empG_GroupName,
+                EME_Id: 9800000,
+                EME_ExamName: 'Marks Obtained',
+                EME_ExamOrder: 9800000,
+                EMPG_DistplayName: dd.empG_DistplayName,
+                EMPSGE_ForMaxMarkrs: counttotal,
+                examnamedisplay: 'Total'
             });
 
             groupwiseexamlist_full.push({
-                EMPG_GroupName: dd.empG_GroupName, EME_Id: 9800001,
-                EME_ExamName: "Grade", EME_ExamOrder: 9800001, EMPG_DistplayName: dd.empG_DistplayName,
-                EMPSGE_ForMaxMarkrs: counttotal, examnamedisplay: "Grade"
+                EMPG_GroupName: dd.empG_GroupName,
+                EME_Id: 9800001,
+                EME_ExamName: 'Grade',
+                EME_ExamOrder: 9800001,
+                EMPG_DistplayName: dd.empG_DistplayName,
+                EMPSGE_ForMaxMarkrs: counttotal,
+                examnamedisplay: 'Grade'
             });
 
             const myTerm = gettermdetails.find((t: any) => {
@@ -97,7 +119,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 ...dd,
                 empsG_MarksValue: counttotal,
                 groupewiseexam: groupwiseexamlist_temp,
-                termName: myTerm?.ecT_TermName || ""
+                termName: myTerm?.ecT_TermName || ''
             });
         });
 
@@ -114,7 +136,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
             all_student_marks.forEach((m: any) => {
                 const eid = m.emE_Id || m.EME_Id;
                 const sid = m.ismS_Id || m.ISMS_Id || m.ismS_SubjectName || m.ISMS_SubjectName || m.subjectName;
-                const gname = (m.empsG_GroupName || m.EMPSG_GroupName || "").toLowerCase().trim();
+                const gname = (m.empsG_GroupName || m.EMPSG_GroupName || '').toLowerCase().trim();
                 const key = `${eid}-${sid}-${gname}`;
                 if (!seenMarks.has(key)) {
                     studentmarks.push(m);
@@ -124,16 +146,18 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
 
             // Calculate Totals and Grades for each group
             studentsubjects.forEach((subj: any) => {
-                const s_name = (subj.ISMS_SubjectName || subj.subjectName || "").toLowerCase().trim();
+                const s_name = (subj.ISMS_SubjectName || subj.subjectName || '').toLowerCase().trim();
 
                 groups_with_exams.forEach((grp: any) => {
                     const groupExams = grp.groupewiseexam.filter((e: any) => (e.EME_Id || e.emE_Id) < 9000000);
                     const groupMarks = studentmarks.filter((m: any) => {
-                        const m_name = (m.ISMS_SubjectName || m.ismS_SubjectName || m.subjectName || "").toLowerCase().trim();
+                        const m_name = (m.ISMS_SubjectName || m.ismS_SubjectName || m.subjectName || '').toLowerCase().trim();
                         const isSameSubject = m_name === s_name;
 
-                        const m_group = (m.EMPSG_DisplayName || m.empsG_DisplayName || m.EMPSG_GroupName || m.empsG_GroupName || "").toLowerCase().trim();
-                        const g_group = (grp.empG_DistplayName || grp.empG_GroupName || "").toLowerCase().trim();
+                        const m_group = (m.EMPSG_DisplayName || m.empsG_DisplayName || m.EMPSG_GroupName || m.empsG_GroupName || '')
+                            .toLowerCase()
+                            .trim();
+                        const g_group = (grp.empG_DistplayName || grp.empG_GroupName || '').toLowerCase().trim();
                         const isSameGroup = m_group === g_group;
 
                         const m_emE_Id = m.EME_Id || m.emE_Id;
@@ -162,7 +186,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                             ISMS_SubjectName: subj.ISMS_SubjectName || subj.subjectName,
                             EME_Id: 9800001,
                             EMPSG_DisplayName: grp.empG_DistplayName || grp.empG_GroupName,
-                            obtainedGrade: subj.subjectGrade || subj.subjectgrade || "",
+                            obtainedGrade: subj.subjectGrade || subj.subjectgrade || '',
                             PassFailFlag: 'Pass'
                         });
                     }
@@ -173,7 +197,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
             const skill_main_list: any[] = [];
             getstudentwiseskillslist.forEach((dd: any) => {
                 if ((dd.AMST_Id || dd.amsT_Id) === studentId) {
-                    if (!skill_main_list.some(s => s.ECS_SkillName === dd.ECS_SkillName)) {
+                    if (!skill_main_list.some((s) => s.ECS_SkillName === dd.ECS_SkillName)) {
                         skill_main_list.push({ ECS_SkillName: dd.ECS_SkillName });
                     }
                 }
@@ -183,8 +207,12 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 const skill_score_details: any[] = [];
                 gettermdetails.forEach((term: any) => {
                     getstudentwiseskillslist.forEach((dd: any) => {
-                        if ((dd.AMST_Id || dd.amsT_Id) === studentId && skill.ECS_SkillName === dd.ECS_SkillName && term.ecT_Id === (dd.ecT_Id || dd.ECT_Id)) {
-                            skill_score_details.push({ scoregrade: dd.EMGD_Name, ecT_Id: (dd.ecT_Id || dd.ECT_Id) });
+                        if (
+                            (dd.AMST_Id || dd.amsT_Id) === studentId &&
+                            skill.ECS_SkillName === dd.ECS_SkillName &&
+                            term.ecT_Id === (dd.ecT_Id || dd.ECT_Id)
+                        ) {
+                            skill_score_details.push({ scoregrade: dd.EMGD_Name, ecT_Id: dd.ecT_Id || dd.ECT_Id });
                         }
                     });
                 });
@@ -195,7 +223,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
             const activity_main_list: any[] = [];
             getstudentwiseactiviteslist.forEach((act: any) => {
                 if ((act.AMST_Id || act.amsT_Id) === studentId) {
-                    if (!activity_main_list.some(a => a.ECACTA_SkillArea === act.ECACTA_SkillArea)) {
+                    if (!activity_main_list.some((a) => a.ECACTA_SkillArea === act.ECACTA_SkillArea)) {
                         activity_main_list.push({ ECACTA_SkillArea: act.ECACTA_SkillArea });
                     }
                 }
@@ -205,8 +233,12 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 const activity_score_details: any[] = [];
                 gettermdetails.forEach((term: any) => {
                     getstudentwiseactiviteslist.forEach((dd: any) => {
-                        if ((dd.AMST_Id || dd.amsT_Id) === studentId && act.ECACTA_SkillArea === dd.ECACTA_SkillArea && term.ecT_Id === (dd.ecT_Id || dd.ECT_Id)) {
-                            activity_score_details.push({ scoregrade: dd.EMGD_Name, ecT_Id: (dd.ecT_Id || dd.ECT_Id) });
+                        if (
+                            (dd.AMST_Id || dd.amsT_Id) === studentId &&
+                            act.ECACTA_SkillArea === dd.ECACTA_SkillArea &&
+                            term.ecT_Id === (dd.ecT_Id || dd.ECT_Id)
+                        ) {
+                            activity_score_details.push({ scoregrade: dd.EMGD_Name, ecT_Id: dd.ecT_Id || dd.ECT_Id });
                         }
                     });
                 });
@@ -222,13 +254,24 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 studentmarks,
                 skill_main_list,
                 activity_main_list,
-                remarks: remarks_detail?.eprD_Remarks || "",
-                promotedclass: remarks_detail?.eprD_ClassPromoted || ""
+                remarks: remarks_detail?.eprD_Remarks || '',
+                promotedclass: remarks_detail?.eprD_ClassPromoted || ''
             };
         });
 
         return { reports: studentReports, groupwiseexamlist: groupwiseexamlist_full, processedGroups: groups_with_exams };
-    }, [getstudentdetails, getgroupdetails, getgroupexamdetails, getstudentwisesubjectlist, getstudentmarksdetails, getstudentwiseskillslist, getstudentwiseactiviteslist, gettermdetails, getpromotionremarksdetails, gettermexamdetails]);
+    }, [
+        getstudentdetails,
+        getgroupdetails,
+        getgroupexamdetails,
+        getstudentwisesubjectlist,
+        getstudentmarksdetails,
+        getstudentwiseskillslist,
+        getstudentwiseactiviteslist,
+        gettermdetails,
+        getpromotionremarksdetails,
+        gettermexamdetails
+    ]);
 
     const handlePrint = () => {
         const innerContents = printRef.current?.innerHTML;
@@ -277,7 +320,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
     if (reports.length === 0) return null;
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <style>{`
                 #HHS02 thead { color: black !important; text-align: center; background: white !important; }
                 #HHS02 .trclasssubject { height: 140px !important; white-space: pre-wrap; }
@@ -293,82 +336,103 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 #HHS02 .img-responsive { max-width: 100%; height: auto; display: block; margin: 0 auto; }
             `}</style>
 
-            <div className="flex justify-end no-print">
-                <Button onClick={handlePrint} className="bg-primary hover:bg-primary/90 shadow-lg">
-                    <Printer className="mr-2 h-4 w-4" />
+            <div className='no-print flex justify-end'>
+                <Button onClick={handlePrint} className='bg-primary shadow-lg hover:bg-primary/90'>
+                    <Printer className='mr-2 h-4 w-4' />
                     Print All Reports
                 </Button>
             </div>
 
-            <div ref={printRef} id="HHS02" className="bg-gray-100 p-4">
+            <div ref={printRef} id='HHS02' className='bg-gray-100 p-4'>
                 {reports.map((report: any, index: number) => {
-                    const clstchname = classTeacher?.[0]?.hrmE_EmployeeFirstName || classTeacher?.[0]?.userName || "";
+                    const clstchname = classTeacher?.[0]?.hrmE_EmployeeFirstName || classTeacher?.[0]?.userName || '';
                     return (
-                        <div key={index} className="pagelayout" style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
-                            <div className="row margin-top-5">
-                                <div className="col-sm-12">
-                                    <img src={institution.mI_Logo} className="img-responsive" style={{ width: '100%' }} alt="Header" />
+                        <div key={index} className='pagelayout' style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
+                            <div className='row margin-top-5'>
+                                <div className='col-sm-12'>
+                                    <img src={institution.mI_Logo} className='img-responsive' style={{ width: '100%' }} alt='Header' />
                                 </div>
                             </div>
                             <br />
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="form-group flex items-center gap-2 py-1">
-                                        <label className="font-bold w-32">SATS NO:</label>
-                                        <label className="border-bottom font-bold" style={{ textAlign: 'center' }}>{report.amsT_RegistrationNo || report.amsT_AdmNo}</label>
+                            <div className='row'>
+                                <div className='col-sm-12'>
+                                    <div className='form-group flex items-center gap-2 py-1'>
+                                        <label className='w-32 font-bold'>SATS NO:</label>
+                                        <label className='border-bottom font-bold' style={{ textAlign: 'center' }}>
+                                            {report.amsT_RegistrationNo || report.amsT_AdmNo}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="form-group flex items-center gap-1 py-1">
-                                        <label className="font-bold w-40">Student's Name :</label>
-                                        <label className="border-bottom font-bold" style={{ textAlign: 'center' }}>{report.studentName || report.studentname}</label>
+                            <div className='row'>
+                                <div className='col-sm-12'>
+                                    <div className='form-group flex items-center gap-1 py-1'>
+                                        <label className='w-40 font-bold'>Student's Name :</label>
+                                        <label className='border-bottom font-bold' style={{ textAlign: 'center' }}>
+                                            {report.studentName || report.studentname}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="form-group flex items-center gap-2 py-1">
-                                        <label className="font-bold w-32" >Father's Name :</label>
-                                        <label className="border-bottom font-bold" style={{ textAlign: 'center' }}>{report.fatherName || report.fathername}</label>
+                            <div className='row'>
+                                <div className='col-sm-12'>
+                                    <div className='form-group flex items-center gap-2 py-1'>
+                                        <label className='w-32 font-bold'>Father's Name :</label>
+                                        <label className='border-bottom font-bold' style={{ textAlign: 'center' }}>
+                                            {report.fatherName || report.fathername}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="form-group flex items-center gap-2 py-1">
-                                        <label className="font-bold w-32">Mother's Name :</label>
-                                        <label className="border-bottom font-bold" style={{ textAlign: 'center' }}>{report.motherName || report.mothername}</label>
+                            <div className='row'>
+                                <div className='col-sm-12'>
+                                    <div className='form-group flex items-center gap-2 py-1'>
+                                        <label className='w-32 font-bold'>Mother's Name :</label>
+                                        <label className='border-bottom font-bold' style={{ textAlign: 'center' }}>
+                                            {report.motherName || report.mothername}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="form-group flex items-center gap-2 py-1">
-                                        <label className="font-bold w-32">Date Of Birth :</label>
-                                        <label className="border-bottom font-bold" style={{ textAlign: 'center' }}>{report.dob}</label>
+                            <div className='row'>
+                                <div className='col-sm-12'>
+                                    <div className='form-group flex items-center gap-2 py-1'>
+                                        <label className='w-32 font-bold'>Date Of Birth :</label>
+                                        <label className='border-bottom font-bold' style={{ textAlign: 'center' }}>
+                                            {report.dob}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
                             &nbsp;
-                            <div className="row margin-top-10">
-                                <div className="col-sm-12">
-                                    <table className="table-bordered table">
+                            <div className='row margin-top-10'>
+                                <div className='col-sm-12'>
+                                    <table className='table-bordered table'>
                                         <thead>
                                             <tr>
-                                                <td className="text-left Ndsreport1" style={{ wordWrap: 'break-word', width: '100px' }}><b>Scholastic Areas(A)</b> </td>
+                                                <td className='Ndsreport1 text-left' style={{ wordWrap: 'break-word', width: '100px' }}>
+                                                    <b>Scholastic Areas(A)</b>{' '}
+                                                </td>
                                                 {processedGroups.map((grp: any, gIdx: number) => (
-                                                    <th key={gIdx} colSpan={grp.groupewiseexam.length} className="text-center Ndsreport1" style={{ color: 'black' }}>
-                                                        {grp.termName ? `${grp.termName} - ` : ""}{grp.empG_DistplayName || grp.empG_GroupName} ({grp.empsG_MarksValue} Marks)
+                                                    <th
+                                                        key={gIdx}
+                                                        colSpan={grp.groupewiseexam.length}
+                                                        className='Ndsreport1 text-center'
+                                                        style={{ color: 'black' }}>
+                                                        {grp.termName ? `${grp.termName} - ` : ''}
+                                                        {grp.empG_DistplayName || grp.empG_GroupName} ({grp.empsG_MarksValue} Marks)
                                                     </th>
                                                 ))}
                                             </tr>
                                             <tr>
-                                                <th className="text-center Ndsreport" style={{ width: '100px' }}><b>Subject Name</b></th>
+                                                <th className='Ndsreport text-center' style={{ width: '100px' }}>
+                                                    <b>Subject Name</b>
+                                                </th>
                                                 {groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                    <th key={eIdx} className="text-center Ndsreport" style={{ wordWrap: 'break-word', width: '150px' }}>
+                                                    <th
+                                                        key={eIdx}
+                                                        className='Ndsreport text-center'
+                                                        style={{ wordWrap: 'break-word', width: '150px' }}>
                                                         <b>{grpexam.examnamedisplay}</b> <br />
                                                         <b>({grpexam.EMPSGE_ForMaxMarkrs})</b>
                                                     </th>
@@ -378,40 +442,70 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                         {report.studentsubjects.map((subj: any, sIdx: number) => (
                                             <tbody key={sIdx}>
                                                 <tr>
-                                                    <td className={`text-left ${subj.EMPS_AppToResultFlg ? 'Ndsreport' : ''}`} style={{ wordWrap: 'break-word' }}><b>{subj.ISMS_SubjectName || subj.subjectName}</b></td>
+                                                    <td
+                                                        className={`text-left ${subj.EMPS_AppToResultFlg ? 'Ndsreport' : ''}`}
+                                                        style={{ wordWrap: 'break-word' }}>
+                                                        <b>{subj.ISMS_SubjectName || subj.subjectName}</b>
+                                                    </td>
                                                     {groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                        <td key={eIdx} className="text-center">
+                                                        <td key={eIdx} className='text-center'>
                                                             {report.studentmarks
                                                                 .filter((mrks: any) => {
-                                                                    const s_name = (subj.ISMS_SubjectName || subj.subjectName || "").toLowerCase().trim();
-                                                                    const m_name = (mrks.ISMS_SubjectName || mrks.ismS_SubjectName || mrks.subjectName || "").toLowerCase().trim();
+                                                                    const s_name = (subj.ISMS_SubjectName || subj.subjectName || '')
+                                                                        .toLowerCase()
+                                                                        .trim();
+                                                                    const m_name = (
+                                                                        mrks.ISMS_SubjectName ||
+                                                                        mrks.ismS_SubjectName ||
+                                                                        mrks.subjectName ||
+                                                                        ''
+                                                                    )
+                                                                        .toLowerCase()
+                                                                        .trim();
                                                                     const isSameSubject = s_name === m_name;
 
                                                                     const m_emE_Id = mrks.EME_Id || mrks.emE_Id;
                                                                     const g_emE_Id = grpexam.EME_Id || grpexam.emE_Id;
                                                                     const isSameExam = m_emE_Id === g_emE_Id;
 
-                                                                    const m_group = (mrks.EMPSG_DisplayName || mrks.empsG_DisplayName || mrks.EMPSG_GroupName || mrks.empsG_GroupName || "").toLowerCase().trim();
-                                                                    const g_group = (grpexam.EMPG_DistplayName || "").toLowerCase().trim();
-                                                                    const isSameGroup = m_group === g_group || m_group === "";
+                                                                    const m_group = (
+                                                                        mrks.EMPSG_DisplayName ||
+                                                                        mrks.empsG_DisplayName ||
+                                                                        mrks.EMPSG_GroupName ||
+                                                                        mrks.empsG_GroupName ||
+                                                                        ''
+                                                                    )
+                                                                        .toLowerCase()
+                                                                        .trim();
+                                                                    const g_group = (grpexam.EMPG_DistplayName || '').toLowerCase().trim();
+                                                                    const isSameGroup = m_group === g_group || m_group === '';
 
                                                                     return isSameSubject && isSameExam && isSameGroup;
                                                                 })
                                                                 .map((mrks: any, mIdx: number) => (
                                                                     <span key={mIdx}>
-                                                                        {['AB', 'M', 'L'].includes(mrks.PassFailFlag || mrks.passFailFlag) ? (
+                                                                        {['AB', 'M', 'L'].includes(
+                                                                            mrks.PassFailFlag || mrks.passFailFlag
+                                                                        ) ? (
                                                                             <label>
                                                                                 <b> {mrks.PassFailFlag || mrks.passFailFlag}</b>
-                                                                                {(Number(mrks.ObtainedMarks ?? mrks.obtainedMarks ?? 0) > 0) && grpexam.examnamedisplay !== 'Grade' && <b>({mrks.ObtainedMarks ?? mrks.obtainedMarks})</b>}
+                                                                                {Number(mrks.ObtainedMarks ?? mrks.obtainedMarks ?? 0) >
+                                                                                    0 &&
+                                                                                    grpexam.examnamedisplay !== 'Grade' && (
+                                                                                        <b>({mrks.ObtainedMarks ?? mrks.obtainedMarks})</b>
+                                                                                    )}
                                                                             </label>
                                                                         ) : grpexam.examnamedisplay !== 'Grade' ? (
-                                                                            <label><b> {mrks.ObtainedMarks ?? mrks.obtainedMarks ?? ""}</b></label>
+                                                                            <label>
+                                                                                <b> {mrks.ObtainedMarks ?? mrks.obtainedMarks ?? ''}</b>
+                                                                            </label>
                                                                         ) : (
-                                                                            <label><b> {mrks.ObtainedGrade ?? mrks.obtainedGrade ?? ""}</b></label>
+                                                                            <label>
+                                                                                <b> {mrks.ObtainedGrade ?? mrks.obtainedGrade ?? ''}</b>
+                                                                            </label>
                                                                         )}
                                                                     </span>
-                                                                ))
-                                                            }
+                                                                ))}
                                                         </td>
                                                     ))}
                                                 </tr>
@@ -421,17 +515,19 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                 </div>
                             </div>
                             &nbsp;
-                            <div className="row margin-top-10">
-                                <div className="col-sm-12">
-                                    <table className="table table-bordered">
+                            <div className='row margin-top-10'>
+                                <div className='col-sm-12'>
+                                    <table className='table-bordered table'>
                                         <thead>
                                             <tr>
-                                                <th colSpan={gettermdetails.length + 1} className="text-center Ndsreport1">Co-Scholastic Areas : {'{on 3- Point(A-C) grading scale}'}</th>
+                                                <th colSpan={gettermdetails.length + 1} className='Ndsreport1 text-center'>
+                                                    Co-Scholastic Areas : {'{on 3- Point(A-C) grading scale}'}
+                                                </th>
                                             </tr>
                                             <tr>
-                                                <td style={{ width: '100px' }} className="text-center Ndsreport"></td>
+                                                <td style={{ width: '100px' }} className='Ndsreport text-center' />
                                                 {gettermdetails.map((cos: any, tIdx: number) => (
-                                                    <td key={tIdx} className="text-center Ndsreport">
+                                                    <td key={tIdx} className='Ndsreport text-center'>
                                                         {cos.ecT_TermName}
                                                     </td>
                                                 ))}
@@ -440,11 +536,11 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                         {report.skill_main_list.map((subjco: any, skIdx: number) => (
                                             <tbody key={skIdx}>
                                                 <tr>
-                                                    <td className="text-left Ndsreport" style={{ wordWrap: 'break-word' }}>
+                                                    <td className='Ndsreport text-left' style={{ wordWrap: 'break-word' }}>
                                                         <b> {subjco.ECS_SkillName}</b>
                                                     </td>
                                                     {gettermdetails.map((cos: any, tIdx: number) => (
-                                                        <td key={tIdx} className="text-center">
+                                                        <td key={tIdx} className='text-center'>
                                                             {subjco.skill_score_details
                                                                 .filter((sc: any) => cos.ecT_Id === sc.ecT_Id)
                                                                 .map((sc: any, scIdx: number) => (
@@ -459,17 +555,19 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                 </div>
                             </div>
                             &nbsp;
-                            <div className="row margin-top-10">
-                                <div className="col-sm-12">
-                                    <table className="table table-bordered">
+                            <div className='row margin-top-10'>
+                                <div className='col-sm-12'>
+                                    <table className='table-bordered table'>
                                         <thead>
                                             <tr>
-                                                <th colSpan={gettermdetails.length + 1} className="text-center Ndsreport1">Discipline : {'{on 3- Point(A-C) grading scale}'}</th>
+                                                <th colSpan={gettermdetails.length + 1} className='Ndsreport1 text-center'>
+                                                    Discipline : {'{on 3- Point(A-C) grading scale}'}
+                                                </th>
                                             </tr>
                                             <tr>
-                                                <td style={{ width: '100px' }} className="text-center Ndsreport"></td>
+                                                <td style={{ width: '100px' }} className='Ndsreport text-center' />
                                                 {gettermdetails.map((cos: any, tIdx: number) => (
-                                                    <td key={tIdx} className="text-center Ndsreport">
+                                                    <td key={tIdx} className='Ndsreport text-center'>
                                                         {cos.ecT_TermName}
                                                     </td>
                                                 ))}
@@ -478,11 +576,11 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                         {report.activity_main_list.map((subjco: any, actIdx: number) => (
                                             <tbody key={actIdx}>
                                                 <tr>
-                                                    <td className="text-left Ndsreport" style={{ wordWrap: 'break-word' }}>
+                                                    <td className='Ndsreport text-left' style={{ wordWrap: 'break-word' }}>
                                                         <b>{subjco.ECACTA_SkillArea}</b>
                                                     </td>
                                                     {gettermdetails.map((cos: any, tIdx: number) => (
-                                                        <td key={tIdx} className="text-center">
+                                                        <td key={tIdx} className='text-center'>
                                                             {subjco.activity_score_details
                                                                 .filter((sc: any) => cos.ecT_Id === sc.ecT_Id)
                                                                 .map((sc: any, scIdx: number) => (
@@ -496,41 +594,41 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                                     </table>
                                 </div>
                             </div>
-
-                            <div className="margin-top-10 space-y-2" style={{ marginTop: '30px' }}>
-                                <div className="row">
-                                    <div className="col-sm-12 flex items-center gap-2">
-                                        <label className="font-bold">Class Teacher's Remarks : </label>
-                                        <b className="border-bottom">{report.remarks}</b>
+                            <div className='margin-top-10 space-y-2' style={{ marginTop: '30px' }}>
+                                <div className='row'>
+                                    <div className='col-sm-12 flex items-center gap-2'>
+                                        <label className='font-bold'>Class Teacher's Remarks : </label>
+                                        <b className='border-bottom'>{report.remarks}</b>
                                     </div>
                                 </div>
 
-                                <div className="row">
-                                    <div className="col-sm-12 flex items-center gap-2">
-                                        <label className="font-bold">Promoted To Class : </label>
-                                        <b className="border-bottom">{report.promotedclass}</b>
+                                <div className='row'>
+                                    <div className='col-sm-12 flex items-center gap-2'>
+                                        <label className='font-bold'>Promoted To Class : </label>
+                                        <b className='border-bottom'>{report.promotedclass}</b>
                                     </div>
                                 </div>
                             </div>
-
                             <br />
-                            <div className="row margin-top-10" style={{ marginTop: '40px' }}>
-                                <div className="col-sm-12 flex justify-between items-start">
-                                    <div className="w-1/4">
-                                        <div className="form-group">
-                                            <label className="font-bold">Date : {format(generateddate, 'dd/MM/yyyy')}</label>
+                            <div className='row margin-top-10' style={{ marginTop: '40px' }}>
+                                <div className='col-sm-12 flex items-start justify-between'>
+                                    <div className='w-1/4'>
+                                        <div className='form-group'>
+                                            <label className='font-bold'>Date : {format(generateddate, 'dd/MM/yyyy')}</label>
                                         </div>
                                     </div>
 
-                                    <div className="w-1/4 text-center flex flex-col items-center">
-                                        <span className="font-bold mb-4">{clstchname}</span>
-                                        <label className="font-bold border-t border-black pt-1 px-4 w-full">Signature of Class Teacher</label>
+                                    <div className='flex w-1/4 flex-col items-center text-center'>
+                                        <span className='mb-4 font-bold'>{clstchname}</span>
+                                        <label className='w-full border-black border-t px-4 pt-1 font-bold'>
+                                            Signature of Class Teacher
+                                        </label>
                                     </div>
-                                    <div className="w-1/4 text-center">
-                                        <label className="font-bold border-t border-black pt-1 px-4">Signature of Principal</label>
+                                    <div className='w-1/4 text-center'>
+                                        <label className='border-black border-t px-4 pt-1 font-bold'>Signature of Principal</label>
                                     </div>
-                                    <div className="w-1/4 text-center">
-                                        <label className="font-bold border-t border-black pt-1 px-4">Signature of Parents</label>
+                                    <div className='w-1/4 text-center'>
+                                        <label className='border-black border-t px-4 pt-1 font-bold'>Signature of Parents</label>
                                     </div>
                                 </div>
                             </div>

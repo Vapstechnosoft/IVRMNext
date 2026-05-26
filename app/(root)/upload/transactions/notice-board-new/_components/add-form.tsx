@@ -11,11 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClassdropdowndatafee, useSectiondropdowndatafee, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import {
     useBusRoutingForNoticeBoardQuery,
+    useFeeGroupsForNoticeBoardQuery,
+    useFeeTermsForNoticeBoardQuery,
     useNoticeBoardDepartments,
     useNoticeBoardDesignations,
-    useNoticeBoardEmployees,
-    useFeeGroupsForNoticeBoardQuery,
-    useFeeTermsForNoticeBoardQuery
+    useNoticeBoardEmployees
 } from '@/hooks/upload/transactions/use-notice-board';
 import { cn } from '@/lib/utils';
 import { noticeBoardSchema } from '@/schemas/upload/transactions/notice-board.schema';
@@ -99,12 +99,12 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
         name: 'intB_DispalyDisableFlg'
     });
 
-    const selectedClasses = useWatch({ control, name: 'asmcL_Id' }) || [];
-    const selectedSections = useWatch({ control, name: 'asmS_Id' }) || [];
-    const intB_FilePath = useWatch({ control, name: 'intB_FilePath' });
-    const [studentDetails, setStudentDetails] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
+    const _selectedClasses = useWatch({ control, name: 'asmcL_Id' }) || [];
+    const _selectedSections = useWatch({ control, name: 'asmS_Id' }) || [];
+    const _intB_FilePath = useWatch({ control, name: 'intB_FilePath' });
+    const [studentDetails, _setStudentDetails] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
 
-    const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
+    const [studentDetailsLoading, _setStudentDetailsLoading] = useState(false);
     const [isViewing, setIsViewing] = useState(false);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
@@ -129,7 +129,6 @@ export default function AddUploadNoticeBoardForm({ onSuccess }: AddNoticeBoardFo
     const { data: gorupdata, isLoading: grouploading } = useFeeGroupsForNoticeBoardQuery();
 
     const { data: termdata, isLoading: termloading } = useFeeTermsForNoticeBoardQuery();
-
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const file = e.target.files?.[0];

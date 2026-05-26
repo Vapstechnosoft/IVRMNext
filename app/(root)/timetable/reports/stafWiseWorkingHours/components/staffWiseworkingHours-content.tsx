@@ -13,7 +13,7 @@ export default function StaffWiseReportContent() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (response: any, payload: any) => {
+    const handleReportGenerated = (response: any, _payload: any) => {
         console.info('Report response received:', response);
 
         // Extract records with robust normalization

@@ -4,7 +4,7 @@ import { api } from '@/lib/apiService';
 import type { IstaffLoadDataTTStaffReport } from '@/types/timetable/TTreports';
 
 // Staff Wise TimeTable Report
-export const getStaffWiseDetails = async (data: any) => {
+export const getStaffWiseDetails = async (_data: any) => {
     return await api.get<any>('timetable', 'StaffWiseTT/getdetails');
 };
 

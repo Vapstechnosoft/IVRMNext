@@ -1,11 +1,6 @@
 import { format } from 'date-fns';
 
-export const printPFForm10 = (
-    reportData: any,
-    institution: any,
-    reportMonth: string,
-    reportYear: string
-) => {
+export const printPFForm10 = (reportData: any, institution: any, reportMonth: string, reportYear: string) => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
@@ -14,11 +9,13 @@ export const printPFForm10 = (
 
     const dataList = reportData?.alldata || reportData?.pfreport || [];
 
-    const tableRows = dataList.map((record: any, index: number) => {
-        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
-        const dol = record.hrmE_DOL ? format(new Date(record.hrmE_DOL), 'dd-MM-yyyy') : '';
+    const tableRows = dataList
+        .map((record: any, index: number) => {
+            const empName =
+                `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
+            const dol = record.hrmE_DOL ? format(new Date(record.hrmE_DOL), 'dd-MM-yyyy') : '';
 
-        return `
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td class="text-left">${record.hrmE_PFAccNo || ''}</td>
@@ -27,7 +24,8 @@ export const printPFForm10 = (
                 <td class="text-left">${record.hrmE_LeavingReason || ''}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     const codeNo = reportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || reportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || 'PF';
     const address = `${reportData?.currentInstuteAddress || institution?.mI_Address1}, ${institution?.ivrmmcT_Name || ''} - ${institution?.mI_Pincode || ''}.`;
@@ -208,4 +206,4 @@ export const printPFForm10 = (
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

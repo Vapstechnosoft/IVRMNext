@@ -43,7 +43,7 @@ const MOCK_INITIAL_DATA = {
     specialheaddetails: []
 };
 
-export async function getFeeOnlinePaymentLoadData(data: any) {
+export async function getFeeOnlinePaymentLoadData(_data: any) {
     // In a real scenario, uncomment the following line:
     //return await api.post('portal', '/OnlinePayment/getalldetails', data);
 
@@ -54,7 +54,7 @@ export async function getFeeOnlinePaymentLoadData(data: any) {
     };
 }
 
-export async function getAmountDetails(data: any) {
+export async function getAmountDetails(_data: any) {
     // Mock response for getting amount details
     // return await api.post('default', 'FeeOnlinePayment/getamountdetails', data);
 
@@ -86,7 +86,7 @@ export async function getAmountDetails(data: any) {
     };
 }
 
-export async function savePayment(data: any) {
+export async function savePayment(_data: any) {
     // return await api.post('default', 'FeeOnlinePayment/generatehashsequence', data);
     return {
         success: true,

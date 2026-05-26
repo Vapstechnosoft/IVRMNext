@@ -38,8 +38,8 @@ export default function COEPage() {
 
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedMonth, setSelectedMonth] = useState<number>(1);
-    const [asclId, setAsclId] = useState<number>(1);
-    const [amstId, setAmstId] = useState<number>(1);
+    const [asclId, _setAsclId] = useState<number>(1);
+    const [amstId, _setAmstId] = useState<number>(1);
     const [isInitialized, setIsInitialized] = useState(false);
 
     // Fetch academic years on component mount
@@ -50,7 +50,6 @@ export default function COEPage() {
                 setAcademicYearsError(null);
 
                 const years = await getAcademicYeardropdown();
-                console.log('Fetched academic years raw:', years);
 
                 // Handle different response formats
                 let yearsArray: IFeeAcademicYearDropdownList[] = [];
@@ -65,15 +64,12 @@ export default function COEPage() {
                         yearsArray = years.data;
                     }
                 }
-
-                console.log('Processed academic years array:', yearsArray);
                 setAcademicYears(yearsArray);
 
                 // Auto-select first academic year when data loads
                 if (yearsArray.length > 0) {
                     setSelectedAcademicYear(yearsArray[0].asmaY_Id);
                     setIsInitialized(true);
-                    console.log('Auto-selected first academic year:', yearsArray[0].asmaY_Year, 'ID:', yearsArray[0].asmaY_Id);
                 }
             } catch (error) {
                 console.error('Failed to load academic years:', error);
@@ -104,13 +100,11 @@ export default function COEPage() {
     const handleAcademicYearChange = (value: string) => {
         const yearId = Number.parseInt(value);
         setSelectedAcademicYear(yearId);
-        console.log('Academic year changed to ID:', yearId);
     };
 
     const handleMonthChange = (value: string) => {
         const monthId = Number.parseInt(value);
         setSelectedMonth(monthId);
-        console.log('Month changed to ID:', monthId);
     };
 
     const handleRefreshAcademicYears = async () => {
@@ -150,15 +144,7 @@ export default function COEPage() {
     const selectedMonthName = months.find((m) => m.id === selectedMonth)?.name || '';
 
     // Debug logs
-    useEffect(() => {
-        console.log('Current state:', {
-            academicYears,
-            academicYearsLoading,
-            selectedAcademicYear,
-            selectedAcademicYearName,
-            isInitialized
-        });
-    }, [academicYears, academicYearsLoading, selectedAcademicYear, selectedAcademicYearName, isInitialized]);
+    useEffect(() => {}, [academicYears, academicYearsLoading, selectedAcademicYear, selectedAcademicYearName, isInitialized]);
 
     return (
         <FormProvider<ICOEData>>

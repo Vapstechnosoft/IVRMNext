@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 export async function getRoomCategoryList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -19,5 +19,5 @@ export async function deactivateRoomCategory(id: number) {
 }
 
 export async function getRoomCategoryDropdownList() {
-    return await api.get<any>('hostel', `/RoomCategory/get_room_category_dropdown_list`);
+    return await api.get<any>('hostel', '/RoomCategory/get_room_category_dropdown_list');
 }

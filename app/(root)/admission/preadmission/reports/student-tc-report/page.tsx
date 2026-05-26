@@ -8,15 +8,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useMasterCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
-import {
-    usePreadmissionClassDropdown1,
-    useadmissionSectionDropdown
-} from '@/hooks/admission/preadmission/useTransactions';
+import { usePreadmissionClassDropdown1, useadmissionSectionDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 
 import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
 import { StudentTcDetailsSchema } from '@/schemas/admission/preadmission/reports';
-import { getExcelStudentTcReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { getStudentTcReport } from '@/server/admission/preadmission/reports/report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -46,7 +42,7 @@ export default function StudentTcReportPage(props: {
     const tableRef = useRef<DataTableRef>(null);
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handleResetSelection = () => {
+    const _handleResetSelection = () => {
         tableRef.current?.resetSelection();
     };
     const {
@@ -111,7 +107,6 @@ export default function StudentTcReportPage(props: {
         isError: preadmissionSectionError
     } = useadmissionSectionDropdown(classId);
 
-
     const filteredFields = useMemo(() => {
         return ColumnValue.filter((field) => field.columnName.toLowerCase().includes(fieldSearch.toLowerCase()));
     }, [fieldSearch]);
@@ -122,10 +117,13 @@ export default function StudentTcReportPage(props: {
 
         const updated = isSelected
             ? current.filter((f: any) => f.columnID !== fieldId)
-            : [...current, {
-                columnID: fieldId,
-                columnName: ColumnValue.find(c => c.columnID === fieldId)?.columnName || ''
-            }];
+            : [
+                  ...current,
+                  {
+                      columnID: fieldId,
+                      columnName: ColumnValue.find((c) => c.columnID === fieldId)?.columnName || ''
+                  }
+              ];
 
         setValue('TempararyArrayheadList', updated, { shouldValidate: true });
     };
@@ -202,7 +200,7 @@ export default function StudentTcReportPage(props: {
 
             // Cast response.data to any to access the nested data property
             const responseData = response.data as any;
-            if (responseData && responseData.data && responseData.data.length > 0) {
+            if (responseData?.data && responseData.data.length > 0) {
                 setShowTable(true);
                 toast.success('TC Report fetched successfully', { id: 'tc-report' });
             } else {
@@ -242,7 +240,7 @@ export default function StudentTcReportPage(props: {
                     page: 1,
                     page_size: totalRecords
                 });
-                if (response && response.data && response.data.length > 0) {
+                if (response?.data && response.data.length > 0) {
                     dataToExport = response.data;
                     setAllReportData(response.data);
                 }
@@ -318,7 +316,7 @@ export default function StudentTcReportPage(props: {
                 page_size: totalRecords
             });
 
-            if (response && response.data && response.data.length > 0) {
+            if (response?.data && response.data.length > 0) {
                 setAllReportData(response.data);
                 toast.success('Ready to print', { id: 'print-all' });
                 // Short delay to ensure state update and re-render of the hidden print component
@@ -420,7 +418,6 @@ export default function StudentTcReportPage(props: {
                         </Select>
                     </div> */}
 
-
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='class' className='mb-1 font-semibold'>
                             Class
@@ -488,7 +485,6 @@ export default function StudentTcReportPage(props: {
                             </SelectContent>
                         </Select>
                     </div>
-
 
                     {/* TC Type Radio Buttons */}
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
@@ -628,7 +624,7 @@ export default function StudentTcReportPage(props: {
             <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
                 <StudentTcReportPrint
                     ref={componentRef}
-                    data={allReportData.length > 0 ? allReportData : (reportData?.data || [])}
+                    data={allReportData.length > 0 ? allReportData : reportData?.data || []}
                     selectedFields={selectedFields.map((f: any) => f.columnID)}
                 />
             </div>

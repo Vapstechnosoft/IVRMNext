@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterSportsCCNameUOM } from '@/hooks/sports/useMasterSportsCCNameUOM';
@@ -92,8 +92,8 @@ function MasterSportsCCNameUOMPageContent({
                 </div>
 
                 <CollapsibleSection
-                    title="Sports CC Name UOM List"
-                    description="List of sports and their associated units of measurement"
+                    title='Sports CC Name UOM List'
+                    description='List of sports and their associated units of measurement'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -183,11 +183,7 @@ function MasterSportsCCNameUOMPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterSportsCCNameUOMForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterSportsCCNameUOMForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

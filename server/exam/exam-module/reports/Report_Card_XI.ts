@@ -2,9 +2,8 @@
 
 import { api } from '@/lib/apiService';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
-import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 
-const ACADEMIC_YEARS = [
+const _ACADEMIC_YEARS = [
     { asmaY_Id: 1, asmaY_Year: '2023-2024' },
     { asmaY_Id: 2, asmaY_Year: '2024-2025' },
     { asmaY_Id: 3, asmaY_Year: '2022-2023' },
@@ -40,19 +39,19 @@ export async function getDetails() {
     }
 }
 
-export async function getClasses(yearId: any) {
+export async function getClasses(_yearId: any) {
     return {
         ctlist: CLASSES
     };
 }
 
-export async function getSections(classId: any) {
+export async function getSections(_classId: any) {
     return {
         seclist: SECTIONS
     };
 }
 
-export async function getStudents(sectionId: any) {
+export async function getStudents(_sectionId: any) {
     return {
         studentlist: STUDENTS
     };
@@ -62,7 +61,6 @@ export async function getReportDetails(data: any) {
     const url = '/JSHSExamReportsFacade/promotion_report_card';
     try {
         const response = await api.post<any>('exam', url, data);
-        console.log('response', response);
         return response.data;
     } catch (error) {
         console.error('getReportDetails API Error:', error);

@@ -24,154 +24,155 @@ const dateSchema = (fieldName: string, allowNull = false) => {
 };
 
 export const PreAdmissionAcademicYearSchema = {
-    addOrUpdate: z.object({
-        // Optional internal id for updates
-        asmaY_Id: z.number().int().optional(),
+    addOrUpdate: z
+        .object({
+            // Optional internal id for updates
+            asmaY_Id: z.number().int().optional(),
 
-        // Institution
-        mI_Id: z
-            .union([z.number(), z.string()])
-            .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
-            .refine((val) => !Number.isNaN(val) && val > 0, { message: 'Institution is required' }),
+            // Institution
+            mI_Id: z
+                .union([z.number(), z.string()])
+                .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
+                .refine((val) => !Number.isNaN(val) && val > 0, { message: 'Institution is required' }),
 
-        // Form inputs for year parts (the UI collects From/To and we compute asmaY_Year)
-        academicFromYear: z
-            .string()
-            .nonempty({ message: 'Academic From Year is required' })
-            .regex(/^\d{4}$/, { message: 'From Year must be YYYY' }),
-        academicToYear: z
-            .string()
-            .nonempty({ message: 'Academic To Year is required' })
-            .regex(/^\d{4}$/, { message: 'To Year must be YYYY' }),
+            // Form inputs for year parts (the UI collects From/To and we compute asmaY_Year)
+            academicFromYear: z
+                .string()
+                .nonempty({ message: 'Academic From Year is required' })
+                .regex(/^\d{4}$/, { message: 'From Year must be YYYY' }),
+            academicToYear: z
+                .string()
+                .nonempty({ message: 'Academic To Year is required' })
+                .regex(/^\d{4}$/, { message: 'To Year must be YYYY' }),
 
-        // Academic Year Fields (computed on submit)
-        asmaY_Year: z.string().regex(/^\d{4}-\d{4}$/, {
-            message: 'Academic Year must be in format YYYY-YYYY'
-        }),
-
-        // Order field - must be a number for the API
-        asmaY_Order: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
-            .refine((val) => !Number.isNaN(val), {
-                message: 'Order must be a valid number'
+            // Academic Year Fields (computed on submit)
+            asmaY_Year: z.string().regex(/^\d{4}-\d{4}$/, {
+                message: 'Academic Year must be in format YYYY-YYYY'
             }),
 
-        // Academic Year Code - required with length validation
-        asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20).regex(/^[a-zA-Z0-9-]+$/, {
-            message: 'Academic Year Code must only contain letters, numbers, and hyphens'
-        }),
+            // Order field - must be a number for the API
+            asmaY_Order: z
+                .union([z.string(), z.number()])
+                .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
+                .refine((val) => !Number.isNaN(val), {
+                    message: 'Order must be a valid number'
+                }),
 
-        // Date fields with ISO string validation
-        asmaY_From_Date: dateSchema('From Date', true),
-        asmaY_To_Date: dateSchema('To Date', true),
-        asmaY_PreAdm_F_Date: dateSchema('Pre-Admission From Date', true),
-        asmaY_PreAdm_T_Date: dateSchema('Pre-Admission To Date', true),
-        asmaY_Cut_Of_Date: dateSchema('Cut-off Date', true),
+            // Academic Year Code - required with length validation
+            asmaY_AcademicYearCode: createStringSchema('Academic Year Code', 1, 20).regex(/^[a-zA-Z0-9-]+$/, {
+                message: 'Academic Year Code must only contain letters, numbers, and hyphens'
+            }),
 
-        // Flag fields with defaults and transformations
-        asmaY_ActiveFlag: z
-            .union([z.number(), z.boolean()])
-            .transform((val) => (typeof val === 'boolean' ? (val ? 1 : 0) : val))
-            .default(0),
+            // Date fields with ISO string validation
+            asmaY_From_Date: dateSchema('From Date', true),
+            asmaY_To_Date: dateSchema('To Date', true),
+            asmaY_PreAdm_F_Date: dateSchema('Pre-Admission From Date', true),
+            asmaY_PreAdm_T_Date: dateSchema('Pre-Admission To Date', true),
+            asmaY_Cut_Of_Date: dateSchema('Cut-off Date', true),
 
-        asmaY_TransportSDate: dateSchema('Transport Start Date', true).optional(),
-        asmaY_TransportEDate: dateSchema('Transport End Date', true).optional(),
-        asmaY_ReferenceDate: dateSchema('Reference Date', true).optional(),
-        asmaY_AdvanceFeeDate: dateSchema('Advance Fee Date', true).optional(),
-        asmaY_RegularFeeFDate: dateSchema('Regular Fee From Date', true).optional(),
-        asmaY_RegularFeeTDate: dateSchema('Regular Fee To Date', true).optional(),
-        asmaY_ArrearFeeDate: dateSchema('Arrear Fee Date', true).optional(),
+            // Flag fields with defaults and transformations
+            asmaY_ActiveFlag: z
+                .union([z.number(), z.boolean()])
+                .transform((val) => (typeof val === 'boolean' ? (val ? 1 : 0) : val))
+                .default(0),
 
-        // ----- BOOLEAN/FLAG FIELDS – OPTIONAL WITH DEFAULT -----
-        asmaY_ReggularFlg: z
-            .union([z.boolean(), z.number()])
-            .transform((val) => Boolean(val))
-            .default(false)
-            .optional(),
+            asmaY_TransportSDate: dateSchema('Transport Start Date', true).optional(),
+            asmaY_TransportEDate: dateSchema('Transport End Date', true).optional(),
+            asmaY_ReferenceDate: dateSchema('Reference Date', true).optional(),
+            asmaY_AdvanceFeeDate: dateSchema('Advance Fee Date', true).optional(),
+            asmaY_RegularFeeFDate: dateSchema('Regular Fee From Date', true).optional(),
+            asmaY_RegularFeeTDate: dateSchema('Regular Fee To Date', true).optional(),
+            asmaY_ArrearFeeDate: dateSchema('Arrear Fee Date', true).optional(),
 
-        asmaY_NewFlg: z
-            .union([z.boolean(), z.number()])
-            .transform((val) => Boolean(val))
-            .default(false)
-            .optional(),
+            // ----- BOOLEAN/FLAG FIELDS – OPTIONAL WITH DEFAULT -----
+            asmaY_ReggularFlg: z
+                .union([z.boolean(), z.number()])
+                .transform((val) => Boolean(val))
+                .default(false)
+                .optional(),
 
-        asmaY_NewAdmissionFlg: z
-            .union([z.boolean(), z.number()])
-            .transform((val) => Boolean(val))
-            .default(false)
-            .optional(),
+            asmaY_NewFlg: z
+                .union([z.boolean(), z.number()])
+                .transform((val) => Boolean(val))
+                .default(false)
+                .optional(),
 
-        asmaY_Pre_ActiveFlag: z
-            .union([z.boolean(), z.number()])
-            .transform((val) => Boolean(val))
-            .default(false)
-            .optional(),
+            asmaY_NewAdmissionFlg: z
+                .union([z.boolean(), z.number()])
+                .transform((val) => Boolean(val))
+                .default(false)
+                .optional(),
 
-        // Pre-Admission time fields (stored as "HH:mm" strings)
-        asmaY_PreAdm_F_Time: z.string().optional().nullable(),
-        asmaY_PreAdm_T_Time: z.string().optional().nullable()
-    })
-    .refine(
-        (data) => {
-            if (data.asmaY_From_Date && data.asmaY_To_Date) {
-                return new Date(data.asmaY_To_Date) > new Date(data.asmaY_From_Date);
+            asmaY_Pre_ActiveFlag: z
+                .union([z.boolean(), z.number()])
+                .transform((val) => Boolean(val))
+                .default(false)
+                .optional(),
+
+            // Pre-Admission time fields (stored as "HH:mm" strings)
+            asmaY_PreAdm_F_Time: z.string().optional().nullable(),
+            asmaY_PreAdm_T_Time: z.string().optional().nullable()
+        })
+        .refine(
+            (data) => {
+                if (data.asmaY_From_Date && data.asmaY_To_Date) {
+                    return new Date(data.asmaY_To_Date) > new Date(data.asmaY_From_Date);
+                }
+                return true;
+            },
+            {
+                message: 'End Date must be after Start Date',
+                path: ['asmaY_To_Date']
             }
-            return true;
-        },
-        {
-            message: 'End Date must be after Start Date',
-            path: ['asmaY_To_Date']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.asmaY_PreAdm_F_Date && data.asmaY_PreAdm_T_Date) {
-                return new Date(data.asmaY_PreAdm_T_Date) > new Date(data.asmaY_PreAdm_F_Date);
+        )
+        .refine(
+            (data) => {
+                if (data.asmaY_PreAdm_F_Date && data.asmaY_PreAdm_T_Date) {
+                    return new Date(data.asmaY_PreAdm_T_Date) > new Date(data.asmaY_PreAdm_F_Date);
+                }
+                return true;
+            },
+            {
+                message: 'Pre-Admission End Date must be after Start Date',
+                path: ['asmaY_PreAdm_T_Date']
             }
-            return true;
-        },
-        {
-            message: 'Pre-Admission End Date must be after Start Date',
-            path: ['asmaY_PreAdm_T_Date']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.asmaY_TransportSDate && data.asmaY_TransportEDate) {
-                return new Date(data.asmaY_TransportEDate) > new Date(data.asmaY_TransportSDate);
+        )
+        .refine(
+            (data) => {
+                if (data.asmaY_TransportSDate && data.asmaY_TransportEDate) {
+                    return new Date(data.asmaY_TransportEDate) > new Date(data.asmaY_TransportSDate);
+                }
+                return true;
+            },
+            {
+                message: 'Transport End Date must be after Start Date',
+                path: ['asmaY_TransportEDate']
             }
-            return true;
-        },
-        {
-            message: 'Transport End Date must be after Start Date',
-            path: ['asmaY_TransportEDate']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.asmaY_RegularFeeFDate && data.asmaY_RegularFeeTDate) {
-                return new Date(data.asmaY_RegularFeeTDate) > new Date(data.asmaY_RegularFeeFDate);
+        )
+        .refine(
+            (data) => {
+                if (data.asmaY_RegularFeeFDate && data.asmaY_RegularFeeTDate) {
+                    return new Date(data.asmaY_RegularFeeTDate) > new Date(data.asmaY_RegularFeeFDate);
+                }
+                return true;
+            },
+            {
+                message: 'Financial Year End Date must be after Start Date',
+                path: ['asmaY_RegularFeeTDate']
             }
-            return true;
-        },
-        {
-            message: 'Financial Year End Date must be after Start Date',
-            path: ['asmaY_RegularFeeTDate']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.asmaY_PreAdm_F_Date && data.asmaY_From_Date) {
-                return new Date(data.asmaY_PreAdm_F_Date) <= new Date(data.asmaY_From_Date);
+        )
+        .refine(
+            (data) => {
+                if (data.asmaY_PreAdm_F_Date && data.asmaY_From_Date) {
+                    return new Date(data.asmaY_PreAdm_F_Date) <= new Date(data.asmaY_From_Date);
+                }
+                return true;
+            },
+            {
+                message: 'Pre-Admission Start Date cannot be after Start Date',
+                path: ['asmaY_PreAdm_F_Date']
             }
-            return true;
-        },
-        {
-            message: 'Pre-Admission Start Date cannot be after Start Date',
-            path: ['asmaY_PreAdm_F_Date']
-        }
-    ),
+        ),
 
     delete: z.object({
         asmaY_Id: z.coerce

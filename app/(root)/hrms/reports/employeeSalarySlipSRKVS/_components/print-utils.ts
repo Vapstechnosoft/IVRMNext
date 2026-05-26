@@ -2,33 +2,48 @@ import { format } from 'date-fns';
 
 export function numberToWords(num: number) {
     const a = [
-        "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-        "Seventeen", "Eighteen", "Nineteen"
+        '',
+        'One',
+        'Two',
+        'Three',
+        'Four',
+        'Five',
+        'Six',
+        'Seven',
+        'Eight',
+        'Nine',
+        'Ten',
+        'Eleven',
+        'Twelve',
+        'Thirteen',
+        'Fourteen',
+        'Fifteen',
+        'Sixteen',
+        'Seventeen',
+        'Eighteen',
+        'Nineteen'
     ];
 
-    const b = [
-        "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
-    ];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
     function inWords(n: number): string {
         if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
-        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + inWords(n % 100) : "");
-        if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
-        if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
-        return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ` ${a[n % 10]}` : '');
+        if (n < 1000) return `${a[Math.floor(n / 100)]} Hundred${n % 100 ? ` ${inWords(n % 100)}` : ''}`;
+        if (n < 100000) return `${inWords(Math.floor(n / 1000))} Thousand${n % 1000 ? ` ${inWords(n % 1000)}` : ''}`;
+        if (n < 10000000) return `${inWords(Math.floor(n / 100000))} Lakh${n % 100000 ? ` ${inWords(n % 100000)}` : ''}`;
+        return `${inWords(Math.floor(n / 10000000))} Crore${n % 10000000 ? ` ${inWords(n % 10000000)}` : ''}`;
     }
 
-    const [rupees, paise] = num.toFixed(2).split(".");
+    const [rupees, paise] = num.toFixed(2).split('.');
 
-    let words = inWords(parseInt(rupees)) + " Rupees";
+    let words = `${inWords(Number.parseInt(rupees))} Rupees`;
 
-    if (parseInt(paise) > 0) {
-        words += " and " + inWords(parseInt(paise)) + " Paise";
+    if (Number.parseInt(paise) > 0) {
+        words += ` and ${inWords(Number.parseInt(paise))} Paise`;
     }
 
-    return words + " Only";
+    return `${words} Only`;
 }
 
 export function printSalarySlips(
@@ -36,26 +51,27 @@ export function printSalarySlips(
     institution: { name: string; address: string; logo: string },
     month: string,
     year: string,
-    showLopDays: boolean = false,
-    showLeaveDetails: boolean = false,
-    showPanCardNo: boolean = false,
-    showBankDetails: boolean = false
+    showLopDays = false,
+    showLeaveDetails = false,
+    showPanCardNo = false,
+    showBankDetails = false
 ) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
     const formatCurrency = (val: number) => (val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const content = slips.map((slip, index) => {
-        const earnings = slip.earnings || [];
-        const deductions = slip.deductions || [];
-        const maxRows = Math.max(earnings.length, deductions.length);
+    const content = slips
+        .map((slip, _index) => {
+            const earnings = slip.earnings || [];
+            const deductions = slip.deductions || [];
+            const maxRows = Math.max(earnings.length, deductions.length);
 
-        let rowsHtml = '';
-        for (let i = 0; i < maxRows; i++) {
-            const e = earnings[i] || { name: '', amount: '' };
-            const d = deductions[i] || { name: '', amount: '' };
-            rowsHtml += `
+            let rowsHtml = '';
+            for (let i = 0; i < maxRows; i++) {
+                const e = earnings[i] || { name: '', amount: '' };
+                const d = deductions[i] || { name: '', amount: '' };
+                rowsHtml += `
                 <tr>
                     <td style="border: 1px solid black; padding: 8px; text-align: left;">${e.name || ''}</td>
                     <td style="border: 1px solid black; padding: 8px; text-align: right;">${e.amount ? formatCurrency(e.amount) : ''}</td>
@@ -63,9 +79,9 @@ export function printSalarySlips(
                     <td style="border: 1px solid black; padding: 8px; text-align: right;">${d.amount ? formatCurrency(d.amount) : ''}</td>
                 </tr>
             `;
-        }
+            }
 
-        return `
+            return `
             <div class="salary-slip" style="page-break-after: always; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
                 <div style="border-bottom: 2px solid black; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
                     <img src="${institution.logo}" style="height: 80px; width: auto;" alt="logo" />
@@ -86,10 +102,14 @@ export function printSalarySlips(
                             <tr><td style="font-weight: bold;">Department</td><td>:</td><td>${slip.department || '-'}</td></tr>
                             <tr><td style="font-weight: bold;">Designation</td><td>:</td><td>${slip.designation}</td></tr>
                             ${slip.uanNumber ? `<tr><td style="font-weight: bold;">PF UAN Number</td><td>:</td><td>${slip.uanNumber}</td></tr>` : ''}
-                            ${showBankDetails ? `
+                            ${
+                                showBankDetails
+                                    ? `
                                 <tr><td style="font-weight: bold;">Bank Name</td><td>:</td><td>${slip.bankName || '-'}</td></tr>
                                 <tr><td style="font-weight: bold;">Bank Acc No.</td><td>:</td><td>${slip.bankAccountNo || '-'}</td></tr>
-                            ` : ''}
+                            `
+                                    : ''
+                            }
                         </table>
                     </div>
                     <div>
@@ -139,7 +159,9 @@ export function printSalarySlips(
                     NOTE : Signature is not required because it is a computer generated statement.
                 </p>
 
-                ${showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0 ? `
+                ${
+                    showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0
+                        ? `
                     <div class="leave-details" style="margin-top: 50px; border-top: 2px dashed #ccc; padding-top: 40px;">
                         <h4 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">Leave Details</h4>
                         <table style="width: 85%; margin: auto; border-collapse: collapse; font-size: 12px;">
@@ -153,7 +175,9 @@ export function printSalarySlips(
                                 </tr>
                             </thead>
                             <tbody>
-                                ${(slip.leaveDetails || []).map((l: any) => `
+                                ${(slip.leaveDetails || [])
+                                    .map(
+                                        (l: any) => `
                                     <tr>
                                         <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.serialNo}</td>
                                         <td style="border: 1px solid black; padding: 8px; text-align: left; padding-left: 15px;">${l.leaveName || '-'}</td>
@@ -161,14 +185,19 @@ export function printSalarySlips(
                                         <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.availedLeaves || 0}</td>
                                         <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.balanceLeaves || 0}</td>
                                     </tr>
-                                `).join('')}
+                                `
+                                    )
+                                    .join('')}
                             </tbody>
                         </table>
                     </div>
-                ` : ''}
+                `
+                        : ''
+                }
             </div>
         `;
-    }).join('');
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>

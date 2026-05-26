@@ -69,8 +69,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                     const response = await getFeeTermHeadDueDateGridList(selectedAcademicYear, selectedTerm, selectedHead);
 
                     if (response?.success && Array.isArray(response.data)) {
-                        console.log('Response data:', response.data);
-
                         if (response.data.length > 0) {
                             setGridData(response.data);
                             toast.success(response.message, {
@@ -127,8 +125,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                     FMTFHDD_DueDate: item.fmtfhdD_DueDate || null
                 }))
             };
-
-            console.log('Payload JSON:', JSON.stringify(payload));
 
             const response = await addOrUpdateFeeTermHeadDueDate(payload);
 

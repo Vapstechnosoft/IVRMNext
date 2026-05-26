@@ -1,23 +1,11 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { getMappedEventDetails } from "@/server/coe/masters/masterevent";
-import { MappedEventCoe } from "@/types/coe/master-coe";
-import { format } from "date-fns";
-import { Check, X, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getMappedEventDetails } from '@/server/coe/masters/masterevent';
+import type { MappedEventCoe } from '@/types/coe/master-coe';
+import { format } from 'date-fns';
+import { Check, Loader2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ViewMappedEventDialogProps {
     rowData: MappedEventCoe;
@@ -34,15 +22,15 @@ export function ViewMappedEventDialog({ rowData, onClose }: ViewMappedEventDialo
                 setIsLoading(true);
                 try {
                     const res = await getMappedEventDetails(rowData.coeE_Id);
-                    if (res && res.data && res.data.edit_map_event) {
+                    if (res?.data?.edit_map_event) {
                         // API returns viewrecordspopupdisplay2 as per user HTML context implication
                         setData(res.data.edit_map_event);
-                    } else if (res && res.data && Array.isArray(res.data)) {
+                    } else if (res?.data && Array.isArray(res.data)) {
                         // Fallback if data structure is different but still an array
                         setData(res.data);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch details", error);
+                    console.error('Failed to fetch details', error);
                 } finally {
                     setIsLoading(false);
                 }
@@ -53,60 +41,60 @@ export function ViewMappedEventDialog({ rowData, onClose }: ViewMappedEventDialo
 
     return (
         <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent className="max-w-[90vw] w-fit max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden">
-                <DialogHeader className="flex-none">
+            <DialogContent className='flex max-h-[90vh] w-fit max-w-[90vw] flex-col overflow-hidden p-4 sm:p-6'>
+                <DialogHeader className='flex-none'>
                     <DialogTitle>Mapped Event Details</DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 w-full rounded-md border p-2">
+                <ScrollArea className='w-full flex-1 rounded-md border p-2'>
                     {isLoading ? (
-                        <div className="flex justify-center items-center h-40">
-                            <Loader2 className="h-8 w-8 animate-spin" />
+                        <div className='flex h-40 items-center justify-center'>
+                            <Loader2 className='h-8 w-8 animate-spin' />
                         </div>
                     ) : (
-                        <div className="min-w-[1200px]">
+                        <div className='min-w-[1200px]'>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[60px]">SLNO</TableHead>
-                                        <TableHead className="whitespace-nowrap">Start Date</TableHead>
-                                        <TableHead className="whitespace-nowrap">End Date</TableHead>
-                                        <TableHead className="whitespace-nowrap">Reminder Date</TableHead>
-                                        <TableHead className="whitespace-nowrap text-center">SMS Flag</TableHead>
-                                        <TableHead className="min-w-[200px]">SMS Message</TableHead>
-                                        <TableHead className="whitespace-nowrap text-center">Email Flag</TableHead>
-                                        <TableHead className="min-w-[150px]">Mail Subject</TableHead>
-                                        <TableHead className="min-w-[150px]">Mail Header</TableHead>
-                                        <TableHead className="min-w-[150px]">Mail Footer</TableHead>
-                                        <TableHead className="min-w-[200px]">Mail Message</TableHead>
-                                        <TableHead className="min-w-[200px]">Mail HTML Template</TableHead>
+                                        <TableHead className='w-[60px]'>SLNO</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Start Date</TableHead>
+                                        <TableHead className='whitespace-nowrap'>End Date</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Reminder Date</TableHead>
+                                        <TableHead className='whitespace-nowrap text-center'>SMS Flag</TableHead>
+                                        <TableHead className='min-w-[200px]'>SMS Message</TableHead>
+                                        <TableHead className='whitespace-nowrap text-center'>Email Flag</TableHead>
+                                        <TableHead className='min-w-[150px]'>Mail Subject</TableHead>
+                                        <TableHead className='min-w-[150px]'>Mail Header</TableHead>
+                                        <TableHead className='min-w-[150px]'>Mail Footer</TableHead>
+                                        <TableHead className='min-w-[200px]'>Mail Message</TableHead>
+                                        <TableHead className='min-w-[200px]'>Mail HTML Template</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {data.map((item, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{index + 1}</TableCell>
-                                            <TableCell className="whitespace-nowrap">
-                                                {item.coeE_EStartDate ? format(new Date(item.coeE_EStartDate), "dd/MM/yyyy") : "-"}
+                                            <TableCell className='whitespace-nowrap'>
+                                                {item.coeE_EStartDate ? format(new Date(item.coeE_EStartDate), 'dd/MM/yyyy') : '-'}
                                             </TableCell>
-                                            <TableCell className="whitespace-nowrap">
-                                                {item.coeE_EEndDate ? format(new Date(item.coeE_EEndDate), "dd/MM/yyyy") : "-"}
+                                            <TableCell className='whitespace-nowrap'>
+                                                {item.coeE_EEndDate ? format(new Date(item.coeE_EEndDate), 'dd/MM/yyyy') : '-'}
                                             </TableCell>
-                                            <TableCell className="whitespace-nowrap">
-                                                {item.coeE_ReminderDate ? format(new Date(item.coeE_ReminderDate), "dd/MM/yyyy") : "-"}
+                                            <TableCell className='whitespace-nowrap'>
+                                                {item.coeE_ReminderDate ? format(new Date(item.coeE_ReminderDate), 'dd/MM/yyyy') : '-'}
                                             </TableCell>
-                                            <TableCell className="text-center">
+                                            <TableCell className='text-center'>
                                                 {item.coeE_SMSActiveFlag ? (
-                                                    <Check className="h-4 w-4 text-green-600 mx-auto" />
+                                                    <Check className='mx-auto h-4 w-4 text-green-600' />
                                                 ) : (
-                                                    <X className="h-4 w-4 text-destructive mx-auto" />
+                                                    <X className='mx-auto h-4 w-4 text-destructive' />
                                                 )}
                                             </TableCell>
                                             <TableCell>{item.coeE_SMSMessage}</TableCell>
-                                            <TableCell className="text-center">
+                                            <TableCell className='text-center'>
                                                 {item.coeE_MailActiveFlag ? (
-                                                    <Check className="h-4 w-4 text-green-600 mx-auto" />
+                                                    <Check className='mx-auto h-4 w-4 text-green-600' />
                                                 ) : (
-                                                    <X className="h-4 w-4 text-destructive mx-auto" />
+                                                    <X className='mx-auto h-4 w-4 text-destructive' />
                                                 )}
                                             </TableCell>
                                             <TableCell>{item.coeE_MailSubject}</TableCell>
@@ -118,7 +106,7 @@ export function ViewMappedEventDialog({ rowData, onClose }: ViewMappedEventDialo
                                     ))}
                                     {data.length === 0 && (
                                         <TableRow>
-                                            <TableCell colSpan={12} className="text-center h-24 text-muted-foreground">
+                                            <TableCell colSpan={12} className='h-24 text-center text-muted-foreground'>
                                                 No details found
                                             </TableCell>
                                         </TableRow>
@@ -127,7 +115,7 @@ export function ViewMappedEventDialog({ rowData, onClose }: ViewMappedEventDialo
                             </Table>
                         </div>
                     )}
-                    <ScrollBar orientation="horizontal" />
+                    <ScrollBar orientation='horizontal' />
                 </ScrollArea>
             </DialogContent>
         </Dialog>

@@ -31,10 +31,10 @@ import {
     viewSubjectsGroupExams
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 
-import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import { getExamTTSessionList } from '@/server/exam/exam-module/exam-mapping/exam-tt-session';
 import { getExamTTTransSettingsList } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
+import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

@@ -2,11 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download, FileDown, Printer } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import Image from 'next/image';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { useReactToPrint } from 'react-to-print';
 
 interface ReportListProps {
     data: any;
@@ -15,7 +14,13 @@ interface ReportListProps {
 
 export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
-    const { institution, YearName, stream, section, empG_GroupName, Left_FlagAverage,
+    const {
+        institution,
+        YearName,
+        stream,
+        section,
+        empG_GroupName,
+        Left_FlagAverage,
         getstudentmarksdetails_temp = [],
         getstudentmarksdetails = [],
         piotsubjets = [],
@@ -36,8 +41,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const handleExportExcel = () => {
         const tableElement = printRef.current?.querySelector('table');
         if (tableElement) {
-            const wb = XLSX.utils.table_to_book(tableElement, { sheet: "Sheet JS" });
-            XLSX.writeFile(wb, Left_FlagAverage ? "Super_Average_Report.xlsx" : "Tabulation_Sheet.xlsx");
+            const wb = XLSX.utils.table_to_book(tableElement, { sheet: 'Sheet JS' });
+            XLSX.writeFile(wb, Left_FlagAverage ? 'Super_Average_Report.xlsx' : 'Tabulation_Sheet.xlsx');
         }
     };
 
@@ -64,7 +69,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         }
                     });
                 }
-            } catch (e) {
+            } catch (_e) {
                 // ignore
             }
         });
@@ -80,18 +85,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className='flex flex-col items-center justify-center gap-2'>
                                     {institution?.mI_Logo && (
                                         <div className='relative h-20 w-20'>
-                                            <Image
-                                                src={institution.mI_Logo}
-                                                alt='School Logo'
-                                                fill
-                                                className='object-contain'
-                                            />
+                                            <Image src={institution.mI_Logo} alt='School Logo' fill className='object-contain' />
                                         </div>
                                     )}
                                     <h3 className='font-bold text-xl'>St. Thomas&apos; Church School</h3>
                                     <h5 className='font-semibold text-lg'>CLASS WISE TERM REPORT</h5>
                                     <h4 className='font-medium text-base'>
-                                        TABULATION SHEET : {YearName || ''} Class : {stream || ''}: Section : {section || ''} - EXAM : {empG_GroupName || ''}
+                                        TABULATION SHEET : {YearName || ''} Class : {stream || ''}: Section : {section || ''} - EXAM :{' '}
+                                        {empG_GroupName || ''}
                                     </h4>
                                 </div>
                             </td>
@@ -100,12 +101,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <th className='border border-gray-300 p-2 text-center [writing-mode:horizontal-tb]'>S. NO</th>
                             <th className='border border-gray-300 p-2 text-center [writing-mode:horizontal-tb]'>STUDENT&apos;S-ID</th>
                             <th className='border border-gray-300 p-2 text-left'>STUDENT&apos;S NAME</th>
-                            {studentMarksDetails[0]?.empg_GroupName && (
-                                <th className='border border-gray-300 p-2 text-left'>EXAM</th>
-                            )}
+                            {studentMarksDetails[0]?.empg_GroupName && <th className='border border-gray-300 p-2 text-left'>EXAM</th>}
                             {columnsToRender.map((subject: any, idx: number) => (
-                                <th key={`subj-${idx}`} className='border border-gray-300 p-2 text-center min-w-[100px]'>
-                                    {typeof subject === 'string' ? subject : (subject.Flag === 0 ? (subject.ISMS_SubjectName || subject.ismS_SubjectName)?.toUpperCase() : `${subject.SubjectName || subject.subjectName}(50)`)}
+                                <th key={`subj-${idx}`} className='min-w-[100px] border border-gray-300 p-2 text-center'>
+                                    {typeof subject === 'string'
+                                        ? subject
+                                        : subject.Flag === 0
+                                          ? (subject.ISMS_SubjectName || subject.ismS_SubjectName)?.toUpperCase()
+                                          : `${subject.SubjectName || subject.subjectName}(50)`}
                                 </th>
                             ))}
                             {getskill.map((skill: any, idx: number) => (
@@ -124,7 +127,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 if (report.subject_Marks) {
                                     parsedMarks = JSON.parse(report.subject_Marks);
                                 }
-                            } catch (e) {
+                            } catch (_e) {
                                 // ignore
                             }
 
@@ -143,7 +146,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                         if (typeof col === 'string') {
                                             // Handle dynamic parsed marks
-                                            const markObj = parsedMarks.find(m => m.subject_name === col);
+                                            const markObj = parsedMarks.find((m) => m.subject_name === col);
                                             mark = markObj ? markObj.subject_marks : '';
                                         } else {
                                             // Handle fallback piotsubjets
@@ -166,7 +169,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                     {/* Skills */}
                                     {getskill.map((ccce: any, skIdx: number) => {
-                                        const cceMatch = getallgrade.find((cce: any) => (cce.AMST_Id || cce.amsT_Id) === (report.AMST_Id || report.amsT_Id) && (ccce.ECACT_Id || ccce.ecacT_Id) === (cce.ECACT_Id || cce.ecacT_Id));
+                                        const cceMatch = getallgrade.find(
+                                            (cce: any) =>
+                                                (cce.AMST_Id || cce.amsT_Id) === (report.AMST_Id || report.amsT_Id) &&
+                                                (ccce.ECACT_Id || ccce.ecacT_Id) === (cce.ECACT_Id || cce.ecacT_Id)
+                                        );
                                         return (
                                             <td key={`skill-val-${skIdx}`} className='border border-gray-300 p-2 text-center'>
                                                 {cceMatch ? cceMatch.EMGD_Name : ''}
@@ -199,12 +206,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className='flex flex-col items-center justify-center gap-2'>
                                     {institution?.mI_Logo && (
                                         <div className='relative h-20 w-20'>
-                                            <Image
-                                                src={institution.mI_Logo}
-                                                alt='School Logo'
-                                                fill
-                                                className='object-contain'
-                                            />
+                                            <Image src={institution.mI_Logo} alt='School Logo' fill className='object-contain' />
                                         </div>
                                     )}
                                     <h3 className='font-bold text-xl'>St. Thomas&apos; Church School</h3>
@@ -230,7 +232,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     </thead>
                     <tbody>
                         {studentMarksDetails.map((report: any, idx: number) => {
-                            const totalRecord = finalTotal.find((dd: any) => (report.AMST_Id || report.amsT_Id) === (dd.AMST_Id || dd.amsT_Id));
+                            const totalRecord = finalTotal.find(
+                                (dd: any) => (report.AMST_Id || report.amsT_Id) === (dd.AMST_Id || dd.amsT_Id)
+                            );
 
                             return (
                                 <tr key={`row-${idx}`} className='hover:bg-gray-50'>
@@ -255,7 +259,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     })}
 
                                     <td className='border border-gray-300 p-2 text-center font-bold'>
-                                        {totalRecord ? (totalRecord.ESTMPPSG_GroupObtMarks ?? totalRecord.estmppsG_GroupObtMarks ?? '') : ''}
+                                        {totalRecord
+                                            ? (totalRecord.ESTMPPSG_GroupObtMarks ?? totalRecord.estmppsG_GroupObtMarks ?? '')
+                                            : ''}
                                     </td>
                                     <td className='border border-gray-300 p-2 text-center font-bold'>
                                         {totalRecord ? (totalRecord.TotalPercentage ?? totalRecord.totalPercentage ?? '') : ''}
@@ -271,9 +277,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     return (
         <Card className='mt-8 pt-4'>
-            <div className='flex items-center justify-between px-6 pb-4 border-b'>
+            <div className='flex items-center justify-between border-b px-6 pb-4'>
                 <h3 className='font-semibold text-lg'>Promotion Report</h3>
-                <div className='flex gap-2 no-print'>
+                <div className='no-print flex gap-2'>
                     <Button variant='outline' size='sm' onClick={handleExportExcel} className='flex items-center gap-2'>
                         <FileDown className='h-4 w-4' /> Excel
                     </Button>
@@ -283,7 +289,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 </div>
             </div>
             <CardContent className='p-6'>
-                <div ref={printRef} className='print-container bg-white rounded-lg'>
+                <div ref={printRef} className='print-container rounded-lg bg-white'>
                     {Left_FlagAverage ? renderSuperAverageReport() : renderNormalReport()}
                 </div>
             </CardContent>

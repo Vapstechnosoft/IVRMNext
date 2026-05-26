@@ -1,27 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer, RefreshCcw } from 'lucide-react';
-import { useRef, useMemo } from 'react';
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-} from 'chart.js';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
+import { Printer } from 'lucide-react';
+import { useMemo, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface ReportListProps {
     data: any;
@@ -44,13 +29,13 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
         work_attendence = [],
         present_attendence = [],
         getpromotionremarksdetails = [],
-        getinstitution = [],
+        getinstitution = []
     } = data;
 
     // Transformation Logic (Exact Parity with legacy JS)
     const { processedReports, groupwiseexamlist } = useMemo(() => {
         const fullGroupWiseExamList: any[] = [];
-        
+
         getgroupdetails.forEach((grp: any) => {
             const tempExams: any[] = [];
             let counttotal = 0;
@@ -77,15 +62,15 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
         // Add Total and Grade columns at the end of the global list
         fullGroupWiseExamList.push({
             EME_Id: 9800000,
-            EMPG_DistplayName: "Total",
-            EME_ExamName: "Total",
-            EME_Marks: "Total"
+            EMPG_DistplayName: 'Total',
+            EME_ExamName: 'Total',
+            EME_Marks: 'Total'
         });
         fullGroupWiseExamList.push({
             EME_Id: 9800001,
-            EMPG_DistplayName: "Grade",
-            EME_ExamName: "Grade",
-            EME_Marks: "Grade"
+            EMPG_DistplayName: 'Grade',
+            EME_ExamName: 'Grade',
+            EME_Marks: 'Grade'
         });
 
         const reports = getstudentdetails.map((stu: any) => {
@@ -93,14 +78,18 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
 
             // Student Wise Subject List
             const studentsubjects = getstudentwisesubjectlist.filter((s: any) => (s.AMST_Id || s.amsT_Id) === studentId);
-            
+
             // Student Wise Discipline List (Main Areas)
             const activity_main_list_area: any[] = [];
             getstudentwiseactiviteslist.forEach((act: any) => {
                 if ((act.AMST_Id || act.amsT_Id) === studentId) {
-                    if (!activity_main_list_area.some(a => (a.ECACT_SkillName || a.ecacT_SkillName) === (act.ECACT_SkillName || act.ecacT_SkillName))) {
-                        activity_main_list_area.push({ 
-                            ECACT_SkillName: act.ECACT_SkillName || act.ecacT_SkillName, 
+                    if (
+                        !activity_main_list_area.some(
+                            (a) => (a.ECACT_SkillName || a.ecacT_SkillName) === (act.ECACT_SkillName || act.ecacT_SkillName)
+                        )
+                    ) {
+                        activity_main_list_area.push({
+                            ECACT_SkillName: act.ECACT_SkillName || act.ecacT_SkillName,
                             ECACT_Id: act.ECACT_Id || act.ecacT_Id
                         });
                     }
@@ -112,9 +101,9 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
             getstudentwiseactiviteslist.forEach((act: any) => {
                 if ((act.AMST_Id || act.amsT_Id) === studentId) {
                     const skillArea = act.ECACTA_SkillArea || act.ecactA_SkillArea;
-                    if (skillArea && !activity_main_list.some(a => a.ECACTA_SkillArea === skillArea)) {
-                        activity_main_list.push({ 
-                            ECACTA_SkillArea: skillArea, 
+                    if (skillArea && !activity_main_list.some((a) => a.ECACTA_SkillArea === skillArea)) {
+                        activity_main_list.push({
+                            ECACTA_SkillArea: skillArea,
                             ECACT_Id: act.ECACT_Id || act.ecacT_Id,
                             activity_score_details: []
                         });
@@ -142,10 +131,10 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
 
             // Marks
             const studentmarks = getstudentmarksdetails.filter((m: any) => (m.AMST_Id || m.amsT_Id) === studentId);
-            
+
             // Remarks
             const promo = getpromotionremarksdetails.find((d: any) => (d.AMST_Id || d.amsT_Id) === studentId);
-            
+
             return {
                 ...stu,
                 studentsubjects,
@@ -202,7 +191,7 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
     if (processedReports.length === 0) return null;
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <style>{`
                 .pagelayout { border: 1px solid black !important; padding: 20px !important; margin-bottom: 20px; background: white; max-width: 1000px; margin-left: auto; margin-right: auto; font-family: sans-serif; }
                 .table-bordered td, .table-bordered th { border: 1px solid black !important; padding: 5px; }
@@ -213,22 +202,26 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                 }
             `}</style>
 
-            <div className="flex justify-end no-print gap-4">
-                <Button onClick={handlePrint} className="bg-primary hover:bg-primary/90 shadow-lg">
-                    <Printer className="mr-2 h-4 w-4" />
+            <div className='no-print flex justify-end gap-4'>
+                <Button onClick={handlePrint} className='bg-primary shadow-lg hover:bg-primary/90'>
+                    <Printer className='mr-2 h-4 w-4' />
                     Print
                 </Button>
             </div>
 
-            <div ref={printRef} id="HHS02" className="bg-gray-100 p-4">
+            <div ref={printRef} id='HHS02' className='bg-gray-100 p-4'>
                 {processedReports.map((report: any, index: number) => {
                     // Chart 1: Student Performance Index (Class Avg vs Student Score)
                     const chartData1 = {
-                        labels: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName),
+                        labels: report.studentsubjects
+                            .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                            .map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName),
                         datasets: [
                             {
                                 label: 'Class Average',
-                                data: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ESTMPPS_ClassAverage || 0),
+                                data: report.studentsubjects
+                                    .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                                    .map((s: any) => s.ESTMPPS_ClassAverage || 0),
                                 backgroundColor: '#FF5733',
                                 borderColor: 'black',
                                 borderWidth: 1,
@@ -237,7 +230,9 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                             },
                             {
                                 label: 'Student Score',
-                                data: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ESTMPPS_ObtainedMarks || 0),
+                                data: report.studentsubjects
+                                    .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                                    .map((s: any) => s.ESTMPPS_ObtainedMarks || 0),
                                 backgroundColor: '#00c1e4',
                                 borderColor: 'black',
                                 borderWidth: 1,
@@ -249,11 +244,15 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
 
                     // Chart 2: Student Performance Analysis (Section Avg vs Student Score)
                     const chartData2 = {
-                        labels: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName),
+                        labels: report.studentsubjects
+                            .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                            .map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName),
                         datasets: [
                             {
                                 label: 'Section Average',
-                                data: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ESTMPPS_SectionAverage || 0),
+                                data: report.studentsubjects
+                                    .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                                    .map((s: any) => s.ESTMPPS_SectionAverage || 0),
                                 backgroundColor: '#1cc405',
                                 borderColor: 'black',
                                 borderWidth: 1,
@@ -262,7 +261,9 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                             },
                             {
                                 label: 'Student Score',
-                                data: report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((s: any) => s.ESTMPPS_ObtainedMarks || 0),
+                                data: report.studentsubjects
+                                    .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                                    .map((s: any) => s.ESTMPPS_ObtainedMarks || 0),
                                 backgroundColor: '#770396',
                                 borderColor: 'black',
                                 borderWidth: 1,
@@ -274,121 +275,154 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
 
                     return (
                         <div key={index} id={`std_${report.AMST_Id || report.amsT_Id}`}>
-                            <div className="pagelayout" style={{ pageBreakBefore: 'always' }}>
+                            <div className='pagelayout' style={{ pageBreakBefore: 'always' }}>
                                 {/* Header */}
-                                <div className="row margin-top-5">
-                                    <table align="center" className="w-full">
+                                <div className='row margin-top-5'>
+                                    <table align='center' className='w-full'>
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <img src="https://vapsclg.blob.core.windows.net/files/3/InstitutionLogo/6ef102c1-0117-446e-93fa-9b6d9cad9fda.jpg" className="w-full" alt="Header Banner" />
+                                                    <img
+                                                        src='https://vapsclg.blob.core.windows.net/files/3/InstitutionLogo/6ef102c1-0117-446e-93fa-9b6d9cad9fda.jpg'
+                                                        className='w-full'
+                                                        alt='Header Banner'
+                                                    />
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div className="row">
-                                    <h3 className="text-center text-xl font-bold">ACHIEVEMENT RECORD {academicYear}</h3>
+                                <div className='row'>
+                                    <h3 className='text-center font-bold text-xl'>ACHIEVEMENT RECORD {academicYear}</h3>
                                 </div>
 
                                 {/* Student Profile */}
-                                <div className="mt-4 space-y-1">
+                                <div className='mt-4 space-y-1'>
                                     {[
                                         { label: 'Name of the student', value: report.studentname || report.studentName },
                                         { label: 'Admission number', value: report.admno || report.admissionNo },
                                         { label: 'Class & Section', value: `${report.classname || ''} ${report.sectionname || ''}` },
                                         { label: 'Date of birth', value: report.dob },
-                                        { label: 'Mother\'s name', value: report.mothername || report.motherName },
-                                        { label: 'Father\'s name', value: report.fathername || report.fatherName },
+                                        { label: "Mother's name", value: report.mothername || report.motherName },
+                                        { label: "Father's name", value: report.fathername || report.fatherName }
                                     ].map((item, i) => (
-                                        <div key={i} className="flex text-sm font-bold ml-[5%]">
-                                            <div className="w-48">{item.label}</div>
-                                            <div className="w-4 text-center">:</div>
+                                        <div key={i} className='ml-[5%] flex font-bold text-sm'>
+                                            <div className='w-48'>{item.label}</div>
+                                            <div className='w-4 text-center'>:</div>
                                             <div>{item.value}</div>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Photo */}
-                                <img src={report.AMST_Photoname || report.photoName || report.AMST_PhotoName} height="150" width="150" className="photo-img" alt="Student Photo" />
+                                <img
+                                    src={report.AMST_Photoname || report.photoName || report.AMST_PhotoName}
+                                    height='150'
+                                    width='150'
+                                    className='photo-img'
+                                    alt='Student Photo'
+                                />
 
                                 {/* Scholastic Report */}
-                                <div className="mt-4">
-                                    <h3 className="text-center font-bold text-lg mb-4">SCHOLASTIC REPORT</h3>
-                                    <table className="table-bordered w-full text-[13px]">
+                                <div className='mt-4'>
+                                    <h3 className='mb-4 text-center font-bold text-lg'>SCHOLASTIC REPORT</h3>
+                                    <table className='table-bordered w-full text-[13px]'>
                                         <thead>
-                                            <tr className="bg-gray">
-                                                <th className="text-left"><b>SUBJECT</b></th>
+                                            <tr className='bg-gray'>
+                                                <th className='text-left'>
+                                                    <b>SUBJECT</b>
+                                                </th>
                                                 {getgroupdetails.map((grp: any, i: number) => (
-                                                    <th key={i} className="text-center" colSpan={groupwiseexamlist.length}>
+                                                    <th key={i} className='text-center' colSpan={groupwiseexamlist.length}>
                                                         <strong>{grp.empG_GroupName}</strong>
                                                     </th>
                                                 ))}
                                             </tr>
-                                            <tr className="bg-gray">
-                                                <th className="text-left"><b>&nbsp;</b></th>
+                                            <tr className='bg-gray'>
+                                                <th className='text-left'>
+                                                    <b>&nbsp;</b>
+                                                </th>
                                                 {groupwiseexamlist.map((grpexam: any, i: number) => (
-                                                    <th key={i} className="text-center">
+                                                    <th key={i} className='text-center'>
                                                         <strong>{grpexam.EME_ExamName}</strong>
                                                     </th>
                                                 ))}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {report.studentsubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg).map((subj: any, sIdx: number) => (
-                                                <tr key={sIdx}>
-                                                    <td className="text-left font-normal">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
-                                                    {groupwiseexamlist.map((grpexam: any, idx: number) => {
-                                                        const mrks = report.studentmarks.find((m: any) => 
-                                                            (subj.ISMS_Id || subj.ismS_Id) === (m.ISMS_Id || m.ismS_Id) && 
-                                                            (grpexam.EME_Id || grpexam.emE_Id) === (m.EME_Id || m.emE_Id)
-                                                        );
-                                                        
-                                                        if (!mrks) return <td key={idx} className="text-center"></td>;
+                                            {report.studentsubjects
+                                                .filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg)
+                                                .map((subj: any, sIdx: number) => (
+                                                    <tr key={sIdx}>
+                                                        <td className='text-left font-normal'>
+                                                            {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                        </td>
+                                                        {groupwiseexamlist.map((grpexam: any, idx: number) => {
+                                                            const mrks = report.studentmarks.find(
+                                                                (m: any) =>
+                                                                    (subj.ISMS_Id || subj.ismS_Id) === (m.ISMS_Id || m.ismS_Id) &&
+                                                                    (grpexam.EME_Id || grpexam.emE_Id) === (m.EME_Id || m.emE_Id)
+                                                            );
 
-                                                        return (
-                                                            <td key={idx} className="text-center">
-                                                                {['AB', 'M', 'L'].includes(mrks.PassFailFlag || mrks.passFailFlag) ? (
-                                                                    <span>{mrks.PassFailFlag || mrks.passFailFlag}</span>
-                                                                ) : grpexam.EME_Marks === 'Grade' || grpexam.EME_Id === 9800001 ? (
-                                                                    <span>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>
-                                                                ) : (
-                                                                    <span>{mrks.ObtainedMarks || mrks.obtainedMarks}</span>
-                                                                )}
-                                                            </td>
-                                                        );
-                                                    })}
-                                                </tr>
-                                            ))}
+                                                            if (!mrks) return <td key={idx} className='text-center' />;
+
+                                                            return (
+                                                                <td key={idx} className='text-center'>
+                                                                    {['AB', 'M', 'L'].includes(mrks.PassFailFlag || mrks.passFailFlag) ? (
+                                                                        <span>{mrks.PassFailFlag || mrks.passFailFlag}</span>
+                                                                    ) : grpexam.EME_Marks === 'Grade' || grpexam.EME_Id === 9800001 ? (
+                                                                        <span>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>
+                                                                    ) : (
+                                                                        <span>{mrks.ObtainedMarks || mrks.obtainedMarks}</span>
+                                                                    )}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                ))}
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Grading Scale */}
-                                <div className="mt-4">
-                                    <h3 className="font-bold underline text-md uppercase">SCHOLASTIC GRADING SCALE</h3>
-                                    <table className="table-bordered w-full text-sm grade-table">
+                                <div className='mt-4'>
+                                    <h3 className='font-bold text-md uppercase underline'>SCHOLASTIC GRADING SCALE</h3>
+                                    <table className='table-bordered grade-table w-full text-sm'>
                                         <thead>
-                                            <tr className="bg-gray">
-                                                <th className="text-center">Grade</th>
-                                                <th>A1</th><th>A2</th><th>B1</th><th>B2</th><th>C1</th><th>C2</th><th>D</th><th>E</th>
+                                            <tr className='bg-gray'>
+                                                <th className='text-center'>Grade</th>
+                                                <th>A1</th>
+                                                <th>A2</th>
+                                                <th>B1</th>
+                                                <th>B2</th>
+                                                <th>C1</th>
+                                                <th>C2</th>
+                                                <th>D</th>
+                                                <th>E</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td className="bg-gray font-bold">Mark</td>
-                                                <td>91-100</td><td>81-90</td><td>71-80</td><td>61-70</td><td>51-60</td><td>41-50</td><td>33-40</td><td>0-32</td>
+                                                <td className='bg-gray font-bold'>Mark</td>
+                                                <td>91-100</td>
+                                                <td>81-90</td>
+                                                <td>71-80</td>
+                                                <td>61-70</td>
+                                                <td>51-60</td>
+                                                <td>41-50</td>
+                                                <td>33-40</td>
+                                                <td>0-32</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Chart 1: Performance Index */}
-                                <div className="mt-6 flex flex-col items-center">
-                                    <h4 className="text-center font-bold">STUDENT PERFORMANCE INDEX</h4>
-                                    <div className="w-[500px] h-[300px]">
-                                        <Bar 
+                                <div className='mt-6 flex flex-col items-center'>
+                                    <h4 className='text-center font-bold'>STUDENT PERFORMANCE INDEX</h4>
+                                    <div className='h-[300px] w-[500px]'>
+                                        <Bar
                                             data={chartData1}
                                             options={{
                                                 responsive: true,
@@ -404,17 +438,19 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                 </div>
 
                                 {/* Activities and Second Graph */}
-                                <div className="grid grid-cols-2 mt-8 gap-4 items-start">
+                                <div className='mt-8 grid grid-cols-2 items-start gap-4'>
                                     <div>
                                         {report.activity_main_list_area.map((acti: any, idx: number) => (
-                                            <div key={idx} className="mb-4">
-                                                <h4 className="text-center font-bold mb-2">{acti.ECACT_SkillName}</h4>
-                                                <table className="table-bordered w-full text-[13px]">
+                                            <div key={idx} className='mb-4'>
+                                                <h4 className='mb-2 text-center font-bold'>{acti.ECACT_SkillName}</h4>
+                                                <table className='table-bordered w-full text-[13px]'>
                                                     <thead>
-                                                        <tr className="bg-gray">
-                                                            <th className="text-left">Particulars</th>
+                                                        <tr className='bg-gray'>
+                                                            <th className='text-left'>Particulars</th>
                                                             {gettermdetails.map((cos: any, cidx: number) => (
-                                                                <th key={cidx} className="text-center">{cos.ecT_TermName}</th>
+                                                                <th key={cidx} className='text-center'>
+                                                                    {cos.ecT_TermName}
+                                                                </th>
                                                             ))}
                                                         </tr>
                                                     </thead>
@@ -423,9 +459,9 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                                             .filter((subjco: any) => acti.ECACT_Id === subjco.ECACT_Id)
                                                             .map((subjco: any, sidx: number) => (
                                                                 <tr key={sidx}>
-                                                                    <td className="text-left font-bold">{subjco.ECACTA_SkillArea}</td>
+                                                                    <td className='text-left font-bold'>{subjco.ECACTA_SkillArea}</td>
                                                                     {gettermdetails.map((cos: any, cidx: number) => (
-                                                                        <td key={cidx} className="text-center">
+                                                                        <td key={cidx} className='text-center'>
                                                                             {subjco.activity_score_details
                                                                                 .filter((sc: any) => cos.ecT_Id === sc.ecT_Id)
                                                                                 .map((sc: any, scIdx: number) => (
@@ -440,10 +476,10 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="flex flex-col items-center">
-                                        <h4 className="text-center font-bold">STUDENT PERFORMANCE ANALYSIS</h4>
-                                        <div className="w-[350px] h-[350px]">
-                                            <Bar 
+                                    <div className='flex flex-col items-center'>
+                                        <h4 className='text-center font-bold'>STUDENT PERFORMANCE ANALYSIS</h4>
+                                        <div className='h-[350px] w-[350px]'>
+                                            <Bar
                                                 data={chartData2}
                                                 options={{
                                                     responsive: true,
@@ -460,11 +496,11 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                 </div>
 
                                 {/* Health Status */}
-                                <div className="mt-8">
-                                    <h4 className="text-center font-bold underline mb-2 uppercase">HEALTH STATUS</h4>
-                                    <table className="table-bordered w-full text-center text-sm">
+                                <div className='mt-8'>
+                                    <h4 className='mb-2 text-center font-bold uppercase underline'>HEALTH STATUS</h4>
+                                    <table className='table-bordered w-full text-center text-sm'>
                                         <thead>
-                                            <tr className="bg-gray">
+                                            <tr className='bg-gray'>
                                                 <th>Height (in cm)</th>
                                                 <th>Weight (in kg)</th>
                                                 <th>Blood Group</th>
@@ -474,56 +510,56 @@ export const ReportList = ({ data, academicYear, performanceAnalysis, generatedD
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td className="font-bold">{report.AMST_height || report.AMST_Height || ''}</td>
-                                                <td className="font-bold">{report.AMST_Weight || ''}</td>
-                                                <td className="font-bold">{report.AMST_BloodGroup || ''}</td>
-                                                <td></td>
-                                                <td></td>
+                                                <td className='font-bold'>{report.AMST_height || report.AMST_Height || ''}</td>
+                                                <td className='font-bold'>{report.AMST_Weight || ''}</td>
+                                                <td className='font-bold'>{report.AMST_BloodGroup || ''}</td>
+                                                <td />
+                                                <td />
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Attendance Details */}
-                                <div className="mt-8">
-                                    <h3 className="text-center font-bold underline mb-2 uppercase">ATTENDANCE DETAILS</h3>
-                                    <table className="table-bordered w-full text-center text-sm grade-table">
+                                <div className='mt-8'>
+                                    <h3 className='mb-2 text-center font-bold uppercase underline'>ATTENDANCE DETAILS</h3>
+                                    <table className='table-bordered grade-table w-full text-center text-sm'>
                                         <tbody>
                                             <tr>
-                                                <th className="bg-gray">Total number of working days</th>
-                                                <td className="w-24 font-bold">{report.workAttendance?.TotalSchoolDays || ''}</td>
-                                                <th className="bg-gray">Number of days attended</th>
-                                                <td className="w-24 font-bold">{report.workAttendance?.Total_Percentage || ''}</td>
-                                                <th className="bg-gray">Attendance Percentage</th>
-                                                <td className="w-24 font-bold">{report.presentAttendance?.Total_Percentage || ''}</td>
+                                                <th className='bg-gray'>Total number of working days</th>
+                                                <td className='w-24 font-bold'>{report.workAttendance?.TotalSchoolDays || ''}</td>
+                                                <th className='bg-gray'>Number of days attended</th>
+                                                <td className='w-24 font-bold'>{report.workAttendance?.Total_Percentage || ''}</td>
+                                                <th className='bg-gray'>Attendance Percentage</th>
+                                                <td className='w-24 font-bold'>{report.presentAttendance?.Total_Percentage || ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Remarks & Result */}
-                                <div className="mt-8 grid grid-cols-1 gap-4">
-                                    <table className="table-bordered w-full text-left text-sm grade-table">
+                                <div className='mt-8 grid grid-cols-1 gap-4'>
+                                    <table className='table-bordered grade-table w-full text-left text-sm'>
                                         <tbody>
                                             <tr>
-                                                <th className="bg-gray w-48 uppercase">REMARKS</th>
-                                                <th className="font-bold">pass</th>
+                                                <th className='w-48 bg-gray uppercase'>REMARKS</th>
+                                                <th className='font-bold'>pass</th>
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <table className="table-bordered w-full text-left text-sm grade-table">
+                                    <table className='table-bordered grade-table w-full text-left text-sm'>
                                         <tbody>
                                             <tr>
-                                                <th className="bg-gray w-48 uppercase">RESULT</th>
-                                                <th className="font-bold">{report.ESTMP_Result}</th>
+                                                <th className='w-48 bg-gray uppercase'>RESULT</th>
+                                                <th className='font-bold'>{report.ESTMP_Result}</th>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Signatures */}
-                                <div className="mt-16">
-                                    <div className="grid grid-cols-3 w-full text-center font-bold">
+                                <div className='mt-16'>
+                                    <div className='grid w-full grid-cols-3 text-center font-bold'>
                                         <div>Principal’s Signature</div>
                                         <div>Institution Seal</div>
                                         <div>Class Teacher’s Signature</div>

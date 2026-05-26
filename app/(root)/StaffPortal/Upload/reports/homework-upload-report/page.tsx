@@ -29,14 +29,14 @@ const formSchema = z.object({
 
 type FormFields = z.infer<typeof formSchema>;
 export default function HomeWorkUploadReportPage() {
-    const [reportData, setReportData] = useState<IHomeWorkReport[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalAttachments, setModalAttachments] = useState<any[]>([]);
+    const [reportData, _setReportData] = useState<IHomeWorkReport[]>([]);
+    const [_isModalOpen, _setIsModalOpen] = useState(false);
+    const [_modalAttachments, _setModalAttachments] = useState<any[]>([]);
     //const [searchParams, setSearchParams] = useState<ApiSearchparams>({ page: 1, page_size: 10 });
-    const [currentPayload, setCurrentPayload] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [_currentPayload, _setCurrentPayload] = useState<any>(null);
+    const [_isLoading, _setIsLoading] = useState(false);
 
-    const tableProps = useDataTableProps(reportData);
+    const _tableProps = useDataTableProps(reportData);
     const {
         control,
         reset,
@@ -85,7 +85,7 @@ export default function HomeWorkUploadReportPage() {
 
     const { data: classData, isLoading: loadingClasses, error } = useClassDropdownDropdown();
 
-    const handleViewAttachment = async (item: IHomeWorkReport) => {
+    const _handleViewAttachment = async (item: IHomeWorkReport) => {
         try {
             const payload = {
                 ihW_Id: item.Id,
@@ -93,7 +93,7 @@ export default function HomeWorkUploadReportPage() {
                 Temp: 0
             };
 
-            const res = await viewHomeWorkAttachmentData(payload);
+            const _res = await viewHomeWorkAttachmentData(payload);
             // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
             //     setModalAttachments(res.data.attachementlist);
             //     setIsModalOpen(true);
@@ -263,7 +263,7 @@ export default function HomeWorkUploadReportPage() {
                                         </thead>
 
                                         <tbody>
-                                             {homeWorkReport.map((row, index) => (
+                                            {homeWorkReport.map((row, index) => (
                                                 <tr key={index + 1}>
                                                     <td className='border px-2 py-2 text-center'>{index + 1}</td>
                                                     <td className='border px-2 py-2 font-semibold'>{row.Topic}</td>

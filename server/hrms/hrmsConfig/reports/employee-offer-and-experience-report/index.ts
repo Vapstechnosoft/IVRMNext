@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeOfferAndExperienceReportFilterRequest,
     EmployeeOfferAndExperienceReportFilterResponse,
@@ -14,12 +14,7 @@ import type {
 export async function filterEmployeeOfferAndExperienceData(
     requestBody: EmployeeOfferAndExperienceReportFilterRequest
 ): Promise<ApiResponse<EmployeeOfferAndExperienceReportFilterResponse>> {
-    console.log('📥 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Request payload:', JSON.stringify(requestBody, null, 2));
-
     const url = '/api/EmployeeOfferAndExperienceReportFacade/FilterEmployeeData';
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] API URL:', url);
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] API Base: hrms');
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Method: POST');
 
     // If running in development, return a local mocked employeedropdown to simplify UI testing
     if (process.env.NODE_ENV === 'development') {
@@ -110,23 +105,11 @@ export async function filterEmployeeOfferAndExperienceData(
     try {
         const response = await api.post<EmployeeOfferAndExperienceReportFilterResponse>('hrms', url, requestBody);
 
-        console.log('✅ [EMPLOYEE OFFER AND EXPERIENCE REPORT] API Response received');
-        console.log('📤 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
-            const responseData = response.data as unknown as EmployeeOfferAndExperienceReportFilterResponse;
-            console.log('📊 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response data summary:', {
-                hasEmployeedropdown: !!responseData?.employeedropdown,
-                employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
-                retrunMsg: responseData?.retrunMsg
-            });
+            const _responseData = response.data as unknown as EmployeeOfferAndExperienceReportFilterResponse;
             return response as ApiResponse<EmployeeOfferAndExperienceReportFilterResponse>;
         }
         // Wrap raw response data
@@ -159,12 +142,7 @@ export async function filterEmployeeOfferAndExperienceData(
 export async function getEmployeeDetailsBySelection(
     requestBody: EmployeeOfferAndExperienceReportSearchRequest
 ): Promise<ApiResponse<EmployeeOfferAndExperienceReportSearchResponse>> {
-    console.log('📥 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Request payload:', JSON.stringify(requestBody, null, 2));
-
     const url = '/api/EmployeeOfferAndExperienceReportFacade/getEmployeedetailsBySelection';
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] API URL:', url);
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] API Base: hrms');
-    console.log('🌐 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Method: POST');
 
     // If running in development, return a local mocked employeedropdown to simplify UI testing
     if (process.env.NODE_ENV === 'development') {
@@ -255,23 +233,11 @@ export async function getEmployeeDetailsBySelection(
     try {
         const response = await api.post<EmployeeOfferAndExperienceReportSearchResponse>('hrms', url, requestBody);
 
-        console.log('✅ [EMPLOYEE OFFER AND EXPERIENCE REPORT] API Response received');
-        console.log('📤 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
-            const responseData = response.data as unknown as EmployeeOfferAndExperienceReportSearchResponse;
-            console.log('📊 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response data summary:', {
-                hasEmployeedropdown: !!responseData?.employeedropdown,
-                employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
-                retrunMsg: responseData?.retrunMsg
-            });
+            const _responseData = response.data as unknown as EmployeeOfferAndExperienceReportSearchResponse;
             return response as ApiResponse<EmployeeOfferAndExperienceReportSearchResponse>;
         }
         // Wrap raw response data

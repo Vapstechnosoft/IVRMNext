@@ -60,6 +60,6 @@ export async function getMasterEmployeeTypes() {
 }
 
 export async function getLoginBasedDepartmentsByGroupType(groupTypeIds: number[]) {
-    const url = `/api/ReportEmployeeDetailsReport/GetLoginBasedDepartmentsByGroupType`;
+    const url = '/api/ReportEmployeeDetailsReport/GetLoginBasedDepartmentsByGroupType';
     return await api.post<MasterDropdown[]>('hrms', url, { groupTypeIds });
 }

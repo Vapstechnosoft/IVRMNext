@@ -1,12 +1,10 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getConsolidatedReport, getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
-import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
 import ConsolidatedForm from './_components/consolidated-form';
 import ConsolidatedReportGrid from './_components/consolidated-report-grid';
 
@@ -22,13 +20,11 @@ export default function ConsolidatedReportPage() {
         const fetchDetails = async () => {
             try {
                 const response = await getConsolidatedReportDetails({});
-                console.log("Consolidated Report Details Response:", response);
                 if (response?.success && response.data) {
-                    console.log("Consolidated Report Details Data Keys:", Object.keys(response.data));
                     setInitialData(response.data);
                 }
             } catch (error) {
-                console.error("Error fetching consolidated report details:", error);
+                console.error('Error fetching consolidated report details:', error);
             }
         };
         fetchDetails();
@@ -36,13 +32,10 @@ export default function ConsolidatedReportPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Consolidated_Report_${reportType}`,
+        documentTitle: `Consolidated_Report_${reportType}`
     });
 
     const handleFormSubmit = async (payload: any) => {
-
-        console.log("Report Payload:", payload);
-
         if (payload.CLEAR) {
             setReportData([]);
             setFullReportResponse(null);
@@ -55,30 +48,22 @@ export default function ConsolidatedReportPage() {
         try {
             const response: any = await getConsolidatedReport(payload);
 
-            console.log("Consolidated Report Response:", response);
-
             if (response?.success) {
-
                 const actualData = response.data || response;
 
                 setFullReportResponse(actualData);
 
                 const data =
-                    actualData.finaltable ||
-                    actualData.griddata ||
-                    actualData.reportdata ||
-                    (Array.isArray(actualData) ? actualData : []);
+                    actualData.finaltable || actualData.griddata || actualData.reportdata || (Array.isArray(actualData) ? actualData : []);
 
                 setReportData(data);
 
                 if (!data || data.length === 0) {
                     toast.info(actualData?.message);
                 }
-
             } else {
                 toast.error(response?.message);
             }
-
         } catch (error: any) {
             console.error(error?.message);
             toast.error(error?.message);
@@ -95,15 +80,12 @@ export default function ConsolidatedReportPage() {
             {loading && (
                 <div className='flex items-center justify-center p-12'>
                     <RefreshCw className='h-8 w-8 animate-spin text-purple-600' />
-                    <span className='ml-3 font-medium text-purple-800 text-lg'>Processing Report Data...</span>
+                    <span className='ml-3 font-medium text-lg text-purple-800'>Processing Report Data...</span>
                 </div>
             )}
 
             {reportData.length > 0 && !loading && (
-                <CollapsibleSection
-                    title={`${reportType.replace('_', ' ')} Consolidated Report`}
-                    defaultOpen={true}
-                >
+                <CollapsibleSection title={`${reportType.replace('_', ' ')} Consolidated Report`} defaultOpen={true}>
                     <div className='p-2' ref={componentRef}>
                         <ConsolidatedReportGrid
                             reportData={reportData}

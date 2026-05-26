@@ -46,7 +46,7 @@ export default function ToggleMasterVenueForm({ rowData, onClose, onSuccess }: T
             const response = await deactivateMasterVenue(payload);
 
             // Loose equality check for legacy backend response compatibility
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Venue ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();

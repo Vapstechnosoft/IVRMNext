@@ -19,14 +19,13 @@ export async function addOrUpdateLeaveCarryForward(carryForward: LeaveCarryForwa
             data: carryForward,
             message: 'Leave carry forward updated successfully'
         };
-    } else {
-        const newCarryForward = db.create(carryForward);
-        return {
-            success: true,
-            data: newCarryForward,
-            message: 'Leave carry forward created successfully'
-        };
     }
+    const newCarryForward = db.create(carryForward);
+    return {
+        success: true,
+        data: newCarryForward,
+        message: 'Leave carry forward created successfully'
+    };
 }
 export async function deleteLeaveCarryForward(id: number) {
     const db = createLocalCrud<LeaveCarryForward>('leaveCarryForward');

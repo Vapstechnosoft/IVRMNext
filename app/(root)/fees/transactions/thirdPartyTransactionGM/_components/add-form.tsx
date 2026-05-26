@@ -105,7 +105,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     }, []);
 
     const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee_GM();
-    console.log('Academic Year Data:', academicYear?.data);
     const { data: groupData, isLoading: groupDataLoading } = useGroupdropdowndatathirdpartytransaction_GM();
 
     const { data: headdata, isLoading: headDataLoading } = useHeaddropdowndatathirdpartytransaction_GM();
@@ -128,11 +127,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
 
         fetchReceipt();
     }, []);
-    const uniqueAcademicYears = Array.from(
-        new Map(
-            (academicYear?.data || [])?.map(item => [item.asmaY_Id, item])
-        ).values()
-    );
+    const uniqueAcademicYears = Array.from(new Map((academicYear?.data || [])?.map((item) => [item.asmaY_Id, item])).values());
 
     const {
         data: studentdata,
@@ -140,8 +135,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
         error: studentDataError,
         refetch: fetchStudents
     } = useStudentdowndatathirdpartytransaction_GM(Number(watchAcademicYearId || 0));
-
-    console.log('studentdata', studentdata);
 
     useEffect(() => {
         if (watchAcademicYearId && studentType === 'student') {
@@ -213,8 +206,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 FYP_Bank_Or_Cash: data.paymentMode
             };
 
-            console.log('FINAL PAYLOAD:', JSON.stringify(payload));
-
             const response = await saveorUpdateThirdPartyTrasaction_GM(payload);
 
             if (response.success) {
@@ -282,15 +273,15 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
-                                        <SelectItem value="loading" disabled>
+                                        <SelectItem value='loading' disabled>
                                             Loading...
                                         </SelectItem>
                                     ) : (
                                         uniqueAcademicYears.map((item, index) => (
-                                             <SelectItem key={`${item.asmaY_Id}-${index}`} value={String(item.asmaY_Id)}>
-                                                 {item.asmaY_Year}
-                                             </SelectItem>
-                                         ))
+                                            <SelectItem key={`${item.asmaY_Id}-${index}`} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
                                     )}
                                 </SelectContent>
                             </Select>
@@ -322,7 +313,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                             setValue('studentId', std?.amsT_Id);
                                         }}
                                         value={
-                                            (studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')) ?? -1) !== -1
+                                            (studentdata?.data?.findIndex(
+                                                (s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')
+                                            ) ?? -1) !== -1
                                                 ? `std-${studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId'))}`
                                                 : ''
                                         }>
@@ -339,13 +332,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                                 </SelectItem>
                                             ) : studentdata ? (
                                                 studentdata.data?.map((std, index) => (
-                                                     <SelectItem
-                                                         key={`${std.amsT_Id}-${index}`}
-                                                         value={`std-${index}`}
-                                                     >
-                                                         {std.amsT_FirstName}
-                                                     </SelectItem>
-                                                 ))
+                                                    <SelectItem key={`${std.amsT_Id}-${index}`} value={`std-${index}`}>
+                                                        {std.amsT_FirstName}
+                                                    </SelectItem>
+                                                ))
                                             ) : (
                                                 <SelectItem value='none' disabled>
                                                     No students found

@@ -1,8 +1,8 @@
 'use client';
 
 import { getInstitutionSubscriptionData } from '@/server/super-admin/super-admin-module/institution/institution-subscription';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useInstitutionSubscriptionData = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

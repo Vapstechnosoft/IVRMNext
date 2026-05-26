@@ -101,7 +101,7 @@ export default function MasterMainMenuINSPage() {
                     setGridData(response.data.gridDetails);
                 }
             } else {
-                toast.error('Failed to delete: ' + res.message);
+                toast.error(`Failed to delete: ${res.message}`);
             }
         }
     };
@@ -166,8 +166,7 @@ export default function MasterMainMenuINSPage() {
         alert('Set Order functionality coming soon');
     };
 
-    const onSubmit = (data: FormValues) => {
-        console.log('Form Request:', data);
+    const onSubmit = (_data: FormValues) => {
         // Implement save or add logic here if required by user later (HTML didn't explicitly show 'Add' button for form, just grid loaded on load?)
         // User request: "on load two dropdown ... and need onload grid also".
         // HTML has no 'Save' button for the form, only 'Set Order' and 'Clear' at bottom of grid.

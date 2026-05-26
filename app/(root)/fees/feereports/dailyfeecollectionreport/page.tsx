@@ -64,7 +64,7 @@ export default function DailyFeeCollectionReportForm() {
         }
     });
 
-    const [submitClicked, setSubmitClicked] = useState(false);
+    const [_submitClicked, setSubmitClicked] = useState(false);
 
     // ---------------------------- WATCH ----------------------------
     const report = useWatch({ control, name: 'report' });
@@ -75,15 +75,15 @@ export default function DailyFeeCollectionReportForm() {
     const headwise = useWatch({ control, name: 'headwise' });
     const paymentwise = useWatch({ control, name: 'paymentwise' });
     const enableAllClasses = useWatch({ control, name: 'enableAllClasses' });
-    const Fmc_allorcorddorop = useWatch({ control, name: 'Fmc_allorcorddorop' });
+    const _Fmc_allorcorddorop = useWatch({ control, name: 'Fmc_allorcorddorop' });
     const selectedGroupIds = useWatch({ control, name: 'groupIds' }) || [];
 
     const [refreshAY, setRefreshAY] = useState(0);
     const [tableSumRow, setTableSumRow] = useState<any>(null);
 
-    const [reporttype, setReportType] = useState('');
+    const [_reporttype, setReportType] = useState('');
 
-    const sumRow: any = {};
+    const _sumRow: any = {};
 
     const handleGroupChange = (values: string[]) => {
         const ids = values.map(Number);
@@ -95,7 +95,7 @@ export default function DailyFeeCollectionReportForm() {
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
 
-    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [selectedAsmayId, _setSelectedAsmayId] = useState<number | null>(null);
 
     const {
         data: academicData,
@@ -249,7 +249,7 @@ export default function DailyFeeCollectionReportForm() {
     const [loading, setLoading] = useState(false);
     const [tableColumns, setTableColumns] = useState<string[]>([]);
     const [tableRows, setTableRows] = useState<any[]>([]);
-    const [showTable, setShowTable] = useState(false);
+    const [_showTable, setShowTable] = useState(false);
 
     async function fetchDailyReport(params: any) {
         const query = new URLSearchParams(params).toString();
@@ -263,7 +263,7 @@ export default function DailyFeeCollectionReportForm() {
 
     const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB');
 
-    const flattenData = (data: any[]) => {
+    const _flattenData = (data: any[]) => {
         return data.map((item) => ({
             Date: formatDate(item.date),
             ...item.feeHeadAmounts,
@@ -319,7 +319,7 @@ export default function DailyFeeCollectionReportForm() {
         // -------------------------------
         // BASE PARAMS (ALWAYS SENT)
         // -------------------------------
-        const params: IDailyFeeCollectionRequest = {
+        const _params: IDailyFeeCollectionRequest = {
             AsmayId: data.asmaY_Id,
             FromDate: data.fromDate,
             ToDate: data.toDate,
@@ -478,11 +478,7 @@ export default function DailyFeeCollectionReportForm() {
                     paymentwise: paymentwise
                 };
             }
-
-            console.log('payload', JSON.stringify(payload));
             const response = await getDailyFeeCollectionReport(payload);
-
-            console.log('response', response);
 
             const rawData: any = response?.data;
 
@@ -493,8 +489,6 @@ export default function DailyFeeCollectionReportForm() {
                 return;
             }
 
-            console.log('rawData', rawData);
-
             const currentReportType = rawData?.listName || '';
             setReportType(currentReportType);
 
@@ -502,8 +496,6 @@ export default function DailyFeeCollectionReportForm() {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
 
                 toast.success('Report Data Fetched Successfully');
-
-                console.log('list', list);
 
                 // 🔹 Collect all fee heads
                 const feeHeadSet = new Set<string>();
@@ -1081,7 +1073,7 @@ export default function DailyFeeCollectionReportForm() {
                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
                                         {...register('toDate', {
                                             required: 'To Date is required',
-                                            validate: (value) => {
+                                            validate: (_value) => {
                                                 if (!fromDateValue) return 'Please select From Date first';
                                                 return true;
                                             }

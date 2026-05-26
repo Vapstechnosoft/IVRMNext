@@ -3,16 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { masterSubMenuSchema, type MasterSubMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-sub-menu';
-import { saveMasterSubMenu, getModuleDropdown, getMainMenuDropdown, getMasterSubMenuDetails } from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
+import { Spinner as LoadingSpinner } from '@/components/ui/spinner';
+import { type MasterSubMenuSchema, masterSubMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-sub-menu';
+import {
+    getMainMenuDropdown,
+    getMasterSubMenuDetails,
+    getModuleDropdown,
+    saveMasterSubMenu
+} from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
+import type {
+    IMainMenuDropdownItem,
+    IMasterSubMenu,
+    IModuleDropdownItem
+} from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IMasterSubMenu, IModuleDropdownItem, IMainMenuDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
 
 interface AddMasterSubMenuFormProps {
     onSuccess?: () => void;
@@ -24,22 +33,29 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
     const [modules, setModules] = useState<IModuleDropdownItem[]>([]);
     const [mainMenus, setMainMenus] = useState<IMainMenuDropdownItem[]>([]);
 
-    const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<MasterSubMenuSchema>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        setValue,
+        formState: { errors }
+    } = useForm<MasterSubMenuSchema>({
         resolver: zodResolver(masterSubMenuSchema),
         defaultValues: {
             ivrmmS_Id: initialData?.ivrmmS_Id,
             ivrmM_Id: initialData?.ivrmM_Id || 0,
             ivrmmM_Id: initialData?.ivrmmM_Id || 0,
             ivrmmS_SubMenuName: initialData?.ivrmmS_SubMenuName || '',
-            ivrmmS_Order: initialData?.ivrmmS_Order || 0,
-        },
+            ivrmmS_Order: initialData?.ivrmmS_Order || 0
+        }
     });
 
     const selectedModuleId = watch('ivrmM_Id');
 
     // Fetch modules on mount
     useEffect(() => {
-        getModuleDropdown().then(res => {
+        getModuleDropdown().then((res) => {
             if (res.success && res.data) {
                 setModules(res.data);
             }
@@ -50,12 +66,12 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
     useEffect(() => {
         if (selectedModuleId) {
             // Avoid clearing if it's the initial load with data
-            if (!initialData || (initialData.ivrmM_Id !== selectedModuleId)) {
-                // If user changes module manually, we might want to clear main menu? 
+            if (!initialData || initialData.ivrmM_Id !== selectedModuleId) {
+                // If user changes module manually, we might want to clear main menu?
                 // But for now let's just fetch.
             }
 
-            getMainMenuDropdown(selectedModuleId).then(res => {
+            getMainMenuDropdown(selectedModuleId).then((res) => {
                 if (res.success && res.data) {
                     setMainMenus(res.data);
                 } else {
@@ -69,48 +85,49 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
 
     // Fetch details on edit
     useEffect(() => {
-        if (initialData && initialData.ivrmmS_Id) {
+        if (initialData?.ivrmmS_Id) {
             setIsLoading(true);
-            getMasterSubMenuDetails(initialData.ivrmmS_Id).then(async res => {
-                setIsLoading(false);
-                if (res.success) {
-                    const response = res as any;
-                    const data = response.edit_s_menu?.[0] || response.data?.[0] || response.data || response;
+            getMasterSubMenuDetails(initialData.ivrmmS_Id)
+                .then(async (res) => {
+                    setIsLoading(false);
+                    if (res.success) {
+                        const response = res as any;
+                        const data = response.edit_s_menu?.[0] || response.data?.[0] || response.data || response;
 
-                    if (data) {
-                        // Ensure module dropdown is loaded (it is by initial useEffect), 
-                        // and trigger main menu load by setting module ID first?
-                        // setValue triggers watch, which triggers generic useEffect.
+                        if (data) {
+                            // Ensure module dropdown is loaded (it is by initial useEffect),
+                            // and trigger main menu load by setting module ID first?
+                            // setValue triggers watch, which triggers generic useEffect.
 
-                        // We might need to manually fetch main menus here if the dependency logic is race-condition prone,
-                        // but useEffect [selectedModuleId] should handle it.
+                            // We might need to manually fetch main menus here if the dependency logic is race-condition prone,
+                            // but useEffect [selectedModuleId] should handle it.
 
-                        reset({
-                            ivrmmS_Id: data.ivrmmS_Id,
-                            ivrmM_Id: data.ivrmM_Id,
-                            ivrmmM_Id: data.ivrmmM_Id,
-                            ivrmmS_SubMenuName: data.ivrmmS_SubMenuName,
-                            ivrmmS_Order: data.ivrmmS_Order,
-                        });
+                            reset({
+                                ivrmmS_Id: data.ivrmmS_Id,
+                                ivrmM_Id: data.ivrmM_Id,
+                                ivrmmM_Id: data.ivrmmM_Id,
+                                ivrmmS_SubMenuName: data.ivrmmS_SubMenuName,
+                                ivrmmS_Order: data.ivrmmS_Order
+                            });
 
-                        // Explicitly fetch main menus for this module to ensure dropdown is populated
-                        if (data.ivrmM_Id) {
-                            const menuRes = await getMainMenuDropdown(data.ivrmM_Id);
-                            if (menuRes.success && menuRes.data) {
-                                setMainMenus(menuRes.data);
+                            // Explicitly fetch main menus for this module to ensure dropdown is populated
+                            if (data.ivrmM_Id) {
+                                const menuRes = await getMainMenuDropdown(data.ivrmM_Id);
+                                if (menuRes.success && menuRes.data) {
+                                    setMainMenus(menuRes.data);
+                                }
                             }
                         }
+                    } else {
+                        toast.error('Failed to fetch details');
                     }
-                } else {
-                    toast.error('Failed to fetch details');
-                }
-            }).catch(() => {
-                setIsLoading(false);
-                toast.error('Error fetching details');
-            });
+                })
+                .catch(() => {
+                    setIsLoading(false);
+                    toast.error('Error fetching details');
+                });
         }
     }, [initialData, reset]);
-
 
     const onSubmit = async (data: MasterSubMenuSchema) => {
         setIsLoading(true);
@@ -123,7 +140,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
             } else {
                 toast.error(result.message || 'Failed to save data');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An unexpected error occurred');
         } finally {
             setIsLoading(false);
@@ -135,7 +152,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
             <div className='p-4'>
                 <div className='mx-auto max-w-2xl space-y-4'>
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Module Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -148,10 +165,9 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                             setValue('ivrmmM_Id', 0); // Reset Main Menu on Module change
-                                        }}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Module" />
+                                        }}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Module' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {modules.map((module) => (
@@ -168,7 +184,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                     </div>
 
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Main Menu Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -181,8 +197,8 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         disabled={!selectedModuleId} // Disable if no module selected
                                     >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select Main Menu" />
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Main Menu' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {mainMenus.map((menu) => (
@@ -199,7 +215,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                     </div>
 
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Sub Menu Name: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -220,7 +236,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                     </div>
 
                     <div className='grid grid-cols-12 items-center gap-4'>
-                        <Label className='col-span-12 md:col-span-4 text-left md:text-right'>
+                        <Label className='col-span-12 text-left md:col-span-4 md:text-right'>
                             Sub Menu Order: <span className='text-red-500'>*</span>
                         </Label>
                         <div className='col-span-12 md:col-span-8'>
@@ -232,7 +248,7 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                                         value={field.value}
                                         onChange={field.onChange}
                                         placeholder='Enter Sub Menu Order'
-                                        type="number"
+                                        type='number'
                                         maxLength={3}
                                     />
                                 )}
@@ -246,18 +262,16 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                     <Button
                         type='button'
                         variant='destructive'
-                        onClick={() => { reset(); onSuccess?.(); }}
-                        className='bg-red-500 hover:bg-red-600 w-32'
-                    >
+                        onClick={() => {
+                            reset();
+                            onSuccess?.();
+                        }}
+                        className='w-32 bg-red-500 hover:bg-red-600'>
                         <X className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>
 
-                    <Button
-                        type='submit'
-                        disabled={isLoading}
-                        className='bg-blue-600 hover:bg-blue-700 w-32'
-                    >
+                    <Button type='submit' disabled={isLoading} className='w-32 bg-blue-600 hover:bg-blue-700'>
                         {isLoading ? <LoadingSpinner /> : <Save className='mr-2 h-4 w-4' />}
                         {initialData ? 'Update' : 'Save'}
                     </Button>

@@ -1,14 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
 import { AlertTriangle } from 'lucide-react';
 
@@ -27,7 +20,7 @@ export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalPro
             {
                 onSuccess: () => {
                     onClose();
-                },
+                }
             }
         );
     };
@@ -36,24 +29,19 @@ export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalPro
         <Dialog open={true} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-warning" />
+                    <DialogTitle className='flex items-center gap-2'>
+                        <AlertTriangle className='h-5 w-5 text-warning' />
                         Confirm Action
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.invmC_CustomerName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.invmC_CustomerName}</strong>?
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={deleteMutation.isPending}>
+                    <Button variant='outline' onClick={onClose} disabled={deleteMutation.isPending}>
                         Cancel
                     </Button>
-                    <Button
-                        variant={isActive ? 'destructive' : 'default'}
-                        onClick={handleConfirm}
-                        isLoading={deleteMutation.isPending}
-                    >
+                    <Button variant={isActive ? 'destructive' : 'default'} onClick={handleConfirm} isLoading={deleteMutation.isPending}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </DialogFooter>

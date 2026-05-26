@@ -44,8 +44,12 @@ export default function ToggleMasterHouseForm({ rowData, onClose, onSuccess }: T
 
             const response = await deactivateMasterHouse(payload);
 
-            if (response?.success || response?.returnVal == true || response?.message?.includes('Successfully')) {
-                toast.success((response.msg as string) || (response.message as string) || `House ${isActive ? 'deactivated' : 'activated'} successfully`);
+            if (response?.success || response?.returnVal === true || response?.message?.includes('Successfully')) {
+                toast.success(
+                    (response.msg as string) ||
+                        (response.message as string) ||
+                        `House ${isActive ? 'deactivated' : 'activated'} successfully`
+                );
                 onSuccess();
                 reset();
                 onClose();
@@ -68,7 +72,11 @@ export default function ToggleMasterHouseForm({ rowData, onClose, onSuccess }: T
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('spccmH_Id')} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.spccmH_HouseName ?? (rowData as any).SPCCMH_HouseName ?? (rowData as any).spccmh_HouseName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>
+                            {rowData.spccmH_HouseName ?? (rowData as any).SPCCMH_HouseName ?? (rowData as any).spccmh_HouseName}
+                        </strong>
+                        ?
                     </p>
                     {errors.spccmH_Id && <FormError>{errors.spccmH_Id.message}</FormError>}
                 </AdaptiveBody>

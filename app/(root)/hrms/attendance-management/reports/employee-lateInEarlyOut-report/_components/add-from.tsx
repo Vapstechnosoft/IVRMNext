@@ -1,31 +1,30 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from './calendarYear';
 import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { cn } from '@/lib/utils';
-import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import {
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
     useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
+import { cn } from '@/lib/utils';
+import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import { addMonths, format } from 'date-fns';
 import { Calendar as CalendarIcon, Save } from 'lucide-react';
+import { useMemo } from 'react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { CalendarYear } from './calendarYear';
 
 type FormFields = z.infer<typeof employeeLateInEarlyOutReportFilterSchema>;
 
@@ -72,7 +71,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     const fromDateValue = watch('fromDate');
     const fromDateObject = fromDateValue ? new Date(fromDateValue) : undefined;
     const today = new Date();
-    const effectiveToDateMax = fromDateObject ? addMonths(fromDateObject, 1) : today;
+    const _effectiveToDateMax = fromDateObject ? addMonths(fromDateObject, 1) : today;
 
     const watchedType = watch('type') || [];
     const watchedDepartment = watch('department') || [];
@@ -82,17 +81,14 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
-    console.log("groupTypeIds", groupTypeIds);
-    console.log("deptIds", deptIds);
-    console.log("desigIds", desigIds);
-
     const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
-
-    console.log("employeesData", employeesData);
-
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -130,11 +126,9 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const employeeName = emp.employeeFullName
+                const employeeName = emp.employeeFullName;
 
-
-                const employeeCode = id
-
+                const employeeCode = id;
 
                 return {
                     id: Number(id),
@@ -150,7 +144,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             // Determine comma-separated employee IDs
             let hrmeIds = '0';
             if (data.allOrIndividual === 'Individual') {
-                hrmeIds = (data.query)?.toString() || '0';
+                hrmeIds = data.query?.toString() || '0';
             } else if (data.allOrIndividual === 'All') {
                 const allIds = employeesDataTransformed.map((emp: any) => emp.id).join(',');
                 hrmeIds = allIds || '0';
@@ -175,8 +169,6 @@ export default function AddEmployeeLateInEarlyOutReportForm({
             };
 
             const response = await getEmployeeLogReport(payload);
-
-            console.log("response", response)
 
             if (response.success) {
                 const isDataEmpty = !response.data || (Array.isArray(response.data) && response.data.length === 0);
@@ -211,7 +203,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                         response.mode = data.mode;
                         queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], response);
                     }
-                } catch (e) {
+                } catch (_e) {
                     // noop
                 }
                 // Do NOT reset form fields to preserve selection
@@ -226,23 +218,26 @@ export default function AddEmployeeLateInEarlyOutReportForm({
     };
 
     const handleReset = () => {
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            allOrIndividual: 'All',
-            codeOrName: 'Code',
-            query: '',
-            fromDate: '',
-            toDate: '',
-            mode: 'Late By'
-        }, {
-            keepDefaultValues: false,
-            keepErrors: false,
-            keepDirty: false,
-            keepTouched: false,
-            keepIsValid: false
-        });
+        reset(
+            {
+                type: [],
+                department: [],
+                designation: [],
+                allOrIndividual: 'All',
+                codeOrName: 'Code',
+                query: '',
+                fromDate: '',
+                toDate: '',
+                mode: 'Late By'
+            },
+            {
+                keepDefaultValues: false,
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepIsValid: false
+            }
+        );
 
         // Explicitly clear all errors to ensure a clean state
         // Using setTimeout to ensure it runs after any immediate re-validation triggered by reset()
@@ -251,7 +246,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
         }, 0);
 
         // Also clear the query cache so the grid results are removed from view
-        // Using setQueryData(..., null) is more explicit and ensures the UI observer 
+        // Using setQueryData(..., null) is more explicit and ensures the UI observer
         // immediately sees the change and hides the report section.
         queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT, {}], null);
     };
@@ -395,20 +390,19 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                     <SelectValue placeholder={isEmployeesLoading ? 'Loading...' : 'Select Employee'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {
-                                                        employeesDataTransformed.length === 0 ? (
-                                                            <div className="p-4 text-center text-sm text-muted-foreground">
-                                                                No employees found for the selected criteria.
-                                                            </div>
-                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                    {employeesDataTransformed.length === 0 ? (
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            No employees found for the selected criteria.
+                                                        </div>
+                                                    ) : (
+                                                        (employeesDataTransformed as any[]).map((emp: any) => {
                                                             return (
                                                                 <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
                                                                     {emp.employeeName} - [{emp.employeeCode}]
                                                                 </SelectItem>
                                                             );
                                                         })
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -454,9 +448,9 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                             field.onChange(formattedFromDate);
 
                                                             const nextMonthDate = addMonths(date, 1);
-                                                            const nextYear = nextMonthDate.getFullYear();
-                                                            const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
-                                                            const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                            const _nextYear = nextMonthDate.getFullYear();
+                                                            const _nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                            const _nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
                                                             // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                         } else {
                                                             field.onChange('');
@@ -502,12 +496,7 @@ export default function AddEmployeeLateInEarlyOutReportForm({
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     disabled={
-                                                        fromDateObject
-                                                            ? [
-                                                                { before: fromDateObject },
-                                                                { after: today }
-                                                            ]
-                                                            : [{ after: today }]
+                                                        fromDateObject ? [{ before: fromDateObject }, { after: today }] : [{ after: today }]
                                                     }
                                                     onSelect={(date: Date | undefined) => {
                                                         if (date) {

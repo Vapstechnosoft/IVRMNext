@@ -7,7 +7,7 @@ function formatDate(dateInput: any): string {
     if (!dateInput) return '';
     try {
         const d = new Date(dateInput);
-        if (isNaN(d.getTime())) return String(dateInput);
+        if (Number.isNaN(d.getTime())) return String(dateInput);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -20,8 +20,8 @@ function formatDate(dateInput: any): string {
 export async function getStaffBirthdayReportDetails(data: any) {
     const fromDate = data.Fromdate || data.fromdate || '';
     const toDate = data.Todate || data.todate || '';
-    const months = data.months !== undefined ? data.months : (data.Months !== undefined ? data.Months : 1);
-    const all1 = data.all1 !== undefined ? data.all1 : (data.All1 !== undefined ? data.All1 : 0);
+    const months = data.months !== undefined ? data.months : data.Months !== undefined ? data.Months : 1;
+    const all1 = data.all1 !== undefined ? data.all1 : data.All1 !== undefined ? data.All1 : 0;
     const loginType = data.Logintype || data.logintype || '';
     const moId = data.MO_Id || data.mo_id || data.mo_Id || data.MO_ID || 2;
 
@@ -38,7 +38,7 @@ export async function getStaffBirthdayReportDetails(data: any) {
     const url = `/Staffbirthdayreport/getstaffdetails?${params.toString()}`;
     const res = await api.get<any>('admission', url, data);
 
-    if (res && res.data) {
+    if (res?.data) {
         const staffList = res.data.staffList || res.data.staffDetails || [];
         const count = res.data.count !== undefined ? res.data.count : staffList.length;
 
@@ -61,5 +61,3 @@ export async function getStaffBirthdayReportDetails(data: any) {
 
     return res;
 }
-
-

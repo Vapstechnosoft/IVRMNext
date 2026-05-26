@@ -32,7 +32,7 @@ export default function ApprovedList() {
         setIsLoading(true);
         try {
             const response = await getTransportApprovedHistory(yearId);
-            if (response && response.data) {
+            if (response?.data) {
                 setData(response.data);
             } else {
                 setData([]);

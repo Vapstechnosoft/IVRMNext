@@ -16,9 +16,7 @@ export default function ReorderCourseForm() {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
     const handleOpenDialog = () => {
-        console.log('🔵 [ReorderCourseForm] Opening dialog. Full orderResponse:', JSON.stringify(orderResponse, null, 2));
         const courses = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
-        console.log('🔵 [ReorderCourseForm] Extracted courses:', JSON.stringify(courses, null, 2));
         setOrderedItems(courses);
         setIsDialogOpen(true);
     };
@@ -52,10 +50,7 @@ export default function ReorderCourseForm() {
                 id: item.hrmC_Id,
                 order: index + 1
             }));
-
-            console.log('📤 [ReorderCourseForm] Submitting payload:', JSON.stringify(payload, null, 2));
             await saveOrderMutation.mutateAsync(payload as any);
-            console.log('✅ [ReorderCourseForm] Reorder successful');
             toast.success('Order saved successfully');
             setIsDialogOpen(false);
         } catch (error: any) {
@@ -82,8 +77,9 @@ export default function ReorderCourseForm() {
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
-                                            }`}>
+                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${
+                                            draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
+                                        }`}>
                                         <GripVertical className='size-4' />
                                         <div className='flex-1 font-medium text-sm'>{item.hrmC_QulaificationName}</div>
                                     </div>

@@ -1,8 +1,7 @@
 'use client';
 
-import { FileSpreadsheet, Printer } from 'lucide-react';
-import React from 'react';
 import { format } from 'date-fns';
+import { Printer } from 'lucide-react';
 
 interface StJamesIXXReportListProps {
     data: any;
@@ -31,15 +30,15 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
     const tempexamdetails: any[] = [];
     if (reporttype === 'indi') {
         getexamdetails.forEach((exam: any) => {
-            tempexamdetails.push({ EME_Id: exam.emE_Id, columnid: exam.emE_Id, columname: "Marks", emE_ExamCode: exam.emE_ExamCode });
-            tempexamdetails.push({ EME_Id: exam.emE_Id, columnid: exam.emE_Id, columname: "Point", emE_ExamCode: exam.emE_ExamCode });
+            tempexamdetails.push({ EME_Id: exam.emE_Id, columnid: exam.emE_Id, columname: 'Marks', emE_ExamCode: exam.emE_ExamCode });
+            tempexamdetails.push({ EME_Id: exam.emE_Id, columnid: exam.emE_Id, columname: 'Point', emE_ExamCode: exam.emE_ExamCode });
         });
     } else if (reporttype === 'groupwise') {
         // In JS: $scope.getexamdetails.push({ empG_GroupName : "Final Average", empsG_Order : 10001});
-        const promotionExams = [...getexamdetails, { empG_GroupName: "Final Average", empsG_Order: 10001 }];
+        const promotionExams = [...getexamdetails, { empG_GroupName: 'Final Average', empsG_Order: 10001 }];
         promotionExams.forEach((exam: any) => {
-            tempexamdetails.push({ Groupname: exam.empG_GroupName, columnid: exam.empsG_Order, columname: "Marks" });
-            tempexamdetails.push({ Groupname: exam.empG_GroupName, columnid: exam.empsG_Order, columname: "Point" });
+            tempexamdetails.push({ Groupname: exam.empG_GroupName, columnid: exam.empsG_Order, columname: 'Marks' });
+            tempexamdetails.push({ Groupname: exam.empG_GroupName, columnid: exam.empsG_Order, columname: 'Point' });
         });
     }
 
@@ -65,12 +64,12 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
     const formatDate = (date: any) => {
         if (!date) return '';
         const d = new Date(date);
-        return isNaN(d.getTime()) ? date : format(d, 'dd-MMM-yyyy');
+        return Number.isNaN(d.getTime()) ? date : format(d, 'dd-MMM-yyyy');
     };
 
     return (
         <div className='mt-8 space-y-8'>
-            <div className='flex justify-end gap-2 px-4 no-print'>
+            <div className='no-print flex justify-end gap-2 px-4'>
                 <button
                     onClick={handlePrint}
                     className='flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'>
@@ -94,14 +93,16 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
             <div id='print-area' className='bg-white'>
                 {students.map((report: any, index: number) => (
                     <div key={report.AMST_Id} className={`stjames-report ${index > 0 ? 'page-break' : ''} p-8`}>
-                        <div className='text-center mb-6'>
+                        <div className='mb-6 text-center'>
                             <h2 className='font-bold text-lg'>ACADEMIC YEAR {year}</h2>
                         </div>
 
                         <div className='mb-6 space-y-2'>
                             <div className='flex justify-between font-bold'>
                                 <div className='w-1/3 text-left'>{report.studentname}</div>
-                                <div className='w-1/3 text-center'>Class : {report.classname} {report.sectionname} &nbsp; Roll : {report.rollno}</div>
+                                <div className='w-1/3 text-center'>
+                                    Class : {report.classname} {report.sectionname} &nbsp; Roll : {report.rollno}
+                                </div>
                                 <div className='w-1/3 text-right'>Reg.No.: {report.admno}</div>
                             </div>
                             <div className='flex justify-between font-bold'>
@@ -115,8 +116,11 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                             <table className='w-full border-collapse border border-gray-400 text-sm'>
                                 <thead>
                                     <tr>
-                                        <th className='border border-gray-400 p-2 text-left w-[250px]' rowSpan={2}></th>
-                                        {(reporttype === 'indi' ? getexamdetails : [...getexamdetails, { empG_GroupName: "Final Average" }]).map((exam: any, eIdx: number) => (
+                                        <th className='w-[250px] border border-gray-400 p-2 text-left' rowSpan={2} />
+                                        {(reporttype === 'indi'
+                                            ? getexamdetails
+                                            : [...getexamdetails, { empG_GroupName: 'Final Average' }]
+                                        ).map((exam: any, eIdx: number) => (
                                             <th key={eIdx} className='border border-gray-400 p-2 text-center' colSpan={2}>
                                                 <b>{reporttype === 'indi' ? exam.emE_ExamName : exam.empG_GroupName}</b>
                                             </th>
@@ -132,83 +136,93 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                 </thead>
                                 <tbody>
                                     {/* Subjects with AplResultFlg */}
-                                    {report.subjects.filter((s: any) => s.EYCES_AplResultFlg).map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 font-bold'>{subj.ISMS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) =>
-                                                    reporttype === 'indi'
-                                                        ? (Number(m.emeid) === Number(colm.EME_Id) && Number(m.subjectorder) === Number(subj.subjectorder))
-                                                        : (m.EMPSG_GroupName === colm.Groupname && Number(m.EMPS_SubjOrder) === Number(subj.subjectorder))
-                                                );
+                                    {report.subjects
+                                        .filter((s: any) => s.EYCES_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 font-bold'>{subj.ISMS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find((m: any) =>
+                                                        reporttype === 'indi'
+                                                            ? Number(m.emeid) === Number(colm.EME_Id) &&
+                                                              Number(m.subjectorder) === Number(subj.subjectorder)
+                                                            : m.EMPSG_GroupName === colm.Groupname &&
+                                                              Number(m.EMPS_SubjOrder) === Number(subj.subjectorder)
+                                                    );
 
-                                                if (!mrks) return <td key={cIdx} className='border border-gray-400 p-2'></td>;
+                                                    if (!mrks) return <td key={cIdx} className='border border-gray-400 p-2' />;
 
-                                                const isMarks = colm.columname === 'Marks';
-                                                const isPoint = colm.columname === 'Point';
-                                                const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
-                                                const obtainMarks = reporttype === 'indi' ? mrks.obtainmarks : mrks.ESTMPPSG_GroupObtMarks;
-                                                const gradePoints = reporttype === 'indi' ? mrks.ObtainedGradePoints : mrks.ESTMPPSG_GradePoints;
+                                                    const isMarks = colm.columname === 'Marks';
+                                                    const isPoint = colm.columname === 'Point';
+                                                    const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
+                                                    const obtainMarks =
+                                                        reporttype === 'indi' ? mrks.obtainmarks : mrks.ESTMPPSG_GroupObtMarks;
+                                                    const gradePoints =
+                                                        reporttype === 'indi' ? mrks.ObtainedGradePoints : mrks.ESTMPPSG_GradePoints;
 
-                                                return (
-                                                    <td key={cIdx} className='border border-gray-400 p-2 text-center'>
-                                                        {isMarks && (
-                                                            <span className={passFail === 'Fail' ? 'underline' : ''}>
-                                                                {passFail === 'AB' ? 'AB' : obtainMarks}
-                                                            </span>
-                                                        )}
-                                                        {isPoint && (
-                                                            <span className={passFail === 'Fail' ? 'underline' : ''}>
-                                                                {passFail === 'AB' ? 'AB' : gradePoints}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {isMarks && (
+                                                                <span className={passFail === 'Fail' ? 'underline' : ''}>
+                                                                    {passFail === 'AB' ? 'AB' : obtainMarks}
+                                                                </span>
+                                                            )}
+                                                            {isPoint && (
+                                                                <span className={passFail === 'Fail' ? 'underline' : ''}>
+                                                                    {passFail === 'AB' ? 'AB' : gradePoints}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
 
                                     {/* Subjects without AplResultFlg */}
-                                    {report.subjects.filter((s: any) => !s.EYCES_AplResultFlg).map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 font-bold'>{subj.ISMS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) =>
-                                                    reporttype === 'indi'
-                                                        ? (Number(m.emeid) === Number(colm.EME_Id) && Number(m.subjectorder) === Number(subj.subjectorder))
-                                                        : (m.EMPSG_GroupName === colm.Groupname && Number(m.EMPS_SubjOrder) === Number(subj.subjectorder))
-                                                );
+                                    {report.subjects
+                                        .filter((s: any) => !s.EYCES_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 font-bold'>{subj.ISMS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find((m: any) =>
+                                                        reporttype === 'indi'
+                                                            ? Number(m.emeid) === Number(colm.EME_Id) &&
+                                                              Number(m.subjectorder) === Number(subj.subjectorder)
+                                                            : m.EMPSG_GroupName === colm.Groupname &&
+                                                              Number(m.EMPS_SubjOrder) === Number(subj.subjectorder)
+                                                    );
 
-                                                if (!mrks) return <td key={cIdx} className='border border-gray-400 p-2'></td>;
+                                                    if (!mrks) return <td key={cIdx} className='border border-gray-400 p-2' />;
 
-                                                const isMarks = colm.columname === 'Marks';
-                                                const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
+                                                    const isMarks = colm.columname === 'Marks';
+                                                    const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
 
-                                                let displayValue = '';
-                                                if (reporttype === 'indi') {
-                                                    if (mrks.Marksdispaly === 1) displayValue = mrks.obtainmarks;
-                                                    else if (mrks.Gradedisplay === 1) displayValue = mrks.ObtainedGrade;
-                                                } else {
-                                                    if (subj.ISMS_SubjectCode !== 'CCA') displayValue = mrks.ESTMPPSG_GroupObtGrade;
-                                                    else displayValue = mrks.ESTMPPSG_GroupObtMarks;
-                                                }
+                                                    let displayValue = '';
+                                                    if (reporttype === 'indi') {
+                                                        if (mrks.Marksdispaly === 1) displayValue = mrks.obtainmarks;
+                                                        else if (mrks.Gradedisplay === 1) displayValue = mrks.ObtainedGrade;
+                                                    } else {
+                                                        if (subj.ISMS_SubjectCode !== 'CCA') displayValue = mrks.ESTMPPSG_GroupObtGrade;
+                                                        else displayValue = mrks.ESTMPPSG_GroupObtMarks;
+                                                    }
 
-                                                return (
-                                                    <td key={cIdx} className='border border-gray-400 p-2 text-center'>
-                                                        {isMarks && (
-                                                            <span className={passFail === 'Fail' ? 'underline' : ''}>
-                                                                {passFail === 'AB' ? 'AB' : displayValue}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {isMarks && (
+                                                                <span className={passFail === 'Fail' ? 'underline' : ''}>
+                                                                    {passFail === 'AB' ? 'AB' : displayValue}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
 
                                     {/* Spacing row */}
                                     <tr>
-                                        <td className='border-none h-4' colSpan={tempexamdetails.length + 1}></td>
+                                        <td className='h-4 border-none' colSpan={tempexamdetails.length + 1} />
                                     </tr>
 
                                     {/* Totals */}
@@ -217,17 +231,25 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
                                             const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(colm.EME_Id) &&
+                                                      colm.emE_ExamCode !== 'IA1' &&
+                                                      colm.emE_ExamCode !== 'IA2'
+                                                    : t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment'
                                             );
 
                                             let val = '';
                                             if (totl) {
-                                                if (colm.columname === 'Marks') val = reporttype === 'indi' ? totl.estmP_TotalObtMarks : totl.TOTALOBTAINEDMARKS;
-                                                else if (colm.columname === 'Point') val = reporttype === 'indi' ? totl.estmP_GradePoints : totl.GRANDTOTALPOINT;
+                                                if (colm.columname === 'Marks')
+                                                    val = reporttype === 'indi' ? totl.estmP_TotalObtMarks : totl.TOTALOBTAINEDMARKS;
+                                                else if (colm.columname === 'Point')
+                                                    val = reporttype === 'indi' ? totl.estmP_GradePoints : totl.GRANDTOTALPOINT;
                                             }
 
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
 
@@ -237,8 +259,10 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
                                             const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(colm.EME_Id) &&
+                                                      colm.emE_ExamCode !== 'IA1' &&
+                                                      colm.emE_ExamCode !== 'IA2'
+                                                    : t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment'
                                             );
 
                                             let val = '';
@@ -246,7 +270,11 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                                 val = reporttype === 'indi' ? totl.estmP_Percentage : totl.PERCENTAGEOBTAINED;
                                             }
 
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
 
@@ -257,16 +285,25 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                             {tempexamdetails.map((colm: any, cIdx: number) => {
                                                 const att = report.attendance.find((a: any) =>
                                                     reporttype === 'indi'
-                                                        ? (Number(a.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                        : (a.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment')
+                                                        ? Number(a.emE_Id) === Number(colm.EME_Id) &&
+                                                          colm.emE_ExamCode !== 'IA1' &&
+                                                          colm.emE_ExamCode !== 'IA2'
+                                                        : a.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment'
                                                 );
 
                                                 let val = '';
                                                 if (att && colm.columname === 'Marks') {
-                                                    val = reporttype === 'indi' ? `${att.ATTENDANCEPERCENTAGE || att.percentage || ''} %` : `${att.PERCENTAGEOBTAINED || ''} %`;
+                                                    val =
+                                                        reporttype === 'indi'
+                                                            ? `${att.ATTENDANCEPERCENTAGE || att.percentage || ''} %`
+                                                            : `${att.PERCENTAGEOBTAINED || ''} %`;
                                                 }
 
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
+                                                return (
+                                                    <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                        {val}
+                                                    </td>
+                                                );
                                             })}
                                         </tr>
                                     )}
@@ -277,8 +314,10 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
                                             const totl = report.markstotal.find((t: any) =>
                                                 reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment')
+                                                    ? Number(t.emE_Id) === Number(colm.EME_Id) &&
+                                                      colm.emE_ExamCode !== 'IA1' &&
+                                                      colm.emE_ExamCode !== 'IA2'
+                                                    : t.GROUPNAME === colm.Groupname && colm.Groupname !== 'Internal Assessment'
                                             );
 
                                             let val = '';
@@ -286,7 +325,11 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                                                 val = reporttype === 'indi' ? totl.estmP_SectionPosition : totl.POSITION;
                                             }
 
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
+                                            );
                                         })}
                                     </tr>
                                 </tbody>
@@ -300,18 +343,18 @@ export default function StJamesIXXReportList({ data, institution }: StJamesIXXRe
                         <div className='mt-20 space-y-8'>
                             <div className='flex justify-between px-10'>
                                 <div className='w-1/3 text-center'>
-                                    <div className='border-t-2 border-black pt-1'>Dr.T.H.Ireland</div>
+                                    <div className='border-black border-t-2 pt-1'>Dr.T.H.Ireland</div>
                                 </div>
                                 <div className='w-1/3 text-center'>
-                                    <div className='border-t-2 border-black pt-1 link'>{report.Classteacher}</div>
+                                    <div className='link border-black border-t-2 pt-1'>{report.Classteacher}</div>
                                 </div>
-                                <div className='w-1/3 text-center'></div>
+                                <div className='w-1/3 text-center' />
                             </div>
                             <div className='flex justify-between px-10 font-bold'>
                                 <div className='w-1/3 text-center'>Principal/Secretary</div>
                                 <div className='w-1/3 text-center'>Class Teacher</div>
                                 <div className='w-1/3 text-center'>
-                                    <div className='border-t-2 border-black pt-1'>Parent</div>
+                                    <div className='border-black border-t-2 pt-1'>Parent</div>
                                 </div>
                             </div>
                         </div>

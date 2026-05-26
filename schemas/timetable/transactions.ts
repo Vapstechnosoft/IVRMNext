@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { createStringOnlySchema, deleteIdSchema } from '@/schemas/validationSchemas';
+import { z } from 'zod';
 
 export const DeputationSchema = z.object({
     asmaY_Id: z.string().min(1, 'Academic Year is required'),
@@ -57,7 +57,7 @@ export const timeTableGenerationSchema = z.object({
     hrmE_Id: z.string().optional(),
     asmcL_Id: z.string().optional(),
     asms_Id: z.string().optional(),
-    notConfirmedPeriods: z.string().optional(),
+    notConfirmedPeriods: z.string().optional()
 });
 export const ttGenerationSchema = {
     addOrUpdate: z.object({

@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { FileSpreadsheet, Printer } from 'lucide-react';
-import React from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 interface CalcuttaPromotionReportViewProps {
@@ -11,7 +10,7 @@ interface CalcuttaPromotionReportViewProps {
 }
 
 const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPromotionReportViewProps) => {
-    const handleExport = () => { };
+    const handleExport = () => {};
     const handlePrint = () => {
         window.print();
     };
@@ -72,38 +71,57 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
             <div id='printable-area'>
                 {studentdetails.map((student: any, index: number) => {
                     // Extract Semester-II remarks and conduct specifically
-                    const semesterRemarks = examwiseremarkstemp?.find((r: any) => r.amsT_Id === student.amsT_Id || r.AMST_Id === student.amsT_Id);
+                    const semesterRemarks = examwiseremarkstemp?.find(
+                        (r: any) => r.amsT_Id === student.amsT_Id || r.AMST_Id === student.amsT_Id
+                    );
 
                     return (
-                        <div key={student.amsT_Id || index} className={`mx-auto max-w-[1000px] bg-white p-4 font-sans text-black ${index < studentdetails.length - 1 ? 'page-break mb-8' : ''}`}>
-
+                        <div
+                            key={student.amsT_Id || index}
+                            className={`mx-auto max-w-[1000px] bg-white p-4 font-sans text-black ${index < studentdetails.length - 1 ? 'page-break mb-8' : ''}`}>
                             {/* Academic Session Badge */}
-                            <div className='mb-2 flex justify-center mt-12'>
+                            <div className='mt-12 mb-2 flex justify-center'>
                                 <div className='border border-black bg-white px-8 py-1'>
-                                    <h2 className='font-bold text-[20px] tracking-wider uppercase'>ACADEMIC SESSION {student.asmaY_Year}</h2>
+                                    <h2 className='font-bold text-[20px] uppercase tracking-wider'>
+                                        ACADEMIC SESSION {student.asmaY_Year}
+                                    </h2>
                                 </div>
                             </div>
 
                             {/* Student Info Box */}
                             <div className='mb-2 flex border-[0.5px] border-black p-1'>
                                 <div className='flex-1 pr-2'>
-                                    <div className='grid grid-cols-[120px_10px_1fr] gap-y-1 font-bold text-[14px] mt-2'>
-                                        <div>Student's Name</div><div>:</div><div className='uppercase'>{student.amsT_FirstName || student.studentname}</div>
-                                        <div>Scholar No.</div><div>:</div><div>{student.amsT_AdmNo || student.admno}</div>
-                                        <div>Total Students</div><div>:</div><div>{studentdetails.length}</div>
+                                    <div className='mt-2 grid grid-cols-[120px_10px_1fr] gap-y-1 font-bold text-[14px]'>
+                                        <div>Student's Name</div>
+                                        <div>:</div>
+                                        <div className='uppercase'>{student.amsT_FirstName || student.studentname}</div>
+                                        <div>Scholar No.</div>
+                                        <div>:</div>
+                                        <div>{student.amsT_AdmNo || student.admno}</div>
+                                        <div>Total Students</div>
+                                        <div>:</div>
+                                        <div>{studentdetails.length}</div>
                                     </div>
                                 </div>
                                 <div className='flex-1 px-2'>
-                                    <div className='grid grid-cols-[100px_10px_1fr] gap-y-1 font-bold text-[14px] mt-2'>
-                                        <div>Class & sec</div><div>:</div><div className='uppercase'>{student.asmcL_ClassName} - {student.asmC_SectionName}</div>
-                                        <div>Roll No</div><div>:</div><div>{student.amaY_RollNo || student.rollno || 1}</div>
+                                    <div className='mt-2 grid grid-cols-[100px_10px_1fr] gap-y-1 font-bold text-[14px]'>
+                                        <div>Class & sec</div>
+                                        <div>:</div>
+                                        <div className='uppercase'>
+                                            {student.asmcL_ClassName} - {student.asmC_SectionName}
+                                        </div>
+                                        <div>Roll No</div>
+                                        <div>:</div>
+                                        <div>{student.amaY_RollNo || student.rollno || 1}</div>
                                     </div>
                                 </div>
-                                <div className='flex h-[100px] w-[100px] items-center justify-center mr-1 mt-2'>
+                                <div className='mt-2 mr-1 flex h-[100px] w-[100px] items-center justify-center'>
                                     {student.amsT_Photoname ? (
-                                        <img src={student.amsT_Photoname} alt="Student" className="h-full w-full object-contain" />
+                                        <img src={student.amsT_Photoname} alt='Student' className='h-full w-full object-contain' />
                                     ) : (
-                                        <div className='border border-black w-full h-full flex items-center justify-center text-gray-400 text-xs'>Photo</div>
+                                        <div className='flex h-full w-full items-center justify-center border border-black text-gray-400 text-xs'>
+                                            Photo
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -113,88 +131,161 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                 <table className='mb-2 w-full border-collapse border-[0.5px] border-black text-[14px]'>
                                     <thead>
                                         <tr>
-                                            <th rowSpan={2} className='border-black border-[0.5px] p-2 text-center align-middle font-bold w-[300px] break-words'>SUBJECTS</th>
+                                            <th
+                                                rowSpan={2}
+                                                className='w-[300px] break-words border-[0.5px] border-black p-2 text-center align-middle font-bold'>
+                                                SUBJECTS
+                                            </th>
                                             {getgroupdetails?.map((grp: any, idx: number) => (
-                                                <th key={idx} colSpan={grp.groupewiseexam?.length || 1} className='border-black border-[0.5px] bg-gray-400 p-2 text-center uppercase'>
+                                                <th
+                                                    key={idx}
+                                                    colSpan={grp.groupewiseexam?.length || 1}
+                                                    className='border-[0.5px] border-black bg-gray-400 p-2 text-center uppercase'>
                                                     {grp.empG_DistplayName}
                                                 </th>
                                             ))}
                                         </tr>
                                         <tr>
                                             {groupwiseexamlist?.map((exam: any, idx: number) => (
-                                                <th key={idx} className='border-black border-[0.5px] p-2 text-center break-words font-bold w-[150px]'>
+                                                <th
+                                                    key={idx}
+                                                    className='w-[150px] break-words border-[0.5px] border-black p-2 text-center font-bold'>
                                                     {exam.examnamedisplay}
-                                                    {exam.EMPSGE_ForMaxMarkrs && exam.examnamedisplay !== 'Highest in Class' ? <><br />[{exam.EMPSGE_ForMaxMarkrs}]</> : ''}
-                                                    {!exam.EMPSGE_ForMaxMarkrs && exam.EME_Id === 9800000 && exam.examnamedisplay === 'Total' ? <><br />[200]</> : ''}
+                                                    {exam.EMPSGE_ForMaxMarkrs && exam.examnamedisplay !== 'Highest in Class' ? (
+                                                        <>
+                                                            <br />[{exam.EMPSGE_ForMaxMarkrs}]
+                                                        </>
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    {!exam.EMPSGE_ForMaxMarkrs &&
+                                                    exam.EME_Id === 9800000 &&
+                                                    exam.examnamedisplay === 'Total' ? (
+                                                        <>
+                                                            <br />
+                                                            [200]
+                                                        </>
+                                                    ) : (
+                                                        ''
+                                                    )}
                                                 </th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {student.studentsubjects?.filter((s: any) => s.EYCES_MarksDisplayFlg || s.eyceS_MarksDisplayFlg).map((subj: any, idx: number) => (
-                                            <tr key={idx}>
-                                                <td className='border-black border-[0.5px] p-2 text-left break-words'>{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
-                                                {groupwiseexamlist?.map((exam: any, eIdx: number) => {
-                                                    let cellValue: any = '-';
-                                                    if (exam.EME_Id === 9800000) {
-                                                        const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 9800000 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
-                                                        if (mr1) {
-                                                            cellValue = mr1.obtainedMarks || mr1.ObtainedMarks || mr1.estmpS_ObtainedMarks || cellValue;
-                                                        } else {
-                                                            cellValue = subj.estmppsG_GroupObtMarks || cellValue;
-                                                        }
-                                                    } else if (exam.EME_Id === 98000012) {
-                                                        const mr1 = student.studentmarks?.find((t: any) => t.emE_Id === 98000012 && (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id));
-                                                        if (mr1) {
-                                                            cellValue = mr1.estmppS_ClassHighest || mr1.ESTMPPS_ClassHighest || mr1.obtainedMarks || cellValue;
-                                                        }
-                                                    } else {
-                                                        const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && (m.ismS_Id === subj.ismS_Id));
-                                                        if (mr) {
-                                                            if (mr.passFailFlag !== 'AB' && mr.passFailFlag !== 'M' && mr.passFailFlag !== 'L') {
-                                                                cellValue = mr.obtainedMarks || mr.ObtainedMarks || mr.GroupMarks || mr.ObtainedGrade || cellValue;
+                                        {student.studentsubjects
+                                            ?.filter((s: any) => s.EYCES_MarksDisplayFlg || s.eyceS_MarksDisplayFlg)
+                                            .map((subj: any, idx: number) => (
+                                                <tr key={idx}>
+                                                    <td className='break-words border-[0.5px] border-black p-2 text-left'>
+                                                        {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                    </td>
+                                                    {groupwiseexamlist?.map((exam: any, eIdx: number) => {
+                                                        let cellValue: any = '-';
+                                                        if (exam.EME_Id === 9800000) {
+                                                            const mr1 = student.studentmarks?.find(
+                                                                (t: any) =>
+                                                                    t.emE_Id === 9800000 &&
+                                                                    (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id)
+                                                            );
+                                                            if (mr1) {
+                                                                cellValue =
+                                                                    mr1.obtainedMarks ||
+                                                                    mr1.ObtainedMarks ||
+                                                                    mr1.estmpS_ObtainedMarks ||
+                                                                    cellValue;
                                                             } else {
-                                                                cellValue = mr.passFailFlag;
+                                                                cellValue = subj.estmppsG_GroupObtMarks || cellValue;
+                                                            }
+                                                        } else if (exam.EME_Id === 98000012) {
+                                                            const mr1 = student.studentmarks?.find(
+                                                                (t: any) =>
+                                                                    t.emE_Id === 98000012 &&
+                                                                    (t.ISMS_Id === subj.ISMS_Id || t.ismS_Id === subj.ismS_Id)
+                                                            );
+                                                            if (mr1) {
+                                                                cellValue =
+                                                                    mr1.estmppS_ClassHighest ||
+                                                                    mr1.ESTMPPS_ClassHighest ||
+                                                                    mr1.obtainedMarks ||
+                                                                    cellValue;
+                                                            }
+                                                        } else {
+                                                            const mr = student.studentmarks?.find(
+                                                                (m: any) => m.emE_Id === exam.EME_Id && m.ismS_Id === subj.ismS_Id
+                                                            );
+                                                            if (mr) {
+                                                                if (
+                                                                    mr.passFailFlag !== 'AB' &&
+                                                                    mr.passFailFlag !== 'M' &&
+                                                                    mr.passFailFlag !== 'L'
+                                                                ) {
+                                                                    cellValue =
+                                                                        mr.obtainedMarks ||
+                                                                        mr.ObtainedMarks ||
+                                                                        mr.GroupMarks ||
+                                                                        mr.ObtainedGrade ||
+                                                                        cellValue;
+                                                                } else {
+                                                                    cellValue = mr.passFailFlag;
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                    return (
-                                                        <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{cellValue}</td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
+                                                        return (
+                                                            <td key={eIdx} className='border-[0.5px] border-black p-2 text-center'>
+                                                                {cellValue}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
 
                                         <tr>
-                                            <td className='border-black border-[0.5px] p-2 text-left uppercase'>TOTAL</td>
+                                            <td className='border-[0.5px] border-black p-2 text-left uppercase'>TOTAL</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let totalValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
-                                                    if (mr) totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
+                                                    const mr = student.studentmarks?.find(
+                                                        (m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL'
+                                                    );
+                                                    if (mr)
+                                                        totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
                                                 }
-                                                return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{totalValue}</td>;
+                                                return (
+                                                    <td key={eIdx} className='border-[0.5px] border-black p-2 text-center'>
+                                                        {totalValue}
+                                                    </td>
+                                                );
                                             })}
                                         </tr>
 
                                         <tr>
-                                            <td className='border-black border-[0.5px] p-2 text-left uppercase'>PERCENTAGE</td>
+                                            <td className='border-[0.5px] border-black p-2 text-left uppercase'>PERCENTAGE</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let percValue: any = '';
                                                 if (exam.EME_Id === 9800000) {
-                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
-                                                    if (mr && mr.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
+                                                    const mr = student.studentmarks?.find(
+                                                        (m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL'
+                                                    );
+                                                    if (mr?.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
                                                 }
-                                                return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{percValue}</td>;
+                                                return (
+                                                    <td key={eIdx} className='border-[0.5px] border-black p-2 text-center'>
+                                                        {percValue}
+                                                    </td>
+                                                );
                                             })}
                                         </tr>
 
                                         <tr>
-                                            <td className='border-black border-[0.5px] p-2 text-left'>Attendance</td>
+                                            <td className='border-[0.5px] border-black p-2 text-left'>Attendance</td>
                                             {getgroupdetails?.map((grp: any, gIdx: number) => {
                                                 const att = student.attendance?.find((a: any) => a.term === grp.empG_DistplayName);
                                                 return (
-                                                    <td key={gIdx} colSpan={grp.groupewiseexam?.length || 1} className='border-black border-[0.5px] p-2 text-center'>
+                                                    <td
+                                                        key={gIdx}
+                                                        colSpan={grp.groupewiseexam?.length || 1}
+                                                        className='border-[0.5px] border-black p-2 text-center'>
                                                         {att?.percentage ? `${att.percentage} %` : ''}
                                                     </td>
                                                 );
@@ -204,29 +295,52 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
 
                                     {/* Non-Applicable Subjects (Grades mostly) */}
                                     <tbody>
-                                        {student.studentsubjects?.filter((s: any) => !s.EYCES_MarksDisplayFlg && !s.eyceS_MarksDisplayFlg).map((subj: any, idx: number) => (
-                                            <tr key={`non-app-${idx}`}>
-                                                <td className='border-black border-[0.5px] p-2 text-left break-words font-bold'>{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
-                                                {groupwiseexamlist?.map((exam: any, eIdx: number) => {
-                                                    let cellValue: any = '';
-                                                    const mr = student.studentmarks?.find((m: any) => m.EME_Id === exam.EME_Id && (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id) && m.EMPSG_DisplayName === exam.EMPG_DistplayName);
-                                                    if (mr) {
-                                                        if (mr.ESTMPS_PassFailFlg !== 'AB' && mr.ESTMPS_PassFailFlg !== 'M' && mr.ESTMPS_PassFailFlg !== 'L' && mr.PassFailFlag !== 'AB' && mr.PassFailFlag !== 'M' && mr.PassFailFlag !== 'L') {
-                                                            if (exam.EME_ExamName === 'Grade') {
-                                                                cellValue = mr.ObtainedGrade || mr.ESTMPS_ObtainedGrade || '';
+                                        {student.studentsubjects
+                                            ?.filter((s: any) => !s.EYCES_MarksDisplayFlg && !s.eyceS_MarksDisplayFlg)
+                                            .map((subj: any, idx: number) => (
+                                                <tr key={`non-app-${idx}`}>
+                                                    <td className='break-words border-[0.5px] border-black p-2 text-left font-bold'>
+                                                        {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                    </td>
+                                                    {groupwiseexamlist?.map((exam: any, eIdx: number) => {
+                                                        let cellValue: any = '';
+                                                        const mr = student.studentmarks?.find(
+                                                            (m: any) =>
+                                                                m.EME_Id === exam.EME_Id &&
+                                                                (m.ISMS_Id === subj.ISMS_Id || m.ismS_Id === subj.ismS_Id) &&
+                                                                m.EMPSG_DisplayName === exam.EMPG_DistplayName
+                                                        );
+                                                        if (mr) {
+                                                            if (
+                                                                mr.ESTMPS_PassFailFlg !== 'AB' &&
+                                                                mr.ESTMPS_PassFailFlg !== 'M' &&
+                                                                mr.ESTMPS_PassFailFlg !== 'L' &&
+                                                                mr.PassFailFlag !== 'AB' &&
+                                                                mr.PassFailFlag !== 'M' &&
+                                                                mr.PassFailFlag !== 'L'
+                                                            ) {
+                                                                if (exam.EME_ExamName === 'Grade') {
+                                                                    cellValue = mr.ObtainedGrade || mr.ESTMPS_ObtainedGrade || '';
+                                                                } else {
+                                                                    cellValue =
+                                                                        mr.ObtainedMarks ||
+                                                                        mr.ESTMPS_ObtainedMarks ||
+                                                                        mr.ObtainedGrade ||
+                                                                        mr.ESTMPS_ObtainedGrade ||
+                                                                        '';
+                                                                }
                                                             } else {
-                                                                cellValue = mr.ObtainedMarks || mr.ESTMPS_ObtainedMarks || mr.ObtainedGrade || mr.ESTMPS_ObtainedGrade || '';
+                                                                cellValue = mr.ESTMPS_PassFailFlg || mr.PassFailFlag;
                                                             }
-                                                        } else {
-                                                            cellValue = mr.ESTMPS_PassFailFlg || mr.PassFailFlag;
                                                         }
-                                                    }
-                                                    return (
-                                                        <td key={eIdx} className='border-black border-[0.5px] p-2 text-center'>{cellValue}</td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
+                                                        return (
+                                                            <td key={eIdx} className='border-[0.5px] border-black p-2 text-center'>
+                                                                {cellValue}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -236,9 +350,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                 <table className='w-full border-collapse border-[0.5px] border-black text-[14px]'>
                                     <tbody>
                                         <tr className='border-[0.5px] border-black'>
-                                            <th className='bg-gray-400 text-white p-2 text-center font-bold uppercase'>
-                                                SEMESTER-II
-                                            </th>
+                                            <th className='bg-gray-400 p-2 text-center font-bold text-white uppercase'>SEMESTER-II</th>
                                         </tr>
                                         <tr>
                                             <td className='p-2 text-left font-bold'>
@@ -249,7 +361,10 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                 </table>
                                 <div className='row pt-2 pb-2'>
                                     <div className='col-sm-12'>
-                                        <h5 className='font-bold text-[14px]'>Conduct : <span>{semesterRemarks?.ECTERE_Conduct || semesterRemarks?.ecterE_Conduct || ''}</span></h5>
+                                        <h5 className='font-bold text-[14px]'>
+                                            Conduct :{' '}
+                                            <span>{semesterRemarks?.ECTERE_Conduct || semesterRemarks?.ecterE_Conduct || ''}</span>
+                                        </h5>
                                     </div>
                                 </div>
                             </div>
@@ -267,9 +382,19 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                             <td colSpan={3} className='p-2'>
                                                 <div className='mx-auto h-[250px] w-[98%]'>
                                                     <ResponsiveContainer width='100%' height='100%'>
-                                                        <BarChart data={student.chartData} margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
+                                                        <BarChart
+                                                            data={student.chartData}
+                                                            margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
                                                             <CartesianGrid strokeDasharray='3 3' vertical={false} />
-                                                            <XAxis dataKey='subject' tick={{ fontSize: 10 }} tickLine={false} axisLine={true} interval={0} angle={-25} textAnchor="end" />
+                                                            <XAxis
+                                                                dataKey='subject'
+                                                                tick={{ fontSize: 10 }}
+                                                                tickLine={false}
+                                                                axisLine={true}
+                                                                interval={0}
+                                                                angle={-25}
+                                                                textAnchor='end'
+                                                            />
                                                             <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={true} />
                                                             <Bar dataKey='highest' fill='#3f51b5' barSize={20} />
                                                             <Bar dataKey='average' fill='#ff5722' barSize={20} />
@@ -280,9 +405,15 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                             </td>
                                         </tr>
                                         <tr className='border-[0.5px] border-black'>
-                                            <td className='p-2 text-center'><span className='mr-2 inline-block h-3 w-3 bg-[#3f51b5]'></span> Highest Marks</td>
-                                            <td className='p-2 text-center'><span className='mr-2 inline-block h-3 w-3 bg-[#ff5722]'></span> Average Marks</td>
-                                            <td className='p-2 text-center'><span className='mr-2 inline-block h-3 w-3 bg-[#00ff00]'></span> Obtained Marks</td>
+                                            <td className='p-2 text-center'>
+                                                <span className='mr-2 inline-block h-3 w-3 bg-[#3f51b5]' /> Highest Marks
+                                            </td>
+                                            <td className='p-2 text-center'>
+                                                <span className='mr-2 inline-block h-3 w-3 bg-[#ff5722]' /> Average Marks
+                                            </td>
+                                            <td className='p-2 text-center'>
+                                                <span className='mr-2 inline-block h-3 w-3 bg-[#00ff00]' /> Obtained Marks
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -293,9 +424,9 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                 <table className='w-full border-collapse border-[0.5px] border-black text-center text-[14px]'>
                                     <tbody>
                                         <tr className='border-[0.5px] border-black'>
-                                            <th className='p-2 w-1/3 font-bold'>Principal's Signature</th>
-                                            <th className='p-2 w-1/3 font-bold'>Class Teacher's Signature</th>
-                                            <th className='p-2 w-1/3 font-bold'>Parent's Signature</th>
+                                            <th className='w-1/3 p-2 font-bold'>Principal's Signature</th>
+                                            <th className='w-1/3 p-2 font-bold'>Class Teacher's Signature</th>
+                                            <th className='w-1/3 p-2 font-bold'>Parent's Signature</th>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -307,17 +438,22 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                     <tbody>
                                         <tr>
                                             <td className='p-2 text-left'>
-                                                <b>Date of Issue: </b> &nbsp;{dateInfo?.issueDate ? new Date(dateInfo.issueDate).toLocaleDateString('en-GB') : ''}<br />
-                                                <b>New Academic Session Commences on: </b> &nbsp;{dateInfo?.academicDate ? new Date(dateInfo.academicDate).toLocaleDateString('en-GB') : ''}
+                                                <b>Date of Issue: </b> &nbsp;
+                                                {dateInfo?.issueDate ? new Date(dateInfo.issueDate).toLocaleDateString('en-GB') : ''}
+                                                <br />
+                                                <b>New Academic Session Commences on: </b> &nbsp;
+                                                {dateInfo?.academicDate ? new Date(dateInfo.academicDate).toLocaleDateString('en-GB') : ''}
                                             </td>
                                             <td className='p-2 text-right'>
-                                                <b>Report Card Printed On: </b> &nbsp;{dateInfo?.reportPrintedDate ? new Date(dateInfo.reportPrintedDate).toLocaleDateString('en-GB') : ''}
+                                                <b>Report Card Printed On: </b> &nbsp;
+                                                {dateInfo?.reportPrintedDate
+                                                    ? new Date(dateInfo.reportPrintedDate).toLocaleDateString('en-GB')
+                                                    : ''}
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-
                         </div>
                     );
                 })}

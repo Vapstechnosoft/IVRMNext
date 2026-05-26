@@ -10,7 +10,6 @@ export async function getCoScholasticArea(searchParams?: ApiSearchparams) {
     return await api.get<ICoScholasticArea>('exam', url);
 }
 export async function addOrUpdatecoScholasticArea(data: any) {
-    console.log('data in server file', data);
     const url = '/coscholastic_activity/addOrupdate_co_scholastic_area';
     return await api.post<any>('exam', url, data);
 }
@@ -19,7 +18,7 @@ export async function toggleCoScholasticArea(id: number) {
     return await api.put('exam', url);
 }
 export async function getCoScholasticAreaOrderData(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = '/coscholastic_activity/co_scholastic_area_order_wise_list';
     return await api.get<any>('exam', url);
 }

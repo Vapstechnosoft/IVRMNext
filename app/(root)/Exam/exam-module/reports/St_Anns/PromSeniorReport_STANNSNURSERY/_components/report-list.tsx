@@ -587,11 +587,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom'>
                                                         DATE
                                                     </th>
-                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 align-bottom text-center'>
+                                                    <th className='h-[90px] w-1/4 border border-gray-400 border-t-0 p-2 text-center align-bottom'>
                                                         {_institution?.mI_Signature ? (
-                                                            <img src={_institution.mI_Signature} alt="Rector Signature" className="mx-auto h-[50px] object-contain mb-1" />
+                                                            <img
+                                                                src={_institution.mI_Signature}
+                                                                alt='Rector Signature'
+                                                                className='mx-auto mb-1 h-[50px] object-contain'
+                                                            />
                                                         ) : (
-                                                            <div className="h-[50px] mb-1"></div>
+                                                            <div className='mb-1 h-[50px]' />
                                                         )}
                                                         RECTOR SIGNATURE
                                                     </th>

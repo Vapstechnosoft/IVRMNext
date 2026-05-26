@@ -6,24 +6,23 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { employeeMonthlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeMonthlyReport } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
 import {
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
     useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
+import { employeeMonthlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { getEmployeeMonthlyReport } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import { addMonths } from 'date-fns';
 import { Save } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useRouter, usePathname } from 'next/navigation';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof employeeMonthlyReportFilterSchema>;
@@ -88,7 +87,11 @@ export default function AddEmployeeMonthlyReportForm({
     const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.join(','));
     const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
-    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -126,9 +129,9 @@ export default function AddEmployeeMonthlyReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const employeeName = emp.employeeFullName
+                const employeeName = emp.employeeFullName;
 
-                const employeeCode = id
+                const employeeCode = id;
 
                 return {
                     id: Number(id),
@@ -157,10 +160,7 @@ export default function AddEmployeeMonthlyReportForm({
                 type: 'monthly'
             };
 
-            console.log("Submitting with payload:", payload);
-
             const response = await getEmployeeMonthlyReport(payload, searchParams);
-            console.log("API response:", response);
 
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully');
@@ -359,20 +359,19 @@ export default function AddEmployeeMonthlyReportForm({
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {
-                                                        employeesDataTransformed.length === 0 ? (
-                                                            <div className="p-4 text-center text-sm text-muted-foreground">
-                                                                No employees found for the selected criteria.
-                                                            </div>
-                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                    {employeesDataTransformed.length === 0 ? (
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            No employees found for the selected criteria.
+                                                        </div>
+                                                    ) : (
+                                                        (employeesDataTransformed as any[]).map((emp: any) => {
                                                             return (
                                                                 <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
                                                                     {emp.employeeName} - [{emp.employeeCode}]
                                                                 </SelectItem>
                                                             );
                                                         })
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -399,9 +398,9 @@ export default function AddEmployeeMonthlyReportForm({
                                                     const day = String(date.getDate()).padStart(2, '0');
                                                     field.onChange(`${year}-${month}-${day}`);
                                                     const nextMonthDate = addMonths(date, 1);
-                                                    const nextYear = nextMonthDate.getFullYear();
-                                                    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
-                                                    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                    const _nextYear = nextMonthDate.getFullYear();
+                                                    const _nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                    const _nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
                                                     // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                 } else {
                                                     field.onChange('');
@@ -440,14 +439,7 @@ export default function AddEmployeeMonthlyReportForm({
                                             }}
                                             placeholder='To date'
                                             className={errors.toDate ? 'border-red-500' : ''}
-                                            disabled={
-                                                fromDateObject
-                                                    ? [
-                                                        { before: fromDateObject },
-                                                        { after: today }
-                                                    ]
-                                                    : [{ after: today }]
-                                            }
+                                            disabled={fromDateObject ? [{ before: fromDateObject }, { after: today }] : [{ after: today }]}
                                         />
                                     )}
                                 />
@@ -486,7 +478,7 @@ export default function AddEmployeeMonthlyReportForm({
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col md:justify-end gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:justify-end'>
                     <Button
                         type='button'
                         variant='outline'

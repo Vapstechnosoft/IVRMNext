@@ -43,7 +43,7 @@ export function FeeMonthEndChart({ cash, bank, online, rtgs, card, ecs, cashRefu
     );
 }
 
-export function ExportToExcelData(reportData: any, formattedDate: string, schoolLogoUrl?: string, monthlabel?: string) {
+export function ExportToExcelData(reportData: any, formattedDate: string, _schoolLogoUrl?: string, monthlabel?: string) {
     if (!reportData) {
         toast.error('No data to export');
         return;

@@ -71,8 +71,8 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
             filterType: row.feeFlag || ''
         }
     });
-    const fromMonth = watch('from_Month');
-    const toMonth = watch('to_Month');
+    const _fromMonth = watch('from_Month');
+    const _toMonth = watch('to_Month');
 
     function OnReset() {
         refetchAll();
@@ -82,18 +82,7 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
     useEffect(() => {
         if (!row) return;
 
-        console.log('Loaded row data:', row);
-
         reset({
-            asmay_Id: row.asmaY_Id,
-            fmt_id: row.fmT_Id,
-            fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
-            from_Month: row.fromMonth ?? '',
-            to_Month: row.fmtToMonth ?? '',
-            filterType: row.feeFlag ?? ''
-        });
-
-        console.log('Form reset with data:', {
             asmay_Id: row.asmaY_Id,
             fmt_id: row.fmT_Id,
             fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
@@ -114,8 +103,7 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
             try {
                 const res = await get_split_year(selectedAcademicYear);
                 setSplitAcademicYear(res.data || []);
-            } catch (err) {
-                console.log('Failed to load split year:', err);
+            } catch (_err) {
                 setSplitAcademicYear([]);
             }
         };
@@ -147,8 +135,6 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
                 // user_id: 21602,
                 fmtP_Id: row.fmtP_Id
             };
-
-            console.log('Payload JSON:', JSON.stringify(payload));
             const response = await addOrUpdateTermsPeriod(payload);
 
             if (response.success) {

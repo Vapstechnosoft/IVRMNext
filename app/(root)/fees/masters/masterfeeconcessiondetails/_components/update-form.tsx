@@ -64,11 +64,8 @@ export default function UpdateMasterConcessionDetailsForm({
         refetchcategory();
     }
 
-    console.log('masterConcessionDetailsselected row', row);
-
     useEffect(() => {
         if (row) {
-            console.log('row', row);
             reset({
                 fmcC_Id: row.fmcC_Id,
                 fmccD_PerOrAmtFlag: row.fmccD_PerOrAmtFlag,
@@ -93,8 +90,6 @@ export default function UpdateMasterConcessionDetailsForm({
                 fmccD_PerOrAmt: fmccD_PerOrAmt
                 // fmccD_CreatedBy: 21602
             };
-
-            console.log('payload', payload);
             const response = await addOrUpdateMasterConcessionDetails(payload);
 
             if (response.success) {

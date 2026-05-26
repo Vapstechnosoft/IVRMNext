@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] = [
     {
         id: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6 text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6 text-black text-bold' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex || 0;
             const pageSize = table.getState().pagination.pageSize || 10;
@@ -23,7 +23,7 @@ export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] 
 
     {
         accessorKey: 'amsT_FirstName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Notice Title' className='text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Notice Title' className='text-black text-bold' />,
         cell: ({ row }) => {
             const first = row.original.amsT_FirstName || '';
             const middle = row.original.amsT_MiddleName || '';
@@ -35,13 +35,13 @@ export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] 
 
     {
         accessorKey: 'fmH_FeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='text-black text-bold' />,
         cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>
     },
 
     {
         accessorKey: 'fswO_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' className='text-black text-bold' />,
         cell: ({ row }) => (
             <div>
                 {new Date(row.getValue('fswO_Date')).toLocaleDateString('en-GB', {
@@ -55,7 +55,7 @@ export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] 
 
     {
         accessorKey: 'fswO_WaivedOffAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' className='text-black text-bold' />,
         cell: ({ row }) => (
             <div>
                 {new Date(row.getValue('fswO_WaivedOffAmount')).toLocaleDateString('en-GB', {
@@ -69,7 +69,7 @@ export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] 
 
     {
         accessorKey: 'fswO_FineFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Display Date' className='text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Display Date' className='text-black text-bold' />,
         cell: ({ row }) => (
             <div>
                 {new Date(row.getValue('fswO_FineFlg')).toLocaleDateString('en-GB', {
@@ -83,13 +83,13 @@ export const uploadNoticeBoardColumns: ColumnDef<feeTransactionWaivedOffGrid>[] 
 
     {
         accessorKey: 'Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='View Attachment' className='text-bold text-black' />,
-        cell: () => <div></div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='View Attachment' className='text-black text-bold' />,
+        cell: () => <div />
     },
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start text-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start text-black text-bold' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }

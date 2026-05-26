@@ -40,7 +40,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
             return (
                 <div className='flex flex-col gap-1'>
                     <span>{regNo}</span>
-                    {formattedDate && <span className='text-sm text-gray-500'>{formattedDate}</span>}
+                    {formattedDate && <span className='text-gray-500 text-sm'>{formattedDate}</span>}
                 </div>
             );
         },
@@ -54,7 +54,9 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-black' column={column} title='Application Form' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-black' column={column} title='Application Form' />
+        ),
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -72,8 +74,8 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                 typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
-                                        ? ((data.data[0] as unknown as string) ?? null)
-                                        : null;
+                                      ? ((data.data[0] as unknown as string) ?? null)
+                                      : null;
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -168,9 +170,20 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='View' className='text-center font-bold text-black' />,
         cell: ({ row }) => {
             const data = row.original;
-            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
-            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
-            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const studentPhoto =
+                data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto =
+                data.pasR_FatherPhoto ||
+                (data as any).father_photo ||
+                (data as any).fatherPhoto ||
+                (data as any).pasr_father_photo ||
+                (data as any).pasR_Father_Photo;
+            let motherPhoto =
+                data.pasR_MotherPhoto ||
+                (data as any).mother_photo ||
+                (data as any).motherPhoto ||
+                (data as any).pasr_mother_photo ||
+                (data as any).pasR_Mother_Photo;
             const doclist = data.doclist || [];
 
             // If not found in primary properties, try to find in doclist by name
@@ -271,11 +284,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                             />
                                         </div>
                                     ) : (
-                                        <iframe
-                                            src={selectedDoc.path}
-                                            title={selectedDoc.name}
-                                            className='h-full w-full border-none'
-                                        />
+                                        <iframe src={selectedDoc.path} title={selectedDoc.name} className='h-full w-full border-none' />
                                     )}
                                 </div>
                             </DialogContent>
@@ -291,9 +300,20 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Download' className='font-bold text-black' />,
         cell: ({ row }) => {
             const data = row.original;
-            const studentPhoto = data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
-            let fatherPhoto = data.pasR_FatherPhoto || (data as any).father_photo || (data as any).fatherPhoto || (data as any).pasr_father_photo || (data as any).pasR_Father_Photo;
-            let motherPhoto = data.pasR_MotherPhoto || (data as any).mother_photo || (data as any).motherPhoto || (data as any).pasr_mother_photo || (data as any).pasR_Mother_Photo;
+            const studentPhoto =
+                data.student_photo || data.pasR_Student_Pic_Path || (data as any).studentPhoto || (data as any).pasr_student_pic_path;
+            let fatherPhoto =
+                data.pasR_FatherPhoto ||
+                (data as any).father_photo ||
+                (data as any).fatherPhoto ||
+                (data as any).pasr_father_photo ||
+                (data as any).pasR_Father_Photo;
+            let motherPhoto =
+                data.pasR_MotherPhoto ||
+                (data as any).mother_photo ||
+                (data as any).motherPhoto ||
+                (data as any).pasr_mother_photo ||
+                (data as any).pasR_Mother_Photo;
             const doclist = data.doclist || [];
 
             // If not found in primary properties, try to find in doclist by name
@@ -351,14 +371,8 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                         <button
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
-                            onClick={() =>
-                                handleDownload(studentPhoto, `Student_Photo_${row.original.pasr_id}.jpg`, 'student')
-                            }>
-                            {downloading === 'student' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            onClick={() => handleDownload(studentPhoto, `Student_Photo_${row.original.pasr_id}.jpg`, 'student')}>
+                            {downloading === 'student' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -367,11 +381,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
                             onClick={() => handleDownload(fatherPhoto, `Father_Photo_${row.original.pasr_id}.jpg`, 'father')}>
-                            {downloading === 'father' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            {downloading === 'father' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -380,11 +390,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                             type='button'
                             className='flex items-center gap-2 text-blue-600 transition-colors hover:text-blue-800'
                             onClick={() => handleDownload(motherPhoto, `Mother_Photo_${row.original.pasr_id}.jpg`, 'mother')}>
-                            {downloading === 'mother' ? (
-                                <Spinner size='sm' />
-                            ) : (
-                                <Download className='h-4 w-4' />
-                            )}
+                            {downloading === 'mother' ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                             <span className='text-sm'>Download</span>
                         </button>
                     )}
@@ -404,11 +410,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                         `doc-${index}`
                                     )
                                 }>
-                                {downloading === `doc-${index}` ? (
-                                    <Spinner size='sm' />
-                                ) : (
-                                    <Download className='h-4 w-4' />
-                                )}
+                                {downloading === `doc-${index}` ? <Spinner size='sm' /> : <Download className='h-4 w-4' />}
                                 <span className='text-sm'>Download {doc.amsmD_DocumentName}</span>
                             </button>
                         );

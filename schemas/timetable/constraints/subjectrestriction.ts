@@ -75,7 +75,6 @@ export const daySubjectSchema = z.object({
         .optional()
 });
 
-
 export type PeriodStaffSchema = z.infer<typeof periodStaffSchema>;
 export const periodStaffSchema = z.object({
     ttrpS_Id: z.number().optional(),
@@ -97,7 +96,6 @@ export const periodStaffSchema = z.object({
         )
         .optional()
 });
-
 
 export type PeriodSubjectSchema = z.infer<typeof periodSubjectSchema>;
 export const periodSubjectSchema = z.object({

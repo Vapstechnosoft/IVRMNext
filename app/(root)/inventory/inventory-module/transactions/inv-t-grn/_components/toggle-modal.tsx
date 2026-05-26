@@ -30,7 +30,7 @@ export function ToggleGRNModal({ rowData, onClose }: ToggleGRNModalProps) {
     };
 
     return (
-        <AdaptiveDialog title='Toggle GRN Status' isOpen={true} onClose={onClose} size="md">
+        <AdaptiveDialog title='Toggle GRN Status' isOpen={true} onClose={onClose} size='md'>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <div className='space-y-3'>

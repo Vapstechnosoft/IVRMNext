@@ -81,9 +81,9 @@ export default function UpdateStudentFeeTransactionStThomas({ onSuccess, asmayId
     const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
     const [studentSearch, setStudentSearch] = useState('');
-    const [students, setStudents] = useState<IStudentSearchList[]>([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
+    const [_students, setStudents] = useState<IStudentSearchList[]>([]);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
+    const [selectedStudent, _setSelectedStudent] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
@@ -151,7 +151,7 @@ export default function UpdateStudentFeeTransactionStThomas({ onSuccess, asmayId
     const [section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
     const [amountforTerm, setAmountforTerm] = useState('');
-    const [selectAll, setSelectAll] = useState(true);
+    const [_selectAll, setSelectAll] = useState(true);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
@@ -319,7 +319,7 @@ export default function UpdateStudentFeeTransactionStThomas({ onSuccess, asmayId
                     fyP_Date: todaysDate
                 };
                 const termListArray = await getFeeHead(payload);
-                const feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
+                const _feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
                 const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
                 const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));
                 // setFeeHeads(feeDetails || []);
@@ -413,19 +413,15 @@ export default function UpdateStudentFeeTransactionStThomas({ onSuccess, asmayId
             ...initialSelectedBanks
         }));
     }, [masterBanks, masterModeofPaymentList]);
-    console.log('selectedBank', selectedBanks);
 
     const totalpaying = feeHeads.reduce((sum: number, f: any) => {
         const amount = Number.parseFloat(f.fsS_ToBePaid?.toString() || '0') || 0;
         return sum + amount;
     }, 0);
 
-    console.log('totalpaying', totalpaying);
-
     // To see the updated value, use useEffect
     useEffect(() => {
         setTotal(totalpaying);
-        console.log('Total updated:', Total);
     }, [Total, feeHeads]);
     const [modeType, setModeType] = useState<string>(masterModeofPaymentList.length === 1 ? 'Single' : 'Multiple');
 

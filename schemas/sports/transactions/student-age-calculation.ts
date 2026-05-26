@@ -6,8 +6,8 @@ export const studentAgeCalculationSchema = z.object({
     ASMS_Id: z.coerce.number().min(1, 'Select Section'),
     student: z.array(z.coerce.number()).min(1, 'Select at least one Student'),
     Till_Date: z.date({
-        required_error: "Age Till Date is required",
-    }),
+        required_error: 'Age Till Date is required'
+    })
 });
 
 export type StudentAgeCalculationFormData = z.infer<typeof studentAgeCalculationSchema>;

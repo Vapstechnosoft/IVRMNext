@@ -256,8 +256,6 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     asmS_Id: section === true ? asmS_Id : 0,
                     amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
-
-                console.log('student details payload', JSON.stringify(payload));
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
@@ -289,11 +287,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
-                console.log('term details payload', JSON.stringify(payload));
-                console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
-
-                console.log('response', JSON.stringify(termArray));
 
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
@@ -786,7 +780,6 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 smsconfig: sms,
                 emailconfig: email
             };
-            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {

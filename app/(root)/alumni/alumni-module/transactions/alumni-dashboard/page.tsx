@@ -24,7 +24,7 @@ import type {
     IYearwiseCount
 } from '@/types/alumni/alumni-dashboard';
 import { format } from 'date-fns';
-import { Download, Eye, FileText, LayoutDashboard } from 'lucide-react';
+import { Download, Eye, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -62,8 +62,6 @@ export default function AlumniDashboardPage() {
                 ]);
 
                 if (dashboardRes.success) {
-                    console.log('Dashboard Data:', dashboardRes.data);
-                    console.log('Batch Data:', dashboardRes.data?.batch);
                     setData(dashboardRes.data!);
 
                     // Prioritize distinct birthday API data if available, else fall back to dashboard's list
@@ -78,7 +76,6 @@ export default function AlumniDashboardPage() {
 
                 // Set COE Events from mapped_eventlist
                 if (coeRes?.success && coeRes?.data?.mapped_eventlist) {
-                    console.log('COE Events Data:', coeRes.data.mapped_eventlist);
                     setCoeEvents(coeRes.data.mapped_eventlist);
                 }
             } catch (error) {
@@ -110,9 +107,7 @@ export default function AlumniDashboardPage() {
     };
 
     const handleViewGallery = async (id: number) => {
-        console.log('handleViewGallery called with id:', id);
         const res = await viewGalleryItem(id);
-        console.log('viewGalleryItem response:', res);
         if (res.success) {
             setGalleryDetail({ open: true, data: res.data || [] });
         } else {
@@ -432,26 +427,26 @@ export default function AlumniDashboardPage() {
                                                 <td className='p-3 text-center'>
                                                     {item.alga_date
                                                         ? (() => {
-                                                            try {
-                                                                return format(new Date(item.alga_date), 'dd-MM-yyyy');
-                                                            } catch {
-                                                                return item.alga_date;
-                                                            }
-                                                        })()
+                                                              try {
+                                                                  return format(new Date(item.alga_date), 'dd-MM-yyyy');
+                                                              } catch {
+                                                                  return item.alga_date;
+                                                              }
+                                                          })()
                                                         : '-'}
                                                 </td>
                                                 <td className='p-3 text-center'>
                                                     {item.alga_time
                                                         ? (() => {
-                                                            try {
-                                                                // Try to extract time from datetime string like "2026-01-16 07:15:42"
-                                                                const timeStr = item.alga_time.toString();
-                                                                const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr;
-                                                                return timePart?.substring(0, 5) || item.alga_time;
-                                                            } catch {
-                                                                return item.alga_time;
-                                                            }
-                                                        })()
+                                                              try {
+                                                                  // Try to extract time from datetime string like "2026-01-16 07:15:42"
+                                                                  const timeStr = item.alga_time.toString();
+                                                                  const timePart = timeStr.includes(' ') ? timeStr.split(' ')[1] : timeStr;
+                                                                  return timePart?.substring(0, 5) || item.alga_time;
+                                                              } catch {
+                                                                  return item.alga_time;
+                                                              }
+                                                          })()
                                                         : '-'}
                                                 </td>
                                                 <td className='p-3 text-center'>

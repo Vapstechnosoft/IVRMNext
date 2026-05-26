@@ -12,7 +12,7 @@ interface ClassWiseReportGridProps {
 }
 
 export default function ClassWiseReportGrid({ reportData, onPrint, initialSize = '10' }: ClassWiseReportGridProps) {
-    const [size, setSize] = useState(initialSize);
+    const [size, _setSize] = useState(initialSize);
 
     const fontSizeClass =
         {
@@ -35,7 +35,7 @@ export default function ClassWiseReportGrid({ reportData, onPrint, initialSize =
 
         const wb = XLSX.utils.book_new();
 
-        reportData.forEach((tableData, index) => {
+        reportData.forEach((tableData, _index) => {
             const worksheetData: any[] = [];
 
             // Title

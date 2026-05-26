@@ -128,7 +128,7 @@ function ActionButtonsCell({
         [openEditForm]
     );
 
-    const handleToggle = useCallback(
+    const _handleToggle = useCallback(
         (data: IFeeThirdPartyTransaction) => {
             openToggleForm(data);
         },

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
 import { Readable } from 'node:stream';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -91,8 +91,6 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
     // Or just return what we have.
 
     if (!combinedContent && chapters.length > 0) {
-        // Absolute fallback if Regex failed completely: simple string search
-        console.log('Regex extraction failed, trying fallback search...');
         const normalized = fullText.toLowerCase();
         for (const chapter of chapters) {
             const target = chapter.trim().toLowerCase();
@@ -113,7 +111,6 @@ export async function POST(req: NextRequest) {
         const timestamp = new Date().toISOString();
         const entry = `[${timestamp}] ${msg}`;
         logs.push(entry);
-        console.log(entry);
     };
 
     try {
@@ -138,7 +135,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -173,7 +170,7 @@ export async function POST(req: NextRequest) {
 
         log(`File parsed: ${fileName}, Size: ${pdfBuffer.length}`);
 
-        const rawMarkConfig = JSON.parse(formFields['markConfig'] || '[]');
+        const rawMarkConfig = JSON.parse(formFields.markConfig || '[]');
         let markConfigArray: { markValue: number; count: number; isMCQ?: boolean }[] = [];
 
         if (Array.isArray(rawMarkConfig)) {
@@ -187,8 +184,8 @@ export async function POST(req: NextRequest) {
             }));
         }
 
-        const difficultyConfig = JSON.parse(formFields['difficultyConfig'] || '{}');
-        const chapters = formFields['chapters'] ? formFields['chapters'].split(',').map((c) => c.trim()) : [];
+        const difficultyConfig = JSON.parse(formFields.difficultyConfig || '{}');
+        const chapters = formFields.chapters ? formFields.chapters.split(',').map((c) => c.trim()) : [];
 
         log(`PDF Buffer ready, length: ${pdfBuffer.length}`);
 
@@ -208,7 +205,7 @@ export async function POST(req: NextRequest) {
             log(`PDF Parsing Error: ${e.message}\nStack: ${e.stack}`);
             return NextResponse.json(
                 {
-                    error: 'Failed to parse PDF: ' + e.message,
+                    error: `Failed to parse PDF: ${e.message}`,
                     details: logs.join('\n')
                 },
                 { status: 500 }
@@ -226,7 +223,7 @@ export async function POST(req: NextRequest) {
         // Construct Prompt
         const totalMarks = markConfigArray.reduce((acc, curr) => acc + Number(curr.markValue) * Number(curr.count), 0);
         const totalQuestionsCount = markConfigArray.reduce((acc, curr) => acc + Number(curr.count), 0);
-        
+
         // Calculate exact counts for each difficulty
         const easyCount = Math.round(((difficultyConfig.easy || 30) / 100) * totalQuestionsCount);
         const mediumCount = Math.round(((difficultyConfig.medium || 40) / 100) * totalQuestionsCount);

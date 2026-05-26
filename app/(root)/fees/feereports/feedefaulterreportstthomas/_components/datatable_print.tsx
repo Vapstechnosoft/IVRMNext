@@ -67,7 +67,7 @@ export default function DataTablePrint({ onClose }: DataTablePrintProps) {
             }
 
             // Get the content to print
-            const contentToPrint = printRef.current.innerHTML;
+            const _contentToPrint = printRef.current.innerHTML;
 
             // Write the print content to the new window
             printWindow.document.write(`

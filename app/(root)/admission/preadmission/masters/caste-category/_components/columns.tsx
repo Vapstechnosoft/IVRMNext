@@ -35,7 +35,9 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
     },
     {
         accessorKey: 'imcC_CategoryDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Caste Category Description' className='font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Caste Category Description' className='font-bold text-black' />
+        ),
         cell: ({ row }) => (
             <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>
                 {row.getValue('imcC_CategoryDesc') === null || row.getValue('imcC_CategoryDesc') === undefined

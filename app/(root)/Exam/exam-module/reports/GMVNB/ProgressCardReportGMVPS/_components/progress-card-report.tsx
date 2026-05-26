@@ -112,73 +112,95 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
 
             <div id='progress-card-print-area' className='report-container'>
                 {reportData.map((report, index) => (
-                    <div key={report.amsT_Id + index} className="report-page p-4 bg-white mb-8">
+                    <div key={report.amsT_Id + index} className='report-page mb-8 bg-white p-4'>
                         {/* Header Image */}
-                        <div className="w-full text-center mb-4">
+                        <div className='mb-4 w-full text-center'>
                             <Image
-                                src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg"
-                                alt="School Header"
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg'
+                                alt='School Header'
                                 width={800}
                                 height={150}
-                                className="w-full h-auto mx-auto"
+                                className='mx-auto h-auto w-full'
                                 unoptimized
                             />
                         </div>
 
                         {/* Student Details Section */}
-                        <div className="grid grid-cols-12 gap-4 mb-6">
-                            <div className="col-span-9 space-y-1">
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Name</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{report.amsT_FirstName}</div>
+                        <div className='mb-6 grid grid-cols-12 gap-4'>
+                            <div className='col-span-9 space-y-1'>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Name</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>{report.amsT_FirstName}</div>
                                 </div>
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Admission No</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{report.amsT_AdmNo}</div>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Admission No</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>{report.amsT_AdmNo}</div>
                                 </div>
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Class & Section</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Class & Section</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>
+                                        {report.asmcL_ClassName} - {report.asmC_SectionName}
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Date of Birth</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{formatDate(report.amsT_DOB)}</div>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Date of Birth</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>{formatDate(report.amsT_DOB)}</div>
                                 </div>
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Mother's Name</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{report.amsT_MotherName}</div>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Mother's Name</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>{report.amsT_MotherName}</div>
                                 </div>
-                                <div className="grid grid-cols-12">
-                                    <div className="col-span-4 font-bold">Father's Name</div>
-                                    <div className="col-span-1">:</div>
-                                    <div className="col-span-7 font-bold">{report.amsT_FatherName}</div>
+                                <div className='grid grid-cols-12'>
+                                    <div className='col-span-4 font-bold'>Father's Name</div>
+                                    <div className='col-span-1'>:</div>
+                                    <div className='col-span-7 font-bold'>{report.amsT_FatherName}</div>
                                 </div>
                             </div>
-                            <div className="col-span-3 text-right">
+                            <div className='col-span-3 text-right'>
                                 {report.amsT_Photoname ? (
-                                    <img src={report.amsT_Photoname} alt="Student" style={{ width: '120px', height: '120px', border: '1px solid black', objectFit: 'cover' }} />
+                                    <img
+                                        src={report.amsT_Photoname}
+                                        alt='Student'
+                                        style={{ width: '120px', height: '120px', border: '1px solid black', objectFit: 'cover' }}
+                                    />
                                 ) : (
-                                    <div style={{ width: '120px', height: '120px', border: '1px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Photo</div>
+                                    <div
+                                        style={{
+                                            width: '120px',
+                                            height: '120px',
+                                            border: '1px solid black',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                        Photo
+                                    </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Exam Title */}
-                        <div className="text-center mb-4">
-                            <h3 className="font-bold text-xl uppercase">{examName} - {year}</h3>
+                        <div className='mb-4 text-center'>
+                            <h3 className='font-bold text-xl uppercase'>
+                                {examName} - {year}
+                            </h3>
                         </div>
 
                         {/* Marks Table */}
-                        <table className="table-custom mb-6">
+                        <table className='table-custom mb-6'>
                             <thead>
                                 <tr>
-                                    <th rowSpan={2} style={{ width: '50px' }}>SL No</th>
-                                    <th colSpan={2} rowSpan={2}>SUBJECT</th>
+                                    <th rowSpan={2} style={{ width: '50px' }}>
+                                        SL No
+                                    </th>
+                                    <th colSpan={2} rowSpan={2}>
+                                        SUBJECT
+                                    </th>
                                     <th colSpan={4}>{examName}</th>
                                 </tr>
                                 <tr>
@@ -190,7 +212,7 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                             </thead>
                             <tbody>
                                 {report.sub_list.map((mark, i) => {
-                                    const subject = subjects.find(s => s.ismS_Id === mark.ismS_Id);
+                                    const subject = subjects.find((s) => s.ismS_Id === mark.ismS_Id);
                                     if (!subject) return null;
 
                                     const isAbsent = mark.estmpS_PassFailFlg === 'AB';
@@ -198,12 +220,12 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                                     return (
                                         <tr key={mark.ismS_Id}>
                                             <td>{i + 1}</td>
-                                            <td colSpan={2} className="text-left font-bold pl-4">{subject.ismS_SubjectName}</td>
+                                            <td colSpan={2} className='pl-4 text-left font-bold'>
+                                                {subject.ismS_SubjectName}
+                                            </td>
                                             <td>{mark.estmpS_MaxMarks}</td>
                                             <td>{mark.estmpS_MinMarks}</td>
-                                            <td>
-                                                {isAbsent ? 'AB' : mark.estmpS_ObtainedMarks}
-                                            </td>
+                                            <td>{isAbsent ? 'AB' : mark.estmpS_ObtainedMarks}</td>
                                             <td>{mark.estmpS_ObtainedGrade}</td>
                                         </tr>
                                     );
@@ -326,26 +348,31 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                         </div> */}
 
                         {/* Signatures Section */}
-                        <div className="mt-20">
-                            <div className="grid grid-cols-3 gap-4 mb-4">
-                                <div className="text-left">
-                                    <img src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg" alt="Principal Signature" style={{ width: '150px' }} />
+                        <div className='mt-20'>
+                            <div className='mb-4 grid grid-cols-3 gap-4'>
+                                <div className='text-left'>
+                                    <img
+                                        src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg'
+                                        alt='Principal Signature'
+                                        style={{ width: '150px' }}
+                                    />
                                 </div>
-                                <div></div>
-                                <div></div>
+                                <div />
+                                <div />
                             </div>
-                            <div className="grid grid-cols-3 gap-4 text-sm">
-                                <div className="text-left font-bold pl-4">Principal’s Signature</div>
-                                <div className="text-center font-bold">Institution Seal</div>
-                                <div className="text-right pr-4">
-                                    <span className="font-bold">Class Teacher’s Signature</span><br />
-                                    <span className="font-bold">Date: {new Date().toLocaleDateString('en-GB')}</span>
+                            <div className='grid grid-cols-3 gap-4 text-sm'>
+                                <div className='pl-4 text-left font-bold'>Principal’s Signature</div>
+                                <div className='text-center font-bold'>Institution Seal</div>
+                                <div className='pr-4 text-right'>
+                                    <span className='font-bold'>Class Teacher’s Signature</span>
+                                    <br />
+                                    <span className='font-bold'>Date: {new Date().toLocaleDateString('en-GB')}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Final Page Break */}
-                        {index < reportData.length - 1 && <div className="page-break-after"></div>}
+                        {index < reportData.length - 1 && <div className='page-break-after' />}
                     </div>
                 ))}
             </div>

@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useBonafiedStudDetails } from '@/hooks/admission/preadmission/useStjamesBonafiedReport';
+import { Loader2, Printer } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import { FilterForm } from './_components/filter-form';
 import { BonafiedCertificatePrint } from './_components/bonafied-certificate-print';
-import { useBonafiedStudDetails } from '@/hooks/admission/preadmission/useStjamesBonafiedReport';
-import { Button } from '@/components/ui/button';
-import { Printer, Loader2 } from 'lucide-react';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FilterForm } from './_components/filter-form';
 
 export default function StjamesBonafiedReportPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -25,8 +25,8 @@ export default function StjamesBonafiedReportPage() {
 
             toast.loading('Generating Bonafied Certificate...', { id: 'bonafied-report' });
 
-            const classId = formData.allorindi === 'A' ? 0 : (formData.ASMCL_Id || 0);
-            const sectionId = formData.allorindi === 'A' ? 0 : (formData.ASMS_Id || 0);
+            const classId = formData.allorindi === 'A' ? 0 : formData.ASMCL_Id || 0;
+            const sectionId = formData.allorindi === 'A' ? 0 : formData.ASMS_Id || 0;
 
             const payload = {
                 ASMAY_Id: formData.ASMAY_Id,
@@ -36,13 +36,13 @@ export default function StjamesBonafiedReportPage() {
                 save_flag: saveFlag
             };
 
-            const response = await studDetailsMutation.mutateAsync(payload) as any;
+            const response = (await studDetailsMutation.mutateAsync(payload)) as any;
             const data = response.data?.data || response.data;
 
-            if (data && data.studentlist && data.studentlist.length > 0) {
+            if (data?.studentlist && data.studentlist.length > 0) {
                 const student = data.studentlist[0];
                 const masterCompany = data.masterCompany?.[0] || {};
-                const academicList = data.academicList1?.[0] || {};
+                const _academicList = data.academicList1?.[0] || {};
                 const leftStudentDetails = data.leftstudentdetails?.[0] || null;
                 const studentList1 = data.studentlist1?.[0] || {};
 
@@ -51,7 +51,7 @@ export default function StjamesBonafiedReportPage() {
                 const genderData = {
                     sonof: isFemale ? 'd/o' : 's/o',
                     gender4: isFemale ? 'She' : 'He',
-                    hisHer: isFemale ? 'her' : 'his',
+                    hisHer: isFemale ? 'her' : 'his'
                 };
 
                 // Determine report format and active/left text
@@ -81,11 +81,11 @@ export default function StjamesBonafiedReportPage() {
                 let yearcode1 = '';
                 let fromyear = '';
                 let toyear = '';
-                let frommonth1 = 'April'; // Typical start month for Indian academic year
+                const frommonth1 = 'April'; // Typical start month for Indian academic year
 
                 if (formData.yearList) {
                     const selectedYear = formData.yearList.find(
-                        (y: any) => parseInt(y.asmaY_Id) === parseInt(formData.ASMAY_Id)
+                        (y: any) => Number.parseInt(y.asmaY_Id) === Number.parseInt(formData.ASMAY_Id)
                     );
                     if (selectedYear) {
                         const ddyear = selectedYear.asmaY_Year.split('-');
@@ -99,7 +99,8 @@ export default function StjamesBonafiedReportPage() {
                 const capitalize = (str: string) => {
                     if (!str) return '';
                     const cleanStr = str.split(':')[0];
-                    return cleanStr.split(' ')
+                    return cleanStr
+                        .split(' ')
                         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                         .join(' ');
                 };
@@ -129,7 +130,7 @@ export default function StjamesBonafiedReportPage() {
                     yearcode1,
                     fromyear,
                     toyear,
-                    frommonth1,
+                    frommonth1
                 };
 
                 setReportFormat(format);
@@ -153,43 +154,38 @@ export default function StjamesBonafiedReportPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Bonafied_Certificate_${reportData?.studentname || 'Student'}`,
+        documentTitle: `Bonafied_Certificate_${reportData?.studentname || 'Student'}`
     });
 
     return (
-        <div className="container mx-auto p-4 space-y-6">
+        <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection
-                title="Bonafide Certificate"
-                description="Generate and print Bonafide Certificates for St. James School"
-                defaultOpen={true}
-            >
-                <div className="bg-white p-6">
+                title='Bonafide Certificate'
+                description='Generate and print Bonafide Certificates for St. James School'
+                defaultOpen={true}>
+                <div className='bg-white p-6'>
                     <FilterForm onSubmit={handleReport} onReset={handleReset} />
                 </div>
             </CollapsibleSection>
 
             {studDetailsMutation.isPending && (
-                <div className="flex flex-col items-center justify-center p-12 space-y-4">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Generating certificate preview...</p>
+                <div className='flex flex-col items-center justify-center space-y-4 p-12'>
+                    <Loader2 className='h-12 w-12 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating certificate preview...</p>
                 </div>
             )}
 
             {showReport && reportData && (
-                <div className="space-y-4 animate-in fade-in duration-500">
-                    <div className="flex justify-end gap-4 p-4 bg-slate-50 border rounded-lg">
-                        <Button onClick={() => handlePrint()} className="w-full transition-all duration-200 hover:scale-105 sm:w-fit">
-                            <Printer className="mr-2 h-4 w-4" /> Print
+                <div className='fade-in animate-in space-y-4 duration-500'>
+                    <div className='flex justify-end gap-4 rounded-lg border bg-slate-50 p-4'>
+                        <Button onClick={() => handlePrint()} className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                            <Printer className='mr-2 h-4 w-4' /> Print
                         </Button>
                     </div>
 
-                    <div className="bg-slate-100 p-8 rounded-xl border-2 border-dashed border-slate-300 flex justify-center overflow-x-auto">
-                        <div className="shadow-2xl bg-white origin-top">
-                            <BonafiedCertificatePrint
-                                ref={printRef}
-                                data={reportData}
-                                reportFormat={reportFormat}
-                            />
+                    <div className='flex justify-center overflow-x-auto rounded-xl border-2 border-slate-300 border-dashed bg-slate-100 p-8'>
+                        <div className='origin-top bg-white shadow-2xl'>
+                            <BonafiedCertificatePrint ref={printRef} data={reportData} reportFormat={reportFormat} />
                         </div>
                     </div>
                 </div>

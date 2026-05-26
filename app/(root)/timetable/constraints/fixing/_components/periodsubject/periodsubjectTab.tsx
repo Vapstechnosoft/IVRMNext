@@ -6,22 +6,22 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
 import { usePeriodSubjectGridData } from '@/hooks/timetable/constraints/fixingData';
-import { getdetailsAllFixing, getFixingPeriodSubjectDetails } from '@/server/timetable/constraints/fixing';
+import { getFixingPeriodSubjectDetails, getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { periodSubjectColumns } from './periodsubjectColumns';
-import PeriodSubjectAddForm from './periodsubjectAddForm';
-import PeriodSubjectUpdate from './periodsubjectUpdate';
-import PeriodSubjectToggle from './periodsubjectToggle';
 import { FixingViewModal } from '../fixing-view-modal';
+import PeriodSubjectAddForm from './periodsubjectAddForm';
+import { periodSubjectColumns } from './periodsubjectColumns';
+import PeriodSubjectToggle from './periodsubjectToggle';
+import PeriodSubjectUpdate from './periodsubjectUpdate';
 
 interface PeriodSubjectTabProps {
     initialData: any;
     searchParams?: any;
 }
 
-const uniqueById = (list: any[], idKey: string) => {
+const _uniqueById = (list: any[], idKey: string) => {
     const seen = new Set();
     return (list || []).filter((item: any) => {
         if (!item) return false;
@@ -178,42 +178,42 @@ function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTab
                 <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
-                            <PeriodSubjectAddForm
-                                academicList={academicList}
-                                periodList={periodList}
-                                subjectList={subjectList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
-                        )}
+                            {isAddFormOpen && (
+                                <PeriodSubjectAddForm
+                                    academicList={academicList}
+                                    periodList={periodList}
+                                    subjectList={subjectList}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeAddForm}
+                                />
+                            )}
 
-                        {isEditFormOpen && selectedRow && (
-                            <PeriodSubjectUpdate
-                                academicList={academicList}
-                                periodList={periodList}
-                                subjectList={subjectList}
-                                selectedRow={selectedRow}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeEditForm}
-                            />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                            {isEditFormOpen && selectedRow && (
+                                <PeriodSubjectUpdate
+                                    academicList={academicList}
+                                    periodList={periodList}
+                                    subjectList={subjectList}
+                                    selectedRow={selectedRow}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeEditForm}
+                                />
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
 

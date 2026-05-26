@@ -7,10 +7,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import {
-    useExportPreadmissionStudentList,
-    usePreadmissionClassDropdown
-} from '@/hooks/admission/preadmission/useTransactions';
+import { useExportPreadmissionStudentList, usePreadmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { exportPreadmissionToAdmission } from '@/server/admission/preadmission/transactions/export_preadmission';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare, Search, X } from 'lucide-react';
@@ -71,11 +68,11 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
 
     const handleSearch = () => {
         if (!academicYearId) {
-            toast.error("Please select an Academic Year");
+            toast.error('Please select an Academic Year');
             return;
         }
         if (classId === null) {
-            toast.error("Please select a Class");
+            toast.error('Please select a Class');
             return;
         }
 
@@ -134,21 +131,14 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
     return (
         <div className='min-h-screen'>
             {/* Header */}
-            <CollapsibleSection
-                defaultOpen={true}
-                title="Transfer Preadmission To Admission"
-                className='mb-4 shadow-xl'>
-                
+            <CollapsibleSection defaultOpen={true} title='Transfer Preadmission To Admission' className='mb-4 shadow-xl'>
                 <div className='flex flex-wrap justify-center gap-6 p-4'>
                     {/* Academic Year Filter */}
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='academic-year' className='mb-1 font-semibold'>
-                            Academic Year <span className="text-red-500">*</span>
+                            Academic Year <span className='text-red-500'>*</span>
                         </Label>
-                        <Select 
-                            onValueChange={(value) => setAcademicYearId(Number(value))} 
-                            value={academicYearId?.toString() || undefined}
-                        >
+                        <Select onValueChange={(value) => setAcademicYearId(Number(value))} value={academicYearId?.toString() || undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
@@ -171,12 +161,9 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                     {/* Class Filter */}
                     <div className='flex w-full flex-col gap-2 sm:w-56'>
                         <Label htmlFor='class' className='mb-1 font-semibold'>
-                            Class <span className="text-red-500">*</span>
+                            Class <span className='text-red-500'>*</span>
                         </Label>
-                        <Select 
-                            onValueChange={(value) => setClassId(Number(value))} 
-                            value={classId?.toString() || undefined}
-                        >
+                        <Select onValueChange={(value) => setClassId(Number(value))} value={classId?.toString() || undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
@@ -204,13 +191,13 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-4 p-4 pt-0">
-                    <Button onClick={handleSearch} className="gap-2" variant="default">
-                        <Search className="h-4 w-4" />
+                <div className='flex justify-center gap-4 p-4 pt-0'>
+                    <Button onClick={handleSearch} className='gap-2' variant='default'>
+                        <Search className='h-4 w-4' />
                         Search
                     </Button>
-                    <Button onClick={handleCancel} className="gap-2" variant="destructive">
-                        <X className="h-4 w-4" />
+                    <Button onClick={handleCancel} className='gap-2' variant='destructive'>
+                        <X className='h-4 w-4' />
                         Cancel
                     </Button>
                 </div>
@@ -220,7 +207,7 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                 <div className='container space-y-4 p-1'>
                     {/* Data Table Section */}
                     <CollapsibleSection
-                        title="List Of Students"
+                        title='List Of Students'
                         defaultOpen={true}
                         variant='default'
                         size='lg'

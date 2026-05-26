@@ -10,12 +10,12 @@ export async function getInvStockLoadData(searchParams?: ApiSearchparams) {
 }
 
 export async function saveInvStock(data: any) {
-    const url = `/INV_StockFacade/SaveStockDetails`;
+    const url = '/INV_StockFacade/SaveStockDetails';
     return await api.post<any>('inventory', url, data);
 }
 
 export async function getInvStockLoadStores() {
-    const url = `/INV_T_SalesFacade/loadStores`;
+    const url = '/INV_T_SalesFacade/loadStores';
     return await api.get<any>('inventory', url);
 }
 

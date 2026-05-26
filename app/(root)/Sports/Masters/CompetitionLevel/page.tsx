@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterCompetitionLevelForm from './_components/add-form';
 import { MasterCompetitionLevelColumns } from './_components/columns';
-import UpdateMasterCompetitionLevelForm from './_components/update-form';
 import ToggleMasterCompetitionLevelForm from './_components/toggle-form';
+import UpdateMasterCompetitionLevelForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,11 @@ export default function MasterCompetitionLevelPage(props: { searchParams: Search
 
     return (
         <FormProvider<IMasterCompetitionLevel>>
-            <MasterCompetitionLevelPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterCompetitionLevelPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -159,11 +159,7 @@ function MasterCompetitionLevelPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterCompetitionLevelForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterCompetitionLevelForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

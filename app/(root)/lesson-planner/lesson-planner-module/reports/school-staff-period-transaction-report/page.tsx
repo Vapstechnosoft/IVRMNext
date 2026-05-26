@@ -39,9 +39,7 @@ export default function SchoolStaffPeriodTransactionReportPage() {
     const handleReportSubmit = async (payload: ITransactionReportPayload) => {
         setIsLoading(true);
         try {
-            console.log('Transaction Report Payload:', payload);
             const res: any = await getTransactionReport(payload);
-            console.log('Transaction Report API Response:', res);
 
             if (!res) {
                 console.error('Transaction Report: Response is undefined/null');
@@ -53,7 +51,6 @@ export default function SchoolStaffPeriodTransactionReportPage() {
 
             // Handle flat data array from "data" property (New API Structure)
             if (res.data && Array.isArray(res.data)) {
-                console.log('Handling as Flat Data Array');
                 const flatData = res.data as ITransactionReportDetail[];
                 setReportData(flatData);
 

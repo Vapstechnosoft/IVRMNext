@@ -54,37 +54,36 @@ export const masterDriverShiftSchema = {
  * 2. Employee Shift Mapping Schema
  */
 export const employeeShiftMappingSchema = {
-    addOrUpdate: z
-        .object({
-            shiftName: z.string().min(1, 'Shift Name is required'),
-            applicableDate: z
-                .string()
-                .min(1, 'Date is required')
-                .refine((date) => {
-                    const d = new Date(date);
-                    return notPastDate(d);
-                }, 'Date cannot be a past date'),
-            type: z.array(z.string()).optional(), // Optional - used for filtering
-            department: z.array(z.string()).optional(), // Optional - used for filtering
-            designation: z.array(z.string()).optional(), // Optional - used for filtering
-            dayType: z.array(z.string()).optional(), // Optional - used for filtering
-            employees: z
-                .array(z.string())
-                .min(1, 'At least one employee must be selected')
-                .refine((employees) => employees.length > 0, {
-                    message: 'At least one employee must be selected'
-                }),
-            // Timing fields
-            shiftStartTime: z.string().optional(),
-            lunchStartTime: z.string().optional(),
-            shiftEndTime: z.string().optional(),
-            lunchEndTime: z.string().optional(),
-            totalWorkingHours: z.string().optional(),
-            delayPerShift: z.string().optional(),
-            halfDayWorkingHours: z.string().optional(),
-            earlyPerShift: z.string().optional(),
-            lunchHours: z.string().optional()
-        })
+    addOrUpdate: z.object({
+        shiftName: z.string().min(1, 'Shift Name is required'),
+        applicableDate: z
+            .string()
+            .min(1, 'Date is required')
+            .refine((date) => {
+                const d = new Date(date);
+                return notPastDate(d);
+            }, 'Date cannot be a past date'),
+        type: z.array(z.string()).optional(), // Optional - used for filtering
+        department: z.array(z.string()).optional(), // Optional - used for filtering
+        designation: z.array(z.string()).optional(), // Optional - used for filtering
+        dayType: z.array(z.string()).optional(), // Optional - used for filtering
+        employees: z
+            .array(z.string())
+            .min(1, 'At least one employee must be selected')
+            .refine((employees) => employees.length > 0, {
+                message: 'At least one employee must be selected'
+            }),
+        // Timing fields
+        shiftStartTime: z.string().optional(),
+        lunchStartTime: z.string().optional(),
+        shiftEndTime: z.string().optional(),
+        lunchEndTime: z.string().optional(),
+        totalWorkingHours: z.string().optional(),
+        delayPerShift: z.string().optional(),
+        halfDayWorkingHours: z.string().optional(),
+        earlyPerShift: z.string().optional(),
+        lunchHours: z.string().optional()
+    })
 };
 
 /**
@@ -183,12 +182,15 @@ const missingLogEntrySchema = z.object({
     }),
     remarks: z.string().max(250, 'Remarks must not exceed 250 characters').optional(),
     file: z.string().optional(),
-    uploadFile: z.instanceof(File).optional().refine((file) => {
-        if (!file) return true;
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-        return file.size <= maxSize && allowedTypes.includes(file.type);
-    }, 'File must be jpg, png, or pdf and not exceed 5MB')
+    uploadFile: z
+        .instanceof(File)
+        .optional()
+        .refine((file) => {
+            if (!file) return true;
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            return file.size <= maxSize && allowedTypes.includes(file.type);
+        }, 'File must be jpg, png, or pdf and not exceed 5MB')
 });
 
 export const employeeMissingLogsSchema = {
@@ -201,9 +203,7 @@ export const employeeMissingLogsSchema = {
                 const d = new Date(date);
                 return notFutureDate(d);
             }, 'Date cannot be in the future'),
-        entries: z
-            .array(missingLogEntrySchema)
-            .min(1, 'At least one missing log entry is required')
+        entries: z.array(missingLogEntrySchema).min(1, 'At least one missing log entry is required')
     })
 };
 
@@ -223,8 +223,8 @@ export const masterShiftSchema = {
             (data) => {
                 const startTime = data.startTime.split(':');
                 const endTime = data.endTime.split(':');
-                const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-                const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+                const startMinutes = Number.parseInt(startTime[0]) * 60 + Number.parseInt(startTime[1]);
+                const endMinutes = Number.parseInt(endTime[0]) * 60 + Number.parseInt(endTime[1]);
                 return endMinutes > startMinutes;
             },
             {
@@ -256,8 +256,8 @@ export const shiftSettingMasterSchema = {
             (data) => {
                 const startTime = data.shiftStartTime.split(':');
                 const endTime = data.shiftEndTime.split(':');
-                const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-                const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+                const startMinutes = Number.parseInt(startTime[0]) * 60 + Number.parseInt(startTime[1]);
+                const endMinutes = Number.parseInt(endTime[0]) * 60 + Number.parseInt(endTime[1]);
                 return endMinutes > startMinutes;
             },
             {
@@ -270,8 +270,8 @@ export const shiftSettingMasterSchema = {
                 if (data.lunchStartTime && data.lunchEndTime) {
                     const startTime = data.lunchStartTime.split(':');
                     const endTime = data.lunchEndTime.split(':');
-                    const startMinutes = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-                    const endMinutes = parseInt(endTime[0]) * 60 + parseInt(endTime[1]);
+                    const startMinutes = Number.parseInt(startTime[0]) * 60 + Number.parseInt(startTime[1]);
+                    const endMinutes = Number.parseInt(endTime[0]) * 60 + Number.parseInt(endTime[1]);
                     return endMinutes > startMinutes;
                 }
                 return true;
@@ -527,7 +527,9 @@ export const employeeMonthlyReportFilterSchema = z
         employeeIds: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
-        reportOptions: z.array(z.enum(['Total Working Days', 'Show Holiday Punch', 'Format One', 'Date Of Joining', 'Total Absent Days'])).optional()
+        reportOptions: z
+            .array(z.enum(['Total Working Days', 'Show Holiday Punch', 'Format One', 'Date Of Joining', 'Total Absent Days']))
+            .optional()
     })
     .refine(
         (data) => {
@@ -642,7 +644,6 @@ export const employeeAbsentReportFilterSchema = z
             path: ['toDate']
         }
     );
-
 
 /**
  * 8. Master Time Setting Schema

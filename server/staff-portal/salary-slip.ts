@@ -1,12 +1,7 @@
-
 'use server';
 
 import { api } from '@/lib/apiService';
-import type {
-    ISalarySlipInitialData,
-    ISalarySlipRequest,
-    ISalarySlipResponse
-} from '@/types/staff-portal/salary-slip';
+import type { ISalarySlipInitialData, ISalarySlipRequest, ISalarySlipResponse } from '@/types/staff-portal/salary-slip';
 
 /**
  * Get initial details for salary slip (Month/Year dropdowns)

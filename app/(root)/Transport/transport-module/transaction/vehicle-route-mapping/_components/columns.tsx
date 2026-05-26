@@ -39,9 +39,7 @@ export const vehicleRouteMappingColumns: ColumnDef<IVehicleRouteMapping>[] = [
     {
         accessorKey: 'trvR_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => (
-            <div>{new Date(row.getValue('trvR_Date')).toLocaleDateString()}</div>
-        )
+        cell: ({ row }) => <div>{new Date(row.getValue('trvR_Date')).toLocaleDateString()}</div>
     },
     {
         accessorKey: 'trmS_SessionName',

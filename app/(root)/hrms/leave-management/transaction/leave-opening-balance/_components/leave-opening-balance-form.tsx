@@ -8,7 +8,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { useEffect } from 'react';
 
 export interface LeaveOpeningBalanceFormData {
     selectedTypes: number[];
@@ -195,8 +194,7 @@ export function LeaveOpeningBalanceForm({
                         render={({ field }) => (
                             <Select
                                 value={field.value ? field.value.toString() : ''}
-                                onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                            >
+                                onValueChange={(value) => field.onChange(Number.parseInt(value))}>
                                 <SelectTrigger id='employee-select' className={errors.selectedEmployeeId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Employee' />
                                 </SelectTrigger>

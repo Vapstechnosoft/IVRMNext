@@ -1,5 +1,5 @@
-import { EmployeeProfileDetail } from '@/types/hrms/reports/employee-profile-report';
 import { Card, CardContent } from '@/components/ui/card';
+import type { EmployeeProfileDetail } from '@/types/hrms/reports/employee-profile-report';
 import { format } from 'date-fns';
 
 interface EmployeeProfileCardProps {
@@ -15,18 +15,18 @@ export function EmployeeProfileCard({ profile }: EmployeeProfileCardProps) {
         if (!dateString) return 'N/A';
         try {
             return format(new Date(dateString), 'dd-MM-yyyy');
-        } catch (e) {
+        } catch (_e) {
             return dateString;
         }
     };
 
     return (
-        <Card className='mb-6 overflow-hidden print:mb-8 print:break-inside-avoid print:shadow-none print:border-none print:p-0'>
+        <Card className='mb-6 overflow-hidden print:mb-8 print:break-inside-avoid print:border-none print:p-0 print:shadow-none'>
             <CardContent className='p-6 print:p-0'>
                 {/* Header removed from here to be displayed once per page */}
 
                 {/* Profile Details */}
-                <div className='flex flex-col md:flex-row gap-6 print:flex-row'>
+                <div className='flex flex-col gap-6 md:flex-row print:flex-row'>
                     {/* Left Data Column */}
                     <div className='flex-1'>
                         <table className='w-full text-sm print:text-xs'>
@@ -51,18 +51,14 @@ export function EmployeeProfileCard({ profile }: EmployeeProfileCardProps) {
                     </div>
 
                     {/* Right Image Column */}
-                    <div className='w-full md:w-48 flex justify-center md:block print:w-40'>
+                    <div className='flex w-full justify-center md:block md:w-48 print:w-40'>
                         {/* Fallback image placeholder or actual photo */}
-                        <div className={`w-32 h-40 border-2 ${profile.hrmE_Photo ? 'bg-muted' : 'border-primary'} bg-slate-50 flex items-center justify-center print:border-black`}>
-
+                        <div
+                            className={`h-40 w-32 border-2 ${profile.hrmE_Photo ? 'bg-muted' : 'border-primary'} flex items-center justify-center bg-slate-50 print:border-black`}>
                             {profile.hrmE_Photo ? (
-                                <img
-                                    src={profile.hrmE_Photo}
-                                    alt="Employee Photo"
-                                    className="w-full h-full object-cover"
-                                />
+                                <img src={profile.hrmE_Photo} alt='Employee Photo' className='h-full w-full object-cover' />
                             ) : (
-                                <span className="text-xs text-gray-500">No Photo</span>
+                                <span className='text-gray-500 text-xs'>No Photo</span>
                             )}
                         </div>
                     </div>
@@ -70,9 +66,9 @@ export function EmployeeProfileCard({ profile }: EmployeeProfileCardProps) {
 
                 {/* Signature Section */}
                 <div className='mt-16 text-right print:mt-24'>
-                    <div className='inline-block text-center mr-8'>
-                        <div className='border-t border-black w-48 mb-2 mx-auto'></div>
-                        <p className='text-sm font-semibold'>Signature of Nodal Officer</p>
+                    <div className='mr-8 inline-block text-center'>
+                        <div className='mx-auto mb-2 w-48 border-black border-t' />
+                        <p className='font-semibold text-sm'>Signature of Nodal Officer</p>
                     </div>
                 </div>
             </CardContent>
@@ -82,12 +78,10 @@ export function EmployeeProfileCard({ profile }: EmployeeProfileCardProps) {
 
 function DetailRow({ label, value, className = '' }: { label: string; value: React.ReactNode; className?: string }) {
     return (
-        <tr className='border-b border-t border-gray-100 last:border-0 print:border-gray-200'>
-            <td className='py-2 font-bold text-gray-600 w-1/3 print:text-black print:w-40'>{label}</td>
-            <td className='py-2 font-bold text-gray-500 w-4 px-2 print:text-black'>:</td>
-            <td className={`py-2 font-bold px-8 text-gray-900 print:text-black ${className}`}>
-                {value || 'N/A'}
-            </td>
+        <tr className='border-gray-100 border-t border-b last:border-0 print:border-gray-200'>
+            <td className='w-1/3 py-2 font-bold text-gray-600 print:w-40 print:text-black'>{label}</td>
+            <td className='w-4 px-2 py-2 font-bold text-gray-500 print:text-black'>:</td>
+            <td className={`px-8 py-2 font-bold text-gray-900 print:text-black ${className}`}>{value || 'N/A'}</td>
         </tr>
     );
 }

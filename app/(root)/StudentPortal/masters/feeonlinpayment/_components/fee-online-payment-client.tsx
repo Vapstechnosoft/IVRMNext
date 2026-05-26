@@ -36,16 +36,12 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
     // Example usage of session
     useEffect(() => {
         const fetchSession = async () => {
-            const session = await getSession(); // Fetch session details
-            console.log('Session details:', session);
-            console.log('role testing', session?.role.toUpperCase());
+            const _session = await getSession(); // Fetch session details
         };
         fetchSession();
     }, []);
 
-    const groupList = initialData?.customgrplist || []; // Use data from props instead
-
-    console.log('groupList Details latest ', groupList);
+    const _groupList = initialData?.customgrplist || []; // Use data from props instead
 
     useEffect(() => {
         if (initialData?.customgrplist && initialData?.termlst) {
@@ -76,7 +72,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
         }
 
         // Update group check state based on terms
-        const allTermsChecked = newList[grpIndex].trm_list.filter((t) => !t.termdisablechk).every((t) => t.checkedheadlst);
+        const _allTermsChecked = newList[grpIndex].trm_list.filter((t) => !t.termdisablechk).every((t) => t.checkedheadlst);
         const someTermsChecked = newList[grpIndex].trm_list.some((t) => t.checkedheadlst);
 
         // Logic mimics AngularJS: if any term is unchecked, group is unchecked? Or only if all?
@@ -140,7 +136,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) {
                 image: '/assets/images/logo.png',
                 order_id: rzpData.trans_id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
                 handler: (response: any) => {
-                    alert('Payment Successful: ' + response.razorpay_payment_id);
+                    alert(`Payment Successful: ${response.razorpay_payment_id}`);
                     // verifyPayment(response);
                 },
                 prefill: {

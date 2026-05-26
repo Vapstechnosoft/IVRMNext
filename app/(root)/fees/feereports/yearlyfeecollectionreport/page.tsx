@@ -143,7 +143,7 @@ export default function FeeYearlyCollectionReport() {
     //const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
     const [feeInstallments, setfeeInstallments] = useState<IFeeTrasactionInstallmentDropdownList[]>([]);
 
-    const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
+    const [_wiseType, _setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -300,7 +300,7 @@ export default function FeeYearlyCollectionReport() {
             installmentIds: prev.installmentIds.includes(id) ? prev.installmentIds.filter((x) => x !== id) : [...prev.installmentIds, id]
         }));
 
-    const toggleBusRoute = (id: number) =>
+    const _toggleBusRoute = (id: number) =>
         setFilters((prev) => ({
             ...prev,
             busRouteIds: prev.busRouteIds.includes(id) ? prev.busRouteIds.filter((x) => x !== id) : [...prev.busRouteIds, id]
@@ -339,7 +339,7 @@ export default function FeeYearlyCollectionReport() {
         }));
     };
 
-    const selectAllBusRoutes = (checked: boolean) => {
+    const _selectAllBusRoutes = (checked: boolean) => {
         setFilters((prev) => ({
             ...prev,
             busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : []
@@ -471,7 +471,6 @@ export default function FeeYearlyCollectionReport() {
                 ASMCL_Id: filters.classId ?? 0,
                 AMSC_Id: filters.sectionId ?? 0
             };
-            console.log('payload', payload);
             const response = await getFeeYearlyCollectionReport(payload);
             const apiList = response?.data ?? [];
             //   const tableData = mapYearlyCollectionReport(
@@ -951,13 +950,6 @@ export default function FeeYearlyCollectionReport() {
 
     const handlePrintforTermWise = () => {
         const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
-
-        // Debug: Log what we're sending to print
-        // console.log('Rows to print:', rowsToPrint);
-        // console.log('First row data:', rowsToPrint[0]);
-        // console.log('Available properties in first row:', rowsToPrint[0] ? Object.keys(rowsToPrint[0]) : []);
-        // console.log('Selected terms:', selectedTerms);
-        console.log('rowsToPrint[0].fss_paidamount:', rowsToPrint[0].paid);
 
         if (!rowsToPrint || rowsToPrint.length === 0) {
             toast.error('No data to print');
@@ -2801,7 +2793,7 @@ export default function FeeYearlyCollectionReport() {
                                                                         </thead>
                                                                         <tbody>
                                                                             {reportData
-                                                                                .filter((row) => true)
+                                                                                .filter((_row) => true)
                                                                                 .map((row, index) => (
                                                                                     <tr key={row.id} className='border-b hover:bg-gray-50'>
                                                                                         <td className='border p-2 text-center'>

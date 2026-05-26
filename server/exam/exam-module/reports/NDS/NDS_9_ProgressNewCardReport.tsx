@@ -1,15 +1,15 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import {
+import type {
+    ClassListResponse,
+    NDS9ReportData,
     NDS9ReportPayload,
     NDS9ReportResponse,
-    ClassListResponse,
-    SectionListResponse,
-    StudentListResponse,
-    NDS9ReportData,
     NDS15ReportData,
-    NDS15ReportResponse
+    NDS15ReportResponse,
+    SectionListResponse,
+    StudentListResponse
 } from '@/types/exam/NDS/NDS_9_ProgressNewCardReport';
 
 export async function getClasses(asmay_id: number) {

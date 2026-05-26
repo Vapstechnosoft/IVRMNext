@@ -1,14 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import {
+    getEmployeeLeavesByEmployeeId,
     getEmployeesDropDown,
     getLeaveDetailsGridByEmployeeId,
-    getEmployeeLeavesByEmployeeId,
     saveAdminEmployeeLeaveApplication
 } from '@/server/hrms/leave-management/transaction/online-admin-leave';
-import type {
-    SaveAdminEmployeeLeaveApplicationRequest
-} from '@/types/hrms/leave-management/online-admin-leave';
+import type { SaveAdminEmployeeLeaveApplicationRequest } from '@/types/hrms/leave-management/online-admin-leave';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const ONLINE_ADMIN_LEAVE_KEYS = {
     EMPLOYEES_LIST: 'online-admin-leave-employees-list',
@@ -39,7 +37,6 @@ export function useLeaveHistoryByEmployeeId(hrmeId: number | null) {
     return useQuery({
         queryKey: hrmeId ? ONLINE_ADMIN_LEAVE_KEYS.LEAVE_HISTORY(hrmeId) : [],
         queryFn: async () => {
-            console.log(hrmeId);
             if (!hrmeId) return [];
             // Delay to bypass Next.js soft navigation AbortError (nuqs state update)
             await new Promise((resolve) => setTimeout(resolve, 150));
@@ -77,24 +74,21 @@ export function useSaveAdminEmployeeLeaveApplication() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: SaveAdminEmployeeLeaveApplicationRequest) => {
-            console.log("🔵 [MUTATION_FN] Executing saveAdminEmployeeLeaveApplication with data:", data);
             const response = await saveAdminEmployeeLeaveApplication(data);
-            console.log("🔵 [MUTATION_FN] Response received:", response);
             if (!response.success) {
-                console.warn("🔵 [MUTATION_FN] Response success is false, throwing error:", response.message);
+                console.warn('🔵 [MUTATION_FN] Response success is false, throwing error:', response.message);
                 throw new Error(response.message);
             }
             return response;
         },
         onSuccess: (data, variables) => {
-            console.log("✅ [MUTATION_ON_SUCCESS] Success callback triggered! Showing toast for:", data.message);
             toast.success(data.message);
             // Invalidate queries for the specific employee
             queryClient.invalidateQueries({ queryKey: ONLINE_ADMIN_LEAVE_KEYS.LEAVE_HISTORY(variables.HRME_Id) });
             queryClient.invalidateQueries({ queryKey: ONLINE_ADMIN_LEAVE_KEYS.LEAVE_BALANCE(variables.HRME_Id) });
         },
         onError: (error: Error) => {
-            console.error("❌ [MUTATION_ON_ERROR] Error callback triggered! Showing toast for error:", error.message);
+            console.error('❌ [MUTATION_ON_ERROR] Error callback triggered! Showing toast for error:', error.message);
             toast.error(error.message);
         }
     });

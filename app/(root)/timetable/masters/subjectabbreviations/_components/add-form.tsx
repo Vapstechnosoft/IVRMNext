@@ -44,7 +44,6 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                 ismS_Id: ismS_Id,
                 ttmsuaB_Abbreviation: ttmsuaB_Abbreviation
             };
-            console.log(JSON.stringify(payload));
             const response = await addOrUpdateSubjectAbbreviation(payload);
             if (response.success) {
                 toast.success(response.message);

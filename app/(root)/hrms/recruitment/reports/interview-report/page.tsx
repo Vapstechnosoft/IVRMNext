@@ -1,16 +1,16 @@
 'use client';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
-import { useEffect, useRef, useState } from 'react';
-import { interviewReportColumns } from './_components/columns';
-import InterviewReportForm from './_components/report-form';
 import { generateInterviewReport } from '@/server/hrms/recruitment/reports/interviewReport';
-import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Printer } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { interviewReportColumns } from './_components/columns';
 import { printInterviewReport } from './_components/interview-report-print';
+import InterviewReportForm from './_components/report-form';
 
 export default function InterviewReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -29,11 +29,10 @@ export default function InterviewReportPage() {
                 round: data.interviewRound || 'All',
                 hrcmG_Id: 1,
                 fromdate: new Date(data.fromDate).toISOString(),
-                todate: new Date(data.toDate).toISOString(),
+                todate: new Date(data.toDate).toISOString()
             };
 
             const response = await generateInterviewReport(payload as any);
-            console.log("Report response", response);
             if (response.success && response.data?.length > 0) {
                 toast.success('Report generated successfully');
                 const rawData = response.data || [];
@@ -47,7 +46,7 @@ export default function InterviewReportPage() {
                     interviewDate: item.hrcisC_InterviewDateTime || '',
                     interviewVenue: item.hrcisC_InterviewVenue || '',
                     interviewFeedback: item.hrciS_InterviewFeedBack || '',
-                    candidateStatus: item.hrciS_CandidateStatus || '-',
+                    candidateStatus: item.hrciS_CandidateStatus || '-'
                 }));
                 setReportData(mappedData);
             } else if (response.data?.length === 0) {
@@ -55,8 +54,7 @@ export default function InterviewReportPage() {
             } else {
                 setError(response.message || 'Failed to fetch report data');
             }
-        }
-        catch (err: any) {
+        } catch (err: any) {
             setError(err.message || 'Failed to generate report');
         } finally {
             setIsLoading(false);
@@ -86,10 +84,10 @@ function InterviewReportPageContent({
         try {
             const ws = XLSX.utils.json_to_sheet(response.data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Interview Reports");
-            XLSX.writeFile(wb, "Interview_Report.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, 'Interview Reports');
+            XLSX.writeFile(wb, 'Interview_Report.xlsx');
             toast.success('Exported to Excel successfully');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to export to Excel');
         }
     };
@@ -114,40 +112,37 @@ function InterviewReportPageContent({
                     <InterviewReportForm onGenerateReport={onGenerateReport} />
                 </CollapsibleSection>
                 {/* Data Table Section */}
-                {
-                    response.hasSearched && response.data?.length > 0 && (
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                            rightElement={
-                                <div className='flex gap-2'>
-                                    <Button variant='outline' size='sm' onClick={handleExportToExcel}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                        Excel
-                                    </Button>
-                                    <Button variant='outline' size='sm' onClick={handlePrint}>
-                                        <Printer className='mr-2 h-4 w-4' />
-                                        Print
-                                    </Button>
-                                </div>
-                            }
-                        >
-                            <GenericDataTable<any>
-                                {...tableProps}
-                                columns={interviewReportColumns}
-                                isLoading={response.isLoading}
-                                error={response.error}
-                                showViewOptions={false}
-                                loadingMessage='Loading interview report...'
-                                noDataTitle='No Interview Reports Found'
-                                noDataDescription='Select filters and click REPORT to generate interview data'
-                                errorTitle='Error Loading Interview Reports'
-                            />
-                        </CollapsibleSection>
-                    )
-                }
+                {response.hasSearched && response.data?.length > 0 && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                        rightElement={
+                            <div className='flex gap-2'>
+                                <Button variant='outline' size='sm' onClick={handleExportToExcel}>
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                    Excel
+                                </Button>
+                                <Button variant='outline' size='sm' onClick={handlePrint}>
+                                    <Printer className='mr-2 h-4 w-4' />
+                                    Print
+                                </Button>
+                            </div>
+                        }>
+                        <GenericDataTable<any>
+                            {...tableProps}
+                            columns={interviewReportColumns}
+                            isLoading={response.isLoading}
+                            error={response.error}
+                            showViewOptions={false}
+                            loadingMessage='Loading interview report...'
+                            noDataTitle='No Interview Reports Found'
+                            noDataDescription='Select filters and click REPORT to generate interview data'
+                            errorTitle='Error Loading Interview Reports'
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

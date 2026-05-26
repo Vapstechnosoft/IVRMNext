@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
@@ -10,6 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AddCourseForm from './_components/add-form';
 import { columns } from './_components/columns';
+import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
 import ReorderCourseForm from './_components/reorder-form';
 import ToggleMasterCourseForm from './_components/toggle-form';
 import UpdateCourseForm from './_components/update-form';

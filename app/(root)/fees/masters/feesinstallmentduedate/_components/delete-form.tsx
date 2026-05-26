@@ -29,7 +29,6 @@ export default function DeleteInstallmentDueDateListForm({ rowData, onClose, onS
 
         setIsSubmitting(true);
         try {
-            console.log('Deleting rowData:', rowData);
             const response = await deleteInstallmentDueDate(rowData.ftidD_Id);
 
             if (response.success) {

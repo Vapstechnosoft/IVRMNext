@@ -32,9 +32,8 @@ export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: nu
 export async function getBCEHSFinalPromotionReport(data: any) {
     const url = '/Baldwin_All_Reports/Baldwin_Final_P_Report_card';
     const promise = await api.post<any>('exam', url, data);
-    console.log('promise', promise);
     // Perform server-side data transformation as requested
-    if (promise && promise.examlist && promise.subjectlist) {
+    if (promise?.examlist && promise.subjectlist) {
         return transformReportData(promise, data.ASMAY_Id, data.ASMCL_Id, data.ASMS_Id);
     }
     return promise;
@@ -43,7 +42,7 @@ export async function getBCEHSFinalPromotionReport(data: any) {
 /**
  * Data Transformation logic moved from AngularJS controller to Server Action
  */
-function transformReportData(promise: any, ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number) {
+function transformReportData(promise: any, _ASMAY_Id: number, _ASMCL_Id: number, _ASMS_Id: number) {
     const {
         examlist = [],
         subjectlist = [],
@@ -65,7 +64,7 @@ function transformReportData(promise: any, ASMAY_Id: number, ASMCL_Id: number, A
 
     // This logic mimics the AngularJS controller transformations
     // Grouping marks, calculating percentages, etc.
-    
+
     // 1. Identify Final Exam
     let Final_Exam_Id: number | null = null;
     let Final_EYCE_Id: number | null = null;
@@ -86,9 +85,10 @@ function transformReportData(promise: any, ASMAY_Id: number, ASMCL_Id: number, A
     // 3. Process Subjects
     for (const sub of subjectlist) {
         const temp_subdetails = examsubjectwise_details.filter((sd: any) => sd.ismS_Id === sub.ismS_Id);
-        const applicable_flag = temp_subdetails.length > 0 ? Math.max(...temp_subdetails.map((item: any) => item.eyceS_AplResultFlg ? 1 : 0)) : 0;
+        const applicable_flag =
+            temp_subdetails.length > 0 ? Math.max(...temp_subdetails.map((item: any) => (item.eyceS_AplResultFlg ? 1 : 0))) : 0;
         sub.flag = applicable_flag === 1;
-        
+
         const final_sd = temp_subdetails.find((sd: any) => sd.eycE_Id === Final_EYCE_Id);
         if (final_sd) {
             sub.emgR_Id = final_sd.emgR_Id;
@@ -96,16 +96,20 @@ function transformReportData(promise: any, ASMAY_Id: number, ASMCL_Id: number, A
     }
 
     // 4. Transform Promotion Data if Flag is 'P'
-    let temp_headers: any[] = [];
+    const temp_headers: any[] = [];
     if (exmConfig_PromotionFlag && emP_MarksPerFlg === 'P') {
-        const final_exam_grps = prom_subj_grp_exms.filter((e1: any) => examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && e2.emE_FinalExamFlag));
-        const other_exam_grps = prom_subj_grp_exms.filter((e1: any) => examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && !e2.emE_FinalExamFlag));
+        const final_exam_grps = prom_subj_grp_exms.filter((e1: any) =>
+            examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && e2.emE_FinalExamFlag)
+        );
+        const other_exam_grps = prom_subj_grp_exms.filter((e1: any) =>
+            examlist.some((e2: any) => e2.emE_Id === e1.emE_Id && !e2.emE_FinalExamFlag)
+        );
 
         const grp_ids_other = Array.from(new Set(other_exam_grps.map((ot: any) => ot.empsG_Id)));
         const grp_ids_final = Array.from(new Set(final_exam_grps.map((fin: any) => fin.empsG_Id)));
 
         let total_oth = 0;
-        let oth_group_names: any[] = [];
+        const oth_group_names: any[] = [];
         for (const grp of grp_ids_other) {
             const s_grp = prom_subj_groupdetails.find((sg: any) => sg.empsG_Id === grp);
             if (s_grp) {
@@ -118,7 +122,7 @@ function transformReportData(promise: any, ASMAY_Id: number, ASMCL_Id: number, A
         }
 
         let total_fin = 0;
-        let fin_group_names: any[] = [];
+        const fin_group_names: any[] = [];
         for (const grp of grp_ids_final) {
             const s_grp = prom_subj_groupdetails.find((sg: any) => sg.empsG_Id === grp);
             if (s_grp) {

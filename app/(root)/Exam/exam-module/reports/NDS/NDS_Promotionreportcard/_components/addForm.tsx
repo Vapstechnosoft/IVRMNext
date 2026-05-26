@@ -7,9 +7,13 @@ import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { ndsPromotionReportSchema, type NDSPromotionReportSchema } from '@/schemas/exam/exam-module/NDS_Promotionreportcard';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist, getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getNDS9Report, getNDSPromotionReport } from '@/server/exam/exam-module/reports/NDS/NDS_Promotionreportcard';
+import { type NDSPromotionReportSchema, ndsPromotionReportSchema } from '@/schemas/exam/exam-module/NDS_Promotionreportcard';
+import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_Promotionreportcard';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -32,7 +36,7 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<NDSPromotionReportSchema>({
         resolver: zodResolver(ndsPromotionReportSchema),
@@ -98,11 +102,18 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
         (async () => {
             try {
                 setLoadingStudents(true);
-                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
+                const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(watchYear),
+                    Number(watchClass),
+                    Number(watchSection)
+                );
                 if (response?.success && response.data) {
                     const mapped = response.data.map((s: any) => ({
                         amsT_Id: s.amsT_Id,
-                        studentname: s.studentname || s.studentName || `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
+                        studentname:
+                            s.studentname ||
+                            s.studentName ||
+                            `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
                     }));
                     setStudents(mapped);
                 }
@@ -142,12 +153,10 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 ASMCL_Id: Number(data.ASMCL_Id),
                 ASMS_Id: Number(data.ASMS_Id),
                 Temp_AmstIds: data.selectedStudents.map((id) => ({ amsT_Id: Number(id) })),
-                flag: "NDS_PUC"
+                flag: 'NDS_PUC'
             };
 
             const response = await getNDS9Report(payload);
-            console.log("response.data", response.data);
-
 
             if (response?.success && response.data) {
                 onReportGenerated(response.data, { ...data, generatedDate: new Date() });
@@ -182,12 +191,18 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMAY_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -201,14 +216,25 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMCL_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Class <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Class <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Class' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {loadingClasses ? <SelectItem value='0' disabled>Loading...</SelectItem> :
+                                                {loadingClasses ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
                                                     classes.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>{cls.asmcL_ClassName}</SelectItem>
-                                                    ))}
+                                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                            {cls.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -221,14 +247,25 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                                 name='ASMS_Id'
                                 render={({ field, fieldState }) => (
                                     <div className='space-y-2'>
-                                        <Label>Section <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Section <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Section' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {loadingSections ? <SelectItem value='0' disabled>Loading...</SelectItem> :
+                                                {loadingSections ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
                                                     sections.map((sec) => (
-                                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>{sec.asmC_SectionName}</SelectItem>
-                                                    ))}
+                                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                            {sec.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -283,7 +320,9 @@ const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />} Report
                         </Button>
-                        <Button type='button' variant='outline' onClick={handleClear}>Cancel</Button>
+                        <Button type='button' variant='outline' onClick={handleClear}>
+                            Cancel
+                        </Button>
                     </div>
                 </form>
             </FormProvider>

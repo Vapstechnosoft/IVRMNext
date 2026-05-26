@@ -2,11 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import type { MasterJob } from './columns';
 import { useToggleJobStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import type { MasterJob } from './columns';
 
 interface ToggleMasterJobModalProps {
     rowData: MasterJob;
@@ -18,21 +16,20 @@ interface ToggleMasterJobModalProps {
 export default function ToggleMasterJobModal({ rowData, isOpen, onClose, onSuccess }: ToggleMasterJobModalProps) {
     const { mutateAsync: toggleMutation, isPending: isSubmitting } = useToggleJobStatus();
     const isActive = rowData.hrmJ_ActiveFlg;
-    
 
     const handleToggle = async () => {
         try {
             const response = await toggleMutation(rowData.hrmJ_Id);
 
             if (response?.success) {
-                toast.success(response?.message || `Job activate/deactivate successfully`);
+                toast.success(response?.message || 'Job activate/deactivate successfully');
                 onSuccess();
                 onClose();
             } else {
-                toast.error(response?.message || `Failed to activate/deactivate job`);
+                toast.error(response?.message || 'Failed to activate/deactivate job');
             }
         } catch (error: any) {
-            toast.error(error?.message || `Failed to activate/deactivate job`);
+            toast.error(error?.message || 'Failed to activate/deactivate job');
         }
     };
 
@@ -48,11 +45,7 @@ export default function ToggleMasterJobModal({ rowData, isOpen, onClose, onSucce
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button 
-                        onClick={handleToggle}
-                        isLoading={isSubmitting} 
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button onClick={handleToggle} isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

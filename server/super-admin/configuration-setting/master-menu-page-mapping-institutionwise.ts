@@ -235,9 +235,7 @@ export async function getSetOrderList(mi_id: number, ivrmm_id: number, ivrmmmi_i
 
 export async function saveSetOrder(payload: any) {
     try {
-        console.log('saveSetOrder Payload:', JSON.stringify(payload, null, 2));
         const response = await api.post<any>(API_KEY, `${FACADE}/set_order`, payload);
-        console.log('saveSetOrder Response:', JSON.stringify(response, null, 2));
         if (response.success) {
             return {
                 success: true,
@@ -256,8 +254,6 @@ export async function saveSetOrder(payload: any) {
 
 export async function deleteMasterMenuPageMapping(payload: any) {
     try {
-        console.log('DEBUG: deleteMasterMenuPageMapping START');
-
         // We'll try the format that worked in Swagger if the user can provide it,
         // but for now let's try 'delete_saved_records' which is common in other sadmin files.
         const url = `${FACADE}/delete_saved_records`;
@@ -268,11 +264,7 @@ export async function deleteMasterMenuPageMapping(payload: any) {
             mi_id: payload.mi_id || payload.MI_Id // Most sadmin APIs require mi_id
         };
 
-        console.log('DEBUG: Request URL:', url);
-        console.log('DEBUG: Request Body:', JSON.stringify(body));
-
         const response = await api.post<any>(API_KEY, url, body);
-        console.log('DEBUG: Raw Response from apiService:', JSON.stringify(response, null, 2));
 
         if (response.success) {
             return {

@@ -80,11 +80,11 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
-    const [masterSections, setMasterSections] = useState<any[]>([]);
-    const [masterStaff, setMasterStaff] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterSections, setMasterSections] = useState<any[]>([]);
+    const [_masterStaff, setMasterStaff] = useState<any[]>([]);
 
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
@@ -155,9 +155,6 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         try {
             const res = await getFixingClassSectionStaffsBySubject(asmaY_Id, subjectId);
 
-            // 🔍 DEBUG: log raw response to identify actual key names
-            console.log('[PeriodSubjectAddForm] get_cls_sec_staffsData raw response:', JSON.stringify(res));
-
             const payload = res?.data ?? res;
 
             const findArrayByField = (fieldName: string): any[] => {
@@ -194,8 +191,6 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                       : extractList(res, 'stafflist').length > 0
                         ? extractList(res, 'stafflist')
                         : findArrayByField('hrmE_Id');
-
-            console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
 
             setMasterClasses(classes);
             setMasterSections(sections);

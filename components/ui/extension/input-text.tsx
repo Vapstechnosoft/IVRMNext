@@ -1,9 +1,9 @@
 'use client';
 
+import { StandardTooltip } from '@/components/StandardTooltip';
 import { FormDescription, FormError, Label } from '@/components/ui/extension/field';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { StandardTooltip } from '@/components/StandardTooltip';
 import { Input } from '../input';
 
 export interface InputTextProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -23,7 +23,7 @@ const InputText = React.forwardRef<HTMLInputElement, InputTextProps>(
                         {label}
                         {required && (
                             <StandardTooltip content={requiredTooltip || `${label} is mandatory. Please fill it.`}>
-                                <span className='ml-1 text-red-500 font-bold hover:scale-110 transition-transform'>*</span>
+                                <span className='ml-1 font-bold text-red-500 transition-transform hover:scale-110'>*</span>
                             </StandardTooltip>
                         )}
                         {optional && <span className='text-[0.8rem] text-muted-foreground'>(optional)</span>}

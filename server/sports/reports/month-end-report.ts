@@ -1,7 +1,7 @@
 'use server';
 
-import { type ApiResponse } from '@/lib/apiService';
-import { IMonthEndReportData, MonthEndReportFormSchema } from '@/types/sports/reports/month-end-report';
+import type { ApiResponse } from '@/lib/apiService';
+import type { IMonthEndReportData, MonthEndReportFormSchema } from '@/types/sports/reports/month-end-report';
 
 export async function getMonthEndReportDropdowns() {
     const years = [];
@@ -32,14 +32,14 @@ export async function getMonthEndReportDropdowns() {
                 { month: 9, monthname: 'September' },
                 { month: 10, monthname: 'October' },
                 { month: 11, monthname: 'November' },
-                { month: 12, monthname: 'December' },
-            ],
-        },
+                { month: 12, monthname: 'December' }
+            ]
+        }
     };
     return response;
 }
 
-export async function getMonthEndReport(data: MonthEndReportFormSchema) {
+export async function getMonthEndReport(_data: MonthEndReportFormSchema) {
     // Generate dynamic mock data based on inputs
     // Requirement: "report result counts in below 50" for Non Position and Position Holders
     // And "change with change in input data" (randomized)
@@ -55,13 +55,13 @@ export async function getMonthEndReport(data: MonthEndReportFormSchema) {
         total_count_student: totalStudents,
         not_patr_std: nonPositionHolders,
         total_partic_student: positionHolders,
-        total_winner_student: winners,
+        total_winner_student: winners
     };
 
     const response: ApiResponse<IMonthEndReportData> = {
         success: true,
         message: 'Report generated successfully',
-        data: dummyData,
+        data: dummyData
     };
 
     return response;

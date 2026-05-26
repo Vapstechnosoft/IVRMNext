@@ -29,7 +29,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     return (
         <div className='space-y-6'>
-            <div className='flex items-center justify-end gap-2 pb-4 pt-4'>
+            <div className='flex items-center justify-end gap-2 pt-4 pb-4'>
                 <Button onClick={handlePrint} className='bg-primary text-white shadow-md'>
                     <Printer className='mr-2 h-4 w-4' />
                     Print
@@ -37,8 +37,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             </div>
 
             <div ref={reportRef} className='report-container bg-white p-4 font-serif text-[#1a1a1a]'>
-                <style dangerouslySetInnerHTML={{
-                    __html: `
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
                     @media print {
                         body * { visibility: hidden; }
                         .report-container, .report-container * { visibility: visible; }
@@ -62,30 +63,47 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     .signature-box { border-top: 1.5px solid black; text-align: center; padding-top: 5px; font-weight: bold; font-size: 11px; }
                     .attendance-table { width: 100%; margin-top: 20px; font-size: 12px; }
                     .remarks-row { border-bottom: 1px solid black; height: 25px; margin-top: 5px; }
-                ` }} />
+                `
+                    }}
+                />
 
                 {students.map((report: any, index: number) => (
                     <div key={report.AMST_Id} className={`report-page ${index !== students.length - 1 ? 'page-break' : ''} mb-20`}>
                         {/* Header */}
                         <div className='header-section'>
-                            <h2 className='text-lg font-bold'>PROGRESS REPORT</h2>
-                            <h3 className='text-md font-bold'>ACADEMIC YEAR {data.yearname || data.Year_Name}</h3>
+                            <h2 className='font-bold text-lg'>PROGRESS REPORT</h2>
+                            <h3 className='font-bold text-md'>ACADEMIC YEAR {data.yearname || data.Year_Name}</h3>
                         </div>
 
                         {/* Student Details */}
                         <div className='student-info-grid'>
                             <div>
-                                <div className='info-item'><span className='info-label'>NAME</span>: <span className='font-bold'>{report.studentname}</span></div>
-                                <div className='info-item'><span className='info-label'>DOB</span>: <span className='font-bold'>{report.dob}</span></div>
-                                <div className='info-item'><span className='info-label'>CLASS TEACHER</span>: <span className='font-bold'>{data.clastechname || data.Class_Teacher_Name}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>NAME</span>: <span className='font-bold'>{report.studentname}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>DOB</span>: <span className='font-bold'>{report.dob}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>CLASS TEACHER</span>:{' '}
+                                    <span className='font-bold'>{data.clastechname || data.Class_Teacher_Name}</span>
+                                </div>
                             </div>
                             <div>
-                                <div className='info-item'><span className='info-label'>CLASS</span>: <span className='font-bold'>{report.classname}</span></div>
-                                <div className='info-item'><span className='info-label'>ROLL NO</span>: <span className='font-bold'>{report.rollno}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>CLASS</span>: <span className='font-bold'>{report.classname}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>ROLL NO</span>: <span className='font-bold'>{report.rollno}</span>
+                                </div>
                             </div>
                             <div>
-                                <div className='info-item'><span className='info-label'>SECTION</span>: <span className='font-bold'>{report.sectionname}</span></div>
-                                <div className='info-item'><span className='info-label'>ADM. NO</span>: <span className='font-bold'>{report.admno}</span></div>
+                                <div className='info-item'>
+                                    <span className='info-label'>SECTION</span>: <span className='font-bold'>{report.sectionname}</span>
+                                </div>
+                                <div className='info-item'>
+                                    <span className='info-label'>ADM. NO</span>: <span className='font-bold'>{report.admno}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -93,14 +111,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <table className='ix-table'>
                             <thead>
                                 <tr>
-                                    <th rowSpan={2} style={{ width: '40px' }}>SL.NO</th>
-                                    <th rowSpan={2} style={{ width: '180px' }} className='text-left'>SUBJECT</th>
+                                    <th rowSpan={2} style={{ width: '40px' }}>
+                                        SL.NO
+                                    </th>
+                                    <th rowSpan={2} style={{ width: '180px' }} className='text-left'>
+                                        SUBJECT
+                                    </th>
                                     {termlistnew.map((term: any, i: number) => (
                                         <th key={i} colSpan={term.termwiseexamlist.length} className='text-center uppercase'>
                                             {term.ecT_TermName}
                                         </th>
                                     ))}
-                                    <th rowSpan={2} style={{ width: '80px' }} className='bg-gray-100 font-black'>FINAL CUMULATIVE</th>
+                                    <th rowSpan={2} style={{ width: '80px' }} className='bg-gray-100 font-black'>
+                                        FINAL CUMULATIVE
+                                    </th>
                                 </tr>
                                 <tr>
                                     {termwiseexamlistnewtemp.map((exam: any, i: number) => (
@@ -114,47 +138,61 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             {/* Academic Subjects */}
                             {report.subjectgroup?.map((subgrp: any, gi: number) => (
                                 <tbody key={gi}>
-                                    {subgrp.subgrplist?.filter((s: any) => s.EYCES_AplResultFlg).map((subj: any, si: number) => (
-                                        <tr key={si}>
-                                            {si === 0 && (
-                                                <td rowSpan={subgrp.subgrplist.filter((s: any) => s.EYCES_AplResultFlg).length + (gi === report.subjectgroup.length - 1 ? 1 : 0)} className='font-bold'>
-                                                    {subgrp.snocountd}
-                                                </td>
-                                            )}
-                                            <td className='text-left font-bold uppercase'>{subj.ISMS_SubjectName}</td>
-                                            {termwiseexamlistnewtemp.map((exam: any, ei: number) => (
-                                                <td key={ei}>
-                                                    {(() => {
-                                                        const m = report.markslist?.find((ml: any) =>
-                                                            ml.subjectid === subj.ISMS_Id &&
-                                                            ml.termid === exam.ecT_Id &&
-                                                            ml.examid === exam.emE_Id
-                                                        );
-                                                        if (!m) return '';
-                                                        return exam.emE_ExamName === 'GRADE' ? m.grade : m.marksobtained;
-                                                    })()}
-                                                </td>
-                                            ))}
-                                            {si === 0 && (
-                                                <td rowSpan={subgrp.subgrplist.filter((s: any) => s.EYCES_AplResultFlg).length + (gi === report.subjectgroup.length - 1 ? 1 : 0)} className='font-black text-xs'>
-                                                    {subgrp.obtmarks}
-                                                </td>
-                                            )}
-                                        </tr>
-                                    ))}
+                                    {subgrp.subgrplist
+                                        ?.filter((s: any) => s.EYCES_AplResultFlg)
+                                        .map((subj: any, si: number) => (
+                                            <tr key={si}>
+                                                {si === 0 && (
+                                                    <td
+                                                        rowSpan={
+                                                            subgrp.subgrplist.filter((s: any) => s.EYCES_AplResultFlg).length +
+                                                            (gi === report.subjectgroup.length - 1 ? 1 : 0)
+                                                        }
+                                                        className='font-bold'>
+                                                        {subgrp.snocountd}
+                                                    </td>
+                                                )}
+                                                <td className='text-left font-bold uppercase'>{subj.ISMS_SubjectName}</td>
+                                                {termwiseexamlistnewtemp.map((exam: any, ei: number) => (
+                                                    <td key={ei}>
+                                                        {(() => {
+                                                            const m = report.markslist?.find(
+                                                                (ml: any) =>
+                                                                    ml.subjectid === subj.ISMS_Id &&
+                                                                    ml.termid === exam.ecT_Id &&
+                                                                    ml.examid === exam.emE_Id
+                                                            );
+                                                            if (!m) return '';
+                                                            return exam.emE_ExamName === 'GRADE' ? m.grade : m.marksobtained;
+                                                        })()}
+                                                    </td>
+                                                ))}
+                                                {si === 0 && (
+                                                    <td
+                                                        rowSpan={
+                                                            subgrp.subgrplist.filter((s: any) => s.EYCES_AplResultFlg).length +
+                                                            (gi === report.subjectgroup.length - 1 ? 1 : 0)
+                                                        }
+                                                        className='font-black text-xs'>
+                                                        {subgrp.obtmarks}
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
                                 </tbody>
                             ))}
 
                             {/* Grand Total Row */}
                             <tbody>
-                                <tr className='font-black bg-gray-50'>
-                                    <td colSpan={2} className='text-left'>GRAND TOTAL</td>
+                                <tr className='bg-gray-50 font-black'>
+                                    <td colSpan={2} className='text-left'>
+                                        GRAND TOTAL
+                                    </td>
                                     {termwiseexamlistnewtemp.map((exam: any, ei: number) => (
                                         <td key={ei}>
                                             {(() => {
-                                                const m = report.markstotal?.find((mt: any) =>
-                                                    mt.termid === exam.ecT_Id &&
-                                                    mt.examid === exam.emE_Id
+                                                const m = report.markstotal?.find(
+                                                    (mt: any) => mt.termid === exam.ecT_Id && mt.examid === exam.emE_Id
                                                 );
                                                 if (!m) return '';
                                                 return exam.emE_ExamName === 'GRADE' ? m.grade : m.marksobtained;
@@ -168,34 +206,43 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             {/* Co-Scholastic Subjects */}
                             {report.subjectgroup?.map((subgrp: any, gi: number) => (
                                 <tbody key={`co-${gi}`}>
-                                    {subgrp.subgrplist?.filter((s: any) => !s.EYCES_AplResultFlg).map((subj: any, si: number) => (
-                                        <tr key={si} className='text-gray-600'>
-                                            {si === 0 && (
-                                                <td rowSpan={subgrp.subgrplist.filter((s: any) => !s.EYCES_AplResultFlg).length} className='font-bold'>
-                                                    {subgrp.snocountd}
-                                                </td>
-                                            )}
-                                            <td className='text-left font-bold uppercase'>{subj.ISMS_SubjectName}</td>
-                                            {termwiseexamlistnewtemp.map((exam: any, ei: number) => (
-                                                <td key={ei}>
-                                                    {(() => {
-                                                        const m = report.markslist?.find((ml: any) =>
-                                                            ml.subjectid === subj.ISMS_Id &&
-                                                            ml.termid === exam.ecT_Id &&
-                                                            ml.examid === exam.emE_Id
-                                                        );
-                                                        if (!m) return '';
-                                                        return (exam.emE_ExamName === 'GRADE' || exam.emE_ExamName === 'TOTAL') ? '--' : m.grade;
-                                                    })()}
-                                                </td>
-                                            ))}
-                                            {si === 0 && (
-                                                <td rowSpan={subgrp.subgrplist.filter((s: any) => !s.EYCES_AplResultFlg).length} className='font-black'>
-                                                    --
-                                                </td>
-                                            )}
-                                        </tr>
-                                    ))}
+                                    {subgrp.subgrplist
+                                        ?.filter((s: any) => !s.EYCES_AplResultFlg)
+                                        .map((subj: any, si: number) => (
+                                            <tr key={si} className='text-gray-600'>
+                                                {si === 0 && (
+                                                    <td
+                                                        rowSpan={subgrp.subgrplist.filter((s: any) => !s.EYCES_AplResultFlg).length}
+                                                        className='font-bold'>
+                                                        {subgrp.snocountd}
+                                                    </td>
+                                                )}
+                                                <td className='text-left font-bold uppercase'>{subj.ISMS_SubjectName}</td>
+                                                {termwiseexamlistnewtemp.map((exam: any, ei: number) => (
+                                                    <td key={ei}>
+                                                        {(() => {
+                                                            const m = report.markslist?.find(
+                                                                (ml: any) =>
+                                                                    ml.subjectid === subj.ISMS_Id &&
+                                                                    ml.termid === exam.ecT_Id &&
+                                                                    ml.examid === exam.emE_Id
+                                                            );
+                                                            if (!m) return '';
+                                                            return exam.emE_ExamName === 'GRADE' || exam.emE_ExamName === 'TOTAL'
+                                                                ? '--'
+                                                                : m.grade;
+                                                        })()}
+                                                    </td>
+                                                ))}
+                                                {si === 0 && (
+                                                    <td
+                                                        rowSpan={subgrp.subgrplist.filter((s: any) => !s.EYCES_AplResultFlg).length}
+                                                        className='font-black'>
+                                                        --
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
                                 </tbody>
                             ))}
                         </table>
@@ -208,8 +255,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         {/* Remarks */}
                         <div className='mt-6'>
-                            <div className='font-bold mb-1'>CLASS TEACHER'S REMARKS</div>
-                            <div className='remarks-row'></div>
+                            <div className='mb-1 font-bold'>CLASS TEACHER'S REMARKS</div>
+                            <div className='remarks-row' />
                         </div>
 
                         {/* Footer */}

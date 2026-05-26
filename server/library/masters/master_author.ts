@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@/lib/auth';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
 
@@ -15,7 +15,7 @@ export async function addOrUpdateMasterAuthor(data: any) {
     try {
         const session = await auth();
         const payload = {
-            LMAU_Id: data.lmaU_Id !== undefined ? Number(data.lmaU_Id) : (data.LMAU_Id !== undefined ? Number(data.LMAU_Id) : 0),
+            LMAU_Id: data.lmaU_Id !== undefined ? Number(data.lmaU_Id) : data.LMAU_Id !== undefined ? Number(data.LMAU_Id) : 0,
             LMAU_AuthorFirstName: data.lmaU_AuthorFirstName || data.LMAU_AuthorFirstName || '',
             LMAU_AuthorMiddleName: data.lmaU_AuthorMiddleName || data.LMAU_AuthorMiddleName || '',
             LMAU_AuthorLastName: data.lmaU_AuthorLastName || data.LMAU_AuthorLastName || '',
@@ -30,8 +30,8 @@ export async function addOrUpdateMasterAuthor(data: any) {
         const res = await api.post<any>('library', url, payload);
 
         const isSuccess =
-            res && (
-                res.success === true ||
+            res &&
+            (res.success === true ||
                 res.returnval === true ||
                 res.returnval === 'save' ||
                 res.returnval === 'update' ||
@@ -42,8 +42,10 @@ export async function addOrUpdateMasterAuthor(data: any) {
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('save')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('update')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('success')) ||
-                (res.returnval !== false && res.returnval !== 'duplicate' && !res.message?.toLowerCase().includes('duplicate') && !res.message?.toLowerCase().includes('fail'))
-            );
+                (res.returnval !== false &&
+                    res.returnval !== 'duplicate' &&
+                    !res.message?.toLowerCase().includes('duplicate') &&
+                    !res.message?.toLowerCase().includes('fail')));
 
         return {
             success: !!isSuccess,
@@ -64,4 +66,3 @@ export async function deleteMasterAuthor(id: number) {
     const url = `/MasterAuthor/delete/${id}`;
     return await api.delete('library', url);
 }
-

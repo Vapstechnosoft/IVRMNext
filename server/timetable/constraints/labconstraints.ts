@@ -60,7 +60,6 @@ import type { labConstraints } from '@/types/timetable/constraints/labconstraint
 export async function LabConstraintsGrid(searchParams?: any) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmayYear,categoryName,ttlaB_LABLIBName,ttlaB_Id,ttlaB_ActiveFlag');
     const url = `/LabconstraintsFacade/LabConstraintsGridData?${urlParams}`;
-    console.log('day staff grid data', url);
     return await api.get<labConstraints[]>('timetable', url);
 }
 
@@ -97,26 +96,22 @@ export async function getLabDropDown() {
 //save button
 export async function getLabDetails(data: any) {
     const url = '/LabconstraintsFacade/LabSaveDetails';
-    console.log('Lab Constraints Save URL:', url);
     return await api.post<any>('timetable', url, data);
 }
 
 export async function getLabConstraintsEditDetails(id: number) {
     const url = `/LabconstraintsFacade/LabConstraintsEdit/${id}`;
-    console.log('Lab Constraints Edit URL:', url);
     return await api.get<any>('timetable', url);
 }
 
 //toggle button
 export async function deactivateLabConstraints(id: number) {
     const url = `/LabconstraintsFacade/LabConstraintsToggle/${id}`;
-    console.log('Lab Constraints Toggle URL:', url);
     return await api.put<any>('timetable', url, {});
 }
 
 //delete
 export async function deleteLabConstraints(id: number) {
     const url = `/LabconstraintsFacade/LabConstraintsDelete/${id}`;
-    console.log('Lab Constraints Delete URL:', url);
     return await api.delete<any>('timetable', url);
 }

@@ -85,7 +85,7 @@ export default function AddGPSLocationReportForm({ onSuccess, className = '', se
                     } else {
                         queryClient.setQueryData([HRMS_QUERY_KEYS.GPS_LOCATION_REPORT, searchParams ?? {}], response);
                     }
-                } catch (e) {
+                } catch (_e) {
                     // noop
                 }
                 reset();

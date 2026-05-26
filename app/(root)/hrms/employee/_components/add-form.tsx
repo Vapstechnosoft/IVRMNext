@@ -45,6 +45,7 @@ import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
+import { uploadStaffPhoto } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
@@ -87,7 +88,6 @@ import {
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
-import { uploadStaffPhoto } from '@/server/hrms/hrmsConfig/employee/register';
 
 // Helper component for Qualification State Dropdown
 function QualificationStateDropdown({
@@ -142,7 +142,9 @@ function QualificationStateDropdown({
             control={control}
             render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
-                    <Label>State <span className='text-red-500'>*</span></Label>
+                    <Label>
+                        State <span className='text-red-500'>*</span>
+                    </Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                         <SelectTrigger className='h-9'>
                             <SelectValue placeholder='Select State' />
@@ -190,7 +192,7 @@ const getSafeValue = (value: any) => {
 };
 
 // Helper function to render dropdown options with loading state
-const renderDropdownOptions = <T extends { key?: any; value?: any }>(
+const _renderDropdownOptions = <T extends { key?: any; value?: any }>(
     items: T[],
     isLoading: boolean,
     renderItem: (item: T) => React.ReactNode,
@@ -255,7 +257,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         // Find hrC_RetirementYrs in the response data
         // The API returns IMasterPayrollStandardList directly as the data property of ApiResponse
         const yrs = payrollStandardResponse?.data?.hrC_RetirementYrs;
-        console.log('🔍 [DEBUG] Fetched Retirement Years:', yrs);
         return yrs || 60; // Default to 60 if not found
     }, [payrollStandardResponse]);
 
@@ -307,29 +308,28 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const rawData = Array.isArray(departmentDropdownResponse)
             ? departmentDropdownResponse
             : (departmentDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Department Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 // Return item as is if it already matches interface (has key/value)
                 if (item.key !== undefined && item.value !== undefined) return item;
                 // Otherwise map from known API fields
                 // Fallback debug log for first item
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
-                return {
-                    key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
-                    value: String(
-                        item.hrmD_DepartmentName ??
-                        item.HRMD_DepartmentName ??
-                        item.hrmD_Name ??
-                        item.HRMD_Name ??
-                        item.name ??
-                        item.departmentName ??
-                        item.HRMD_ProjectName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
+                        value: String(
+                            item.hrmD_DepartmentName ??
+                                item.HRMD_DepartmentName ??
+                                item.hrmD_Name ??
+                                item.HRMD_Name ??
+                                item.name ??
+                                item.departmentName ??
+                                item.HRMD_ProjectName ??
+                                item.value ??
+                                item.label ??
+                                ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [departmentDropdownResponse]);
@@ -350,27 +350,33 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { data: religionDropdownResponse, isLoading: isLoadingReligions } = useReligionDropdown();
     const religionDropdown: IReligionDropdown[] = useMemo(() => {
         const rawData = Array.isArray(religionDropdownResponse) ? religionDropdownResponse : (religionDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Religion Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
-                return {
-                    key: String(
-                        item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? ''
-                    ),
-                    value: String(
-                        item.ivrmmR_Name ??
-                        item.IVRMMR_Name ??
-                        item.hrmR_Name ??
-                        item.name ??
-                        item.religionName ??
-                        item.ReligionName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(
+                            item.ivrmmR_Id ??
+                                item.IVRMMR_Id ??
+                                item.hrmR_Id ??
+                                item.religionId ??
+                                item.ReligionId ??
+                                item.id ??
+                                item.key ??
+                                ''
+                        ),
+                        value: String(
+                            item.ivrmmR_Name ??
+                                item.IVRMMR_Name ??
+                                item.hrmR_Name ??
+                                item.name ??
+                                item.religionName ??
+                                item.ReligionName ??
+                                item.value ??
+                                item.label ??
+                                ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [religionDropdownResponse]);
@@ -382,17 +388,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const rawData = Array.isArray(casteCategoryDropdownResponse)
             ? casteCategoryDropdownResponse
             : (casteCategoryDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Caste Category Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Caste Category Item:', item);
-                return {
-                    key: String(item.ivrmmCC_Id ?? item.IVRMMCC_Id ?? item.imcC_Id ?? item.IMCC_Id ?? item.id ?? item.key ?? ''),
-                    value: String(
-                        item.ivrmmCC_Name ?? item.IVRMMCC_Name ?? item.imcC_CategoryName ?? item.name ?? item.value ?? item.label ?? ''
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.ivrmmCC_Id ?? item.IVRMMCC_Id ?? item.imcC_Id ?? item.IMCC_Id ?? item.id ?? item.key ?? ''),
+                        value: String(
+                            item.ivrmmCC_Name ?? item.IVRMMCC_Name ?? item.imcC_CategoryName ?? item.name ?? item.value ?? item.label ?? ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [casteCategoryDropdownResponse]);
@@ -402,15 +407,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { data: casteDropdownResponse, isLoading: isLoadingCastes } = useCasteDropdown(selectedCasteCategory);
     const casteDropdown: ICasteDropdown[] = useMemo(() => {
         const rawData = Array.isArray(casteDropdownResponse) ? casteDropdownResponse : (casteDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Caste Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 if (item.key !== undefined && item.value !== undefined) return item;
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Caste Item:', item);
-                return {
-                    key: String(item.ivrmmC_Id ?? item.IVRMMC_Id ?? item.imC_Id ?? item.IMC_Id ?? item.id ?? item.key ?? ''),
-                    value: String(item.ivrmmC_Name ?? item.IVRMMC_Name ?? item.imC_CasteName ?? item.name ?? item.value ?? item.label ?? '')
-                };
+                if (rawData.indexOf(item) === 0)
+                    return {
+                        key: String(item.ivrmmC_Id ?? item.IVRMMC_Id ?? item.imC_Id ?? item.IMC_Id ?? item.id ?? item.key ?? ''),
+                        value: String(
+                            item.ivrmmC_Name ?? item.IVRMMC_Name ?? item.imC_CasteName ?? item.name ?? item.value ?? item.label ?? ''
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [casteDropdownResponse]);
@@ -439,30 +445,29 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const rawData = Array.isArray(specializationDropdownResponse)
             ? specializationDropdownResponse
             : (specializationDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Specialization Raw Data:', rawData);
         return rawData
             .map((item: any) => {
                 // Return if already in correct format
                 if (item.key !== undefined && item.value !== undefined) return item;
                 // Log first item shape for debugging
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Specialization Item:', item);
-                // Map from likely API keys
-                return {
-                    key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
-                    value: String(
-                        item.hrmspL_SpecialisationName ??
-                        item.HRMSPL_SpecialisationName ??
-                        item.hrmS_SpecialisationName ??
-                        item.HRMS_SpecialisationName ??
-                        item.masterSpecialisationName ??
-                        item.specialisationName ??
-                        item.specializationName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        'Unknown'
-                    )
-                };
+                if (rawData.indexOf(item) === 0)
+                    // Map from likely API keys
+                    return {
+                        key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
+                        value: String(
+                            item.hrmspL_SpecialisationName ??
+                                item.HRMSPL_SpecialisationName ??
+                                item.hrmS_SpecialisationName ??
+                                item.HRMS_SpecialisationName ??
+                                item.masterSpecialisationName ??
+                                item.specialisationName ??
+                                item.specializationName ??
+                                item.name ??
+                                item.value ??
+                                item.label ??
+                                'Unknown'
+                        )
+                    };
             })
             .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
     }, [specializationDropdownResponse]);
@@ -530,8 +535,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const required = ['Cash', 'Cheque', 'Bank'];
                 required.forEach((req) => {
                     const index = modes.findIndex(
-                        (m) =>
-                            String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
+                        (m) => String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === req.toLowerCase()
                     );
                     if (index === -1) {
                         modes.push({ key: req, value: req });
@@ -661,7 +665,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails({ suppressSuccessToast: true });
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
-    const isSavingBank = isPending;
+    const _isSavingBank = isPending;
 
     const isSubmittingAny =
         isSubmitting ||
@@ -685,7 +689,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(null);
-    const [isFormInitialized, setIsFormInitialized] = useState(false);
+    const [_isFormInitialized, _setIsFormInitialized] = useState(false);
 
     // Define local mapping helpers that were missing
     // Wrapper to map form data to API format
@@ -701,10 +705,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Helper to get current tab key from step
     // const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
 
-    const getCurrentTabKey = useCallback(
-        () => steps.find((s) => s.id === currentStep)?.tabKey || "employee",
-        [currentStep]
-    );
+    const getCurrentTabKey = useCallback(() => steps.find((s) => s.id === currentStep)?.tabKey || 'employee', [currentStep]);
 
     // Function to go to previous step
     const prevStep = () => {
@@ -716,13 +717,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
-        console.log('🔍 [DEBUG] nextStep - Current Tab Key:', currentTabKey);
-        console.log('🔍 [DEBUG] nextStep - Current Step:', currentStep);
-        console.log('🔍 [DEBUG] nextStep - Fields to validate:', currentTabFields);
-
         if (currentTabFields.length > 0) {
             const isValid = await trigger(currentTabFields as any);
-            console.log('🔍 [DEBUG] nextStep - Validation result:', isValid);
             if (!isValid) {
                 console.error('❌ [DEBUG] nextStep - Validation failed, not proceeding');
                 const formErrors = formState.errors;
@@ -761,7 +757,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
         const data = getValues();
         const currentStepId = currentStep;
-        console.log('🔍 [DEBUG] nextStep - Proceeding with step ID:', currentStepId);
 
         // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-bank modes
         const fixPaymentMode = (p: any) => {
@@ -795,8 +790,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
             // Save employee details without address (address fields will be null)
             const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
-            // Force string conversion for required fields to match IEmployeeSaveRequest
-            console.log("rawPayload", rawPayload);
             const payload: any = fixPaymentMode({
                 ...rawPayload,
                 employee: {
@@ -815,36 +808,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 }
             });
 
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.employee.hrmE_Id);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check (should be null/empty):');
-            console.log('  - Contact Address:', {
-                street: payload.employee.hrmE_LocStreet,
-                area: payload.employee.hrmE_LocArea,
-                city: payload.employee.hrmE_LocCity,
-                stateId: payload.employee.hrmE_LocStateId,
-                countryId: payload.employee.hrmE_LocCountryId,
-                pincode: payload.employee.hrmE_LocPincode
-            });
-            console.log('  - Permanent Address:', {
-                street: payload.employee.hrmE_PerStreet,
-                area: payload.employee.hrmE_PerArea,
-                city: payload.employee.hrmE_PerCity,
-                stateId: payload.employee.hrmE_PerStateId,
-                countryId: payload.employee.hrmE_PerCountryId,
-                pincode: payload.employee.hrmE_PerPincode
-            });
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
-
             savePersonalDetails(payload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 1 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 1 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 1 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 1 - Response Data:', response?.data);
-
                     // Verify request vs response - compare key fields
                     const responseData = response?.data || {};
                     const mismatches: string[] = [];
@@ -875,8 +840,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'ivrmmG_Id', res: 'ivrmmG_Id' },
                         { req: 'ivrmmmS_Id', res: 'ivrmmmS_Id' }
                     ];
-
-                    console.log('🔍 [DEBUG] Tab 1 - Request vs Response Comparison:');
                     keyFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -888,7 +851,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (!match) {
                             mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
                         }
-                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
                     });
 
                     // Check date fields (format might differ)
@@ -898,8 +860,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'hrmE_doc', res: 'hrmE_doc' },
                         { req: 'hrmE_ExpectedRetirementDate', res: 'hrmE_ExpectedRetirementDate' }
                     ];
-
-                    console.log('🔍 [DEBUG] Tab 1 - Date Fields Comparison:');
                     dateFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -910,9 +870,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             if (!match) {
                                 mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
                             }
-                            console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqDate} → ${resDate}`);
                         } else {
-                            console.log(`  ⚠️ ${req}: ${reqValue} → ${resValue} (one or both null)`);
                         }
                     });
 
@@ -931,8 +889,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'hrmE_PHDResearchGuideFlg', res: 'hrmE_PHDResearchGuideFlg' },
                         { req: 'hrmE_RGRecognitionYear', res: 'hrmE_RGRecognitionYear' }
                     ];
-
-                    console.log('🔍 [DEBUG] Tab 1 - Payroll Fields Comparison:');
                     payrollFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -944,7 +900,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (!match) {
                             mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
                         }
-                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
                     });
 
                     // Summary
@@ -952,18 +907,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         console.warn('⚠️ [DEBUG] Tab 1 - Found mismatches between request and response:');
                         mismatches.forEach((m) => console.warn(`  - ${m}`));
                     } else {
-                        console.log('✅ [DEBUG] Tab 1 - All key fields match between request and response!');
                     }
 
                     if (response?.success) {
                         // API returns hrmE_Id (lowercase) in response
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
-                        console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
 
                         if (employeeId && employeeId > 0) {
                             setSavedEmployeeId(employeeId);
-                            console.log('✅ [DEBUG] Tab 1 - Employee ID saved to state:', employeeId);
                             setCurrentStep(2);
                         } else {
                             console.error('❌ [DEBUG] Tab 1 - Failed to extract employee ID from response');
@@ -989,41 +941,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
             payload.employee.hrmE_Id = savedEmployeeId; // Use the ID from step 1
 
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', savedEmployeeId);
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
-            console.log('  - Contact Address:', {
-                street: payload.employee.hrmE_LocStreet,
-                area: payload.employee.hrmE_LocArea,
-                city: payload.employee.hrmE_LocCity,
-                stateId: payload.employee.hrmE_LocStateId,
-                countryId: payload.employee.hrmE_LocCountryId,
-                pincode: payload.employee.hrmE_LocPincode
-            });
-            console.log('  - Permanent Address:', {
-                street: payload.employee.hrmE_PerStreet,
-                area: payload.employee.hrmE_PerArea,
-                city: payload.employee.hrmE_PerCity,
-                stateId: payload.employee.hrmE_PerStateId,
-                countryId: payload.employee.hrmE_PerCountryId,
-                pincode: payload.employee.hrmE_PerPincode
-            });
-            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
-
             savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 2 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Data:', response?.data);
-
                     // Verify address fields - CRITICAL CHECK
                     const responseData = response?.data || {};
                     const addressMismatches: string[] = [];
-
-                    console.log('🔍 [DEBUG] Tab 2 - Address Fields Comparison (CRITICAL):');
 
                     // Contact Address Comparison
                     const contactAddressFields = [
@@ -1034,8 +956,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'hrmE_LocCountryId', res: 'hrmE_LocCountryId' },
                         { req: 'hrmE_LocPincode', res: 'hrmE_LocPincode' }
                     ];
-
-                    console.log('📍 Contact Address:');
                     contactAddressFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -1047,7 +967,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (!match) {
                             addressMismatches.push(`Contact ${req}: Sent="${reqValue}" but Received="${resValue}"`);
                         }
-                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
                     });
 
                     // Permanent Address Comparison
@@ -1059,8 +978,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'hrmE_PerCountryId', res: 'hrmE_PerCountryId' },
                         { req: 'hrmE_PerPincode', res: 'hrmE_PerPincode' }
                     ];
-
-                    console.log('📍 Permanent Address:');
                     permanentAddressFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -1072,7 +989,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (!match) {
                             addressMismatches.push(`Permanent ${req}: Sent="${reqValue}" but Received="${resValue}"`);
                         }
-                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
                     });
 
                     // Summary
@@ -1085,7 +1001,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         );
                         toast.warning('Address fields were sent but may not have been saved. Please verify in database.');
                     } else {
-                        console.log('✅ [DEBUG] Tab 2 - All address fields match between request and response!');
                     }
 
                     // Verify other fields are still intact
@@ -1097,8 +1012,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         { req: 'hrmE_MobileNo', res: 'hrmE_MobileNo' },
                         { req: 'hrmE_EmailId', res: 'hrmE_EmailId' }
                     ];
-
-                    console.log('🔍 [DEBUG] Tab 2 - Other Key Fields Verification:');
                     keyFields.forEach(({ req, res }) => {
                         const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
@@ -1106,7 +1019,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         if (!match) {
                             otherFieldMismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
                         }
-                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
                     });
 
                     if (otherFieldMismatches.length > 0) {
@@ -1115,7 +1027,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     if (response?.success) {
                         if (addressMismatches.length > 0) {
-                            toast.warning(`Address fields may not have been saved completely. Please verify.`);
+                            toast.warning('Address fields may not have been saved completely. Please verify.');
                         }
                         setCurrentStep(3);
                     } else {
@@ -1128,10 +1040,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 }
             });
         } else if (currentStepId === 3) {
-            // Qualification tab - save qualification details
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Starting save process');
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:', savedEmployeeId);
-
             if (!savedEmployeeId) {
                 console.error('❌ [DEBUG] Tab 3 - No employee ID found');
                 toast.error('Please save Employee and Address details first');
@@ -1140,9 +1048,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
 
             const qualificationList = data.qualificationDetails || [];
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):', qualificationList);
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:', qualificationList.length);
 
             if (qualificationList.length === 0) {
                 console.error('❌ [DEBUG] Tab 3 - No qualifications found');
@@ -1154,7 +1059,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
 
             // Map qualification data to API format
-            const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+            const qualificationsPayload = qualificationList.map((qual: any, _index: number) => {
                 const id = qual.hrmeQ_Id || qual.HRMEQ_Id || 0;
                 const mapped = {
                     hrmeQ_Id: id,
@@ -1183,41 +1088,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmeQ_Hardcopy: qual.hardcopy || '',
                     retrunMsg: ''
                 };
-                console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
-                    raw: qual,
-                    mapped: mapped
-                });
                 return mapped;
             });
 
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload:', qualificationsPayload);
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):', JSON.stringify(qualificationsPayload, null, 2));
-            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...');
-
             saveQualificationDetails(qualificationsPayload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [DEBUG] Tab 3 (Qualification) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 3 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 3 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 3 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 3 - Response Data:', response?.data);
-
                     // Verify qualification data was saved
                     if (response?.data && Array.isArray(response.data)) {
-                        console.log('🔍 [DEBUG] Tab 3 - Response contains qualification array, length:', response.data.length);
-                        console.log('🔍 [DEBUG] Tab 3 - Response Qualifications:', response.data);
-
                         // Compare sent vs received
                         if (response.data.length === qualificationsPayload.length) {
-                            console.log('✅ [DEBUG] Tab 3 - Qualification count matches!');
                             qualificationsPayload.forEach((sent: any, index: number) => {
                                 const received = response.data[index];
                                 if (received) {
-                                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
-                                        sent: sent,
-                                        received: received
-                                    });
-
                                     // Check key fields
                                     const keyFields = [
                                         'hrmE_Id',
@@ -1238,7 +1120,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                     if (mismatches.length > 0) {
                                         console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
                                     } else {
-                                        console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
                                     }
                                 }
                             });
@@ -1264,14 +1145,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 }
             });
         } else if (currentStepId === 4) {
-            // Experience tab - save experience details
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - nextStep function reached for Tab 4');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Condition check: currentStepId === 4', currentStepId === 4);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Current Step ID:', currentStepId);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Type of currentStepId:', typeof currentStepId);
-
             if (!savedEmployeeId) {
                 console.error('❌ [DEBUG] Tab 4 - No employee ID found');
                 toast.error('Please save Employee and Address details first');
@@ -1280,9 +1153,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
 
             const experienceList = data.experienceDetails || [];
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
             if (experienceList.length === 0) {
                 console.error('❌ [DEBUG] Tab 4 - No experiences found');
@@ -1294,7 +1164,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
 
             // Map experience data to API format (matching API request body format)
-            const experiencesPayload = experienceList.map((exp: any, index: number) => {
+            const experiencesPayload = experienceList.map((exp: any, _index: number) => {
                 const id = exp.hrmeE_Id || exp.HRMEE_Id || 0;
                 const mapped = {
                     hrmeE_Id: id, // Use existing ID if updating, 0 for new
@@ -1312,18 +1182,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
                     hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
                 };
-                console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
-                    raw: exp,
-                    mapped: mapped
-                });
                 return mapped;
             });
-
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function:', saveExperienceDetails);
 
             if (!saveExperienceDetails) {
                 console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
@@ -1334,28 +1194,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             try {
                 saveExperienceDetails(experiencesPayload, {
                     onSuccess: (response: any) => {
-                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
                         // Verify experience data was saved
                         if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-
                             // Compare sent vs received
                             if (response.data.length === experiencesPayload.length) {
-                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
                                 experiencesPayload.forEach((sent: any, index: number) => {
                                     const received = response.data[index];
                                     if (received) {
-                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
-                                            sent: sent,
-                                            received: received
-                                        });
-
                                         // Check key fields
                                         const keyFields = [
                                             'hrmE_Id',
@@ -1376,7 +1221,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                         if (mismatches.length > 0) {
                                             console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
                                         } else {
-                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
                                         }
                                     }
                                 });
@@ -1462,11 +1306,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                 toast.dismiss('doc-upload');
 
-                console.log('🔍 [API DEBUG] Tab 5 (Document) - Array Payload:', JSON.stringify(documentsPayload, null, 2));
-
                 (saveDocumentDetails as any)(documentsPayload, {
                     onSuccess: (response: any) => {
-                        console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
                         if (response?.success) {
                             setCurrentStep(6);
                         } else {
@@ -1490,10 +1331,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 return;
             }
             const payload = mapFormDataToPascalCaseLocal(data);
-            console.log('Final Medical Payload to API:', JSON.stringify(payload, null, 2));
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
                     if (response?.success) {
                         setCurrentStep(7);
                     } else {
@@ -1512,18 +1351,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 return;
             }
             const payload = mapFormDataToPascalCaseLocal(data);
-            console.log('Final Other Details Payload to API:', JSON.stringify(payload, null, 2));
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
-                    console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
                     if (response?.success) {
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
                                 { hrme_id: savedEmployeeId, MI_Id: HRMS_MI_ID },
                                 {
-                                    onSuccess: (salaryResponse: any) => {
-                                        console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
+                                    onSuccess: (_salaryResponse: any) => {
                                         setCurrentStep(8);
                                     },
                                     onError: (salaryError: any) => {
@@ -1558,7 +1394,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     };
 
     // Empty default values for add form (no old API mapping - endpoints not provided yet)
-    const formDefaultValues = useMemo(
+    const _formDefaultValues = useMemo(
         () => ({
             firstName: '',
             middleName: '',
@@ -1644,23 +1480,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-            ? Array.isArray(permanentStates)
-                ? permanentStates
-                : []
-            : [];
+          ? Array.isArray(permanentStates)
+              ? permanentStates
+              : []
+          : [];
 
     // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
         if (sameAsCommunicationAddress) {
-            console.log('🔄 [DEBUG] Syncing address fields:', {
-                contactAddress,
-                contactArea,
-                contactCity,
-                contactState,
-                contactPincode,
-                contactCountry
-            });
-
             // Update permanent address fields with communication address values
             setValue('permanentAddress', contactAddress || '', { shouldValidate: true, shouldDirty: true });
             setValue('permanentArea', contactArea || '', { shouldValidate: true, shouldDirty: true });
@@ -1699,11 +1526,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         retirementDate.setFullYear(retirementDate.getFullYear() + 60);
                     }
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    console.log('🔄 [ADD-FORM] Auto-calculating retirement date:', {
-                        dob: dateOfBirth,
-                        retirementYrs,
-                        calculatedRetirementDate: formattedDate
-                    });
 
                     // Only update if it's different to avoid redundant re-renders
                     if (getValues('dateOfRetirement') !== formattedDate) {
@@ -1862,7 +1684,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 formData.append('employeePhoto', file);
 
                 const response = await uploadStaffPhoto(formData);
-                console.log("Upload API response:", response);
 
                 if (response?.success && response?.data) {
                     setPhotoFile(file);
@@ -1872,11 +1693,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     toast.success('Photo uploaded successfully');
                     trigger('employeePhoto');
                 } else {
-                    console.error("Upload failed internally:", response);
+                    console.error('Upload failed internally:', response);
                     toast.error(response?.message || 'Failed to upload photo');
                 }
             } catch (error: any) {
-                console.error("Upload process crashed:", error);
+                console.error('Upload process crashed:', error);
                 toast.error(error?.message || 'Error processing photo');
             } finally {
                 setIsUploadingPhoto(false);
@@ -1910,8 +1731,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1961,8 +1782,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -3204,8 +3025,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
+                                                                                                                    item.value ||
+                                                                                                                    item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3222,7 +3043,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
-                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message as string}
+                                                                        error={
+                                                                            (errors.mobileDetails as any)?.[index]?.mobileNo
+                                                                                ?.message as string
+                                                                        }
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3249,7 +3073,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     </div>
                                                     {/* Multiple Email IDs */}
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label>Email -Id <span className='text-red-500'>*</span></Label>
+                                                        <Label>
+                                                            Email -Id <span className='text-red-500'>*</span>
+                                                        </Label>
                                                         <div className='space-y-2'>
                                                             {emailFields.map((field, index) => (
                                                                 <div key={field.id} className='flex items-center gap-2'>
@@ -3297,8 +3123,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
+                                                                                                                    item.value ||
+                                                                                                                    item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3571,9 +3397,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     onClick={() => document.getElementById('employeePhoto')?.click()}>
                                                                     {isUploadingPhoto ? (
                                                                         <span className='flex items-center gap-2'>
-                                                                            <svg className='h-4 w-4 animate-spin' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
-                                                                                <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                                                                                <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
+                                                                            <svg
+                                                                                className='h-4 w-4 animate-spin'
+                                                                                xmlns='http://www.w3.org/2000/svg'
+                                                                                fill='none'
+                                                                                viewBox='0 0 24 24'>
+                                                                                <circle
+                                                                                    className='opacity-25'
+                                                                                    cx='12'
+                                                                                    cy='12'
+                                                                                    r='10'
+                                                                                    stroke='currentColor'
+                                                                                    strokeWidth='4'
+                                                                                />
+                                                                                <path
+                                                                                    className='opacity-75'
+                                                                                    fill='currentColor'
+                                                                                    d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z'
+                                                                                />
                                                                             </svg>
                                                                             Uploading...
                                                                         </span>
@@ -3605,10 +3446,20 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 )}
                                                                 {uploadedPhotoName && !isUploadingPhoto && (
                                                                     <p className='flex items-center gap-1 truncate text-gray-600 text-xs'>
-                                                                        <svg xmlns='http://www.w3.org/2000/svg' className='h-3.5 w-3.5 flex-shrink-0 text-green-500' viewBox='0 0 20 20' fill='currentColor'>
-                                                                            <path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
+                                                                        <svg
+                                                                            xmlns='http://www.w3.org/2000/svg'
+                                                                            className='h-3.5 w-3.5 flex-shrink-0 text-green-500'
+                                                                            viewBox='0 0 20 20'
+                                                                            fill='currentColor'>
+                                                                            <path
+                                                                                fillRule='evenodd'
+                                                                                d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                                                                                clipRule='evenodd'
+                                                                            />
                                                                         </svg>
-                                                                        <span className='truncate font-medium' title={uploadedPhotoName}>{uploadedPhotoName}</span>
+                                                                        <span className='truncate font-medium' title={uploadedPhotoName}>
+                                                                            {uploadedPhotoName}
+                                                                        </span>
                                                                     </p>
                                                                 )}
                                                             </div>
@@ -3629,11 +3480,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {(errors.bankDetails as any)?.message ||
-                                                                            'Bank Details are required when Mode of Payment is Bank'}
-                                                                    </div>
-                                                                )}
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.bankDetails as any)?.message ||
+                                                                        'Bank Details are required when Mode of Payment is Bank'}
+                                                                </div>
+                                                            )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3693,7 +3544,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     placeholder='Bank Account No.'
                                                                                     maxLength={20}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message as string}
+                                                                                    error={
+                                                                                        (errors.bankDetails as any)?.[index]?.bankAccountNo
+                                                                                            ?.message as string
+                                                                                    }
                                                                                 />
                                                                             </div>
                                                                             <div>
@@ -3718,8 +3572,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                         (item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
+                                                                                                                    item.value ||
+                                                                                                                    item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3735,8 +3589,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                            item.value ||
-                                                                                                                            item.id
+                                                                                                                                item.value ||
+                                                                                                                                item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -4275,7 +4129,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.qualification`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.qualification?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.qualification
+                                                                                ?.message
+                                                                        }
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.course`}
@@ -4285,8 +4142,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
                                                                                     <Label>
-                                                                    Course <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                        Course <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4355,7 +4212,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.college?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.college?.message
+                                                                        }
                                                                     />
                                                                     <InputText
                                                                         label='University'
@@ -4363,7 +4222,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.university`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.university?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.university
+                                                                                ?.message
+                                                                        }
                                                                     />
                                                                 </div>
                                                                 {/* Row 3: Year Of Passing, Country, State */}
@@ -4397,7 +4259,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             }
                                                                         }}
                                                                         {...register(`qualificationDetails.${index}.yearOfPassing`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.yearOfPassing?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.yearOfPassing
+                                                                                ?.message
+                                                                        }
                                                                     />
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.qualificationCountry`}
@@ -4405,8 +4270,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>
-                                                                    Country <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                    Country <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(value) => {
                                                                                         field.onChange(value);
@@ -4477,7 +4342,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.registrationNo
+                                                                                ?.message
+                                                                        }
                                                                     />
                                                                     <InputText
                                                                         label='Result'
@@ -4485,7 +4353,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
                                                                         {...register(`qualificationDetails.${index}.result`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.result?.message}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.result?.message
+                                                                        }
                                                                     />
                                                                 </div>
                                                                 {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4496,8 +4366,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>
-                                                                    CGPA Or Percentage <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                    CGPA Or Percentage{' '}
+                                                                                    <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(val) => {
                                                                                         field.onChange(val);
@@ -4587,8 +4458,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 }
                                                                             }
                                                                         }}
-                                                                        {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
-                                                                        error={(errors.qualificationDetails as any)?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
+                                                                        {...register(
+                                                                            `qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`
+                                                                        )}
+                                                                        error={
+                                                                            (errors.qualificationDetails as any)?.[index]?.[
+                                                                                cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'
+                                                                            ]?.message
+                                                                        }
                                                                     />
                                                                 </div>
                                                                 {/* Row 6: Area Of Specialization */}
@@ -4601,8 +4478,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
                                                                                     <Label>
-                                                                    Area Of Specialization <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                        Area Of Specialization{' '}
+                                                                                        <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4714,7 +4592,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         }}
                                                                         {...register(`qualificationDetails.${index}.registrationYear`)}
                                                                         error={
-                                                                            (errors.qualificationDetails as any)?.[index]?.registrationYear?.message
+                                                                            (errors.qualificationDetails as any)?.[index]?.registrationYear
+                                                                                ?.message
                                                                         }
                                                                     />
                                                                     <InputText
@@ -4954,7 +4833,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.organisationAddress`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.organisationAddress?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.organisationAddress
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter organisation address...'
                                                                 />
                                                             </div>
@@ -4965,7 +4847,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.reasonForLeaving`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.reasonForLeaving?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.reasonForLeaving
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter reason for leaving...'
                                                                 />
                                                             </div>
@@ -5039,7 +4924,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
                                                                     placeholder='Enter description'
-                                                                    error={(errors.documentList as any)?.[index]?.documentDescription?.message}
+                                                                    error={
+                                                                        (errors.documentList as any)?.[index]?.documentDescription?.message
+                                                                    }
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
                                                                     <Label>
@@ -5088,7 +4975,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     </div>
                                                                     {(errors.documentList as any)?.[index]?.document?.message && (
                                                                         <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                            {String((errors.documentList as any)?.[index]?.document?.message)}
+                                                                            {String(
+                                                                                (errors.documentList as any)?.[index]?.document?.message
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>

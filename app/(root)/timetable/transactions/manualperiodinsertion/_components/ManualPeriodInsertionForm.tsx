@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useManualPeriodMasters, useManualSectionsByClass } from '@/hooks/timetable/useTransactions';
 import { useSectionDropdownBifurcationConstraints } from '@/hooks/timetable/useMasters';
+import { useManualPeriodMasters, useManualSectionsByClass } from '@/hooks/timetable/useTransactions';
 import { ManualPeriodInsertionSchema, type ManualPeriodInsertionValues } from '@/schemas/timetable/transactions';
 import { getClassDetailsByacademicyrandcategoty } from '@/server/timetable/transactions/manualperiodinsertion';
 import type { ClassDropdownDatamanualPeriodInsertion } from '@/types/timetable/Transaction/manualperiodinsertion';
@@ -55,7 +55,6 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
     useEffect(() => {
         const fetchClassesHelper = async () => {
             if (watchedAcademicYear && watchedCategory) {
-                console.log('watchedCategory', watchedCategory);
                 try {
                     const res = await getClassDetailsByacademicyrandcategoty(Number(watchedAcademicYear), Number(watchedCategory));
 
@@ -75,7 +74,6 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const onSubmit = async (values: ManualPeriodInsertionValues) => {
-        console.log('Fetching Report:', values);
         onFetch(values);
     };
 
@@ -236,5 +234,3 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
         </CollapsibleSection>
     );
 }
-
-

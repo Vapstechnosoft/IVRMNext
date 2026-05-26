@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import {
     useEditMasterReligionCasteCategory,
     useMasterCasteCategoryDropdown,
@@ -15,7 +16,6 @@ import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/spinner';
 
 type FormFields = {
     ircC_Id: number;

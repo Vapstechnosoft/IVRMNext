@@ -5,13 +5,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
+import type { IRoomCategory } from '@/types/hostel/hostel-management/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddRoomCategoryForm from './_components/add-form';
 import { roomCategoryColumns } from './_components/columns';
-import UpdateRoomCategoryForm from './_components/update-form';
 import { ToggleRoomCategory } from './_components/toggle-form';
-import { IRoomCategory } from '@/types/hostel/hostel-management/masters';
+import UpdateRoomCategoryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -24,11 +24,7 @@ export default function RoomCategoryPage(props: { searchParams: SearchParams }) 
 
     return (
         <FormProvider<IRoomCategory>>
-            <PageContent
-                response={response}
-                isLoading={isLoading}
-                refetchAll={refetchAll}
-            />
+            <PageContent response={response} isLoading={isLoading} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -51,9 +47,8 @@ function PageContent({
     const hostelList = response?.data?.hostellist || [];
     const feeGroupList = response?.data?.feegroupe || [];
 
-    const updatedResponse = { ...response, data: gridData }
-    console.log(updatedResponse)
-    const tableProps = useDataTableProps(updatedResponse)
+    const updatedResponse = { ...response, data: gridData };
+    const tableProps = useDataTableProps(updatedResponse);
 
     return (
         <div className='min-h-screen'>
@@ -87,11 +82,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetchAll}
-                    hostelList={hostelList}
-                    feeGroupList={feeGroupList}
-                />
+                <FormSections onSuccess={refetchAll} hostelList={hostelList} feeGroupList={feeGroupList} />
             </div>
         </div>
     );
@@ -143,7 +134,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddRoomCategoryForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeAddForm}
                                 hostelList={hostelList}
                                 feeGroupList={feeGroupList}
@@ -174,7 +168,10 @@ function FormSections({
                             </Button>
                             <UpdateRoomCategoryForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeEditForm}
                                 hostelList={hostelList}
                                 feeGroupList={feeGroupList}
@@ -189,7 +186,10 @@ function FormSections({
                 <ToggleRoomCategory
                     data={selectedRow}
                     onClose={closeToggleForm}
-                    onSuccess={() => { closeToggleForm(); onSuccess(); }}
+                    onSuccess={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
                 />
             )}
         </>

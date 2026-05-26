@@ -11,7 +11,7 @@ export async function getPromotionReportTBSchool(data: any) {
             ASMS_Id: data.ASMS_Id,
             Temp_AmstIds: data.Temp_AmstIds,
             EMPG_GroupName: '',
-            EMGR_Id: 0,
+            EMGR_Id: 0
         };
         const response = await api.post<any>('exam', url, payload);
         return response;

@@ -211,7 +211,7 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
                     {/* Wrap both dropdowns in a grid */}
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                         <div className='flex flex-col gap-1.5'>
-                            <Label htmlFor='asmaY_Id' className='text-black font-bold'>
+                            <Label htmlFor='asmaY_Id' className='font-bold text-black'>
                                 Academic Year <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -246,7 +246,7 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
 
                         {/* ──────────────── Category ──────────────── */}
                         <div className='flex flex-col gap-1.5'>
-                            <Label htmlFor='amC_Id' className='text-black font-bold'>
+                            <Label htmlFor='amC_Id' className='font-bold text-black'>
                                 Category <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller

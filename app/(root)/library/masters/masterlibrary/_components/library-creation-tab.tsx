@@ -26,20 +26,26 @@ export default function LibraryCreationTab({
 }) {
     const { openAddForm } = useFormContext<IMasterLibraryList>();
     const tableProps = useDataTableProps(
-        Array.isArray(response) ? { data: response, success: true } :
-        response?.data?.liballdata ? { ...response, data: response.data.liballdata } :
-        response?.data?.list ? { ...response, data: response.data.list } :
-        response?.alldata ? { ...response, data: response.alldata } : 
-        response?.get_master_library ? { ...response, data: response.get_master_library } : 
-        response?.['master-library-list'] ? { ...response, data: response['master-library-list'] } : 
-        response
+        Array.isArray(response)
+            ? { data: response, success: true }
+            : response?.data?.liballdata
+              ? { ...response, data: response.data.liballdata }
+              : response?.data?.list
+                ? { ...response, data: response.data.list }
+                : response?.alldata
+                  ? { ...response, data: response.alldata }
+                  : response?.get_master_library
+                    ? { ...response, data: response.get_master_library }
+                    : response?.['master-library-list']
+                      ? { ...response, data: response['master-library-list'] }
+                      : response
     );
 
     return (
         <div className='space-y-4'>
             {/* Header */}
             <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                <div className='space-y-1'></div>
+                <div className='space-y-1' />
 
                 <Button
                     type='button'

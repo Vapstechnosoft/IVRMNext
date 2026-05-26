@@ -19,11 +19,9 @@ export async function getPFForm3AReportOnload(MI_Id = 30): Promise<ApiResponse<P
     const requestBody: PFForm3AReportOnloadRequest = {
         MI_Id
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm3AReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -168,11 +166,9 @@ export async function filterPFForm3AEmployeeData(request: PFForm3AReportFilterRe
     const requestBody: PFForm3AReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm3AReportFilterResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -211,11 +207,9 @@ export async function searchPFForm3AReport(request: PFForm3AReportSearchRequest)
         HRME_Id: request.HRME_Id || 0,
         HRES_Year: request.HRES_Year || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm3AReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

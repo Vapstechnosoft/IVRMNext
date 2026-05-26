@@ -98,4 +98,3 @@ export interface EmployeeLateInEarlyOutReportGetDataResponse {
     page: number;
     page_size: number;
 }
-

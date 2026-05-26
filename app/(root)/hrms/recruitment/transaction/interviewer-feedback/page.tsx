@@ -3,16 +3,13 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { use, useEffect, useMemo } from 'react';
+import { useGetCandidateInterviewListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+import { X } from 'lucide-react';
+import { useMemo } from 'react';
 import AddInterviewerFeedbackForm from './_components/add-form';
 import { interviewerFeedbackColumns } from './_components/columns';
-import { useGetCandidateInterviewListVMS, useGetInterviewerFeedbackGridData } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 export default function InterviewerFeedbackPage() {
-    
     const { data: response, isLoading, error, refetchAll } = useGetCandidateInterviewListVMS();
-    console.log("response",response);
     return (
         <FormProvider<any>>
             <InterviewerFeedbackPageContent response={response} isLoading={isLoading} refetch={refetchAll} />
@@ -28,7 +25,6 @@ function InterviewerFeedbackPageContent({
     isLoading: boolean;
     refetch: () => void;
 }) {
-
     const gridData = useMemo(() => response?.data?.vmsCandidateInterviewList || response?.vmsCandidateInterviewList || [], [response]);
     const candidateList = useMemo(() => response?.data?.candidateDetailsList || response?.candidateDetailsList || [], [response]);
     const interviewerList = useMemo(() => response?.data?.interviewerList || response?.interviewerList || [], [response]);
@@ -81,14 +77,7 @@ function FormSections({
     candidateList: any[];
     interviewerList: any[];
 }) {
-    const {
-        isAddFormOpen,
-        closeAddForm,
-        addFormRef,
-        isEditFormOpen,
-        closeEditForm,
-        editFormRef
-    } = useFormContext();
+    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef } = useFormContext();
 
     return (
         <>

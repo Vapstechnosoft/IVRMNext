@@ -58,8 +58,6 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
     // }, 0);
     // };
     const handleReset = () => {
-        console.log('Before reset - current values:', getValues());
-
         const defaultValues = {
             asmaY_Id: '',
             fyrebseT_Id: '',
@@ -76,9 +74,6 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
             keepIsValid: false,
             keepSubmitCount: false
         });
-
-        console.log('After reset - form values:', getValues());
-        console.log('After reset - rebateType field:', getValues('fyrebseT_Id'));
     };
 
     const rebateId = watch('fyrebseT_Id');

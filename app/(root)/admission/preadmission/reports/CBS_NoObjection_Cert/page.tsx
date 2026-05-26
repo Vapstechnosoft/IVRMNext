@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
-import { FilterForm } from './_components/filter-form';
-import { NoObjectionCertPrint } from './_components/no-objection-cert-print';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Printer, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
 import {
     useCBSNoObjectionLoadData,
     useCBSNoObjectionStudDetails,
     useSaveCBSNoObjectionQRCode
 } from '@/hooks/admission/preadmission/reports/useCBSNoObjectionCert';
+import { Loader2, Printer, XCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import { FilterForm } from './_components/filter-form';
+import { NoObjectionCertPrint } from './_components/no-objection-cert-print';
 
 export default function CBSNoObjectionCertPage() {
     const [filterData, setFilterData] = useState<any>(null);
@@ -30,9 +30,10 @@ export default function CBSNoObjectionCertPage() {
 
     // Helper to format names as per legacy uppercase() function
     const formatName = (str: string) => {
-        if (!str) return "";
-        return str.split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        if (!str) return '';
+        return str
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
     };
 
@@ -44,8 +45,8 @@ export default function CBSNoObjectionCertPage() {
         try {
             const payload = {
                 ASMAY_Id: data.asmaY_Id,
-                ASMCL_Id: data.allorindi === 'A' ? 0 : (data.asmcL_Id || 0),
-                ASMS_Id: data.allorindi === 'A' ? 0 : (data.asmS_Id || 0),
+                ASMCL_Id: data.allorindi === 'A' ? 0 : data.asmcL_Id || 0,
+                ASMS_Id: data.allorindi === 'A' ? 0 : data.asmS_Id || 0,
                 AMST_Id: data.amsT_Id,
                 save_flag: false
             };
@@ -60,11 +61,13 @@ export default function CBSNoObjectionCertPage() {
                     const isFemale = stud.AMST_Sex?.toLowerCase() === 'female';
                     return {
                         ...stud,
-                        studentname: formatName(stud.studentnam || stud.amsT_FirstName || ""),
-                        fathername: formatName(stud.fatherName || stud.fathername || stud.amsT_FatherName || ""),
-                        gender5: isFemale ? "Miss" : "Master",
+                        studentname: formatName(stud.studentnam || stud.amsT_FirstName || ''),
+                        fathername: formatName(stud.fatherName || stud.fathername || stud.amsT_FatherName || ''),
+                        gender5: isFemale ? 'Miss' : 'Master',
                         date: data.date,
-                        milogo: response.data.masterCompany?.[0]?.milogo || "https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg"
+                        milogo:
+                            response.data.masterCompany?.[0]?.milogo ||
+                            'https://calcuttaboy.blob.core.windows.net/files/Logo_Main_Campus.jpg'
                     };
                 });
 
@@ -85,7 +88,7 @@ export default function CBSNoObjectionCertPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `No_Objection_Certificate_${new Date().getTime()}`,
+        documentTitle: `No_Objection_Certificate_${Date.now()}`,
         onAfterPrint: () => {
             // Optional: Auto-save to history after print if needed
             handleSaveToHistory();
@@ -109,20 +112,22 @@ export default function CBSNoObjectionCertPage() {
                         <p>The School has no objection to ${student.studentname} applying for the Schengen Visa...</p>
                         <p>Dated: ${new Date(student.date).toLocaleDateString()}</p>
                     </div>
-                `.replace(/\s+/g, ' ').trim();
+                `
+                    .replace(/\s+/g, ' ')
+                    .trim();
 
                 const payload = {
                     ASMAY_Id: filterData.asmaY_Id.toString(),
                     ASMCL_Id: filterData.asmcL_Id || 0,
                     ASMC_Id: filterData.asmS_Id || 0,
                     AMST_Id: student.amsT_Id || student.AMST_Id,
-                    AllOrInd: filterData.allorindi || "I",
-                    AMST_SOL: filterData.optradio || "S",
-                    ASCISS_CertificateFlg: "BC",
+                    AllOrInd: filterData.allorindi || 'I',
+                    AMST_SOL: filterData.optradio || 'S',
+                    ASCISS_CertificateFlg: 'BC',
                     ASCISS_CertificateNo: `BC${filterData.asmaY_Id}${student.amsT_Id || student.AMST_Id}`,
                     ASCISS_HtmlTemplate: htmlTemplate,
-                    ASCISS_PDFFileName: `NOC_${student.studentname.replace(/\s+/g, "_")}.pdf`,
-                    ASCISS_QRCode: ""
+                    ASCISS_PDFFileName: `NOC_${student.studentname.replace(/\s+/g, '_')}.pdf`,
+                    ASCISS_QRCode: ''
                 };
 
                 await saveQRCodeMutation.mutateAsync(payload);
@@ -140,57 +145,50 @@ export default function CBSNoObjectionCertPage() {
 
     if (isLoadDataLoading) {
         return (
-            <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className='flex h-[400px] items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
-            <Card className="shadow-lg border-t-4 border-t-primary overflow-hidden">
-                <CardHeader className="bg-slate-50 border-b py-4">
-                    <CardTitle className="text-xl font-bold text-primary flex items-center gap-2">
-                        No Objection Certificate
-                    </CardTitle>
+        <div className='mx-auto max-w-[1400px] space-y-6 p-6'>
+            <Card className='overflow-hidden border-t-4 border-t-primary shadow-lg'>
+                <CardHeader className='border-b bg-slate-50 py-4'>
+                    <CardTitle className='flex items-center gap-2 font-bold text-primary text-xl'>No Objection Certificate</CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                    <FilterForm
-                        initialData={loadData}
-                        onSubmit={handleReport}
-                        onReset={handleReset}
-                    />
+                <CardContent className='p-6'>
+                    <FilterForm initialData={loadData} onSubmit={handleReport} onReset={handleReset} />
                 </CardContent>
             </Card>
 
             {isGenerating && (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4 bg-white/50 rounded-lg border border-dashed">
-                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse font-medium">Fetching Student Details...</p>
+                <div className='flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed bg-white/50 py-12'>
+                    <Loader2 className='h-10 w-10 animate-spin text-primary' />
+                    <p className='animate-pulse font-medium text-muted-foreground'>Fetching Student Details...</p>
                 </div>
             )}
 
             {reportResult && (
-                <Card className="shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between border-b bg-slate-50 py-3">
-                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                            Certificate Preview
-                        </CardTitle>
-                        <div className="flex gap-3">
-                            <Button variant="outline" size="sm" onClick={handleReset} className="text-red-500 border-red-200 hover:bg-red-50">
-                                <XCircle className="mr-2 h-4 w-4" /> Clear
+                <Card className='fade-in slide-in-from-bottom-4 animate-in overflow-hidden shadow-lg duration-500'>
+                    <CardHeader className='flex flex-row items-center justify-between border-b bg-slate-50 py-3'>
+                        <CardTitle className='flex items-center gap-2 font-semibold text-lg'>Certificate Preview</CardTitle>
+                        <div className='flex gap-3'>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={handleReset}
+                                className='border-red-200 text-red-500 hover:bg-red-50'>
+                                <XCircle className='mr-2 h-4 w-4' /> Clear
                             </Button>
-                            <Button onClick={() => handlePrint()} className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
-                                <Printer className="mr-2 h-4 w-4" /> Print Certificate
+                            <Button onClick={() => handlePrint()} className='bg-green-600 text-white shadow-sm hover:bg-green-700'>
+                                <Printer className='mr-2 h-4 w-4' /> Print Certificate
                             </Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-0 bg-slate-200 overflow-auto max-h-[800px] flex justify-center py-8">
-                        <div className="bg-white shadow-2xl scale-95 origin-top transition-transform duration-300 hover:scale-100 mb-8">
-                            <NoObjectionCertPrint
-                                ref={printRef}
-                                data={reportResult}
-                            />
+                    <CardContent className='flex max-h-[800px] justify-center overflow-auto bg-slate-200 p-0 py-8'>
+                        <div className='mb-8 origin-top scale-95 bg-white shadow-2xl transition-transform duration-300 hover:scale-100'>
+                            <NoObjectionCertPrint ref={printRef} data={reportResult} />
                         </div>
                     </CardContent>
                 </Card>

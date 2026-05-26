@@ -1,21 +1,21 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist
-} from '@/server/exam/exam-module/reports/cumulative-report';
 
 const finalPromReportLESSchema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
@@ -24,7 +24,7 @@ const finalPromReportLESSchema = z.object({
     reopen_date: z.date().optional(),
     overAlltotal: z.boolean().default(false),
     overAlClass: z.boolean().default(false),
-    ecTEX_NotApplToTotalFlg: z.boolean().default(false),
+    ecTEX_NotApplToTotalFlg: z.boolean().default(false)
 });
 
 type FinalPromReportLESSchema = z.infer<typeof finalPromReportLESSchema>;
@@ -43,8 +43,8 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
             reopen_date: new Date(),
             overAlltotal: false,
             overAlClass: false,
-            ecTEX_NotApplToTotalFlg: false,
-        },
+            ecTEX_NotApplToTotalFlg: false
+        }
     });
 
     const { control, handleSubmit, setValue, reset, formState } = methods;
@@ -68,25 +68,29 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
     useEffect(() => {
         if (selectedYear && selectedYear !== 0) {
             setClassLoading(true);
-            getClassDropDownByAcademicYearlist(selectedYear).then((res: any) => {
-                const data = Array.isArray(res.data) ? res.data : [];
-                setClasses(data);
-                // Reset dependent fields
-                setValue('asmcL_Id', 0, { shouldValidate: false });
-                setValue('asmS_Id', 0, { shouldValidate: false });
-                setSections([]);
-            }).finally(() => setClassLoading(false));
+            getClassDropDownByAcademicYearlist(selectedYear)
+                .then((res: any) => {
+                    const data = Array.isArray(res.data) ? res.data : [];
+                    setClasses(data);
+                    // Reset dependent fields
+                    setValue('asmcL_Id', 0, { shouldValidate: false });
+                    setValue('asmS_Id', 0, { shouldValidate: false });
+                    setSections([]);
+                })
+                .finally(() => setClassLoading(false));
         }
     }, [selectedYear, setValue]);
 
     useEffect(() => {
         if (selectedYear && selectedClass && selectedClass !== 0) {
             setSectionLoading(true);
-            getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass).then((res: any) => {
-                const data = Array.isArray(res.data) ? res.data : [];
-                setSections(data);
-                setValue('asmS_Id', 0, { shouldValidate: false });
-            }).finally(() => setSectionLoading(false));
+            getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass)
+                .then((res: any) => {
+                    const data = Array.isArray(res.data) ? res.data : [];
+                    setSections(data);
+                    setValue('asmS_Id', 0, { shouldValidate: false });
+                })
+                .finally(() => setSectionLoading(false));
         } else {
             setSections([]);
             setValue('asmS_Id', 0, { shouldValidate: false });
@@ -105,11 +109,11 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
         try {
             const payload = {
                 ...values,
-                examlist: exams.map(e => ({ emE_Id: e.emE_Id, emE_ExamName: e.emE_ExamName, emE_ExamCode: e.emE_ExamCode })),
+                examlist: exams.map((e) => ({ emE_Id: e.emE_Id, emE_ExamName: e.emE_ExamName, emE_ExamCode: e.emE_ExamCode }))
             };
 
             onSuccess({ apiData: null, payload, academicYears, type });
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to generate report');
         }
     };
@@ -117,10 +121,12 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit((v) => onSubmit(v, 'report'))} className='space-y-6' noValidate>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                     {/* Academic Year */}
                     <div className='space-y-2'>
-                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
@@ -131,13 +137,17 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
                                             <SelectValue placeholder='--Select Year--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicLoading ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                            {academicLoading ? (
+                                                <SelectItem value='0' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : (
                                                 academicYears.map((year: any) => (
                                                     <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
                                                         {year.asmaY_Year}
                                                     </SelectItem>
                                                 ))
-                                            }
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -148,13 +158,18 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
 
                     {/* Class */}
                     <div className='space-y-2'>
-                        <Label>Class <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Class <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmcL_Id'
                             control={control}
                             render={({ field, fieldState }) => (
                                 <>
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''} disabled={classLoading}>
+                                    <Select
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value ? String(field.value) : ''}
+                                        disabled={classLoading}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={classLoading ? 'Loading...' : '--Select Class--'} />
                                         </SelectTrigger>
@@ -174,13 +189,18 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
 
                     {/* Section */}
                     <div className='space-y-2'>
-                        <Label>Section <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Section <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='asmS_Id'
                             control={control}
                             render={({ field, fieldState }) => (
                                 <>
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''} disabled={sectionLoading}>
+                                    <Select
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value ? String(field.value) : ''}
+                                        disabled={sectionLoading}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={sectionLoading ? 'Loading...' : '--Select Section--'} />
                                         </SelectTrigger>
@@ -204,21 +224,17 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
                         <Controller
                             name='reopen_date'
                             control={control}
-                            render={({ field }) => (
-                                <DatePicker date={field.value} setDate={field.onChange} />
-                            )}
+                            render={({ field }) => <DatePicker date={field.value} setDate={field.onChange} />}
                         />
                     </div>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6 pt-2'>
+                <div className='grid grid-cols-1 gap-6 pt-2 md:grid-cols-3'>
                     <div className='flex items-center space-x-2'>
                         <Controller
                             name='overAlltotal'
                             control={control}
-                            render={({ field }) => (
-                                <Checkbox id='overAlltotal' checked={field.value} onCheckedChange={field.onChange} />
-                            )}
+                            render={({ field }) => <Checkbox id='overAlltotal' checked={field.value} onCheckedChange={field.onChange} />}
                         />
                         <Label htmlFor='overAlltotal'>OverAll Total Grade ?</Label>
                     </div>
@@ -226,9 +242,7 @@ export function FinalPromReportLESForm({ onSuccess }: FinalPromReportLESFormProp
                         <Controller
                             name='overAlClass'
                             control={control}
-                            render={({ field }) => (
-                                <Checkbox id='overAlClass' checked={field.value} onCheckedChange={field.onChange} />
-                            )}
+                            render={({ field }) => <Checkbox id='overAlClass' checked={field.value} onCheckedChange={field.onChange} />}
                         />
                         <Label htmlFor='overAlClass'>OverAll Class-Section Rank ?</Label>
                     </div>

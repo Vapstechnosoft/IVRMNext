@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterTimeSlabList } from '@/hooks/library/useMasters';
 import { masterTimeSlabSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterTimeSlab } from '@/server/library/masters/time-slab';
@@ -12,7 +12,7 @@ import type { IMasterTimeSlab } from '@/types/library/masters/time-slab';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -25,7 +25,12 @@ interface UpdateMasterTimeSlabFormProps {
     selectedRow: IMasterTimeSlab;
 }
 
-export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, className = '', selectedRow: row }: UpdateMasterTimeSlabFormProps) {
+export default function UpdateMasterTimeSlabForm({
+    onloaddata,
+    onSuccess,
+    className = '',
+    selectedRow: row
+}: UpdateMasterTimeSlabFormProps) {
     const { refetchAll } = useMasterTimeSlabList();
 
     const {
@@ -42,7 +47,13 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
             lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id ?? 0,
             lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
             lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
-            lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
+            lfsE_PerDayFlg:
+                (row as any).lfsE_PerDayFlg === true ||
+                (row as any).lfsE_PerDayFlg === 1 ||
+                (row as any).LFSE_PerDayFlg === true ||
+                (row as any).LFSE_PerDayFlg === 1
+                    ? 1
+                    : 0,
             lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
             lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
             lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
@@ -58,7 +69,13 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                 lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
                 lfsE_UserType: (row as any).lfsE_UserType ?? (row as any).LFSE_UserType ?? '',
                 lfsE_SlabTypeFlg: (row as any).lfsE_SlabTypeFlg ?? (row as any).LFSE_SlabTypeFlg ?? '',
-                lfsE_PerDayFlg: (row as any).lfsE_PerDayFlg === true || (row as any).lfsE_PerDayFlg === 1 || (row as any).LFSE_PerDayFlg === true || (row as any).LFSE_PerDayFlg === 1 ? 1 : 0,
+                lfsE_PerDayFlg:
+                    (row as any).lfsE_PerDayFlg === true ||
+                    (row as any).lfsE_PerDayFlg === 1 ||
+                    (row as any).LFSE_PerDayFlg === true ||
+                    (row as any).LFSE_PerDayFlg === 1
+                        ? 1
+                        : 0,
                 lfsE_FromDay: (row as any).lfsE_FromDay ?? (row as any).LFSE_FromDay ?? 0,
                 lfsE_ToDay: (row as any).lfsE_ToDay ?? (row as any).LFSE_ToDay ?? 0,
                 lfsE_Amount: (row as any).lfsE_Amount ?? (row as any).LFSE_Amount ?? 0,
@@ -67,14 +84,13 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
         }
     }, [row, reset]);
 
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
                 lfsE_Id: (row as any).lfsE_Id ?? (row as any).LFSE_Id,
                 lfsE_UserType: data.lfsE_UserType,
                 lfsE_SlabTypeFlg: data.lfsE_SlabTypeFlg,
-              lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1 ?true : false,
+                lfsE_PerDayFlg: data.lfsE_PerDayFlg === 1,
                 lfsE_FromDay: Number(data.lfsE_FromDay),
                 lfsE_ToDay: data.lfsE_SlabTypeFlg === 'BETWEEN' ? Number(data.lfsE_ToDay) : 0,
                 lfsE_Amount: Number(data.lfsE_Amount),
@@ -82,7 +98,6 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
             };
 
             const response = await addOrUpdateMasterTimeSlab(payload);
-
 
             if (response.success) {
                 toast.success(response.message || 'Record Updated Successfully!!!');
@@ -109,13 +124,14 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
         });
     };
 
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                     <div className='space-y-2'>
-                        <Label>User Type <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            User Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='lfsE_UserType'
@@ -147,7 +163,9 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Slab Type <span className='text-destructive'>*</span></Label>
+                        <Label>
+                            Slab Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='lfsE_SlabTypeFlg'
@@ -188,7 +206,9 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                                 />
                             )}
                         />
-                        <Label htmlFor='perDay_update' className='font-normal'>Per Day</Label>
+                        <Label htmlFor='perDay_update' className='font-normal'>
+                            Per Day
+                        </Label>
                     </div>
 
                     <InputText
@@ -226,7 +246,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit bg-[#4251b1] text-white transition-all duration-200 hover:scale-105 hover:bg-[#35418e]'
                         isLoading={isSubmitting}
                         loadingText='Updating...'>
                         <div className='flex items-center'>
@@ -238,7 +258,7 @@ export default function UpdateMasterTimeSlabForm({ onloaddata, onSuccess, classN
                         type='button'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit bg-[#ff5a30] text-white transition-all duration-200 hover:scale-105 hover:bg-[#e64d26]'>
                         Reset
                     </Button>
                 </div>

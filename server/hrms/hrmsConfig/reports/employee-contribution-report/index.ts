@@ -1,13 +1,11 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeContributionReportFilterRequest,
     EmployeeContributionReportFilterResponse,
     EmployeeContributionReportFilterResponseType,
     EmployeeContributionReportOnloadRequest,
-    EmployeeContributionReportOnloadResponse,
     EmployeeContributionReportResponse,
-    EmployeeContributionReportSearchRequest,
     EmployeeContributionReportSearchResponse,
     EmployeeContributionReportSearchResponseType
 } from '@/types/hrms/reports/employee-contribution-report';
@@ -89,9 +87,7 @@ export async function filterEmployeeContributionData(
  * POST /api/ReportEPFcontributionRegister/get_employee_details_by_selection
  * Request: { hreS_Month, hreS_Year, designationselected, departmentselected, groupTypeselected }
  */
-export async function searchEmployeeContributionDetails(
-    request: any
-): Promise<EmployeeContributionReportSearchResponseType> {
+export async function searchEmployeeContributionDetails(request: any): Promise<EmployeeContributionReportSearchResponseType> {
     const requestBody = {
         hreS_Month: request.hreS_Month || '',
         hreS_Year: request.hreS_Year || '',
@@ -99,7 +95,6 @@ export async function searchEmployeeContributionDetails(
         departmentselected: request.departmentselected?.length > 0 ? request.departmentselected : [0],
         groupTypeselected: request.groupTypeselected?.length > 0 ? request.groupTypeselected : [0]
     };
-    console.log('🚀 [SERVER] searchEmployeeContributionDetails requestBody:', JSON.stringify(requestBody, null, 2));
 
     const response = await api.post<EmployeeContributionReportSearchResponse>(
         'hrms',
@@ -107,7 +102,6 @@ export async function searchEmployeeContributionDetails(
         requestBody,
         { timeout: 120000 }
     );
-    console.log(response);
     // Backend returns raw data or wrapped. Let's handle both.
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         return response as EmployeeContributionReportSearchResponseType;

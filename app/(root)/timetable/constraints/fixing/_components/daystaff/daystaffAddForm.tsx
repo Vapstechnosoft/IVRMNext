@@ -28,9 +28,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
 
@@ -51,8 +51,15 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
-    const asmaY_Id = watch('asmaY_Id');
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
+    const _asmaY_Id = watch('asmaY_Id');
     const ttfdS_SUbSelcFlag = watch('ttfdS_SUbSelcFlag');
 
     const { fields, append, remove } = useFieldArray({
@@ -128,22 +135,22 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         extractList(res, 'classlist').length > 0
                             ? extractList(res, 'classlist')
                             : extractList(res, 'clssbystaff').length > 0
-                                ? extractList(res, 'clssbystaff')
-                                : extractList(res, 'clsbystaff');
+                              ? extractList(res, 'clssbystaff')
+                              : extractList(res, 'clsbystaff');
 
                     const sections =
                         extractList(res, 'sectionlist').length > 0
                             ? extractList(res, 'sectionlist')
                             : extractList(res, 'secsbystaff').length > 0
-                                ? extractList(res, 'secsbystaff')
-                                : extractList(res, 'sectionlistbystaff');
+                              ? extractList(res, 'secsbystaff')
+                              : extractList(res, 'sectionlistbystaff');
 
                     const subjects =
                         extractList(res, 'subjectlist').length > 0
                             ? extractList(res, 'subjectlist')
                             : extractList(res, 'subsbystaff').length > 0
-                                ? extractList(res, 'subsbystaff')
-                                : extractList(res, 'subjectlistbystaff');
+                              ? extractList(res, 'subsbystaff')
+                              : extractList(res, 'subjectlistbystaff');
 
                     setMasterClasses(classes);
                     setMasterSections(sections);
@@ -220,7 +227,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                 data.tempararyArrayList = [];
             } else {
                 if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
-                    toast.warning("Please add at least one Class Details");
+                    toast.warning('Please add at least one Class Details');
                     return;
                 }
             }
@@ -257,7 +264,11 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList.map((item: any, idx: number) => (
                                             <SelectItem key={item.asmaY_Id || `acad-${idx}`} value={item.asmaY_Id?.toString()}>
@@ -277,8 +288,15 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Day</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any, idx: number) => (
                                             <SelectItem key={item.ttmD_Id || `day-${idx}`} value={item.ttmD_Id?.toString()}>
@@ -298,14 +316,23 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Staff</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleStaffChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
-                                        {staffList.filter((item: any) => item.hrmE_Id).map((item: any, idx: number) => (
-                                            <SelectItem key={item.hrmE_Id || `staff-${idx}`} value={item.hrmE_Id?.toString()}>
-                                                {item.staffName?.trim()}
-                                            </SelectItem>
-                                        ))}
+                                        {staffList
+                                            .filter((item: any) => item.hrmE_Id)
+                                            .map((item: any, idx: number) => (
+                                                <SelectItem key={item.hrmE_Id || `staff-${idx}`} value={item.hrmE_Id?.toString()}>
+                                                    {item.staffName?.trim()}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -337,8 +364,13 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
                                 <FormLabel>Class</FormLabel>
-                                <Select key={selectedClass?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <Select
+                                    key={selectedClass?.toString() || 'empty'}
+                                    onValueChange={(v) => handleClassChange(Number(v))}
+                                    value={selectedClass?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -347,7 +379,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                                 const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
                                                 const name = item.asmcL_ClassName ?? item.className ?? '';
                                                 return (
-                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>
+                                                        {name}
+                                                    </SelectItem>
                                                 );
                                             })
                                         )}
@@ -356,14 +390,21 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>Section</FormLabel>
-                                <Select key={selectedSection?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <Select
+                                    key={selectedSection?.toString() || 'empty'}
+                                    onValueChange={(v) => handleSectionChange(Number(v))}
+                                    value={selectedSection?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any, idx: number) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
                                             const name = item.asmC_SectionName ?? item.asmS_SectionName ?? item.sectionName ?? '';
                                             return (
-                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
                                             );
                                         })}
                                     </SelectContent>
@@ -371,14 +412,21 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                             </div>
                             <div className='space-y-2'>
                                 <FormLabel>Subject</FormLabel>
-                                <Select key={selectedSubject?.toString() || 'empty'} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <Select
+                                    key={selectedSubject?.toString() || 'empty'}
+                                    onValueChange={(v) => setSelectedSubject(Number(v))}
+                                    value={selectedSubject?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subSubjectList.map((item: any, idx: number) => {
                                             const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
                                             const name = item.ismS_SubjectName ?? item.subjectName ?? '';
                                             return (
-                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
                                             );
                                         })}
                                     </SelectContent>
@@ -389,7 +437,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                 <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
-                        <Button type='button' onClick={addToGrid}>Add</Button>
+                        <Button type='button' onClick={addToGrid}>
+                            Add
+                        </Button>
 
                         {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
                     </div>

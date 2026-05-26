@@ -89,7 +89,7 @@ export default function OrderMasterSchoolUnitForm({ isOpen, onClose, units: init
             } else {
                 toast.error('Failed to update order');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Something went wrong');
         } finally {
             setIsSaving(false);

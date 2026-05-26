@@ -45,7 +45,7 @@ export default function ToggleMasterEventForm({ rowData, onClose, onSuccess }: T
 
             const response = await deactivateMasterEvent(payload);
 
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Event ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();

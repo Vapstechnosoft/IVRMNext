@@ -27,5 +27,5 @@ export const MONTH_LIST = [
     { id: 9, name: 'September' },
     { id: 10, name: 'October' },
     { id: 11, name: 'November' },
-    { id: 12, name: 'December' },
+    { id: 12, name: 'December' }
 ];

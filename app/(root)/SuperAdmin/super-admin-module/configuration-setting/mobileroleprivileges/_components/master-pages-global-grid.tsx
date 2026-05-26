@@ -19,7 +19,7 @@ interface MasterPagesGlobalGridProps {
 export function MasterPagesGlobalGrid({ data, totalCount, onSelect, isLoading }: MasterPagesGlobalGridProps) {
     // These states are synced with page.tsx
     const [page, setPage] = useQueryState('mp_page', parseAsInteger.withDefault(1));
-    const [pageSize, setPageSize] = useQueryState('mp_page_size', parseAsInteger.withDefault(10));
+    const [pageSize, _setPageSize] = useQueryState('mp_page_size', parseAsInteger.withDefault(10));
     const [search, setSearch] = useQueryState('mp_search', parseAsString.withDefault(''));
 
     const totalPages = Math.ceil(totalCount / pageSize);

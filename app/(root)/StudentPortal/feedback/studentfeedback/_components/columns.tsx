@@ -34,7 +34,7 @@ export const studentFeedBackColumns: ColumnDef<IStudentFeedbackList>[] = [
             try {
                 const formatted = format(new Date(dateValue as string | number | Date), 'MM/dd/yyyy hh:mma');
                 return <div>{formatted}</div>;
-            } catch (error) {
+            } catch (_error) {
                 return <div>{String(dateValue)}</div>;
             }
         }

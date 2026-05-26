@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import type { MasterPriority } from './columns';
 import { useTogglePriorityStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { toast } from 'sonner';
+import type { MasterPriority } from './columns';
 
 interface ToggleMasterPriorityModalProps {
     rowData: MasterPriority;
@@ -22,14 +22,14 @@ export default function ToggleMasterPriorityModal({ rowData, isOpen, onClose, on
             const response = await toggleMutation(rowData.hrmpR_Id);
 
             if (response?.success) {
-                toast.success(response?.message || `Priority status toggled successfully`);
+                toast.success(response?.message || 'Priority status toggled successfully');
                 onSuccess();
                 onClose();
             } else {
-                toast.error(response?.message || `Failed to toggle priority status`);
+                toast.error(response?.message || 'Failed to toggle priority status');
             }
         } catch (error: any) {
-            toast.error(error?.message || `Failed to toggle priority status`);
+            toast.error(error?.message || 'Failed to toggle priority status');
         }
     };
 
@@ -45,11 +45,7 @@ export default function ToggleMasterPriorityModal({ rowData, isOpen, onClose, on
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleToggle}
-                        isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button onClick={handleToggle} isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

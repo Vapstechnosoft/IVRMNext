@@ -1,33 +1,30 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { DetailedTimePicker } from './_components/detailed-time-picker';
+    useEmployeePunchDetails,
+    useSaveEmployeePunch,
+    useTogglePunchDetail
+} from '@/hooks/hrms/attendance-management/useFrontOfficeAddLogs';
 import {
-    useReportGroupTypes,
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByGroupTypeDeptAndDesignation
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { useSaveEmployeePunch, useEmployeePunchDetails, useTogglePunchDetail } from '@/hooks/hrms/attendance-management/useFrontOfficeAddLogs';
-import { Loader2, Save, X, Trash2 } from 'lucide-react';
-import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { useMemo, useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { Loader2, Save, Trash2, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { DetailedTimePicker } from './_components/detailed-time-picker';
 
 interface FilterFormValues {
     groupType: string[];
@@ -48,7 +45,14 @@ export default function FrontOfficeAddLogsPage() {
 }
 
 function FrontOfficeAddLogsContent() {
-    const { control, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FilterFormValues>({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        reset,
+        setValue,
+        formState: { errors }
+    } = useForm<FilterFormValues>({
         defaultValues: {
             groupType: [],
             department: [],
@@ -77,17 +81,14 @@ function FrontOfficeAddLogsContent() {
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
     const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
-    console.log("employeesData", watchedEmployee);
-
     // Fetch existing punch details
     const watchedDate = watch('date');
-    const formattedDate = watchedEmployee && watchedDate ? format(watchedDate, "yyyy-MM-dd") : '';
-    console.log("formattedDate", formattedDate);
-    const { data: punchDetailsData, isLoading: isPunchDetailsLoading, refetch: refetchPunchDetails } = useEmployeePunchDetails(
-        formattedDate,
-        Number(watchedEmployee)
-    );
-    console.log("punchDetailsData", punchDetailsData);
+    const formattedDate = watchedEmployee && watchedDate ? format(watchedDate, 'yyyy-MM-dd') : '';
+    const {
+        data: punchDetailsData,
+        isLoading: isPunchDetailsLoading,
+        refetch: refetchPunchDetails
+    } = useEmployeePunchDetails(formattedDate, Number(watchedEmployee));
     // Transforms
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -142,8 +143,7 @@ function FrontOfficeAddLogsContent() {
             toast.error('Please select Employee, Time, and In-Out direction');
             return;
         }
-        const formattedDate = format(data.date, "yyyy-MM-dd")
-        console.log('data', data);
+        const formattedDate = format(data.date, 'yyyy-MM-dd');
         const payload = {
             punchLogs: [
                 {
@@ -184,18 +184,18 @@ function FrontOfficeAddLogsContent() {
     };
 
     // Disable future dates
-    const maxDate = format(new Date(), 'yyyy-MM-dd');
+    const _maxDate = format(new Date(), 'yyyy-MM-dd');
 
     return (
         <div className='container min-h-screen space-y-4 p-4'>
             <div className='flex items-center justify-between'>
-                <h2 className='font-bold text-2xl tracking-tight uppercase text-primary'>Front Office</h2>
+                <h2 className='font-bold text-2xl text-primary uppercase tracking-tight'>Front Office</h2>
             </div>
 
             <CollapsibleSection defaultOpen={true} title='EMPLOYEE LOGS INSERTION' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     {/* Filters Section */}
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         <div className='space-y-2'>
                             <Label>Group Type</Label>
                             <Controller
@@ -255,9 +255,11 @@ function FrontOfficeAddLogsContent() {
                     </div>
 
                     {/* Date and Employee Name Row */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <div className='space-y-2'>
-                            <Label>Date <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Date <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='date'
                                 control={control}
@@ -273,7 +275,9 @@ function FrontOfficeAddLogsContent() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Employee Name <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Employee Name <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='employee'
                                 control={control}
@@ -281,8 +285,7 @@ function FrontOfficeAddLogsContent() {
                                     <Select
                                         key={field.value ? 'selected' : 'empty'}
                                         onValueChange={field.onChange}
-                                        value={field.value || undefined}
-                                    >
+                                        value={field.value || undefined}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Employee' />
                                         </SelectTrigger>
@@ -301,24 +304,24 @@ function FrontOfficeAddLogsContent() {
 
                     {/* Punch Details Section - VISIBLE ONLY IF EMPLOYEE IS SELECTED */}
                     {watchedEmployee && (
-                        <div className='flex flex-wrap lg:flex-nowrap gap-8 bg-muted/20 p-8 rounded-xl border border-primary/20 transition-all animate-in fade-in slide-in-from-top-4 mt-4'>
+                        <div className='fade-in slide-in-from-top-4 mt-4 flex animate-in flex-wrap gap-8 rounded-xl border border-primary/20 bg-muted/20 p-8 transition-all lg:flex-nowrap'>
                             {/* Existing Punch Logs Table */}
                             {(punchDetailsData as any)?.data && (punchDetailsData as any).data.length > 0 && (
-                                <div className='flex-1 min-w-[300px] border border-primary/20 rounded overflow-hidden'>
-                                    <table className='w-full text-sm border-collapse'>
+                                <div className='min-w-[300px] flex-1 overflow-hidden rounded border border-primary/20'>
+                                    <table className='w-full border-collapse text-sm'>
                                         <thead className='bg-[#0066cc] text-white'>
                                             <tr>
-                                                <th className='border border-white/20 p-2 font-bold whitespace-nowrap'>SL. No.</th>
-                                                <th className='border border-white/20 p-2 font-bold whitespace-nowrap'>Times</th>
-                                                <th className='border border-white/20 p-2 font-bold whitespace-nowrap'>IN / OUT</th>
-                                                <th className='border border-white/20 p-2 font-bold whitespace-nowrap'>Action</th>
+                                                <th className='whitespace-nowrap border border-white/20 p-2 font-bold'>SL. No.</th>
+                                                <th className='whitespace-nowrap border border-white/20 p-2 font-bold'>Times</th>
+                                                <th className='whitespace-nowrap border border-white/20 p-2 font-bold'>IN / OUT</th>
+                                                <th className='whitespace-nowrap border border-white/20 p-2 font-bold'>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className='bg-white'>
                                             {isPunchDetailsLoading ? (
                                                 <tr>
                                                     <td colSpan={4} className='p-4 text-center'>
-                                                        <Loader2 className='h-4 w-4 animate-spin mx-auto text-primary' />
+                                                        <Loader2 className='mx-auto h-4 w-4 animate-spin text-primary' />
                                                     </td>
                                                 </tr>
                                             ) : (
@@ -326,17 +329,22 @@ function FrontOfficeAddLogsContent() {
                                                     <tr key={punch.foepD_Id} className='text-center hover:bg-muted/30'>
                                                         <td className='border border-muted p-2'>{index + 1}</td>
                                                         <td className='border border-muted p-2 font-bold'>{punch.foepD_PunchTime}</td>
-                                                        <td className='border border-muted p-2 font-bold'>{punch.foepD_InOutFlg === 'I' ? 'IN' : 'OUT'}</td>
+                                                        <td className='border border-muted p-2 font-bold'>
+                                                            {punch.foepD_InOutFlg === 'I' ? 'IN' : 'OUT'}
+                                                        </td>
                                                         <td className='border border-muted p-2'>
                                                             <Button
                                                                 variant='ghost'
                                                                 size='icon'
-                                                                className='h-8 w-8 text-destructive hover:text-white hover:bg-destructive'
+                                                                className='h-8 w-8 text-destructive hover:bg-destructive hover:text-white'
                                                                 title='Delete Punch'
                                                                 onClick={() => setDeleteId(punch.foepD_Id)}
-                                                                disabled={isDeleting}
-                                                            >
-                                                                {isDeleting ? <Loader2 className='h-4 w-4 animate-spin' /> : <Trash2 className='h-4 w-4' />}
+                                                                disabled={isDeleting}>
+                                                                {isDeleting ? (
+                                                                    <Loader2 className='h-4 w-4 animate-spin' />
+                                                                ) : (
+                                                                    <Trash2 className='h-4 w-4' />
+                                                                )}
                                                             </Button>
                                                         </td>
                                                     </tr>
@@ -348,17 +356,17 @@ function FrontOfficeAddLogsContent() {
                             )}
 
                             {/* Time Picker Side */}
-                            <div className='flex flex-col w-fit'>
+                            <div className='flex w-fit flex-col'>
                                 <Controller
                                     name='punchTime'
                                     control={control}
-                                    rules={{ 
+                                    rules={{
                                         required: 'Select Time',
                                         validate: (val) => val !== 'HH:MM' || 'Select Time'
                                     }}
                                     render={({ field, fieldState }) => (
-                                        <DetailedTimePicker 
-                                            value={field.value} 
+                                        <DetailedTimePicker
+                                            value={field.value}
                                             onChange={field.onChange}
                                             error={fieldState.error?.message}
                                         />
@@ -367,8 +375,8 @@ function FrontOfficeAddLogsContent() {
                             </div>
 
                             {/* Flag Side */}
-                            <div className='flex flex-col gap-1  w-fit md:min-w-[200px]'>
-                                <div className=' border-[#3b82f6] pb-1  w-fit px-2'>
+                            <div className='flex w-fit flex-col gap-1 md:min-w-[200px]'>
+                                <div className=' w-fit border-[#3b82f6] px-2 pb-1'>
                                     <span className='font-bold text-[#3b82f6] text-sm uppercase tracking-wide'>In-Out</span>
                                 </div>
                                 <Controller
@@ -376,11 +384,8 @@ function FrontOfficeAddLogsContent() {
                                     control={control}
                                     rules={{ required: 'Select Display Type' }}
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                        >
-                                            <SelectTrigger className='h-12 border-2 border-[#3b82f6] focus:ring-[#3b82f6]/20 bg-white rounded'>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='h-12 rounded border-2 border-[#3b82f6] bg-white focus:ring-[#3b82f6]/20'>
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -390,11 +395,7 @@ function FrontOfficeAddLogsContent() {
                                         </Select>
                                     )}
                                 />
-                                {errors.inOutFlag && (
-                                    <p className='text-red-500 text-sm font-medium mt-1'>
-                                        {errors.inOutFlag.message}
-                                    </p>
-                                )}
+                                {errors.inOutFlag && <p className='mt-1 font-medium text-red-500 text-sm'>{errors.inOutFlag.message}</p>}
                             </div>
                         </div>
                     )}
@@ -404,20 +405,18 @@ function FrontOfficeAddLogsContent() {
                         <Button
                             type='submit'
                             disabled={isPending || !watchedEmployee}
-                            className='w-40 h-11 bg-blue-800 hover:bg-blue-900 text-white font-bold text-base shadow-md transition-all active:scale-95'
-                        >
+                            className='h-11 w-40 bg-blue-800 font-bold text-base text-white shadow-md transition-all hover:bg-blue-900 active:scale-95'>
                             {isPending ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <Save className='mr-2 h-5 w-5' />}
                             SAVE
                         </Button>
                         <Button
                             type='button'
                             disabled={isPending}
-                            className='w-40 h-11 bg-orange-600 hover:bg-orange-700 text-white font-bold text-base shadow-md transition-all active:scale-95'
+                            className='h-11 w-40 bg-orange-600 font-bold text-base text-white shadow-md transition-all hover:bg-orange-700 active:scale-95'
                             onClick={(e) => {
                                 e.preventDefault();
                                 resetHandler();
-                            }}
-                        >
+                            }}>
                             <X className='mr-2 h-5 w-5' />
                             CANCEL
                         </Button>
@@ -426,16 +425,10 @@ function FrontOfficeAddLogsContent() {
             </CollapsibleSection>
 
             {/* Delete Confirmation Dialog */}
-            <AdaptiveDialog
-                title='Delete Punch Detail'
-                isOpen={deleteId !== null}
-                onClose={() => setDeleteId(null)}
-            >
+            <AdaptiveDialog title='Delete Punch Detail' isOpen={deleteId !== null} onClose={() => setDeleteId(null)}>
                 <div className='flex flex-col gap-4'>
                     <AdaptiveBody className='flex flex-col gap-5'>
-                        <p>
-                            Are you sure you want to delete this punch record?
-                        </p>
+                        <p>Are you sure you want to delete this punch record?</p>
                     </AdaptiveBody>
                     <AdaptiveFooter>
                         <Button variant='secondary' onClick={() => setDeleteId(null)} type='button'>
@@ -453,8 +446,7 @@ function FrontOfficeAddLogsContent() {
                                         }
                                     });
                                 }
-                            }}
-                        >
+                            }}>
                             Delete
                         </Button>
                     </AdaptiveFooter>

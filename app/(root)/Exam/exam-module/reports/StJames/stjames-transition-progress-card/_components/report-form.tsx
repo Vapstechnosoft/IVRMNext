@@ -308,11 +308,11 @@ export default function StJamesTransitionReportForm({
                                 <Controller
                                     control={control}
                                     name='readmit'
-                                    render={({ field }) => (
-                                        <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    render={({ field }) => <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />}
                                 />
-                                <Label htmlFor='readmit' className='cursor-pointer'>Display Promotion</Label>
+                                <Label htmlFor='readmit' className='cursor-pointer'>
+                                    Display Promotion
+                                </Label>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Controller
@@ -322,7 +322,9 @@ export default function StJamesTransitionReportForm({
                                         <Checkbox id='displayattendance' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='displayattendance' className='cursor-pointer'>Display Attendance</Label>
+                                <Label htmlFor='displayattendance' className='cursor-pointer'>
+                                    Display Attendance
+                                </Label>
                             </div>
                         </div>
 
@@ -334,11 +336,7 @@ export default function StJamesTransitionReportForm({
                                 className='min-w-[140px]'>
                                 Report
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => reset()}
-                                className='min-w-[100px]'>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

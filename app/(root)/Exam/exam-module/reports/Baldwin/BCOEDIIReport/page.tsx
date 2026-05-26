@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import BCOEDIIReportForm from './_components/add-form';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import BCOEDIIReportForm from './_components/add-form';
 import BCOEDIIReportView from './_components/report-view';
 
 export default function BCOEDIIReportPage() {
@@ -28,9 +28,8 @@ export default function BCOEDIIReportPage() {
             setIsLoading(true);
             setIsReportVisible(false);
             const res = await getExamReportCard(payload);
-            console.log("response", res);
 
-            if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
                 const flatRows: any[] = res.data;
 
                 // Group by student
@@ -109,23 +108,20 @@ export default function BCOEDIIReportPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
-            <CollapsibleSection title="BCOEDII Report Criteria" defaultOpen>
-                <BCOEDIIReportForm
-                    onSuccess={handleFormSuccess}
-                    onReset={() => window.location.reload()}
-                />
+        <div className='flex flex-col gap-6 p-4'>
+            <CollapsibleSection title='BCOEDII Report Criteria' defaultOpen>
+                <BCOEDIIReportForm onSuccess={handleFormSuccess} onReset={() => window.location.reload()} />
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex flex-col items-center justify-center p-12 gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Generating BCOEDII Reports...</p>
+                <div className='flex flex-col items-center justify-center gap-4 p-12'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating BCOEDII Reports...</p>
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BCOEDIIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}

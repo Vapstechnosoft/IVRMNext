@@ -81,8 +81,6 @@ function ActionButtonsCell({
                 // console.log('🟣 [HOOK] fopM_Id:', fopM_Id);
                 const response = await getOnlinePaymentHeadGroupEdit(fopM_Id);
 
-                console.log('🟣 [HOOK] response:', response);
-
                 const academicyeardata = await getAcademicYearDropdown();
 
                 //  console.log('🟣 [HOOK] academicYearData:', academicyeardata);

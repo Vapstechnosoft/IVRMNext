@@ -6,7 +6,7 @@ import { api } from '@/lib/apiService';
  * Fetches initial data (Years, Classes, Sections)
  */
 export async function getStudentTcInitialData() {
-    const url = `/StudenttcReportcustom/getinitialdata`;
+    const url = '/StudenttcReportcustom/getinitialdata';
     const response = await api.get<any>('admission', url);
     return response.data || response;
 }
@@ -15,7 +15,6 @@ export async function getStudentTcInitialData() {
  * Fetches student list based on search criteria
  */
 export async function getStudentTcStudentList(data: {
-
     ASMAY_Id: number;
     ASMCL_Id?: number;
     ASMC_Id?: number;

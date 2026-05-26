@@ -62,7 +62,7 @@ export default function MasterEventsForm({ onSuccess, parameterlist, editData }:
                             COEME_ActiveFlag: data.coemE_ActiveFlag ?? data.COEME_ActiveFlag ?? true
                         });
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch event details');
                 }
             };
@@ -80,14 +80,14 @@ export default function MasterEventsForm({ onSuccess, parameterlist, editData }:
             } else {
                 toast.error(res.message || 'Failed to save event');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving');
         }
     };
 
     const insertParameter = (fieldName: 'COEME_SMSMessage' | 'COEME_Mail_Message', paramValue: string) => {
         const current = form.getValues(fieldName) || '';
-        form.setValue(fieldName, current + ` ${paramValue} `);
+        form.setValue(fieldName, `${current} ${paramValue} `);
     };
 
     return (

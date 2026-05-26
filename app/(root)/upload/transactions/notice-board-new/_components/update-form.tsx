@@ -78,18 +78,16 @@ export default function UpdateFeeTransactionWaiveOffForm({
 
     // Add this useEffect to log form state
     useEffect(() => {
-        console.log('📝 Form initialized with values:', getValues());
-        console.log('Selected Row:', selectedRow);
     }, [getValues, selectedRow]);
 
     const { refetchAll } = useFeeTransactionWaivedOffGrid();
 
-    const [academicYear, setAcademicYear] = useState<number | null>(null);
-    const [classWise, setclassWise] = useState<number | null>(null);
-    const [sectionWise, setsectionWise] = useState<number | null>(null);
-    const [studentWise, setstudentWise] = useState<number | null>(null);
-    const [remarks, setRemarks] = useState<string>('');
-    const [grouplist, setgrouplist] = useState<string[]>([]);
+    const [_academicYear, setAcademicYear] = useState<number | null>(null);
+    const [_classWise, setclassWise] = useState<number | null>(null);
+    const [_sectionWise, setsectionWise] = useState<number | null>(null);
+    const [_studentWise, setstudentWise] = useState<number | null>(null);
+    const [_remarks, setRemarks] = useState<string>('');
+    const [_grouplist, _setgrouplist] = useState<string[]>([]);
     const [refundableType, setRefundableType] = useState<string>('Refundable');
     const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
     const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
@@ -252,7 +250,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
                     }
                     return item;
                 }) ?? [];
-            console.log('updatedheadlist', updatedHeadList, res.data);
             const preselectedIds = updatedHeadList.reduce<string[]>((acc, s, ind) => {
                 if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
                     acc.push(ind.toString());
@@ -343,7 +340,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
             });
 
             const formData = new FormData();
-            formData.forEach((v, k) => console.log(k, v));
+            formData.forEach((_v, _k) => );
             formData.append('file', file);
             formData.append('FileName', file.name);
             formData.append('ContentType', file.type);
@@ -372,8 +369,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
     useEffect(() => {
         if (!selectedRow) return;
 
-        console.log('Initializing form with selectedRow:', selectedRow);
-
         setAcademicYear(selectedRow.asmaY_Id);
         setclassWise(selectedRow.asmcL_Id);
         setsectionWise(selectedRow.asmS_Id);
@@ -394,8 +389,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
             uploadedPhotoPath: '',
             feeGroupIds: initialFeeGroupIds // Make sure this is set
         });
-
-        console.log('Form initialized with feeGroupIds:', initialFeeGroupIds);
     }, [selectedRow, reset, setValue]);
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
@@ -978,8 +971,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 {...tableProps}
                                 columns={feeHeads}
                                 onRowSelectionChange={(selectedRows: feeTransactionWaivedOffHead[]) => {
-                                    console.log('selectedRows', selectedRows);
-                                    const selectedRowIds = selectedRows.map((r) => String(r.ftI_Id));
+                                    const _selectedRowIds = selectedRows.map((r) => String(r.ftI_Id));
                                     const selected = headList.filter((head) => selectedRows.some((row) => row.ftI_Id === head.ftI_Id));
 
                                     setSelectedHead(selected);

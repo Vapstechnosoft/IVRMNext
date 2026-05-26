@@ -18,13 +18,13 @@ export async function getBifurcationConstraintsDetails(searchParams?: ApiSearchp
 }
 
 // Get Class details based on Academic Year and Category
-export async function getTimeTableCategoryDropDownDetails(searchParams: ApiSearchparams | undefined) {
+export async function getTimeTableCategoryDropDownDetails(_searchParams: ApiSearchparams | undefined) {
     const url = '/TimeTableCommon/GetCategoryDetails';
     console.info('BifurcationConstraints', url);
     return await api.get<bifurcationconstraints[]>('timetable', url);
 }
 
-export async function getAcademicYear(searchParams: ApiSearchparams | undefined) {
+export async function getAcademicYear(_searchParams: ApiSearchparams | undefined) {
     const url = '/TimeTableCommon/GetAcademicYearData';
     console.info('BifurcationConstratins-AcademicYear', url);
     return await api.get<any>('timetable', url);

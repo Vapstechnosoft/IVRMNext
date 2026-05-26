@@ -31,7 +31,7 @@ export default function MobileMasterPage() {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, _setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -51,7 +51,7 @@ export default function MobileMasterPage() {
                 } else {
                     toast.error(result.message);
                 }
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to fetch data');
             } finally {
                 setLoading(false);
@@ -73,7 +73,7 @@ export default function MobileMasterPage() {
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to fetch record details for editing');
         }
     };
@@ -94,7 +94,7 @@ export default function MobileMasterPage() {
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to delete record');
         } finally {
             setIsDeleting(false);

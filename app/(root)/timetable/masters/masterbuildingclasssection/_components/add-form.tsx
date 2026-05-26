@@ -178,8 +178,6 @@ export default function AddMasterBuildingForm({ onSuccess, buildingname = '' }: 
                 ttmbcS_Id: 0,
                 ttmB_Id: data.ttmB_Id
             };
-
-            console.log('payload', JSON.stringify(payload));
             const response = await addOrUpdateMasterBuildingclasssection(payload);
             if (response.success) {
                 toast.success(response.message);

@@ -1,7 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Printer } from 'lucide-react';
-import React from 'react';
+import { Printer } from 'lucide-react';
 
 interface StJamesIVReportListProps {
     data: any;
@@ -13,7 +12,7 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
         window.print();
     };
 
-    const handleExport = () => {};
+    const _handleExport = () => {};
 
     // Prepare data
     const getstudentdetails = data?.getstudentdetails || [];
@@ -50,12 +49,14 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
         if (colm.columname === 'Marks') {
             if (mrks.PassFailFlg === 'AB' && mrks.complusoryflag !== 'C') return mrks.PassFailFlg;
             if (mrks.PassFailFlg === 'AB' && mrks.complusoryflag === 'C') return mrks.PassFailFlg;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C') return <span className="underline">{mrks.obtainmarks}</span>;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C') return <span className="underline">{mrks.obtainmarks}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C') return <span className='underline'>{mrks.obtainmarks}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C') return <span className='underline'>{mrks.obtainmarks}</span>;
             return mrks.obtainmarks;
-        } else if (colm.columname === 'Point' && colm.emE_ExamDescription !== 'UAT') {
+        }
+        if (colm.columname === 'Point' && colm.emE_ExamDescription !== 'UAT') {
             if (mrks.PassFailFlg === 'AB' && mrks.complusoryflag !== 'C') return mrks.PassFailFlg;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C') return <span className="underline">{mrks.ObtainedGradePoints}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C')
+                return <span className='underline'>{mrks.ObtainedGradePoints}</span>;
             return mrks.ObtainedGradePoints;
         }
         return '';
@@ -66,12 +67,16 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
         if (colm.columname === 'Marks') {
             if (mrks.PassFailFlg === 'AB' && mrks.complusoryflag !== 'C') return mrks.PassFailFlg;
             if (mrks.PassFailFlg === 'AB' && mrks.complusoryflag === 'C') return mrks.PassFailFlg;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C' && mrks.Marksdispaly === 1) return <span className="underline">{mrks.obtainmarks}</span>;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C' && mrks.Marksdispaly === 1) return <span className="underline">{mrks.obtainmarks}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C' && mrks.Marksdispaly === 1)
+                return <span className='underline'>{mrks.obtainmarks}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C' && mrks.Marksdispaly === 1)
+                return <span className='underline'>{mrks.obtainmarks}</span>;
             if (mrks.PassFailFlg !== 'Fail' && mrks.PassFailFlg !== 'AB' && mrks.Marksdispaly === 1) return mrks.obtainmarks;
 
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C' && mrks.Gradedisplay === 1) return <span className="underline">{mrks.ObtainedGrade}</span>;
-            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C' && mrks.Gradedisplay === 1) return <span className="underline">{mrks.ObtainedGrade}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag === 'C' && mrks.Gradedisplay === 1)
+                return <span className='underline'>{mrks.ObtainedGrade}</span>;
+            if (mrks.PassFailFlg === 'Fail' && mrks.complusoryflag !== 'C' && mrks.Gradedisplay === 1)
+                return <span className='underline'>{mrks.ObtainedGrade}</span>;
             if (mrks.PassFailFlg !== 'Fail' && mrks.PassFailFlg !== 'AB' && mrks.Gradedisplay === 1) return mrks.ObtainedGrade;
         }
         return '';
@@ -80,7 +85,9 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
     const formatDate = (date: any) => {
         if (!date) return '';
         const d = new Date(date);
-        return isNaN(d.getTime()) ? date : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+        return Number.isNaN(d.getTime())
+            ? date
+            : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
     };
 
     return (
@@ -128,133 +135,155 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
                             <div className='mb-6 text-center font-bold text-lg'>ACADEMIC YEAR {year}</div>
 
                             <div className='mb-2 flex justify-between font-bold'>
-                                <div className="w-1/3">{report.studentname}</div>
-                                <div className="w-1/3 flex justify-between">
-                                    <span>Class : {report.classname} {report.sectionname}</span>
+                                <div className='w-1/3'>{report.studentname}</div>
+                                <div className='flex w-1/3 justify-between'>
+                                    <span>
+                                        Class : {report.classname} {report.sectionname}
+                                    </span>
                                     <span>Roll : {report.rollno}</span>
                                 </div>
-                                <div className="w-1/3 text-right">Reg.No.: {report.admno}</div>
+                                <div className='w-1/3 text-right'>Reg.No.: {report.admno}</div>
                             </div>
 
                             <div className='flex justify-between font-bold'>
-                                <div className="w-1/3">{report.spccmH_HouseName}</div>
-                                <div className="w-1/3 text-center">Number of boys in class : {report.totalboys}</div>
-                                <div className="w-1/3 text-right">D.O.B : {formatDate(report.dob)}</div>
+                                <div className='w-1/3'>{report.spccmH_HouseName}</div>
+                                <div className='w-1/3 text-center'>Number of boys in class : {report.totalboys}</div>
+                                <div className='w-1/3 text-right'>D.O.B : {formatDate(report.dob)}</div>
                             </div>
                         </div>
 
                         {/* Grades Table */}
-                        <div className="overflow-x-auto">
-                        <table className='w-full border-collapse border-2 border-gray-400 text-center text-sm font-bold'>
-                            <thead className="border-b-0 border-double border-gray-400">
-                                <tr>
-                                    <td rowSpan={2} className='w-[250px] border border-gray-400 bg-white p-2' />
-                                    {getexamdetails.map((exam: any, eIdx: number) => {
-                                        return (
-                                            <td key={`exam-${eIdx}`} colSpan={1} className='border border-gray-400 bg-white p-2 text-center'>
-                                                {exam.emE_ExamName}
+                        <div className='overflow-x-auto'>
+                            <table className='w-full border-collapse border-2 border-gray-400 text-center font-bold text-sm'>
+                                <thead className='border-gray-400 border-b-0 border-double'>
+                                    <tr>
+                                        <td rowSpan={2} className='w-[250px] border border-gray-400 bg-white p-2' />
+                                        {getexamdetails.map((exam: any, eIdx: number) => {
+                                            return (
+                                                <td
+                                                    key={`exam-${eIdx}`}
+                                                    colSpan={1}
+                                                    className='border border-gray-400 bg-white p-2 text-center'>
+                                                    {exam.emE_ExamName}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                    <tr>
+                                        {tempexamdetails.map((colm: any, cIdx: number) => (
+                                            <td key={`col-${cIdx}`} className='border border-gray-400 bg-white p-2 text-center'>
+                                                {colm.columname}
                                             </td>
-                                        );
-                                    })}
-                                </tr>
-                                <tr>
-                                    {tempexamdetails.map((colm: any, cIdx: number) => (
-                                        <td key={`col-${cIdx}`} className='border border-gray-400 bg-white p-2 text-center'>
-                                            {colm.columname}
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className='border-gray-400 border-t-0 border-double'>
+                                    {report.subjects
+                                        .filter((s: any) => s.eyceS_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={`subj-${sIdx}`}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>
+                                                    {subj.ismS_SubjectName || subj.subjectname || ''}
+                                                </td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find(
+                                                        (m: any) => m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder
+                                                    );
+                                                    return (
+                                                        <td key={`mark-${cIdx}`} className='border border-gray-400 p-2 text-center'>
+                                                            {getMarksDisplay(mrks, colm)}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                </tbody>
+
+                                <tbody>
+                                    <tr className='border-none'>
+                                        <td className='border-none p-2' colSpan={tempexamdetails.length + 1}>
+                                            &nbsp;
                                         </td>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="border-t-0 border-double border-gray-400">
-                                {report.subjects.filter((s: any) => s.eyceS_AplResultFlg).map((subj: any, sIdx: number) => (
-                                    <tr key={`subj-${sIdx}`}>
-                                        <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName || subj.subjectname || ''}</td>
+                                    </tr>
+                                </tbody>
+
+                                <tbody className='border-gray-400 border-double'>
+                                    <tr>
+                                        <td className='border border-gray-400 p-2 pl-6 text-left'>Total</td>
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
-                                            const mrks = report.marks.find((m: any) => m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder);
+                                            const totl = report.markstotal.find(
+                                                (t: any) =>
+                                                    t.emE_Id === colm.EME_Id && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2'
+                                            );
                                             return (
-                                                <td key={`mark-${cIdx}`} className='border border-gray-400 p-2 text-center'>
-                                                    {getMarksDisplay(mrks, colm)}
+                                                <td key={`tot-${cIdx}`} className='border border-gray-400 p-2 text-center'>
+                                                    {totl ? (colm.columname === 'Marks' ? totl.estmP_TotalObtMarks : '') : ''}
                                                 </td>
                                             );
                                         })}
                                     </tr>
-                                ))}
-                            </tbody>
-
-                            <tbody>
-                                <tr className="border-none">
-                                    <td className="border-none p-2" colSpan={tempexamdetails.length + 1}>&nbsp;</td>
-                                </tr>
-                            </tbody>
-
-                            <tbody className="border-double border-gray-400">
-                                <tr>
-                                    <td className='border border-gray-400 p-2 pl-6 text-left'>Total</td>
-                                    {tempexamdetails.map((colm: any, cIdx: number) => {
-                                        const totl = report.markstotal.find((t: any) => t.emE_Id === colm.EME_Id && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2');
-                                        return (
-                                            <td key={`tot-${cIdx}`} className='border border-gray-400 p-2 text-center'>
-                                                {totl ? (colm.columname === 'Marks' ? totl.estmP_TotalObtMarks : '') : ''}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                                {report.subjects.filter((s: any) => !s.eyceS_AplResultFlg).map((subj: any, sIdx: number) => (
-                                    <tr key={`subj-non-${sIdx}`}>
-                                        <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName || subj.subjectname || ''}</td>
-                                        {tempexamdetails.map((colm: any, cIdx: number) => {
-                                            const mrks = report.marks.find((m: any) => m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder);
-                                            return (
-                                                <td key={`mark-non-${cIdx}`} className='border border-gray-400 p-2 text-center'>
-                                                    {getGradeDisplay(mrks, colm)}
+                                    {report.subjects
+                                        .filter((s: any) => !s.eyceS_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={`subj-non-${sIdx}`}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>
+                                                    {subj.ismS_SubjectName || subj.subjectname || ''}
                                                 </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = report.marks.find(
+                                                        (m: any) => m.emeid === colm.EME_Id && m.subjectorder === subj.subjectorder
+                                                    );
+                                                    return (
+                                                        <td key={`mark-non-${cIdx}`} className='border border-gray-400 p-2 text-center'>
+                                                            {getGradeDisplay(mrks, colm)}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
                         </div>
 
                         {/* Extra Details */}
-                        <div className="mt-8 font-bold text-sm">
-                            <div className="flex mb-4">
-                                <div className="w-[20%]">Class Teacher's Comment :</div>
-                                <div className="w-[80%] border-b border-black">&nbsp;</div>
+                        <div className='mt-8 font-bold text-sm'>
+                            <div className='mb-4 flex'>
+                                <div className='w-[20%]'>Class Teacher's Comment :</div>
+                                <div className='w-[80%] border-black border-b'>&nbsp;</div>
                             </div>
-                            <div className="flex mb-4">
-                                <div className="w-full border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-full border-black border-b'>&nbsp;</div>
                             </div>
-                            <div className="flex mb-4">
-                                <div className="w-full border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-full border-black border-b'>&nbsp;</div>
                             </div>
-                            <div className="flex mb-4">
-                                <div className="w-full border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-full border-black border-b'>&nbsp;</div>
                             </div>
-                            <div className="flex mb-4">
-                                <div className="w-full border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-full border-black border-b'>&nbsp;</div>
                             </div>
 
                             {displayAttendance && (
-                                <div className="flex mb-4">
-                                    <div className="w-[15%]">Attendance</div>
-                                    <div className="w-[25%] border-b border-black">&nbsp;</div>
-                                    <div className="w-[15%] text-center">days out of</div>
-                                    <div className="w-[45%] border-b border-black">&nbsp;</div>
+                                <div className='mb-4 flex'>
+                                    <div className='w-[15%]'>Attendance</div>
+                                    <div className='w-[25%] border-black border-b'>&nbsp;</div>
+                                    <div className='w-[15%] text-center'>days out of</div>
+                                    <div className='w-[45%] border-black border-b'>&nbsp;</div>
                                 </div>
                             )}
 
-                            <div className="flex mb-4">
-                                <div className="w-[10%]">Club</div>
-                                <div className="w-[90%] border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-[10%]'>Club</div>
+                                <div className='w-[90%] border-black border-b'>&nbsp;</div>
                             </div>
 
-                            <div className="flex mb-4">
-                                <div className="w-[10%]">Awards</div>
-                                <div className="w-[90%] border-b border-black">&nbsp;</div>
+                            <div className='mb-4 flex'>
+                                <div className='w-[10%]'>Awards</div>
+                                <div className='w-[90%] border-black border-b'>&nbsp;</div>
                             </div>
 
-                            <div className="flex mb-12 justify-end">
+                            <div className='mb-12 flex justify-end'>
                                 <div>Promotion Granted/Refused</div>
                             </div>
                         </div>
@@ -263,7 +292,7 @@ export default function StJamesIVReportList({ data, institution }: StJamesIVRepo
                         <div className='mt-10 font-bold text-sm'>
                             <div className='mt-16 flex justify-between'>
                                 <div className='flex flex-col items-start'>
-                                    <div className='w-48 border-black border-t-[1.5px] pt-1 font-bold text-sm capitalize lowercase first-letter:capitalize'>
+                                    <div className='w-48 border-black border-t-[1.5px] pt-1 font-bold text-sm lowercase capitalize first-letter:capitalize'>
                                         {report.Classteacher || report.classteacher || 'Class Teacher'}
                                     </div>
                                     <div className='font-bold text-sm'>&emsp; Class Teacher</div>

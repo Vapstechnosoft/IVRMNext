@@ -7,12 +7,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type CalcuttaPromotionReportItoIVSchema, calcuttaPromotionReportItoIVSchema } from '@/schemas/exam/exam-module/reports';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -54,7 +54,7 @@ export default function CalcuttaPromotionReportForm({
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     // set academic years
     useEffect(() => {
@@ -138,13 +138,11 @@ export default function CalcuttaPromotionReportForm({
                 try {
                     const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
                     setTerms(Array.isArray(termsData) ? termsData : []);
-                } catch (e) {
+                } catch (_e) {
                     setTerms([]);
                 }
 
-                const valid = Array.isArray(studentRes.data)
-                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(studentRes.data) ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id) : [];
 
                 const formattedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
@@ -175,9 +173,9 @@ export default function CalcuttaPromotionReportForm({
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
-            Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
+            Temp_AmstIds: data.studentList.map((s) => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: data.empG_GroupName || '',
-            flag: "4"
+            flag: '4'
         };
 
         if (onSuccess) {
@@ -319,14 +317,9 @@ export default function CalcuttaPromotionReportForm({
                                 name='empG_GroupName'
                                 render={({ field, fieldState }) => (
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-32'>
-                                            Term
-                                        </Label>
+                                        <Label className='font-medium text-sm sm:w-32'>Term</Label>
                                         <div className='flex-1'>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value || ''}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value || ''}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder='Select Term' />
                                                 </SelectTrigger>
@@ -385,9 +378,9 @@ export default function CalcuttaPromotionReportForm({
                                                     value: s.amsT_Id.toString()
                                                 }))}
                                                 onChange={(selectedValues) => {
-                                                    field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
+                                                    field.onChange(selectedValues.map((id) => ({ amsT_Id: Number(id) })));
                                                 }}
-                                                value={field.value?.map(v => String(v.amsT_Id)) ?? []}
+                                                value={field.value?.map((v) => String(v.amsT_Id)) ?? []}
                                                 placeholder='Select Students'
                                                 height='300px'
                                                 isSearchRequired

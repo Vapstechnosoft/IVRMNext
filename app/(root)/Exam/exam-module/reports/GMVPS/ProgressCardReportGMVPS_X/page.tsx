@@ -46,7 +46,6 @@ export default function ProgressCardReportGMVPS_X_Page() {
         try {
             setIsLoading(true);
             const res = await getExamReportCard(payload);
-            console.log("response", res);
             const flatRows = res?.data || [];
 
             if (!Array.isArray(flatRows) || flatRows.length === 0) {
@@ -65,7 +64,7 @@ export default function ProgressCardReportGMVPS_X_Page() {
             const report_list = Array.from(studentMap.values());
             const savelist = flatRows;
 
-            const activity_main_list_area = (res as any).activity_main_list_area || [];
+            const _activity_main_list_area = (res as any).activity_main_list_area || [];
             const getstudentwiseactiviteslist = (res as any).getstudentwiseactiviteslist || [];
 
             report_list.forEach((stu: any) => {
@@ -77,7 +76,7 @@ export default function ProgressCardReportGMVPS_X_Page() {
                         if (activityname_temp.length === 0) {
                             activityname_temp.push(act);
                         } else {
-                            const count1 = activityname_temp.filter(dd => dd.ECACT_SkillName === act.ECACT_SkillName).length;
+                            const count1 = activityname_temp.filter((dd) => dd.ECACT_SkillName === act.ECACT_SkillName).length;
                             if (count1 === 0) {
                                 activityname_temp.push(act);
                             }
@@ -125,8 +124,8 @@ export default function ProgressCardReportGMVPS_X_Page() {
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex justify-center p-12">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className='flex justify-center p-12'>
+                    <Loader2 className='h-12 w-12 animate-spin text-primary' />
                 </div>
             )}
 

@@ -1,38 +1,23 @@
 // app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
 
-import { useAcademicYearDropdown, useStudentClassDropDown } from '@/hooks/fees/useMasters';
-import {
-    useFeeBusRouteDefaulterreport,
-    useFeeClassListDefaulterreport,
-    useFeeCustomGroupDefaulterreport,
-    useFeeDefaulterReport,
-    useFeeGroupDefaulterreport,
-    useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport,
-    useFeeTransInstallmentYearlyfeecollectionreport
-} from '@/hooks/fees/useReports';
+import { useStudentClassDropDown } from '@/hooks/fees/useMasters';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormError } from '@/components/ui/extension/field';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { coeReportSchema } from '@/schemas/coe/master';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import { FormError } from '@/components/ui/extension/field';
-import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { useRef, useState } from 'react';
-import { coeReportSchema } from '@/schemas/coe/master';
-
 
 // Checkbox with full indeterminate support
-const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
+const _Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
 
     //   useEffect(() => {
@@ -67,39 +52,25 @@ export default function coeReport() {
         }
     });
 
-
-
-
-
-
-
- 
-
     // Load data effects (unchanged)
 
-
     // Toggle handlers
-
 
     const handleReset = () => {
         reset();
         window.location.reload();
     };
 
-   //  const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
+    //  const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
 
-   //  const tableData: FeeYearlyTableRow[] = [...reportData.filter((r) => !('__isTotal' in r)), totalRow];
+    //  const tableData: FeeYearlyTableRow[] = [...reportData.filter((r) => !('__isTotal' in r)), totalRow];
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-       
-    };
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {};
 
-
-
-        const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-   const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
-const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
-const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(true);
+    const [_selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [_selectedclassId, setSelectedClassId] = useState<number | null>(null);
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
+    const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(true);
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
@@ -149,8 +120,7 @@ const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDr
                             </div>
                             {errors.asmaY_Id && (
                                 <div className='flex w-full max-w-md items-center justify-between gap-4'>
-                                    <div className='w-[145px]'>
-                                        </div> {/* Empty spacer to match label width */}
+                                    <div className='w-[145px]'></div> {/* Empty spacer to match label width */}
                                     <FormError>{errors.asmaY_Id.message}</FormError>
                                 </div>
                             )}
@@ -193,8 +163,7 @@ const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDr
                             </div>
                             {errors.asmcl_Id && (
                                 <div className='flex w-full max-w-md items-center justify-between gap-4'>
-                                    <div className='w-[145px]'>
-                                        </div> {/* Empty spacer to match label width */}
+                                    <div className='w-[145px]'></div> {/* Empty spacer to match label width */}
                                     <FormError>{errors.asmcl_Id.message}</FormError>
                                 </div>
                             )}

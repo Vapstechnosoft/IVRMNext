@@ -62,8 +62,8 @@ export default function FeeConcessionReport() {
     });
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
-    const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
-    const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
+    const [_classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
+    const [_sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
     const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeConcessionCustomGroupDropdownList[]>([]);
@@ -240,7 +240,7 @@ export default function FeeConcessionReport() {
         }
     };
     const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
-    const mockReportData = [
+    const _mockReportData = [
         { slNo: 1, groupName: 'HS BOOKS FEES', concessionAmount: 46875 },
         { slNo: 2, groupName: 'HS ILM & OTHER FEES', concessionAmount: 227600 },
         { slNo: 3, groupName: 'HS TUTION FEES', concessionAmount: 236000 },
@@ -326,7 +326,6 @@ export default function FeeConcessionReport() {
                     left: filters.status.left === true ? 1 : 0
                 };
             }
-            console.log('consession report payload', JSON.stringify(payload));
             const response = await saveFeesconcessionReport(payload);
             const apiList = (response as any).data.list || [];
             const mapApiToReportRows = (apiData: any[]): IFeeConcessionReport[] => {

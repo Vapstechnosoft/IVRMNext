@@ -17,9 +17,7 @@ export default function ToggleMasterSchoolTopicForm({ rowData, onClose, onSucces
     const handleConfirm = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            console.log(`[Toggle-Topic] rowData.lpmmT_Id: ${rowData.lpmmT_Id}, activeFlag: ${rowData.lpmmT_ActiveFlag}`);
             const res: any = await deactivateSchoolTopic(rowData.lpmmT_Id, !!rowData.lpmmT_ActiveFlag);
-            console.log('[Toggle-Topic] Deactivate Response:', res);
 
             const getVal = (obj: any, keys: string[]) => {
                 if (!obj) return null;

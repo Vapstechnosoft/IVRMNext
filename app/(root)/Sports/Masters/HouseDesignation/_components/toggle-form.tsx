@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { masterHouseDesignationSchema } from '@/schemas/sports/masters/house-designation';
 import { deactivateMasterHouseDesignation } from '@/server/sports/masters/house-designation';
 import type { IMasterHouseDesignation } from '@/types/sports/masters/house-designation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,7 +48,7 @@ export default function ToggleMasterHouseDesignationForm({ rowData, onClose, onS
 
             const response = await deactivateMasterHouseDesignation(payload);
 
-            if (response?.success || response?.returnVal == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnVal === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Record ${isActive ? 'Deactivated' : 'Activated'} Successfully`);
                 onSuccess();
                 reset();

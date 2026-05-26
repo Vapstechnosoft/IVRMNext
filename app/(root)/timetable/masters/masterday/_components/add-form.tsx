@@ -41,8 +41,6 @@ export default function AddMasterDayForm({ onSuccess, className = '' }: AddMaste
                 ttmD_DayCode: ttmD_DayCode
             };
 
-            console.log(payload);
-
             const response = await addOrUpdateMasterDay(payload);
             if (response.success) {
                 toast.success(response.message);

@@ -38,7 +38,6 @@ export default function DeleteFeeConcessionForm({ rowData, onClose, onSuccess }:
 
     const onSubmit = async () => {
         try {
-            console.log('rowData', rowData);
             const fsC_Id = rowData.fsC_Id;
             //const response = await deleteFeeConcession(fsC_Id);
             const response = await deleteFeeConcessionnew(fsC_Id, rowData.asmaY_Id, rowData.fscI_ID, rowData.fsC_ConcessionAmount);

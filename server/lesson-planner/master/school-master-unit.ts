@@ -26,7 +26,7 @@ export async function editSchoolMasterUnit(id: number) {
         const res = await api.get<IMasterSchoolUnitResponse>('lessonplanner', url);
         // If it's a 405 or fails, the catch block will handle it
         return res;
-    } catch (error) {
+    } catch (_error) {
         console.warn(`[editSchoolMasterUnit] GET failed, attempting POST fallback for: ${url}`);
         // Some endpoints require POST even for fetching details
         return await api.post<IMasterSchoolUnitResponse>('lessonplanner', url, { lpmU_Id: id });

@@ -53,7 +53,7 @@ export function MasterPagesGrid({ data, onSelect }: MasterPagesGridProps) {
         <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md'>
             <div className='flex items-center justify-between border-b bg-gradient-to-r bg-slate-50/50 from-slate-50 to-white p-4'>
                 <h3 className='flex items-center gap-2 font-bold text-slate-800'>
-                    <span className='h-6 w-2 rounded-full bg-[#7C3AED]'></span>
+                    <span className='h-6 w-2 rounded-full bg-[#7C3AED]' />
                     Available Master Pages
                 </h3>
                 <div className='w-72'>

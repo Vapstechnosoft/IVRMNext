@@ -12,7 +12,9 @@ export async function getSophiaStudentTCApprovalDetails(data: { ASMAY_Id: number
     return await api.post<any>('admission', url);
 }
 
-export async function saveSophiaStudentTCApprovalData(data: { selectedTCDATAlist: { asca_Id: number; astca_Status: string; astca_Remarks: string }[] }) {
+export async function saveSophiaStudentTCApprovalData(data: {
+    selectedTCDATAlist: { asca_Id: number; astca_Status: string; astca_Remarks: string }[];
+}) {
     const url = '/SMSApprovalTransaction/saveTCdata';
     return await api.post<any>('admission', url, data);
 }

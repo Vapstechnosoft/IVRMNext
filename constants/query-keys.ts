@@ -653,7 +653,6 @@ export const TRANSPORT_QUERY_KEYS = {
     VECHILE_GRID_LIST: 'vechile_grid_list'
 };
 
-
 export const RECRUITMENT_QUERY_KEYS = {
     MASTER_INSTITUTION_BY_LOGIN: 'master_institution_by_login',
     MASTER_JOB_GRID: 'master_job_grid',
@@ -668,5 +667,4 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
     TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list',
     CANDIDATE_DROPDOWN: 'candidate_dropdown'
-   
-}
+};

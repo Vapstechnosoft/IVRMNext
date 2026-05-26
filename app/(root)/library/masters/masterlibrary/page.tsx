@@ -20,14 +20,14 @@ export default function MasterLibraryPage(props: { searchParams: SearchParams })
         <div className='min-h-screen p-1'>
             <div className='container space-y-4'>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-                    <TabsList className='grid w-full grid-cols-1 md:grid-cols-3 mb-4'>
+                    <TabsList className='mb-4 grid w-full grid-cols-1 md:grid-cols-3'>
                         <TabsTrigger value='creation'>Library Creation</TabsTrigger>
                         <TabsTrigger value='class'>Library Map With Class</TabsTrigger>
                         <TabsTrigger value='staff'>Library Map With Staff</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value='creation'>
-                        <FormProvider<IMasterLibraryList> >
+                        <FormProvider<IMasterLibraryList>>
                             <LibraryCreationTab response={response} isLoading={isLoading} error={error} refetch={refetch} />
                         </FormProvider>
                     </TabsContent>
@@ -44,4 +44,3 @@ export default function MasterLibraryPage(props: { searchParams: SearchParams })
         </div>
     );
 }
-

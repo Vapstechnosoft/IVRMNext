@@ -29,5 +29,5 @@ declare module 'next-auth' {
         amst_id?: number;
     }
 
-    interface JWT extends User { }
+    interface JWT extends User {}
 }

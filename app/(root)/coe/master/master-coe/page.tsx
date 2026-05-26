@@ -5,28 +5,22 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 
+import { useMasterCoeInitialData } from '@/hooks/coe/usemMaster';
 import type { MappedEventCoe } from '@/types/coe/master-coe';
 import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import { mappingColumns } from './_components/mapping-columns';
 import { MappingForm } from './_components/mapping-form';
-import { ViewMappedEventDialog } from './_components/view-mapped-event-dialog';
 import ToggleForm from './_components/toggle-form';
-import { useMasterCoeInitialData } from '@/hooks/coe/usemMaster';
-import { use } from 'react';
+import { ViewMappedEventDialog } from './_components/view-mapped-event-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterCoePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: initialData, isLoading, error, refetch } = useMasterCoeInitialData(searchParams);
-    console.log("Initial Data:", initialData);
     return (
         <FormProvider<MappedEventCoe>>
-            <MasterCoePageContent
-                initialData={initialData}
-                isLoading={isLoading}
-                error={error}
-                refetch={refetch}
-            />
+            <MasterCoePageContent initialData={initialData} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -44,8 +38,7 @@ function MasterCoePageContent({
 }) {
     const { openAddForm } = useFormContext<MappedEventCoe>();
 
-
-    const tableData = initialData?.data || [];
+    const _tableData = initialData?.data || [];
     const tableProps = useDataTableProps(initialData);
 
     return (
@@ -181,12 +174,7 @@ function FormSections({ refetch }: { refetch?: () => void }) {
             )}
 
             {/* View Mapped Event Details */}
-            {isDetailsViewOpen && selectedRow && (
-                <ViewMappedEventDialog
-                    rowData={selectedRow}
-                    onClose={closeDetailsView}
-                />
-            )}
+            {isDetailsViewOpen && selectedRow && <ViewMappedEventDialog rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

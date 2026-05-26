@@ -110,11 +110,7 @@ export const masterPublisherSchema = {
             .min(5, 'Email must be at least 5 characters')
             .email('Invalid email address'),
 
-        lmP_PhoneNo: z
-            .string()
-            .trim()
-            .optional()
-            .or(z.literal(''))
+        lmP_PhoneNo: z.string().trim().optional().or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')

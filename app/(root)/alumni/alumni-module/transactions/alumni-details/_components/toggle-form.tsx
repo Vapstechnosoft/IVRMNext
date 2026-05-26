@@ -24,12 +24,7 @@ export default function ToggleAlumnusForm({ rowData, onClose, onSuccess }: Toggl
             const response: any = await deactivateAlumnus(rowData.almsT_Id);
             const message = response?.message || `Alumnus ${isActive ? 'deactivated' : 'activated'} successfully`;
 
-            if (
-                response === true ||
-                response?.success ||
-                response?.data === true ||
-                (message && message.toLowerCase().includes('successfully'))
-            ) {
+            if (response === true || response?.success || response?.data === true || message?.toLowerCase().includes('successfully')) {
                 // Backend quirk: Deactivation might say "DeActivated successfully" but return success: false
                 // We trust the "successfully" keyword in the message
                 toast.success(message);

@@ -3,6 +3,7 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
     deleteEmployee,
+    getArrearsList,
     getBankDropdown,
     getBloodGroupDropdown,
     getCasteCategoryDropdown,
@@ -10,11 +11,15 @@ import {
     getContactTypeDropdown,
     getCountryDropdown,
     getCourseDropdown,
+    getDeductionList,
     getDepartmentDropdown,
     getDesignationDropdown,
+    getEarningList,
     getEmployeeById,
+    getEmployeeEarningsDeductions,
     getEmployeeList,
     getEmployeeRegisterOnload,
+    getEmployeeSalaryDetailsByHead,
     getEmployeeTypeDropdown,
     getGenderDropdown,
     getGradeDropdown,
@@ -29,6 +34,7 @@ import {
     getSpecializationDropdown,
     getStateDropdown,
     getTeachingTypeDropdown,
+    saveBankDetails,
     saveEmployee,
     saveEmployeeArrears,
     saveEmployeeDeductions,
@@ -38,16 +44,10 @@ import {
     saveEmployeeMedical,
     saveEmployeeOtherDetails,
     saveEmployeeQualification,
-    saveBankDetails,
-    toggleEmployee,
-    uploadStaffPhoto,
-    getEmployeeSalaryDetailsByHead,
-    getEarningList,
-    getDeductionList,
-    getArrearsList,
-    updateEmployeeSalaryDetailsByHead,
     saveEmployeeSalaryDetails,
-    getEmployeeEarningsDeductions
+    toggleEmployee,
+    updateEmployeeSalaryDetailsByHead,
+    uploadStaffPhoto
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type { ApiSearchparams } from '@/types';
 import type { IEmployeeSaveRequest } from '@/types/hrms/hrms-config/employee';
@@ -78,9 +78,7 @@ export function useEmployeeTypeDropdown() {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'employee-type'],
             queryFn: async () => {
-                console.log('📡 [HOOK] fetching Employee Type Dropdown...');
                 const data = await getEmployeeTypeDropdown();
-                console.log('📡 [HOOK] Employee Type Dropdown Data:', data);
                 return data;
             },
             staleTime: 1000 * 60 * 5
@@ -503,20 +501,16 @@ export function useEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'onload', MI_Id, HRME_Id],
         queryFn: async () => {
-            console.log(`📡 [HOOK] Fetching onload data for MI_Id: ${MI_Id}, HRME_Id: ${HRME_Id}`);
             const data = await getEmployeeRegisterOnload(MI_Id, HRME_Id);
-            console.log('📡 [HOOK] RAW API RESPONSE:', data);
 
             // Explicitly check for qualification array existence in raw response
             if (data) {
                 const keys = Object.keys(data);
-                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
-                console.log('📡 [HOOK] Potential Qualification Keys found in root:', qualKeys);
+                const _qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
 
                 if (data.data) {
                     const dataKeys = Object.keys(data.data);
-                    const dataQualKeys = dataKeys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
-                    console.log('📡 [HOOK] Potential Qualification Keys found in data.data:', dataQualKeys);
+                    const _dataQualKeys = dataKeys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
                 }
             }
             return data;
@@ -557,13 +551,10 @@ export function useEmployeeById(id: number | null) {
             if (!id || id === 0) {
                 return Promise.resolve(null);
             }
-            console.log(`📡 [HOOK] Fetching Employee By ID: ${id}`);
             const data = await getEmployeeById(id);
-            console.log('📡 [HOOK] RAW useEmployeeById RESPONSE:', data);
             if (data) {
                 const keys = Object.keys(data);
-                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
-                console.log('📡 [HOOK - ById] Potential Qualification Keys found in root:', qualKeys);
+                const _qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
 
                 // Check inside potential wrappers like 'employeeDetails' or 'data'
                 const possibleWrappers = ['data', 'employeeDetails', 'employeedetails', 'editEmployee'];
@@ -571,7 +562,7 @@ export function useEmployeeById(id: number | null) {
                     if ((data as any)[wrapper]) {
                         const wKeys = Object.keys((data as any)[wrapper]);
                         const wQualKeys = wKeys.filter(k => k.toLowerCase().includes('qual'));
-                        if (wQualKeys.length > 0) console.log(`📡 [HOOK - ById] Found qualification keys inside '${wrapper}':`, wQualKeys);
+                        if (wQualKeys.length > 0) 
                     }
                 });
             }

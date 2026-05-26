@@ -7,7 +7,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const studentAttendanceColumns: ColumnDef<StudentAttendanceStudent>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='SL. NO.' className='w-[80px] text-center font-bold text-black' />
+        ),
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;

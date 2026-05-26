@@ -51,14 +51,15 @@ export async function getSubjectSubCumulativeReport(payload: any) {
     try {
         const url = '/HHSMIDFINALCumReport/savedetailsnew';
         const response = await api.post<any>('exam', url, payload);
-        
+
         if (response?.success && response.data) {
-             return response;
-        } else if (response && !response.data && response.savelistnew) {
-             // Handle legacy response where data is at root
-             return { success: true, data: response };
+            return response;
         }
-        
+        if (response && !response.data && response.savelistnew) {
+            // Handle legacy response where data is at root
+            return { success: true, data: response };
+        }
+
         return response;
     } catch (error) {
         console.error('getSubjectSubCumulativeReport error:', error);

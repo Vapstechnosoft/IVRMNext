@@ -24,9 +24,7 @@ export async function getCalcuttaPromotionReportIX_X(data: any) {
     } = response;
 
     // Filter remarks where ECTERE_Indi_OverAllFlag == "PE"
-    const examwiseremarkstemp = exam_promotion_groupwise_remarks.filter(
-        (remark: any) => remark.ECTERE_Indi_OverAllFlag === 'PE'
-    );
+    const examwiseremarkstemp = exam_promotion_groupwise_remarks.filter((remark: any) => remark.ECTERE_Indi_OverAllFlag === 'PE');
 
     // 1. Group wise exam list construction
     const groupwiseexamlist = [];
@@ -57,23 +55,23 @@ export async function getCalcuttaPromotionReportIX_X(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -93,15 +91,17 @@ export async function getCalcuttaPromotionReportIX_X(data: any) {
 
         // Remarks & Conduct
         const studentRemarks = examwiseremarkstemp.filter((r: any) => r.AMST_Id === stu.amsT_Id || r.amsT_Id === stu.amsT_Id);
-        
+
         // Attendance
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id)
+            .map((d: any) => ({
+                classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
+                emE_Id: d.EME_Id || d.emE_Id,
+                classatt: d.PRESENTDAYS || d.presentdays,
+                percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+            }));
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
@@ -114,11 +114,11 @@ export async function getCalcuttaPromotionReportIX_X(data: any) {
 
         for (const subj of studentChartSubjects) {
             const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
-            
+
             // Find exam wise total details for this subject and student
-            const stats = examwisetotal.find((e: any) => 
-                (e.ISMS_Id === subj.ISMS_Id || e.ismS_Id === subj.ismS_Id) && 
-                (e.EYCES_MarksDisplayFlg || e.eyceS_MarksDisplayFlg)
+            const stats = examwisetotal.find(
+                (e: any) =>
+                    (e.ISMS_Id === subj.ISMS_Id || e.ismS_Id === subj.ismS_Id) && (e.EYCES_MarksDisplayFlg || e.eyceS_MarksDisplayFlg)
             );
 
             if (stats) {
@@ -154,6 +154,6 @@ export async function getCalcuttaPromotionReportIX_X(data: any) {
         getgroupdetails,
         groupwiseexamlist,
         getgradelist,
-        studentdetails: studentListDetails,
+        studentdetails: studentListDetails
     };
 }

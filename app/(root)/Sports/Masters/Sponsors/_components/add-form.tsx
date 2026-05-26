@@ -2,9 +2,9 @@
 
 import { GenericForm } from '@/components/ui/form/generic-form';
 import { GenericInputField, GenericTextAreaField } from '@/components/ui/form/input-fields';
+import { useMasterSponsors } from '@/hooks/sports/useMasterSponsors';
 import { masterSponsorSchema } from '@/schemas/sports/masters/sponsors';
 import { saveMasterSponsor } from '@/server/sports/masters/sponsors';
-import { useMasterSponsors } from '@/hooks/sports/useMasterSponsors';
 import type { IMasterSponsor } from '@/types/sports/masters/sponsors';
 import { toast } from 'sonner';
 
@@ -13,10 +13,7 @@ interface AddMasterSponsorFormProps {
     onSuccess?: () => void;
 }
 
-export default function AddMasterSponsorForm({
-    selectedRow,
-    onSuccess
-}: AddMasterSponsorFormProps) {
+export default function AddMasterSponsorForm({ selectedRow, onSuccess }: AddMasterSponsorFormProps) {
     const { refetchAll } = useMasterSponsors();
 
     return (
@@ -35,14 +32,15 @@ export default function AddMasterSponsorForm({
                     const response = await saveMasterSponsor(values);
                     // Robust success check for IVRM backend responses
                     const msg = (response?.message || response?.Message || '') as string;
-                    const isSuccess = response?.success || 
-                                     response?.returnval == true || 
-                                     response?.returnVal == true ||
-                                     response?.returnVal === 'saved' || 
-                                     response?.returnVal === 'updated' || 
-                                     msg.toLowerCase() === 'saved' ||
-                                     msg.toLowerCase() === 'updated' ||
-                                     msg.toLowerCase().includes('success');
+                    const isSuccess =
+                        response?.success ||
+                        response?.returnval === true ||
+                        response?.returnVal === true ||
+                        response?.returnVal === 'saved' ||
+                        response?.returnVal === 'updated' ||
+                        msg.toLowerCase() === 'saved' ||
+                        msg.toLowerCase() === 'updated' ||
+                        msg.toLowerCase().includes('success');
 
                     if (isSuccess) {
                         toast.success('Record saved successfully');
@@ -68,37 +66,15 @@ export default function AddMasterSponsorForm({
                 refetchAll();
                 onSuccess?.();
             }}
-            className='space-y-4'
-        >
+            className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <GenericInputField
-                    name='spccmsP_SponsorName'
-                    label='Sponsor Name'
-                    placeholder='Enter Sponsor Name'
-                    required
-                />
+                <GenericInputField name='spccmsP_SponsorName' label='Sponsor Name' placeholder='Enter Sponsor Name' required />
 
-                <GenericInputField
-                    name='spccmsP_ContactPerson'
-                    label='Contact Person'
-                    placeholder='Enter Contact Person'
-                    required
-                />
+                <GenericInputField name='spccmsP_ContactPerson' label='Contact Person' placeholder='Enter Contact Person' required />
 
-                <GenericInputField
-                    name='spccmsP_ContactNo'
-                    label='Contact No.'
-                    placeholder='Enter Contact No'
-                    required
+                <GenericInputField name='spccmsP_ContactNo' label='Contact No.' placeholder='Enter Contact No' required />
 
-                />
-
-                <GenericTextAreaField
-                    name='spccmsP_SponsorDetails'
-                    label='Sponsor Details'
-                    placeholder='Enter Sponsor Details'
-                    required
-                />
+                <GenericTextAreaField name='spccmsP_SponsorDetails' label='Sponsor Details' placeholder='Enter Sponsor Details' required />
             </div>
         </GenericForm>
     );

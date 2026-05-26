@@ -41,11 +41,11 @@ export default function AdmissionMonthEndReport({
     });
 
     const inst = institutionDetails?.[0] || {};
-    const instTitle = inst.mI_Name || inst.mi_name;
-    const address = `${inst.mI_Address1 || ''} ${inst.mI_Address2 || ''} ${inst.mI_Address3 || ''}`.trim();
-    const city = inst.ivrmmcT_Name || '';
-    const pincode = inst.mI_Pincode || '';
-    const contact = inst.mI_ContactDetails || '';
+    const _instTitle = inst.mI_Name || inst.mi_name;
+    const _address = `${inst.mI_Address1 || ''} ${inst.mI_Address2 || ''} ${inst.mI_Address3 || ''}`.trim();
+    const _city = inst.ivrmmcT_Name || '';
+    const _pincode = inst.mI_Pincode || '';
+    const _contact = inst.mI_ContactDetails || '';
     const logoUrl = inst.mI_Logo;
 
     const chartData = reportData.map((x) => ({
@@ -97,14 +97,14 @@ export default function AdmissionMonthEndReport({
             <table className='mb-10 w-full border-collapse'>
                 <thead>
                     <tr className='bg-blue-600 text-white print:text-black'>
-                        <th className='border p-2 text-sm font-bold'>SL.No</th>
-                        <th className='border p-2 text-sm font-bold'>Name</th>
-                        <th className='border p-2 text-sm font-bold'>Count</th>
-                        <th className='border p-2 text-sm font-bold'>SMS</th>
-                        <th className='border p-2 text-sm font-bold'>Email Id</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Photo</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Email</th>
-                        <th className='border p-2 text-sm font-bold'>Missing Contact No.</th>
+                        <th className='border p-2 font-bold text-sm'>SL.No</th>
+                        <th className='border p-2 font-bold text-sm'>Name</th>
+                        <th className='border p-2 font-bold text-sm'>Count</th>
+                        <th className='border p-2 font-bold text-sm'>SMS</th>
+                        <th className='border p-2 font-bold text-sm'>Email Id</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Photo</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Email</th>
+                        <th className='border p-2 font-bold text-sm'>Missing Contact No.</th>
                     </tr>
                 </thead>
 

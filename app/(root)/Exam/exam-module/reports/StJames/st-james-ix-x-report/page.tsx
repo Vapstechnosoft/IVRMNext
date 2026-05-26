@@ -1,8 +1,8 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getStJamesExamReport } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ export default function StellaProgressReportPage() {
             } else {
                 toast.error('No data found');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to generate report');
         }
     };

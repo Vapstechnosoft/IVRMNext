@@ -6,6 +6,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getPromotionCumulativeReport } from '@/server/exam/exam-module/reports/StThomos/promotion-cumulative-report';
 import {
     getClassDropDownByAcademicYearlist,
@@ -13,33 +14,33 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { getCommonDropdown } from '@/server/common';
+import type { IPromotionalGroup } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { IPromotionalGroup } from '@/types/exam/exam-module/masters';
-import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 
-export const promotionCumulativeSchema = z.object({
-    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
-    ASMCL_Id: z.string().min(1, 'Class is required'),
-    ASMS_Id: z.string().min(1, 'Section is required'),
-    empG_GroupName: z.string().optional(),
-    Left_FlagAverage: z.boolean(),
-    selectedStudents: z.array(z.string()).min(1, 'At least one student must be selected')
-}).superRefine((data, ctx) => {
-    // Term is required if Super Average is false
-    if (!data.Left_FlagAverage && !data.empG_GroupName) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Term is required when Super Average is not selected',
-            path: ['empG_GroupName']
-        });
-    }
-});
+export const promotionCumulativeSchema = z
+    .object({
+        ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+        ASMCL_Id: z.string().min(1, 'Class is required'),
+        ASMS_Id: z.string().min(1, 'Section is required'),
+        empG_GroupName: z.string().optional(),
+        Left_FlagAverage: z.boolean(),
+        selectedStudents: z.array(z.string()).min(1, 'At least one student must be selected')
+    })
+    .superRefine((data, ctx) => {
+        // Term is required if Super Average is false
+        if (!data.Left_FlagAverage && !data.empG_GroupName) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Term is required when Super Average is not selected',
+                path: ['empG_GroupName']
+            });
+        }
+    });
 
 type PromotionCumulativeFormValues = z.infer<typeof promotionCumulativeSchema>;
 
@@ -147,17 +148,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                        (
-                            s
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                            amsT_FirstName?: string;
-                            amsT_MiddleName?: string;
-                            amsT_LastName?: string;
-                        } => !!s?.amsT_Id
-                    )
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
                 const mappedStudents = valid.map((s) => ({
@@ -181,11 +182,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     // For now, let's load terms from the common dropdown 'Exm_Term_Master' if it exists, or just use hardcoded ones as placeholder
                     const { data: termsData } = await getPromotionalGroups(Number(watchYear), Number(watchClass), Number(watchSection));
                     setTerms(Array.isArray(termsData) ? termsData : []);
-                    console.log('termsData', termsData);
-                } catch (e) {
+                } catch (_e) {
                     setTerms([]);
                 }
-
             } catch {
                 toast.error('Failed to load students');
             } finally {
@@ -446,15 +445,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                             {/* Term */}
                             <div className='space-y-2'>
-                                <Label>
-                                    Term {!watchSuperAverage && <span className='text-red-500'>*</span>}
-                                </Label>
+                                <Label>Term {!watchSuperAverage && <span className='text-red-500'>*</span>}</Label>
                                 <Controller
                                     control={control}
                                     name='empG_GroupName'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select key={field.value} onValueChange={field.onChange} value={field.value} disabled={watchSuperAverage}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={watchSuperAverage}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Term' />
                                                 </SelectTrigger>

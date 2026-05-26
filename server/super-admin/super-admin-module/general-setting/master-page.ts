@@ -12,7 +12,7 @@ export async function saveMasterPage(data: any) {
         return {
             success: false,
             message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            errors: validation.error.flatten().fieldErrors
         };
     }
 
@@ -23,8 +23,8 @@ export async function saveMasterPage(data: any) {
         ivrmP_PageURL: data.ivrmP_PageDesc,
         ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
         ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "",
-        userid: data.userid ?? 1,
+        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || '',
+        userid: data.userid ?? 1
     };
 
     const response = await api.post<any>('sadmin', 'MasterPageFacade', payload);
@@ -34,13 +34,13 @@ export async function saveMasterPage(data: any) {
         return {
             success: true,
             message: response.message || 'Master Page saved successfully!',
-            data: response.data,
+            data: response.data
         };
     }
 
     return {
         success: false,
-        message: response.message || 'Failed to save master page',
+        message: response.message || 'Failed to save master page'
     };
 }
 
@@ -83,13 +83,13 @@ export async function deleteMasterPage(id: number) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
         return {
             success: true,
-            message: response.message || 'Record deleted successfully',
+            message: response.message || 'Record deleted successfully'
         };
     }
 
     return {
         success: false,
-        message: response.message || 'Failed to delete record',
+        message: response.message || 'Failed to delete record'
     };
 }
 
@@ -114,7 +114,7 @@ export async function getMasterPageById(id: number) {
 
 export async function activateDeactivateMasterPage(id: number) {
     const url = `MasterPageFacade/activate_deactivate_master_page/${id}`;
-    const response = await api.get<any>('sadmin', url); // Assuming GET for toggle usually? Or PUT? Module used PUT. I'll use API.post or put if unsure. Module.ts used `.put`. I'll use `.post` or `.get`?
+    const _response = await api.get<any>('sadmin', url); // Assuming GET for toggle usually? Or PUT? Module used PUT. I'll use API.post or put if unsure. Module.ts used `.put`. I'll use `.post` or `.get`?
     // Module.ts: api.put('sadmin', url, {})
     // I will use api.post to be safe default or put. Let's try POST as many legacy are POST.
     // Actually, I'll check module.ts again.
@@ -131,11 +131,11 @@ export async function activateDeactivateMasterPage(id: number) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
         return {
             success: true,
-            message: res.message || 'Master Page status updated successfully',
+            message: res.message || 'Master Page status updated successfully'
         };
     }
     return {
         success: false,
-        message: res.message || 'Failed to update status',
+        message: res.message || 'Failed to update status'
     };
 }

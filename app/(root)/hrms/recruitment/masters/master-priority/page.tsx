@@ -1,23 +1,18 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import {
-    useGetMasterPriorityGrid,
-    useSaveOrUpdatePriority,
-} from '@/hooks/hrms/recruitment/masters/useMasters';
+import { useGetMasterPriorityGrid, useSaveOrUpdatePriority } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { recruitmentMasterPrioritySchema } from '@/schemas/hrms/recruitment/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import { getMasterPriorityColumns, type MasterPriority } from './_components/columns';
+import type { z } from 'zod';
+import { type MasterPriority, getMasterPriorityColumns } from './_components/columns';
 import ToggleMasterPriorityModal from './_components/toggle-modal';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type MasterPriorityForm = z.infer<typeof recruitmentMasterPrioritySchema>;
 
@@ -44,35 +39,32 @@ export default function MasterPriorityPage() {
             hrmpR_Id: 0,
             hrmP_ActiveFlag: true,
             hrmP_Name: '',
-            hrmP_Order: '',
+            hrmP_Order: ''
         }
     });
 
-
-    const { data: priorityGridData, isLoading: isLoadingMasterPriority, refetchAll: refetchMasterPriority } = useGetMasterPriorityGrid()
+    const { data: priorityGridData, isLoading: isLoadingMasterPriority, refetchAll: refetchMasterPriority } = useGetMasterPriorityGrid();
 
     const gridData = priorityGridData?.data ?? [];
 
-    const handleClear = () => {
+    const _handleClear = () => {
         setEditingId(null);
         reset({
             hrmpR_Id: 0,
             hrmP_ActiveFlag: true,
             hrmP_Name: '',
-            hrmP_Order: '',
-           
+            hrmP_Order: ''
         });
-        setResetkey(prev => prev + 1);
+        setResetkey((prev) => prev + 1);
     };
 
     const handleFullClear = () => {
         setEditingId(null);
-        reset({ hrmpR_Id: 0, hrmP_ActiveFlag: true, hrmP_Name: '', hrmP_Order: ''});
-        setResetkey(prev => prev + 1);
+        reset({ hrmpR_Id: 0, hrmP_ActiveFlag: true, hrmP_Name: '', hrmP_Order: '' });
+        setResetkey((prev) => prev + 1);
     };
 
     const onSubmit: SubmitHandler<MasterPriorityForm> = async (data) => {
-        console.log("form data",data);
         try {
             const payload = {
                 hrmpR_Id: editingId || 0,
@@ -95,13 +87,12 @@ export default function MasterPriorityPage() {
 
     const handleEdit = (priority: MasterPriority) => {
         setEditingId(priority.hrmpR_Id);
-      
+
         reset({
             hrmpR_Id: priority.hrmpR_Id,
             hrmP_Name: priority.hrmP_Name,
             hrmP_Order: priority.hrmP_Order.toString(),
-            hrmP_ActiveFlag: priority.hrmP_ActiveFlag,
-           
+            hrmP_ActiveFlag: priority.hrmP_ActiveFlag
         });
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -189,23 +180,20 @@ export default function MasterPriorityPage() {
                     description='Manage priority levels and orders'
                     defaultOpen={true}
                     size='lg'
-                    className='shadow-lg'
-                >
-                    {
-                        (isLoadingMasterPriority || gridData.length > 0 ) ? (
-                            <GenericDataTable
-                                data={gridData || []}
-                                columns={getMasterPriorityColumns({ onEdit: handleEdit, onToggle: handleToggle })}
-                                isLoading={isLoadingMasterPriority}
-                                totalItems={gridData?.length || 0}
-                                showViewOptions={false}
-                            />
-                        ) : (
-                            <div className='flex items-center justify-center py-10'>
-                                <p className='text-muted-foreground text-md'>Please Select Institution to View Data</p>
-                            </div>
-                        )
-                    }
+                    className='shadow-lg'>
+                    {isLoadingMasterPriority || gridData.length > 0 ? (
+                        <GenericDataTable
+                            data={gridData || []}
+                            columns={getMasterPriorityColumns({ onEdit: handleEdit, onToggle: handleToggle })}
+                            isLoading={isLoadingMasterPriority}
+                            totalItems={gridData?.length || 0}
+                            showViewOptions={false}
+                        />
+                    ) : (
+                        <div className='flex items-center justify-center py-10'>
+                            <p className='text-md text-muted-foreground'>Please Select Institution to View Data</p>
+                        </div>
+                    )}
                 </CollapsibleSection>
 
                 {/* Toggle Modal */}
@@ -217,7 +205,6 @@ export default function MasterPriorityPage() {
                         onSuccess={() => refetchMasterPriority()}
                     />
                 )}
-
             </div>
         </div>
     );

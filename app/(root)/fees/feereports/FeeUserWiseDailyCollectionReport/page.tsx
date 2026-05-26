@@ -30,10 +30,10 @@ interface FormFields {
     toDate: Date | undefined | string;
 }
 
-const today = new Date();
+const _today = new Date();
 
 export default function FeeUserWiseDailyCollectionReport() {
-    const [loading, setLoading] = useState(false);
+    const [_loading, setLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<FeeUserWiseDailyCollectionData[] | null>(null);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -66,7 +66,7 @@ export default function FeeUserWiseDailyCollectionReport() {
     today.setHours(0, 0, 0, 0);
 
     const result = watch('type');
-    const selectedGroupIds = watch('groupIds') || [];
+    const _selectedGroupIds = watch('groupIds') || [];
 
     // Dropdowns
     const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -102,13 +102,12 @@ export default function FeeUserWiseDailyCollectionReport() {
         setSelectedIds([]);
     }, [result]); // Clear selections when report type changes
 
-    const handleGroupChange = (values: string[]) => {
+    const _handleGroupChange = (values: string[]) => {
         const ids = values.map(Number);
         setValue('groupIds', ids, { shouldValidate: true });
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('Form Data:', data);
         setLoading(true);
         try {
             const payload = {
@@ -126,12 +125,8 @@ export default function FeeUserWiseDailyCollectionReport() {
                 })
             };
 
-            console.log('payload', payload);
-
             const response: any = await generateReportAsync(payload as any);
             const responseData = Array.isArray(response?.data) ? response.data : [];
-
-            console.log('response', responseData);
 
             if (responseData && responseData.length > 0) {
                 setReportData(responseData);

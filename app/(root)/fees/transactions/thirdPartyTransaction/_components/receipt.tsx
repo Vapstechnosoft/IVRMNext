@@ -31,7 +31,6 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         // fyP_Receipt_No:"",
         // fyP_DD_Cheque_No:""
     };
-    console.log('Receipt Payload:', JSON.stringify(payload));
 
     // ───────────────────────────────────────────────
     //  FETCH RECEIPT DATA
@@ -40,8 +39,6 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         const fetchData = async () => {
             try {
                 const raw = await receiptView(payload);
-
-                console.log('Receipt Raw Data:', raw);
                 const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
                 setReceiptData(response);

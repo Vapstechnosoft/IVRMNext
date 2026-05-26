@@ -7,7 +7,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
-
 export const ExamTTSessionColumns: ColumnDef<IExamTTSession>[] = [
     {
         id: 'serialNumber',

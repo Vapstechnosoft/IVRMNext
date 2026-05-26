@@ -1,16 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getMasterSchoolTypeData, deleteMasterSchoolType } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
-import { IMasterSchoolType } from '@/types/super-admin/super-admin-module/general-setting/master-school-type';
-import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import AddMasterSchoolTypeForm from './_components/add-form';
-import { columns } from './_components/columns';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,9 +8,23 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    deleteMasterSchoolType,
+    getMasterSchoolTypeData
+} from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
+import type { IMasterSchoolType } from '@/types/super-admin/super-admin-module/general-setting/master-school-type';
+import { Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import AddMasterSchoolTypeForm from './_components/add-form';
+import { columns } from './_components/columns';
 
 export default function MasterSchoolTypePage() {
     return (
@@ -38,7 +41,7 @@ function MasterSchoolTypePageContent() {
 
     const fetchData = () => {
         setIsLoading(true);
-        getMasterSchoolTypeData({}).then(res => {
+        getMasterSchoolTypeData({}).then((res) => {
             if (res.success) {
                 setData(res.data || []);
             } else {
@@ -65,7 +68,7 @@ function MasterSchoolTypePageContent() {
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master School Type
                     </Button>
                 </div>
@@ -73,20 +76,9 @@ function MasterSchoolTypePageContent() {
 
             <FormSections onRefresh={refreshData} />
 
-            <CollapsibleSection
-                title='Master School Types List'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'
-            >
+            <CollapsibleSection title='Master School Types List' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='p-4'>
-                    <GenericDataTable
-                        data={data}
-                        columns={columns}
-                        isLoading={isLoading}
-                        totalItems={data.length}
-                    />
+                    <GenericDataTable data={data} columns={columns} isLoading={isLoading} totalItems={data.length} />
                 </div>
             </CollapsibleSection>
         </div>
@@ -94,14 +86,7 @@ function MasterSchoolTypePageContent() {
 }
 
 function FormSections({ onRefresh }: { onRefresh: () => void }) {
-    const {
-        isAddFormOpen,
-        isDeleteFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeDeleteForm,
-        addFormRef
-    } = useFormContext<IMasterSchoolType>();
+    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } = useFormContext<IMasterSchoolType>();
 
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -114,7 +99,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
         if (!selectedRow) return;
         setIsDeleting(true);
         try {
-            const res = await deleteMasterSchoolType(selectedRow.ivrmmtyP_Id);
+            const _res = await deleteMasterSchoolType(selectedRow.ivrmmtyP_Id);
             // if (res.success || res.returnval === true) {
             //     toast.success('Record deleted successfully');
             //     closeDeleteForm();
@@ -122,7 +107,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
             // } else {
             //     toast.error(res.message || 'Failed to delete record');
             // }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred');
         } finally {
             setIsDeleting(false);
@@ -138,8 +123,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -165,8 +149,14 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={(e) => { e.preventDefault(); handleDelete(); }} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-                            {isDeleting ? <Spinner className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={isDeleting}
+                            className='bg-destructive hover:bg-destructive/90'>
+                            {isDeleting ? <Spinner className='mr-2 h-4 w-4' /> : <X className='mr-2 h-4 w-4' />}
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

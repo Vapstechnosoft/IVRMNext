@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterVendorForm from './_components/add-form';
 import { masterVendorColumns } from './_components/columns';
-import UpdateMasterVendorForm from './_components/update-form';
 import ToggleMasterVendorForm from './_components/toggle-form';
+import UpdateMasterVendorForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -72,7 +72,7 @@ function LibraryVendorPageContent({
                             noDataTitle='No Records Found'
                             noDataDescription='Start by adding a new Master Vendor'
                             errorTitle='Error Loading Data'
-                          //  searchPlaceholder='Search by Vendor Name, Email, Mobile or Address...'
+                            //  searchPlaceholder='Search by Vendor Name, Email, Mobile or Address...'
                         />
                     </div>
                 </div>

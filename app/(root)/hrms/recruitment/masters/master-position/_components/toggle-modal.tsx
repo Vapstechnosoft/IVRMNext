@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import type { MasterPosition } from './columns';
 import { useTogglePositionStatus } from '@/hooks/hrms/recruitment/masters/useMasters';
 import { toast } from 'sonner';
+import type { MasterPosition } from './columns';
 
 interface ToggleMasterPositionModalProps {
     rowData: MasterPosition;
@@ -22,14 +22,14 @@ export default function ToggleMasterPositionModal({ rowData, isOpen, onClose, on
             const response = await toggleMutation(rowData.hrmP_Id);
 
             if (response?.success) {
-                toast.success(response?.message || `Position activated/deactivated successfully`);
+                toast.success(response?.message || 'Position activated/deactivated successfully');
                 onSuccess();
                 onClose();
             } else {
-                toast.error(response?.message || `Failed to activate/deactivate position`);
+                toast.error(response?.message || 'Failed to activate/deactivate position');
             }
         } catch (error: any) {
-            toast.error(error?.message || `Failed to activate/deactivate position`);
+            toast.error(error?.message || 'Failed to activate/deactivate position');
         }
     };
 
@@ -45,11 +45,7 @@ export default function ToggleMasterPositionModal({ rowData, isOpen, onClose, on
                     <Button variant='secondary' onClick={onClose} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleToggle}
-                        isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button onClick={handleToggle} isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

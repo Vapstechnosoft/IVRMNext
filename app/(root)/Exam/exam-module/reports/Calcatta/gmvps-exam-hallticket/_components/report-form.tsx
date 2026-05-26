@@ -10,8 +10,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassesByAcademicYear,
     getExamsAndStudentsBySection,
-    getSectionsByYearAndClass,
-    getHallTicketReport
+    getHallTicketReport,
+    getSectionsByYearAndClass
 } from '@/server/exam/exam-module/reports/Calcatta/hall-ticket-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -141,9 +141,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 const mapped = (studentlist || []).map((s: any) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo ?? s.admno ?? '',
-                    studentName:
-                        s.studentName ||
-                        `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
+                    studentName: s.studentName || `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
                 }));
                 setStudents(mapped);
 
@@ -206,9 +204,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 ASMCL_Id: Number(values.ASMCL_Id),
                 ASMS_Id: Number(values.ASMS_Id),
                 EME_Id: Number(values.EME_Id),
-                studentlist: values.selectedStudents.map(id => ({ amsT_Id: Number(id) }))
+                studentlist: values.selectedStudents.map((id) => ({ amsT_Id: Number(id) }))
             };
-            console.log("payload", payload);
             const response = await getHallTicketReport(payload);
             if (!response.success) {
                 toast.error(response.message || 'No records found');
@@ -245,28 +242,31 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             control={control}
                             name='reportFormat'
                             render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className='flex flex-wrap gap-8'>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap gap-8'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='format1' id='f1' />
-                                        <Label htmlFor='f1' className='cursor-pointer font-normal'>Format 1 (Admit Card - Logo)</Label>
+                                        <Label htmlFor='f1' className='cursor-pointer font-normal'>
+                                            Format 1 (Admit Card - Logo)
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='format2' id='f2' />
-                                        <Label htmlFor='f2' className='cursor-pointer font-normal'>Format 2 (Admit Card - Text)</Label>
+                                        <Label htmlFor='f2' className='cursor-pointer font-normal'>
+                                            Format 2 (Admit Card - Text)
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='format3' id='f3' />
-                                        <Label htmlFor='f3' className='cursor-pointer font-normal'>Format 3 (Default)</Label>
+                                        <Label htmlFor='f3' className='cursor-pointer font-normal'>
+                                            Format 3 (Default)
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8 pt-4'>
+                    <div className='grid grid-cols-1 gap-8 pt-4 md:grid-cols-2'>
                         {/* ── Left side: Dropdowns ─────────────────────────────────── */}
                         <div className='space-y-4'>
                             {/* Academic Year */}
@@ -277,10 +277,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='space-y-1'>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                value={field.value}
-                                                disabled={academicYearLoading}>
+                                            <Select onValueChange={field.onChange} value={field.value} disabled={academicYearLoading}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Year'} />
                                                 </SelectTrigger>
@@ -399,12 +396,12 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     />
                                     <label
                                         htmlFor='selectAll'
-                                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                        className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Select All
                                     </label>
                                 </div>
                             </div>
-                            <div className='border rounded-lg bg-muted/30'>
+                            <div className='rounded-lg border bg-muted/30'>
                                 <div className='p-4'>
                                     <Controller
                                         control={control}
@@ -434,12 +431,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button
-                            type='button'
-                            variant='destructive'
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                            className='min-w-[100px]'>
+                        <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting} className='min-w-[100px]'>
                             Cancel
                         </Button>
                     </div>

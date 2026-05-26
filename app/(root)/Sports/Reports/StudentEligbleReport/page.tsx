@@ -4,12 +4,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
 import type { IStudentEligibleReportDetail, IStudentEligibleReportRequest } from '@/types/sports/reports/student-eligible-report';
-import { useEffect, useState } from 'react';
-import { columns } from './_components/columns';
-import ReportForm from './_components/report-form';
+import { useState } from 'react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
+import { columns } from './_components/columns';
+import ReportForm from './_components/report-form';
 
 import { use } from 'react';
 
@@ -18,14 +18,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentEligibleReportPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const [currentPayload, setCurrentPayload] = useState<IStudentEligibleReportRequest | null>(null);
-    
+
     // Using the query version of the report fetcher to manage dependencies and avoid infinite loops
     // This correctly depends on both the user's form payload AND the table's state (searchParams)
-    const { 
-        reportQuery, 
-        isLoading: isLoadLoading 
-    } = useStudentEligibleReport(currentPayload || undefined, searchParams);
-    
+    const { reportQuery, isLoading: isLoadLoading } = useStudentEligibleReport(currentPayload || undefined, searchParams);
+
     const reportResponse = reportQuery.data;
     const componentRef = useRef<HTMLDivElement>(null);
 
@@ -46,12 +43,12 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
         if (reportResponse?.data) {
             const worksheet = XLSX.utils.json_to_sheet(reportResponse.data);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-            XLSX.writeFile(workbook, "StudentEligibleReport.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+            XLSX.writeFile(workbook, 'StudentEligibleReport.xlsx');
         }
     };
 
-    const handleReport = (data: any, payload: any) => {
+    const handleReport = (_data: any, payload: any) => {
         // Just set the payload; the reportQuery in useStudentEligibleReport will handle the fetching
         setCurrentPayload(payload);
     };
@@ -76,7 +73,7 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                         onPrint={() => handlePrint()}
                         onExcel={handleExcel}
                         hasData={!!reportResponse?.data?.length}
-                        isLoading={reportQuery.isLoading || reportQuery.isFetching} 
+                        isLoading={reportQuery.isLoading || reportQuery.isFetching}
                     />
                 </CollapsibleSection>
 
@@ -86,7 +83,7 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                     variant='default'
                     size='lg'
                     className='shadow-lg'>
-                    <div ref={componentRef} className="p-4 bg-white rounded-lg">
+                    <div ref={componentRef} className='rounded-lg bg-white p-4'>
                         <style jsx global>{`
                             @media screen {
                                 .print-only { display: none !important; }
@@ -98,11 +95,11 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                             }
                         `}</style>
 
-                        <div className="hidden print:block text-center mb-6">
-                            <h2 className="text-2xl font-bold uppercase underline text-primary">Student Eligible Report</h2>
+                        <div className='mb-6 hidden text-center print:block'>
+                            <h2 className='font-bold text-2xl text-primary uppercase underline'>Student Eligible Report</h2>
                         </div>
 
-                        <div className="screen-only">
+                        <div className='screen-only'>
                             <GenericDataTable<IStudentEligibleReportDetail>
                                 {...tableProps}
                                 columns={columns}
@@ -119,20 +116,20 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                             />
                         </div>
 
-                        <div className="print-only overflow-x-auto">
-                            <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
+                        <div className='print-only overflow-x-auto'>
+                            <table className='w-full border-collapse border border-gray-300 text-center text-[10pt]'>
                                 <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">SL. No.</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Adm. No.</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Student Name</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Class</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Section</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">DOB</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Age</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Father Name</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Mother Name</th>
-                                        <th className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">Address</th>
+                                    <tr className='bg-gray-100'>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>SL. No.</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Adm. No.</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Student Name</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Class</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Section</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>DOB</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Age</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Father Name</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Mother Name</th>
+                                        <th className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>Address</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -140,28 +137,36 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                                         reportResponse?.data?.map((row: any, rowIndex: number) => (
                                             <tr key={rowIndex}>
                                                 {columns.map((col: any, colIndex) => (
-                                                    <td key={colIndex} className="border border-gray-300 p-2">
-                                                        {(col.id === 'serialNo' || col.accessorKey === 'serialNo') ? 
-                                                 ((Number(searchParams?.page) || 1) - 1) * (Number(searchParams?.page_size) || 10) + rowIndex + 1 : 
-                                                         col.accessorKey ? row[col.accessorKey] : 
-                                                         col.cell ? (col.cell as any)({ 
-                                                             row: { original: row, index: rowIndex }, 
-                                                             table: { 
-                                                                 getState: () => ({ 
-                                                                     pagination: { 
-                                                                         pageIndex: (Number(searchParams?.page) || 1) - 1, 
-                                                                         pageSize: Number(searchParams?.page_size) || 10 
-                                                                     } 
-                                                                 }) 
-                                                             } 
-                                                         }) : ''}
+                                                    <td key={colIndex} className='border border-gray-300 p-2'>
+                                                        {col.id === 'serialNo' || col.accessorKey === 'serialNo'
+                                                            ? ((Number(searchParams?.page) || 1) - 1) *
+                                                                  (Number(searchParams?.page_size) || 10) +
+                                                              rowIndex +
+                                                              1
+                                                            : col.accessorKey
+                                                              ? row[col.accessorKey]
+                                                              : col.cell
+                                                                ? (col.cell as any)({
+                                                                      row: { original: row, index: rowIndex },
+                                                                      table: {
+                                                                          getState: () => ({
+                                                                              pagination: {
+                                                                                  pageIndex: (Number(searchParams?.page) || 1) - 1,
+                                                                                  pageSize: Number(searchParams?.page_size) || 10
+                                                                              }
+                                                                          })
+                                                                      }
+                                                                  })
+                                                                : ''}
                                                     </td>
                                                 ))}
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
+                                            <td
+                                                colSpan={columns.length}
+                                                className='border border-gray-300 p-10 text-center font-medium text-muted-foreground'>
                                                 No Records Found
                                             </td>
                                         </tr>

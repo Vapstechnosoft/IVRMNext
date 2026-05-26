@@ -1,20 +1,24 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTable } from '@/components/ui/data-table/data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { useGetEmployees } from '@/hooks/hrms/useMasters';
+import { getSalaryIncrementReport } from '@/server/hrms/reports/salary-increment-report';
+import { useMutation } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { useMutation } from '@tanstack/react-query';
-import { getSalaryIncrementReport } from '@/server/hrms/reports/salary-increment-report';
-import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import { SalaryIncrementFilters, type SalaryIncrementFilters as SalaryIncrementFiltersType, type SalaryIncrementErrors } from './_components/filters';
-import { columns } from './_components/columns';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Button } from '@/components/ui/button';
-import { useGetEmployees } from '@/hooks/hrms/useMasters';
+import { columns } from './_components/columns';
+import {
+    type SalaryIncrementErrors,
+    SalaryIncrementFilters,
+    type SalaryIncrementFilters as SalaryIncrementFiltersType
+} from './_components/filters';
 
 const MONTH_LIST = [
     { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
@@ -28,7 +32,7 @@ const MONTH_LIST = [
     { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
     { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
     { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
-    { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' },
+    { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' }
 ];
 
 export default function SalaryIncrementReportPage() {
@@ -39,7 +43,7 @@ export default function SalaryIncrementReportPage() {
         monthid: '',
         yearid: '',
         fromdate: undefined,
-        todate: undefined,
+        todate: undefined
     });
     const [errors, setErrors] = useState<SalaryIncrementErrors>({});
 
@@ -47,9 +51,6 @@ export default function SalaryIncrementReportPage() {
 
     const { data: employeesData, isLoading: isLoadingEmployees } = useGetEmployees();
     const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
-
-    console.log("employeesData", employeesData)
-    console.log("yearsData", yearsData)
 
     const { mutate: getReport, isPending: isGenerating } = useMutation({
         mutationFn: getSalaryIncrementReport,
@@ -77,8 +78,6 @@ export default function SalaryIncrementReportPage() {
     };
 
     const handleReport = () => {
-
-        console.log("filters", filters)
         // Validation
         const newErrors: SalaryIncrementErrors = {};
         let hasErrors = false;
@@ -116,18 +115,15 @@ export default function SalaryIncrementReportPage() {
 
         setErrors({});
 
-
         const payload = {
-           hrmE_Id: filters.type === 'All' ? '' : filters.hrmE_Id,
+            hrmE_Id: filters.type === 'All' ? '' : filters.hrmE_Id,
             fromdate: filters.option === 'DATEWISE' ? format(filters.fromdate!, 'yyyy-MM-dd') : '',
             todate: filters.option === 'DATEWISE' ? format(filters.todate!, 'yyyy-MM-dd') : '',
             monthid: filters.option === 'MONTHWISE' ? filters.monthid : '',
             yearid: filters.option === 'MONTHWISE' ? filters.yearid : '',
             type: filters.type,
-            option: filters.option,
+            option: filters.option
         };
-
-        console.log("payload", payload)
 
         getReport(payload);
     };
@@ -142,11 +138,11 @@ export default function SalaryIncrementReportPage() {
             monthid: '',
             yearid: '',
             fromdate: undefined,
-            todate: undefined,
+            todate: undefined
         });
         setErrors({});
         setReportData([]);
-        setFormKey(prev => prev + 1);
+        setFormKey((prev) => prev + 1);
         toast.info('Filters have been reset');
     };
 
@@ -162,12 +158,14 @@ export default function SalaryIncrementReportPage() {
             'Employee Name': item.employeeName,
             'Head Name': item.hrmeD_Name,
             'Increment Date': item.hreiC_IncrementDate ? format(new Date(item.hreiC_IncrementDate), 'dd/MM/yyyy') : '',
-            'Next Increment Date': item.hreiC_NextIncrementGivenDate ? format(new Date(item.hreiC_NextIncrementGivenDate), 'dd/MM/yyyy') : '',
+            'Next Increment Date': item.hreiC_NextIncrementGivenDate
+                ? format(new Date(item.hreiC_NextIncrementGivenDate), 'dd/MM/yyyy')
+                : '',
             'Previous Amount': item.hreiceD_PreviousAmount,
-            'Amount': item.hreiceD_Amount,
-            'Percentage': item.hreiceD_Percentage + '%',
+            Amount: item.hreiceD_Amount,
+            Percentage: `${item.hreiceD_Percentage}%`,
             'Amount Incremented': item.incrementamount,
-            'Total Amount': item.hreeD_Amount,
+            'Total Amount': item.hreeD_Amount
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -177,7 +175,7 @@ export default function SalaryIncrementReportPage() {
     };
 
     return (
-        <div className="container mx-auto p-6 space-y-8 animate-in fade-in duration-500">
+        <div className='fade-in container mx-auto animate-in space-y-8 p-6 duration-500'>
             <SalaryIncrementFilters
                 key={formKey}
                 filters={filters}
@@ -197,43 +195,39 @@ export default function SalaryIncrementReportPage() {
             />
 
             {reportData.length > 0 && (
-                <CollapsibleSection
-                    defaultOpen={true}
-                    title="Report Results"
-                    className='font-medium text-xl'
-                >
-                    <Card className="border-none shadow-xl  print:shadow-none ">
-                        <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary/10 rounded-lg">
-                                    <FileText className="h-5 w-5 text-primary" />
+                <CollapsibleSection defaultOpen={true} title='Report Results' className='font-medium text-xl'>
+                    <Card className='border-none shadow-xl print:shadow-none '>
+                        <CardHeader className='flex flex-row items-center justify-between border-b bg-primary/5'>
+                            <div className='flex items-center gap-3'>
+                                <div className='rounded-lg bg-primary/10 p-2'>
+                                    <FileText className='h-5 w-5 text-primary' />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-xl font-bold">Report Results</CardTitle>
-                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Records: {reportData.length}</p>
+                                    <CardTitle className='font-bold text-xl'>Report Results</CardTitle>
+                                    <p className='font-medium text-muted-foreground text-xs uppercase tracking-wider'>
+                                        Total Records: {reportData.length}
+                                    </p>
                                 </div>
                             </div>
                             <div className='flex gap-4'>
                                 <Button
-                                    variant="outline"
+                                    variant='outline'
                                     onClick={handlePrint}
-                                    className="min-w-[140px] border-primary text-primary hover:bg-primary hover:text-white"
-                                >
-                                    <Printer className="mr-2 h-4 w-4" />
+                                    className='min-w-[140px] border-primary text-primary hover:bg-primary hover:text-white'>
+                                    <Printer className='mr-2 h-4 w-4' />
                                     Print
                                 </Button>
                                 <Button
-                                    variant="outline"
+                                    variant='outline'
                                     onClick={handleExport}
-                                    className="min-w-[140px] border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                                >
-                                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                    className='min-w-[140px] border-green-600 text-green-600 hover:bg-green-600 hover:text-white'>
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' />
                                     Export Excel
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-2 ">
-                            <div className="print:hidden">
+                        <CardContent className='p-2 '>
+                            <div className='print:hidden'>
                                 <DataTable
                                     columns={columns}
                                     data={reportData}
@@ -245,40 +239,54 @@ export default function SalaryIncrementReportPage() {
                             </div>
 
                             {/* Print View Table */}
-                            <div className="hidden print:block printable-content p-8">
-                                <h2 className="text-2xl font-bold text-center mb-6">Salary Increment Report</h2>
-                                <table className="w-full border-collapse border border-gray-300 text-sm">
+                            <div className='printable-content hidden p-8 print:block'>
+                                <h2 className='mb-6 text-center font-bold text-2xl'>Salary Increment Report</h2>
+                                <table className='w-full border-collapse border border-gray-300 text-sm'>
                                     <thead>
-                                        <tr className="bg-gray-100 italic">
-                                            <th className="border border-gray-300 p-2 text-xs">SL.No.</th>
-                                            <th className="border border-gray-300 p-2 text-left text-xs">Employee Name</th>
-                                            <th className="border border-gray-300 p-2 text-left text-xs">Head Name</th>
-                                            <th className="border border-gray-300 p-2 text-xs">Increment Date</th>
-                                            <th className="border border-gray-300 p-2 text-xs">Next Increment Date</th>
-                                            <th className="border border-gray-300 p-2 text-xs text-right">Prev Amount</th>
-                                            <th className="border border-gray-300 p-2 text-xs text-right">Amount</th>
-                                            <th className="border border-gray-300 p-2 text-xs">%</th>
-                                            <th className="border border-gray-300 p-2 text-xs text-right">Inc Amount</th>
-                                            <th className="border border-gray-300 p-2 text-xs text-right">Total Amount</th>
+                                        <tr className='bg-gray-100 italic'>
+                                            <th className='border border-gray-300 p-2 text-xs'>SL.No.</th>
+                                            <th className='border border-gray-300 p-2 text-left text-xs'>Employee Name</th>
+                                            <th className='border border-gray-300 p-2 text-left text-xs'>Head Name</th>
+                                            <th className='border border-gray-300 p-2 text-xs'>Increment Date</th>
+                                            <th className='border border-gray-300 p-2 text-xs'>Next Increment Date</th>
+                                            <th className='border border-gray-300 p-2 text-right text-xs'>Prev Amount</th>
+                                            <th className='border border-gray-300 p-2 text-right text-xs'>Amount</th>
+                                            <th className='border border-gray-300 p-2 text-xs'>%</th>
+                                            <th className='border border-gray-300 p-2 text-right text-xs'>Inc Amount</th>
+                                            <th className='border border-gray-300 p-2 text-right text-xs'>Total Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {reportData.map((item, index) => (
-                                            <tr key={index} className="hover:bg-gray-50">
-                                                <td className="border border-gray-300 p-2 text-center text-xs">{index + 1}</td>
-                                                <td className="border border-gray-300 p-2 text-xs">{item.employeeName}</td>
-                                                <td className="border border-gray-300 p-2 text-xs">{item.hrmeD_Name}</td>
-                                                <td className="border border-gray-300 p-2 text-center text-xs">
-                                                    {item.hreiC_IncrementDate ? format(new Date(item.hreiC_IncrementDate), 'dd/MM/yyyy') : '-'}
+                                            <tr key={index} className='hover:bg-gray-50'>
+                                                <td className='border border-gray-300 p-2 text-center text-xs'>{index + 1}</td>
+                                                <td className='border border-gray-300 p-2 text-xs'>{item.employeeName}</td>
+                                                <td className='border border-gray-300 p-2 text-xs'>{item.hrmeD_Name}</td>
+                                                <td className='border border-gray-300 p-2 text-center text-xs'>
+                                                    {item.hreiC_IncrementDate
+                                                        ? format(new Date(item.hreiC_IncrementDate), 'dd/MM/yyyy')
+                                                        : '-'}
                                                 </td>
-                                                <td className="border border-gray-300 p-2 text-center text-xs">
-                                                    {item.hreiC_NextIncrementGivenDate ? format(new Date(item.hreiC_NextIncrementGivenDate), 'dd/MM/yyyy') : '-'}
+                                                <td className='border border-gray-300 p-2 text-center text-xs'>
+                                                    {item.hreiC_NextIncrementGivenDate
+                                                        ? format(new Date(item.hreiC_NextIncrementGivenDate), 'dd/MM/yyyy')
+                                                        : '-'}
                                                 </td>
-                                                <td className="border border-gray-300 p-2 text-right text-xs">{item.hreiceD_PreviousAmount?.toLocaleString()}</td>
-                                                <td className="border border-gray-300 p-2 text-right text-xs">{item.hreiceD_Amount?.toLocaleString()}</td>
-                                                <td className="border border-gray-300 p-2 text-center text-xs">{item.hreiceD_Percentage}%</td>
-                                                <td className="border border-gray-300 p-2 text-right text-xs">{item.incrementamount?.toLocaleString()}</td>
-                                                <td className="border border-gray-300 p-2 text-right text-xs font-bold">{item.hreeD_Amount?.toLocaleString()}</td>
+                                                <td className='border border-gray-300 p-2 text-right text-xs'>
+                                                    {item.hreiceD_PreviousAmount?.toLocaleString()}
+                                                </td>
+                                                <td className='border border-gray-300 p-2 text-right text-xs'>
+                                                    {item.hreiceD_Amount?.toLocaleString()}
+                                                </td>
+                                                <td className='border border-gray-300 p-2 text-center text-xs'>
+                                                    {item.hreiceD_Percentage}%
+                                                </td>
+                                                <td className='border border-gray-300 p-2 text-right text-xs'>
+                                                    {item.incrementamount?.toLocaleString()}
+                                                </td>
+                                                <td className='border border-gray-300 p-2 text-right font-bold text-xs'>
+                                                    {item.hreeD_Amount?.toLocaleString()}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -291,4 +299,3 @@ export default function SalaryIncrementReportPage() {
         </div>
     );
 }
-

@@ -22,7 +22,7 @@ import AttendanceGrid from './attendance-grid';
 import ViewHistoryModal from './view-history-modal';
 
 const AttendanceEntryForm = () => {
-    const [selectedYearId, setSelectedYearId] = useState<number>(0);
+    const [_selectedYearId, _setSelectedYearId] = useState<number>(0);
 
     const form = useForm<AttendanceEntryValues>({
         resolver: zodResolver(attendanceEntrySchema),
@@ -260,8 +260,7 @@ const AttendanceEntryForm = () => {
         setStudentList(finalStudents);
     };
 
-    const onSave = (values: AttendanceEntryValues) => {
-        console.log('Save Clicked');
+    const onSave = (_values: AttendanceEntryValues) => {
         let ASA_ClassHeld = '1.00';
         let fromDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '';
         let toDateStr = currentDate ? format(new Date(currentDate), 'yyyy-MM-dd') : '';
@@ -294,10 +293,6 @@ const AttendanceEntryForm = () => {
             //stdList: studentList,
             stdList: updatedStdList
         };
-
-        console.log('Save payload', payload);
-
-        console.log(JSON.stringify(payload));
         saveAttendance.mutate(payload, {
             onSuccess: (res) => {
                 if (res.returnval) {

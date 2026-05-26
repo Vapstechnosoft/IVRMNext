@@ -473,7 +473,7 @@ export default function FeeReceiptDeleteReportNagarjuna() {
                         {loading ? (
                             <div className='flex min-h-[400px] items-center justify-center rounded-lg border bg-white shadow-xl'>
                                 <div className='text-center'>
-                                    <div className='mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+                                    <div className='mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
                                     <p className='text-gray-500'>Loading receipt data...</p>
                                 </div>
                             </div>

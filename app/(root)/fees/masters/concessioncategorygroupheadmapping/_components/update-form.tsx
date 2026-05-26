@@ -148,7 +148,7 @@ export default function UpdateConcessionCategoryGroupHeadForm({
     };
 
     // Handle multi-select changes
-    const handleHeadSelection = (selectedValues: string[]) => {
+    const _handleHeadSelection = (selectedValues: string[]) => {
         setSelectedHeadsItems(
             selectedValues.map((value) => ({
                 fmH_Id: value.toString()

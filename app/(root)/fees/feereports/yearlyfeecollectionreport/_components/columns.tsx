@@ -212,7 +212,7 @@ export const mapYearlyCollectionReport = (list: any[], breakdown: BreakdownType)
     });
 };
 
-const NUMERIC_COLUMNS = ['totalPayable', 'paidAmount', 'balance', 'concession', 'arrear', 'excess', 'charge', 'adjustment'];
+const _NUMERIC_COLUMNS = ['totalPayable', 'paidAmount', 'balance', 'concession', 'arrear', 'excess', 'charge', 'adjustment'];
 
 // export function createTotalRow(rows: IFeeYearlyCollectionReportRow[]): FeeYearlyTableRow {
 //     return {

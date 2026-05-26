@@ -23,8 +23,6 @@ export default function MasterBuidingPage(props: { searchParams: SearchParams })
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterBuilding(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<IMasterBuildingList>>
             <MasterBuildingPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

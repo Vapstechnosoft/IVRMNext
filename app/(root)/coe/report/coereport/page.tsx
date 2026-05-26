@@ -1,41 +1,30 @@
 // app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
 
-import { useAcademicYearDropdown, useStudentClassDropDown } from '@/hooks/fees/useMasters';
-import {
-    useFeeBusRouteDefaulterreport,
-    useFeeClassListDefaulterreport,
-    useFeeCustomGroupDefaulterreport,
-    useFeeDefaulterReport,
-    useFeeGroupDefaulterreport,
-    useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport,
-    useFeeTransInstallmentYearlyfeecollectionreport
-} from '@/hooks/fees/useReports';
+import { useStudentClassDropDown } from '@/hooks/fees/useMasters';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import type { z } from 'zod';
-import { FormError } from '@/components/ui/extension/field';
-import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { useRef, useState } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { getCoeReport } from '@/server/coe/masters/masterevent';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { coeReportSchema } from '@/schemas/coe/master';
+import { getCoeReport } from '@/server/coe/masters/masterevent';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
-const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
+const _Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
 
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
@@ -126,8 +115,7 @@ export default function coeReport() {
                 year: data.asmaY_Id ?? 0
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await getCoeReport(payload);
 
@@ -145,8 +133,8 @@ export default function coeReport() {
         }
     };
 
-    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-    const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
+    const [_selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [_selectedclassId, setSelectedClassId] = useState<number | null>(null);
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(true);
 

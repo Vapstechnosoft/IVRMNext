@@ -17,11 +17,9 @@ export async function getMonthEndReportOnload(MI_Id = 30): Promise<ApiResponse<M
     const requestBody: MonthEndReportOnloadRequest = {
         MI_Id
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<MonthEndReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -101,11 +99,9 @@ export async function searchMonthEndReport(request: MonthEndReportSearchRequest)
         hrmdeS_IdList: request.hrmdeS_IdList || [],
         empid: request.empid || []
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<MonthEndReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

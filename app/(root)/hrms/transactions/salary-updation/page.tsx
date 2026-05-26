@@ -26,7 +26,7 @@ import type {
     HeadDropdown,
     SalaryUpdationItem
 } from '@/types/hrms/salary-updation';
-import { Loader2, RefreshCw, X, RefreshCcw } from 'lucide-react';
+import { RefreshCcw, RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -73,7 +73,7 @@ function SalaryUpdationPageContent({
 }) {
     const { openAddForm } = useFormContext<SalaryUpdationItem>();
     const [hasSearched, setHasSearched] = useState(false);
-    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
+    const [_filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
 
     // Mutations
@@ -95,7 +95,7 @@ function SalaryUpdationPageContent({
         const lowerSearch = localSearch.toLowerCase();
         return gridData.filter(
             (emp) =>
-                (emp.HRME_EmployeeFirstName + ' ' + (emp.HRME_EmployeeMiddleName || '') + ' ' + (emp.HRME_EmployeeLastName || ''))
+                `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`
                     .toLowerCase()
                     .includes(lowerSearch) || (emp.HRME_EmployeeCode || '').toLowerCase().includes(lowerSearch)
         );
@@ -267,7 +267,6 @@ function SalaryUpdationPageContent({
                     if (initializedEmps?.length > 0) {
                         toast.success('Search completed successfully');
                     } else {
-
                         toast.error('No data found');
                     }
                 },
@@ -307,39 +306,34 @@ function SalaryUpdationPageContent({
                         ];
                     }
                     return { ...emp, earningResult: newEarnings };
-                } else {
-                    const existing = emp.deductionResult?.find((x) => x.HRMED_Id === headId);
-                    let newDeductions = emp.deductionResult || [];
-                    if (existing) {
-                        newDeductions = newDeductions.map((x) => (x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x));
-                    } else {
-                        newDeductions = [
-                            ...newDeductions,
-                            {
-                                HREED_Id: 0,
-                                MI_Id: HRMS_MI_ID,
-                                HRME_Id: empId,
-                                HRMED_Id: headId,
-                                HREED_Amount: amount,
-                                HREED_Percentage: '0',
-                                HREED_ActiveFlag: true,
-                                HREED_MaxApplicableFlg: false,
-                                HREED_ApplicableMaxValue: 0
-                            }
-                        ];
-                    }
-                    return { ...emp, deductionResult: newDeductions };
                 }
+                const existing = emp.deductionResult?.find((x) => x.HRMED_Id === headId);
+                let newDeductions = emp.deductionResult || [];
+                if (existing) {
+                    newDeductions = newDeductions.map((x) => (x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x));
+                } else {
+                    newDeductions = [
+                        ...newDeductions,
+                        {
+                            HREED_Id: 0,
+                            MI_Id: HRMS_MI_ID,
+                            HRME_Id: empId,
+                            HRMED_Id: headId,
+                            HREED_Amount: amount,
+                            HREED_Percentage: '0',
+                            HREED_ActiveFlag: true,
+                            HREED_MaxApplicableFlg: false,
+                            HREED_ApplicableMaxValue: 0
+                        }
+                    ];
+                }
+                return { ...emp, deductionResult: newDeductions };
             })
         );
     };
 
     // Save Handler
     const handleSave = () => {
-
-        console.log("Grid Data:", gridData);
-        console.log("Selected Employees:", selectedEmployees);
-
         const rowsToSave = gridData.filter((emp) => selectedEmployees.includes(emp.HRME_Id));
 
         if (rowsToSave.length === 0) {
@@ -354,8 +348,6 @@ function SalaryUpdationPageContent({
             if (emp.earningResult) allEarnings.push(...emp.earningResult);
             if (emp.deductionResult) allDeductions.push(...emp.deductionResult);
         });
-        console.log("All Earnings", allEarnings);
-        console.log("All Deductions", allDeductions);
 
         updateEarningsDeductions(
             {
@@ -419,7 +411,7 @@ function SalaryUpdationPageContent({
             ),
         [visibleEarningHeads, visibleDeductionHeads, selectedEmployees, allGridIds]
     );
-    const tableProps = useDataTableProps(processedGridData);
+    const _tableProps = useDataTableProps(processedGridData);
 
     return (
         <div className='min-h-screen'>
@@ -440,7 +432,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...groupTypes.map((gt: any) => ({
                                                     label: gt.HRMGT_EmployeeGroupType,
                                                     value: gt.HRMGT_Id?.toString() || ''
@@ -466,7 +457,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...departments.map((d: any) => ({
                                                     label: d.HRMD_DepartmentName,
                                                     value: d.HRMD_Id?.toString() || ''
@@ -492,7 +482,6 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
-
                                                 ...designations.map((d: any) => ({
                                                     label: d.HRMDES_DesignationName,
                                                     value: d.HRMDES_Id?.toString() || ''
@@ -614,7 +603,6 @@ function SalaryUpdationPageContent({
                                             <>
                                                 <MultiSelect
                                                     options={[
-
                                                         ...filteredHeads.map((h: any) => ({
                                                             label: h.HRMED_Name || '',
                                                             value: h.HRMED_Id?.toString() || ''
@@ -626,16 +614,11 @@ function SalaryUpdationPageContent({
                                                     maxHeight={240}
                                                     className='w-full'
                                                 />
-                                                {fieldState.error && (
-                                                    <p className="text-sm text-destructive">
-                                                        {fieldState.error.message}
-                                                    </p>
-                                                )}
+                                                {fieldState.error && <p className='text-destructive text-sm'>{fieldState.error.message}</p>}
                                             </>
                                         );
                                     }}
                                 />
-
                             </div>
                         </div>
 
@@ -643,14 +626,19 @@ function SalaryUpdationPageContent({
                             <Button
                                 type='submit'
                                 className='w-32'
-                                disabled={watchedGroupType?.length === 0 || watchedDepartment?.length === 0 || watchedDesignation?.length === 0 || headsData?.length === 0}>
-                                {isFiltering ? <RefreshCcw className='w-4 h-4 animate-spin' /> : <RefreshCw className='w-4 h-4' />} Search
+                                disabled={
+                                    watchedGroupType?.length === 0 ||
+                                    watchedDepartment?.length === 0 ||
+                                    watchedDesignation?.length === 0 ||
+                                    headsData?.length === 0
+                                }>
+                                {isFiltering ? <RefreshCcw className='h-4 w-4 animate-spin' /> : <RefreshCw className='h-4 w-4' />} Search
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
                                 onClick={handleCancel}
-                                className='w-32 text-orange-600 hover:bg-orange-50 hover:text-orange-700 shadow-md hover:shadow-orange-200/50 transition-all rounded-xl'>
+                                className='w-32 rounded-xl text-orange-600 shadow-md transition-all hover:bg-orange-50 hover:text-orange-700 hover:shadow-orange-200/50'>
                                 CANCEL
                             </Button>
                         </div>
@@ -676,7 +664,6 @@ function SalaryUpdationPageContent({
                                         noDataTitle='No Employees Found'
                                         isPaginationRequired={true}
                                         isSearchRequired={false}
-
                                         scrollable={true}
                                         maxHeight='400px'
                                     />

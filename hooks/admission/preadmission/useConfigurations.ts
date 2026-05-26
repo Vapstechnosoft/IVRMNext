@@ -1,11 +1,20 @@
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getInstitutionList, getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
+import {
+    getInstitutionList,
+    getPreAdmissionSetOrder,
+    getPreAdmissionYear
+} from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import {
     getAcademicYearMasterConfiguration,
     getMasterConfiguration
 } from '@/server/admission/preadmission/configuration/master_configuration';
-import { getMasterNumbering, getPreRegistrationNumbering, getRegistrationNumbering, getRegNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
+import {
+    getMasterNumbering,
+    getPreRegistrationNumbering,
+    getRegNumbering,
+    getRegistrationNumbering
+} from '@/server/admission/preadmission/configuration/transaction_numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

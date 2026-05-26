@@ -168,8 +168,6 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                         depositAmount = Number(String(data[i].DEPOSIT).replace(/,/g, ''));
                     }
 
-                    console.log('Excel Row:', data[i]);
-
                     // ✅ Excel serial date from __EMPTY_1
                     const excelDate = data?.[i]?.__EMPTY_1;
 
@@ -284,7 +282,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
             // Also store raw imported data
             const formattedData = rawData.map((row: any, index: number) => {
                 const obj: { [key: string]: any } = { SLNO: index + 1 };
-                headerNames.forEach((header, idx) => {
+                headerNames.forEach((header, _idx) => {
                     if (header && header.trim() !== '') {
                         obj[header] = row[header] || '';
                     }
@@ -434,7 +432,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                 }
 
                 // If all else fails, try to create a date from the string with time component
-                const dateWithTime = new Date(dateString + 'T00:00:00.000Z');
+                const dateWithTime = new Date(`${dateString}T00:00:00.000Z`);
                 if (Number.isNaN(dateWithTime.getTime())) {
                     return dateWithTime.toISOString();
                 }
@@ -460,8 +458,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                 asmaY_Id: selectedAsmayId,
                 feeReceiptimport: feeReceiptimport
             };
-            const js = JSON.stringify(payload);
-            console.log('Payload to be sent:', js); // For debugging
+            const _js = JSON.stringify(payload);
 
             const response = await saveBankCopyData(payload);
 
@@ -480,10 +477,8 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                     // clearImportedData();
                     // Additional success details if needed
                     if (response.fyP_Receipt_No) {
-                        console.log('Receipt Number:', response.fyP_Receipt_No);
                     }
                     if (response.fmG_Id) {
-                        console.log('Fee Master Group ID:', response.fmG_Id);
                     }
                     setTimeout(() => {
                         window.location.reload();

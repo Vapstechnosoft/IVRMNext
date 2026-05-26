@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { sendGeneralSMSAndEmail } from '@/server/exam/exam-module/reports/GeneralSendSMSSRKVSController';
-import { Loader2, Send, Search } from 'lucide-react';
+import { Loader2, Search, Send } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
@@ -23,24 +23,25 @@ export const SMSList = ({ data, params }: SMSListProps) => {
     const [sendEmail, setSendEmail] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
-    const filteredStudents = students.filter(s => 
-        s.AMST_Firstname?.toLowerCase().includes(searchValue.toLowerCase()) ||
-        s.AMST_AdmNo?.toLowerCase().includes(searchValue.toLowerCase())
+    const filteredStudents = students.filter(
+        (s) =>
+            s.AMST_Firstname?.toLowerCase().includes(searchValue.toLowerCase()) ||
+            s.AMST_AdmNo?.toLowerCase().includes(searchValue.toLowerCase())
     );
 
     const toggleAll = (checked: boolean) => {
         setAllSelected(checked);
-        setStudents(students.map(s => ({ ...s, selected: checked })));
+        setStudents(students.map((s) => ({ ...s, selected: checked })));
     };
 
     const toggleStudent = (id: number, checked: boolean) => {
-        const next = students.map(s => s.AMST_ID === id ? { ...s, selected: checked } : s);
+        const next = students.map((s) => (s.AMST_ID === id ? { ...s, selected: checked } : s));
         setStudents(next);
-        setAllSelected(next.every(s => s.selected));
+        setAllSelected(next.every((s) => s.selected));
     };
 
     const handleSend = async () => {
-        const selected = students.filter(s => s.selected);
+        const selected = students.filter((s) => s.selected);
         if (selected.length === 0) {
             toast.error('Please select at least one student');
             return;
@@ -64,14 +65,14 @@ export const SMSList = ({ data, params }: SMSListProps) => {
         if (result.isConfirmed) {
             try {
                 setIsSending(true);
-                const studentTemp = selected.map(itm => {
-                    let template = "";
-                    let templateTwo = "";
-                    
+                const studentTemp = selected.map((itm) => {
+                    let template = '';
+                    let templateTwo = '';
+
                     itm.plannerdetails.forEach((p: any) => {
-                        if (template !== "") {
-                            template += ",%0a" + p.SMS;
-                            templateTwo += ",<br/>" + p.SMS;
+                        if (template !== '') {
+                            template += `,%0a${p.SMS}`;
+                            templateTwo += `,<br/>${p.SMS}`;
                         } else {
                             template += p.SMS;
                             templateTwo += p.SMS;
@@ -79,7 +80,7 @@ export const SMSList = ({ data, params }: SMSListProps) => {
                     });
 
                     // Format based on legacy JS logic
-                    const examName = "Final Exam VIII";
+                    const examName = 'Final Exam VIII';
                     const tempMail = `Dear Parent ,%0a Name:${itm.AMST_Firstname}%0a Reg No :${itm.AMST_AdmNo} %0a Exam: ${examName} \n\n${template} \n Thank You SRKVS`;
                     const smsMailText = `Dear Parent ,<br/>Name:   ${itm.AMST_Firstname}<br/>Reg No :  ${itm.AMST_AdmNo}<br/>Exam:   ${examName} <br/>  ${templateTwo}<br/>Thank You SRKVS`;
 
@@ -98,9 +99,9 @@ export const SMSList = ({ data, params }: SMSListProps) => {
                     ASMCL_Id: Number(params.ASMCL_Id),
                     ASMS_Id: Number(params.ASMS_Id),
                     EME_Id: 1, // Hardcoded as per legacy JS
-                    radiotype: "SRkvs",
+                    radiotype: 'SRkvs',
                     snd_sms: sendSms,
-                    snd_email: sendEmail,
+                    snd_email: sendEmail
                 };
 
                 const response = await sendGeneralSMSAndEmail(payload);
@@ -118,65 +119,65 @@ export const SMSList = ({ data, params }: SMSListProps) => {
     };
 
     return (
-        <div className="space-y-6 rounded-lg border bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h4 className="font-bold text-gray-900 uppercase">Student List</h4>
-                <div className="relative w-full max-w-xs">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <Input 
-                        placeholder="Search student..." 
+        <div className='space-y-6 rounded-lg border bg-white p-6 shadow-sm'>
+            <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+                <h4 className='font-bold text-gray-900 uppercase'>Student List</h4>
+                <div className='relative w-full max-w-xs'>
+                    <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-400' />
+                    <Input
+                        placeholder='Search student...'
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
-                        className="pl-10"
+                        className='pl-10'
                     />
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-md border">
-                <table className="w-full border-collapse text-sm">
+            <div className='overflow-x-auto rounded-md border'>
+                <table className='w-full border-collapse text-sm'>
                     <thead>
-                        <tr className="bg-gray-100 font-semibold text-gray-700">
-                            <th className="border p-3 text-center">Sl No</th>
-                            <th className="border p-3 text-center">
+                        <tr className='bg-gray-100 font-semibold text-gray-700'>
+                            <th className='border p-3 text-center'>Sl No</th>
+                            <th className='border p-3 text-center'>
                                 <Checkbox checked={allSelected} onCheckedChange={(c) => toggleAll(!!c)} />
                             </th>
-                            <th className="border p-3 text-left">Student Name</th>
-                            <th className="border p-3 text-left">Adm No</th>
-                            <th className="border p-3 text-left">Email Id</th>
-                            <th className="border p-3 text-left">Mobile No</th>
+                            <th className='border p-3 text-left'>Student Name</th>
+                            <th className='border p-3 text-left'>Adm No</th>
+                            <th className='border p-3 text-left'>Email Id</th>
+                            <th className='border p-3 text-left'>Mobile No</th>
                             {params.GradeWise === false && (
                                 <>
-                                    <th className="border p-3 text-center">Total</th>
-                                    <th className="border p-3 text-center">Per(%)</th>
+                                    <th className='border p-3 text-center'>Total</th>
+                                    <th className='border p-3 text-center'>Per(%)</th>
                                 </>
                             )}
-                            <th className="border p-3 text-left">SMS Content</th>
+                            <th className='border p-3 text-left'>SMS Content</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredStudents.map((s, idx) => (
-                            <tr key={s.AMST_ID} className="hover:bg-gray-50">
-                                <td className="border p-3 text-center">{idx + 1}</td>
-                                <td className="border p-3 text-center">
-                                    <Checkbox 
-                                        checked={s.selected} 
-                                        onCheckedChange={(c) => toggleStudent(s.AMST_ID, !!c)} 
-                                    />
+                            <tr key={s.AMST_ID} className='hover:bg-gray-50'>
+                                <td className='border p-3 text-center'>{idx + 1}</td>
+                                <td className='border p-3 text-center'>
+                                    <Checkbox checked={s.selected} onCheckedChange={(c) => toggleStudent(s.AMST_ID, !!c)} />
                                 </td>
-                                <td className="border p-3 text-left font-medium">{s.AMST_Firstname}</td>
-                                <td className="border p-3 text-left">{s.AMST_AdmNo}</td>
-                                <td className="border p-3 text-left">{s.AMST_emailId}</td>
-                                <td className="border p-3 text-left">{s.AMST_MobileNo}</td>
+                                <td className='border p-3 text-left font-medium'>{s.AMST_Firstname}</td>
+                                <td className='border p-3 text-left'>{s.AMST_AdmNo}</td>
+                                <td className='border p-3 text-left'>{s.AMST_emailId}</td>
+                                <td className='border p-3 text-left'>{s.AMST_MobileNo}</td>
                                 {params.GradeWise === false && (
                                     <>
-                                        <td className="border p-3 text-center">{s.Total}</td>
-                                        <td className="border p-3 text-center">{s.Percentage}%</td>
+                                        <td className='border p-3 text-center'>{s.Total}</td>
+                                        <td className='border p-3 text-center'>{s.Percentage}%</td>
                                     </>
                                 )}
-                                <td className="border p-3 text-left">
-                                    <div className="max-w-xs space-y-1 text-xs text-gray-600">
+                                <td className='border p-3 text-left'>
+                                    <div className='max-w-xs space-y-1 text-gray-600 text-xs'>
                                         {s.plannerdetails?.map((p: any, pIdx: number) => (
-                                            <p key={pIdx}>{p.SMS}{pIdx < s.plannerdetails.length - 1 ? ',' : ''}</p>
+                                            <p key={pIdx}>
+                                                {p.SMS}
+                                                {pIdx < s.plannerdetails.length - 1 ? ',' : ''}
+                                            </p>
                                         ))}
                                     </div>
                                 </td>
@@ -186,29 +187,30 @@ export const SMSList = ({ data, params }: SMSListProps) => {
                 </table>
             </div>
 
-            <div className="flex flex-col items-center gap-6 border-t pt-6">
-                <div className="flex items-center gap-8 rounded-lg bg-sky-50 px-8 py-3 border border-sky-100">
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="snd-sms" checked={sendSms} onCheckedChange={(c) => setSendSms(!!c)} />
-                        <Label htmlFor="snd-sms" className="font-bold text-sky-900 cursor-pointer">SMS</Label>
+            <div className='flex flex-col items-center gap-6 border-t pt-6'>
+                <div className='flex items-center gap-8 rounded-lg border border-sky-100 bg-sky-50 px-8 py-3'>
+                    <div className='flex items-center space-x-2'>
+                        <Checkbox id='snd-sms' checked={sendSms} onCheckedChange={(c) => setSendSms(!!c)} />
+                        <Label htmlFor='snd-sms' className='cursor-pointer font-bold text-sky-900'>
+                            SMS
+                        </Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="snd-email" checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} />
-                        <Label htmlFor="snd-email" className="font-bold text-sky-900 cursor-pointer">EMAIL</Label>
+                    <div className='flex items-center space-x-2'>
+                        <Checkbox id='snd-email' checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} />
+                        <Label htmlFor='snd-email' className='cursor-pointer font-bold text-sky-900'>
+                            EMAIL
+                        </Label>
                     </div>
                 </div>
 
-                <div className="flex gap-4">
-                    <Button 
-                        onClick={handleSend} 
-                        disabled={isSending} 
-                        size="lg"
-                        className="bg-sky-800 px-10 hover:bg-sky-900"
-                    >
-                        {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                <div className='flex gap-4'>
+                    <Button onClick={handleSend} disabled={isSending} size='lg' className='bg-sky-800 px-10 hover:bg-sky-900'>
+                        {isSending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Send className='mr-2 h-4 w-4' />}
                         SEND
                     </Button>
-                    <Button variant="outline" size="lg" onClick={() => window.location.reload()}>Cancel</Button>
+                    <Button variant='outline' size='lg' onClick={() => window.location.reload()}>
+                        Cancel
+                    </Button>
                 </div>
             </div>
         </div>

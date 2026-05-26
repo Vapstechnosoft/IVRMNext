@@ -28,7 +28,6 @@ export default function BrsPreBoardReportCardPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
-            console.log(res, 'BRS PreBoard Report Response');
 
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
                 toast.error('No records found');
@@ -39,12 +38,15 @@ export default function BrsPreBoardReportCardPage() {
             const flatRows: any[] = res.data;
 
             // Extract additional data from response (sub-subjects, sub-subject marks)
-            const sub_subject: any[] = (res as any).sub_subject || (res as any).sub_subject_marks?.reduce((acc: any[], m: any) => {
-                if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
-                    acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
-                }
-                return acc;
-            }, []) || [];
+            const sub_subject: any[] =
+                (res as any).sub_subject ||
+                (res as any).sub_subject_marks?.reduce((acc: any[], m: any) => {
+                    if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
+                        acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
+                    }
+                    return acc;
+                }, []) ||
+                [];
 
             const sub_subject_marks_raw: any[] = (res as any).sub_subject_marks || [];
 
@@ -93,13 +95,11 @@ export default function BrsPreBoardReportCardPage() {
                         classatt: row.asA_Class_Attended,
                         estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || '',
                         // Extra fields used in BRS report
-                        userName: row.userName,        // House name
+                        userName: row.userName, // House name
                         _MotherName: row._MotherName,
                         // Sub-subjects shared across the report
                         sub_subject: sub_subject,
-                        sub_subjectmarks: sub_subject_marks_raw.filter(
-                            (m: any) => m.AMST_Id === studentId
-                        )
+                        sub_subjectmarks: sub_subject_marks_raw.filter((m: any) => m.AMST_Id === studentId)
                     } as any);
                 }
 
@@ -119,9 +119,7 @@ export default function BrsPreBoardReportCardPage() {
             });
 
             // Filter to only subjects that have actual marks
-            const validSubjectIds = new Set(
-                Array.from(studentMap.values()).flatMap((s) => s.sub_list.map((m) => m.ismS_Id))
-            );
+            const validSubjectIds = new Set(Array.from(studentMap.values()).flatMap((s) => s.sub_list.map((m) => m.ismS_Id)));
             const filteredSubjects = Array.from(subjectMap.values())
                 .filter((s) => validSubjectIds.has(s.ismS_Id))
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));

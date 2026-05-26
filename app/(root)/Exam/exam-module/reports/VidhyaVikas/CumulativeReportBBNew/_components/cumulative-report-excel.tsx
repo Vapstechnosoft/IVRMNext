@@ -158,7 +158,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
         // Merge subject names over Marks/Grade columns
         let currentCol = baseColumnsCount;
 
-        [...applicableSubjects, ...nonApplicableSubjects].forEach((subj) => {
+        [...applicableSubjects, ...nonApplicableSubjects].forEach((_subj) => {
             ws['!merges']!.push({
                 s: { r: titleRows.length, c: currentCol },
                 e: { r: titleRows.length, c: currentCol + 1 }

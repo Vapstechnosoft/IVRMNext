@@ -62,7 +62,7 @@ export const useToggleCirculationParameterStatus = () => {
 
     return useMutation({
         mutationFn: toggleCirculationParameterStatus,
-        onSuccess: (data: any) => {
+        onSuccess: (_data: any) => {
             toast.success('Status Updated Successfully');
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },

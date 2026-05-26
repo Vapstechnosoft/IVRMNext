@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 export async function getInvRGRNLoadData(optionflag: string) {
     const url = `/INV_R_GRNFacade/getloaddata?flg=${optionflag}`;
@@ -11,6 +11,5 @@ export async function getInvRGRNLoadData(optionflag: string) {
 export async function getInvRGRNReport(payload: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/INV_R_GRNFacade/onreport?${urlParams}`;
-    console.log("getInvRGRNReport Payload:", payload);
     return await api.post<any>('inventory', url, payload);
 }

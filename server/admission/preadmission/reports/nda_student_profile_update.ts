@@ -2,9 +2,8 @@
 
 import { api } from '@/lib/apiService';
 
-
 export async function getNdaStudentProfileDetails() {
-    const url = `/StudentDashboard/Getdetails`;
+    const url = '/StudentDashboard/Getdetails';
     try {
         const res = await api.post<any>('admission', url, {});
         return res;

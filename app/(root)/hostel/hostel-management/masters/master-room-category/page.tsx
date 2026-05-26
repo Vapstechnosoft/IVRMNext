@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterRoomCategory } from '@/hooks/hostel/useMasterRoomCategory';
+import { deactivateRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterRoomCategoryForm from './_components/add-form';
-import { masterRoomCategoryColumns, IMasterRoomCategory } from './_components/columns';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
-import { deactivateRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
+import AddMasterRoomCategoryForm from './_components/add-form';
+import { type IMasterRoomCategory, masterRoomCategoryColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -25,12 +25,7 @@ export default function MasterRoomCategoryPage(props: { searchParams: SearchPara
 
     return (
         <FormProvider<IMasterRoomCategory>>
-            <PageContent
-                roomCategoryList={roomCategoryList}
-                feeGroups={feeGroups}
-                isLoading={isLoading}
-                refetch={refetch}
-            />
+            <PageContent roomCategoryList={roomCategoryList} feeGroups={feeGroups} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -83,7 +78,7 @@ function PageContent({
     );
 }
 
-function FormSections({ feeGroups, onSuccess }: { feeGroups: any[], onSuccess: () => void }) {
+function FormSections({ feeGroups, onSuccess }: { feeGroups: any[]; onSuccess: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -116,7 +111,13 @@ function FormSections({ feeGroups, onSuccess }: { feeGroups: any[], onSuccess: (
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterRoomCategoryForm feeGroups={feeGroups} onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <AddMasterRoomCategoryForm
+                                feeGroups={feeGroups}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -143,7 +144,10 @@ function FormSections({ feeGroups, onSuccess }: { feeGroups: any[], onSuccess: (
                             <AddMasterRoomCategoryForm
                                 initialData={selectedRow}
                                 feeGroups={feeGroups}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -151,17 +155,17 @@ function FormSections({ feeGroups, onSuccess }: { feeGroups: any[], onSuccess: (
             )}
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterRoomCategoryForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterRoomCategoryForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterRoomCategoryForm({ rowData, onClose, onSuccess }: { rowData: IMasterRoomCategory, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterRoomCategoryForm({
+    rowData,
+    onClose,
+    onSuccess
+}: { rowData: IMasterRoomCategory; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deactivateRoomCategory(rowData.hlmrcA_Id);
@@ -171,7 +175,7 @@ function ToggleMasterRoomCategoryForm({ rowData, onClose, onSuccess }: { rowData
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

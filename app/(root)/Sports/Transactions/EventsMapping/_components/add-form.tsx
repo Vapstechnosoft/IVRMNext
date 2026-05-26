@@ -1,21 +1,19 @@
 'use client';
-
-import { useState, useEffect } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEventMapping } from '@/hooks/sports/useEventMapping';
+import { type IEventMappingDTO, type ISponsor, eventMappingSchema } from '@/types/sports/transactions/events-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { eventMappingSchema, IEventMappingDTO, ISponsor } from '@/types/sports/transactions/events-mapping';
-import { useEventMapping } from '@/hooks/sports/useEventMapping';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface AddEventsMappingFormProps {
     onSuccess?: () => void;
@@ -24,10 +22,20 @@ interface AddEventsMappingFormProps {
 export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingFormProps) {
     const { loadGrid, save } = useEventMapping();
     const { academicYear, eventsList, venuelist, sponsorList } = (loadGrid.data as any)?.data || {
-        academicYear: [], eventsList: [], venuelist: [], sponsorList: []
+        academicYear: [],
+        eventsList: [],
+        venuelist: [],
+        sponsorList: []
     };
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<IEventMappingDTO>({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors }
+    } = useForm<IEventMappingDTO>({
         resolver: zodResolver(eventMappingSchema),
         defaultValues: {
             ASMAY_Id: 0,
@@ -57,11 +65,12 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
             SPCCE_StartDate: values.SPCCE_StartDate ? format(new Date(values.SPCCE_StartDate), 'yyyy-MM-dd') : null,
             SPCCE_EndDate: values.SPCCE_EndDate ? format(new Date(values.SPCCE_EndDate), 'yyyy-MM-dd') : null,
             // Map sponsor properties to match backend DTO expectations
-            sponsordata: values.sponsorData?.map(s => ({
-                SPCCMSP_Id: s.spccmsP_Id,
-                selected: true,
-                spccmsP_ActiveFlag: true
-            })) || []
+            sponsordata:
+                values.sponsorData?.map((s) => ({
+                    SPCCMSP_Id: s.spccmsP_Id,
+                    selected: true,
+                    spccmsP_ActiveFlag: true
+                })) || []
         };
 
         const result = await save.mutateAsync(payload);
@@ -78,7 +87,10 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
         if (isChecked) {
             setValue('sponsorData', [...currentSponsors, { ...sponsor, selected: true }]);
         } else {
-            setValue('sponsorData', currentSponsors.filter(s => s.spccmsP_Id !== sponsor.spccmsP_Id));
+            setValue(
+                'sponsorData',
+                currentSponsors.filter((s) => s.spccmsP_Id !== sponsor.spccmsP_Id)
+            );
         }
     };
 
@@ -106,7 +118,7 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                             </Select>
                         )}
                     />
-                    {errors.ASMAY_Id && <span className='text-xs text-destructive'>{errors.ASMAY_Id.message}</span>}
+                    {errors.ASMAY_Id && <span className='text-destructive text-xs'>{errors.ASMAY_Id.message}</span>}
                 </div>
 
                 {/* Event */}
@@ -130,7 +142,7 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                             </Select>
                         )}
                     />
-                    {errors.SPCCME_Id && <span className='text-xs text-destructive'>{errors.SPCCME_Id.message}</span>}
+                    {errors.SPCCME_Id && <span className='text-destructive text-xs'>{errors.SPCCME_Id.message}</span>}
                 </div>
 
                 {/* Venue */}
@@ -154,7 +166,7 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                             </Select>
                         )}
                     />
-                    {errors.SPCCMEV_Id && <span className='text-xs text-destructive'>{errors.SPCCMEV_Id.message}</span>}
+                    {errors.SPCCMEV_Id && <span className='text-destructive text-xs'>{errors.SPCCMEV_Id.message}</span>}
                 </div>
 
                 {/* Start Date */}
@@ -163,18 +175,16 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                     <Controller
                         name='SPCCE_StartDate'
                         control={control}
-                        render={({ field }) => (
-                            <DatePicker date={field.value as Date} setDate={field.onChange} />
-                        )}
+                        render={({ field }) => <DatePicker date={field.value as Date} setDate={field.onChange} />}
                     />
-                    {errors.SPCCE_StartDate && <span className='text-xs text-destructive'>{errors.SPCCE_StartDate.message as string}</span>}
+                    {errors.SPCCE_StartDate && <span className='text-destructive text-xs'>{errors.SPCCE_StartDate.message as string}</span>}
                 </div>
 
                 {/* Start Time */}
                 <div className='flex flex-col gap-2'>
                     <Label>Start Time</Label>
                     <Input type='time' {...control.register('SPCCE_StartTime')} />
-                    {errors.SPCCE_StartTime && <span className='text-xs text-destructive'>{errors.SPCCE_StartTime.message}</span>}
+                    {errors.SPCCE_StartTime && <span className='text-destructive text-xs'>{errors.SPCCE_StartTime.message}</span>}
                 </div>
 
                 {/* End Date */}
@@ -183,18 +193,16 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                     <Controller
                         name='SPCCE_EndDate'
                         control={control}
-                        render={({ field }) => (
-                            <DatePicker date={field.value as Date} setDate={field.onChange} />
-                        )}
+                        render={({ field }) => <DatePicker date={field.value as Date} setDate={field.onChange} />}
                     />
-                    {errors.SPCCE_EndDate && <span className='text-xs text-destructive'>{errors.SPCCE_EndDate.message as string}</span>}
+                    {errors.SPCCE_EndDate && <span className='text-destructive text-xs'>{errors.SPCCE_EndDate.message as string}</span>}
                 </div>
 
                 {/* End Time */}
                 <div className='flex flex-col gap-2'>
                     <Label>End Time</Label>
                     <Input type='time' {...control.register('SPCCE_EndTime')} />
-                    {errors.SPCCE_EndTime && <span className='text-xs text-destructive'>{errors.SPCCE_EndTime.message}</span>}
+                    {errors.SPCCE_EndTime && <span className='text-destructive text-xs'>{errors.SPCCE_EndTime.message}</span>}
                 </div>
             </div>
 
@@ -209,26 +217,31 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                 <Controller
                     name='SPCCE_SponsorFlag'
                     control={control}
-                    render={({ field }) => (
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    )}
+                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                 />
                 <Label>Sponsor Required?</Label>
             </div>
 
             {/* Sponsor List */}
             {sponsorFlag && (
-                <div className='border rounded-md p-4'>
+                <div className='rounded-md border p-4'>
                     <Label className='mb-2 block'>Select Sponsors</Label>
                     <ScrollArea className='h-48'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                             {sponsorList.map((sponsor: ISponsor) => (
                                 <div key={sponsor.spccmsP_Id} className='flex items-center space-x-2'>
                                     <Checkbox
-                                        checked={(watch('sponsorData') || []).some(s => s.spccmsP_Id === sponsor.spccmsP_Id)}
+                                        checked={(watch('sponsorData') || []).some((s) => s.spccmsP_Id === sponsor.spccmsP_Id)}
                                         onCheckedChange={(checked) => handleSponsorChange(sponsor, !!checked)}
                                     />
-                                    <Label className='font-normal cursor-pointer' onClick={() => handleSponsorChange(sponsor, !(watch('sponsorData') || []).some(s => s.spccmsP_Id === sponsor.spccmsP_Id))}>
+                                    <Label
+                                        className='cursor-pointer font-normal'
+                                        onClick={() =>
+                                            handleSponsorChange(
+                                                sponsor,
+                                                !(watch('sponsorData') || []).some((s) => s.spccmsP_Id === sponsor.spccmsP_Id)
+                                            )
+                                        }>
                                         {sponsor.spccmsP_SponsorName}
                                     </Label>
                                 </div>
@@ -242,7 +255,14 @@ export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingForm
                 <Button type='submit' className='w-32' disabled={save.isPending}>
                     {save.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'Save'}
                 </Button>
-                <Button type='button' variant='outline' className='w-32' onClick={() => { reset(); onSuccess?.(); }}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    className='w-32'
+                    onClick={() => {
+                        reset();
+                        onSuccess?.();
+                    }}>
                     Cancel
                 </Button>
             </div>

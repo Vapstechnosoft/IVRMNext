@@ -55,7 +55,6 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                 fmH_PDAFlag: fmH_PDAFlag,
                 fmH_SpecialFeeFlag: fmH_SpecialFeeFlag
             };
-            console.log('PALOAD', JSON.stringify(payload));
             const response = await addOrUpdateMasterfeehead(payload);
             if (response.success) {
                 toast.success(response.message);

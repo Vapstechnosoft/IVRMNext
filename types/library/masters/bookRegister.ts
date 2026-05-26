@@ -69,7 +69,7 @@ export interface BookRegister {
     lmV_VendorName?: string;
     lmrA_RackName?: string;
     AUTHOR_FullName?: string;
-    lmbanO_AccessionNo?: string; 
+    lmbanO_AccessionNo?: string;
 }
 
 export interface AccessionDTO {

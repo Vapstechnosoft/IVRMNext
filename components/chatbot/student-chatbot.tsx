@@ -42,7 +42,7 @@ export const StudentChatbot = () => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
-            text: `Welcome to your Student Portal Assistant! How can I help you with your studies or payments today?`,
+            text: 'Welcome to your Student Portal Assistant! How can I help you with your studies or payments today?',
             role: 'assistant',
             timestamp: new Date()
         }

@@ -56,7 +56,6 @@ export async function getSubjectRestrictionDayPeriodDetails(id: number) {
 export async function getSubjectRestrictionDayStaffGridData(searchParams?: any) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttmD_DayName,ttfdS_Id,ttfdS_ActiveFlag');
     const url = `/RestrictionFacade/SubjectRestrictionDayStaffGridData?${urlParams}`;
-    console.log('day staff grid data', url);
     return await api.get<any[]>('timetable', url);
 }
 
@@ -172,7 +171,7 @@ export async function ToggleSubjectPeriodSubject(ttrpsU_Id: number) {
 // --- Helper Dropdown Fetchers ---
 // Assuming standard ones exist or using specific controller endpoints
 export async function getCategoryDetails(data: { ASMAY_Id: number }) {
-    const url = '/Restriction/get_category'; // Guessing
+    const _url = '/Restriction/get_category'; // Guessing
     // Legacy: get_category1() -> calls 'Restriction/get_category' (implied)
     return await api.post<any>('timetable', '/Restriction/get_category', data);
 }

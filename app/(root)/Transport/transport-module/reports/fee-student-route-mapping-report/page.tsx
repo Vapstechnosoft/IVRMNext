@@ -75,7 +75,7 @@ export default function FeeStudentRouteMappingReportPage() {
     const [reportData, setReportData] = useState<ReportItem[]>([]);
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [routeName, setRouteName] = useState('');
+    const [_routeName, _setRouteName] = useState('');
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -98,11 +98,9 @@ export default function FeeStudentRouteMappingReportPage() {
             ASMS_Id: Number(values.asmS_Id),
             trmR_Id: Number(values.trmR_Id)
         };
-        console.log('payload', payload);
         try {
             const res = await getStudentRouteMappingReportData(payload);
-            console.log('res', res);
-            if (res && res.data && res.data.length > 0) {
+            if (res?.data && res.data.length > 0) {
                 setReportData(res.data);
             } else {
                 setReportData([]);
@@ -122,9 +120,9 @@ export default function FeeStudentRouteMappingReportPage() {
     // Filter Logic
     const filteredData = reportData.filter(
         (item) =>
-            (item.studentName && item.studentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (item.className && item.className.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (item.pickupLocation && item.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase()))
+            item.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.className?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.pickupLocation?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Totals
@@ -186,8 +184,8 @@ export default function FeeStudentRouteMappingReportPage() {
                             </thead>
                             <tbody>
                                 ${selectedItems
-                    .map(
-                        (item, index) => `
+                                    .map(
+                                        (item, index) => `
                                     <tr>
                                         <td>${index + 1}</td>
                                         <td>${item.studentName}</td>
@@ -197,8 +195,8 @@ export default function FeeStudentRouteMappingReportPage() {
                                         <td>${item.transportation_Fee}</td>
                                     </tr>
                                 `
-                    )
-                    .join('')}
+                                    )
+                                    .join('')}
                                 <tr class="footer-row">
                                     <td colspan="3">Total</td>
                                     <td>${totalRoute}</td>
@@ -474,12 +472,12 @@ export default function FeeStudentRouteMappingReportPage() {
                                     ))}
                                     {filteredData.length > 0 && (
                                         <TableRow className='bg-muted/20 font-bold'>
-                                            <TableCell colSpan={2}></TableCell>
+                                            <TableCell colSpan={2} />
                                             <TableCell colSpan={2} className='text-right'>
                                                 Total
                                             </TableCell>
                                             <TableCell>{totalRouteFee}</TableCell>
-                                            <TableCell></TableCell>
+                                            <TableCell />
                                             <TableCell>{totalTransportFee}</TableCell>
                                         </TableRow>
                                     )}

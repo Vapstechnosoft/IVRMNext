@@ -10,12 +10,11 @@ export async function getCoScholasticActivities(searchParams?: ApiSearchparams) 
     return await api.get<ICoScholasticActivity>('exam', url);
 }
 export async function getCoScholasticActivityDropdownList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = 'coscholastic_activity/co_scholastic_activity_dropdown_list';
     return await api.get<ICoScholasticActivity>('exam', url);
 }
 export async function addOrUpdatecoScholasticActivity(data: any) {
-    console.log('data in server file', data);
     const url = '/coscholastic_activity/addorupdate_coscholastic_activity';
     return await api.post<any>('exam', url, data);
 }

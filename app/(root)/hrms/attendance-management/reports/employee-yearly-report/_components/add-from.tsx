@@ -6,25 +6,23 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { cn } from '@/lib/utils';
-import { employeeYearlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import { getEmployeeYearlyReport } from '@/server/hrms/hrmsConfig/reports/employee-yearly-report';
 import {
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
     useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
+import { employeeYearlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { getEmployeeYearlyReport } from '@/server/hrms/hrmsConfig/reports/employee-yearly-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import { addMonths } from 'date-fns';
 import { Save } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useRouter, usePathname } from 'next/navigation';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof employeeYearlyReportFilterSchema>;
@@ -108,9 +106,11 @@ export default function AddEmployeeYearlyReportForm({
     const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.join(','));
     const { data: designationsData, isLoading: isDesignationsLoading } = useReportDesignations(groupTypeIds.join(','), deptIds.join(','));
-    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
-
-    console.log("employeesData", employeesData);
+    const { data: employeesData, isLoading: isEmployeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -148,10 +148,9 @@ export default function AddEmployeeYearlyReportForm({
                 const id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
                 if (id == null) return null;
 
-                const employeeName = emp.employeeFullName
+                const employeeName = emp.employeeFullName;
 
-                const employeeCode = id
-
+                const employeeCode = id;
 
                 return {
                     id: Number(id),
@@ -164,8 +163,6 @@ export default function AddEmployeeYearlyReportForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            console.log('form data', data);
-
             // Determine comma-separated employee IDs or single ID
             let hrmeIds = '0';
             if (data.allOrIndividual === 'Individual') {
@@ -179,7 +176,7 @@ export default function AddEmployeeYearlyReportForm({
                 fromdate: data.fromDate ? data.fromDate.split('T')[0] : '',
                 todate: data.toDate ? data.toDate.split('T')[0] : '',
                 multiplehrmeid: hrmeIds,
-                type: 'yearly',
+                type: 'yearly'
             };
 
             const response = await getEmployeeYearlyReport(payload, searchParams);
@@ -198,11 +195,11 @@ export default function AddEmployeeYearlyReportForm({
                 params.delete('designation');
                 params.delete('mode');
 
-                data.type.forEach(t => params.append('type', t));
-                data.department.forEach(d => params.append('department', d));
-                data.designation.forEach(d => params.append('designation', d));
+                data.type.forEach((t) => params.append('type', t));
+                data.department.forEach((d) => params.append('department', d));
+                data.designation.forEach((d) => params.append('designation', d));
                 if (data.mode) {
-                    data.mode.forEach(m => params.append('mode', m));
+                    data.mode.forEach((m) => params.append('mode', m));
                 }
 
                 router.push(`${pathname}?${params.toString()}`);
@@ -231,22 +228,25 @@ export default function AddEmployeeYearlyReportForm({
     };
 
     const handleReset = () => {
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            allOrIndividual: 'All',
-            employee: '',
-            fromDate: '',
-            toDate: '',
-            mode: []
-        }, {
-            keepDefaultValues: false,
-            keepErrors: false,
-            keepDirty: false,
-            keepTouched: false,
-            keepIsValid: false
-        });
+        reset(
+            {
+                type: [],
+                department: [],
+                designation: [],
+                allOrIndividual: 'All',
+                employee: '',
+                fromDate: '',
+                toDate: '',
+                mode: []
+            },
+            {
+                keepDefaultValues: false,
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepIsValid: false
+            }
+        );
         setTimeout(() => {
             clearErrors();
             router.push(pathname);
@@ -375,18 +375,17 @@ export default function AddEmployeeYearlyReportForm({
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {
-                                                        employeesDataTransformed.length === 0 ? (
-                                                            <div className="p-4 text-center text-sm text-muted-foreground">
-                                                                No employees found for the selected criteria.
-                                                            </div>
-                                                        ) : employeesDataTransformed.map((emp: any) => (
+                                                    {employeesDataTransformed.length === 0 ? (
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            No employees found for the selected criteria.
+                                                        </div>
+                                                    ) : (
+                                                        employeesDataTransformed.map((emp: any) => (
                                                             <SelectItem key={emp.id} value={String(emp.id)}>
                                                                 {emp.employeeName} - [{emp.employeeCode}]
                                                             </SelectItem>
                                                         ))
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -413,9 +412,9 @@ export default function AddEmployeeYearlyReportForm({
                                                     const day = String(date.getDate()).padStart(2, '0');
                                                     field.onChange(`${year}-${month}-${day}`);
                                                     const nextMonthDate = addMonths(date, 1);
-                                                    const nextYear = nextMonthDate.getFullYear();
-                                                    const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
-                                                    const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                    const _nextYear = nextMonthDate.getFullYear();
+                                                    const _nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                    const _nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
                                                     // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                 } else {
                                                     field.onChange('');
@@ -454,14 +453,7 @@ export default function AddEmployeeYearlyReportForm({
                                             }}
                                             placeholder='To date'
                                             className={errors.toDate ? 'border-red-500' : ''}
-                                            disabled={
-                                                fromDateObject
-                                                    ? [
-                                                        { before: fromDateObject },
-                                                        { after: today }
-                                                    ]
-                                                    : [{ after: today }]
-                                            }
+                                            disabled={fromDateObject ? [{ before: fromDateObject }, { after: today }] : [{ after: today }]}
                                         />
                                     )}
                                 />

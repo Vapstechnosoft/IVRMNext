@@ -22,7 +22,7 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
 
     if (!student) {
         return (
-            <div ref={ref} className="p-10 text-center text-gray-400 bg-white">
+            <div ref={ref} className='bg-white p-10 text-center text-gray-400'>
                 No student data available for Study Certificate.
             </div>
         );
@@ -57,10 +57,10 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
     const tcNo = student?.TCNo ?? student?.tcno ?? '';
 
     // Prefer dynamic logo from data if available
-    const logoUrl = "https://vapsclg.blob.core.windows.net/files/27/TBHS_Logo.png";
+    const logoUrl = 'https://vapsclg.blob.core.windows.net/files/27/TBHS_Logo.png';
 
     return (
-        <div ref={ref} className="bg-white text-black printable-content">
+        <div ref={ref} className='printable-content bg-white text-black'>
             <style>{`
                     @media print {
                       @page { size: A4 portrait; margin: 12mm; }
@@ -79,24 +79,20 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
                     .tbhs-label { white-space: nowrap; }
                     `}</style>
 
-            <div className="tbhs-wrap p-8 w-[210mm] min-h-[297mm]">
-                <table className="tbhs-table">
+            <div className='tbhs-wrap min-h-[297mm] w-[210mm] p-8'>
+                <table className='tbhs-table'>
                     <tbody>
                         <tr>
-                            <td className="tbhs-center">
-                                <img
-                                    src={logoUrl}
-                                    style={{ width: '20%', margin: '0 auto' }}
-                                    alt="TBHS Logo"
-                                />
+                            <td className='tbhs-center'>
+                                <img src={logoUrl} style={{ width: '20%', margin: '0 auto' }} alt='TBHS Logo' />
                             </td>
                         </tr>
                     </tbody>
                 </table>
 
-                <div className="tbhs-center mt-2">
-                    <div className="tbhs-title text-[24px]">TUNBRIDGE HIGH SCHOOL</div>
-                    <p className="tbhs-sub mt-2 leading-relaxed">
+                <div className='tbhs-center mt-2'>
+                    <div className='tbhs-title text-[24px]'>TUNBRIDGE HIGH SCHOOL</div>
+                    <p className='tbhs-sub mt-2 leading-relaxed'>
                         <span>(Affiliated to the Council for the Indian School Certificate Examinations, New Delhi)</span>
                         <br />
                         <span>86/2, Infantry Road, Tasker Town, Shivaji Nagar, Bengaluru, Karnataka 560001</span>
@@ -105,151 +101,199 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
                     </p>
                 </div>
 
-                <div className="tbhs-row">
+                <div className='tbhs-row'>
                     <div style={{ width: '40%' }}>
-                        <table className="tbhs-table">
+                        <table className='tbhs-table'>
                             <tbody>
                                 <tr>
-                                    <td className="tbhs-td" style={{ textAlign: 'right', paddingRight: 8 }}>No :</td>
-                                    <td className="tbhs-td" style={{ textAlign: 'left' }}>1</td>
+                                    <td className='tbhs-td' style={{ textAlign: 'right', paddingRight: 8 }}>
+                                        No :
+                                    </td>
+                                    <td className='tbhs-td' style={{ textAlign: 'left' }}>
+                                        1
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div style={{ width: '60%', textAlign: 'right' }}>
-                        <div className="tbhs-td">Date : {format(currentDate, 'dd MMMM, yyyy')}</div>
+                        <div className='tbhs-td'>Date : {format(currentDate, 'dd MMMM, yyyy')}</div>
                     </div>
                 </div>
 
-                <div className="tbhs-center mt-6">
-                    <div className="tbhs-title text-[18px]">STUDY CERTIFICATE</div>
+                <div className='tbhs-center mt-6'>
+                    <div className='tbhs-title text-[18px]'>STUDY CERTIFICATE</div>
                 </div>
 
-                <table className="tbhs-table mt-6">
+                <table className='tbhs-table mt-6'>
                     <tbody>
                         <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '180px' }}>This is to certify that</td>
-                            <td className="tbhs-td tbhs-dot">{studentName}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '180px' }}>
+                                This is to certify that
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{studentName}</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <table className="tbhs-table">
+                <table className='tbhs-table'>
                     <tbody>
                         <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '90px' }}>{sodo} of Mr.</td>
-                            <td className="tbhs-td tbhs-dot">{fatherName}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '20px', textAlign: 'center' }}>&</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '55px' }}>Mrs.</td>
-                            <td className="tbhs-td tbhs-dot">{motherName}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '280px' }}>{heOrShe} was a student of the Institution</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table mt-2">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '120px' }}>From Standard</td>
-                            <td className="tbhs-td tbhs-dot">{admitedClass}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '90px', textAlign: 'center' }}>to Standard</td>
-                            <td className="tbhs-td tbhs-dot">{presentClass}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '60px' }}>From</td>
-                            <td className="tbhs-td tbhs-dot">{admitedYear}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '40px', textAlign: 'center' }}>to</td>
-                            <td className="tbhs-td tbhs-dot">{presentYear}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '140px' }}>academic years.</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '420px' }}>{he} date of birth as recorded in the school register is</td>
-                            <td className="tbhs-td tbhs-dot">{dob ? format(dob, 'dd MMMM, yyyy') : ''}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '20px' }}>(</td>
-                            <td className="tbhs-td tbhs-dot">{dobWords}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '20px', textAlign: 'right' }}>)</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table mt-2">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '140px' }}>{heOrShe} belongs to</td>
-                            <td className="tbhs-td tbhs-dot" style={{ width: '160px' }}>{religion}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '70px', textAlign: 'center' }}>Religion</td>
-                            <td className="tbhs-td tbhs-dot" style={{ width: '200px' }}>{casteName}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '260px' }}>Caste and mother tongue of the</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table mt-2">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label" style={{ width: '140px' }}>Candidate is</td>
-                            <td className="tbhs-td tbhs-dot">{stuMT}</td>
-                            <td className="tbhs-td tbhs-label" style={{ width: '360px' }}>as per the Admission register of our institution</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table mt-2">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-label">{he} Residential address as recorded in the school register is</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <table className="tbhs-table">
-                    <tbody>
-                        <tr>
-                            <td className="tbhs-td tbhs-dot">
-                                ({`${street}  ${area}  ${city}${pincode ? `  ${pincode}` : ''}`.trim()})
+                            <td className='tbhs-td tbhs-label' style={{ width: '90px' }}>
+                                {sodo} of Mr.
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{fatherName}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '20px', textAlign: 'center' }}>
+                                &
                             </td>
                         </tr>
                     </tbody>
                 </table>
 
-                <div className="mt-10" style={{ textAlign: 'right', paddingRight: 24 }}>
-                    <div className="tbhs-td font-bold" style={{ borderBottom: '1px solid transparent' }}>Principal</div>
+                <table className='tbhs-table'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '55px' }}>
+                                Mrs.
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{motherName}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '280px' }}>
+                                {heOrShe} was a student of the Institution
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table mt-2'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '120px' }}>
+                                From Standard
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{admitedClass}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '90px', textAlign: 'center' }}>
+                                to Standard
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{presentClass}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '60px' }}>
+                                From
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{admitedYear}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '40px', textAlign: 'center' }}>
+                                to
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{presentYear}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '140px' }}>
+                                academic years.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '420px' }}>
+                                {he} date of birth as recorded in the school register is
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{dob ? format(dob, 'dd MMMM, yyyy') : ''}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '20px' }}>
+                                (
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{dobWords}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '20px', textAlign: 'right' }}>
+                                )
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table mt-2'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '140px' }}>
+                                {heOrShe} belongs to
+                            </td>
+                            <td className='tbhs-td tbhs-dot' style={{ width: '160px' }}>
+                                {religion}
+                            </td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '70px', textAlign: 'center' }}>
+                                Religion
+                            </td>
+                            <td className='tbhs-td tbhs-dot' style={{ width: '200px' }}>
+                                {casteName}
+                            </td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '260px' }}>
+                                Caste and mother tongue of the
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table mt-2'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label' style={{ width: '140px' }}>
+                                Candidate is
+                            </td>
+                            <td className='tbhs-td tbhs-dot'>{stuMT}</td>
+                            <td className='tbhs-td tbhs-label' style={{ width: '360px' }}>
+                                as per the Admission register of our institution
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table mt-2'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-label'>{he} Residential address as recorded in the school register is</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table className='tbhs-table'>
+                    <tbody>
+                        <tr>
+                            <td className='tbhs-td tbhs-dot'>({`${street}  ${area}  ${city}${pincode ? `  ${pincode}` : ''}`.trim()})</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div className='mt-10' style={{ textAlign: 'right', paddingRight: 24 }}>
+                    <div className='tbhs-td font-bold' style={{ borderBottom: '1px solid transparent' }}>
+                        Principal
+                    </div>
                 </div>
 
-                <div className="mt-6">
-                    <table className="tbhs-table" style={{ width: '55%' }}>
+                <div className='mt-6'>
+                    <table className='tbhs-table' style={{ width: '55%' }}>
                         <tbody>
                             <tr>
-                                <td className="tbhs-td tbhs-label" style={{ width: '150px', textAlign: 'right', paddingRight: 10 }}>Admission No.:</td>
-                                <td className="tbhs-td tbhs-dot">{admNo}</td>
+                                <td className='tbhs-td tbhs-label' style={{ width: '150px', textAlign: 'right', paddingRight: 10 }}>
+                                    Admission No.:
+                                </td>
+                                <td className='tbhs-td tbhs-dot'>{admNo}</td>
                             </tr>
                             <tr>
-                                <td className="tbhs-td tbhs-label" style={{ width: '150px', textAlign: 'right', paddingRight: 10 }}>TC No.:</td>
-                                <td className="tbhs-td tbhs-dot">{tcNo}</td>
+                                <td className='tbhs-td tbhs-label' style={{ width: '150px', textAlign: 'right', paddingRight: 10 }}>
+                                    TC No.:
+                                </td>
+                                <td className='tbhs-td tbhs-dot'>{tcNo}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -262,4 +306,3 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
 TunBridgeStudyCertificatePrint.displayName = 'TunBridgeStudyCertificatePrint';
 
 export default TunBridgeStudyCertificatePrint;
-

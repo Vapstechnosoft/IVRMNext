@@ -41,8 +41,6 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await deleteFeeTermHead(30, Number(rowData.idforedt));
-
-            console.log(response);
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();

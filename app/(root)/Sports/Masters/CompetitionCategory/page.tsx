@@ -21,11 +21,11 @@ export default function MasterCompetitionCategoryPage(props: { searchParams: Sea
 
     return (
         <FormProvider<IMasterCompetitionCategory>>
-            <MasterCompetitionCategoryPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterCompetitionCategoryPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );

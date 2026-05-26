@@ -19,7 +19,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterVehiclePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterVehicle(searchParams);
-    console.log('grid response', response);
     return (
         <FormProvider<IMasterVehicle>>
             <div className='min-h-screen'>

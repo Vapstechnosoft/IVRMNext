@@ -1,24 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useRegNumbering, useMasterNumberingDropdown } from '@/hooks/admission/preadmission/useConfigurations';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterNumberingDropdown, useRegNumbering } from '@/hooks/admission/preadmission/useConfigurations';
 import type { IMasterTransactionNumberingList } from '@/types/admission/preadmission/configaration';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
+import { useState } from 'react';
 import AddRegistrationNumberingForm from './_components/add-form';
 import { registrationNumberingColumns } from './_components/columns';
 import UpdateRegistrationNumberingForm from './_components/update-form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 export default function RegistrationNumberingPage() {
     return (
@@ -35,7 +29,7 @@ function RegistrationNumberingPageContent() {
     const { data: response, isLoading: isLoadingGrid, error } = useRegNumbering(selectedFlag);
 
     // Total loading state includes both dropdown and grid fetching
-    const isLoading = isLoadingMaster || isLoadingGrid;
+    const _isLoading = isLoadingMaster || isLoadingGrid;
 
     const { openAddForm } = useFormContext<IMasterTransactionNumberingList>();
     const tableProps = useDataTableProps(response);
@@ -43,7 +37,6 @@ function RegistrationNumberingPageContent() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-
                 {/* Center Dropdown */}
                 <CollapsibleSection
                     title='Select Master Numbering'
@@ -51,18 +44,13 @@ function RegistrationNumberingPageContent() {
                     defaultOpen={true}
                     variant='outline'
                     size='md'
-                    className='shadow-md'
-                >
+                    className='shadow-md'>
                     <div className='flex items-center justify-center py-6'>
-                        <div className='flex items-center gap-4 w-full max-w-sm'>
+                        <div className='flex w-full max-w-sm items-center gap-4'>
                             <Label htmlFor='master-numbering-select' className='whitespace-nowrap font-bold'>
                                 Type:
                             </Label>
-                            <Select
-                                value={selectedFlag}
-                                onValueChange={(value) => setSelectedFlag(value)}
-                                disabled={isLoadingMaster}
-                            >
+                            <Select value={selectedFlag} onValueChange={(value) => setSelectedFlag(value)} disabled={isLoadingMaster}>
                                 <SelectTrigger id='master-numbering-select' className='w-full'>
                                     {isLoadingMaster ? (
                                         <div className='flex items-center gap-2 text-muted-foreground'>
@@ -87,7 +75,7 @@ function RegistrationNumberingPageContent() {
 
                 {/* Header Actions */}
                 {response && response.data?.length === 0 && selectedFlag && (
-                    <div className='flex justify-end slide-in-from-top-2 animate-in duration-300'>
+                    <div className='slide-in-from-top-2 flex animate-in justify-end duration-300'>
                         <Button
                             type='button'
                             onClick={openAddForm}
@@ -106,7 +94,7 @@ function RegistrationNumberingPageContent() {
                         defaultOpen={true}
                         variant='default'
                         size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl slide-in-from-bottom-4 animate-in'>
+                        className='slide-in-from-bottom-4 animate-in shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <GenericDataTable<IMasterTransactionNumberingList>
                             {...tableProps}
                             columns={registrationNumberingColumns}

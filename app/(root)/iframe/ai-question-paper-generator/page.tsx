@@ -1,33 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import jsPDF from "jspdf";
 import {
-    Upload,
+    AlertCircle,
+    Check,
+    CheckCircle2,
+    Download,
     FileText,
+    Loader2,
     Plus,
     Trash2,
-    Loader2,
-    Download,
-    BookOpen,
-    CheckCircle2,
-    AlertCircle,
-    ChevronRight,
-    Home,
-    Check
+    Upload
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
-import { Slider } from "@/components/ui/slider";
 
 interface Question {
     id: number;
@@ -90,7 +87,8 @@ export default function AIQuestionPaperGenerator() {
         const other2Val = difficulty[other2Key];
         const currentOthersSum = other1Val + other2Val;
         
-        let newOther1Val, newOther2Val;
+        let newOther1Val;
+        let newOther2Val;
         
         if (currentOthersSum === 0) {
             newOther1Val = Math.round(remaining / 2);
@@ -207,7 +205,7 @@ export default function AIQuestionPaperGenerator() {
                 let errorData;
                 try {
                     errorData = JSON.parse(errorText);
-                } catch (e) {
+                } catch (_e) {
                     // Start of non-JSON error (e.g. HTML 500 page)
                     console.error("Non-JSON Error Response:", errorText);
                     throw new Error(`Server Error (${response.status}): ${response.statusText}`);
@@ -333,10 +331,10 @@ export default function AIQuestionPaperGenerator() {
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Generation Failed</AlertTitle>
                         <AlertDescription className="mt-2">
-                            <div className="font-semibold mb-2">{errorMessage}</div>
+                            <div className='mb-2 font-semibold'>{errorMessage}</div>
                             <details className="cursor-pointer">
-                                <summary className="text-sm font-medium underline">View Technical Details</summary>
-                                <pre className="mt-2 w-full overflow-x-auto p-2 bg-black/5 rounded text-xs leading-tight whitespace-pre-wrap font-mono">
+                                <summary className='font-medium text-sm underline'>View Technical Details</summary>
+                                <pre className='mt-2 w-full overflow-x-auto whitespace-pre-wrap rounded bg-black/5 p-2 font-mono text-xs leading-tight'>
                                     {errorLog}
                                 </pre>
                             </details>
@@ -351,10 +349,10 @@ export default function AIQuestionPaperGenerator() {
                     </TabsList>
 
                     <TabsContent value="upload" className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
 
                             {/* Left Column: Upload & Chapters */}
-                            <div className="col-span-12 md:col-span-4 space-y-6">
+                            <div className='col-span-12 space-y-6 md:col-span-4'>
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
@@ -363,18 +361,18 @@ export default function AIQuestionPaperGenerator() {
                                         </CardTitle>
                                         <CardDescription>Upload your textbook PDF and select chapters.</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="space-y-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                    <CardContent className='space-y-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
                                         <div className="grid w-full items-center gap-1.5">
-                                            <Label htmlFor="pdf-upload" className="after:content-['*'] after:ml-0.5 after:text-red-500">Textbook (PDF)</Label>
+                                            <Label htmlFor="pdf-upload" className='after:ml-0.5 after:text-red-500 after:content-['*']'>Textbook (PDF)</Label>
                                             {file ? (
-                                                <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5 border-primary/20 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                <div className='fade-in slide-in-from-top-1 flex animate-in items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 duration-300'>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                        <div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary/10'>
                                                             <FileText className="h-5 w-5 text-primary" />
                                                         </div>
-                                                        <div className="flex flex-col max-w-[200px]">
-                                                            <span className="text-sm font-bold text-slate-900 truncate">{file.name}</span>
-                                                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
+                                                        <div className='flex max-w-[200px] flex-col'>
+                                                            <span className='truncate font-bold text-slate-900 text-sm'>{file.name}</span>
+                                                            <span className='font-bold text-[10px] text-muted-foreground uppercase tracking-tighter'>
                                                                 {(file.size / 1024 / 1024).toFixed(2)} MB • PDF
                                                             </span>
                                                         </div>
@@ -383,7 +381,7 @@ export default function AIQuestionPaperGenerator() {
                                                         variant="ghost" 
                                                         size="sm" 
                                                         onClick={() => setFile(null)}
-                                                        className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        className='h-8 text-destructive hover:bg-destructive/10 hover:text-destructive'
                                                     >
                                                         Change
                                                     </Button>
@@ -394,13 +392,13 @@ export default function AIQuestionPaperGenerator() {
                                                     type="file"
                                                     accept=".pdf"
                                                     onChange={handleFileChange}
-                                                    className="cursor-pointer file:text-primary file:font-semibold"
+                                                    className='cursor-pointer file:font-semibold file:text-primary'
                                                 />
                                             )}
                                         </div>
 
                                         <div className="grid w-full items-center gap-1.5 pt-2">
-                                            <Label htmlFor="chapters" className="after:content-['*'] after:ml-0.5 after:text-red-500">Chapter Numbers</Label>
+                                            <Label htmlFor="chapters" className='after:ml-0.5 after:text-red-500 after:content-['*']'>Chapter Numbers</Label>
                                             <Input
                                                 id="chapters"
                                                 placeholder="e.g. 1, 2, 5"
@@ -427,7 +425,7 @@ export default function AIQuestionPaperGenerator() {
                                     </CardHeader>
                                     <CardContent className="space-y-5">
                                         <div className="space-y-2">
-                                            <div className="flex justify-between text-xs font-bold">
+                                            <div className='flex justify-between font-bold text-xs'>
                                                 <span>Easy ({difficulty.easy}%)</span>
                                             </div>
                                             <Slider
@@ -439,7 +437,7 @@ export default function AIQuestionPaperGenerator() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <div className="flex justify-between text-xs font-bold">
+                                            <div className='flex justify-between font-bold text-xs'>
                                                 <span>Medium ({difficulty.medium}%)</span>
                                             </div>
                                             <Slider
@@ -451,7 +449,7 @@ export default function AIQuestionPaperGenerator() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <div className="flex justify-between text-xs font-bold">
+                                            <div className='flex justify-between font-bold text-xs'>
                                                 <span>Hard ({difficulty.hard}%)</span>
                                             </div>
                                             <Slider
@@ -468,7 +466,7 @@ export default function AIQuestionPaperGenerator() {
 
                             {/* Right Column: Schema Configuration */}
                             <div className="col-span-12 md:col-span-8">
-                                <Card className="h-full flex flex-col">
+                                <Card className='flex h-full flex-col'>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -480,7 +478,7 @@ export default function AIQuestionPaperGenerator() {
                                     </CardHeader>
                                     <CardContent className="flex-1 space-y-4">
                                         <div className="rounded-md border">
-                                            <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 border-b font-bold text-xs uppercase tracking-wider">
+                                            <div className='grid grid-cols-12 gap-4 border-b bg-muted/50 p-4 font-bold text-xs uppercase tracking-wider'>
                                                 <div className="col-span-3">Mark Value</div>
                                                 <div className="col-span-3">No. of Questions</div>
                                                 <div className="col-span-3 text-center">Type</div>
@@ -490,7 +488,7 @@ export default function AIQuestionPaperGenerator() {
                                             </div>
                                             <div className="divide-y">
                                                 {markConfigs.map((config, index) => (
-                                                    <div key={index} className="grid grid-cols-12 gap-4 p-4 items-center">
+                                                    <div key={index} className='grid grid-cols-12 items-center gap-4 p-4'>
                                                         <div className="col-span-3">
                                                             <Input
                                                                 type="number"
@@ -509,7 +507,7 @@ export default function AIQuestionPaperGenerator() {
                                                                 className="h-9"
                                                             />
                                                         </div>
-                                                        <div className="col-span-3 flex justify-center items-center">
+                                                        <div className='col-span-3 flex items-center justify-center'>
                                                             {config.markValue === 1 ? (
                                                                 <div className="flex items-center space-x-2">
                                                                     <Checkbox
@@ -519,16 +517,16 @@ export default function AIQuestionPaperGenerator() {
                                                                     />
                                                                     <label
                                                                         htmlFor={`mcq-${index}`}
-                                                                        className="text-sm font-medium leading-none"
+                                                                        className='font-medium text-sm leading-none'
                                                                     >
                                                                         MCQ
                                                                     </label>
                                                                 </div>
                                                             ) : (
-                                                                <span className="text-xs text-muted-foreground">-</span>
+                                                                <span className='text-muted-foreground text-xs'>-</span>
                                                             )}
                                                         </div>
-                                                        <div className="col-span-2 font-semibold text-primary text-right">
+                                                        <div className='col-span-2 text-right font-semibold text-primary'>
                                                             {config.markValue * config.count}
                                                         </div>
                                                         <div className="col-span-1 flex justify-end">
@@ -542,15 +540,15 @@ export default function AIQuestionPaperGenerator() {
                                         </div>
 
                                         <Button variant="outline" onClick={handleAddMarkConfig} className="w-full border-dashed">
-                                            <Plus className="h-4 w-4 mr-2" /> Add Section
+                                            <Plus className='mr-2 h-4 w-4' /> Add Section
                                         </Button>
                                     </CardContent>
-                                    <CardFooter className="bg-muted/10 border-t p-6 flex justify-between items-center">
+                                    <CardFooter className='flex items-center justify-between border-t bg-muted/10 p-6'>
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Marks Estimate</span>
-                                            <span className="text-3xl font-bold">
+                                            <span className='font-bold text-muted-foreground text-xs uppercase tracking-wider'>Total Marks Estimate</span>
+                                            <span className='font-bold text-3xl'>
                                                 {calculateTotalMarks()}
-                                                <span className="text-sm font-normal text-muted-foreground ml-1">pts</span>
+                                                <span className='ml-1 font-normal text-muted-foreground text-sm'>pts</span>
                                             </span>
                                         </div>
                                         <Button
@@ -577,7 +575,7 @@ export default function AIQuestionPaperGenerator() {
 
                     <TabsContent value="preview" className="space-y-6">
                         {generatedPaper && (
-                            <div className="flex justify-end gap-2 mb-4">
+                            <div className='mb-4 flex justify-end gap-2'>
                                 <Button
                                     onClick={handleDownloadPDF}
                                     variant="outline"
@@ -587,12 +585,12 @@ export default function AIQuestionPaperGenerator() {
                             </div>
                         )}
                         {generatedPaper ? (
-                            <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-                                <Card className="p-8 md:p-12 shadow-sm bg-white">
-                                    <div className="text-center space-y-4 mb-12">
-                                        <div className="uppercase tracking-widest text-sm font-semibold text-muted-foreground">{chapters ? `Chapters: ${chapters}` : "Full Syllabus"}</div>
-                                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{generatedPaper.title}</h2>
-                                        <div className="inline-flex items-center px-4 py-1 rounded-full bg-slate-100 text-slate-800 font-medium border">
+                            <div className='fade-in mx-auto max-w-4xl animate-in space-y-8 duration-500'>
+                                <Card className='bg-white p-8 shadow-sm md:p-12'>
+                                    <div className='mb-12 space-y-4 text-center'>
+                                        <div className='font-semibold text-muted-foreground text-sm uppercase tracking-widest'>{chapters ? `Chapters: ${chapters}` : "Full Syllabus"}</div>
+                                        <h2 className='font-bold text-3xl text-gray-900 md:text-4xl'>{generatedPaper.title}</h2>
+                                        <div className='inline-flex items-center rounded-full border bg-slate-100 px-4 py-1 font-medium text-slate-800'>
                                             Max Marks: {generatedPaper.totalMarks}
                                         </div>
                                     </div>
@@ -601,27 +599,27 @@ export default function AIQuestionPaperGenerator() {
                                         {generatedPaper.sections.map((section, idx) => (
                                             <div key={idx} className="space-y-6">
                                                 <div className="flex items-center gap-4">
-                                                    <h3 className="text-lg font-bold bg-primary text-primary-foreground px-4 py-1 rounded-sm uppercase tracking-wider">
+                                                    <h3 className='rounded-sm bg-primary px-4 py-1 font-bold text-lg text-primary-foreground uppercase tracking-wider'>
                                                         Section {String.fromCharCode(65 + idx)}
                                                     </h3>
-                                                    <span className="text-muted-foreground font-medium">
+                                                    <span className='font-medium text-muted-foreground'>
                                                         {section.markValue} marks per question
                                                     </span>
                                                 </div>
 
-                                                <div className="pl-2 space-y-8">
+                                                <div className='space-y-8 pl-2'>
                                                     {section.questions.map((q, qIdx) => (
-                                                        <div key={qIdx} className="group relative pl-8 border-l-2 border-transparent transition-colors">
-                                                            <span className="absolute left-0 top-0 -translate-x-[calc(100%+8px)] font-bold text-muted-foreground/40 w-6 text-right">
+                                                        <div key={qIdx} className='group relative border-transparent border-l-2 pl-8 transition-colors'>
+                                                            <span className='-translate-x-[calc(100%+8px)] absolute top-0 left-0 w-6 text-right font-bold text-muted-foreground/40'>
                                                                 {qIdx + 1}.
                                                             </span>
                                                             <div className="space-y-3">
-                                                                <p className="text-lg text-gray-800 leading-relaxed">
+                                                                <p className='text-gray-800 text-lg leading-relaxed'>
                                                                     {q.text}
                                                                 </p>
 
                                                                 {q.type === 'MCQ' && q.options && (
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                                                    <div className='mt-4 grid grid-cols-1 gap-3 md:grid-cols-2'>
                                                                         {q.options.map((opt, oIdx) => (
                                                                             <div
                                                                                 key={oIdx}
@@ -633,7 +631,7 @@ export default function AIQuestionPaperGenerator() {
                                                                     </div>
                                                                 )}
 
-                                                                <div className="flex gap-2 mt-2">
+                                                                <div className='mt-2 flex gap-2'>
                                                                     <Badge variant="secondary" className="text-xs">
                                                                         {q.difficulty}
                                                                     </Badge>
@@ -650,14 +648,14 @@ export default function AIQuestionPaperGenerator() {
                                         ))}
                                     </div>
 
-                                    <div className="mt-16 text-center text-sm text-muted-foreground pt-8 border-t">
+                                    <div className='mt-16 border-t pt-8 text-center text-muted-foreground text-sm'>
                                         Generated by AI Question Paper Generator • {new Date().getFullYear()}
                                     </div>
                                 </Card>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center h-[500px] border-2 border-dashed rounded-xl bg-muted/5">
-                                <Loader2 className="h-10 w-10 animate-spin text-muted-foreground/20 mb-4" />
+                            <div className='flex h-[500px] flex-col items-center justify-center rounded-xl border-2 border-dashed bg-muted/5'>
+                                <Loader2 className='mb-4 h-10 w-10 animate-spin text-muted-foreground/20' />
                                 <p className="text-muted-foreground">Generating your paper...</p>
                             </div>
                         )}

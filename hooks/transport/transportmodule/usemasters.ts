@@ -100,7 +100,7 @@ export const useMasterRoute = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-export const useMasterRouteDropDown = (searchParams?: ApiSearchparams) => {
+export const useMasterRouteDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -118,7 +118,7 @@ export const useMasterRouteDropDown = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useMasterAreaDropDown = (searchParams?: ApiSearchparams) => {
+export const useMasterAreaDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {

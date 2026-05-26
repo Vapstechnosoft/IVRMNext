@@ -1,11 +1,11 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
+import { CheckCircle, Eye, XCircle } from 'lucide-react';
 
 interface GetColumnsProps {
     onViewProfile: (id: number, name: string) => void;
@@ -18,10 +18,6 @@ export const getColumns = ({ onViewProfile }: GetColumnsProps): ColumnDef<any>[]
             const allRows = table.getRowModel().rows;
             const isAllSelected = allRows.length > 0 && allRows.every((r) => r.getIsSelected());
             const isSomeSelected = allRows.some((r) => r.getIsSelected());
-
-
-
-
 
             return (
                 <div className='flex justify-center'>
@@ -81,25 +77,23 @@ export const getColumns = ({ onViewProfile }: GetColumnsProps): ColumnDef<any>[]
                             <CheckCircle className='mr-1 h-3 w-3' /> Accepted
                         </Badge>
                     );
-                } else {
-                    return (
-                        <Badge variant='outline' className='border-destructive/20 bg-destructive/5 text-destructive'>
-                            <XCircle className='mr-1 h-3 w-3' /> Rejected
-                        </Badge>
-                    );
                 }
-            } else {
                 return (
-                    <Badge variant='outline' className='border-amber-200 bg-amber-50 text-amber-600'>
-                        In Progress
+                    <Badge variant='outline' className='border-destructive/20 bg-destructive/5 text-destructive'>
+                        <XCircle className='mr-1 h-3 w-3' /> Rejected
                     </Badge>
                 );
             }
+            return (
+                <Badge variant='outline' className='border-amber-200 bg-amber-50 text-amber-600'>
+                    In Progress
+                </Badge>
+            );
         }
     },
     {
         id: 'actions',
-        header: ({ column }) => <ColumnHeader column={column} title='Action' className='font-bold text-center text-black' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center font-bold text-black' />,
         cell: ({ row }) => (
             <div className='flex justify-center'>
                 <Button

@@ -37,7 +37,7 @@ export default function AddStudentCountReportForm({
     searchParams,
     onFilterChange
 }: AddStudentCountReportFormProps) {
-    const [results, setResults] = useState<Array<any>>([]);
+    const [_results, setResults] = useState<Array<any>>([]);
     const queryClient = useQueryClient();
 
     const {
@@ -62,10 +62,10 @@ export default function AddStudentCountReportForm({
 
     const watchReportType = watch('report_type');
     const watchType = watch('type');
-    const watchFromDate = watch('from_date');
-    const watchToDate = watch('to_date');
-    const watchAsmayId = watch('asmaY_Id');
-    const watchAsmclId = watch('asmcL_Id');
+    const _watchFromDate = watch('from_date');
+    const _watchToDate = watch('to_date');
+    const _watchAsmayId = watch('asmaY_Id');
+    const _watchAsmclId = watch('asmcL_Id');
 
     const {
         data: academicYear,
@@ -91,13 +91,11 @@ export default function AddStudentCountReportForm({
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
-            
-            const [response, dashboardResponse] = await Promise.all([
+
+            const [response, _dashboardResponse] = await Promise.all([
                 addOrUpdateStudentCountReport(payload, searchParams),
                 getParentDashboardDetails(payload.asmay_id)
             ]);
-
-            console.log('Dashboard details fetched:', dashboardResponse);
 
             // Update parent state with the current filter payload
             if (onFilterChange) {
@@ -108,7 +106,7 @@ export default function AddStudentCountReportForm({
             if (response.success) {
                 const resultData = response.data || [];
                 if (resultData.length > 0) {
-                    toast.success(`Record Fetched Successfully`);
+                    toast.success('Record Fetched Successfully');
                 } else {
                     toast.error('No records found');
                 }
@@ -116,7 +114,10 @@ export default function AddStudentCountReportForm({
                 try {
                     // If API already returned pagination meta (total), use it directly
                     if (response?.total != null) {
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
+                        queryClient.setQueryData(
+                            [PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}],
+                            response
+                        );
                     } else if (Array.isArray(response?.data)) {
                         // derive page and page_size from searchParams (they may be strings or arrays)
                         const parseParam = (k: string) => {
@@ -138,9 +139,12 @@ export default function AddStudentCountReportForm({
                         });
                     } else {
                         // fallback: set whatever was returned
-                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}], response);
+                        queryClient.setQueryData(
+                            [PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, payload ?? {}, searchParams ?? {}],
+                            response
+                        );
                     }
-                } catch (e) {
+                } catch (_e) {
                     // noop
                 }
                 // Removed reset() and state resets to keep the selected filters
@@ -176,7 +180,7 @@ export default function AddStudentCountReportForm({
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Report Type</Label>
                                 <Controller
-                                    name="report_type"
+                                    name='report_type'
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value}>
@@ -190,8 +194,12 @@ export default function AddStudentCountReportForm({
                                                 <SelectItem value='4'>Registration payment done list (Application datewise)</SelectItem>
                                                 <SelectItem value='5'>Transferred student (Admission Confirm)</SelectItem>
                                                 <SelectItem value='6'>Registration payment not done list</SelectItem>
-                                                {watchType === 'between' && <SelectItem value='7'>Registration payment done list (Payment datewise)</SelectItem>}
-                                                {watchType === 'yearwise' && <SelectItem value='8'>Sibling students list (Paid Students)</SelectItem>}
+                                                {watchType === 'between' && (
+                                                    <SelectItem value='7'>Registration payment done list (Payment datewise)</SelectItem>
+                                                )}
+                                                {watchType === 'yearwise' && (
+                                                    <SelectItem value='8'>Sibling students list (Paid Students)</SelectItem>
+                                                )}
                                                 <SelectItem value='9'>Partial/Admission payment done list</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -205,7 +213,7 @@ export default function AddStudentCountReportForm({
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Range</Label>
                                 <div className='mb-3 flex items-center gap-6'>
                                     <Controller
-                                        name="type"
+                                        name='type'
                                         control={control}
                                         render={({ field }) => (
                                             <RadioGroup
@@ -240,10 +248,10 @@ export default function AddStudentCountReportForm({
                                 {watchType === 'between' && (
                                     <div className='flex gap-2'>
                                         <Controller
-                                            name="from_date"
+                                            name='from_date'
                                             control={control}
                                             render={({ field }) => (
-                                                <div className="flex flex-col gap-1 w-full">
+                                                <div className='flex w-full flex-col gap-1'>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
                                                             <Button
@@ -261,7 +269,9 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) =>
+                                                                    field.onChange(date?.toISOString() ?? '')
+                                                                }
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}
@@ -274,10 +284,10 @@ export default function AddStudentCountReportForm({
                                         />
 
                                         <Controller
-                                            name="to_date"
+                                            name='to_date'
                                             control={control}
                                             render={({ field }) => (
-                                                <div className="flex flex-col gap-1 w-full">
+                                                <div className='flex w-full flex-col gap-1'>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
                                                             <Button
@@ -295,7 +305,9 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) =>
+                                                                    field.onChange(date?.toISOString() ?? '')
+                                                                }
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}

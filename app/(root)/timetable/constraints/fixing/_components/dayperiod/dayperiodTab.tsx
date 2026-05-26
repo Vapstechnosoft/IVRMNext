@@ -11,9 +11,9 @@ import { getdetailsAllFixing } from '@/server/timetable/constraints/fixing';
 import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import DayPeriodAddForm from './dayperiodAddForm';
-import DayPeriodUpdate from './dayperiodUpdate';
-import DayPeriodToggle from './dayperiodToggle';
 import { dayPeriodColumns } from './dayperiodColumns';
+import DayPeriodToggle from './dayperiodToggle';
+import DayPeriodUpdate from './dayperiodUpdate';
 import { filterData } from './utils';
 
 interface DayPeriodTabProps {
@@ -48,11 +48,12 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
     const academicList = (academicData as any)?.data || initialData?.academiclist || initialData?.data?.academiclist || [];
 
     const [categoryList, setCategoryList] = useState<any[]>(
-        filterData(initialData?.categorylist || initialData?.data?.categorylist || initialData?.catelist || initialData?.data?.catelist || [], 'ttmC_CategoryName')
+        filterData(
+            initialData?.categorylist || initialData?.data?.categorylist || initialData?.catelist || initialData?.data?.catelist || [],
+            'ttmC_CategoryName'
+        )
     );
-    const [dayList, setDayList] = useState<any[]>(
-        filterData(initialData?.daylist || initialData?.data?.daylist || [], 'ttmD_DayName')
-    );
+    const [dayList, setDayList] = useState<any[]>(filterData(initialData?.daylist || initialData?.data?.daylist || [], 'ttmD_DayName'));
     const [periodList, setPeriodList] = useState<any[]>(
         filterData(initialData?.periodlist || initialData?.data?.periodlist || [], 'ttmP_PeriodName')
     );
@@ -99,7 +100,6 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                 <Button
                     type='button'
                     onClick={() => {
-                        console.log("clicked");
                         openAddForm();
                     }}
                     className='w-fit bg-orange-500 shadow-md transition-all duration-200 hover:scale-105 hover:bg-orange-600 hover:shadow-lg'>
@@ -118,44 +118,44 @@ function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
                 <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Day Period Constraint' : 'Add New Day Period Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
-                            <DayPeriodAddForm
-                                academicList={academicList}
-                                categoryList={categoryList}
-                                dayList={dayList}
-                                periodList={periodList}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeAddForm}
-                            />
-                        )}
+                            {isAddFormOpen && (
+                                <DayPeriodAddForm
+                                    academicList={academicList}
+                                    categoryList={categoryList}
+                                    dayList={dayList}
+                                    periodList={periodList}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeAddForm}
+                                />
+                            )}
 
-                        {isEditFormOpen && selectedRow && (
-                            <DayPeriodUpdate
-                                academicList={academicList}
-                                categoryList={categoryList}
-                                dayList={dayList}
-                                periodList={periodList}
-                                selectedRow={selectedRow}
-                                onSuccess={onFormSuccess}
-                                onCancel={closeEditForm}
-                            />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                            {isEditFormOpen && selectedRow && (
+                                <DayPeriodUpdate
+                                    academicList={academicList}
+                                    categoryList={categoryList}
+                                    dayList={dayList}
+                                    periodList={periodList}
+                                    selectedRow={selectedRow}
+                                    onSuccess={onFormSuccess}
+                                    onCancel={closeEditForm}
+                                />
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </div>

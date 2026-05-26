@@ -1,6 +1,6 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import { format } from 'date-fns';
 
@@ -15,7 +15,7 @@ export const getCategoryWiseAttendanceReport = async (
     asmaY_Id: number,
     fromdate: Date,
     categoryIds: number[],
-    searchParams?: ApiSearchparams
+    _searchParams?: ApiSearchparams
 ): Promise<ApiResponse<any>> => {
     const amC_Id = categoryIds.length > 0 ? categoryIds[0] : 0;
 
@@ -26,4 +26,3 @@ export const getCategoryWiseAttendanceReport = async (
         categorylistarray: categoryIds.map((id) => ({ amC_Id: id }))
     });
 };
-

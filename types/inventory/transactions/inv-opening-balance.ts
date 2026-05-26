@@ -1,4 +1,3 @@
-
 export interface IInvOpeningBalance {
     invoB_Id: number;
     invmsT_Id: number;

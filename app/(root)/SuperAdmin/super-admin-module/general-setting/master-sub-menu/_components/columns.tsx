@@ -15,30 +15,30 @@ export const columns: ColumnDef<IMasterSubMenu>[] = [
             const { pageIndex, pageSize } = table.getState().pagination;
             return <div className='text-center'>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'modulename',
-        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />
     },
     {
         accessorKey: 'mainMenuName', // Or ivrmmM_MenuName? Legacy grid says ivrmmM_MenuName but type usually maps to something else. I added mainMenuName to interface.
-        header: ({ column }) => <ColumnHeader column={column} title='Main Menu Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Main Menu Name' />
     },
     {
         accessorKey: 'ivrmmS_SubMenuName', // Legacy: subMenuName. Adjust if API differs.
-        header: ({ column }) => <ColumnHeader column={column} title='Sub Menu Name' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Sub Menu Name' />
     },
     {
         accessorKey: 'ivrmmS_Order', // Legacy: ivrmmM_MenuOrder. Adjust if API differs.
-        header: ({ column }) => <ColumnHeader column={column} title='Sub Menu Order' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Sub Menu Order' />
     },
     {
         id: 'actions',
         header: ({ column }) => <ColumnHeader column={column} title='Edit/Delete' className='text-center' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false,
-    },
+        enableSorting: false
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterSubMenu }) {

@@ -62,12 +62,12 @@ export default function FeeThirdPartyReport() {
         }
     });
 
-    const classWiseChecked = watch('classwise');
+    const _classWiseChecked = watch('classwise');
     // const selectedClassId = watch("classId");
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
-    const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
-    const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
+    const [_classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
+    const [_sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
     const [reportData, setReportData] = useState<IFeeItemWiseReportofSophia[]>([]);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const toggleAllstudents = () => {
@@ -199,9 +199,9 @@ export default function FeeThirdPartyReport() {
             toast.error('No data selected to print');
             return;
         }
-        const columnHeaders = ['Sl No', 'Item Name', 'Actual Amount', 'Paid Amount', 'Fine', 'Discount', 'Excess'];
+        const _columnHeaders = ['Sl No', 'Item Name', 'Actual Amount', 'Paid Amount', 'Fine', 'Discount', 'Excess'];
 
-        const printableRows = selected.map((row, index) => {
+        const _printableRows = selected.map((row, index) => {
             const baseRow = {
                 'Sl No': index + 1,
                 'Item Name': row.fee_ItemName || '',

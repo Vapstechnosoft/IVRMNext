@@ -10,8 +10,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassesByAcademicYear,
     getExamsAndStudentsBySection,
-    getSectionsByYearAndClass,
-    getHallTicketReport
+    getHallTicketReport,
+    getSectionsByYearAndClass
 } from '@/server/exam/exam-module/reports/Calcatta/hall-ticket-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -134,9 +134,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 const mapped = studentlist.map((s: any) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo ?? s.admno ?? '',
-                    studentName:
-                        s.studentName ||
-                        `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
+                    studentName: s.studentName || `${s.amsT_FirstName ?? ''} ${s.amsT_MiddleName ?? ''} ${s.amsT_LastName ?? ''}`.trim()
                 }));
                 setStudents(mapped);
                 // Pre-select all (mirrors angular: dd.amsT_IdSelected = true)
@@ -186,19 +184,15 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         };
 
         try {
-            console.log('payload', payload);
             const response = await getHallTicketReport(payload);
-            console.log('response', response);
             if (!response.success) {
                 toast.error(response.message ?? 'No records found');
                 return;
             }
 
             // Resolve display names for header labels
-            const selectedYear =
-                academicYears.find((y: any) => String(y.asmaY_Id) === formData.ASMAY_Id)?.asmaY_Year ?? '';
-            const selectedExam =
-                exams.find((e: any) => String(e.emE_Id) === formData.EME_Id)?.emE_ExamName ?? '';
+            const selectedYear = academicYears.find((y: any) => String(y.asmaY_Id) === formData.ASMAY_Id)?.asmaY_Year ?? '';
+            const selectedExam = exams.find((e: any) => String(e.emE_Id) === formData.EME_Id)?.emE_ExamName ?? '';
 
             onReportGenerated(
                 { ...response.data, accyear: selectedYear, examname: selectedExam },
@@ -242,10 +236,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             name='reportFormat'
                             render={({ field, fieldState }) => (
                                 <div className='space-y-2'>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        className='flex gap-8'>
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-8'>
                                         {(['format1', 'format2', 'format3'] as const).map((fmt, i) => (
                                             <div key={fmt} className='flex items-center space-x-2'>
                                                 <RadioGroupItem value={fmt} id={fmt} />
@@ -255,9 +246,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                             </div>
                                         ))}
                                     </RadioGroup>
-                                    {fieldState.error && (
-                                        <FormError>{fieldState.error.message}</FormError>
-                                    )}
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </div>
                             )}
                         />
@@ -276,10 +265,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
@@ -294,18 +280,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         </SelectItem>
                                                     ) : (
                                                         academicYears.map((y: any) => (
-                                                            <SelectItem
-                                                                key={y.asmaY_Id}
-                                                                value={String(y.asmaY_Id)}>
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
                                                                 {y.asmaY_Year}
                                                             </SelectItem>
                                                         ))
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && (
-                                                <FormError>{fieldState.error.message}</FormError>
-                                            )}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -321,10 +303,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMCL_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
@@ -339,18 +318,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         </SelectItem>
                                                     ) : (
                                                         classes.map((c) => (
-                                                            <SelectItem
-                                                                key={c.asmcL_Id}
-                                                                value={String(c.asmcL_Id)}>
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
                                                                 {c.asmcL_ClassName}
                                                             </SelectItem>
                                                         ))
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && (
-                                                <FormError>{fieldState.error.message}</FormError>
-                                            )}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -366,10 +341,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
@@ -384,18 +356,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         </SelectItem>
                                                     ) : (
                                                         sections.map((s) => (
-                                                            <SelectItem
-                                                                key={s.asmS_Id}
-                                                                value={String(s.asmS_Id)}>
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
                                                                 {s.asmC_SectionName}
                                                             </SelectItem>
                                                         ))
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && (
-                                                <FormError>{fieldState.error.message}</FormError>
-                                            )}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -430,18 +398,14 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                         </SelectItem>
                                                     ) : (
                                                         exams.map((e) => (
-                                                            <SelectItem
-                                                                key={e.emE_Id}
-                                                                value={String(e.emE_Id)}>
+                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
                                                                 {e.emE_ExamName}
                                                             </SelectItem>
                                                         ))
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && (
-                                                <FormError>{fieldState.error.message}</FormError>
-                                            )}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -452,11 +416,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         <div className='space-y-4'>
                             <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
                                 <Label className='flex items-center gap-2 font-medium text-sm sm:w-36'>
-                                    <Checkbox
-                                        checked={allSelected}
-                                        onCheckedChange={handleSelectAll}
-                                        id='selectAll'
-                                    />
+                                    <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} id='selectAll' />
                                     <span>
                                         Student <span className='text-red-500'>*</span>
                                     </span>
@@ -474,11 +434,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                 }))}
                                                 onChange={handleStudentChange}
                                                 value={field.value ?? []}
-                                                placeholder={
-                                                    loadingSection
-                                                        ? 'Loading students…'
-                                                        : 'Select Students'
-                                                }
+                                                placeholder={loadingSection ? 'Loading students…' : 'Select Students'}
                                                 height='280px'
                                                 isSearchRequired
                                                 error={fieldState.error?.message}
@@ -496,12 +452,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button
-                            type='button'
-                            variant='destructive'
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                            className='min-w-[100px]'>
+                        <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting} className='min-w-[100px]'>
                             Cancel
                         </Button>
                     </div>

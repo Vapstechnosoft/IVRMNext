@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
 import { getUserAccessibleModules } from '@/server/common';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Initialize Groq clients for different portals
 const adminGroq = new Groq({
@@ -15,20 +15,17 @@ const studentGroq = new Groq({
     apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || ''
 });
 
-
-
 // Helper to flatten modules into a searchable text format
 async function getNavigationContext() {
     try {
         const modulesResponse = await getUserAccessibleModules();
-        console.log("modulesResponse", modulesResponse);
         if (!modulesResponse.success || !modulesResponse.data) return '';
 
-        let contextText = "AVAILABLE PAGES AND NAVIGATION PATHS:\n";
+        let contextText = 'AVAILABLE PAGES AND NAVIGATION PATHS:\n';
 
         // Helper recursive function to traverse the menu structure
         const traverse = (items: any[], path: string[]) => {
-            items.forEach(item => {
+            items.forEach((item) => {
                 const currentPath = [...path, item.name];
 
                 // If it's a page with a URL
@@ -44,19 +41,18 @@ async function getNavigationContext() {
         };
 
         traverse(modulesResponse.data, []);
-        
+
         // Truncate to avoid exceeding LLM token limits (Groq has ~8k token limit for this model, so max ~20000 chars)
         if (contextText.length > 20000) {
-            contextText = contextText.substring(0, 20000) + "\n...[List truncated for size]";
+            contextText = `${contextText.substring(0, 20000)}\n...[List truncated for size]`;
         }
-        
+
         return contextText;
     } catch (error) {
-        console.error("Error generating navigation context:", error);
-        return "";
+        console.error('Error generating navigation context:', error);
+        return '';
     }
 }
-
 
 // Knowledge Base from user's Python code
 const KNOWLEDGE_BASE = {
@@ -757,27 +753,42 @@ Go to **Std Fee Details** page
     // --- NEW TOPICS ---
     preadmissionRegistration: {
         keywords: ['preadmission registration', 'registration form', 'register for preadmission', 'enroll for preadmission'],
-        response: `To register for preadmission, navigate to **Admission** > **Preadmission** > **Transactions** and click on **Preadmission Registration**. Ensure you have all student details and previous academic records ready.`
+        response:
+            'To register for preadmission, navigate to **Admission** > **Preadmission** > **Transactions** and click on **Preadmission Registration**. Ensure you have all student details and previous academic records ready.'
     },
     interviewSchedule: {
         keywords: ['interview schedule', 'interview date', 'oral test', 'written test', 'exam date'],
-        response: `The **Interview Schedule** can be found under **Admission** > **Preadmission** > **Transactions**. You can view the list of students with their assigned dates, timings, and venues for oral and written interviews.`
+        response:
+            'The **Interview Schedule** can be found under **Admission** > **Preadmission** > **Transactions**. You can view the list of students with their assigned dates, timings, and venues for oral and written interviews.'
     },
     feeConcession: {
         keywords: ['fee concession', 'scholarship', 'discount', 'fee waiver', 'concession category'],
-        response: `Apply for fee concessions in **Fees** > **Transactions** > **Fee Concession**. You can link students to specific concession categories based on their eligibility and policy.`
+        response:
+            'Apply for fee concessions in **Fees** > **Transactions** > **Fee Concession**. You can link students to specific concession categories based on their eligibility and policy.'
     },
     marksEntry: {
         keywords: ['marks entry', 'enter marks', 'update marks', 'upload scores'],
-        response: `Enter student marks by navigating to **Exam** > **Exam Module** > **Marks Entry**. Select the academic year, exam, and subject to begin entering or updating student performance data.`
+        response:
+            'Enter student marks by navigating to **Exam** > **Exam Module** > **Marks Entry**. Select the academic year, exam, and subject to begin entering or updating student performance data.'
     },
     studentTC: {
         keywords: ['transfer certificate', 'tc generation', 'tc details', 'leaving certificate'],
-        response: `Generate and manage student Transfer Certificates (TC) in **Admission** > **Preadmission** > **Student Transfer Certificate**. You can record the reason for leaving and generate the official TC document.`
+        response:
+            'Generate and manage student Transfer Certificates (TC) in **Admission** > **Preadmission** > **Student Transfer Certificate**. You can record the reason for leaving and generate the official TC document.'
     },
     // --- DETAILED PROCEDURES ---
     howToFillForm: {
-        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps', 'fill', 'application', 'aplication', 'form'],
+        keywords: [
+            'fill form',
+            'fill application',
+            'how to apply',
+            'application steps',
+            'admission form steps',
+            'fill',
+            'application',
+            'aplication',
+            'form'
+        ],
         response: `To fill the **Preadmission Form**:
 1. Go to **Admission > Preadmission > Transactions > Preadmission Form**.
 2. **Student Details**: Enter Name, DOB, Gender, Class.
@@ -820,73 +831,91 @@ const STUDENT_KNOWLEDGE_BASE = {
     // --- ACADEMICS ---
     examReport: {
         keywords: ['progress card', 'report card', 'exam results', 'marks card', 'result', 'academic report', 'how much did i score'],
-        response: `To view your result, go to **Reports > Progress Card Report**. You can download your term-wise performance card there.`
+        response: 'To view your result, go to **Reports > Progress Card Report**. You can download your term-wise performance card there.'
     },
     timetable: {
         keywords: ['timetable', 'class schedule', 'period', 'subject time', 'weekly schedule'],
-        response: `Check your **Weekly Class Schedule** in **Academics > Timetable**. It shows your daily periods and subject teachers.`
+        response: 'Check your **Weekly Class Schedule** in **Academics > Timetable**. It shows your daily periods and subject teachers.'
     },
     homework: {
         keywords: ['homework', 'assignment', 'project', 'classwork', 'pending work', 'submission'],
-        response: `View your daily assignments in **Academics > Student Project / Assignment**. You can download attached files and check submission deadlines.`
+        response:
+            'View your daily assignments in **Academics > Student Project / Assignment**. You can download attached files and check submission deadlines.'
     },
     lessonPlan: {
         keywords: ['syllabus', 'lesson plan', 'topic list', 'what is taught', 'chapter details'],
-        response: `Track your syllabus progress in **Lesson Planner > Student Topic List**. It shows completed chapters and upcoming topics.`
+        response:
+            'Track your syllabus progress in **Lesson Planner > Student Topic List**. It shows completed chapters and upcoming topics.'
     },
 
     // --- ADMINISTRATIVE ---
     onlineLeave: {
         keywords: ['apply leave', 'leave application', 'absent', 'sick leave', 'request leave', 'holiday request'],
-        response: `To apply for leave, go to **Admission > Leave Apply Online**. Fill in the dates and reason, then submit for approval.`
+        response: 'To apply for leave, go to **Admission > Leave Apply Online**. Fill in the dates and reason, then submit for approval.'
     },
     attendance: {
         keywords: ['attendance', 'my attendance', 'present days', 'absent days', 'attendance percentage'],
-        response: `Check your **Yearly Attendance** in **Reports > Student Yearly Attendance Report**. It shows your total present/absent days and percentage.`
+        response:
+            'Check your **Yearly Attendance** in **Reports > Student Yearly Attendance Report**. It shows your total present/absent days and percentage.'
     },
     profile: {
         keywords: ['my profile', 'student details', 'personal info', 'address', 'contact details', 'update profile'],
-        response: `View your personal details in **Admission > Student Profile**. Contact the school office if you need to update critical information.`
+        response:
+            'View your personal details in **Admission > Student Profile**. Contact the school office if you need to update critical information.'
     },
 
     // --- FEES ---
     payFees: {
-        keywords: ['pay fees', 'pay online', 'fee payment', 'due fees', 'outstanding fees', 'check my fees', 'where to check my fees', 'my fees'],
-        response: `You can securely pay fees in **Masters > Fee Online Payment**. Select the fee group and proceed to payment via Card/UPI.`
+        keywords: [
+            'pay fees',
+            'pay online',
+            'fee payment',
+            'due fees',
+            'outstanding fees',
+            'check my fees',
+            'where to check my fees',
+            'my fees'
+        ],
+        response: 'You can securely pay fees in **Masters > Fee Online Payment**. Select the fee group and proceed to payment via Card/UPI.'
     },
     feeReceipt: {
         keywords: ['download receipt', 'fee receipt', 'payment proof', 'transaction receipt', 'print receipt'],
-        response: `Download your fee receipts from **Fees > Reports > Portal Fee Receipt**. Select the academic year to view all historical transactions.`
+        response:
+            'Download your fee receipts from **Fees > Reports > Portal Fee Receipt**. Select the academic year to view all historical transactions.'
     },
     feeDashboard: {
         keywords: ['fee analysis', 'fee structure', 'total fees', 'balance fees', 'fee summary'],
-        response: `View your complete fee history, paid amount, and pending balance in **Fees > Fee Cumulative** dashboard.`
+        response: 'View your complete fee history, paid amount, and pending balance in **Fees > Fee Cumulative** dashboard.'
     },
 
     // --- UTILITIES ---
     events: {
         keywords: ['events', 'school calendar', 'upcoming events', 'holidays', 'schedule', 'annual day', 'sports day'],
-        response: `Check the **Calendar of Events** in the **COE** section to see upcoming school activities, exams, and holidays.`
+        response: 'Check the **Calendar of Events** in the **COE** section to see upcoming school activities, exams, and holidays.'
     },
     library: {
         keywords: ['library', 'search book', 'book status', 'borrowed books', 'return date'],
-        response: `Search for books and check your borrowed items in **Library > Transaction > Book Transaction**. You can see due dates and fine details.`
+        response:
+            'Search for books and check your borrowed items in **Library > Transaction > Book Transaction**. You can see due dates and fine details.'
     },
     transport: {
         keywords: ['bus route', 'transport', 'bus stop', 'pickup point', 'driver details', 'bus timing'],
-        response: `View your allocated bus route and stop details in **Transport > Student Route Mapping**. It shows your vehicle number and timings.`
+        response:
+            'View your allocated bus route and stop details in **Transport > Student Route Mapping**. It shows your vehicle number and timings.'
     },
     complaints: {
         keywords: ['complaint', 'technial issue', 'report problem', 'feedback', 'suggestion', 'help needed'],
-        response: `You can raise complaints in **Feedback > Student Complaints** or submit general feedback in **Student Feedback Details**.`
+        response:
+            'You can raise complaints in **Feedback > Student Complaints** or submit general feedback in **Student Feedback Details**.'
     },
     notifications: {
         keywords: ['notice', 'circular', 'announcement', 'message', 'school update'],
-        response: `Check the latest school circulars and announcements in the **Notice Board** or **Push Notification** section on your dashboard.`
+        response:
+            'Check the latest school circulars and announcements in the **Notice Board** or **Push Notification** section on your dashboard.'
     },
     studentDetails: {
         keywords: ['student details', 'my details', 'personal information', 'student info', 'my profile'],
-        response: `You can view your full **Student Details** and personal profile in **Admission > Student Profile**.`
+        response: 'You can view your full **Student Details** and personal profile in **Admission > Student Profile**.'
     }
 };
 
@@ -895,7 +924,7 @@ export async function POST(req: NextRequest) {
         const { messages, context } = await req.json();
 
         // Select the appropriate Groq client based on context
-        const groq = context === 'StudentPortal' ? studentGroq : (context === 'Staff Support' ? staffGroq : adminGroq);
+        const groq = context === 'StudentPortal' ? studentGroq : context === 'Staff Support' ? staffGroq : adminGroq;
 
         // Select appropriate knowledge base
         const currentKnowledgeBase = context === 'StudentPortal' ? STUDENT_KNOWLEDGE_BASE : KNOWLEDGE_BASE;
@@ -907,7 +936,7 @@ export async function POST(req: NextRequest) {
         const userMessage = messages[messages.length - 1].content.toLowerCase();
 
         // 1. Check Keywords first (Fast Retrieval)
-        for (const [key, data] of Object.entries(currentKnowledgeBase)) {
+        for (const [_key, data] of Object.entries(currentKnowledgeBase)) {
             if (data.keywords.some((keyword) => userMessage.includes(keyword))) {
                 // Even if we find a keyword match, let's use the LLM to phrase it naturally,
                 // but give it the exact knowledge snippet to use.
@@ -949,8 +978,9 @@ export async function POST(req: NextRequest) {
                     role: 'system',
                     content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**.
                     
-                    ${context === 'StudentPortal' ?
-                            `**AVAILABLE STUDENT PAGES:**
+                    ${
+                        context === 'StudentPortal'
+                            ? `**AVAILABLE STUDENT PAGES:**
                     - Exam Report (/StudentPortal/student-dashboard/Exam/ExamReport)
                     - Online Leave Application (/StudentPortal/student-dashboard/Admission/OnlineLeaveApp)
                     - Attendance Details (/StudentPortal/masters/attendance-details)
@@ -959,7 +989,9 @@ export async function POST(req: NextRequest) {
                     - Portal Fee Receipt (/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt)
                     - Calendar of Events (/StudentPortal/coe/coe)
                     - Student Complaints (/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView)
-                    ` : navigationContext}
+                    `
+                            : navigationContext
+                    }
 
                     **CORE RULES:**
                     1. **JSON OUTPUT MANDATORY**: Your response must be a valid JSON object with keys "text" and "link".
@@ -968,9 +1000,11 @@ export async function POST(req: NextRequest) {
                     3. **LINK**: The exact URL from the context if found, otherwise null.
                     4. **INTELLIGENCE**: Infer the user's intent.
                     5. **STRICT SCOPE**: If asked about outside topics (e.g., coding, general knowledge, jokes, weather), respectfully decline. 
-                    ${context === 'StudentPortal' ?
-                            'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."' :
-                            'Say: "I can only assist with AI VRM software queries."'} and return link: null.
+                    ${
+                        context === 'StudentPortal'
+                            ? 'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."'
+                            : 'Say: "I can only assist with AI VRM software queries."'
+                    } and return link: null.
                     6. **NOT FOUND**: If the information is not in the context, say politely: "I couldn't find specific details in my valid list. Please contact the school office." (Max 20 words). link: null.`
                 },
                 ...messages
@@ -978,15 +1012,15 @@ export async function POST(req: NextRequest) {
             model: 'llama-3.3-70b-versatile',
             temperature: 0.2, // Slightly increased for better phrasing
             max_tokens: 250, // Increased for detailed steps
-            response_format: { type: "json_object" }
+            response_format: { type: 'json_object' }
         });
 
         const content = response.choices[0]?.message?.content;
         try {
             const jsonResponse = JSON.parse(content || '{}');
             return NextResponse.json(jsonResponse);
-        } catch (e) {
-            console.error("Failed to parse JSON response:", content);
+        } catch (_e) {
+            console.error('Failed to parse JSON response:', content);
             return NextResponse.json({ text: "I'm sorry, I couldn't process that request." });
         }
     } catch (error: any) {

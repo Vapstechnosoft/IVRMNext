@@ -55,12 +55,10 @@ function MasterFeeheadPageContent({
             setOrderModalOpen(true);
             const response = await getfeeheadSetorderdata();
 
-            console.log('response in handleSetOrder', response);
-
             if (response.success && response.data) {
                 const feeheaddata: IFeeHeadsListSetOrder[] = Array.isArray(response.data) ? response.data : [];
 
-                const mappedData = feeheaddata.map((d, index) => ({
+                const mappedData = feeheaddata.map((d, _index) => ({
                     ...d,
                     id: d.fmH_Id,
                     fmH_PDAFlag_: d.fmH_PDAFlag ? '✅' : '❌',
@@ -69,7 +67,6 @@ function MasterFeeheadPageContent({
                     fmH_SpecialFeeFlag_: d.fmH_SpecialFeeFlag ? '✅' : '❌',
                     fmH_Flag: d.fmH_Flag
                 }));
-                console.log('mappedData in handleSetOrder', mappedData);
                 setOrderData(mappedData);
                 setIsOrderloading(false);
             } else {
@@ -102,8 +99,7 @@ function MasterFeeheadPageContent({
                 courseDTO: updatedOrderData
             };
 
-            const jsondata = JSON.stringify(payload);
-            console.log('payload in handleOrderSave', jsondata);
+            const _jsondata = JSON.stringify(payload);
 
             const response = await updateSetOrder(payload);
 
@@ -115,7 +111,7 @@ function MasterFeeheadPageContent({
             } else {
                 toast.error(response.message);
             }
-        } catch (error: any) {
+        } catch (_error: any) {
             //toast.error(error.message);
         } finally {
             setIsOrderSaving(false);

@@ -9,7 +9,7 @@ import type {
 const BASE_URL = 'lessonplanner';
 
 export async function getInitialData() {
-    const url = `/SchoolStaffperiodtransactionreport/Get_detailstransaction`;
+    const url = '/SchoolStaffperiodtransactionreport/Get_detailstransaction';
     return await api.get<ITransactionReportResponse>(BASE_URL, url);
 }
 

@@ -60,11 +60,10 @@ export async function getClassMappedSections(academicYear_Id: number, class_Id: 
     return await api.get<ISection>('exam', url);
 }
 
-export async function getPromotionalGroups(academicYear_Id: number, class_Id: number,asms_id:number) {
+export async function getPromotionalGroups(academicYear_Id: number, class_Id: number, asms_id: number) {
     const url = `/exam_master_category/prom_subject_groups_drop_down_by_class_list/${academicYear_Id}/${class_Id}/${asms_id}`;
     return await api.get<ISection>('exam', url);
 }
-
 
 export async function getUnMappedSections(academicYear_Id: number, class_Id: number) {
     const url = `/exam_master_category/un_mapped_sections_drop_down_by_class_list/${class_Id}/${academicYear_Id}`;

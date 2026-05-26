@@ -1,29 +1,26 @@
-
 'use client';
 
-import {
-    useOnlineLeave
-} from '@/hooks/staff-portal/useOnlineLeave';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Button } from '@/components/ui/button';
-import { Info, CalendarIcon, ArrowRight, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { format, differenceInDays } from 'date-fns';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef } from '@tanstack/react-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useOnlineLeave } from '@/hooks/staff-portal/useOnlineLeave';
+import { cn } from '@/lib/utils';
+import type { ColumnDef } from '@tanstack/react-table';
+import { differenceInDays, format } from 'date-fns';
+import { CalendarIcon, ClipboardList, Info } from 'lucide-react';
 import ApplyLeaveForm from './_components/leave-application-form';
 import LeaveHistoryTable from './_components/leave-history-table';
 
 const InfoField = ({ label, value }: { label: string; value: string | number | undefined }) => (
-    <div className="flex flex-col space-y-1">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-        <span className="text-sm font-bold text-slate-700">{value || '---'}</span>
+    <div className='flex flex-col space-y-1'>
+        <span className='font-black text-[10px] text-slate-400 uppercase tracking-widest'>{label}</span>
+        <span className='font-bold text-slate-700 text-sm'>{value || '---'}</span>
     </div>
 );
 
@@ -70,15 +67,13 @@ export default function OnlineLeavePage() {
                             setSelectedFromDate(today);
                             setSelectedToDate(today);
                             setIsHalfDay(false);
-                        }}
-                    >
-                        <div className={cn(
-                            'h-4 w-4 rounded-full border-2 transition-all flex items-center justify-center',
-                            selectedLeave?.hrmL_Id === row.original.hrmL_Id ? 'border-primary bg-primary' : 'border-slate-300'
-                        )}>
-                            {selectedLeave?.hrmL_Id === row.original.hrmL_Id && (
-                                <div className='h-1.5 w-1.5 rounded-full bg-white' />
-                            )}
+                        }}>
+                        <div
+                            className={cn(
+                                'flex h-4 w-4 items-center justify-center rounded-full border-2 transition-all',
+                                selectedLeave?.hrmL_Id === row.original.hrmL_Id ? 'border-primary bg-primary' : 'border-slate-300'
+                            )}>
+                            {selectedLeave?.hrmL_Id === row.original.hrmL_Id && <div className='h-1.5 w-1.5 rounded-full bg-white' />}
                         </div>
                     </div>
                 );
@@ -92,7 +87,7 @@ export default function OnlineLeavePage() {
                     <div
                         className={cn(
                             'font-mono text-xs',
-                            isDisabled ? 'cursor-not-allowed opacity-30 text-slate-400' : 'cursor-pointer text-slate-700'
+                            isDisabled ? 'cursor-not-allowed text-slate-400 opacity-30' : 'cursor-pointer text-slate-700'
                         )}
                         onClick={() => {
                             if (isDisabled) return;
@@ -102,8 +97,7 @@ export default function OnlineLeavePage() {
                             setSelectedFromDate(today);
                             setSelectedToDate(today);
                             setIsHalfDay(false);
-                        }}
-                    >
+                        }}>
                         {row.index + 1}
                     </div>
                 );
@@ -118,7 +112,7 @@ export default function OnlineLeavePage() {
                     <span
                         className={cn(
                             'font-bold transition-colors',
-                            isDisabled ? 'text-slate-400 cursor-not-allowed opacity-50' : 'text-slate-700 cursor-pointer hover:text-primary'
+                            isDisabled ? 'cursor-not-allowed text-slate-400 opacity-50' : 'cursor-pointer text-slate-700 hover:text-primary'
                         )}
                         onClick={() => {
                             if (isDisabled) return;
@@ -128,8 +122,7 @@ export default function OnlineLeavePage() {
                             setSelectedFromDate(today);
                             setSelectedToDate(today);
                             setIsHalfDay(false);
-                        }}
-                    >
+                        }}>
                         {row.getValue('hrmL_LeaveName')}
                     </span>
                 );
@@ -143,7 +136,7 @@ export default function OnlineLeavePage() {
         {
             accessorKey: 'hrelS_CBLeaves',
             header: 'BALANCE',
-            cell: ({ row }) => <span className='text-green-600 font-black'>{row.getValue('hrelS_CBLeaves')}</span>
+            cell: ({ row }) => <span className='font-black text-green-600'>{row.getValue('hrelS_CBLeaves')}</span>
         },
         {
             accessorKey: 'latestFromDate',
@@ -154,8 +147,8 @@ export default function OnlineLeavePage() {
                 const activeDate = isSelected ? selectedFromDate : undefined;
 
                 return (
-                    <div className={cn('flex items-center gap-2 w-max', isDisabled && 'opacity-30 cursor-not-allowed')}>
-                        <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
+                    <div className={cn('flex w-max items-center gap-2', isDisabled && 'cursor-not-allowed opacity-30')}>
+                        <span className={cn('font-medium text-[11px]', isSelected ? 'font-black text-primary' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
                         <Popover>
@@ -164,8 +157,7 @@ export default function OnlineLeavePage() {
                                     disabled={isDisabled}
                                     variant='ghost'
                                     size='icon'
-                                    className='h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary transition-all p-0'
-                                >
+                                    className='h-6 w-6 rounded-full p-0 transition-all hover:bg-primary/10 hover:text-primary'>
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
@@ -208,8 +200,8 @@ export default function OnlineLeavePage() {
                 const activeDate = isSelected ? selectedToDate : undefined;
 
                 return (
-                    <div className={cn('flex items-center gap-2 w-max', isDisabled && 'opacity-30 cursor-not-allowed')}>
-                        <span className={cn('font-medium text-[11px]', isSelected ? 'text-primary font-black' : 'text-slate-600')}>
+                    <div className={cn('flex w-max items-center gap-2', isDisabled && 'cursor-not-allowed opacity-30')}>
+                        <span className={cn('font-medium text-[11px]', isSelected ? 'font-black text-primary' : 'text-slate-600')}>
                             {activeDate ? format(activeDate, 'dd-MM-yyyy') : '-- -- ----'}
                         </span>
                         <Popover>
@@ -218,8 +210,7 @@ export default function OnlineLeavePage() {
                                     disabled={isDisabled}
                                     variant='ghost'
                                     size='icon'
-                                    className='h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary transition-all p-0'
-                                >
+                                    className='h-6 w-6 rounded-full p-0 transition-all hover:bg-primary/10 hover:text-primary'>
                                     <CalendarIcon className='h-3 w-3' />
                                 </Button>
                             </PopoverTrigger>
@@ -240,7 +231,7 @@ export default function OnlineLeavePage() {
                                         maxDate.setDate(today.getDate() + Math.max(0, Math.ceil(balance) - 1));
 
                                         // ToDate cannot be before selected FromDate (or Today if not selected)
-                                        const minDate = (isSelected && selectedFromDate) ? new Date(selectedFromDate) : today;
+                                        const minDate = isSelected && selectedFromDate ? new Date(selectedFromDate) : today;
                                         minDate.setHours(0, 0, 0, 0);
 
                                         return date < minDate;
@@ -272,14 +263,14 @@ export default function OnlineLeavePage() {
                 const displayDays = isHalfDay ? Math.max(0, days - 0.5) : days;
 
                 return (
-                    <div className={cn("flex items-center gap-3 w-max", isDisabled && "opacity-30 cursor-not-allowed")}>
+                    <div className={cn('flex w-max items-center gap-3', isDisabled && 'cursor-not-allowed opacity-30')}>
                         <Input
                             readOnly
                             disabled={isDisabled}
                             value={displayDays || ''}
-                            className="w-16 h-8 text-xs font-bold text-center bg-white"
+                            className='h-8 w-16 bg-white text-center font-bold text-xs'
                         />
-                        <div className="flex items-center space-x-1.5">
+                        <div className='flex items-center space-x-1.5'>
                             <Checkbox
                                 id={`half-day-${row.original.hrmL_Id}`}
                                 disabled={isDisabled}
@@ -289,10 +280,9 @@ export default function OnlineLeavePage() {
                             <label
                                 htmlFor={`half-day-${row.original.hrmL_Id}`}
                                 className={cn(
-                                    "text-xs font-medium whitespace-nowrap",
-                                    isDisabled ? "cursor-not-allowed text-slate-400" : "cursor-pointer text-slate-700"
-                                )}
-                            >
+                                    'whitespace-nowrap font-medium text-xs',
+                                    isDisabled ? 'cursor-not-allowed text-slate-400' : 'cursor-pointer text-slate-700'
+                                )}>
                                 Half day
                             </label>
                         </div>
@@ -304,45 +294,45 @@ export default function OnlineLeavePage() {
 
     if (isLoading) {
         return (
-            <div className="p-6 space-y-6">
-                <Skeleton className="h-[200px] w-full" />
-                <Skeleton className="h-[400px] w-full" />
-                <Skeleton className="h-[300px] w-full" />
+            <div className='space-y-6 p-6'>
+                <Skeleton className='h-[200px] w-full' />
+                <Skeleton className='h-[400px] w-full' />
+                <Skeleton className='h-[300px] w-full' />
             </div>
         );
     }
 
     return (
-        <div className="p-6 space-y-8 animate-in fade-in duration-500 max-w-[1400px] mx-auto">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-primary tracking-tight">Online Leave Application</h1>
+        <div className='fade-in mx-auto max-w-[1400px] animate-in space-y-8 p-6 duration-500'>
+            <div className='flex items-center justify-between'>
+                <h1 className='font-bold text-2xl text-primary tracking-tight'>Online Leave Application</h1>
             </div>
 
             <div className='grid grid-cols-1 gap-6'>
                 {/* 1. Employee Info Section */}
-                <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl">
-                    <CardHeader className="bg-primary/5 border-b border-white/20">
-                        <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2 text-primary">
-                            <ClipboardList className="h-4 w-4" />
+                <Card className='overflow-hidden rounded-2xl border-none bg-gradient-to-br from-primary/5 to-primary/10 shadow-md'>
+                    <CardHeader className='border-white/20 border-b bg-primary/5'>
+                        <CardTitle className='flex items-center gap-2 font-black text-primary text-sm uppercase tracking-wider'>
+                            <ClipboardList className='h-4 w-4' />
                             Employee Information
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-6 pb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-                            <InfoField label="Employee Name" value={employee?.hrmE_EmployeeName} />
-                            <InfoField label="Designation" value={employee?.hrmdeS_DesignationName} />
-                            <InfoField label="DOJ" value={employee?.hrmE_DOJ ? format(new Date(employee.hrmE_DOJ), 'dd-MM-yyyy') : ''} />
-                            <InfoField label="Email" value={employee?.hrmE_EmailId} />
-                            <InfoField label="Phone" value={employee?.hrmE_MobileNo} />
+                    <CardContent className='pt-6 pb-6'>
+                        <div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5'>
+                            <InfoField label='Employee Name' value={employee?.hrmE_EmployeeName} />
+                            <InfoField label='Designation' value={employee?.hrmdeS_DesignationName} />
+                            <InfoField label='DOJ' value={employee?.hrmE_DOJ ? format(new Date(employee.hrmE_DOJ), 'dd-MM-yyyy') : ''} />
+                            <InfoField label='Email' value={employee?.hrmE_EmailId} />
+                            <InfoField label='Phone' value={employee?.hrmE_MobileNo} />
                         </div>
                     </CardContent>
                 </Card>
                 {/* Integrated Leave Balance & Application Card */}
-                <Card className='border-slate-200 shadow-sm rounded-2xl overflow-hidden bg-white'>
-                    <CardHeader className='pb-4 border-b bg-slate-50/50'>
+                <Card className='overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm'>
+                    <CardHeader className='border-b bg-slate-50/50 pb-4'>
                         <div className='flex items-center justify-between'>
                             <div className='space-y-1'>
-                                <CardTitle className='text-base font-bold flex items-center gap-2 text-slate-800'>
+                                <CardTitle className='flex items-center gap-2 font-bold text-base text-slate-800'>
                                     <Info className='h-4 w-4 text-primary' />
                                     Leave Details
                                 </CardTitle>
@@ -352,7 +342,7 @@ export default function OnlineLeavePage() {
                     </CardHeader>
                     <CardContent className='p-0'>
                         {/* Balance Grid */}
-                        <div className='border-b border-slate-100'>
+                        <div className='border-slate-100 border-b'>
                             <GenericDataTable
                                 columns={balanceColumns}
                                 isLoading={isLoading}
@@ -367,13 +357,17 @@ export default function OnlineLeavePage() {
                         </div>
 
                         {/* Selection Banner */}
-                        <div className='px-6 py-4 bg-slate-50/50 flex items-center justify-between border-b border-slate-100'>
+                        <div className='flex items-center justify-between border-slate-100 border-b bg-slate-50/50 px-6 py-4'>
                             {selectedLeave ? (
-                                <div className='flex items-center gap-4 animate-in slide-in-from-top-1 duration-200'>
-                                    <Badge variant='outline' className='bg-primary text-white border-none text-[9px] font-black px-3 py-1 rounded-full uppercase'>SELECTED</Badge>
+                                <div className='slide-in-from-top-1 flex animate-in items-center gap-4 duration-200'>
+                                    <Badge
+                                        variant='outline'
+                                        className='rounded-full border-none bg-primary px-3 py-1 font-black text-[9px] text-white uppercase'>
+                                        SELECTED
+                                    </Badge>
                                     <div className='flex flex-col'>
-                                        <span className='text-xs font-black text-slate-800 uppercase'>{selectedLeave.hrmL_LeaveName}</span>
-                                        <span className='text-[10px] text-slate-400 font-bold'>
+                                        <span className='font-black text-slate-800 text-xs uppercase'>{selectedLeave.hrmL_LeaveName}</span>
+                                        <span className='font-bold text-[10px] text-slate-400'>
                                             {selectedFromDate && selectedToDate
                                                 ? `${format(selectedFromDate, 'dd MMM')} → ${format(selectedToDate, 'dd MMM')} (${currentTotalDays} Days)`
                                                 : 'Please select dates in the grid above'}
@@ -383,19 +377,20 @@ export default function OnlineLeavePage() {
                             ) : (
                                 <div className='flex items-center gap-2 text-slate-300 italic'>
                                     <Info className='h-4 w-4' />
-                                    <span className='text-[10px] font-bold uppercase tracking-widest'>Select a leave row and dates in the grid above</span>
+                                    <span className='font-bold text-[10px] uppercase tracking-widest'>
+                                        Select a leave row and dates in the grid above
+                                    </span>
                                 </div>
                             )}
                             {selectedLeave && (
                                 <Button
                                     variant='ghost'
-                                    className='h-7 text-[10px] font-black text-primary hover:bg-primary/10 rounded-full px-4 uppercase'
+                                    className='h-7 rounded-full px-4 font-black text-[10px] text-primary uppercase hover:bg-primary/10'
                                     onClick={() => {
                                         setSelectedLeave(null);
                                         setSelectedFromDate(undefined);
                                         setSelectedToDate(undefined);
-                                    }}
-                                >
+                                    }}>
                                     Clear Selection
                                 </Button>
                             )}
@@ -422,10 +417,10 @@ export default function OnlineLeavePage() {
             </div>
 
             {/* Leave History Table */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    <h2 className="text-xl font-bold text-slate-800">Leave History</h2>
+            <div className='space-y-4'>
+                <div className='flex items-center gap-2'>
+                    <ClipboardList className='h-5 w-5 text-primary' />
+                    <h2 className='font-bold text-slate-800 text-xl'>Leave History</h2>
                 </div>
                 <LeaveHistoryTable historyData={historyData} />
             </div>

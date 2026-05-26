@@ -45,31 +45,43 @@ export const printBankCashReport = (reportData: any[], institution: any, month: 
                         <tr>
                             <th>Sl.No</th>
                             <th>Employee Name</th>
-                             ${paymentMode === 'Bank' ? `
+                             ${
+                                 paymentMode === 'Bank'
+                                     ? `
                                 <th>Bank A/C Number</th>
                                 <th>IFSC Code</th>
                                 <th>Bank Name</th>
                                 <th>Branch Name</th>
-                            ` : ''}
+                            `
+                                     : ''
+                             }
                             <th>Net Salary</th>
                             <th>Signature</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${reportData.map((item, index) => `
+                        ${reportData
+                            .map(
+                                (item, index) => `
                             <tr>
                                 <td class="text-center">${index + 1}</td>
                                 <td>${item.employeeName || ''}</td>
-                                ${paymentMode === 'Bank' ? `
+                                ${
+                                    paymentMode === 'Bank'
+                                        ? `
                                     <td>${item.bankAcNumber || ''}</td>
                                     <td>${item.hrmbD_IFSCCode || ''}</td>
                                     <td>${item.hrmbD_BankName || ''}</td>
                                     <td>${item.hrmbD_BranchName || ''}</td>
-                                ` : ''}
+                                `
+                                        : ''
+                                }
                                 <td class="text-right">${(item.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                 <td class="text-center"></td>
                             </tr>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </tbody>
                     <tfoot>
                         <tr class="font-bold">

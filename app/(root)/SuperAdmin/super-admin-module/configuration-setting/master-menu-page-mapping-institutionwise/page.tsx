@@ -62,7 +62,7 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
 
     const [isSetOrderModalOpen, setIsSetOrderModalOpen] = useState(false);
     const [setOrderList, setSetOrderList] = useState<SetOrderDTO[]>([]);
-    const [isSetOrderLoading, setIsSetOrderLoading] = useState(false);
+    const [_isSetOrderLoading, setIsSetOrderLoading] = useState(false);
 
     const selectedPages = useMemo(() => masterPages.filter((p) => p.checked), [masterPages]);
     const selectedDeleteItems = useMemo(() => gridData.filter((item) => item.checked), [gridData]);
@@ -249,7 +249,6 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
             };
 
             const response = await saveSetOrder(payload);
-            console.log('onSaveOrder Server Response:', response);
             if (response.success) {
                 toast.success(response.message || 'Order updated successfully');
                 setIsSetOrderModalOpen(false);
@@ -321,8 +320,6 @@ export default function MasterMenuPageMappingInstitutionwisePage() {
             })),
             returnVal: ''
         };
-
-        console.log('Save Payload:', payload);
         setIsLoading(true);
         try {
             const response = await saveMasterMenuPageMapping(payload);

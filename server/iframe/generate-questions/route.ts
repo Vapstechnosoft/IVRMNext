@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
 // Initialize Groq client
 const groq = new Groq({
-    apiKey: process.env.paper_Groq_api_key || "",
+    apiKey: process.env.paper_Groq_api_key || ''
 });
 
 // Helper utility to extract chapter content
 // Helper utility to extract chapter content
 function extractChapterContent(fullText: string, chapters: string[]): string {
-    let combinedContent = "";
+    let combinedContent = '';
     // Normalize text for easier matching (keep original for extraction if needed, but simple case-insensitive regex is better)
 
     // 1. Identify all potential chapter boundaries in the document
-    // Patterns: 
+    // Patterns:
     // - "Chapter 5", "Unit 5", "Module 5", "Lesson 5"
     // - "5. Title" (At start of lines)
-    const chapterMatches: { number: string, index: number }[] = [];
+    const chapterMatches: { number: string; index: number }[] = [];
 
     // Regex explanation:
     // (?:^|\n) -> Match start of line
@@ -56,7 +56,7 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
         // Find the start match
         // We look for exact match first (e.g. "5"), or startsWith (e.g. "5" matches "5.1"?? No, strict for now)
         // Let's try exact match of the main number
-        const startMatchIndex = chapterMatches.findIndex(m => m.number === targetNum);
+        const startMatchIndex = chapterMatches.findIndex((m) => m.number === targetNum);
 
         if (startMatchIndex === -1) {
             console.warn(`Chapter ${targetNum} not found in document structure.`);
@@ -84,13 +84,11 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
         combinedContent += extractedText;
     }
 
-    // Fallback: If improved extraction fails (regex didn't catch weird formatting), 
+    // Fallback: If improved extraction fails (regex didn't catch weird formatting),
     // fall back to previous heuristic 'indexOf' approach for those missing chapters?
     // Or just return what we have.
 
     if (!combinedContent && chapters.length > 0) {
-        // Absolute fallback if Regex failed completely: simple string search
-        console.log("Regex extraction failed, trying fallback search...");
         const normalized = fullText.toLowerCase();
         for (const chapter of chapters) {
             const target = chapter.trim().toLowerCase();
@@ -111,7 +109,6 @@ export async function POST(req: NextRequest) {
         const timestamp = new Date().toISOString();
         const entry = `[${timestamp}] ${msg}`;
         logs.push(entry);
-        console.log(entry);
     };
 
     try {
@@ -124,7 +121,7 @@ export async function POST(req: NextRequest) {
         const pdf = require('pdf-parse/lib/pdf-parse.js');
 
         if (!req.body) {
-            return NextResponse.json({ error: "No request body" }, { status: 400 });
+            return NextResponse.json({ error: 'No request body' }, { status: 400 });
         }
 
         log('Streaming request body...');
@@ -136,7 +133,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -163,7 +160,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!fileBuffer) {
-            return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+            return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
         // Assert non-null for TS
@@ -171,8 +168,8 @@ export async function POST(req: NextRequest) {
 
         log(`File parsed: ${fileName}, Size: ${pdfBuffer.length}`);
 
-        const rawMarkConfig = JSON.parse(formFields["markConfig"] || "[]");
-        let markConfigArray: { markValue: number, count: number, isMCQ?: boolean }[] = [];
+        const rawMarkConfig = JSON.parse(formFields.markConfig || '[]');
+        let markConfigArray: { markValue: number; count: number; isMCQ?: boolean }[] = [];
 
         if (Array.isArray(rawMarkConfig)) {
             markConfigArray = rawMarkConfig;
@@ -185,35 +182,36 @@ export async function POST(req: NextRequest) {
             }));
         }
 
-        const difficultyConfig = JSON.parse(formFields["difficultyConfig"] || "{}");
-        const chapters = formFields["chapters"] ? formFields["chapters"].split(",").map((c) => c.trim()) : [];
+        const difficultyConfig = JSON.parse(formFields.difficultyConfig || '{}');
+        const chapters = formFields.chapters ? formFields.chapters.split(',').map((c) => c.trim()) : [];
 
         log(`PDF Buffer ready, length: ${pdfBuffer.length}`);
 
         // Extract Text from PDF
-        let pdfText = "";
+        let pdfText = '';
         try {
             log('Starting PDF parsing with pdf-parse v1...');
             const data = await pdf(pdfBuffer);
 
             if (!data || !data.text) {
-                throw new Error("PDF parsing returned empty data");
+                throw new Error('PDF parsing returned empty data');
             }
 
             pdfText = data.text;
             log(`PDF parsed successfully. Text length: ${pdfText.length}`);
         } catch (e: any) {
             log(`PDF Parsing Error: ${e.message}\nStack: ${e.stack}`);
-            return NextResponse.json({
-                error: "Failed to parse PDF: " + e.message,
-                details: logs.join('\n')
-            }, { status: 500 });
+            return NextResponse.json(
+                {
+                    error: `Failed to parse PDF: ${e.message}`,
+                    details: logs.join('\n')
+                },
+                { status: 500 }
+            );
         }
 
         // Filter content
-        const contextContent = chapters.length > 0
-            ? extractChapterContent(pdfText, chapters)
-            : pdfText.slice(0, 30000);
+        const contextContent = chapters.length > 0 ? extractChapterContent(pdfText, chapters) : pdfText.slice(0, 30000);
         log(`Content filtered. Length: ${contextContent.length}`);
 
         if (contextContent.length < 50) {
@@ -221,14 +219,14 @@ export async function POST(req: NextRequest) {
         }
 
         // Construct Prompt
-        const totalMarks = markConfigArray.reduce((acc, curr) => acc + (Number(curr.markValue) * Number(curr.count)), 0);
+        const totalMarks = markConfigArray.reduce((acc, curr) => acc + Number(curr.markValue) * Number(curr.count), 0);
 
-        let questionsRequirement = "";
+        let questionsRequirement = '';
         for (const cfg of markConfigArray) {
             if (Number(cfg.count) > 0) {
-                let typeDesc = "Descriptive/Subjective";
+                let typeDesc = 'Descriptive/Subjective';
                 if (cfg.markValue === 1) {
-                    typeDesc = cfg.isMCQ ? "MCQ with 4 options" : "Short Answer / Fill in the blank (No Options)";
+                    typeDesc = cfg.isMCQ ? 'MCQ with 4 options' : 'Short Answer / Fill in the blank (No Options)';
                 }
                 questionsRequirement += `- ${cfg.count} questions of ${cfg.markValue} marks each (Type: ${typeDesc})\n`;
             }
@@ -238,16 +236,16 @@ export async function POST(req: NextRequest) {
             You are an expert educator creating a question paper. Analyze the textbook content provided below and generate a structured question paper.
 
             **Configuration:**
-            - Chapters Targeted: ${chapters.join(", ") || "All Content"}
+            - Chapters Targeted: ${chapters.join(', ') || 'All Content'}
             - Total Marks (Target): ${totalMarks}
       
             **Question Requirements:**
             ${questionsRequirement}
 
             **Difficulty Distribution:**
-            - Easy: ${difficultyConfig.easy || "30"}%
-            - Medium: ${difficultyConfig.medium || "40"}%
-            - Hard: ${difficultyConfig.hard || "30"}%
+            - Easy: ${difficultyConfig.easy || '30'}%
+            - Medium: ${difficultyConfig.medium || '40'}%
+            - Hard: ${difficultyConfig.hard || '30'}%
 
             **Content:**
             ${contextContent.slice(0, 50000)} ... [truncated]
@@ -303,25 +301,24 @@ export async function POST(req: NextRequest) {
         // Call Groq
         log('Calling Groq API...');
         const chatCompletion = await groq.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "llama-3.3-70b-versatile",
+            messages: [{ role: 'user', content: prompt }],
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.7,
             max_tokens: 4000,
-            response_format: { type: "json_object" },
+            response_format: { type: 'json_object' }
         });
 
         const outputContent = chatCompletion.choices[0]?.message?.content;
         log(`Groq response received. Length: ${outputContent?.length}`);
 
         if (!outputContent) {
-            throw new Error("No content received from LLM");
+            throw new Error('No content received from LLM');
         }
 
         const jsonResponse = JSON.parse(outputContent);
         log('JSON parsed successfully. Sending response.');
 
         return NextResponse.json(jsonResponse);
-
     } catch (error: any) {
         log(`API CRITICAL ERROR: ${error.message}\nStack: ${error.stack}`);
 
@@ -331,7 +328,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
             {
-                error: error.message || "Internal Server Error",
+                error: error.message || 'Internal Server Error',
                 details: logs.join('\n')
             },
             { status: 500 }

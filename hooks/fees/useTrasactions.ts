@@ -145,7 +145,6 @@ export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) =
             queryFn: async () => {
                 try {
                     const response = await getOpeningClassDropdownData();
-                    console.log('Class dropdown API response:', response);
                     return response;
                 } catch (error) {
                     console.error('Class dropdown API error:', error);

@@ -10,7 +10,7 @@ export default function SamarthaProgressCardReportPromotionPage() {
     return (
         <div className='flex flex-col gap-4 p-4'>
             <div className='flex flex-col gap-1'>
-                <h1 className='text-2xl font-bold tracking-tight'>Samartha Progress Card Report Promotion</h1>
+                <h1 className='font-bold text-2xl tracking-tight'>Samartha Progress Card Report Promotion</h1>
                 <p className='text-muted-foreground'>Generate and view student promotion progress cards.</p>
             </div>
 

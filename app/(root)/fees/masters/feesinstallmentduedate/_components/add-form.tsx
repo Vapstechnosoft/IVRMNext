@@ -89,14 +89,12 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
     }>({ minDate: null, maxDate: null });
     useEffect(() => {
         const fetchAcademicYearDetails = async () => {
-            console.log('setting min and max dates', asmay_Id);
             if (!asmay_Id) {
                 setAcademicYearRange({ minDate: null, maxDate: null });
                 return;
             }
             try {
                 const response = await getAcademicYearDetailsData(Number(asmay_Id));
-                console.log('Response:', response);
 
                 // Assuming response has startDate and endDate
                 // Adjust based on your actual API response structure
@@ -111,9 +109,6 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                     // Convert strings to Date objects
                     const minDate = new Date(minDateStr);
                     const maxDate = new Date(maxDateStr);
-
-                    console.log('mindate', minDate);
-                    console.log('mindate', minDate);
                     setAcademicYearRange({ minDate, maxDate });
                 }
             } catch (error) {
@@ -131,7 +126,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
         return d.toISOString().split('T')[0];
     }
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         try {
             // --- Manual validation for all date fields ---
             const missing = masterInstallmentDueData.some((item) => {
@@ -159,8 +154,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
             };
 
             const _payload = buildPayload();
-            const updatedpayload = JSON.stringify(_payload);
-            console.log('Add Payload:', updatedpayload);
+            const _updatedpayload = JSON.stringify(_payload);
             const response = await saveInstallmentDueDate(_payload);
 
             if (response?.success) {

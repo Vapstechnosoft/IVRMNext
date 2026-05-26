@@ -19,11 +19,9 @@ export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<P
     const requestBody: PFForm6AReportOnloadRequest = {
         MI_Id
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm6AReportOnloadResponse>('hrms', url, requestBody, { timeout: 120000 });
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -168,11 +166,9 @@ export async function filterPFForm6AEmployeeData(request: PFForm6AReportFilterRe
     const requestBody: PFForm6AReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm6AReportFilterResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -211,11 +207,9 @@ export async function searchPFForm6AReport(request: PFForm6AReportSearchRequest)
         FromDate: request.FromDate || '',
         ToDate: request.ToDate || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm6AReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

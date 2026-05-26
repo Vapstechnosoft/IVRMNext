@@ -59,7 +59,7 @@ export async function editDetails(LPMU_Id: number, ISMS_Id: number, LPMT_Id: num
     return await api.post<ISchoolSubjectTopicMappingResponse>('lessonplanner', url);
 }
 
-export async function deactivateDetails(id: number, activeFlag: boolean) {
+export async function deactivateDetails(id: number, _activeFlag: boolean) {
     const url = `/SchoolSubjectWithMasterTopicMapping/De-activate?LPMT_Id=${id}`;
     return await api.post<ISchoolSubjectTopicMappingResponse>('lessonplanner', url);
 }

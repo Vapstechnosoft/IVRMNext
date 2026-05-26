@@ -125,8 +125,6 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
 
                     const response = await getAmountentrydetails(selectedAcademicYear, selectedCategoryId, selectedFeeGroup);
 
-                    console.log('Fee Amount Details Response:', JSON.stringify(response)); // Add this line to log the response
-
                     if (response?.data) {
                         const details = Array.isArray(response.data) ? response.data : [response.data];
                         setFeeGridData(details);
@@ -191,7 +189,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         }
     };
 
-    const getTodayDateString = () => {
+    const _getTodayDateString = () => {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -285,8 +283,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                 savefineslabecs: savefineslabecs.length > 0 ? savefineslabecs : []
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateAmountEntry(payload);
             if (response.success) {

@@ -6,13 +6,13 @@ import type {
     IApproveClgAlumniResponse,
     ICheckStudentAlumniResponse,
     IClgAlumniSaveData,
-    ISaveClgAlumniResponse,
     IClgAlumniSearchFilter,
+    ISaveClgAlumniResponse,
     ISearchFilterClgAlumniResponse
 } from '@/types/alumni/clg-alumni-approval';
 
 export async function getAcademicYear() {
-    const url = `/CLGAlumniApproval/get_intial_data`;
+    const url = '/CLGAlumniApproval/get_intial_data';
     return await api.get<any>('alumni', url);
 }
 
@@ -53,7 +53,7 @@ export async function saveClgAlumniData(data: IClgAlumniSaveData) {
 }
 
 export async function searchFilterClgAlumni(data: IClgAlumniSearchFilter) {
-    const session = await auth();
+    const _session = await auth();
     const asmayId = data.ASMAY_Id;
     const url = '/CLGAlumniApproval/searchfilter';
     const payload = {

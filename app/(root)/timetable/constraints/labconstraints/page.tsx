@@ -33,8 +33,7 @@ export default async function LabConstraintsPage() {
             getSubjectDropDown()
         ]);
 
-        const labList = await LabConstraintsGrid();
-        console.log('Lab List:', labList);
+        const _labList = await LabConstraintsGrid();
 
         initialData = {
             ...dropdowns,

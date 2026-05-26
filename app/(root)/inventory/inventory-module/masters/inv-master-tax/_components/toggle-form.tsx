@@ -1,21 +1,21 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogCancel,
-    AlertDialogAction
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { deactivateInvMasterTax } from '@/server/inventory/masters/inv-master-tax';
+import { Button } from '@/components/ui/button';
 import { useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
+import { deactivateInvMasterTax } from '@/server/inventory/masters/inv-master-tax';
 import type { IInvMasterTax } from '@/types/inventory/masters/inv-master-tax';
-import { toast } from 'sonner';
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 interface ToggleInvMasterTaxFormProps {
     rowData: IInvMasterTax;
@@ -45,24 +45,19 @@ export default function ToggleInvMasterTaxForm({ rowData, onClose }: ToggleInvMa
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        {rowData.invmT_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>{rowData.invmT_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to {rowData.invmT_ActiveFlg ? 'deactivate' : 'activate'} this tax record?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
-                <AlertDialogFooter className="flex gap-2">
+                <AlertDialogFooter className='flex gap-2'>
                     <AlertDialogCancel asChild>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant='secondary'>Cancel</Button>
                     </AlertDialogCancel>
 
                     <AlertDialogAction asChild>
-                        <Button
-                            variant={rowData.invmT_ActiveFlg ? 'destructive' : 'default'}
-                            onClick={handleToggle}
-                        >
+                        <Button variant={rowData.invmT_ActiveFlg ? 'destructive' : 'default'} onClick={handleToggle}>
                             Yes, {rowData.invmT_ActiveFlg ? 'Deactivate' : 'Activate'} it
                         </Button>
                     </AlertDialogAction>

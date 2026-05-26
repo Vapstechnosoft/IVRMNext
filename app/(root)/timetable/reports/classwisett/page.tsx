@@ -83,17 +83,6 @@ export default function ClassWiseReportPage() {
         const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list', 'tt_Break_list');
         const allBreakList = getList(root, 'tT_Break_list_all', 'allBreakList', 'Table3', 'tt_break_list_all', 'tt_Break_list_all');
 
-        console.log('ClassWise Report Deep Analysis:', {
-            rootKeys: root ? Object.keys(root) : 'none',
-            counts: {
-                periods: periodList.length,
-                days: gridWeeks.length,
-                tt: timetable.length,
-                breaks: breakList.length,
-                allBreaks: allBreakList.length
-            }
-        });
-
         // Use selected items from payload but handle potential key differences
         const classesToProcess = Array.isArray(selectedClasses) ? selectedClasses : [];
         const sectionsToProcess = Array.isArray(selectedSections) ? selectedSections : [];

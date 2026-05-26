@@ -45,11 +45,7 @@ export default function BookArrivalReportPage() {
             { label: 'Language Name', value: 'lmL_LanguageName' }
         ];
 
-        exportToExcel(
-            'Book_Arrival_Report',
-            JSON.stringify(columns),
-            JSON.stringify(reportData)
-        );
+        exportToExcel('Book_Arrival_Report', JSON.stringify(columns), JSON.stringify(reportData));
     };
 
     return (

@@ -7,7 +7,6 @@ export async function getPromotionCumulativeReport(data: any) {
     const url = '/JSHSExamReports_/stthomos_promotion_report_card';
     try {
         const response = await api.post<any>('exam', url, data);
-        console.log('JSHSExamReports_/stthomos_promotion_report_card response', response?.message || 'Success');
         return response.data;
     } catch (error) {
         console.error('getPromotionCumulativeReport API Error:', error);

@@ -39,7 +39,6 @@ export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '',
         resolver: zodResolver(staffabbreviationsSchema.addOrUpdate),
         mode: 'onChange'
     });
-    console.log('selected row', row);
     useEffect(() => {
         if (row) {
             reset({

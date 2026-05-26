@@ -33,14 +33,11 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                console.log('selectedRow', selectedRow);
                 const groups = await getStudentFeeSummaryById(
                     selectedRow.academicYearId,
                     // 16035
                     selectedRow.studentId
                 );
-
-                console.log('groups', groups);
                 setFeeGroups(groups);
                 originalFeeGroupsRef.current = JSON.parse(JSON.stringify(groups));
             } catch (err) {
@@ -107,12 +104,10 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                 mappings
             };
         };
-        console.log('Payload to update:', JSON.stringify(buildPayload()));
         const payload = buildPayload();
         try {
             const response = await updtaeStudentFeeGroupMapping(payload);
             if (response?.success) {
-                console.log('response', response);
                 toast.success(response.message);
                 // // handleReset();
                 await refetchAll();

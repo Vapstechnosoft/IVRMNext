@@ -62,7 +62,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const [installmentId, setInstallmentId] = useState<number | null>(selectedRow?.fti_id || null);
     const [termId, setTermId] = useState<number | null>(selectedRow?.fmt_id || null);
     const [headSearchTerm, setHeadSearchTerm] = useState('');
-    const [selectedAsmayId, setSelectedAsmayId] = useState<number | undefined>(undefined);
+    const [_selectedAsmayId, _setSelectedAsmayId] = useState<number | undefined>(undefined);
 
     // Data hooks
     const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
@@ -83,16 +83,6 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         academicYear ?? undefined
     );
     const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTermsDropdowndataOnlinegroupheadmapping();
-
-    // useEffect(() => {
-    //     if ( academicYearData?.data?.length && academicYear === null) {
-    //         setSelectedAsmayId(Number(academicYearData.data[0].asmaY_Id));
-    //     }
-    // }, [academicYearData, academicYear]);
-
-    // selectedRow.asmaY_Id=selectedAsmayId;
-
-    console.log('selectedRow', selectedRow);
 
     // Form
     const {
@@ -375,7 +365,6 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
             fti_id: installmentId
             // user_id: 1001
         };
-        console.log('payload', payload);
         try {
             const response = await addMasterOnlinePaymentHeadGroup(payload);
             if (response.success) {

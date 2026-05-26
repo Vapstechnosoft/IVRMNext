@@ -41,8 +41,6 @@ export default function AddMasterCategoryForm({ onSuccess, CategoryName = '' }: 
                 ttmC_CategoryName: ttmC_CategoryName
             };
 
-            console.log(payload);
-
             const response = await addOrUpdateTimetableMasterCategory(payload);
             if (response.success) {
                 toast.success(response.message);

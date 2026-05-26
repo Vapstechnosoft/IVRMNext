@@ -5,12 +5,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEligibilityCertificateReport } from '@/hooks/sports/useEligibilityCertificateReport';
 import type { IEligibilityCertificateReportDetail } from '@/types/sports/reports/eligibility-certificate-report';
 import { useEffect, useState } from 'react';
-import { columns } from './_components/columns';
-import ReportForm from './_components/report-form';
-import { toast } from 'sonner';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
+import { columns } from './_components/columns';
+import ReportForm from './_components/report-form';
 
 export default function EligibilityCertificateReportPage() {
     const { data: loadGridData, isLoading, error } = useEligibilityCertificateReport();
@@ -33,8 +32,8 @@ export default function EligibilityCertificateReportPage() {
     const handleExcel = () => {
         const worksheet = XLSX.utils.json_to_sheet(reportData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-        XLSX.writeFile(workbook, "EligibilityCertificateReport.xlsx");
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+        XLSX.writeFile(workbook, 'EligibilityCertificateReport.xlsx');
     };
 
     // Initial load
@@ -105,7 +104,7 @@ export default function EligibilityCertificateReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg'>
-                    <div ref={componentRef} className="p-4 bg-white rounded-lg">
+                    <div ref={componentRef} className='rounded-lg bg-white p-4'>
                         <style jsx global>{`
                             @media screen {
                                 .print-only { display: none !important; }
@@ -116,10 +115,10 @@ export default function EligibilityCertificateReportPage() {
                                 body { -webkit-print-color-adjust: exact !important; background: white !important; }
                             }
                         `}</style>
-                        <div className="hidden print:block text-center mb-6">
-                            <h2 className="text-2xl font-bold uppercase underline">Eligibility Certificate Report</h2>
+                        <div className='mb-6 hidden text-center print:block'>
+                            <h2 className='font-bold text-2xl uppercase underline'>Eligibility Certificate Report</h2>
                         </div>
-                        <div className="screen-only">
+                        <div className='screen-only'>
                             <GenericDataTable<IEligibilityCertificateReportDetail>
                                 {...tableProps}
                                 columns={columns}
@@ -132,13 +131,13 @@ export default function EligibilityCertificateReportPage() {
                             />
                         </div>
 
-                        <div className="print-only overflow-x-auto">
-                            <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
+                        <div className='print-only overflow-x-auto'>
+                            <table className='w-full border-collapse border border-gray-300 text-center text-[10pt]'>
                                 <thead>
-                                    <tr className="bg-gray-100">
+                                    <tr className='bg-gray-100'>
                                         {columns.map((col: any, i) => (
-                                            <th key={i} className="border border-gray-300 p-2 font-bold bg-gray-50 whitespace-nowrap">
-                                                {typeof col.header === 'string' ? col.header : (col.header?.toString() || '')}
+                                            <th key={i} className='whitespace-nowrap border border-gray-300 bg-gray-50 p-2 font-bold'>
+                                                {typeof col.header === 'string' ? col.header : col.header?.toString() || ''}
                                             </th>
                                         ))}
                                     </tr>
@@ -148,16 +147,21 @@ export default function EligibilityCertificateReportPage() {
                                         reportData.map((row, rowIndex) => (
                                             <tr key={rowIndex}>
                                                 {columns.map((col: any, colIndex) => (
-                                                    <td key={colIndex} className="border border-gray-300 p-2">
-                                                        {col.accessorKey ? (row as any)[col.accessorKey] : 
-                                                         col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
+                                                    <td key={colIndex} className='border border-gray-300 p-2'>
+                                                        {col.accessorKey
+                                                            ? (row as any)[col.accessorKey]
+                                                            : col.cell
+                                                              ? (col.cell as any)({ row: { original: row, index: rowIndex } })
+                                                              : ''}
                                                     </td>
                                                 ))}
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
+                                            <td
+                                                colSpan={columns.length}
+                                                className='border border-gray-300 p-10 text-center font-medium text-muted-foreground'>
                                                 No Records Found
                                             </td>
                                         </tr>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type DaySubjectSchema, daySubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
 import { getFixingClassSectionStaffsBySubject } from '@/server/timetable/constraints/fixing';
-import { saveDaySubjectDetail, } from '@/server/timetable/constraints/subjectrestriction';
+import { saveDaySubjectDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Save } from 'lucide-react';
@@ -28,7 +28,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
@@ -47,7 +47,14 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttrdsU_SUbSelcFlag = watch('ttrdsU_SUbSelcFlag');
 
@@ -147,9 +154,6 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
     const onSubmit = async (data: DaySubjectSchema) => {
         try {
-
-            console.log("Payload sent to API:", data);   // 👈 payload
-
             if (!data.ttrdsU_SUbSelcFlag) {
                 data.tempararyArrayList = [];
             } else {
@@ -161,8 +165,6 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
             const res = await saveDaySubjectDetail(data);
 
-            console.log("API Response:", res);
-
             if (res?.returnval === true || res?.success === true) {
                 toast.success(res.message);
                 reset();
@@ -170,8 +172,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
             } else {
                 toast.error(res.message);
             }
-
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error.message);
         }
     };
@@ -194,7 +195,11 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -214,8 +219,15 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Day</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any) => {
                                             const id = item.ttmD_Id ?? item.ttmd_id ?? item.TTMD_Id;
@@ -242,7 +254,11 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {subjectList
                                             .filter((item: any) => item.ismS_Id || item.isms_id || item.ISMS_Id)
@@ -289,7 +305,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -312,7 +330,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -331,7 +351,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
                                     value={selectedStaff?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subStaffList.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;

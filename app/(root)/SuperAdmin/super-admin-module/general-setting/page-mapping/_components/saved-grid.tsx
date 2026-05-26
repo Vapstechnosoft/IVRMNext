@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getSavedMappings, deletePageMapping } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
-import { useQueryState, parseAsInteger } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { deletePageMapping, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import type { ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { usePageMapping } from './mapping-context';
 
 import { Button } from '@/components/ui/button';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Trash2 } from 'lucide-react';
-import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 export default function SavedGrid() {
@@ -39,7 +39,9 @@ export default function SavedGrid() {
         }
     }, [page, pageSize, selectedModuleId]);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -61,7 +63,7 @@ export default function SavedGrid() {
                 } else {
                     Swal.fire({ title: 'Failed!', text: res.message || 'Failed to delete mapping.', icon: 'error' });
                 }
-            } catch (error) {
+            } catch (_error) {
                 Swal.fire({ title: 'Error!', text: 'An unexpected error occurred.', icon: 'error' });
             }
         }
@@ -75,51 +77,44 @@ export default function SavedGrid() {
                 cell: ({ row, table }) => {
                     const { pagination } = table.getState();
                     return pagination.pageIndex * pagination.pageSize + row.index + 1;
-                },
+                }
             },
             {
                 accessorKey: 'ivrmM_ModuleName',
                 header: 'Module Name',
-                enableSorting: true,
+                enableSorting: true
             },
             {
                 accessorKey: 'ivrmmP_PageName',
                 header: 'Page Name',
-                enableSorting: true,
+                enableSorting: true
             },
             {
                 id: 'actions',
                 header: 'Delete',
                 cell: ({ row }) => (
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant='ghost'
+                        size='icon'
                         onClick={() => handleDelete(row.original.ivrmmP_Id)}
-                        className="h-8 w-8 text-red-500 hover:bg-red-50"
-                        title="Delete"
-                    >
+                        className='h-8 w-8 text-red-500 hover:bg-red-50'
+                        title='Delete'>
                         <Trash2 size={16} />
                     </Button>
-                ),
-            },
+                )
+            }
         ],
         []
     );
 
     return (
-        <div className="border rounded-md shadow-sm bg-white h-full flex flex-col">
-            <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-semibold text-lg">Saved Records of Module - Page Mapping</h3>
+        <div className='flex h-full flex-col rounded-md border bg-white shadow-sm'>
+            <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
+                <h3 className='font-semibold text-lg'>Saved Records of Module - Page Mapping</h3>
             </div>
 
-            <div className="flex-1 overflow-auto p-2">
-                <GenericDataTable
-                    data={data}
-                    columns={columns}
-                    isLoading={isLoading}
-                    isPaginationRequired={true}
-                    totalItems={totalItems}
-                />
+            <div className='flex-1 overflow-auto p-2'>
+                <GenericDataTable data={data} columns={columns} isLoading={isLoading} isPaginationRequired={true} totalItems={totalItems} />
             </div>
         </div>
     );

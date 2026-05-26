@@ -5,16 +5,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useEffect, useState } from 'react';
 
-import * as XLSX from 'xlsx';
-import { toast } from 'sonner';
-import {
-    getImportLibraryDataInitial,
-    checkLibraryDataValidation,
-    saveImportLibraryData
-} from '@/server/library/reports/importlibrarydata';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { checkLibraryDataValidation, getImportLibraryDataInitial, saveImportLibraryData } from '@/server/library/reports/importlibrarydata';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export default function ImportLibraryDataPage() {
     return (
@@ -53,10 +49,7 @@ function ImportLibraryDataContent() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (
-            file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' &&
-            !file.name.endsWith('.xlsx')
-        ) {
+        if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && !file.name.endsWith('.xlsx')) {
             toast.error('Please upload a valid .xlsx file');
             return;
         }
@@ -91,7 +84,7 @@ function ImportLibraryDataContent() {
                     setGridData(rowData);
                     setColumns(headerNames || []);
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 toast.error('Error parsing excel file');
             }
         };
@@ -112,7 +105,7 @@ function ImportLibraryDataContent() {
         try {
             let data: any = {};
             // Formatting dates if necessary like the old angular script did.
-            const formattedData = gridData.map(item => {
+            const formattedData = gridData.map((item) => {
                 const newItem = { ...item };
                 if (newItem.LBTR_IssuedDate) newItem.LBTR_IssuedDate = new Date(newItem.LBTR_IssuedDate).toISOString().split('T')[0];
                 if (newItem.LBTR_ReturnedDate) newItem.LBTR_ReturnedDate = new Date(newItem.LBTR_ReturnedDate).toISOString().split('T')[0];
@@ -173,43 +166,24 @@ function ImportLibraryDataContent() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='LIBRARY DATA IMPORT'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='shadow-lg'
-                >
-                    <div className='p-4 flex justify-center'>
-                        <div className='border px-6 py-2 rounded text-green-600 font-semibold text-center'>
+                <CollapsibleSection title='LIBRARY DATA IMPORT' defaultOpen={true} variant='outline' size='md' className='shadow-lg'>
+                    <div className='flex justify-center p-4'>
+                        <div className='rounded border px-6 py-2 text-center font-semibold text-green-600'>
                             ** Kindly Select Only One Excel Sheet To Import
                         </div>
                     </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection
-                    title='IMPORTED DATA FROM EXCEL'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'
-                >
-                    <div className='p-4 space-y-6'>
+                <CollapsibleSection title='IMPORTED DATA FROM EXCEL' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <div className='space-y-6 p-4'>
                         {/* Top Controls Row */}
                         <div className='flex flex-wrap items-center justify-between gap-4 border-b pb-4'>
                             <div className='flex flex-wrap items-center gap-6'>
                                 <div className='relative'>
-                                    <Input
-                                        id='excel-upload'
-                                        type='file'
-                                        accept='.xlsx'
-                                        onChange={handleFileUpload}
-                                        className='hidden'
-                                    />
+                                    <Input id='excel-upload' type='file' accept='.xlsx' onChange={handleFileUpload} className='hidden' />
                                     <Label
                                         htmlFor='excel-upload'
-                                        className='cursor-pointer bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 text-sm font-bold rounded shadow-sm flex items-center justify-center min-w-[150px]'
-                                    >
+                                        className='flex min-w-[150px] cursor-pointer items-center justify-center rounded bg-yellow-400 px-6 py-2 font-bold text-black text-sm shadow-sm hover:bg-yellow-500'>
                                         Choose File
                                     </Label>
                                 </div>
@@ -231,9 +205,21 @@ function ImportLibraryDataContent() {
                             </div>
                             <div className='w-full md:w-[250px]'>
                                 <div className='relative'>
-                                    <Input placeholder='search here...' className='pl-3 pr-8' />
-                                    <div className='absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none'>
-                                        <svg className='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'></path></svg>
+                                    <Input placeholder='search here...' className='pr-8 pl-3' />
+                                    <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3'>
+                                        <svg
+                                            className='h-4 w-4 text-gray-500'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                            xmlns='http://www.w3.org/2000/svg'>
+                                            <path
+                                                strokeLinecap='round'
+                                                strokeLinejoin='round'
+                                                strokeWidth='2'
+                                                d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                                            />
+                                        </svg>
                                     </div>
                                 </div>
                             </div>
@@ -241,32 +227,40 @@ function ImportLibraryDataContent() {
 
                         {/* Action Buttons */}
                         <div className='flex justify-center gap-4'>
-                            <Button size='sm' onClick={handleSave} disabled={isSaving || !selectedLibraryId || gridData.length === 0} className='w-24 bg-red-600 hover:bg-red-700 text-white'>
+                            <Button
+                                size='sm'
+                                onClick={handleSave}
+                                disabled={isSaving || !selectedLibraryId || gridData.length === 0}
+                                className='w-24 bg-red-600 text-white hover:bg-red-700'>
                                 {isSaving ? 'Saving...' : 'Save'}
                             </Button>
                             <Button variant='destructive' size='sm' onClick={handleClear} disabled={isSaving} className='w-24'>
                                 Cancel
                             </Button>
                         </div>
-                        
+
                         {/* Table */}
                         {gridData.length > 0 ? (
-                            <div className='overflow-auto max-h-[500px] border rounded-md'>
-                                <table className='w-full text-sm text-center border-collapse'>
-                                    <thead className='bg-primary text-primary-foreground sticky top-0'>
+                            <div className='max-h-[500px] overflow-auto rounded-md border'>
+                                <table className='w-full border-collapse text-center text-sm'>
+                                    <thead className='sticky top-0 bg-primary text-primary-foreground'>
                                         <tr>
-                                            <th className='p-2 border'>SLNO</th>
+                                            <th className='border p-2'>SLNO</th>
                                             {columns.map((col, idx) => (
-                                                <th key={idx} className='p-2 border'>{col}</th>
+                                                <th key={idx} className='border p-2'>
+                                                    {col}
+                                                </th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {gridData.map((row, rIdx) => (
                                             <tr key={rIdx} className='border-b hover:bg-muted/50'>
-                                                <td className='p-2 border'>{rIdx + 1}</td>
+                                                <td className='border p-2'>{rIdx + 1}</td>
                                                 {columns.map((col, cIdx) => (
-                                                    <td key={cIdx} className='p-2 border'>{row[col]}</td>
+                                                    <td key={cIdx} className='border p-2'>
+                                                        {row[col]}
+                                                    </td>
                                                 ))}
                                             </tr>
                                         ))}
@@ -274,8 +268,8 @@ function ImportLibraryDataContent() {
                                 </table>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto border rounded-md">
-                                <div className="min-h-[20px] bg-gray-100 flex items-center justify-center p-4"></div>
+                            <div className='overflow-x-auto rounded-md border'>
+                                <div className='flex min-h-[20px] items-center justify-center bg-gray-100 p-4' />
                             </div>
                         )}
                     </div>

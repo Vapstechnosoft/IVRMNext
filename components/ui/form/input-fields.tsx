@@ -16,15 +16,7 @@ interface GenericInputFieldProps {
     className?: string;
 }
 
-export function GenericInputField({
-    name,
-    label,
-    placeholder,
-    required,
-    disabled,
-    type = 'text',
-    className
-}: GenericInputFieldProps) {
+export function GenericInputField({ name, label, placeholder, required, disabled, type = 'text', className }: GenericInputFieldProps) {
     const {
         register,
         formState: { errors }
@@ -44,7 +36,7 @@ export function GenericInputField({
                 className={cn(error && 'border-destructive focus-visible:ring-destructive')}
                 {...register(name)}
             />
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }
@@ -59,15 +51,7 @@ interface GenericTextAreaFieldProps {
     rows?: number;
 }
 
-export function GenericTextAreaField({
-    name,
-    label,
-    placeholder,
-    required,
-    disabled,
-    className,
-    rows
-}: GenericTextAreaFieldProps) {
+export function GenericTextAreaField({ name, label, placeholder, required, disabled, className, rows }: GenericTextAreaFieldProps) {
     const {
         register,
         formState: { errors }
@@ -87,7 +71,7 @@ export function GenericTextAreaField({
                 {...register(name)}
                 rows={rows}
             />
-            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+            {error && <span className='text-destructive text-xs'>{error.message as string}</span>}
         </div>
     );
 }

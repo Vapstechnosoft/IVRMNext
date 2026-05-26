@@ -44,8 +44,8 @@ export default function AddMasterVenueForm({ onSuccess }: AddMasterVenueFormProp
             const msg = (response?.message || response?.Message || '') as string;
             const isSuccess =
                 response?.success ||
-                response?.returnval == true ||
-                response?.returnVal == true ||
+                response?.returnval === true ||
+                response?.returnVal === true ||
                 response?.returnVal === 'saved' ||
                 response?.returnVal === 'updated' ||
                 msg.toLowerCase() === 'saved' ||

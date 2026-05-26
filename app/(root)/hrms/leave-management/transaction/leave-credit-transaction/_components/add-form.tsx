@@ -5,10 +5,9 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditTransaction, useSaveLeaveCreditTransaction } from '@/hooks/hrms/leave-management/useTransactions';
-import { useMasterDepartments, useLeaveReportDesignations, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
+import { useLeaveReportDesignations, useMasterDepartments, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Save, X } from 'lucide-react';
@@ -60,31 +59,37 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
 
     const departmentOptions = useMemo(() => {
         const raw = departmentsData?.data || departmentsData || [];
-        return (Array.isArray(raw) ? raw : []).map((item: any) => ({
-            label: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || '',
-            value: String(item.hrmD_Id || item.hrmd_id || item.key)
-        })).filter((i: any) => i.value);
+        return (Array.isArray(raw) ? raw : [])
+            .map((item: any) => ({
+                label: item.hrmD_DepartmentName || item.hrmd_departmentName || item.value || '',
+                value: String(item.hrmD_Id || item.hrmd_id || item.key)
+            }))
+            .filter((i: any) => i.value);
     }, [departmentsData]);
 
     const designationOptions = useMemo(() => {
         const raw = designationsData || [];
-        return (Array.isArray(raw) ? raw : []).map((item: any) => ({
-            label: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || '',
-            value: String(item.hrmdeS_Id || item.hrmdes_id || item.key)
-        })).filter((i: any) => i.value);
+        return (Array.isArray(raw) ? raw : [])
+            .map((item: any) => ({
+                label: item.hrmdeS_DesignationName || item.hrmdes_designationName || item.value || '',
+                value: String(item.hrmdeS_Id || item.hrmdes_id || item.key)
+            }))
+            .filter((i: any) => i.value);
     }, [designationsData]);
 
     const employeeOptions = useMemo(() => {
         if (!employeesData || !Array.isArray(employeesData)) return [];
-        return employeesData.map((item: any) => {
-            const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
-            const name = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || item.value || item.employeeName || '';
-            const code = item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '';
-            return {
-                label: code ? `${name} (${code})` : name,
-                value: Number(id)
-            };
-        }).filter((i: any) => i.value);
+        return employeesData
+            .map((item: any) => {
+                const id = item.HRME_Id || item.hrmE_Id || item.id || item.key;
+                const name = item.HRME_EmployeeFirstName || item.hrmE_EmployeeFirstName || item.value || item.employeeName || '';
+                const code = item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '';
+                return {
+                    label: code ? `${name} (${code})` : name,
+                    value: Number(id)
+                };
+            })
+            .filter((i: any) => i.value);
     }, [employeesData]);
 
     const {
@@ -383,7 +388,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         <Label htmlFor='total-days-input'>
                             Total Days :<span className='text-red-500'>*</span>
                         </Label>
-                        <Input id='total-days-input' type='number' disabled = {true} readOnly value={totalDays || 0} className='bg-muted' />
+                        <Input id='total-days-input' type='number' disabled={true} readOnly value={totalDays || 0} className='bg-muted' />
                     </div>
                 </div>
                 {/* Loss of Pay Options and Calculated Field */}

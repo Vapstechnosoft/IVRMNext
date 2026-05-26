@@ -1,27 +1,28 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Printer, Loader2, Check, Search, X } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { Check, Loader2, Printer, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/extension/field';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandInput } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
-    useDanvantariTCLoadData,
-    useChangeYearDanvantariTC,
-    useChangeCourseDanvantariTC,
     useChangeBranchDanvantariTC,
+    useChangeCourseDanvantariTC,
     useChangeSemesterDanvantariTC,
-    useDanvantariTCDetails, useDanvantariStudentName
+    useChangeYearDanvantariTC,
+    useDanvantariStudentName,
+    useDanvantariTCDetails,
+    useDanvantariTCLoadData
 } from '@/hooks/admission/preadmission/reports/useDanvantariTransferCertificate';
 
 export default function DanvantariTransferCertificatePage() {
@@ -91,8 +92,6 @@ export default function DanvantariTransferCertificatePage() {
         return () => clearTimeout(timeoutId);
     }, [searchTerm, academicYearId, courseId, branchId, tctempper]);
 
-
-
     /* -------------------- Handlers -------------------- */
     const handleYearChange = async (yearId: number) => {
         // Reset all dependent states immediately
@@ -159,7 +158,7 @@ export default function DanvantariTransferCertificatePage() {
 
             const semList = data?.getsemester || data?.getSemester || data?.semesterlist || data?.semesterList || [];
             setSemesterList(Array.isArray(semList) ? semList : []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load data for selected course');
         }
     };
@@ -183,7 +182,7 @@ export default function DanvantariTransferCertificatePage() {
             const data = (res as any)?.data || res;
             const semList = data?.getsemester || data?.getSemester || data?.semesterlist || data?.semesterList || [];
             setSemesterList(Array.isArray(semList) ? semList : []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load semesters');
         }
     };
@@ -209,7 +208,7 @@ export default function DanvantariTransferCertificatePage() {
             const data = (res as any)?.data || res;
             const stuList = data?.getstudent || data?.getstudentdetails || data?.getstudentlist || data?.studentList || [];
             setStudentList(Array.isArray(stuList) ? stuList : []);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load students');
         }
     };
@@ -245,11 +244,7 @@ export default function DanvantariTransferCertificatePage() {
                 studentName: selectedStudentName,
                 tctemporper: tctempper
             });
-
-            console.log("res", res);
             const data = (res as any)?.data || res;
-            console.log("data", data);
-            console.log("data keys", Object.keys(data || {}));
 
             if (res && (res as any).success === false) {
                 toast.error((res as any).message || 'Error from server');
@@ -305,18 +300,17 @@ export default function DanvantariTransferCertificatePage() {
     });
 
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
                 title='Student Transfer Certificate'
                 description='Generate transfer certificates for Danvantari Students'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
                 <div className='space-y-8 bg-white p-6'>
                     {/* Student Type Selection */}
                     <div className='flex justify-center'>
-                        <div className='bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 w-full max-w-2xl'>
+                        <div className='w-full max-w-2xl rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4'>
                             <RadioGroup
                                 value={tctempper}
                                 onValueChange={(v) => {
@@ -336,22 +330,30 @@ export default function DanvantariTransferCertificatePage() {
                                 className='flex justify-center space-x-12'>
                                 <div className='flex items-center space-x-3'>
                                     <RadioGroupItem value='temp' id='rt-temp' className='h-5 w-5 border-indigo-300 text-indigo-600' />
-                                    <Label htmlFor='rt-temp' className='text-base font-bold text-slate-700 cursor-pointer'>Temp Student</Label>
+                                    <Label htmlFor='rt-temp' className='cursor-pointer font-bold text-base text-slate-700'>
+                                        Temp Student
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-3'>
                                     <RadioGroupItem value='per' id='rt-per' className='h-5 w-5 border-indigo-300 text-indigo-600' />
-                                    <Label htmlFor='rt-per' className='text-base font-bold text-slate-700 cursor-pointer'>Permanent Student</Label>
+                                    <Label htmlFor='rt-per' className='cursor-pointer font-bold text-base text-slate-700'>
+                                        Permanent Student
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                         {/* Filter Section */}
-                        <div className='bg-slate-50 p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-6'>
+                        <div className='space-y-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Academic Year:<span className='text-red-500'>*</span></Label>
-                                <Select value={academicYearId !== null ? academicYearId.toString() : ""} onValueChange={(v) => handleYearChange(Number(v))}>
+                                <Label className='font-bold text-slate-700 text-sm'>
+                                    Academic Year:<span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    value={academicYearId !== null ? academicYearId.toString() : ''}
+                                    onValueChange={(v) => handleYearChange(Number(v))}>
                                     <SelectTrigger className='h-10 rounded-xl'>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
@@ -366,15 +368,22 @@ export default function DanvantariTransferCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Course:<span className='text-red-500'>*</span></Label>
-                                <Select value={courseId !== null ? courseId.toString() : ""} onValueChange={(v) => handleCourseChange(Number(v))} disabled={!academicYearId}>
+                                <Label className='font-bold text-slate-700 text-sm'>
+                                    Course:<span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    value={courseId !== null ? courseId.toString() : ''}
+                                    onValueChange={(v) => handleCourseChange(Number(v))}
+                                    disabled={!academicYearId}>
                                     <SelectTrigger className='h-10 rounded-xl'>
-                                        {courseMutation.isPending ? <Loader2 className='h-4 w-4 animate-spin mr-2 opacity-50' /> : null}
+                                        {courseMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin opacity-50' /> : null}
                                         <SelectValue placeholder='Select Course' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {courseList.map((course: any, idx: number) => (
-                                            <SelectItem key={`course-${course.amcO_Id || course.AMCO_Id || idx}`} value={(course.amcO_Id || course.AMCO_Id).toString()}>
+                                            <SelectItem
+                                                key={`course-${course.amcO_Id || course.AMCO_Id || idx}`}
+                                                value={(course.amcO_Id || course.AMCO_Id).toString()}>
                                                 {course.amcO_CourseName || course.AMCO_CourseName || course.coursename}
                                             </SelectItem>
                                         ))}
@@ -384,15 +393,22 @@ export default function DanvantariTransferCertificatePage() {
 
                             {branchList.length > 0 && (
                                 <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                    <Label className='text-sm font-bold text-slate-700'>Branch:<span className='text-red-500'>*</span></Label>
-                                    <Select value={branchId !== null ? branchId.toString() : ""} onValueChange={(v) => handleBranchChange(Number(v))} disabled={!courseId}>
+                                    <Label className='font-bold text-slate-700 text-sm'>
+                                        Branch:<span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select
+                                        value={branchId !== null ? branchId.toString() : ''}
+                                        onValueChange={(v) => handleBranchChange(Number(v))}
+                                        disabled={!courseId}>
                                         <SelectTrigger className='h-10 rounded-xl'>
-                                            {branchMutation.isPending ? <Loader2 className='h-4 w-4 animate-spin mr-2 opacity-50' /> : null}
+                                            {branchMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin opacity-50' /> : null}
                                             <SelectValue placeholder='Select Branch' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {branchList.map((branch: any, idx: number) => (
-                                                <SelectItem key={`branch-${branch.amB_Id || branch.AMB_Id || idx}`} value={(branch.amB_Id || branch.AMB_Id).toString()}>
+                                                <SelectItem
+                                                    key={`branch-${branch.amB_Id || branch.AMB_Id || idx}`}
+                                                    value={(branch.amB_Id || branch.AMB_Id).toString()}>
                                                     {branch.amB_BranchName || branch.AMB_BranchName || branch.branchname}
                                                 </SelectItem>
                                             ))}
@@ -401,18 +417,29 @@ export default function DanvantariTransferCertificatePage() {
                                 </div>
                             )}
 
-
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Semester:<span className='text-red-500'>*</span></Label>
-                                <Select value={semesterId !== null ? semesterId.toString() : ""} onValueChange={(v) => handleSemesterChange(Number(v))} disabled={branchList.length > 0 ? !branchId : !courseId}>
+                                <Label className='font-bold text-slate-700 text-sm'>
+                                    Semester:<span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    value={semesterId !== null ? semesterId.toString() : ''}
+                                    onValueChange={(v) => handleSemesterChange(Number(v))}
+                                    disabled={branchList.length > 0 ? !branchId : !courseId}>
                                     <SelectTrigger className='h-10 rounded-xl'>
-                                        {semesterMutation.isPending ? <Loader2 className='h-4 w-4 animate-spin mr-2 opacity-50' /> : null}
+                                        {semesterMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin opacity-50' /> : null}
                                         <SelectValue placeholder='Select Semester' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {semesterList.map((sem: any, idx: number) => (
-                                            <SelectItem key={`sem-${sem.amsE_Id || sem.AMSE_Id || idx}`} value={(sem.amsE_Id || sem.AMSE_Id).toString()}>
-                                                {sem.amsE_SemName || sem.AMSE_SemName || sem.amsE_SEMName || sem.AMSE_SEMName || sem.semestername || sem.semesterName}
+                                            <SelectItem
+                                                key={`sem-${sem.amsE_Id || sem.AMSE_Id || idx}`}
+                                                value={(sem.amsE_Id || sem.AMSE_Id).toString()}>
+                                                {sem.amsE_SemName ||
+                                                    sem.AMSE_SemName ||
+                                                    sem.amsE_SEMName ||
+                                                    sem.AMSE_SEMName ||
+                                                    sem.semestername ||
+                                                    sem.semesterName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -420,31 +447,30 @@ export default function DanvantariTransferCertificatePage() {
                             </div>
 
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Student Name:<span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-slate-700 text-sm'>
+                                    Student Name:<span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            variant="outline"
-                                            role="combobox"
+                                            variant='outline'
+                                            role='combobox'
                                             disabled={!semesterId}
                                             className={cn(
-                                                "w-full justify-between h-10 rounded-xl bg-white border-input font-normal",
-                                                studentId === null && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <span className="truncate pr-2">
-                                                {studentId !== null
-                                                    ? (selectedStudentName || "Selected Student")
-                                                    : "Select Student"}
+                                                'h-10 w-full justify-between rounded-xl border-input bg-white font-normal',
+                                                studentId === null && 'text-muted-foreground'
+                                            )}>
+                                            <span className='truncate pr-2'>
+                                                {studentId !== null ? selectedStudentName || 'Selected Student' : 'Select Student'}
                                             </span>
-                                            <div className="flex items-center shrink-0">
+                                            <div className='flex shrink-0 items-center'>
                                                 {yearMutation.isPending ? (
-                                                    <Loader2 className="h-4 w-4 animate-spin opacity-50" />
+                                                    <Loader2 className='h-4 w-4 animate-spin opacity-50' />
                                                 ) : (
                                                     <>
                                                         {studentId !== null && (
                                                             <X
-                                                                className="h-4 w-4 mr-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+                                                                className='mr-2 h-4 w-4 cursor-pointer opacity-50 transition-opacity hover:opacity-100'
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setStudentId(null);
@@ -452,39 +478,39 @@ export default function DanvantariTransferCertificatePage() {
                                                                 }}
                                                             />
                                                         )}
-                                                        <Search className="h-4 w-4 opacity-50" />
+                                                        <Search className='h-4 w-4 opacity-50' />
                                                     </>
                                                 )}
                                             </div>
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className='w-[450px] p-0 shadow-2xl rounded-xl overflow-hidden' align='start'>
+                                    <PopoverContent className='w-[450px] overflow-hidden rounded-xl p-0 shadow-2xl' align='start'>
                                         <Command className='w-full' shouldFilter={false}>
                                             <CommandInput
-                                                placeholder="Search student (Min 3 chars)..."
-                                                className="h-10"
+                                                placeholder='Search student (Min 3 chars)...'
+                                                className='h-10'
                                                 value={searchTerm}
                                                 onValueChange={setSearchTerm}
                                             />
                                             <CommandList>
                                                 {studentNameMutation.isPending && (
-                                                    <div className="flex items-center justify-center p-4">
-                                                        <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+                                                    <div className='flex items-center justify-center p-4'>
+                                                        <Loader2 className='h-6 w-6 animate-spin text-indigo-600' />
                                                     </div>
                                                 )}
                                                 <CommandEmpty>
                                                     {searchTerm.length < 3 ? 'Type at least 3 characters to search' : 'No students found'}
                                                 </CommandEmpty>
-                                                <CommandGroup className="max-h-64 overflow-y-auto">
+                                                <CommandGroup className='max-h-64 overflow-y-auto'>
                                                     {studentList.map((s: any, idx: number) => (
                                                         <CommandItem
                                                             key={`student-${s.amcsT_Id || s.AMCST_Id || s.AMST_Id || idx}`}
                                                             value={`${s.studentName || s.studentname} ${s.amsT_AdmNo || s.AMST_AdmNo || ''}`}
                                                             onSelect={() => {
                                                                 const id = s.amcsT_Id || s.AMCST_Id || s.AMST_Id;
-                                                                const name = s.studentName || s.studentname || "Selected Student";
+                                                                const name = s.studentName || s.studentname || 'Selected Student';
                                                                 const sid = s.acmS_Id || s.ACMS_Id || 1;
-                                                                const admNo = s.amsT_AdmNo || s.AMST_AdmNo || "";
+                                                                const admNo = s.amsT_AdmNo || s.AMST_AdmNo || '';
                                                                 const miid = s.mI_Id || s.mi_Id || 30;
                                                                 setStudentId(id);
                                                                 setSelectedStudentName(name);
@@ -493,13 +519,23 @@ export default function DanvantariTransferCertificatePage() {
                                                                 setMiId(miid);
                                                                 setStudentOpen(false);
                                                             }}
-                                                            className="flex items-center justify-between"
-                                                        >
-                                                            <div className="flex items-center">
-                                                                <Check className={cn('mr-2 h-4 w-4 text-indigo-600', studentId === (s.amcsT_Id || s.AMCST_Id || s.AMST_Id) ? 'opacity-100' : 'opacity-0')} />
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium text-slate-700">{s.studentName || s.studentname}</span>
-                                                                    <span className="text-[10px] text-muted-foreground uppercase">{s.amsT_AdmNo || s.AMST_AdmNo}</span>
+                                                            className='flex items-center justify-between'>
+                                                            <div className='flex items-center'>
+                                                                <Check
+                                                                    className={cn(
+                                                                        'mr-2 h-4 w-4 text-indigo-600',
+                                                                        studentId === (s.amcsT_Id || s.AMCST_Id || s.AMST_Id)
+                                                                            ? 'opacity-100'
+                                                                            : 'opacity-0'
+                                                                    )}
+                                                                />
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium text-slate-700'>
+                                                                        {s.studentName || s.studentname}
+                                                                    </span>
+                                                                    <span className='text-[10px] text-muted-foreground uppercase'>
+                                                                        {s.amsT_AdmNo || s.AMST_AdmNo}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </CommandItem>
@@ -515,27 +551,27 @@ export default function DanvantariTransferCertificatePage() {
                         {/* Extra Details Section */}
                         <div className='space-y-4'>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Hall Ticket No:</Label>
+                                <Label className='font-bold text-slate-700 text-sm'>Hall Ticket No:</Label>
                                 <input
-                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none'
+                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500'
                                     placeholder='Enter Hall Ticket No'
                                     value={hallTicketNo}
                                     onChange={(e) => setHallTicketNo(e.target.value)}
                                 />
                             </div>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Reason for Leaving:</Label>
+                                <Label className='font-bold text-slate-700 text-sm'>Reason for Leaving:</Label>
                                 <input
-                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none'
+                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500'
                                     placeholder='Enter Reason'
                                     value={reasonForLeaving}
                                     onChange={(e) => setReasonForLeaving(e.target.value)}
                                 />
                             </div>
                             <div className='grid grid-cols-[140px_1fr] items-center gap-4'>
-                                <Label className='text-sm font-bold text-slate-700'>Identification Marks:</Label>
+                                <Label className='font-bold text-slate-700 text-sm'>Identification Marks:</Label>
                                 <input
-                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none'
+                                    className='flex h-10 w-full rounded-xl border border-input bg-background px-3 py-1 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500'
                                     placeholder='Enter Identification Marks'
                                     value={identificationMarks}
                                     onChange={(e) => setIdentificationMarks(e.target.value)}
@@ -545,12 +581,12 @@ export default function DanvantariTransferCertificatePage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='flex flex-wrap justify-center items-center gap-4 pt-8 border-t border-slate-100'>
+                    <div className='flex flex-wrap items-center justify-center gap-4 border-slate-100 border-t pt-8'>
                         <Button
                             size='sm'
                             onClick={handleReport}
                             disabled={reportMutation.isPending}
-                            className='w-fit bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md px-6 py-2'>
+                            className='w-fit rounded-xl bg-indigo-600 px-6 py-2 font-bold text-white shadow-md hover:bg-indigo-700'>
                             {reportMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'REPORT'}
                         </Button>
 
@@ -558,7 +594,7 @@ export default function DanvantariTransferCertificatePage() {
                             size='sm'
                             variant='outline'
                             onClick={handleCancel}
-                            className='w-fit border-2 border-orange-200 text-orange-600 hover:bg-orange-50 rounded-xl font-bold px-6 py-2'>
+                            className='w-fit rounded-xl border-2 border-orange-200 px-6 py-2 font-bold text-orange-600 hover:bg-orange-50'>
                             CANCEL
                         </Button>
 
@@ -566,7 +602,7 @@ export default function DanvantariTransferCertificatePage() {
                             size='sm'
                             onClick={handlePrint}
                             disabled={!showReport}
-                            className='w-fit bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold shadow-md px-6 py-2'>
+                            className='w-fit rounded-xl bg-slate-800 px-6 py-2 font-bold text-white shadow-md hover:bg-slate-900'>
                             <Printer className='mr-2 h-4 w-4' />
                             PRINT
                         </Button>
@@ -575,124 +611,217 @@ export default function DanvantariTransferCertificatePage() {
             </CollapsibleSection>
 
             {/* Print Preview */}
-            {showReport && reportData && (reportData.getstudentdetails || reportData.getstudentlist)?.map((student: any, idx: number) => (
-                <div key={`report-${idx}`} className='mt-8 flex flex-col items-center bg-slate-50 p-8 rounded-3xl border-2 border-dashed border-indigo-200 overflow-auto'>
-                    <div ref={printRef} className='bg-white shadow-2xl w-[210mm] min-h-[297mm] p-0 printable-content'>
-                        <div className="certificate-page relative p-[15mm] flex flex-col" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', margin: '0 auto' }}>
-                            <div className="h-full border-[1.5px] border-black p-[8mm] flex flex-col relative">
-
-                                {/* Header Section */}
-                                <div className="text-center mb-6">
-                                    <img src={student.imgname || "https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg"} className="w-[85%] mx-auto h-auto object-contain" alt="Danvantari Logo" />
-                                </div>
-
-                                {/* Title */}
-                                <div className="text-center mb-8">
-                                    <h2 className="title-box">TRANSFER CERTIFICATE</h2>
-                                </div>
-
-                                {/* No & Date */}
-                                <div className="flex justify-between items-center text-[18px] font-serif mb-8 px-2 font-bold">
-                                    <span>NO. <span className="border-b border-black inline-block min-w-[100px] text-center">{student.ACSTC_TCNO || 'N/A'}</span></span>
-                                    <span>Date: <span className="border-b border-black inline-block min-w-[100px] text-center">{format(new Date(), 'dd/MM/yyyy')}</span></span>
-                                </div>
-
-                                {/* Form Rows */}
-                                <div className="tc-content font-serif text-[18px] space-y-6">
-                                    {/* Row 1 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[180px]">1. Admission No :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.AMCST_AdmNo}</div>
-                                        <div className="flex-shrink-0 w-[100px] text-right">H.T.No :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{hallTicketNo}</div>
+            {showReport &&
+                reportData &&
+                (reportData.getstudentdetails || reportData.getstudentlist)?.map((student: any, idx: number) => (
+                    <div
+                        key={`report-${idx}`}
+                        className='mt-8 flex flex-col items-center overflow-auto rounded-3xl border-2 border-indigo-200 border-dashed bg-slate-50 p-8'>
+                        <div ref={printRef} className='printable-content min-h-[297mm] w-[210mm] bg-white p-0 shadow-2xl'>
+                            <div
+                                className='certificate-page relative flex flex-col p-[15mm]'
+                                style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', margin: '0 auto' }}>
+                                <div className='relative flex h-full flex-col border-[1.5px] border-black p-[8mm]'>
+                                    {/* Header Section */}
+                                    <div className='mb-6 text-center'>
+                                        <img
+                                            src={
+                                                student.imgname ||
+                                                'https://vapsclg.blob.core.windows.net/files/76/NoticeUpload/d120170c-fbbf-48c2-b675-ef8d053a0d03.jpg'
+                                            }
+                                            className='mx-auto h-auto w-[85%] object-contain'
+                                            alt='Danvantari Logo'
+                                        />
                                     </div>
 
-                                    {/* Row 2 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[180px]">2. Course Admitted :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.coursename}</div>
+                                    {/* Title */}
+                                    <div className='mb-8 text-center'>
+                                        <h2 className='title-box'>TRANSFER CERTIFICATE</h2>
                                     </div>
 
-                                    {/* Row 3 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[240px]">3. Name of the Student (as per SSC) :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{student.studentname}</div>
+                                    {/* No & Date */}
+                                    <div className='mb-8 flex items-center justify-between px-2 font-bold font-serif text-[18px]'>
+                                        <span>
+                                            NO.{' '}
+                                            <span className='inline-block min-w-[100px] border-black border-b text-center'>
+                                                {student.ACSTC_TCNO || 'N/A'}
+                                            </span>
+                                        </span>
+                                        <span>
+                                            Date:{' '}
+                                            <span className='inline-block min-w-[100px] border-black border-b text-center'>
+                                                {format(new Date(), 'dd/MM/yyyy')}
+                                            </span>
+                                        </span>
                                     </div>
 
-                                    {/* Row 4 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[190px]">4. Name of the Father :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{student.AMCST_FatherName}</div>
-                                    </div>
-
-                                    {/* Row 5 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[160px]">5. Date of Birth :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.AMCST_DOB ? format(new Date(student.AMCST_DOB), 'dd/MM/yyyy') : ''}</div>
-                                    </div>
-
-                                    {/* Row 6 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[180px]">6. Identification Marks :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5 uppercase" contentEditable suppressContentEditableWarning={true}>{identificationMarks}</div>
-                                    </div>
-
-                                    {/* Row 7 */}
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2 flex-grow">
-                                            <div className="flex-shrink-0">7. Nationality :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.nationality}</div>
+                                    {/* Form Rows */}
+                                    <div className='tc-content space-y-6 font-serif text-[18px]'>
+                                        {/* Row 1 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[180px] flex-shrink-0'>1. Admission No :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.AMCST_AdmNo}
+                                            </div>
+                                            <div className='w-[100px] flex-shrink-0 text-right'>H.T.No :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {hallTicketNo}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-grow">
-                                            <div className="flex-shrink-0">Religion :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.religion}</div>
+
+                                        {/* Row 2 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[180px] flex-shrink-0'>2. Course Admitted :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.coursename}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-grow">
-                                            <div className="flex-shrink-0">Caste :</div>
-                                            <div className="flex-grow border-b border-black px-2 pb-0.5 text-center" contentEditable suppressContentEditableWarning={true}>{student.caste}</div>
+
+                                        {/* Row 3 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[240px] flex-shrink-0'>3. Name of the Student (as per SSC) :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5 uppercase'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.studentname}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 4 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[190px] flex-shrink-0'>4. Name of the Father :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5 uppercase'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.AMCST_FatherName}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 5 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[160px] flex-shrink-0'>5. Date of Birth :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.AMCST_DOB ? format(new Date(student.AMCST_DOB), 'dd/MM/yyyy') : ''}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 6 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[180px] flex-shrink-0'>6. Identification Marks :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5 uppercase'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {identificationMarks}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 7 */}
+                                        <div className='flex items-center gap-4'>
+                                            <div className='flex flex-grow items-center gap-2'>
+                                                <div className='flex-shrink-0'>7. Nationality :</div>
+                                                <div
+                                                    className='flex-grow border-black border-b px-2 pb-0.5 text-center'
+                                                    contentEditable
+                                                    suppressContentEditableWarning={true}>
+                                                    {student.nationality}
+                                                </div>
+                                            </div>
+                                            <div className='flex flex-grow items-center gap-2'>
+                                                <div className='flex-shrink-0'>Religion :</div>
+                                                <div
+                                                    className='flex-grow border-black border-b px-2 pb-0.5 text-center'
+                                                    contentEditable
+                                                    suppressContentEditableWarning={true}>
+                                                    {student.religion}
+                                                </div>
+                                            </div>
+                                            <div className='flex flex-grow items-center gap-2'>
+                                                <div className='flex-shrink-0'>Caste :</div>
+                                                <div
+                                                    className='flex-grow border-black border-b px-2 pb-0.5 text-center'
+                                                    contentEditable
+                                                    suppressContentEditableWarning={true}>
+                                                    {student.caste}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 8 */}
+                                        <div className='flex items-start gap-2'>
+                                            <div className='w-[420px] flex-shrink-0'>
+                                                8. Class Studying at the time of leaving the institution :
+                                            </div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.CurrentSemStudying}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 9 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[240px] flex-shrink-0'>9. Reason for leaving institution :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {reasonForLeaving}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 10 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[140px] flex-shrink-0'>10. T.C. issue on :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {format(new Date(), 'dd/MM/yyyy')}
+                                            </div>
+                                        </div>
+
+                                        {/* Row 11 */}
+                                        <div className='flex items-center gap-2'>
+                                            <div className='w-[240px] flex-shrink-0'>11. Conduct of the Student :</div>
+                                            <div
+                                                className='flex-grow border-black border-b px-2 pb-0.5'
+                                                contentEditable
+                                                suppressContentEditableWarning={true}>
+                                                {student.ACSTC_Conduct}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Row 8 */}
-                                    <div className="flex items-start gap-2">
-                                        <div className="flex-shrink-0 w-[420px]">8. Class Studying at the time of leaving the institution :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.CurrentSemStudying}</div>
-                                    </div>
-
-                                    {/* Row 9 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[240px]">9. Reason for leaving institution :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{reasonForLeaving}</div>
-                                    </div>
-
-                                    {/* Row 10 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[140px]">10. T.C. issue on :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{format(new Date(), 'dd/MM/yyyy')}</div>
-                                    </div>
-
-                                    {/* Row 11 */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-shrink-0 w-[240px]">11. Conduct of the Student :</div>
-                                        <div className="flex-grow border-b border-black px-2 pb-0.5" contentEditable suppressContentEditableWarning={true}>{student.ACSTC_Conduct}</div>
+                                    {/* Signature Footer */}
+                                    <div className='mt-auto flex items-end justify-between px-4 pb-10 font-bold font-serif text-[18px]'>
+                                        <div className='w-[150px] text-center'>
+                                            <div className='block pb-2'>Clerk</div>
+                                        </div>
+                                        <div className='w-[200px] text-center'>
+                                            <div className='block pt-1 uppercase'>PRINCIPAL</div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Signature Footer */}
-                                <div className="mt-auto flex justify-between items-end px-4 text-[18px] font-serif font-bold pb-10">
-                                    <div className="text-center w-[150px]">
-                                        <div className="block pb-2">Clerk</div>
-                                    </div>
-                                    <div className="text-center w-[200px]">
-                                        <div className="block uppercase pt-1">PRINCIPAL</div>
-                                    </div>
-                                </div>
-
                             </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                ))}
 
             <style jsx global>{`
                 .title-box {

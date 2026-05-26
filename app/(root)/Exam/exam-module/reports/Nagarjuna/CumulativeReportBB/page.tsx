@@ -41,7 +41,6 @@ export default function CumulativeReportPage() {
         try {
             setCurrentPayload(payload);
             const res = await getCumulativeReport(payload, setSearchParams);
-            console.log('report data', res);
             const institudtion_res = await getMasterInstitution();
             const { data: institudtion_data } = institudtion_res;
             setInstitution(institudtion_data);

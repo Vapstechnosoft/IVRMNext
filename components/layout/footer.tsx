@@ -3,7 +3,7 @@
 import { Phone, Shield } from 'lucide-react';
 
 export default function Footer() {
-    const currentYear = new Date().getFullYear();
+    const _currentYear = new Date().getFullYear();
 
     return (
         <footer className='sticky bottom-0 z-50 w-full border-slate-200 border-t bg-white/80 py-4 backdrop-blur-md'>

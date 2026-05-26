@@ -3,23 +3,20 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { AcademicYear, Category } from '@/types/timetable/Transaction/timetablegeneration';
 
-export async function getAcademicYear(data?: any) {
+export async function getAcademicYear(_data?: any) {
     const url = '/TimeTableCommon/GetAcademicYearData';
     console.info('TimeTableCommon', url);
     return await api.get<AcademicYear>('timetable', url);
 }
 
-export async function getCategory(data?: any) {
+export async function getCategory(_data?: any) {
     const url = '/TimeTableCommon/GetCategoryDetails';
     console.info('TimeTableCommon', url);
     return await api.get<Category>('timetable', url);
 }
 
 export async function getGenerationMasters() {
-    const [yearsResponse, categoriesResponse] = await Promise.all([
-        getAcademicYear(),
-        getCategory()
-    ]);
+    const [yearsResponse, categoriesResponse] = await Promise.all([getAcademicYear(), getCategory()]);
 
     return {
         years: (yearsResponse.data || []) as AcademicYear[],

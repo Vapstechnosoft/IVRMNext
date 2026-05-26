@@ -1,12 +1,22 @@
 import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    IScheduleReportInitialDetailsResponse,
-    IScheduleListResponse,
-    IScheduleReportDetailsResponse
-} from '@/types/admission/preadmission/reports';
+    getDobCertificateDetails,
+    getDobCertificateLoadData,
+    getDobCertificateStudentList
+} from '@/server/admission/preadmission/reports/DOBcertificate';
 import {
+    getAttendance100Class,
+    getAttendance100InitialDetails,
+    getAttendance100Report,
+    getAttendance100Section,
+    sendShortageAlert
+} from '@/server/admission/preadmission/reports/attendance_report_100';
+import {
+    generateQRCodeCertificate,
+    getAttendanceAbsentInitialDetails,
     getAttendanceAbsentSmsReport,
     getAttendanceReport,
+    getCharacterCertficateReport,
     getMonthEndReport,
     getPreAdmissionEmailSmsReport,
     getPreAdmissionMonthEndReport,
@@ -14,23 +24,21 @@ import {
     getStudentAttendanceReport,
     getStudentTcReport,
     getStudyCertficateReport,
-    getCharacterCertficateReport,
-    generateQRCodeCertificate,
     getclasswiseStudentDetails,
-    getAttendanceAbsentInitialDetails,
-    sendAttendanceAbsentSms,
     sendAttendanceAbsentEmail,
     sendAttendanceAbsentNotice,
     sendAttendanceAbsentOTP,
+    sendAttendanceAbsentSms,
     verifyAttendanceAbsentOTP
 } from '@/server/admission/preadmission/reports/report';
-import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
-    getScheduleReportInitialDetails,
     getScheduleList,
     getScheduleReportDetails,
+    getScheduleReportInitialDetails,
     sendScheduleMail
 } from '@/server/admission/preadmission/reports/schedule_report';
+import { getStudentBirthdayReportDetails } from '@/server/admission/preadmission/reports/student_birthday_report';
+import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
     type ElectiveItem,
     GetClassTeacherReport,
@@ -42,11 +50,22 @@ import {
     getTotalStrengthReport,
     getadmissionStudentsDropdown
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
-import { getStudentBirthdayReportDetails } from '@/server/admission/preadmission/reports/student_birthday_report';
-import { getStudyCertificateAcademicYearChange, getStudyCertificateConductDetails, getStudyCertificateDetails, getStudyCertificateLoadData, getStudyCertificateSearchFilter, getStudyCertificateSearchFilterSRKVS, getStudyCertificateStudentList, getStudyCertificateQR } from '@/server/admission/preadmission/reports/study_certificate';
-import { getAttendance100InitialDetails, getAttendance100Class, getAttendance100Section, getAttendance100Report, sendShortageAlert } from '@/server/admission/preadmission/reports/attendance_report_100';
-import { getDobCertificateDetails, getDobCertificateLoadData, getDobCertificateStudentList } from '@/server/admission/preadmission/reports/DOBcertificate';
+import {
+    getStudyCertificateAcademicYearChange,
+    getStudyCertificateConductDetails,
+    getStudyCertificateDetails,
+    getStudyCertificateLoadData,
+    getStudyCertificateQR,
+    getStudyCertificateSearchFilter,
+    getStudyCertificateSearchFilterSRKVS,
+    getStudyCertificateStudentList
+} from '@/server/admission/preadmission/reports/study_certificate';
 import type { ApiSearchparams } from '@/types';
+import type {
+    IScheduleListResponse,
+    IScheduleReportDetailsResponse,
+    IScheduleReportInitialDetailsResponse
+} from '@/types/admission/preadmission/reports';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams, enabled = true) => {
@@ -219,7 +238,13 @@ export const usePreAdmissionEmailSmsReport = (
             })
     };
 };
-export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number | undefined, searchParams?: ApiSearchparams, enabled = true) => {
+export const useStudentYearlyAttendance = (
+    ASMAY_Id: number,
+    ASMCL_Id: number,
+    ASMS_Id: number | undefined,
+    searchParams?: ApiSearchparams,
+    enabled = true
+) => {
     const queryClient = useQueryClient();
 
     return {
@@ -582,7 +607,15 @@ export const useStudentAttendanceReport = (
     };
 };
 
-export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, AMC_Id: number, searchParams?: ApiSearchparams, enabled = true) => {
+export const useDateOfBirth = (
+    ASMAY_Id: number,
+    ASMCL_Id: number,
+    ASMS_Id: number,
+    AMST_Id: number,
+    AMC_Id: number,
+    searchParams?: ApiSearchparams,
+    enabled = true
+) => {
     const queryClient = useQueryClient();
 
     return {
@@ -776,13 +809,12 @@ export const useStudyCertificateQR = (data: any, enabled = true) => {
             });
         }
     };
-}; export const useStudyCertificateQRMutation = () => {
+};
+export const useStudyCertificateQRMutation = () => {
     return useMutation({
         mutationFn: getStudyCertificateQR
     });
 };
-
-
 
 export const useStudentBirthdayReportDetails = (data: any, searchParams?: ApiSearchparams, enabled = true) => {
     const queryClient = useQueryClient();

@@ -61,7 +61,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
             if (!dateValue) return <div>N.A</div>;
             try {
                 return <div>{format(new Date(dateValue as string | number | Date), 'dd-MM-yyyy')}</div>;
-            } catch (e) {
+            } catch (_e) {
                 return <div>{String(dateValue)}</div>;
             }
         },

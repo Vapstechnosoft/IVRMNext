@@ -18,7 +18,9 @@ export default function BrsReportCardXPage() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
     const [remarksMap, setRemarksMap] = useState<Record<number, string>>({});
-    const [chartDataMap, setChartDataMap] = useState<Record<number, { subjects: string[]; marks: number[]; highest: number[]; average: number[] }>>({});
+    const [chartDataMap, setChartDataMap] = useState<
+        Record<number, { subjects: string[]; marks: number[]; highest: number[]; average: number[] }>
+    >({});
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,7 +32,6 @@ export default function BrsReportCardXPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
-            console.log(res, 'BRS X Report Response');
 
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
                 toast.error('No records found');
@@ -41,12 +42,15 @@ export default function BrsReportCardXPage() {
             const flatRows: any[] = res.data;
 
             // Extract sub-subjects
-            const sub_subject: any[] = (res as any).sub_subject || (res as any).sub_subject_marks?.reduce((acc: any[], m: any) => {
-                if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
-                    acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
-                }
-                return acc;
-            }, []) || [];
+            const sub_subject: any[] =
+                (res as any).sub_subject ||
+                (res as any).sub_subject_marks?.reduce((acc: any[], m: any) => {
+                    if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
+                        acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
+                    }
+                    return acc;
+                }, []) ||
+                [];
 
             const sub_subject_marks_raw: any[] = (res as any).sub_subject_marks || [];
 
@@ -55,7 +59,7 @@ export default function BrsReportCardXPage() {
             const newRemarksMap: Record<number, string> = {};
             remarksData.forEach((r: any) => {
                 if (r.amsT_Id && r.emeR_Remarks) {
-                    newRemarksMap[r.amsT_Id] = (newRemarksMap[r.amsT_Id] ? newRemarksMap[r.amsT_Id] + ' ' : '') + r.emeR_Remarks;
+                    newRemarksMap[r.amsT_Id] = (newRemarksMap[r.amsT_Id] ? `${newRemarksMap[r.amsT_Id]} ` : '') + r.emeR_Remarks;
                 }
             });
 
@@ -133,9 +137,7 @@ export default function BrsReportCardXPage() {
                 }
             });
 
-            const validSubjectIds = new Set(
-                Array.from(studentMap.values()).flatMap((s) => s.sub_list.map((m) => m.ismS_Id))
-            );
+            const validSubjectIds = new Set(Array.from(studentMap.values()).flatMap((s) => s.sub_list.map((m) => m.ismS_Id)));
             const filteredSubjects = Array.from(subjectMap.values())
                 .filter((s) => validSubjectIds.has(s.ismS_Id))
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));

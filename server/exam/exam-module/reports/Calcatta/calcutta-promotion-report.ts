@@ -69,44 +69,44 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class",
-            columname: ""
+            examnamedisplay: 'Highest in Class',
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class"
+            examnamedisplay: 'Highest in Class'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -130,16 +130,20 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id)
+            .map((d: any) => ({
+                classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
+                emE_Id: d.EME_Id || d.emE_Id,
+                classatt: d.PRESENTDAYS || d.presentdays,
+                percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+            }));
 
         // Suggestions
-        const suggestions = examwiseremarks.filter((s: any) => s.amsT_Id === stu.amsT_Id).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
+        const suggestions = examwiseremarks
+            .filter((s: any) => s.amsT_Id === stu.amsT_Id)
+            .map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
@@ -181,7 +185,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        if (!skilllist_temp.find((emp) => emp.ECS_Id === dev.ECS_Id)) {
             skilllist_temp.push(dev);
         }
     }
@@ -192,7 +196,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         groupwiseexamlist,
         gettermdetails,
         skilllist_temp,
-        studentdetails: studentListDetails,
+        studentdetails: studentListDetails
     };
 }
 
@@ -253,44 +257,44 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName || dd.empG_GroupName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName || dd.empG_GroupName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class",
-            columname: ""
+            examnamedisplay: 'Highest in Class',
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName || dd.empG_GroupName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName || dd.empG_GroupName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class"
+            examnamedisplay: 'Highest in Class'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -319,16 +323,20 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id)
+            .map((d: any) => ({
+                classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
+                emE_Id: d.EME_Id || d.emE_Id,
+                classatt: d.PRESENTDAYS || d.presentdays,
+                percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+            }));
 
         // Suggestions (optional)
-        const suggestions = examwiseremarks.filter((s: any) => s.amsT_Id === stu.amsT_Id).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
+        const suggestions = examwiseremarks
+            .filter((s: any) => s.amsT_Id === stu.amsT_Id)
+            .map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
@@ -370,7 +378,7 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        if (!skilllist_temp.find((emp) => emp.ECS_Id === dev.ECS_Id)) {
             skilllist_temp.push(dev);
         }
     }
@@ -382,10 +390,9 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         gettermdetails,
         skilllist_temp,
         examwiseremarkstemp,
-        studentdetails: studentListDetails,
+        studentdetails: studentListDetails
     };
 }
-
 
 /**
  * Fetches grades and exams based on selection
@@ -416,10 +423,8 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     // Sub columns processing
     const subcolmns: any[] = [];
     for (const dev of gettermdetails) {
-        const exists = subcolmns.find(emp =>
-            emp.ISMS_Id === dev.ISMS_Id &&
-            emp.EME_Id === dev.EME_Id &&
-            emp.EMSE_SubExamName === dev.EMSE_SubExamName
+        const exists = subcolmns.find(
+            (emp) => emp.ISMS_Id === dev.ISMS_Id && emp.EME_Id === dev.EME_Id && emp.EMSE_SubExamName === dev.EMSE_SubExamName
         );
         if (!exists) {
             subcolmns.push(dev);

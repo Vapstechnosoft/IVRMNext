@@ -21,10 +21,8 @@ export default function ReorderAcademicYearForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getPreAdmissionSetOrder();
-            console.log('🔵 [ReorderAcademicYearForm] API Response:', orderResponse);
             const data = orderResponse?.data;
             const items = Array.isArray(data) ? data : (data as any)?.academic_year_order_list || (data as any)?.records || [];
-            console.log('🔵 [ReorderAcademicYearForm] Extracted Items:', items);
             setOrderedItems(items);
             setIsDialogOpen(true);
         } catch (error) {
@@ -100,8 +98,9 @@ export default function ReorderAcademicYearForm() {
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragEnd={handleDragEnd}
-                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
-                                            }`}>
+                                        className={`flex cursor-move items-center gap-3 rounded-md bg-muted/50 p-3 transition-all ${
+                                            draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
+                                        }`}>
                                         <GripVertical className='size-4' />
                                         <div className='flex-1 font-medium text-sm'>{item.asmaY_Year}</div>
                                     </div>

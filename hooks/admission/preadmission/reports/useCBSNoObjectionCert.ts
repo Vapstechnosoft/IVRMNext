@@ -1,46 +1,46 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getCBSNoObjectionLoadData,
-    getCBSNoObjectionStudentStatusChange,
     getCBSNoObjectionAcademicYearChange,
+    getCBSNoObjectionLoadData,
     getCBSNoObjectionSearchFilter,
     getCBSNoObjectionStudDetails,
+    getCBSNoObjectionStudentStatusChange,
     saveCBSNoObjectionQRCode
 } from '@/server/admission/preadmission/reports/cbs_no_objection_cert';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-export const useCBSNoObjectionLoadData = (pageId: number) => {
+export const useCBSNoObjectionLoadData = (_pageId: number) => {
     return useQuery({
         queryKey: ['cbs-no-objection-load-data'],
-        queryFn: () => getCBSNoObjectionLoadData(),
+        queryFn: () => getCBSNoObjectionLoadData()
     });
 };
 
 export const useCBSNoObjectionStudentStatusChange = () => {
     return useMutation({
-        mutationFn: getCBSNoObjectionStudentStatusChange,
+        mutationFn: getCBSNoObjectionStudentStatusChange
     });
 };
 
 export const useCBSNoObjectionAcademicYearChange = () => {
     return useMutation({
-        mutationFn: getCBSNoObjectionAcademicYearChange,
+        mutationFn: getCBSNoObjectionAcademicYearChange
     });
 };
 
 export const useCBSNoObjectionSearchFilter = () => {
     return useMutation({
-        mutationFn: getCBSNoObjectionSearchFilter,
+        mutationFn: getCBSNoObjectionSearchFilter
     });
 };
 
 export const useCBSNoObjectionStudDetails = () => {
     return useMutation({
-        mutationFn: getCBSNoObjectionStudDetails,
+        mutationFn: getCBSNoObjectionStudDetails
     });
 };
 
 export const useSaveCBSNoObjectionQRCode = () => {
     return useMutation({
-        mutationFn: saveCBSNoObjectionQRCode,
+        mutationFn: saveCBSNoObjectionQRCode
     });
 };

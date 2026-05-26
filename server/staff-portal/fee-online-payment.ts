@@ -101,7 +101,6 @@ export async function getStudentInformation(academicYearId: number): Promise<{
         if (!response.data) {
             throw new Error('Failed to fetch student information');
         }
-        console.log('Server Action received response:', JSON.stringify(response, null, 2));
 
         return {
             studentInfo: response.data?.fillstudent?.[0] || null,
@@ -210,7 +209,7 @@ export async function generatePaymentOrder(
     selectedList: GroupTermMapping[],
     paymentGateway: string,
     academicYearId: number,
-    classId: number
+    _classId: number
 ): Promise<PaymentOrderResponse> {
     try {
         const url = '/OnlinePayment/generatehashsequence';

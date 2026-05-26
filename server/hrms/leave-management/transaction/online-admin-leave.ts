@@ -1,11 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    OnlineAdminLeaveApplication,
-    OnlineAdminLeaveBalance,
     EmployeeDropDown,
-    SaveAdminEmployeeLeaveApplicationRequest,
-    EmployeeLeaveResponse
+    EmployeeLeaveResponse,
+    OnlineAdminLeaveApplication,
+    SaveAdminEmployeeLeaveApplicationRequest
 } from '@/types/hrms/leave-management/online-admin-leave';
 
 /**
@@ -16,17 +15,11 @@ export async function getEmployeesDropDown(): Promise<ApiResponse<EmployeeDropDo
     // Correct URL with /api prefix as per user logs and standard pattern
     const url = '/api/MasterDropDown/get_employees_drop_down';
     try {
-        console.log('🔵 [SERVER] Fetching employee dropdown from hrms:', url);
         const response = await api.getArray<EmployeeDropDown>('hmslms', url);
-        console.log('✅ [SERVER] Employee dropdown response:', {
-            success: response.success,
-            dataCount: response.data?.length
-        });
 
         // Some APIs might return data without a success field, treat as success if data exists
-        const isSuccess = response.success === true ||
-            String(response.success) === 'true' ||
-            (Array.isArray(response.data) && response.data.length > 0);
+        const isSuccess =
+            response.success === true || String(response.success) === 'true' || (Array.isArray(response.data) && response.data.length > 0);
 
         return {
             success: isSuccess,
@@ -75,17 +68,14 @@ export async function getLeaveDetailsGridByEmployeeId(hrmeId: number): Promise<A
 export async function getEmployeeLeavesByEmployeeId(hrmeId: number): Promise<ApiResponse<EmployeeLeaveResponse>> {
     const url = `/api/OnlineLeaveApplication/employee_leaves_by_employee_id/${hrmeId}`;
     try {
-        console.log('🔵 [SERVER] Fetching leave balance:', url);
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
-        console.log('✅ [SERVER] Leave balance response keys:', Object.keys(res.data || {}));
-        if (res.data?.employeeLeaves) console.log('✅ [SERVER] employeeLeaves count:', res.data.employeeLeaves.length);
-
-        return {
-            success: res.success === true || String(res.success) === 'true',
-            message: res.message || 'Employee leave balance fetched successfully',
-            data: res.data || null
-        };
+        if (res.data?.employeeLeaves)
+            return {
+                success: res.success === true || String(res.success) === 'true',
+                message: res.message || 'Employee leave balance fetched successfully',
+                data: res.data || null
+            };
     } catch (error: any) {
         throw new Error(error?.message || 'Failed to fetch employee leave balance');
     }

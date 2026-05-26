@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 export async function getMessCategoryList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});

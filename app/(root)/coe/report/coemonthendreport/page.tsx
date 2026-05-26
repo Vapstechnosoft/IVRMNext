@@ -1,7 +1,5 @@
 // app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
-
-import { useStudentClassDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
@@ -13,12 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { coeMonthEndReportSchema } from '@/schemas/coe/master';
 import { getCoeMonthEndReport } from '@/server/coe/masters/report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import xlsx, { IJsonSheet } from 'json-as-xlsx';
-import { Loader2, Printer, FileSpreadsheet } from 'lucide-react';
-import Image from 'next/image';
+import xlsx, { type IJsonSheet } from 'json-as-xlsx';
+import { Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -78,7 +74,7 @@ export default function CoeMonthEndReport() {
     //     documentTitle: 'COE_Month_End_Report',
     // });
 
-    const handleExport = () => {
+    const _handleExport = () => {
         if (!reportData) return;
 
         const data = [
@@ -89,7 +85,7 @@ export default function CoeMonthEndReport() {
                     { label: 'COE', value: 'coe' },
                     { label: 'Count', value: 'count' },
                     { label: 'SMS', value: 'sms' },
-                    { label: 'Email', value: 'email' },
+                    { label: 'Email', value: 'email' }
                 ],
                 content: [
                     {
@@ -97,10 +93,10 @@ export default function CoeMonthEndReport() {
                         coe: 'Student & Staff',
                         count: reportData.totalCount || 0,
                         sms: reportData.smsCount || 0,
-                        email: reportData.emailCount || 0,
-                    },
-                ],
-            },
+                        email: reportData.emailCount || 0
+                    }
+                ]
+            }
         ] as IJsonSheet[];
 
         const settings = {
@@ -108,7 +104,7 @@ export default function CoeMonthEndReport() {
             extraLength: 3,
             writeMode: 'writeFile',
             writeOptions: {},
-            RTL: false,
+            RTL: false
         };
 
         xlsx(data, settings);
@@ -135,7 +131,6 @@ export default function CoeMonthEndReport() {
             const response = await getCoeMonthEndReport(payload);
 
             if (response.data && response.data.length > 0) {
-
                 setReportData(response.data[0] || response.data);
                 toast.success('Report fetched successfully');
             } else {
@@ -237,14 +232,14 @@ export default function CoeMonthEndReport() {
                                     placeholder='Enter Name'
                                     {...register('ieName')}
                                     error={errors.ieName?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20 w-64'
+                                    className='w-64 transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
 
                             {/* Action Buttons */}
                             <div className='flex w-full max-w-md justify-center gap-4 pt-4'>
                                 <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
-                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Report'}
+                                    {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'Report'}
                                 </Button>
                                 <Button type='button' variant='destructive' onClick={handleReset} className='min-w-[120px]'>
                                     Clear
@@ -265,87 +260,87 @@ export default function CoeMonthEndReport() {
 
                     {/* Report Content */}
                     {reportData && (
-                        <Card className='mt-8 border-0 shadow-xl p-8' ref={componentRef}>
-                            <div className="flex flex-col gap-6">
+                        <Card className='mt-8 border-0 p-8 shadow-xl' ref={componentRef}>
+                            <div className='flex flex-col gap-6'>
                                 {/* Header */}
-                                <div className="text-center space-y-2">
-                                    <div className="flex justify-center mb-4">
+                                <div className='space-y-2 text-center'>
+                                    <div className='mb-4 flex justify-center'>
                                         {/* Placeholder for Logo - replace with actual logo path if known, or generic */}
-                                        <div className="h-20 w-20 relative">
+                                        <div className='relative h-20 w-20'>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
-                                                src="/assets/images/baldwin-logo.png"
-                                                alt="Baldwin Logo"
-                                                className="object-contain h-full w-full"
+                                                src='/assets/images/baldwin-logo.png'
+                                                alt='Baldwin Logo'
+                                                className='h-full w-full object-contain'
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
                                                 }}
                                             />
                                         </div>
                                     </div>
-                                    <h2 className="text-2xl font-bold uppercase underline decoration-2 underline-offset-4">COE Report</h2>
-                                    <div className="border border-black p-2 mt-2 inline-block min-w-[300px]">
-                                        <h3 className="font-semibold uppercase">COE {selectedMonth} MONTH REPORT</h3>
+                                    <h2 className='font-bold text-2xl uppercase underline decoration-2 underline-offset-4'>COE Report</h2>
+                                    <div className='mt-2 inline-block min-w-[300px] border border-black p-2'>
+                                        <h3 className='font-semibold uppercase'>COE {selectedMonth} MONTH REPORT</h3>
                                     </div>
                                 </div>
 
                                 {/* Info Table */}
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-4 max-w-4xl mx-auto w-full">
-                                    <div className="flex justify-between border-b pb-1">
-                                        <span className="font-semibold">Name:</span>
+                                <div className='mx-auto grid w-full max-w-4xl grid-cols-2 gap-x-12 gap-y-4'>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Name:</span>
                                         <span>{ieName || reportData.ieName || '_________________'}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-1">
-                                        <span className="font-semibold">Date:</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Date:</span>
                                         <span>{today.toLocaleDateString()}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-1">
-                                        <span className="font-semibold">Designation:</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Designation:</span>
                                         <span>{reportData.designation || '_________________'}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-1">
-                                        <span className="font-semibold">Academic Year:</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Academic Year:</span>
                                         <span>{selectedYear}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-1 col-span-2">
-                                        <span className="font-semibold">Module:</span>
+                                    <div className='col-span-2 flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Module:</span>
                                         <span>COE</span>
                                     </div>
                                 </div>
 
                                 {/* Data Table */}
-                                <div className="mt-6">
-                                    <table className="w-full border-collapse border border-black">
+                                <div className='mt-6'>
+                                    <table className='w-full border-collapse border border-black'>
                                         <thead>
-                                            <tr className="bg-gray-100">
-                                                <th className="border border-black p-2 text-center">SL.NO</th>
-                                                <th className="border border-black p-2 text-center">COE</th>
-                                                <th className="border border-black p-2 text-center">Count</th>
-                                                <th className="border border-black p-2 text-center">SMS</th>
-                                                <th className="border border-black p-2 text-center">Email</th>
+                                            <tr className='bg-gray-100'>
+                                                <th className='border border-black p-2 text-center'>SL.NO</th>
+                                                <th className='border border-black p-2 text-center'>COE</th>
+                                                <th className='border border-black p-2 text-center'>Count</th>
+                                                <th className='border border-black p-2 text-center'>SMS</th>
+                                                <th className='border border-black p-2 text-center'>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td className="border border-black p-2 text-center">1</td>
-                                                <td className="border border-black p-2 text-center">{reportData.coemE_EventName}</td>
-                                                <td className="border border-black p-2 text-center">{reportData.totalCount || 0}</td>
-                                                <td className="border border-black p-2 text-center">{reportData.smsCount || 0}</td>
-                                                <td className="border border-black p-2 text-center">{reportData.emailCount || 0}</td>
+                                                <td className='border border-black p-2 text-center'>1</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.coemE_EventName}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.totalCount || 0}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.smsCount || 0}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.emailCount || 0}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Footer Signatures */}
-                                <div className="mt-16 space-y-12">
-                                    <div className="flex justify-between px-12">
-                                        <div className="text-left">Implementation Engineer: ________________</div>
-                                        <div className="text-right">Nodal Officer: ________________</div>
+                                <div className='mt-16 space-y-12'>
+                                    <div className='flex justify-between px-12'>
+                                        <div className='text-left'>Implementation Engineer: ________________</div>
+                                        <div className='text-right'>Nodal Officer: ________________</div>
                                     </div>
-                                    <div className="flex justify-between px-12">
-                                        <div className="text-left">End User: ________________</div>
-                                        <div className="text-right">Seal: ________________</div>
+                                    <div className='flex justify-between px-12'>
+                                        <div className='text-left'>End User: ________________</div>
+                                        <div className='text-right'>Seal: ________________</div>
                                     </div>
                                 </div>
                             </div>

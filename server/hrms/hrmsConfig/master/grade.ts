@@ -47,7 +47,7 @@ export async function getMasterGradeById(id: number) {
 }
 
 export async function getGradeSetOrder() {
-    const url = `/api/MasterGrade/master_grade_order_active_list`;
+    const url = '/api/MasterGrade/master_grade_order_active_list';
     return await api.get<IMasterGradeSetOrderList[]>('hrms', url);
 }
 

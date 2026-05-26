@@ -59,7 +59,7 @@ export default function AddExamTTSessionForm({
                         return `${hours.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
                     }
                     return timeStr; // fallback
-                } catch (e) {
+                } catch (_e) {
                     return timeStr;
                 }
             };
@@ -82,7 +82,7 @@ export default function AddExamTTSessionForm({
             hours = hours % 12;
             hours = hours ? hours : 12; // the hour '0' should be '12'
             return `${hours}:${m} ${ampm}`;
-        } catch (e) {
+        } catch (_e) {
             return timeStr;
         }
     }
@@ -108,7 +108,7 @@ export default function AddExamTTSessionForm({
                 } else {
                     toast.error(response.message || 'Failed to save session');
                 }
-            } catch (error) {
+            } catch (_error) {
                 toast.error('An error occurred while saving the session');
             }
         });

@@ -23,7 +23,7 @@ export default function UpdateMasterProgramForm({ selectedRow, onSuccess }: Upda
             onSubmit={async (values) => {
                 try {
                     const response = await saveMasterProgram(values);
-                    if (response?.success || response?.returnval == true) {
+                    if (response?.success || response?.returnval === true) {
                         toast.success(response.message || 'Program updated successfully');
                         refetchAll();
                         onSuccess?.();

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { Readable } from 'node:stream';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -43,9 +43,6 @@ export async function POST(req: NextRequest) {
         }
 
         const { questionCount, difficulty, topic } = formFields;
-
-        // --- STEP 1: Upload PDF to get Extracted Text ---
-        console.log('Step 1: Uploading PDF to Render...');
         const formData = new FormData();
         const blob = new Blob([fileBuffer], { type: 'application/pdf' });
         formData.append('file', blob, fileName);
@@ -53,34 +50,30 @@ export async function POST(req: NextRequest) {
         const uploadRes = await fetch(`${BASE_URL}/upload-pdf`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json'
             },
-            body: formData,
+            body: formData
         });
 
         const uploadContentType = uploadRes.headers.get('content-type');
         if (!uploadRes.ok || !uploadContentType?.includes('application/json')) {
             const errText = await uploadRes.text();
             console.error('PDF Upload Error Response:', errText);
-            throw new Error(`AI Server (Upload) is currently unavailable or returning HTML. Please try again in 30 seconds.`);
+            throw new Error('AI Server (Upload) is currently unavailable or returning HTML. Please try again in 30 seconds.');
         }
 
         const uploadData = await uploadRes.json();
         const extractedText = uploadData.extracted_text;
-        console.log('PDF Uploaded. Text length:', extractedText?.length);
-
-        // --- STEP 2: Generate Questions using Extracted Text ---
-        console.log('Step 2: Generating questions...');
         const genRes = await fetch(`${BASE_URL}/generate-questions`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                Accept: 'application/json'
             },
             body: JSON.stringify({
                 extracted_text: extractedText,
-                topics: topic ? [topic] : ["General Knowledge"],
-                question_count: parseInt(questionCount) || 5,
+                topics: topic ? [topic] : ['General Knowledge'],
+                question_count: Number.parseInt(questionCount) || 5,
                 difficulty: difficulty.toLowerCase()
             }),
             signal: AbortSignal.timeout(60000)
@@ -90,11 +83,10 @@ export async function POST(req: NextRequest) {
         if (!genRes.ok || !genContentType?.includes('application/json')) {
             const errText = await genRes.text();
             console.error('Generation Error Response:', errText);
-            throw new Error(`AI Server (Generation) returned an invalid response. The content might be too large.`);
+            throw new Error('AI Server (Generation) returned an invalid response. The content might be too large.');
         }
 
         const genData = await genRes.json();
-        console.log('Questions generated:', genData.questions?.length);
 
         // --- STEP 3: Map Response to Frontend Structure ---
         const mappedQuestions = genData.questions.map((q: any, idx: number) => ({
@@ -106,13 +98,16 @@ export async function POST(req: NextRequest) {
         }));
 
         // Derive a topic/title from content or filename
-        const derivedTitle = extractedText?.split('\n').filter((l: string) => l.trim().length > 5)[0]?.substring(0, 40) || fileName.replace('.pdf', '');
+        const derivedTitle =
+            extractedText
+                ?.split('\n')
+                .filter((l: string) => l.trim().length > 5)[0]
+                ?.substring(0, 40) || fileName.replace('.pdf', '');
 
         return NextResponse.json({
-            title: derivedTitle || "General Assessment",
+            title: derivedTitle || 'General Assessment',
             questions: mappedQuestions
         });
-
     } catch (error: any) {
         console.error('Quiz Generation CRITICAL Error:', error);
         return NextResponse.json({ error: error.message || 'Generation failed' }, { status: 500 });

@@ -23,7 +23,7 @@ interface SubSubjectMark {
 
 interface BrsReportData extends IExamReportCard {
     amaY_RollNo?: any;
-    userName?: string;           // House
+    userName?: string; // House
     _MotherName?: string;
     sub_subject?: SubSubject[];
     sub_subjectmarks?: SubSubjectMark[];
@@ -84,10 +84,11 @@ export default function BrsPreBoardProgressCardReport({
             const canvas = chartRefs.current[report.amsT_Id];
             if (!canvas) return;
 
-            const applicableSubjects = report.sub_list?.filter((mark) => {
-                const subj = subjects.find((s) => s.ismS_Id === mark.ismS_Id);
-                return subj?.eyceS_AplResultFlg !== false;
-            }) || [];
+            const applicableSubjects =
+                report.sub_list?.filter((mark) => {
+                    const subj = subjects.find((s) => s.ismS_Id === mark.ismS_Id);
+                    return subj?.eyceS_AplResultFlg !== false;
+                }) || [];
 
             const labels: (string | string[])[] = [];
             const moData: number[] = [];
@@ -96,8 +97,8 @@ export default function BrsPreBoardProgressCardReport({
 
             applicableSubjects.forEach((mark) => {
                 const subj = subjects.find((s) => s.ismS_Id === mark.ismS_Id);
-                let subjectName = subj?.ismS_SubjectName || '';
-                
+                const subjectName = subj?.ismS_SubjectName || '';
+
                 // Wrapping subject names if too long, matching old logic
                 if (subjectName.length > 12) {
                     const words = subjectName.split(' ');
@@ -112,7 +113,7 @@ export default function BrsPreBoardProgressCardReport({
 
                 // Marks and calculations
                 const marksObtained = mark.estmpS_ObtainedMarks || 0;
-                // Since this data is often nested differently, we fallback to mark's own data 
+                // Since this data is often nested differently, we fallback to mark's own data
                 const highest = (mark as any).ESTMPS_ClassHighest || 0;
                 const average = (mark as any).estmpS_ClassAverage || 0;
 
@@ -229,10 +230,10 @@ export default function BrsPreBoardProgressCardReport({
                 plugins: [
                     {
                         id: 'valueLabels',
-                        afterDatasetsDraw: function (chart) {
+                        afterDatasetsDraw: (chart) => {
                             const ctx = chart.ctx;
-                            chart.data.datasets.forEach(function (dataset, di) {
-                                chart.getDatasetMeta(di).data.forEach(function (bar, index) {
+                            chart.data.datasets.forEach((dataset, di) => {
+                                chart.getDatasetMeta(di).data.forEach((bar, index) => {
                                     const value = dataset.data[index];
                                     if (value == null) return;
                                     const x = bar.x;
@@ -252,7 +253,7 @@ export default function BrsPreBoardProgressCardReport({
 
         // Cleanup
         return () => {
-            Object.values(chartInstances.current).forEach(chart => {
+            Object.values(chartInstances.current).forEach((chart) => {
                 if (chart) chart.destroy();
             });
             chartInstances.current = {};
@@ -376,48 +377,39 @@ export default function BrsPreBoardProgressCardReport({
                 {reportData.map((report, index) => {
                     const subSubjects: SubSubject[] = report.sub_subject || [];
                     const subSubjectMarks: SubSubjectMark[] = report.sub_subjectmarks || [];
-                    
+
                     // Specific subjects filtering based on original design
-                    const thWtSubjects = subSubjects.filter(sub => sub.EMSS_SubSubjectName === 'TH/WT');
-                    const prIaSubjects = subSubjects.filter(sub => sub.EMSS_SubSubjectName === 'PR/IA');
+                    const thWtSubjects = subSubjects.filter((sub) => sub.EMSS_SubSubjectName === 'TH/WT');
+                    const prIaSubjects = subSubjects.filter((sub) => sub.EMSS_SubSubjectName === 'PR/IA');
 
                     // Note on institution image: using hardcoded 71 (Burnpur) matching original legacy HTML unless mi_id is available
-                    const mi_id = (institution as any)?.mI_Id || 71; 
-                    const logoUrl = mi_id === 73 
-                        ? 'https://vapsclg.blob.core.windows.net/files/73/NoticeUpload/26565e13-679e-412f-80a0-01310794f69b.jpg'
-                        : mi_id === 74 
-                            ? 'https://vapsclg.blob.core.windows.net/files/71/NoticeUpload/1ef7ee36-1cc4-43dc-af76-a8236837767a.jpg'
-                            : 'https://vapsclg.blob.core.windows.net/files/71/NoticeUpload/0d76d873-a586-4fee-ad26-c579ee7276f6.jpg';
+                    const mi_id = (institution as any)?.mI_Id || 71;
+                    const logoUrl =
+                        mi_id === 73
+                            ? 'https://vapsclg.blob.core.windows.net/files/73/NoticeUpload/26565e13-679e-412f-80a0-01310794f69b.jpg'
+                            : mi_id === 74
+                              ? 'https://vapsclg.blob.core.windows.net/files/71/NoticeUpload/1ef7ee36-1cc4-43dc-af76-a8236837767a.jpg'
+                              : 'https://vapsclg.blob.core.windows.net/files/71/NoticeUpload/0d76d873-a586-4fee-ad26-c579ee7276f6.jpg';
 
                     return (
                         <div key={`${report.amsT_Id}-${index}`} className='brs-card-border p-4'>
                             {/* School Header Image */}
                             <div style={{ width: '100%', textAlign: 'center', marginBottom: '8px' }}>
-                                <img
-                                    src={logoUrl}
-                                    alt='School Header'
-                                    style={{ width: '98%', marginLeft: '1%', height: 'auto' }}
-                                />
+                                <img src={logoUrl} alt='School Header' style={{ width: '98%', marginLeft: '1%', height: 'auto' }} />
                             </div>
 
                             <br />
 
                             {/* PROGRESS REPORT Banner */}
                             <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-                                <div
-                                    className='brs-goldenrod-banner'
-                                    style={{ width: '23%', marginLeft: '38%', height: '37px' }}>
-                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '18px' }}>
-                                        PROGRESS REPORT
-                                    </h3>
+                                <div className='brs-goldenrod-banner' style={{ width: '23%', marginLeft: '38%', height: '37px' }}>
+                                    <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '18px' }}>PROGRESS REPORT</h3>
                                 </div>
                             </div>
 
                             {/* Exam Name + Session Banner */}
                             <div style={{ marginTop: '6px', marginBottom: '6px' }}>
-                                <div
-                                    className='brs-goldenrod-banner'
-                                    style={{ width: '100%', height: '46px' }}>
+                                <div className='brs-goldenrod-banner' style={{ width: '100%', height: '46px' }}>
                                     <h3 style={{ color: 'black', margin: 0, fontWeight: 'bold', fontSize: '18px' }}>
                                         {examName}({year})
                                     </h3>
@@ -432,19 +424,32 @@ export default function BrsPreBoardProgressCardReport({
                                             &nbsp;&nbsp;&nbsp;&nbsp;<b>Name&nbsp;&nbsp;&nbsp;&nbsp;: {report.amsT_FirstName}</b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;<b>Class & Section&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {report.asmcL_ClassName} - {report.asmC_SectionName}</b>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <b>
+                                                Class & Section&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {report.asmcL_ClassName} -{' '}
+                                                {report.asmC_SectionName}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left', width: '33%' }}>
-                                            &nbsp;&nbsp;&nbsp;&nbsp;<b>Roll No&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {report.amaY_RollNo || 'N/A'}</b>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <b>
+                                                Roll No&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {report.amaY_RollNo || 'N/A'}
+                                            </b>
                                         </td>
                                     </tr>
                                     <tr style={{ height: '10px' }} />
                                     <tr>
                                         <td style={{ textAlign: 'left' }}>
-                                            <b>&nbsp;&nbsp;&nbsp;&nbsp;Mother's Name&nbsp;&nbsp;&nbsp;&nbsp;: {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}</b>
+                                            <b>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;Mother's Name&nbsp;&nbsp;&nbsp;&nbsp;:{' '}
+                                                {report.amsT_MotherName || (report as any)._MotherName || 'N/A'}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
-                                            <b>&nbsp;&nbsp;&nbsp;&nbsp;House&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {(report as any).userName || 'N/A'}</b>
+                                            <b>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;House&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:{' '}
+                                                {(report as any).userName || 'N/A'}
+                                            </b>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
                                             <b>&nbsp;&nbsp;&nbsp;&nbsp;Admn. No.&nbsp;&nbsp;&nbsp;&nbsp;: {report.amsT_AdmNo}</b>
@@ -456,7 +461,11 @@ export default function BrsPreBoardProgressCardReport({
                                             <b> &nbsp;&nbsp;&nbsp;&nbsp;Father's Name&nbsp;&nbsp;&nbsp;&nbsp;: {report.amsT_FatherName}</b>
                                         </td>
                                         <td style={{ textAlign: 'left' }}>
-                                            <b>&nbsp;&nbsp;&nbsp;&nbsp;Date of Birth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {formatDate(report.amsT_DOB)}</b>
+                                            <b>
+                                                &nbsp;&nbsp;&nbsp;&nbsp;Date of
+                                                Birth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:{' '}
+                                                {formatDate(report.amsT_DOB)}
+                                            </b>
                                         </td>
                                         <td />
                                     </tr>
@@ -468,55 +477,112 @@ export default function BrsPreBoardProgressCardReport({
                                 <thead>
                                     <tr>
                                         <td style={{ backgroundColor: '#f3cb04', color: 'black', border: 'none' }} />
-                                        <td style={{ backgroundColor: '#f3cb04', color: 'black', borderRight: 'none', borderTop: 'none', borderBottom: '1px solid black', borderLeft: '1px solid black' }} colSpan={thWtSubjects.length * 2 + prIaSubjects.length * 2 + 5}>
+                                        <td
+                                            style={{
+                                                backgroundColor: '#f3cb04',
+                                                color: 'black',
+                                                borderRight: 'none',
+                                                borderTop: 'none',
+                                                borderBottom: '1px solid black',
+                                                borderLeft: '1px solid black'
+                                            }}
+                                            colSpan={thWtSubjects.length * 2 + prIaSubjects.length * 2 + 5}>
                                             <b>{examName}</b>
                                         </td>
                                     </tr>
                                 </thead>
                                 <thead style={{ borderLeft: 'none', borderRight: 'none' }}>
                                     <tr>
-                                        <th style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'left', fontSize: '18px', borderLeft: 'none', borderRight: 'none', borderTop: 'none', width: '33%' }}>
+                                        <th
+                                            style={{
+                                                backgroundColor: '#f3cb04',
+                                                color: 'black',
+                                                textAlign: 'left',
+                                                fontSize: '18px',
+                                                borderLeft: 'none',
+                                                borderRight: 'none',
+                                                borderTop: 'none',
+                                                width: '33%'
+                                            }}>
                                             <b>SUBJECTS</b>
                                         </th>
 
                                         {/* TH/WT Max Mark */}
                                         {thWtSubjects.map((sub) => (
-                                            <th key={`thwt-max-${sub.EMSS_Id}`} style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
-                                                <b>{sub.EMSS_SubSubjectName} <br />Max Mark</b>
+                                            <th
+                                                key={`thwt-max-${sub.EMSS_Id}`}
+                                                style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
+                                                <b>
+                                                    {sub.EMSS_SubSubjectName} <br />
+                                                    Max Mark
+                                                </b>
                                             </th>
                                         ))}
 
                                         {/* TH/WT Marks Obtained */}
                                         {thWtSubjects.map((sub) => (
-                                            <th key={`thwt-obt-${sub.EMSS_Id}`} style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
-                                                <b>{sub.EMSS_SubSubjectName} <br />Marks<br />Obtained</b>
+                                            <th
+                                                key={`thwt-obt-${sub.EMSS_Id}`}
+                                                style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
+                                                <b>
+                                                    {sub.EMSS_SubSubjectName} <br />
+                                                    Marks
+                                                    <br />
+                                                    Obtained
+                                                </b>
                                             </th>
                                         ))}
 
                                         {/* PR/IA Max Mark */}
                                         {prIaSubjects.map((sub) => (
-                                            <th key={`pria-max-${sub.EMSS_Id}`} style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
-                                                <b>{sub.EMSS_SubSubjectName} <br />Max Mark</b>
+                                            <th
+                                                key={`pria-max-${sub.EMSS_Id}`}
+                                                style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
+                                                <b>
+                                                    {sub.EMSS_SubSubjectName} <br />
+                                                    Max Mark
+                                                </b>
                                             </th>
                                         ))}
 
                                         {/* PR/IA Marks Obtained */}
                                         {prIaSubjects.map((sub) => (
-                                            <th key={`pria-obt-${sub.EMSS_Id}`} style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
-                                                <b>{sub.EMSS_SubSubjectName} <br />Marks<br />Obtained</b>
+                                            <th
+                                                key={`pria-obt-${sub.EMSS_Id}`}
+                                                style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
+                                                <b>
+                                                    {sub.EMSS_SubSubjectName} <br />
+                                                    Marks
+                                                    <br />
+                                                    Obtained
+                                                </b>
                                             </th>
                                         ))}
 
                                         <th style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
-                                            <strong>TOTAL<br />100</strong>
+                                            <strong>
+                                                TOTAL
+                                                <br />
+                                                100
+                                            </strong>
                                         </th>
 
                                         <th style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center' }}>
                                             <strong>GRADES</strong>
                                         </th>
 
-                                        <th style={{ backgroundColor: '#f3cb04', color: 'black', textAlign: 'center', borderRight: 'none' }}>
-                                            <strong>Highest<br />Mark</strong>
+                                        <th
+                                            style={{
+                                                backgroundColor: '#f3cb04',
+                                                color: 'black',
+                                                textAlign: 'center',
+                                                borderRight: 'none'
+                                            }}>
+                                            <strong>
+                                                Highest
+                                                <br />
+                                                Mark
+                                            </strong>
                                         </th>
                                     </tr>
                                 </thead>
@@ -529,19 +595,31 @@ export default function BrsPreBoardProgressCardReport({
                                         .map((mark) => {
                                             const subj = subjects.find((s) => s.ismS_Id === mark.ismS_Id);
                                             const showMarks = subj?.eyceS_MarksDisplayFlg !== false;
-                                            const isAbsent = mark.estmpS_PassFailFlg === 'AB';
+                                            const _isAbsent = mark.estmpS_PassFailFlg === 'AB';
 
                                             return (
                                                 <tr key={mark.ismS_Id} style={{ backgroundColor: 'white', color: 'black' }}>
-                                                    <td style={{ textAlign: 'left', fontWeight: 'bold', fontSize: '18px', borderLeft: 'none', borderTop: 'none', borderBottom: 'none' }}>
+                                                    <td
+                                                        style={{
+                                                            textAlign: 'left',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '18px',
+                                                            borderLeft: 'none',
+                                                            borderTop: 'none',
+                                                            borderBottom: 'none'
+                                                        }}>
                                                         {subj?.ismS_SubjectName || 'N/A'}
                                                     </td>
 
                                                     {/* TH/WT Max Mark */}
                                                     {thWtSubjects.map((sub) => {
-                                                        const ssm = subSubjectMarks.find((m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id);
+                                                        const ssm = subSubjectMarks.find(
+                                                            (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id
+                                                        );
                                                         return (
-                                                            <td key={`thwt-max-val-${sub.EMSS_Id}`} style={{ borderTop: 'none', borderBottom: 'none' }}>
+                                                            <td
+                                                                key={`thwt-max-val-${sub.EMSS_Id}`}
+                                                                style={{ borderTop: 'none', borderBottom: 'none' }}>
                                                                 {ssm?.EYCESSS_MarksEntryMax ?? ''}
                                                             </td>
                                                         );
@@ -549,23 +627,31 @@ export default function BrsPreBoardProgressCardReport({
 
                                                     {/* TH/WT Marks Obtained */}
                                                     {thWtSubjects.map((sub) => {
-                                                        const ssm = subSubjectMarks.find((m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id);
+                                                        const ssm = subSubjectMarks.find(
+                                                            (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id
+                                                        );
                                                         return (
-                                                            <td key={`thwt-obt-val-${sub.EMSS_Id}`} style={{ borderTop: 'none', borderBottom: 'none' }}>
+                                                            <td
+                                                                key={`thwt-obt-val-${sub.EMSS_Id}`}
+                                                                style={{ borderTop: 'none', borderBottom: 'none' }}>
                                                                 {ssm?.ESTMPSSS_PassFailFlg === 'AB'
                                                                     ? 'AB'
                                                                     : showMarks
-                                                                        ? ssm?.ESTMPSSS_ObtainedMarks ?? ''
-                                                                        : ''}
+                                                                      ? (ssm?.ESTMPSSS_ObtainedMarks ?? '')
+                                                                      : ''}
                                                             </td>
                                                         );
                                                     })}
 
                                                     {/* PR/IA Max Mark */}
                                                     {prIaSubjects.map((sub) => {
-                                                        const ssm = subSubjectMarks.find((m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id);
+                                                        const ssm = subSubjectMarks.find(
+                                                            (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id
+                                                        );
                                                         return (
-                                                            <td key={`pria-max-val-${sub.EMSS_Id}`} style={{ borderTop: 'none', borderBottom: 'none' }}>
+                                                            <td
+                                                                key={`pria-max-val-${sub.EMSS_Id}`}
+                                                                style={{ borderTop: 'none', borderBottom: 'none' }}>
                                                                 {ssm?.EYCESSS_MarksEntryMax ?? ''}
                                                             </td>
                                                         );
@@ -573,21 +659,25 @@ export default function BrsPreBoardProgressCardReport({
 
                                                     {/* PR/IA Marks Obtained */}
                                                     {prIaSubjects.map((sub) => {
-                                                        const ssm = subSubjectMarks.find((m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id);
+                                                        const ssm = subSubjectMarks.find(
+                                                            (m) => m.EMSS_Id === sub.EMSS_Id && m.ISMS_Id === mark.ismS_Id
+                                                        );
                                                         return (
-                                                            <td key={`pria-obt-val-${sub.EMSS_Id}`} style={{ borderTop: 'none', borderBottom: 'none' }}>
+                                                            <td
+                                                                key={`pria-obt-val-${sub.EMSS_Id}`}
+                                                                style={{ borderTop: 'none', borderBottom: 'none' }}>
                                                                 {ssm?.ESTMPSSS_PassFailFlg === 'AB'
                                                                     ? 'AB'
                                                                     : showMarks
-                                                                        ? ssm?.ESTMPSSS_ObtainedMarks ?? ''
-                                                                        : ''}
+                                                                      ? (ssm?.ESTMPSSS_ObtainedMarks ?? '')
+                                                                      : ''}
                                                             </td>
                                                         );
                                                     })}
 
                                                     {/* Total */}
                                                     <td style={{ borderTop: 'none', borderBottom: 'none' }}>
-                                                        <span className="dataincrease">
+                                                        <span className='dataincrease'>
                                                             {mark.estmpS_ObtainedMarks != null ? Math.round(mark.estmpS_ObtainedMarks) : ''}
                                                             {/* Assuming sub exam name could be shown if exist, ignoring as it's missing in Next model */}
                                                         </span>
@@ -609,11 +699,21 @@ export default function BrsPreBoardProgressCardReport({
                             </table>
 
                             <div style={{ marginTop: '10%' }}>
-                                <div style={{ border: '1px solid black', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', borderTop: 'none', padding: '10px' }}>
+                                <div
+                                    style={{
+                                        border: '1px solid black',
+                                        borderLeft: 'none',
+                                        borderRight: 'none',
+                                        borderBottom: 'none',
+                                        borderTop: 'none',
+                                        padding: '10px'
+                                    }}>
                                     {/* Graph */}
                                     <div style={{ textAlign: 'center' }}>
                                         <canvas
-                                            ref={(el) => { chartRefs.current[report.amsT_Id] = el; }}
+                                            ref={(el) => {
+                                                chartRefs.current[report.amsT_Id] = el;
+                                            }}
                                             id={`pieChart${report.amsT_Id}`}
                                             style={{ maxWidth: '100%', height: '400px' }}
                                         />
@@ -622,26 +722,45 @@ export default function BrsPreBoardProgressCardReport({
                             </div>
 
                             {/* Remarks Box */}
-                            <div style={{ fontSize: '20px', backgroundColor: '#f3cb04', color: 'black', textAlign: 'left', padding: '5px', marginTop: '20px' }}>
+                            <div
+                                style={{
+                                    fontSize: '20px',
+                                    backgroundColor: '#f3cb04',
+                                    color: 'black',
+                                    textAlign: 'left',
+                                    padding: '5px',
+                                    marginTop: '20px'
+                                }}>
                                 <strong>REMARKS</strong>
                             </div>
 
-                            <div style={{ padding: '10px 0', fontSize: '14px', border: '1px solid black', borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
+                            <div
+                                style={{
+                                    padding: '10px 0',
+                                    fontSize: '14px',
+                                    border: '1px solid black',
+                                    borderLeft: 'none',
+                                    borderRight: 'none',
+                                    borderTop: 'none'
+                                }}>
                                 <span style={{ border: 'none' }}>
-                                    <br /><br /><br />
+                                    <br />
+                                    <br />
+                                    <br />
                                 </span>
                             </div>
 
                             {/* Signatures Section */}
-                            <div style={{
-                                borderTop: '2px solid black',
-                                borderBottom: '2px solid black',
-                                padding: '10px 0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                textAlign: 'center',
-                                marginTop: '20px'
-                            }}>
+                            <div
+                                style={{
+                                    borderTop: '2px solid black',
+                                    borderBottom: '2px solid black',
+                                    padding: '10px 0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    textAlign: 'center',
+                                    marginTop: '20px'
+                                }}>
                                 {/* Date & Place */}
                                 <div style={{ flex: 3, textAlign: 'left', marginTop: '10%' }}>
                                     <span style={{ fontSize: '18px' }}>
@@ -656,7 +775,9 @@ export default function BrsPreBoardProgressCardReport({
 
                                 {/* Class Teacher */}
                                 <div style={{ flex: 3, marginTop: '10%' }}>
-                                    <span style={{ fontSize: '18px' }}><b>Class Teacher</b></span>
+                                    <span style={{ fontSize: '18px' }}>
+                                        <b>Class Teacher</b>
+                                    </span>
                                 </div>
 
                                 {/* Signature Seal Image */}
@@ -672,7 +793,12 @@ export default function BrsPreBoardProgressCardReport({
                                 <div style={{ flex: 4, textAlign: 'center', marginTop: '6%' }}>
                                     <div>
                                         <img
-                                            style={{ width: '61%', transform: 'rotate(10deg)', transformOrigin: 'center', margin: '0 auto' }}
+                                            style={{
+                                                width: '61%',
+                                                transform: 'rotate(10deg)',
+                                                transformOrigin: 'center',
+                                                margin: '0 auto'
+                                            }}
                                             src='https://vapsclg.blob.core.windows.net/files/73/NoticeUpload/8ff47850-8524-423c-92a7-30c37099e292.png'
                                             alt='Director & Principal Signature'
                                         />
@@ -682,31 +808,43 @@ export default function BrsPreBoardProgressCardReport({
 
                                 {/* Parent */}
                                 <div style={{ flex: 4, marginTop: '10%' }}>
-                                    <span style={{ fontSize: '18px' }}><b>Parent</b></span>
+                                    <span style={{ fontSize: '18px' }}>
+                                        <b>Parent</b>
+                                    </span>
                                 </div>
                             </div>
 
-                            <br /><br />
+                            <br />
+                            <br />
 
                             {/* Grading Table */}
-                            <table className="brs-grading-table">
+                            <table className='brs-grading-table'>
                                 <tbody>
                                     <tr>
-                                        <th colSpan={2}><b>CLASS ({report.asmcL_ClassName})</b></th>
+                                        <th colSpan={2}>
+                                            <b>CLASS ({report.asmcL_ClassName})</b>
+                                        </th>
                                     </tr>
                                     <tr>
                                         <td>
-                                            A1 : Top 1/8th of the passed candidates<br />
-                                            A2 : Next 1/8th of the passed candidates<br />
-                                            B1 : Next 1/8th of the passed candidates<br />
+                                            A1 : Top 1/8th of the passed candidates
+                                            <br />
+                                            A2 : Next 1/8th of the passed candidates
+                                            <br />
+                                            B1 : Next 1/8th of the passed candidates
+                                            <br />
                                             B2 : Next 1/8th of the passed candidates
                                         </td>
                                         <td>
-                                            C1 : Next 1/8th of the passed candidates<br />
-                                            C2 : Next 1/8th of the passed candidates<br />
-                                            D1 : Next 1/8th of the passed candidates<br />
-                                            D2 : Next 1/8th of the passed candidates<br />
-                                            E : Essential Repeat<br />
+                                            C1 : Next 1/8th of the passed candidates
+                                            <br />
+                                            C2 : Next 1/8th of the passed candidates
+                                            <br />
+                                            D1 : Next 1/8th of the passed candidates
+                                            <br />
+                                            D2 : Next 1/8th of the passed candidates
+                                            <br />E : Essential Repeat
+                                            <br />
                                         </td>
                                     </tr>
                                 </tbody>

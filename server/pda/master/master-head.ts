@@ -1,10 +1,10 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IPDAMasterHeadResponse, IPDAMasterHead } from '@/types/pda/master/master-head';
+import type { IPDAMasterHead, IPDAMasterHeadResponse } from '@/types/pda/master/master-head';
 
-export async function getPDAMasterHeadDetails(searchParams?: ApiSearchparams) {
+export async function getPDAMasterHeadDetails(_searchParams?: ApiSearchparams) {
     const url = '/PDAMasterHeadFacade/getpagedetails';
     return await api.get<IPDAMasterHeadResponse>('pettycashandassettracking', url);
 }

@@ -31,7 +31,6 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         // fyP_Receipt_No:"",
         // fyP_DD_Cheque_No:""
     };
-    console.log('Receipt Payload:', JSON.stringify(payload));
 
     // ───────────────────────────────────────────────
     //  FETCH RECEIPT DATA
@@ -40,8 +39,6 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         const fetchData = async () => {
             try {
                 const raw = await receiptView_GM(payload);
-
-                console.log('Receipt Raw Data:', raw);
                 const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
                 setReceiptData(response);
@@ -138,13 +135,16 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
 
         if (num < 1000) return convertLessThanThousand(num);
         if (num < 100000)
-            return `${convertLessThanThousand(Math.floor(num / 1000))} Thousand${num % 1000 !== 0 ? ` ${convertLessThanThousand(num % 1000)}` : ''
-                }`;
-        if (num < 10000000)
-            return `${convertLessThanThousand(Math.floor(num / 100000))} Lakh${num % 100000 !== 0 ? ` ${convertNumberToWords(num % 100000)}` : ''
-                }`;
-        return `${convertLessThanThousand(Math.floor(num / 10000000))} Crore${num % 10000000 !== 0 ? ` ${convertNumberToWords(num % 10000000)}` : ''
+            return `${convertLessThanThousand(Math.floor(num / 1000))} Thousand${
+                num % 1000 !== 0 ? ` ${convertLessThanThousand(num % 1000)}` : ''
             }`;
+        if (num < 10000000)
+            return `${convertLessThanThousand(Math.floor(num / 100000))} Lakh${
+                num % 100000 !== 0 ? ` ${convertNumberToWords(num % 100000)}` : ''
+            }`;
+        return `${convertLessThanThousand(Math.floor(num / 10000000))} Crore${
+            num % 10000000 !== 0 ? ` ${convertNumberToWords(num % 10000000)}` : ''
+        }`;
     };
 
     const formatDate = (dateString: string) => {

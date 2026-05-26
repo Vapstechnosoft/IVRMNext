@@ -29,7 +29,6 @@ export const mappingColumns: ColumnDef<IRouteAreaMapping>[] = [
         accessorKey: 'trmA_AreaName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Area Name' />,
         cell: ({ row }) => {
-            console.log('Row Data:', row.original);
             return <div>{row.original.trmA_AreaName}</div>;
         }
     },

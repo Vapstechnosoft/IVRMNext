@@ -1,13 +1,13 @@
 'use server';
 import { api } from '@/lib/apiService';
 import type {
+    NewSalaryCalculationGenerateRequest,
+    NewSalaryCalculationSearchRequest,
     SalaryCalculationGenerateRequest,
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
     SalaryCalculationSearchRequest,
-    NewSalaryCalculationSearchRequest,
-    NewSalaryCalculationGenerateRequest,
     SelectionEmployee
 } from '@/types/hrms/salary-calculation';
 /**
@@ -15,36 +15,17 @@ import type {
  * POST /api/employeeSalaryCalculationFacade/onloadgetdetailsNew
  */
 export async function getSalaryCalculationOnload(payload: SalaryCalculationOnloadRequest) {
-    console.log('📥 [SALARY CALCULATION - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
     const url = '/api/employeeSalaryCalculationFacade/onloadgetdetailsNew';
     // Prepare request body
     const requestBody = {
         MI_Id: payload.MI_Id || 30,
         LogInUserId: payload.LogInUserId || 0
     };
-    console.log('📤 [SALARY CALCULATION - BACKEND] Request body:', JSON.stringify(requestBody, null, 2));
     try {
         const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            console.log('📊 [SALARY CALCULATION - BACKEND] Response data summary:', {
-                hasMonths: !!(response.data?.monthdropdown?.length),
-                monthsCount: response.data?.monthdropdown?.length || 0,
-                hasLeaveYears: !!(response.data?.leaveyeardropdown?.length),
-                leaveYearsCount: response.data?.leaveyeardropdown?.length || 0,
-                hasDepartments: !!(response.data?.departmentdropdown?.length),
-                departmentsCount: response.data?.departmentdropdown?.length || 0,
-                hasDesignations: !!(response.data?.designationdropdown?.length),
-                designationsCount: response.data?.designationdropdown?.length || 0,
-                hasGroupTypes: !!(response.data?.groupTypedropdown?.length),
-                groupTypesCount: response.data?.groupTypedropdown?.length || 0,
-                hasEmployees: !!(response.data?.employeedropdown?.length),
-                employeesCount: response.data?.employeedropdown?.length || 0,
-                hasConfiguration: !!response.data?.configurationDetails
-            });
-            console.log('🔵 [SALARY CALCULATION - BACKEND] getSalaryCalculationOnload - END (Success)');
             return response;
         }
         // Wrap raw response data
@@ -53,22 +34,6 @@ export async function getSalaryCalculationOnload(payload: SalaryCalculationOnloa
             message: 'Data loaded successfully',
             data: response as unknown as SalaryCalculationOnloadResponse
         };
-        console.log('📊 [SALARY CALCULATION - BACKEND] Response data summary:', {
-            hasMonths: !!(wrappedResponse.data?.monthdropdown?.length),
-            monthsCount: wrappedResponse.data?.monthdropdown?.length || 0,
-            hasLeaveYears: !!(wrappedResponse.data?.leaveyeardropdown?.length),
-            leaveYearsCount: wrappedResponse.data?.leaveyeardropdown?.length || 0,
-            hasDepartments: !!(wrappedResponse.data?.departmentdropdown?.length),
-            departmentsCount: wrappedResponse.data?.departmentdropdown?.length || 0,
-            hasDesignations: !!(wrappedResponse.data?.designationdropdown?.length),
-            designationsCount: wrappedResponse.data?.designationdropdown?.length || 0,
-            hasGroupTypes: !!(wrappedResponse.data?.groupTypedropdown?.length),
-            groupTypesCount: wrappedResponse.data?.groupTypedropdown?.length || 0,
-            hasEmployees: !!(wrappedResponse.data?.employeedropdown?.length),
-            employeesCount: wrappedResponse.data?.employeedropdown?.length || 0,
-            hasConfiguration: !!wrappedResponse.data?.configurationDetails
-        });
-        console.log('🔵 [SALARY CALCULATION - BACKEND] getSalaryCalculationOnload - END (Success)');
         return wrappedResponse;
     } catch (error) {
         console.error('💥 [SALARY CALCULATION - BACKEND] Error message:', error instanceof Error ? error.message : String(error));
@@ -88,7 +53,6 @@ export async function saveSalaryCalculation(data: any) {
  * POST /api/employeeSalaryCalculationFacade/getEmployeedetailsBySelectionNew
  */
 export async function searchSalaryCalculationBySelection(payload: SalaryCalculationSearchRequest) {
-    console.log('📥 [SALARY CALCULATION - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
     const url = '/api/employeeSalaryCalculationFacade/getEmployeedetailsBySelectionNew';
     // Prepare request body - ensure arrays are [0] when empty, as API expects
     // Use empty strings for Year and Month when not provided
@@ -103,15 +67,13 @@ export async function searchSalaryCalculationBySelection(payload: SalaryCalculat
         HRES_Year: trimmedYear,
         HRES_Month: trimmedMonth
     };
-    console.log('📤 [SALARY CALCULATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
     try {
         const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
-            const employeeCount = (response.data as any)?.ReportData?.length || (response.data as any)?.employeeDetails?.length || 0;
-            console.log('🔵 [SALARY CALCULATION - BACKEND] searchSalaryCalculationBySelection - END (Success)');
+            const _employeeCount = (response.data as any)?.ReportData?.length || (response.data as any)?.employeeDetails?.length || 0;
             return response;
         }
         // Wrap raw response data
@@ -120,14 +82,13 @@ export async function searchSalaryCalculationBySelection(payload: SalaryCalculat
             message: 'Data loaded successfully',
             data: response as unknown as SalaryCalculationOnloadResponse
         };
-        const employeeCount = (wrappedResponse.data as any)?.ReportData?.length || (wrappedResponse.data as any)?.employeeDetails?.length || 0;
+        const employeeCount =
+            (wrappedResponse.data as any)?.ReportData?.length || (wrappedResponse.data as any)?.employeeDetails?.length || 0;
         if (employeeCount > 0) {
             const reportData = (wrappedResponse.data as any)?.ReportData || (wrappedResponse.data as any)?.employeeDetails;
             if (reportData && Array.isArray(reportData) && reportData.length > 0) {
-                console.log('📋 [SALARY CALCULATION - BACKEND] First employee sample:', JSON.stringify(reportData[0], null, 2));
             }
         }
-        console.log('🔵 [SALARY CALCULATION - BACKEND] searchSalaryCalculationBySelection - END (Success)');
         return wrappedResponse;
     } catch (error) {
         console.error('💥 [SALARY CALCULATION - BACKEND] Error message:', error instanceof Error ? error.message : String(error));

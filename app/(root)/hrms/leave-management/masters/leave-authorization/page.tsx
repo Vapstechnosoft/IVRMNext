@@ -3,13 +3,17 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteLeaveAuthorization, useLeaveAuthorization, useLeaveAuthorizationDropdowns } from '@/hooks/hrms/leave-management/useMasters';
+import {
+    useDeleteLeaveAuthorization,
+    useLeaveAuthorization,
+    useLeaveAuthorizationDropdowns
+} from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useMemo } from 'react';
 import AddLeaveAuthorizationForm from './_components/add-form';
 import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveAuthorizationPage(_props: { searchParams: SearchParams }) {
@@ -21,13 +25,16 @@ export default function LeaveAuthorizationPage(_props: { searchParams: SearchPar
         sort_direction: parseAsString.withDefault('asc')
     });
 
-    const normalizedParams = useMemo(() => ({
-        page: params.page,
-        page_size: params.page_size,
-        search_query: params.search_query || '',
-        sort_column: params.sort_column || '',
-        sort_direction: params.sort_direction as 'asc' | 'desc'
-    }), [params]);
+    const normalizedParams = useMemo(
+        () => ({
+            page: params.page,
+            page_size: params.page_size,
+            search_query: params.search_query || '',
+            sort_column: params.sort_column || '',
+            sort_direction: params.sort_direction as 'asc' | 'desc'
+        }),
+        [params]
+    );
 
     const { data: response, isLoading, error } = useLeaveAuthorization(normalizedParams);
     return (
@@ -111,7 +118,6 @@ function FormSections() {
             // Extract HRLA_Id from the row data if available, otherwise use 0
             const HRLA_Id = (selectedRow as any)._HRLA_Id || 0;
             const HRLAON_Id = selectedRow.id || 0;
-            console.log(`🗑️ Deleting Auth - HRLA_Id: ${HRLA_Id}, HRLAON_Id: ${HRLAON_Id}`);
             deleteLeaveAuthorization(
                 {
                     HRLA_Id: HRLA_Id,

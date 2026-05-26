@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { dayStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -11,7 +11,7 @@ import { getFixingClassSectionSubjectByStaff } from '@/server/timetable/constrai
 import { saveDayStaffDetail } from '@/server/timetable/constraints/subjectrestriction';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Save, X, Plus } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -51,7 +51,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     } = form;
 
     const ttrdS_SUbSelcFlag = watch('ttrdS_SUbSelcFlag');
-    const asmaY_Id = watch('asmaY_Id');
+    const _asmaY_Id = watch('asmaY_Id');
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -61,9 +61,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    
+
     // Master lists for the selected staff member
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
 
@@ -130,9 +130,12 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
             try {
                 const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
                 if (res && (res.success || res.success === undefined)) {
-                    const classes = extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') : extractList(res, 'clssbystaff');
-                    const sections = extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') : extractList(res, 'secsbystaff');
-                    const subjects = extractList(res, 'subjectlist').length > 0 ? extractList(res, 'subjectlist') : extractList(res, 'subsbystaff');
+                    const classes =
+                        extractList(res, 'classlist').length > 0 ? extractList(res, 'classlist') : extractList(res, 'clssbystaff');
+                    const sections =
+                        extractList(res, 'sectionlist').length > 0 ? extractList(res, 'sectionlist') : extractList(res, 'secsbystaff');
+                    const subjects =
+                        extractList(res, 'subjectlist').length > 0 ? extractList(res, 'subjectlist') : extractList(res, 'subsbystaff');
 
                     setMasterClasses(classes);
                     setMasterSections(sections);
@@ -204,9 +207,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                 onSuccess();
                 reset();
             } else {
-                toast.error(res.message );
+                toast.error(res.message);
             }
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error.message);
         }
     };
@@ -236,12 +239,25 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
-                                <Select onValueChange={(v) => { field.onChange(Number(v)); handleAcademicYearChange(Number(v)); }} value={field.value ? field.value.toString() : undefined}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    onValueChange={(v) => {
+                                        field.onChange(Number(v));
+                                        handleAcademicYearChange(Number(v));
+                                    }}
+                                    value={field.value ? field.value.toString() : undefined}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>{item.asmaY_Year}</SelectItem>
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -254,12 +270,20 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='--Select--' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any) => (
-                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id?.toString()}>{item.ttmD_DayName}</SelectItem>
+                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id?.toString()}>
+                                                {item.ttmD_DayName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -272,12 +296,20 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff Name <span className='text-red-500'>*</span></FormLabel>
+                                <FormLabel>
+                                    Staff Name <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => handleStaffChange(Number(val))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='--Select--' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {staffList.map((item: any) => (
-                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString()}>{item.staffName}</SelectItem>
+                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString()}>
+                                                {item.staffName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -292,8 +324,12 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                     name='ttrdS_SUbSelcFlag'
                     render={({ field }) => (
                         <FormItem className='flex flex-row items-start space-x-3 space-y-0 p-2'>
-                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                            <div className='space-y-1 leading-none'><FormLabel>Class-Section Wise Restriction</FormLabel></div>
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <div className='space-y-1 leading-none'>
+                                <FormLabel>Class-Section Wise Restriction</FormLabel>
+                            </div>
                         </FormItem>
                     )}
                 />
@@ -304,10 +340,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                             <div className='space-y-2'>
                                 <FormLabel>Class</FormLabel>
                                 <Select onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {classList.map((item: any) => (
-                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
+                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                {item.asmcL_ClassName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -315,10 +355,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                             <div className='space-y-2'>
                                 <FormLabel>Section</FormLabel>
                                 <Select onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => (
-                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmC_SectionName}</SelectItem>
+                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                {item.asmC_SectionName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -326,10 +370,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                             <div className='space-y-2'>
                                 <FormLabel>Subject</FormLabel>
                                 <Select onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subSubjectList.map((item: any) => (
-                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>{item.ismS_SubjectName}</SelectItem>
+                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                {item.ismS_SubjectName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -338,10 +386,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                 <FormLabel>No of Periods</FormLabel>
                                 <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} placeholder='No of Periods' />
                             </div>
-                            <Button type='button' onClick={addToGrid}>Add</Button>
+                            <Button type='button' onClick={addToGrid}>
+                                Add
+                            </Button>
                         </div>
 
-                        {fields.length > 0 && <GenericDataTable<any> data={fields} columns={tempColumns} isPaginationRequired={false} isLoading={false} />}
+                        {fields.length > 0 && (
+                            <GenericDataTable<any> data={fields} columns={tempColumns} isPaginationRequired={false} isLoading={false} />
+                        )}
                     </div>
                 )}
 
@@ -349,7 +401,9 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                     <Button type='submit' disabled={isSubmitting}>
                         <Save className='mr-2 h-4 w-4' /> Save
                     </Button>
-                    <Button type='button' variant='outline' onClick={onCancel}>Cancel</Button>
+                    <Button type='button' variant='outline' onClick={onCancel}>
+                        Cancel
+                    </Button>
                 </div>
             </form>
         </Form>

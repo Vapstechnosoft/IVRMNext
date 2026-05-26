@@ -1,12 +1,12 @@
 import { deleteBed, fetchBedData } from '@/server/hostel/hostel-management/masters/bed';
-import { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
-import { useState, useEffect, useCallback } from 'react';
+import type { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
+import { useCallback, useEffect, useState } from 'react';
 
 import { toast } from 'sonner';
 
 export const useMasterBed = () => {
     const [bedList, setBedList] = useState<IBedDisplay[]>([]);
-    const [hostels, setHostels] = useState<IHostel[]>([]);
+    const [hostels, _setHostels] = useState<IHostel[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadData = useCallback(async () => {

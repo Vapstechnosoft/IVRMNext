@@ -26,14 +26,8 @@ export const pcRequisitionColumns: ColumnDef<IPcRequisition>[] = [
     },
     {
         accessorKey: 'pcreqtN_RequisitionNo',
-        header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title='Requisition No' />
-        ),
-        cell: ({ row }) => (
-            <div style={{ marginLeft: '-77px' }}>{row.getValue('pcreqtN_RequisitionNo')}</div>
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Requisition No' />,
+        cell: ({ row }) => <div style={{ marginLeft: '-77px' }}>{row.getValue('pcreqtN_RequisitionNo')}</div>
     },
     {
         accessorKey: 'departmentname',
@@ -47,38 +41,23 @@ export const pcRequisitionColumns: ColumnDef<IPcRequisition>[] = [
     },
     {
         accessorKey: 'pcreqtN_CreatedDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Created Date' />
-        ),
-        cell: ({ row }) => (
-            <div>
-                {new Date(row.getValue('pcreqtN_CreatedDate')).toLocaleDateString()}
-            </div>
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Created Date' />,
+        cell: ({ row }) => <div>{new Date(row.getValue('pcreqtN_CreatedDate')).toLocaleDateString()}</div>
     },
     {
         accessorKey: 'pcreqtN_Purpose',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Purpose' />
-        ),
-        cell: ({ row }) => (
-            <div>{row.getValue('pcreqtN_Purpose')}</div>
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Purpose' />,
+        cell: ({ row }) => <div>{row.getValue('pcreqtN_Purpose')}</div>
     },
     {
         id: 'document',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Document' />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Document' />,
         cell: ({ row }) => {
-
             const handleView = async () => {
                 try {
                     const response = await getDocumentViewData(row.original.pcreqtN_Id);
 
                     if (response?.success) {
-                        // handle your document view here
-                        console.log('Document Data:', response.data);
                     } else {
                         console.error(response?.message);
                     }
@@ -88,17 +67,16 @@ export const pcRequisitionColumns: ColumnDef<IPcRequisition>[] = [
             };
 
             return (
-                <div className="flex justify-center" style={{ marginLeft: '-77px' }}>
+                <div className='flex justify-center' style={{ marginLeft: '-77px' }}>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
-                                    variant="ghost"
-                                    size="sm"
+                                    variant='ghost'
+                                    size='sm'
                                     onClick={() => handleView()}
-                                    className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600"
-                                >
-                                    <Eye className="h-4 w-4" />
+                                    className='h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600'>
+                                    <Eye className='h-4 w-4' />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -131,7 +109,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPcRequisition }) {
     }, [openDetailsView, rowData]);
 
     return (
-        <div className="flex items-center justify-end gap-1 pr-2">
+        <div className='flex items-center justify-end gap-1 pr-2'>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>

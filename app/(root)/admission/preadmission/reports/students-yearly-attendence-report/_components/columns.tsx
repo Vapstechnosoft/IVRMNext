@@ -64,7 +64,13 @@ export const createStudentsYearlyAttendenceReportColumns = (monthList: MonthInfo
         return {
             accessorKey: `monthlyAttendance.${monthKey}`,
             id: monthKey,
-            header: ({ column }) => <DataTableColumnHeader column={column} title={`${monthName} ${month.yearidname}(${month.total})`} className='font-bold text-black' />,
+            header: ({ column }) => (
+                <DataTableColumnHeader
+                    column={column}
+                    title={`${monthName} ${month.yearidname}(${month.total})`}
+                    className='font-bold text-black'
+                />
+            ),
             cell: ({ row }) => {
                 const attendance = row.original.monthlyAttendance?.[monthKey];
                 return <div className='text-center'>{attendance ?? 0}</div>;
@@ -80,7 +86,9 @@ export const createStudentsYearlyAttendenceReportColumns = (monthList: MonthInfo
     const summaryColumns: ColumnDef<IStudentYearlyAttendenceReportList>[] = [
         {
             accessorKey: 'totalPresent',
-            header: ({ column }) => <DataTableColumnHeader column={column} title={`Total (${totalWorkingDays})`} className='font-bold text-black' />,
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title={`Total (${totalWorkingDays})`} className='font-bold text-black' />
+            ),
             cell: ({ row }) => <div className='text-center font-semibold'>{Number(row.getValue('totalPresent')).toFixed(2)}</div>,
             enableSorting: true,
             enableHiding: true

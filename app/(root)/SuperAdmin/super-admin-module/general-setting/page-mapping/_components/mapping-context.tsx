@@ -1,8 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { IPageMappingData, IModuleDropdown, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
-import { getModulesForDropdown, getAvailablePages, getSavedMappings, savePageMapping, deletePageMapping } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import {
+    deletePageMapping,
+    getAvailablePages,
+    getModulesForDropdown,
+    getSavedMappings,
+    savePageMapping
+} from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import type React from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface PageMappingContextType {
@@ -70,21 +77,21 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
 
     const addToCart = (pagesToAdd: IPageMappingData[]) => {
         // Filter out duplicates
-        const newPages = pagesToAdd.filter(p => !cartPages.some(cp => cp.ivrmP_Id === p.ivrmP_Id));
-        setCartPages(prev => [...prev, ...newPages]);
-        // Ideally remove from available? Or just keep? 
+        const newPages = pagesToAdd.filter((p) => !cartPages.some((cp) => cp.ivrmP_Id === p.ivrmP_Id));
+        setCartPages((prev) => [...prev, ...newPages]);
+        // Ideally remove from available? Or just keep?
         // Logic: Move from Available to Cart usually visually removes from Available.
-        setAvailablePages(prev => prev.filter(p => !newPages.some(np => np.ivrmP_Id === p.ivrmP_Id)));
+        setAvailablePages((prev) => prev.filter((p) => !newPages.some((np) => np.ivrmP_Id === p.ivrmP_Id)));
     };
 
     const removeFromCart = (pageIdsToRemove: number[]) => {
-        const pagesToRemove = cartPages.filter(p => pageIdsToRemove.includes(p.ivrmP_Id));
-        setCartPages(prev => prev.filter(p => !pageIdsToRemove.includes(p.ivrmP_Id)));
+        const pagesToRemove = cartPages.filter((p) => pageIdsToRemove.includes(p.ivrmP_Id));
+        setCartPages((prev) => prev.filter((p) => !pageIdsToRemove.includes(p.ivrmP_Id)));
         // Return to available
-        setAvailablePages(prev => [...prev, ...pagesToRemove]);
+        setAvailablePages((prev) => [...prev, ...pagesToRemove]);
     };
     const clearCart = () => {
-        setAvailablePages(prev => [...prev, ...cartPages]);
+        setAvailablePages((prev) => [...prev, ...cartPages]);
         setCartPages([]);
     };
 
@@ -112,7 +119,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
     };
 
     const deleteMapping = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this mapping?")) return;
+        if (!confirm('Are you sure you want to delete this mapping?')) return;
 
         setIsLoading(true);
         const res = await deletePageMapping(id);
@@ -129,20 +136,21 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
     };
 
     return (
-        <PageMappingContext.Provider value={{
-            modules,
-            selectedModuleId,
-            availablePages,
-            cartPages,
-            savedMappings,
-            isLoading,
-            setSelectedModuleId,
-            addToCart,
-            removeFromCart,
-            saveCart,
-            clearCart,
-            deleteMapping
-        }}>
+        <PageMappingContext.Provider
+            value={{
+                modules,
+                selectedModuleId,
+                availablePages,
+                cartPages,
+                savedMappings,
+                isLoading,
+                setSelectedModuleId,
+                addToCart,
+                removeFromCart,
+                saveCart,
+                clearCart,
+                deleteMapping
+            }}>
             {children}
         </PageMappingContext.Provider>
     );

@@ -579,7 +579,6 @@ export interface IPromotionalGroupDetails {
     empsG_Order: number;
 }
 
-
 export interface IPromotionalGroupMappedExamDetails {
     empsgE_Id: number;
 

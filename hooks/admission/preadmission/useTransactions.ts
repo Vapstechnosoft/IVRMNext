@@ -7,6 +7,7 @@ import { getAdmissionClassDropdown } from '@/server/admission/preadmission/secti
 import {
     getCasteDropdown,
     getCountryDropdown,
+    getDistrictDropdown,
     getGenderDropdown,
     getPreadmissionClassDropdown,
     getPreadmissionDocumentDropdown,
@@ -15,8 +16,7 @@ import {
     getSourceDropdown,
     getStateDropdown,
     getStudentApplicationForm,
-    getStudentApplicationList,
-    getDistrictDropdown
+    getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/application_form';
 import { getDocumentView, getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
@@ -85,7 +85,6 @@ export const useCountryDropdown = () => {
     };
 };
 
-
 export const useStateDropdown = (country_id: number) => {
     const queryClient = useQueryClient();
 
@@ -121,7 +120,6 @@ export const useDistrictDropdown = (state_id: number) => {
         }
     };
 };
-
 
 export const useGenderDropdown = () => {
     const queryClient = useQueryClient();
@@ -173,9 +171,6 @@ export const useReferenceDropdown = () => {
         }
     };
 };
-
-
-
 
 export const usePreadmissionDocumentsDropdown = () => {
     const queryClient = useQueryClient();

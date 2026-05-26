@@ -1,14 +1,13 @@
 'use client';
 
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {
-    getClassWiseDailyAttendanceInitialDetails,
     getClassWiseDailyAttendanceClasses,
-    getClassWiseDailyAttendanceSections,
+    getClassWiseDailyAttendanceInitialDetails,
     getClassWiseDailyAttendanceReport,
+    getClassWiseDailyAttendanceSections,
     sendClassWiseDailyAttendanceSMS
 } from '@/server/admission/preadmission/reports/class_wise_daily_attendance';
-import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const QUERY_KEYS = {
     CLASS_WISE_DAILY_ATTENDANCE_INITIAL: 'class_wise_daily_attendance_initial',
@@ -24,7 +23,7 @@ export const useClassWiseDailyAttendanceInitialDetails = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.CLASS_WISE_DAILY_ATTENDANCE_INITIAL],
         queryFn: () => getClassWiseDailyAttendanceInitialDetails(),
-        staleTime: Infinity
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 
@@ -36,7 +35,7 @@ export const useClassWiseDailyAttendanceClasses = (asmaY_Id: number) => {
         queryKey: [QUERY_KEYS.CLASS_WISE_DAILY_ATTENDANCE_CLASSES, asmaY_Id],
         queryFn: () => getClassWiseDailyAttendanceClasses(asmaY_Id),
         enabled: !!asmaY_Id,
-        staleTime: Infinity
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 
@@ -48,7 +47,7 @@ export const useClassWiseDailyAttendanceSections = (asmaY_Id: number, asmcL_Id: 
         queryKey: [QUERY_KEYS.CLASS_WISE_DAILY_ATTENDANCE_SECTIONS, asmaY_Id, asmcL_Id],
         queryFn: () => getClassWiseDailyAttendanceSections(asmaY_Id, asmcL_Id),
         enabled: !!asmaY_Id && !!asmcL_Id,
-        staleTime: Infinity
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 
@@ -87,7 +86,12 @@ export const useClassWiseDailyAttendanceReport = (
  */
 export const useSendClassWiseDailyAttendanceSMS = () => {
     return useMutation({
-        mutationFn: ({ asmaY_Id, fromDate, asmcL_Id, absentList }: { asmaY_Id: number; fromDate: Date; asmcL_Id: number; absentList: any[] }) =>
+        mutationFn: ({
+            asmaY_Id,
+            fromDate,
+            asmcL_Id,
+            absentList
+        }: { asmaY_Id: number; fromDate: Date; asmcL_Id: number; absentList: any[] }) =>
             sendClassWiseDailyAttendanceSMS(asmaY_Id, fromDate, asmcL_Id, absentList)
     });
 };

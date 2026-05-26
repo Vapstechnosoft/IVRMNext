@@ -117,8 +117,6 @@ export default function SchoolMasterUnitTopicMappingPage() {
             LPMUT_ActiveFlag: item.lpmuT_ActiveFlag
         };
 
-        console.log('Deactivate Payload:', payload);
-
         try {
             const res = await deactivateMapping(payload);
 

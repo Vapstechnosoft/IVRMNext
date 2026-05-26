@@ -9,8 +9,8 @@ import { use } from 'react';
 import { useMasterPeriodDetails } from '@/hooks/timetable/useMasters';
 import type { IMasterPeriodDetailsList } from '@/types/timetable/masters/masters';
 import { masterPeriodColumns } from './_components/columns';
-import MasterPeriodForm from './_components/update-form';
 import DeleteMasterPeriodForm from './_components/delete-form';
+import MasterPeriodForm from './_components/update-form';
 // import { modeOfPaymentColumns } from './_components/columns';
 // import ToggleMasterModeOfPaymentForm from './_components/toggle-form';
 // import UpdateMasterModeOfPaymentForm from './_components/update-form';
@@ -20,8 +20,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterPeriodPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterPeriodDetails(searchParams);
-
-    console.log('response', response);
 
     return (
         <FormProvider<IMasterPeriodDetailsList>>

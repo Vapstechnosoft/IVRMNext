@@ -23,11 +23,7 @@ interface UpdateServiceStationFormProps {
     className?: string;
 }
 
-export default function UpdateServiceStationForm({
-    rowData,
-    onSuccess,
-    className = ''
-}: UpdateServiceStationFormProps) {
+export default function UpdateServiceStationForm({ rowData, onSuccess, className = '' }: UpdateServiceStationFormProps) {
     const { refetchAll } = useMasterServiceStation();
 
     const {
@@ -62,7 +58,7 @@ export default function UpdateServiceStationForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload = {
+            const _payload = {
                 ...data,
                 TRMSST_Id: rowData.trmssT_Id
             };

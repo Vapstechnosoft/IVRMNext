@@ -48,9 +48,7 @@ export default function DeleteLostBookForm({ rowData, onClose, onSuccess }: Dele
                         Are you sure you want to delete the lost book record for{' '}
                         <span className='font-medium text-foreground'>"{rowData.lmB_BookTitle}"</span>?
                     </p>
-                    <p className='text-red-500 text-xs font-semibold'>
-                        This action cannot be undone.
-                    </p>
+                    <p className='font-semibold text-red-500 text-xs'>This action cannot be undone.</p>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>

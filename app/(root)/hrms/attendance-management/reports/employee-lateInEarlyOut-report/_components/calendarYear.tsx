@@ -1,5 +1,5 @@
 'use client';
- 
+
 import { buttonVariants } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,16 +19,16 @@ function CalendarYear({ className, classNames, showOutsideDays = true, ...props 
     const getInitialMonthFromSelected = (): Date => {
         const sel = selected;
         if (!sel) return props.month || new Date();
- 
+
         if (sel instanceof Date) return sel;
- 
+
         if (Array.isArray(sel) && sel.length > 0 && sel[0] instanceof Date) return sel[0];
- 
+
         if (typeof sel === 'object' && 'from' in sel && sel.from instanceof Date) return sel.from;
- 
+
         return props.month || new Date();
     };
- 
+
     // Reference to track the current displayed month
     const [currentMonth, setCurrentMonth] = React.useState<Date>(getInitialMonthFromSelected());
 
@@ -38,13 +38,13 @@ function CalendarYear({ className, classNames, showOutsideDays = true, ...props 
             setCurrentMonth(props.month);
             return;
         }
- 
+
         const next = getInitialMonthFromSelected();
         if (next) setCurrentMonth(next);
     }, [props.month, selected]);
- 
+
     // Range of years to show in the year dropdown
-    const years = React.useMemo(() => {
+    const _years = React.useMemo(() => {
         const currentYear = new Date().getFullYear();
         // v8: toDate instead of endMonth
         const endYear = props.toDate ? props.toDate.getFullYear() : currentYear;
@@ -54,21 +54,21 @@ function CalendarYear({ className, classNames, showOutsideDays = true, ...props 
     }, [props.toDate]);
 
     // Handle year change
-    const handleYearChange = (year: string) => {
+    const _handleYearChange = (year: string) => {
         const newYear = Number.parseInt(year);
         const newDate = new Date(currentMonth);
         newDate.setFullYear(newYear);
- 
+
         setCurrentMonth(newDate);
         props.onMonthChange?.(newDate);
     };
- 
+
     // Custom month change handler to update our internal state
     const handleMonthChange = (month: Date) => {
         setCurrentMonth(month);
         props.onMonthChange?.(month);
     };
- 
+
     return (
         <div className='relative'>
             {/* Calendar Container with fixed positioning */}

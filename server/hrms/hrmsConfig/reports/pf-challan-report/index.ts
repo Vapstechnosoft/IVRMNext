@@ -1,10 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    PFChallanReportOnloadRequest,
-    PFChallanReportOnloadResponse,
     PFChallanReportFilterRequest,
     PFChallanReportFilterResponse,
+    PFChallanReportOnloadRequest,
+    PFChallanReportOnloadResponse,
     PFChallanReportSearchRequest,
     PFChallanReportSearchResponse
 } from '@/types/hrms/reports/pf-challan-report';
@@ -19,11 +19,9 @@ export async function getPFChallanReportOnload(MI_Id = 30): Promise<ApiResponse<
     const requestBody: PFChallanReportOnloadRequest = {
         MI_Id
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFChallanReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -170,11 +168,9 @@ export async function filterPFChallanEmployeeData(
     const requestBody: PFChallanReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFChallanReportFilterResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -206,20 +202,16 @@ export async function filterPFChallanEmployeeData(
  * Request: { MI_Id, HRES_Month, HRES_Year }
  * Response: Returns PF challan data for selected month and year
  */
-export async function searchPFChallanReport(
-    request: PFChallanReportSearchRequest
-): Promise<ApiResponse<PFChallanReportSearchResponse>> {
+export async function searchPFChallanReport(request: PFChallanReportSearchRequest): Promise<ApiResponse<PFChallanReportSearchResponse>> {
     const url = '/api/PFChallenFacade/getEmployeedetailsBySelection';
     const requestBody: PFChallanReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         HRES_Month: request.HRES_Month || '',
         HRES_Year: request.HRES_Year || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFChallanReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

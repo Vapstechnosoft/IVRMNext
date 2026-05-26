@@ -14,7 +14,7 @@ interface ToggleMasterPeriodFormProps {
 export default function ToggleMasterPeriodForm({ rowData, onClose }: ToggleMasterPeriodFormProps) {
     const { mutate, isPending } = useMutation({
         mutationFn: async () => {
-            const payload = {
+            const _payload = {
                 ttmP_Id: rowData.ttmP_Id,
                 ttmP_ActiveFlag: rowData.ttmP_ActiveFlag
             };

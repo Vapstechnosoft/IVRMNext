@@ -99,7 +99,7 @@ export default function FeeInstallemntReport() {
         }
     });
 
-    const [loading, setLoading] = useState(false);
+    const [_loading, _setLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         catg: 'Category' as catg,
@@ -121,10 +121,10 @@ export default function FeeInstallemntReport() {
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
 
     const [reportData, setReportData] = useState<any[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [_reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
-    const [installments, setInstallments] = useState<ConsolidatedReportInstallemntDropdownList[]>([]);
+    const [_installments, _setInstallments] = useState<ConsolidatedReportInstallemntDropdownList[]>([]);
 
     const [heads, setHeads] = useState<InstallmentReportHeadDropdownList[]>([]);
 
@@ -134,14 +134,14 @@ export default function FeeInstallemntReport() {
 
     const [feeGroups, setfeeGroups] = useState<InstallmentReportGroupDropdownList[]>([]);
 
-    const [search, setSearch] = useState('');
-    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [_search, _setSearch] = useState('');
+    const [_sortKey, _setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [_sortOrder, _setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const [sectionLoading, setSectionLoading] = useState(false);
+    const [_sectionLoading, setSectionLoading] = useState(false);
 
-    const [installemnetsloding, setinstallemnetsloding] = useState(false);
+    const [_installemnetsloding, setinstallemnetsloding] = useState(false);
     const [headsloading, setheadsloading] = useState(false);
 
     const [installmentSearch, setInstallmentSearch] = useState('');
@@ -254,7 +254,6 @@ export default function FeeInstallemntReport() {
 
     useEffect(() => {
         const fetchInstallments = async () => {
-            console.log('academic year chnaged', academicYearId);
             if (!academicYearId) {
                 //setInstallments([]);
 
@@ -267,8 +266,6 @@ export default function FeeInstallemntReport() {
 
             try {
                 const result = await getInstallemntReportInstallmentDropdownData(Number(academicYearId));
-
-                console.log('installments', JSON.stringify(result));
                 const data = Array.isArray(result?.data) ? result.data : [];
 
                 //setInstallments(data);
@@ -276,7 +273,7 @@ export default function FeeInstallemntReport() {
                 if (data.length === 0) {
                     //  toast.info('No sections found for this class');
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 // toast.error(error.message);
                 setfeeInstallments([]);
             }
@@ -297,8 +294,6 @@ export default function FeeInstallemntReport() {
 
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), classId);
-
-                console.log('sectionsdata', result);
 
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
@@ -321,8 +316,6 @@ export default function FeeInstallemntReport() {
 
     const groupidnew = watch('fmg_id');
 
-    console.log('groupidnew', groupidnew);
-
     useEffect(() => {
         const fetchHeads = async () => {
             if (!academicYearId && !groupidnew) {
@@ -335,8 +328,6 @@ export default function FeeInstallemntReport() {
 
             try {
                 const result = await getFeeInstallmentReportHeadDropdown(Number(academicYearId), Number(groupidnew));
-
-                console.log('heads', JSON.stringify(result));
                 const data = Array.isArray(result?.data) ? result.data : [];
 
                 setHeads(data);
@@ -344,7 +335,7 @@ export default function FeeInstallemntReport() {
                     setheadsloading(false);
                     // toast.info('No Heads found ');
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 // toast.error(error.message);
                 setHeads([]);
             } finally {
@@ -355,11 +346,11 @@ export default function FeeInstallemntReport() {
         fetchHeads();
     }, [academicYearId, groupidnew, setValue]);
 
-    const toggleRow = (id: number) => {
+    const _toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
-    const toggleAll = () => {
+    const _toggleAll = () => {
         if (selectedIds.length === reportData.length) {
             setSelectedIds([]);
         } else {
@@ -367,7 +358,7 @@ export default function FeeInstallemntReport() {
         }
     };
 
-    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
+    const _selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
 
     function transformReportData(apiData: any[]) {
         const studentMap = new Map<string, any>();
@@ -582,7 +573,7 @@ export default function FeeInstallemntReport() {
         });
     };
 
-    const allTermIds = feeTerms.map((t) => t.fmT_Id);
+    const _allTermIds = feeTerms.map((t) => t.fmT_Id);
 
     //const isAllTermsSelected = feeTerms.length > 0 && filters.termIds.length === feeTerms.length;
 
@@ -628,7 +619,7 @@ export default function FeeInstallemntReport() {
         });
     };
 
-    const allGroupIds = feeGroups.map((t) => t.fmG_Id);
+    const _allGroupIds = feeGroups.map((t) => t.fmG_Id);
 
     //const isAllGroupsSelected = feeGroups.length > 0 && filters.groupIds.length === feeGroups.length;
 
@@ -649,7 +640,7 @@ export default function FeeInstallemntReport() {
         setValue('groupIdsNew', isAllGroupsSelectedNew ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
     };
 
-    const selectedInstallmentDataNew = useMemo(
+    const _selectedInstallmentDataNew = useMemo(
         () => feeInstallments.filter((inst) => installmentIds?.includes(inst.ftI_Id)),
         [installmentIds, feeInstallments]
     );
@@ -699,12 +690,11 @@ export default function FeeInstallemntReport() {
 
         try {
             let payload: any = {};
-            console.log('selectedCatg', payload);
             const albumNameArraygroupids: any[] = [];
             const header_list: any[] = [];
             const fillgrouparrayname: any[] = [];
             let FMH_Ids: number[] = [];
-            let routename = '';
+            let _routename = '';
 
             // Get user ID from context or default to 1
             const userid = 30239; // Get from your auth context
@@ -727,7 +717,7 @@ export default function FeeInstallemntReport() {
 
                     // Get category name
                     const category = categorydropdowndata?.data?.find((cat) => cat.fmcC_Id === data.fmcc_id);
-                    routename = category?.fmcC_ClassCategoryName || '';
+                    _routename = category?.fmcC_ClassCategoryName || '';
 
                     payload = {
                         ASMAY_Id: Number(data.academicYearId),
@@ -749,8 +739,6 @@ export default function FeeInstallemntReport() {
                         termswise: termwise || 0,
                         userid: userid
                     };
-
-                    console.log('Categorypayload', JSON.stringify(payload));
                     break;
                 }
 
@@ -773,7 +761,7 @@ export default function FeeInstallemntReport() {
 
                     // Get class name
                     const className = classes.find((cls) => cls.asmcL_Id === data.classId)?.asmcL_ClassName || '';
-                    routename = className;
+                    _routename = className;
 
                     payload = {
                         ASMAY_Id: Number(data.academicYearId),
@@ -810,7 +798,7 @@ export default function FeeInstallemntReport() {
 
                     // Get route name
                     const route = busroutedata?.data?.find((r) => r.trmR_Id === data.busrouteid);
-                    routename = route ? `${route.trmR_RouteNo} : ${route.trmR_RouteName}` : '';
+                    _routename = route ? `${route.trmR_RouteNo} : ${route.trmR_RouteName}` : '';
 
                     payload = {
                         ASMAY_Id: Number(data.academicYearId),
@@ -911,12 +899,7 @@ export default function FeeInstallemntReport() {
                 }
             }
 
-            console.log('Generated payload for', selectedCatg, ':', JSON.stringify(payload, null, 2));
-            console.log('Route name:', routename);
-
             const apiData = await getInstallmentReportDetails(payload);
-
-            console.log('API response:', apiData);
 
             // This should be selectedInstallmentData (not selectedInstallmentDataNew)
             // And useMemo should be outside the async function
@@ -1041,7 +1024,7 @@ export default function FeeInstallemntReport() {
                 });
 
                 // Get selected installment IDs
-                const selectedInstallmentIds = selectedInstallmentData.map((inst) => inst.ftI_Id);
+                const _selectedInstallmentIds = selectedInstallmentData.map((inst) => inst.ftI_Id);
 
                 // Convert to array, calculate totals, and filter students
                 const allStudents = Object.values(studentsMap).map((student: any, index: number) => {
@@ -1282,7 +1265,7 @@ export default function FeeInstallemntReport() {
     };
 
     // const isAcademicYearSelected = !!filters.academicYearId;
-    const isAcademicYearSelected = watch('academicYearId');
+    const _isAcademicYearSelected = watch('academicYearId');
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>

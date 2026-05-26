@@ -53,7 +53,7 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
     const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>(undefined);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     // const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
-    const [shouldFetchHeads, setShouldFetchHeads] = useState(false);
+    const [_shouldFetchHeads, _setShouldFetchHeads] = useState(false);
 
     // Group API
     const {
@@ -181,8 +181,6 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                 return;
             }
             const { fmcC_Id } = data;
-
-            console.log('headIds', headIds);
             const payload = {
                 // MI_Id: 30,
                 // FMG_Id: selectedGroupId,
@@ -193,8 +191,6 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                 FMG_Id: selectedGroupId,
                 FMH_Ids: headIds
             };
-
-            console.log('payload', payload);
 
             const response = await addOrUpdateConcessionCategoryGroupHeadMapping(payload);
 

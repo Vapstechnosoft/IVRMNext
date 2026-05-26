@@ -21,11 +21,11 @@ export default function MasterVenuePage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterEventVenue>>
-            <MasterVenuePageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterVenuePageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -147,11 +147,7 @@ function MasterVenuePageContent({
 
                     {/* Toggle Form */}
                     {isToggleFormOpen && selectedRow && (
-                        <ToggleMasterVenueForm
-                            rowData={selectedRow}
-                            onClose={closeToggleForm}
-                            onSuccess={refetchAll}
-                        />
+                        <ToggleMasterVenueForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                     )}
                 </>
             </div>

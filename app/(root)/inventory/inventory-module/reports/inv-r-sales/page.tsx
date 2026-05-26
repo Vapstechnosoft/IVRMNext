@@ -1,26 +1,26 @@
 'use client';
 
-import { use, useRef, useState, useEffect, useMemo } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import { Heading } from '@/components/layout/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Printer, FileSpreadsheet } from 'lucide-react';
-import ReportForm from './_components/report-form';
-import { getColumns } from './_components/columns';
-import { Badge } from '@/components/ui/badge';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
-import { InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import { useInvRSalesReportQuery } from '@/hooks/inventory/reports/use-inv-r-sales';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import type { InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
 import { getInvRSalesReport } from '@/server/inventory/reports/inv-r-sales';
-import { toast } from 'sonner';
-import { InvRSalesPrint } from './_components/inv-r-sales-print';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
+import { saveAs } from 'file-saver';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { getColumns } from './_components/columns';
+import { InvRSalesPrint } from './_components/inv-r-sales-print';
+import ReportForm from './_components/report-form';
 
 interface ReportTotals {
     amount: number;
@@ -29,26 +29,32 @@ interface ReportTotals {
 }
 
 const calculateReportTotals = (data: any[]): ReportTotals => {
-    return data.reduce((acc: ReportTotals, curr: any) => {
-        const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? curr.invtsl_amount ?? 0;
-        const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? curr.invtsl_taxamt ?? 0;
-        const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? curr.invtsl_discountamt ?? 0;
+    return data.reduce(
+        (acc: ReportTotals, curr: any) => {
+            const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? curr.invtsl_amount ?? 0;
+            const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? curr.invtsl_taxamt ?? 0;
+            const discount =
+                curr.discount_Amt ??
+                curr.invtsL_DiscountAmt ??
+                curr.saleDiscount ??
+                curr.invtsl_DiscountAmt ??
+                curr.invtsl_discountamt ??
+                0;
 
-        return {
-            amount: acc.amount + Number(amount),
-            tax: acc.tax + Number(tax),
-            discount: acc.discount + Number(discount)
-        };
-    }, { amount: 0, tax: 0, discount: 0 } as ReportTotals);
+            return {
+                amount: acc.amount + Number(amount),
+                tax: acc.tax + Number(tax),
+                discount: acc.discount + Number(discount)
+            };
+        },
+        { amount: 0, tax: 0, discount: 0 } as ReportTotals
+    );
 };
 
 export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     const searchParams = use(props.searchParams);
-    const [currentPage, setPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize, setPageSize] = useQueryState(
+    const [currentPage, setPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize, _setPageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false }).withDefault(10)
     );
@@ -65,15 +71,15 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
         const p: any = {
             ...payload,
-            startdate: payload.startdate ? format(payload.startdate, 'dd/MM/yyyy') : "",
-            enddate: payload.enddate ? format(payload.enddate, 'dd/MM/yyyy') : "",
-            selectionflag: payload.individualflag,
+            startdate: payload.startdate ? format(payload.startdate, 'dd/MM/yyyy') : '',
+            enddate: payload.enddate ? format(payload.enddate, 'dd/MM/yyyy') : '',
+            selectionflag: payload.individualflag
         };
 
         // Date logic
         if (!payload.bw_dates) {
-            p.startdate = "";
-            p.enddate = "";
+            p.startdate = '';
+            p.enddate = '';
         }
 
         // Mapping for Backend
@@ -106,7 +112,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
     });
 
-    const reportData = Array.isArray(reportResult?.data) ? reportResult.data : (reportResult?.data?.get_SalesReport || []);
+    const reportData = Array.isArray(reportResult?.data) ? reportResult.data : reportResult?.data?.get_SalesReport || [];
     const totalRecords = reportResult?.total || (Array.isArray(reportResult?.data) ? reportResult.data.length : 0);
 
     const handleReportSubmit = (payload: InvRSalesSchema | null) => {
@@ -120,7 +126,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
         // Show toast for empty initial report
         if (totalRecords === 0 && !isFetching && currentPayload) {
-            toast.error("No record found");
+            toast.error('No record found');
         }
 
         setCurrentPayload(payload);
@@ -131,7 +137,7 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
     // Show toast for empty search results or initial empty report
     useEffect(() => {
         if (!isFetching && currentPayload && totalRecords === 0) {
-            toast.error("No record found");
+            toast.error('No record found');
         }
     }, [isFetching, totalRecords, searchQuery, currentPayload]);
 
@@ -166,9 +172,8 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                 search_query: searchQuery || '',
                 search_columns: 'invmsl_SalesNo,invmi_ItemName,membername'
             });
-            console.log("fetchAllData Response:", response?.data);
 
-            const allData = Array.isArray(response?.data) ? response.data : (response?.data?.get_SalesReport || []);
+            const allData = Array.isArray(response?.data) ? response.data : response?.data?.get_SalesReport || [];
 
             if (allData.length === 0) {
                 toast.dismiss('fetch-all');
@@ -207,40 +212,55 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
             dataToExport = allData.map((row: any, index: number) => {
                 const base: any = {
-                    "SL.No": index + 1
+                    'SL.No': index + 1
                 };
 
                 const saleDate = row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate || row.invmsl_salesdate;
 
                 if (typeflag === 'All') {
-                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
-                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
-                    base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
+                    base.Item = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
+                    base['Sale No'] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
+                    base['Sale Date'] = saleDate ? saleDate.split('T')[0] : '';
                 } else if (typeflag === 'Detailed') {
-                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
-                    base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
-                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
+                    base['Sale No'] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
+                    base['Sale Date'] = saleDate ? saleDate.split('T')[0] : '';
+                    base.Item = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
 
                     if (['Student', 'Staff', 'Customer', 'Saleno'].includes(optionflag || '')) {
-                        base["Name"] = row.membername || row.memberName || '';
+                        base.Name = row.membername || row.memberName || '';
                     }
                 } else if (typeflag === 'Overall') {
                     if (optionflag === 'Item') {
-                        base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
+                        base.Item = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
                     } else if (['Student', 'Staff', 'Customer'].includes(optionflag || '')) {
-                        base["Name"] = row.membername || row.memberName || '';
+                        base.Name = row.membername || row.memberName || '';
                     }
                 }
 
-                base["Quantity"] = Number(row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? row.invtsl_salesqty ?? 0).toFixed(2);
-                base["Price"] = Number(row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? row.invtsl_salesprice ?? 0).toFixed(2);
-                base["Amount"] = Number(row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? row.invtsl_amount ?? 0).toFixed(2);
+                base.Quantity = Number(
+                    row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? row.invtsl_salesqty ?? 0
+                ).toFixed(2);
+                base.Price = Number(
+                    row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? row.invtsl_salesprice ?? 0
+                ).toFixed(2);
+                base.Amount = Number(
+                    row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? row.invtsl_amount ?? 0
+                ).toFixed(2);
 
                 if (showTax) {
-                    base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? row.invtsl_taxamt ?? 0).toFixed(2);
+                    base.Tax = Number(
+                        row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? row.invtsl_taxamt ?? 0
+                    ).toFixed(2);
                 }
                 if (showDiscount) {
-                    base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? row.invtsl_discountamt ?? 0).toFixed(2);
+                    base.Discount = Number(
+                        row.discount_Amt ??
+                            row.invtsL_DiscountAmt ??
+                            row.saleDiscount ??
+                            row.invtsl_DiscountAmt ??
+                            row.invtsl_discountamt ??
+                            0
+                    ).toFixed(2);
                 }
 
                 return base;
@@ -248,10 +268,12 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Report");
-            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-            const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8" });
-            saveAs(data, "Sales_Report.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Report');
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const data = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+            });
+            saveAs(data, 'Sales_Report.xlsx');
             toast.success('Excel downloaded successfully');
         }
     };
@@ -260,64 +282,61 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
         enablePagination: true,
         enableSorting: false,
         enableSearching: true, // Grid Search enabled
-        isSearchRequired: true,
+        isSearchRequired: true
     });
 
     return (
-        <div className="container mx-auto px-4 py-6 space-y-6">
-            <Heading
-                title="Sales Report"
-                description="Generate Sales Reports"
-            />
+        <div className='container mx-auto space-y-6 px-4 py-6'>
+            <Heading title='Sales Report' description='Generate Sales Reports' />
 
             <ReportForm onSubmit={handleReportSubmit} isLoading={isFetching} />
 
             {currentPayload && (
-                <CollapsibleSection title="Report Result" defaultOpen={true}>
-                    <div className="p-6 space-y-8 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200">
+                <CollapsibleSection title='Report Result' defaultOpen={true}>
+                    <div className='space-y-8 rounded-lg border border-slate-200 bg-white p-6 text-slate-900 shadow-sm'>
                         {/* Header Section */}
-                        <div className="flex flex-col items-center justify-center space-y-3 mb-8 border-b border-slate-200 pb-6">
-                            <h3 className="text-3xl font-bold uppercase tracking-tight text-slate-800 text-center">
-                                Sales Report
-                            </h3>
-                            <div className="w-24 h-1 bg-primary rounded-full"></div>
-                            <p className="text-lg font-medium text-slate-600 uppercase tracking-wide">
-                                {currentPayload.startdate ? format(new Date(currentPayload.startdate), 'dd/MM/yyyy') : 'N/A'} - {currentPayload.enddate ? format(new Date(currentPayload.enddate), 'dd/MM/yyyy') : 'N/A'}
+                        <div className='mb-8 flex flex-col items-center justify-center space-y-3 border-slate-200 border-b pb-6'>
+                            <h3 className='text-center font-bold text-3xl text-slate-800 uppercase tracking-tight'>Sales Report</h3>
+                            <div className='h-1 w-24 rounded-full bg-primary' />
+                            <p className='font-medium text-lg text-slate-600 uppercase tracking-wide'>
+                                {currentPayload.startdate ? format(new Date(currentPayload.startdate), 'dd/MM/yyyy') : 'N/A'} -{' '}
+                                {currentPayload.enddate ? format(new Date(currentPayload.enddate), 'dd/MM/yyyy') : 'N/A'}
                             </p>
                         </div>
 
-                        <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
-                            <div className="flex gap-4 items-center">
-                                <div className="flex gap-2 items-center">
-                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Total Records:</span>
-                                    <Badge variant="secondary" className="bg-slate-200 text-slate-700 hover:bg-slate-200">{totalRecords}</Badge>
+                        <div className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm'>
+                            <div className='flex items-center gap-4'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='font-semibold text-slate-500 text-xs uppercase tracking-wider'>Total Records:</span>
+                                    <Badge variant='secondary' className='bg-slate-200 text-slate-700 hover:bg-slate-200'>
+                                        {totalRecords}
+                                    </Badge>
                                 </div>
-                                <div className="h-4 w-[1px] bg-slate-300"></div>
-                                <div className="flex gap-2 items-center">
-                                    <span className="font-semibold text-slate-500 uppercase tracking-wider text-xs">Type:</span>
-                                    <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px]">{currentPayload.typeflag}</Badge>
+                                <div className='h-4 w-[1px] bg-slate-300' />
+                                <div className='flex items-center gap-2'>
+                                    <span className='font-semibold text-slate-500 text-xs uppercase tracking-wider'>Type:</span>
+                                    <Badge variant='outline' className='border-primary/30 text-[10px] text-primary uppercase'>
+                                        {currentPayload.typeflag}
+                                    </Badge>
                                 </div>
                             </div>
-                            <div className="flex gap-3 items-center">
+                            <div className='flex items-center gap-3'>
                                 <Button
-                                    variant="outline"
-                                    className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
-                                    onClick={handleExportExcel}
-                                >
-                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
+                                    variant='outline'
+                                    className='w-fit border-green-600 text-green-700 shadow-md transition-all duration-200 hover:scale-105 hover:bg-green-50 hover:shadow-lg'
+                                    onClick={handleExportExcel}>
+                                    <FileSpreadsheet className='mr-2 h-4 w-4' /> Export Excel
                                 </Button>
                                 <Button
-                                    variant="secondary"
-                                    className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
-                                    onClick={handlePrint}
-                                >
-                                    <Printer className="mr-2 h-4 w-4" /> Print
+                                    variant='secondary'
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                                    onClick={handlePrint}>
+                                    <Printer className='mr-2 h-4 w-4' /> Print
                                 </Button>
                             </div>
                         </div>
 
                         <div>
-
                             <GenericDataTable
                                 {...tableProps}
                                 data={reportData}
@@ -325,32 +344,34 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                                 totalItems={totalRecords}
                                 isLoading={isFetching}
                                 isSearchRequired={true}
-                                noDataTitle="No Sales Found"
-                                noDataDescription="No records found matching your search criteria."
+                                noDataTitle='No Sales Found'
+                                noDataDescription='No records found matching your search criteria.'
                             />
 
                             {reportData.length > 0 && (
-                                <div className="flex justify-end mt-4">
-                                    <Card className="w-full md:w-[400px] bg-muted/10 print:bg-transparent print:border-none print:shadow-none">
-                                        <CardHeader className="py-3">
-                                            <CardTitle className="text-sm font-semibold uppercase text-muted-foreground print:text-black">Summary</CardTitle>
+                                <div className='mt-4 flex justify-end'>
+                                    <Card className='w-full bg-muted/10 md:w-[400px] print:border-none print:bg-transparent print:shadow-none'>
+                                        <CardHeader className='py-3'>
+                                            <CardTitle className='font-semibold text-muted-foreground text-sm uppercase print:text-black'>
+                                                Summary
+                                            </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="space-y-2 text-sm pt-0">
-                                            {(currentPayload?.showDiscount) && (
-                                                <div className="flex justify-between text-destructive print:text-black">
+                                        <CardContent className='space-y-2 pt-0 text-sm'>
+                                            {currentPayload?.showDiscount && (
+                                                <div className='flex justify-between text-destructive print:text-black'>
                                                     <span>Total Discount (-):</span>
-                                                    <span className="font-mono">{totals.discount.toFixed(2)}</span>
+                                                    <span className='font-mono'>{totals.discount.toFixed(2)}</span>
                                                 </div>
                                             )}
-                                            {(currentPayload?.showTax) && (
-                                                <div className="flex justify-between text-green-600 print:text-black">
+                                            {currentPayload?.showTax && (
+                                                <div className='flex justify-between text-green-600 print:text-black'>
                                                     <span>Total Tax (+):</span>
-                                                    <span className="font-mono">{totals.tax.toFixed(2)}</span>
+                                                    <span className='font-mono'>{totals.tax.toFixed(2)}</span>
                                                 </div>
                                             )}
-                                            <div className="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
+                                            <div className='mt-2 flex justify-between border-t pt-2 font-bold text-lg'>
                                                 <span>Total Amount:</span>
-                                                <span className="font-mono">{totals.amount.toFixed(2)}</span>
+                                                <span className='font-mono'>{totals.amount.toFixed(2)}</span>
                                             </div>
                                         </CardContent>
                                     </Card>

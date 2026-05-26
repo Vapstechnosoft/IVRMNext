@@ -242,11 +242,7 @@ export default function AddFeeOpeningBalanceForm({
                 TempArrayHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
 
-            console.log('payload', JSON.stringify(payload));
-
             const res = await studentListDropdown(payload);
-
-            console.log('studentListDropdown', res);
 
             if (res?.success && res.data?.saveheadlst?.length > 0) {
                 const formatted: StudentRow[] = res.data.saveheadlst.map((s: any) => ({
@@ -295,8 +291,6 @@ export default function AddFeeOpeningBalanceForm({
                 })),
                 TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
-
-            console.log('Payload to submit:', JSON.stringify(payload));
 
             const res = await addOrUpdateFeeOpeningBalance(payload);
             if (res.success || res.returnval) {

@@ -94,7 +94,6 @@ export async function POST(req: NextRequest) {
         const timestamp = new Date().toISOString();
         const entry = `[${timestamp}] ${msg}`;
         logs.push(entry);
-        console.log(entry);
     };
 
     try {
@@ -121,7 +120,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -149,8 +148,8 @@ export async function POST(req: NextRequest) {
         const buffer = fileBuffer as Buffer;
         log(`File received: ${fileName}, Size: ${buffer.length}`);
 
-        const chapter = formFields['chapter'] || '';
-        const mode = formFields['mode'] || 'both'; // both, summary, notes
+        const chapter = formFields.chapter || '';
+        const mode = formFields.mode || 'both'; // both, summary, notes
 
         let extractedText = '';
 
@@ -184,7 +183,7 @@ export async function POST(req: NextRequest) {
                 ${contextContent}
 
                 TASK:
-                Create a high-level Academic Executive Summary ${chapter ? 'for chapter ' + chapter : 'for the provided document'}.
+                Create a high-level Academic Executive Summary ${chapter ? `for chapter ${chapter}` : 'for the provided document'}.
                 
                 **STRICT REQUIREMENT**: The summary MUST be presented in clear, concise bullet points for maximum readability.
                 
@@ -197,7 +196,7 @@ export async function POST(req: NextRequest) {
                 ${contextContent}
 
                 TASK:
-                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? 'specifically for chapter ' + chapter : 'for the provided material'}.
+                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? `specifically for chapter ${chapter}` : 'for the provided material'}.
 
                 **COMPULSORY REQUIREMENT: 1500+ WORDS MINIMUM**
                 You are strictly forbidden from giving short answers. You must produce a MASSIVE, long-form academic document.

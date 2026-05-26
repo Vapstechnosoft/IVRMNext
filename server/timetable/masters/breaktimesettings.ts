@@ -33,7 +33,6 @@ export async function deactivateBreakTimeSettings(data: any) {
 export async function getBreakTimeSettingsEdit(id: number) {
     // /api/BreaktimesettingsFacade/getEditdetails/{id}
     const url = `/BreaktimesettingsFacade/getEditdetails/${id}`;
-    console.log("getBreakTimeSettingsEdit", url);
     return await api.get<any>('timetable', url);
 }
 

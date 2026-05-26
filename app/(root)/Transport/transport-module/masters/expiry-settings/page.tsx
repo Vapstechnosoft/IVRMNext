@@ -5,10 +5,7 @@ import ExpirySettingsForm from './_components/expiry-settings-form';
 
 export default function ExpirySettingsPage() {
     return (
-        <CollapsibleSection
-            title='Transport Expiry Settings'
-            defaultOpen={true}
-        >
+        <CollapsibleSection title='Transport Expiry Settings' defaultOpen={true}>
             <ExpirySettingsForm />
         </CollapsibleSection>
     );

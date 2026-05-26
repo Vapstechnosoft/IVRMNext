@@ -191,9 +191,8 @@ export const studentMarksPublishValidators = {
 
             if (params.radiotype === 'EXAM') {
                 return data.exmstdlist && data.exmstdlist.length > 0;
-            } else {
-                return data.editlist && data.editlist.length > 0;
             }
+            return data.editlist && data.editlist.length > 0;
         } catch (error) {
             console.error('Error checking marks calculation:', error);
             return false;

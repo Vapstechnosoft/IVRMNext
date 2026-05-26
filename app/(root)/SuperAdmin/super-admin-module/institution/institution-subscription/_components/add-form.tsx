@@ -3,13 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { institutionSubscriptionSchema } from '@/schemas/super-admin/super-admin-module/institution/institution-subscription';
 import { addOrUpdateInstitutionSubscription } from '@/server/super-admin/super-admin-module/institution/institution-subscription';
-import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
@@ -19,7 +18,6 @@ import type { z } from 'zod';
 
 import { useInstitutionSubscriptionDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import type { IInstitutionDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
-import { useEffect, useState } from 'react';
 
 // Mock Data Removed
 
@@ -49,7 +47,6 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('Form Data:', data);
             const response = await addOrUpdateInstitutionSubscription(data);
 
             if (response.success) {
@@ -70,14 +67,16 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 pt-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 <div className='flex flex-col space-y-2'>
-                    <Label htmlFor='mI_Id'>Institution Name <span className='text-red-500'>*</span></Label>
+                    <Label htmlFor='mI_Id'>
+                        Institution Name <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         name='mI_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={isInstitutionLoading ? "Loading Institutions..." : "Select Institution"} />
+                                    <SelectValue placeholder={isInstitutionLoading ? 'Loading Institutions...' : 'Select Institution'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions.map((option) => (
@@ -94,7 +93,9 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
 
                 {/* Start Date Picker */}
                 <div className='flex flex-col space-y-2'>
-                    <Label>Start Date <span className='text-red-500'>*</span></Label>
+                    <Label>
+                        Start Date <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         control={control}
                         name='misV_FromDate'
@@ -103,26 +104,13 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={'outline'}
-                                        className={cn(
-                                            'w-full pl-3 text-left font-normal',
-                                            !field.value && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        {field.value ? (
-                                            format(field.value, 'dd-MM-yyyy')
-                                        ) : (
-                                            <span>Pick a date</span>
-                                        )}
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Pick a date</span>}
                                         <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
-                                    />
+                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
                             </Popover>
                         )}
@@ -132,7 +120,9 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
 
                 {/* End Date Picker */}
                 <div className='flex flex-col space-y-2'>
-                    <Label>End Date <span className='text-red-500'>*</span></Label>
+                    <Label>
+                        End Date <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         control={control}
                         name='misV_ToDate'
@@ -141,26 +131,13 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={'outline'}
-                                        className={cn(
-                                            'w-full pl-3 text-left font-normal',
-                                            !field.value && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        {field.value ? (
-                                            format(field.value, 'dd-MM-yyyy')
-                                        ) : (
-                                            <span>Pick a date</span>
-                                        )}
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Pick a date</span>}
                                         <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
-                                    />
+                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                 </PopoverContent>
                             </Popover>
                         )}
@@ -169,23 +146,25 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                 </div>
 
                 <div className='flex flex-col space-y-3'>
-                    <Label>Subscription Type <span className='text-red-500'>*</span></Label>
+                    <Label>
+                        Subscription Type <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         control={control}
                         name='misV_SubscriptionType'
                         render={({ field }) => (
-                            <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className='flex flex-row space-x-4'
-                            >
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-row space-x-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Licence' id='r1' />
-                                    <Label htmlFor='r1' className='font-normal'>Licence</Label>
+                                    <Label htmlFor='r1' className='font-normal'>
+                                        Licence
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Trial' id='r2' />
-                                    <Label htmlFor='r2' className='font-normal'>Trial</Label>
+                                    <Label htmlFor='r2' className='font-normal'>
+                                        Trial
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}

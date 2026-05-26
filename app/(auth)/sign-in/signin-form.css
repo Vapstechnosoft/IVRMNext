@@ -9,14 +9,13 @@
     --soft-pink: #fbc2eb;
 
     /* Functional UI Colors */
-    --text-charcoal: #2E2E2E;
+    --text-charcoal: #2e2e2e;
     --text-secondary: #64748b;
     --glass-bg: rgba(255, 255, 255, 0.45);
     --inner-glow: rgba(255, 255, 255, 0.6);
 
     /* Shadows & Effects */
-    --card-shadow: 0 25px 50px -12px rgba(140, 107, 211, 0.15),
-        0 15px 35px -10px rgba(255, 122, 24, 0.1);
+    --card-shadow: 0 25px 50px -12px rgba(140, 107, 211, 0.15), 0 15px 35px -10px rgba(255, 122, 24, 0.1);
     --btn-glow: 0 10px 25px -5px rgba(255, 122, 24, 0.4);
 }
 
@@ -69,7 +68,7 @@
 .bg-grain-texture {
     position: absolute;
     inset: 0;
-    background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+    background-image: url('https://www.transparenttextures.com/patterns/p6.png');
     opacity: 0.08;
     z-index: 2;
     pointer-events: none;
@@ -165,7 +164,6 @@
 }
 
 @keyframes blobMorph {
-
     0%,
     100% {
         transform: translate(0, 0) scale(1);
@@ -196,7 +194,6 @@
 }
 
 @keyframes iconFloat {
-
     0%,
     100% {
         transform: translateY(0) rotate(0deg) scale(1.0);
@@ -242,7 +239,6 @@
 }
 
 @keyframes glassFloat {
-
     0%,
     100% {
         transform: translateY(0) rotate(0deg) scale(1.0);
@@ -327,8 +323,7 @@
     border-radius: 32px;
     width: 100%;
     padding: 48px;
-    box-shadow: var(--card-shadow),
-        inset 0 0 40px rgba(255, 255, 255, 0.2);
+    box-shadow: var(--card-shadow), inset 0 0 40px rgba(255, 255, 255, 0.2);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -340,8 +335,7 @@
     inset: 0;
     pointer-events: none;
     border-radius: 32px;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6),
-        inset 0 24px 48px -12px rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 24px 48px -12px rgba(255, 255, 255, 0.3);
 }
 
 /* --- Left Card: Welcome Panel --- */
@@ -472,7 +466,6 @@
 }
 
 @keyframes mainFloat {
-
     0%,
     100% {
         transform: translateY(0) rotate(-2deg);
@@ -484,7 +477,6 @@
 }
 
 @keyframes subFloat {
-
     0%,
     100% {
         transform: translateY(0);
@@ -496,7 +488,6 @@
 }
 
 @keyframes pulseGlow {
-
     0%,
     100% {
         transform: scale(1);
@@ -508,8 +499,6 @@
         opacity: 0.8;
     }
 }
-
-
 
 .contact-pill {
     margin-top: 32px;
@@ -617,19 +606,19 @@
     border-color: var(--lavender-purple);
 }
 
-.floating-input:focus~.floating-label,
-.floating-input.has-value~.floating-label {
+.floating-input:focus ~ .floating-label,
+.floating-input.has-value ~ .floating-label {
     top: 18px;
     font-size: 12px;
     font-weight: 700;
     color: var(--lavender-rich);
 }
 
-.floating-input:focus~.input-focus-glow {
+.floating-input:focus ~ .input-focus-glow {
     opacity: 0.15;
 }
 
-.floating-input:focus~.input-icon {
+.floating-input:focus ~ .input-icon {
     color: var(--lavender-rich);
     opacity: 1;
 }
@@ -669,7 +658,6 @@
 }
 
 @keyframes shake {
-
     0%,
     100% {
         transform: translateX(0);
@@ -824,7 +812,6 @@
 }
 
 @keyframes flash {
-
     0%,
     100% {
         opacity: 0.4;
@@ -851,7 +838,6 @@
         transform: translateY(0) scale(1);
     }
 }
-
 
 /* --- Responsive Layout Fix: Dual Card Visibility --- */
 @media (max-width: 1150px) {

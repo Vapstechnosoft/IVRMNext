@@ -92,11 +92,11 @@ export default function PeriodSubjectUpdate({
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subStaffList, setSubStaffList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
-    const [masterSections, setMasterSections] = useState<any[]>([]);
-    const [masterStaff, setMasterStaff] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterSections, setMasterSections] = useState<any[]>([]);
+    const [_masterStaff, setMasterStaff] = useState<any[]>([]);
 
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
@@ -123,7 +123,7 @@ export default function PeriodSubjectUpdate({
         control,
         reset
     } = form;
-    const asmaY_Id = watch('asmaY_Id');
+    const _asmaY_Id = watch('asmaY_Id');
     const ttfpsU_SUbSelcFlag = watch('ttfpsU_SUbSelcFlag');
 
     const { fields, append, remove, replace, update } = useFieldArray({

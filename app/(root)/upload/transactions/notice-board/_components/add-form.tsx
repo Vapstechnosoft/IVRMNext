@@ -1,38 +1,30 @@
 'use client';
 
-import { useForm, Controller, useWatch, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon, Minus, Plus, Eye, Save, X, Upload, Loader2 } from 'lucide-react';
-import { noticeBoardSchema, type INoticeBoard } from '@/schemas/upload/transactions/notice-board.schema';
-import { useEffect, useRef, useState } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { type INoticeBoard, noticeBoardSchema } from '@/schemas/upload/transactions/notice-board.schema';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import {
-    saveNoticeBoardDetail,
+    getNoticeBoardDepartments,
+    getNoticeBoardDesignations,
     getNoticeBoardSections,
     getNoticeBoardStudents,
-    getNoticeBoardEmployees,
-    getNoticeBoardDepartments,
-    getNoticeBoardDesignations
+    saveNoticeBoardDetail
 } from '@/server/upload/transactions/notice-board/server-action';
-import { uploadDocument } from '@/server/fees/trasactions/waived_off';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import {
-    useBusRoutingForNoticeBoardQuery,
-    useFeeGroupsForNoticeBoardQuery,
-    useFeeTermsForNoticeBoardQuery,
-    useNoticeBoardDepartments,
-    useNoticeBoardDesignations
-} from '@/hooks/upload/transactions/use-notice-board';
 
 interface AddNoticeBoardFormProps {
     onSuccess: () => void;
@@ -55,12 +47,12 @@ export default function AddNoticeBoardForm({
     routeList,
     feeGroupList,
     feeTermList,
-    defaultYearId,
+    defaultYearId
 }: AddNoticeBoardFormProps) {
     const [isUrlMode, setIsUrlMode] = useState(false);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<any[]>([]);
+    const [_subjects, setSubjects] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
@@ -92,26 +84,38 @@ export default function AddNoticeBoardForm({
         }
     });
 
-    const { control, handleSubmit, setValue, register, reset, formState: { isSubmitting } } = methods;
-
-    const { fields: attachmentFields, append, remove, update } = useFieldArray({
+    const {
         control,
-        name: "intB_FilePath_Array"
+        handleSubmit,
+        setValue,
+        register,
+        reset,
+        formState: { isSubmitting }
+    } = methods;
+
+    const {
+        fields: attachmentFields,
+        append,
+        remove,
+        update
+    } = useFieldArray({
+        control,
+        name: 'intB_FilePath_Array'
     });
 
-    const asmaY_Id = useWatch({ control, name: "asmaY_Id" });
-    const check_student = useWatch({ control, name: "check_student" });
-    const check_staff = useWatch({ control, name: "check_staff" });
-    const intB_DispalyDisableFlg = useWatch({ control, name: "intB_DispalyDisableFlg" });
-    const asmcL_Id = useWatch({ control, name: "asmcL_Id" });
-    const asmS_Id = useWatch({ control, name: "asmS_Id" });
-    const select_route = useWatch({ control, name: "select_route" });
-    const fee_def = useWatch({ control, name: "fee_def" });
-    const hrmd_Id = useWatch({ control, name: "hrmd_Id" });
-    const hrmdeS_Id = useWatch({ control, name: "hrmdeS_Id" });
-    const amsT_Id = useWatch({ control, name: "amsT_Id" });
-    const ismS_Id = useWatch({ control, name: "ismS_Id" });
-    const hrmE_Id = useWatch({ control, name: "hrmE_Id" });
+    const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
+    const check_student = useWatch({ control, name: 'check_student' });
+    const check_staff = useWatch({ control, name: 'check_staff' });
+    const intB_DispalyDisableFlg = useWatch({ control, name: 'intB_DispalyDisableFlg' });
+    const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
+    const asmS_Id = useWatch({ control, name: 'asmS_Id' });
+    const select_route = useWatch({ control, name: 'select_route' });
+    const fee_def = useWatch({ control, name: 'fee_def' });
+    const hrmd_Id = useWatch({ control, name: 'hrmd_Id' });
+    const hrmdeS_Id = useWatch({ control, name: 'hrmdeS_Id' });
+    const amsT_Id = useWatch({ control, name: 'amsT_Id' });
+    const ismS_Id = useWatch({ control, name: 'ismS_Id' });
+    const hrmE_Id = useWatch({ control, name: 'hrmE_Id' });
 
     // Cascading Dropdowns: Designations after Department Selection
     useEffect(() => {
@@ -135,7 +139,7 @@ export default function AddNoticeBoardForm({
                 asmaY_Id: asmaY_Id,
                 classlsttwo: asmcL_Id
             };
-            getNoticeBoardSections(payload).then(res => {
+            getNoticeBoardSections(payload).then((res) => {
                 setSections((res.data as any[]) || (res.sectionlistarray as any[]) || []);
             });
         } else {
@@ -152,7 +156,7 @@ export default function AddNoticeBoardForm({
                 classlsttwo: asmcL_Id,
                 sectionlistarray: asmS_Id
             };
-            getNoticeBoardStudents(payload).then(res => {
+            getNoticeBoardStudents(payload).then((res) => {
                 setStudents((res.data as any[]) || (res.studentlist as any[]) || []);
                 setSubjects((res.data2 as any[]) || (res.subjectlist as any[]) || []);
             });
@@ -220,37 +224,41 @@ export default function AddNoticeBoardForm({
             const payload = {
                 INTB_Id: data.intB_Id || 0,
                 INTB_Title: data.intB_Title,
-                INTB_Description: data.intB_Description || "",
+                INTB_Description: data.intB_Description || '',
                 ASMAY_Id: data.asmaY_Id,
                 INTB_StartDate: data.intB_StartDate.toISOString(),
                 INTB_EndDate: data.intB_EndDate.toISOString(),
                 INTB_DisplayDate: data.intB_DisplayDate ? data.intB_DisplayDate.toISOString() : new Date().toISOString(),
-                INTB_Attachment: "string",
-                INTB_FilePath: "string",
+                INTB_Attachment: 'string',
+                INTB_FilePath: 'string',
                 NTB_TTSylabusFlg: data.ntB_TTSylabusFlg,
                 INTB_DispalyDisableFlg: data.intB_DispalyDisableFlg,
                 INTB_ToStaffFlg: data.check_staff,
                 INTB_ToStudentFlg: data.check_student,
                 getclass: false,
-                classlsttwo: data.check_student ? (data.asmcL_Id || []).map(c => ({ ASMCL_Id: c.asmcL_Id })) : [],
-                sectionlistarray: data.check_student ? (data.asmS_Id || []).map(s => {
-                    const sectionInfo = sections.find(sec => (sec.ASMS_Id || sec.asmS_Id || sec.asms_Id) === s.asmS_Id);
-                    return {
-                        ASMS_Id: s.asmS_Id,
-                        ASMCL_Id: sectionInfo?.asmcL_Id || sectionInfo?.asmcl_Id || (data.asmcL_Id?.[0]?.asmcL_Id || 0)
-                    };
-                }) : [],
-                studentarray: data.check_student ? (data.amsT_Id || []).map(s => ({ AMST_Id: s.amsT_Id })) : [],
-                employeearraylist: data.check_staff ? (data.hrmE_Id || []).map(e => ({ HRME_Id: e.hrmE_Id })) : [],
-                FilePath_Array: (data.intB_FilePath_Array || []).map(f => ({
-                    FileName: f.fileName,
-                    INTBFL_FilePath: f.intbfL_FilePath
-                })).filter(f => f.INTBFL_FilePath !== ""),
+                classlsttwo: data.check_student ? (data.asmcL_Id || []).map((c) => ({ ASMCL_Id: c.asmcL_Id })) : [],
+                sectionlistarray: data.check_student
+                    ? (data.asmS_Id || []).map((s) => {
+                          const sectionInfo = sections.find((sec) => (sec.ASMS_Id || sec.asmS_Id || sec.asms_Id) === s.asmS_Id);
+                          return {
+                              ASMS_Id: s.asmS_Id,
+                              ASMCL_Id: sectionInfo?.asmcL_Id || sectionInfo?.asmcl_Id || data.asmcL_Id?.[0]?.asmcL_Id || 0
+                          };
+                      })
+                    : [],
+                studentarray: data.check_student ? (data.amsT_Id || []).map((s) => ({ AMST_Id: s.amsT_Id })) : [],
+                employeearraylist: data.check_staff ? (data.hrmE_Id || []).map((e) => ({ HRME_Id: e.hrmE_Id })) : [],
+                FilePath_Array: (data.intB_FilePath_Array || [])
+                    .map((f) => ({
+                        FileName: f.fileName,
+                        INTBFL_FilePath: f.intbfL_FilePath
+                    }))
+                    .filter((f) => f.INTBFL_FilePath !== ''),
                 fee_def: data.check_student ? data.fee_def : false,
                 routeflag: data.check_student ? data.select_route : false,
-                defgrparray: (data.check_student && data.fee_def) ? (data.feeGroupList || []).map(f => ({ FMG_Id: f.fmg_Id })) : [],
-                defarray: (data.check_student && data.fee_def) ? (data.feeTermList || []).map(f => ({ FMT_Id: f.fmT_Id })) : [],
-                routearray: data.check_student ? (data.routeList || []).map(r => ({ TRMR_Id: r.trmR_Id })) : []
+                defgrparray: data.check_student && data.fee_def ? (data.feeGroupList || []).map((f) => ({ FMG_Id: f.fmg_Id })) : [],
+                defarray: data.check_student && data.fee_def ? (data.feeTermList || []).map((f) => ({ FMT_Id: f.fmT_Id })) : [],
+                routearray: data.check_student ? (data.routeList || []).map((r) => ({ TRMR_Id: r.trmR_Id })) : []
             };
 
             const result = await saveNoticeBoardDetail(payload);
@@ -271,12 +279,12 @@ export default function AddNoticeBoardForm({
         <div className='flex w-full flex-col gap-6'>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
                 {/* Selection Type Toggles */}
-                <div className="flex flex-wrap gap-6 border-b pb-4">
+                <div className='flex flex-wrap gap-6 border-b pb-4'>
                     <Controller
                         control={control}
-                        name="check_student"
+                        name='check_student'
                         render={({ field }) => (
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Checkbox
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
@@ -284,15 +292,15 @@ export default function AddNoticeBoardForm({
                                         if (checked) setValue('check_staff', false);
                                     }}
                                 />
-                                <Label className="font-semibold">Student</Label>
+                                <Label className='font-semibold'>Student</Label>
                             </div>
                         )}
                     />
                     <Controller
                         control={control}
-                        name="check_staff"
+                        name='check_staff'
                         render={({ field }) => (
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Checkbox
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
@@ -300,27 +308,31 @@ export default function AddNoticeBoardForm({
                                         if (checked) setValue('check_student', false);
                                     }}
                                 />
-                                <Label className="font-semibold">Staff</Label>
+                                <Label className='font-semibold'>Staff</Label>
                             </div>
                         )}
                     />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                     {/* Academic Year */}
                     <Controller
                         control={control}
                         name='asmaY_Id'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label>Academic Year <span className="text-red-500">*</span></Label>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(yearList || []).map((year: any) => (
-                                            <SelectItem key={year.asmaY_Id || year.asmay_Id} value={(year.asmaY_Id || year.asmay_Id || '').toString()}>
+                                            <SelectItem
+                                                key={year.asmaY_Id || year.asmay_Id}
+                                                value={(year.asmaY_Id || year.asmay_Id || '').toString()}>
                                                 {year.asmaY_Year || year.asmay_year}
                                             </SelectItem>
                                         ))}
@@ -337,7 +349,9 @@ export default function AddNoticeBoardForm({
                         name='ntB_TTSylabusFlg'
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label>Notice Type <span className="text-red-500">*</span></Label>
+                                <Label>
+                                    Notice Type <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Notice Type' />
@@ -356,7 +370,9 @@ export default function AddNoticeBoardForm({
 
                     {/* Notice Title */}
                     <div>
-                        <Label>Notice Title <span className="text-red-500">*</span></Label>
+                        <Label>
+                            Notice Title <span className='text-red-500'>*</span>
+                        </Label>
                         <Input placeholder='Enter Notice Title' {...register('intB_Title')} />
                         {methods.formState.errors.intB_Title && <FormError>{methods.formState.errors.intB_Title.message}</FormError>}
                     </div>
@@ -367,10 +383,14 @@ export default function AddNoticeBoardForm({
                         name='intB_StartDate'
                         render={({ field, fieldState }) => (
                             <div className='flex flex-col'>
-                                <Label>Start Date <span className="text-red-500">*</span></Label>
+                                <Label>
+                                    Start Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        <Button
+                                            variant={'outline'}
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
                                             <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                         </Button>
@@ -390,10 +410,14 @@ export default function AddNoticeBoardForm({
                         name='intB_EndDate'
                         render={({ field, fieldState }) => (
                             <div className='flex flex-col'>
-                                <Label>End Date <span className="text-red-500">*</span></Label>
+                                <Label>
+                                    End Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        <Button
+                                            variant={'outline'}
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
                                             <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                         </Button>
@@ -408,14 +432,16 @@ export default function AddNoticeBoardForm({
                     />
 
                     {/* Display Date Toggle */}
-                    <div className="flex items-end pb-2">
+                    <div className='flex items-end pb-2'>
                         <Controller
                             control={control}
-                            name="intB_DispalyDisableFlg"
+                            name='intB_DispalyDisableFlg'
                             render={({ field }) => (
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} id="display-date-check" />
-                                    <Label htmlFor="display-date-check" className="cursor-pointer font-normal">Display Date</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} id='display-date-check' />
+                                    <Label htmlFor='display-date-check' className='cursor-pointer font-normal'>
+                                        Display Date
+                                    </Label>
                                 </div>
                             )}
                         />
@@ -428,16 +454,28 @@ export default function AddNoticeBoardForm({
                             name='intB_DisplayDate'
                             render={({ field, fieldState }) => (
                                 <div className='flex flex-col'>
-                                    <Label>Display Date <span className="text-red-500">*</span></Label>
+                                    <Label>
+                                        Display Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            <Button
+                                                variant={'outline'}
+                                                className={cn(
+                                                    'w-full pl-3 text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
                                                 {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
                                                 <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar mode='single' selected={field.value || undefined} onSelect={field.onChange} initialFocus />
+                                            <Calendar
+                                                mode='single'
+                                                selected={field.value || undefined}
+                                                onSelect={field.onChange}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -447,97 +485,108 @@ export default function AddNoticeBoardForm({
                     )}
 
                     {/* Description */}
-                    <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                    <div className='col-span-1 md:col-span-2 lg:col-span-3'>
                         <Label>Description</Label>
-                        <Textarea placeholder='Enter Description' {...register('intB_Description')} className="min-h-[80px]" />
+                        <Textarea placeholder='Enter Description' {...register('intB_Description')} className='min-h-[80px]' />
                     </div>
                 </div>
 
                 {/* Attachments Section */}
-                <div className="space-y-4 rounded-md border p-4 shadow-sm bg-gray-50/30">
-                    <h3 className="text-lg font-bold text-gray-800">Attachments</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full table-auto border-collapse border bg-white text-left text-sm">
-                            <thead className="bg-muted/50">
+                <div className='space-y-4 rounded-md border bg-gray-50/30 p-4 shadow-sm'>
+                    <h3 className='font-bold text-gray-800 text-lg'>Attachments</h3>
+                    <div className='overflow-x-auto'>
+                        <table className='w-full table-auto border-collapse border bg-white text-left text-sm'>
+                            <thead className='bg-muted/50'>
                                 <tr>
-                                    <th className="border p-2 text-center w-12">SL NO</th>
-                                    <th className="border p-2 text-center">Upload File / URL</th>
-                                    <th className="border p-2 text-center">File Name</th>
-                                    <th className="border p-2 text-center w-20">View</th>
-                                    <th className="border p-2 text-center w-24">Action</th>
+                                    <th className='w-12 border p-2 text-center'>SL NO</th>
+                                    <th className='border p-2 text-center'>Upload File / URL</th>
+                                    <th className='border p-2 text-center'>File Name</th>
+                                    <th className='w-20 border p-2 text-center'>View</th>
+                                    <th className='w-24 border p-2 text-center'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {attachmentFields.map((field, index) => (
-                                    <tr key={field.id} className="border-b transition-colors hover:bg-gray-50/50">
-                                        <td className="border p-2 text-center">{index + 1}</td>
-                                        <td className="border p-2">
+                                    <tr key={field.id} className='border-b transition-colors hover:bg-gray-50/50'>
+                                        <td className='border p-2 text-center'>{index + 1}</td>
+                                        <td className='border p-2'>
                                             {isUrlMode ? (
                                                 <Controller
                                                     control={control}
                                                     name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
-                                                    render={({ field }) => (
-                                                        <Input {...field} placeholder="Enter URL" className="h-9" />
-                                                    )}
+                                                    render={({ field }) => <Input {...field} placeholder='Enter URL' className='h-9' />}
                                                 />
                                             ) : (
-                                                <div className="flex justify-center">
+                                                <div className='flex justify-center'>
                                                     <input
-                                                        type="file"
-                                                        className="hidden"
+                                                        type='file'
+                                                        className='hidden'
                                                         ref={(el) => {
                                                             if (el) fileInputRefs.current[index] = el;
                                                         }}
                                                         onChange={(e) => handleFileUpload(e, index)}
                                                     />
                                                     <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
+                                                        type='button'
+                                                        variant='outline'
+                                                        size='sm'
                                                         onClick={() => fileInputRefs.current[index]?.click()}
-                                                        className="h-9 w-full border-dashed"
-                                                    >
-                                                        <Upload className="mr-2 h-4 w-4" /> Browse
+                                                        className='h-9 w-full border-dashed'>
+                                                        <Upload className='mr-2 h-4 w-4' /> Browse
                                                     </Button>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="border p-2">
+                                        <td className='border p-2'>
                                             <Controller
                                                 control={control}
                                                 name={`intB_FilePath_Array.${index}.fileName`}
                                                 render={({ field }) => (
-                                                    <Input {...field} readOnly={!isUrlMode} placeholder={isUrlMode ? "Enter Label" : "No file"} className="h-9 bg-muted/20" />
+                                                    <Input
+                                                        {...field}
+                                                        readOnly={!isUrlMode}
+                                                        placeholder={isUrlMode ? 'Enter Label' : 'No file'}
+                                                        className='h-9 bg-muted/20'
+                                                    />
                                                 )}
                                             />
                                         </td>
-                                        <td className="border p-2 text-center">
+                                        <td className='border p-2 text-center'>
                                             <Controller
                                                 control={control}
                                                 name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
                                                 render={({ field }) => (
                                                     <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        type='button'
+                                                        variant='ghost'
+                                                        size='sm'
                                                         disabled={!field.value}
-                                                        onClick={() => window.open(field.value, '_blank')}
-                                                    >
-                                                        <Eye className={cn("h-4 w-4", field.value ? "text-blue-600" : "text-gray-300")} />
+                                                        onClick={() => window.open(field.value, '_blank')}>
+                                                        <Eye className={cn('h-4 w-4', field.value ? 'text-blue-600' : 'text-gray-300')} />
                                                     </Button>
                                                 )}
                                             />
                                         </td>
-                                        <td className="border p-2 text-center">
-                                            <div className="flex justify-center gap-1">
+                                        <td className='border p-2 text-center'>
+                                            <div className='flex justify-center gap-1'>
                                                 {index === attachmentFields.length - 1 && (
-                                                    <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={() => append({ intbfL_FilePath: '', fileName: '' })}>
-                                                        <Plus className="h-4 w-4" />
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='outline'
+                                                        className='h-8 w-8'
+                                                        onClick={() => append({ intbfL_FilePath: '', fileName: '' })}>
+                                                        <Plus className='h-4 w-4' />
                                                     </Button>
                                                 )}
                                                 {attachmentFields.length > 1 && (
-                                                    <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => remove(index)}>
-                                                        <Minus className="h-4 w-4" />
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='destructive'
+                                                        className='h-8 w-8'
+                                                        onClick={() => remove(index)}>
+                                                        <Minus className='h-4 w-4' />
                                                     </Button>
                                                 )}
                                             </div>
@@ -547,46 +596,48 @@ export default function AddNoticeBoardForm({
                             </tbody>
                         </table>
                     </div>
-                    <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox id="url-mode" checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(!!c)} />
-                        <Label htmlFor="url-mode" className="text-xs font-semibold cursor-pointer">Use URLs instead of Files</Label>
+                    <div className='flex items-center space-x-2 pt-2'>
+                        <Checkbox id='url-mode' checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(!!c)} />
+                        <Label htmlFor='url-mode' className='cursor-pointer font-semibold text-xs'>
+                            Use URLs instead of Files
+                        </Label>
                     </div>
                 </div>
 
                 {/* Student Targeting Logic */}
                 {check_student && (
-                    <div className="space-y-6 pt-4 border-t border-dashed">
-                        <div className="flex flex-wrap items-center gap-6 bg-blue-50/30 p-4 rounded-lg">
+                    <div className='space-y-6 border-t border-dashed pt-4'>
+                        <div className='flex flex-wrap items-center gap-6 rounded-lg bg-blue-50/30 p-4'>
                             <Controller
                                 control={control}
-                                name="select_route"
+                                name='select_route'
                                 render={({ field }) => (
-                                    <div className="flex items-center space-x-2">
+                                    <div className='flex items-center space-x-2'>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label className="font-semibold text-blue-900">Select Route</Label>
+                                        <Label className='font-semibold text-blue-900'>Select Route</Label>
                                     </div>
                                 )}
                             />
                             <Controller
                                 control={control}
-                                name="fee_def"
+                                name='fee_def'
                                 render={({ field }) => (
-                                    <div className="flex items-center space-x-2">
+                                    <div className='flex items-center space-x-2'>
                                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label className="font-semibold text-red-900">Fee Defaulters</Label>
+                                        <Label className='font-semibold text-red-900'>Fee Defaulters</Label>
                                     </div>
                                 )}
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             {select_route && (
                                 <Controller
                                     control={control}
-                                    name="routeList"
+                                    name='routeList'
                                     render={({ field }) => (
                                         <CustomMultiSelectBox
-                                            label="Routes"
+                                            label='Routes'
                                             options={(routeList || []).map((r: any) => ({
                                                 label: r.trmR_RouteName || r.trmr_routename || r.trmR_routeName || '',
                                                 value: (r.trmR_Id || r.trmr_Id || r.trmR_id || '').toString()
@@ -602,15 +653,17 @@ export default function AddNoticeBoardForm({
                                 <>
                                     <Controller
                                         control={control}
-                                        name="feeGroupList"
+                                        name='feeGroupList'
                                         render={({ field }) => (
                                             <CustomMultiSelectBox
-                                                label="Fee Groups"
+                                                label='Fee Groups'
                                                 options={(feeGroupList || []).map((f: any) => ({
                                                     label: f.fmG_Name || f.fmg_GroupName || f.fmg_groupname || f.fmG_groupName || '',
                                                     value: (f.fmG_Id || f.fmg_Id || f.fmg_id || f.fmG_id || '').toString()
                                                 }))}
-                                                value={field.value?.map((v) => v.fmg_Id?.toString()).filter((id): id is string => !!id) || []}
+                                                value={
+                                                    field.value?.map((v) => v.fmg_Id?.toString()).filter((id): id is string => !!id) || []
+                                                }
                                                 onChange={(vals) => field.onChange((vals || []).map((v) => ({ fmg_Id: Number(v) })))}
                                                 isSearchRequired
                                             />
@@ -618,15 +671,17 @@ export default function AddNoticeBoardForm({
                                     />
                                     <Controller
                                         control={control}
-                                        name="feeTermList"
+                                        name='feeTermList'
                                         render={({ field }) => (
                                             <CustomMultiSelectBox
-                                                label="Fee Terms"
+                                                label='Fee Terms'
                                                 options={(feeTermList || []).map((f: any) => ({
                                                     label: f.fmT_Name || f.fmt_Name || f.fmt_name || f.fmT_name || '',
                                                     value: (f.fmT_Id || f.fmt_Id || f.fmt_id || f.fmT_id || '').toString()
                                                 }))}
-                                                value={field.value?.map((v) => v.fmT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                                value={
+                                                    field.value?.map((v) => v.fmT_Id?.toString()).filter((id): id is string => !!id) || []
+                                                }
                                                 onChange={(vals) => field.onChange((vals || []).map((v) => ({ fmT_Id: Number(v) })))}
                                                 isSearchRequired
                                             />
@@ -636,14 +691,14 @@ export default function AddNoticeBoardForm({
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                             <Controller
                                 control={control}
-                                name="asmcL_Id"
+                                name='asmcL_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col">
+                                    <div className='flex flex-col'>
                                         <CustomMultiSelectBox
-                                            label="Classes"
+                                            label='Classes'
                                             isRequired
                                             options={(classList || []).map((c: any) => ({
                                                 label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
@@ -659,16 +714,18 @@ export default function AddNoticeBoardForm({
                             />
                             <Controller
                                 control={control}
-                                name="asmS_Id"
+                                name='asmS_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex flex-col">
+                                    <div className='flex flex-col'>
                                         <CustomMultiSelectBox
-                                            label="Sections"
+                                            label='Sections'
                                             isRequired
-                                            options={(sections || []).map((s: any) => ({
-                                                label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
-                                                value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
-                                            })).filter(opt => opt.value)}
+                                            options={(sections || [])
+                                                .map((s: any) => ({
+                                                    label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
+                                                    value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
                                             value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
                                             onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
                                             isSearchRequired
@@ -697,17 +754,25 @@ export default function AddNoticeBoardForm({
                             /> */}
                             <Controller
                                 control={control}
-                                name="amsT_Id"
+                                name='amsT_Id'
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Students"
-                                        options={Array.from(new Map((students || []).map((s: any) => [
-                                            (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
-                                            s
-                                        ])).values()).map((s: any) => ({
-                                            label: `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` || '',
-                                            value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
-                                        })).filter(opt => opt.value)}
+                                        label='Students'
+                                        options={Array.from(
+                                            new Map(
+                                                (students || []).map((s: any) => [
+                                                    (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
+                                                    s
+                                                ])
+                                            ).values()
+                                        )
+                                            .map((s: any) => ({
+                                                label:
+                                                    `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
+                                                    '',
+                                                value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
+                                            }))
+                                            .filter((opt) => opt.value)}
                                         value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
                                         onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
                                         isSearchRequired
@@ -721,17 +786,25 @@ export default function AddNoticeBoardForm({
 
                 {/* Staff Targeting Logic */}
                 {check_staff && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-dashed bg-orange-50/20 p-4 rounded-lg">
+                    <div className='grid grid-cols-1 gap-4 rounded-lg border-t border-dashed bg-orange-50/20 p-4 pt-4 md:grid-cols-3'>
                         <Controller
                             control={control}
-                            name="hrmd_Id"
+                            name='hrmd_Id'
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Departments"
-                                    options={(deptList || []).map((d: any) => ({
-                                        label: d.HRMDC_Name || d.HRMD_DepartmentName || d.hrmd_DepartmentName || d.hrmd_departmentname || d.hrmdc_Name || '',
-                                        value: (d.HRMDC_ID || d.HRMD_Id || d.hrmd_Id || d.hrmd_id || d.hrmdc_Id || '').toString()
-                                    })).filter(opt => opt.value)}
+                                    label='Departments'
+                                    options={(deptList || [])
+                                        .map((d: any) => ({
+                                            label:
+                                                d.HRMDC_Name ||
+                                                d.HRMD_DepartmentName ||
+                                                d.hrmd_DepartmentName ||
+                                                d.hrmd_departmentname ||
+                                                d.hrmdc_Name ||
+                                                '',
+                                            value: (d.HRMDC_ID || d.HRMD_Id || d.hrmd_Id || d.hrmd_id || d.hrmdc_Id || '').toString()
+                                        }))
+                                        .filter((opt) => opt.value)}
                                     value={field.value?.map((v) => v.hrmd_Id?.toString()).filter((id): id is string => !!id) || []}
                                     onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmd_Id: Number(v) })))}
                                     isSearchRequired
@@ -740,14 +813,21 @@ export default function AddNoticeBoardForm({
                         />
                         <Controller
                             control={control}
-                            name="hrmdeS_Id"
+                            name='hrmdeS_Id'
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Designations"
-                                    options={(filteredDesgList || []).map((d: any) => ({
-                                        label: d.HRMDES_DesignationName || d.hrmdes_DesignationName || d.hrmdeS_DesignationName || d.hrmdes_designationname || '',
-                                        value: (d.HRMDES_Id || d.hrmdeS_Id || d.hrmdes_Id || d.hrmdes_id || '').toString()
-                                    })).filter(opt => opt.value)}
+                                    label='Designations'
+                                    options={(filteredDesgList || [])
+                                        .map((d: any) => ({
+                                            label:
+                                                d.HRMDES_DesignationName ||
+                                                d.hrmdes_DesignationName ||
+                                                d.hrmdeS_DesignationName ||
+                                                d.hrmdes_designationname ||
+                                                '',
+                                            value: (d.HRMDES_Id || d.hrmdeS_Id || d.hrmdes_Id || d.hrmdes_id || '').toString()
+                                        }))
+                                        .filter((opt) => opt.value)}
                                     value={field.value?.map((v) => v.hrmdeS_Id?.toString()).filter((id): id is string => !!id) || []}
                                     onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmdeS_Id: Number(v) })))}
                                     isSearchRequired
@@ -756,14 +836,16 @@ export default function AddNoticeBoardForm({
                         />
                         <Controller
                             control={control}
-                            name="hrmE_Id"
+                            name='hrmE_Id'
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Employees"
-                                    options={(employees || []).map((e: any) => ({
-                                        label: e.userEmpName || e.HRME_EmployeeName || e.hrmE_EmployeeName || e.hrme_employeename || '',
-                                        value: (e.HRME_Id || e.hrmE_Id || e.hrme_Id || '').toString()
-                                    })).filter(opt => opt.value)}
+                                    label='Employees'
+                                    options={(employees || [])
+                                        .map((e: any) => ({
+                                            label: e.userEmpName || e.HRME_EmployeeName || e.hrmE_EmployeeName || e.hrme_employeename || '',
+                                            value: (e.HRME_Id || e.hrmE_Id || e.hrme_Id || '').toString()
+                                        }))
+                                        .filter((opt) => opt.value)}
                                     value={field.value?.map((v) => v.hrmE_Id?.toString()).filter((id): id is string => !!id) || []}
                                     onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmE_Id: Number(v) })))}
                                     isSearchRequired
@@ -775,15 +857,15 @@ export default function AddNoticeBoardForm({
                 )}
 
                 <div className='flex justify-center gap-2 pt-6'>
-                    <Button type='submit' disabled={isSubmitting} className="min-w-[120px] shadow-lg">
-                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className='mr-2 h-4 w-4' />}
+                    <Button type='submit' disabled={isSubmitting} className='min-w-[120px] shadow-lg'>
+                        {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
                         SEND NOTICE
                     </Button>
-                    <Button type='button' variant='destructive' onClick={() => reset()} className="min-w-[120px]">
+                    <Button type='button' variant='destructive' onClick={() => reset()} className='min-w-[120px]'>
                         <X className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>
-            </form >
+            </form>
         </div>
     );
 }

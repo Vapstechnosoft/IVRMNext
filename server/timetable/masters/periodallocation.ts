@@ -44,7 +44,6 @@ export async function getPeriodClass(data: any) {
 //period number
 export async function getPeriodDetails(period_count: number) {
     const url = `/PeriodAllocationFacade/getperiod_Details/${period_count}`;
-    console.log('getperiod_details', url);
     return await api.get<any>('timetable', url);
 }
 

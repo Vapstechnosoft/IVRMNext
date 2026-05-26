@@ -11,7 +11,6 @@ export default function PromotionCumulativeReportPage() {
 
     const handleReportGenerated = (data: any, params: any) => {
         setReportData(data);
-        console.log('promotional cumulative reportData', data);
         setReportParams(params);
     };
 

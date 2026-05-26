@@ -1,16 +1,15 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 
 const formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
     if (!date) return 'N/A';
     try {
         return format(parseISO(date), 'dd-MM-yyyy');
-    } catch (e) {
+    } catch (_e) {
         return 'Invalid Date';
     }
 };
@@ -30,13 +29,20 @@ export interface MonthlyRow {
 export const getStatusBadge = (status: any) => {
     const s = String(status);
     switch (s) {
-        case '1': return <Badge className='bg-green-100 text-green-700 hover:bg-green-100'>P</Badge>;
-        case '0': return <Badge className='bg-red-100 text-red-700 hover:bg-red-100'>A</Badge>;
-        case '2': return <Badge className='bg-blue-100 text-blue-700 hover:bg-blue-100'>H</Badge>;
-        case '3': return <Badge className='bg-yellow-100 text-yellow-700 hover:bg-yellow-100'>AL</Badge>;
-        case '4': return <Badge className='bg-purple-100 text-purple-700 hover:bg-purple-100'>OD</Badge>;
-        case '5': return <Badge className='bg-orange-100 text-orange-700 hover:bg-orange-100'>HD</Badge>;
-        default: return <span className='text-gray-400'>-</span>;
+        case '1':
+            return <Badge className='bg-green-100 text-green-700 hover:bg-green-100'>P</Badge>;
+        case '0':
+            return <Badge className='bg-red-100 text-red-700 hover:bg-red-100'>A</Badge>;
+        case '2':
+            return <Badge className='bg-blue-100 text-blue-700 hover:bg-blue-100'>H</Badge>;
+        case '3':
+            return <Badge className='bg-yellow-100 text-yellow-700 hover:bg-yellow-100'>AL</Badge>;
+        case '4':
+            return <Badge className='bg-purple-100 text-purple-700 hover:bg-purple-100'>OD</Badge>;
+        case '5':
+            return <Badge className='bg-orange-100 text-orange-700 hover:bg-orange-100'>HD</Badge>;
+        default:
+            return <span className='text-gray-400'>-</span>;
     }
 };
 
@@ -105,11 +111,7 @@ export const getDynamicDateColumns = (dates: string[]): ColumnDef<MonthlyRow>[] 
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title={format(parseISO(date), 'dd MMM yyyy')} className='min-w-[40px] text-center' />
         ),
-        cell: ({ row }) => (
-            <div className='text-center uppercase'>
-                {getStatusBadge(row.original[`attendance_${date}`])}
-            </div>
-        ),
+        cell: ({ row }) => <div className='text-center uppercase'>{getStatusBadge(row.original[`attendance_${date}`])}</div>,
         enableSorting: false,
         enableHiding: true
     }));
@@ -143,17 +145,11 @@ export const formatOneColumns: ColumnDef<any>[] = [
     }
 ];
 
-export const getFormatOneEmployeeColumns = (employees: { ecode: string, ename: string, hrme_id: number }[]): ColumnDef<any>[] => {
+export const getFormatOneEmployeeColumns = (employees: { ecode: string; ename: string; hrme_id: number }[]): ColumnDef<any>[] => {
     return employees.map((emp) => ({
         accessorKey: `emp_${emp.hrme_id}`,
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={`${emp.ename}`} className='min-w-[100px]' />
-        ),
-        cell: ({ row }) => (
-            <div className='text-center uppercase'>
-                {getStatusBadge(row.original[`emp_${emp.hrme_id}`])}
-            </div>
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title={`${emp.ename}`} className='min-w-[100px]' />,
+        cell: ({ row }) => <div className='text-center uppercase'>{getStatusBadge(row.original[`emp_${emp.hrme_id}`])}</div>,
         enableSorting: false,
         enableHiding: true
     }));

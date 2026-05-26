@@ -1,18 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getOnLoadData, deleteMasterMenuPageMapping, getModuleDropdown } from '@/server/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
-import type { IMasterMenuPageMappingDTO } from '@/types/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
-import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import AddMasterMenuPageMappingForm from './_components/add-form';
-import { columns } from './_components/columns';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,9 +8,26 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    deleteMasterMenuPageMapping,
+    getModuleDropdown,
+    getOnLoadData
+} from '@/server/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
+import type { IMasterMenuPageMappingDTO } from '@/types/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
+import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import AddMasterMenuPageMappingForm from './_components/add-form';
+import { columns } from './_components/columns';
 
 export default function MasterMenuPageMappingPage() {
     return (
@@ -42,11 +46,14 @@ function MasterMenuPageMappingPageContent() {
     const [totalItems, setTotalItems] = useState(0);
 
     // NUQS Hooks for URL State Management
-    const [page, setPage] = useQueryState(tableSearchVariables.page.toString(), parseAsInteger.withDefault(1));
-    const [pageSize, setPageSize] = useQueryState(tableSearchVariables.page_size.toString(), parseAsInteger.withDefault(10));
-    const [searchQuery, setSearchQuery] = useQueryState(tableSearchVariables.search.toString(), parseAsString.withDefault(''));
-    const [sortBy, setSortBy] = useQueryState(tableSearchVariables.sort_column.toString(), parseAsString.withDefault(''));
-    const [sortDirection, setSortDirection] = useQueryState(tableSearchVariables.sort_direction.toString(), parseAsString.withDefault('asc'));
+    const [page, _setPage] = useQueryState(tableSearchVariables.page.toString(), parseAsInteger.withDefault(1));
+    const [pageSize, _setPageSize] = useQueryState(tableSearchVariables.page_size.toString(), parseAsInteger.withDefault(10));
+    const [searchQuery, _setSearchQuery] = useQueryState(tableSearchVariables.search.toString(), parseAsString.withDefault(''));
+    const [sortBy, _setSortBy] = useQueryState(tableSearchVariables.sort_column.toString(), parseAsString.withDefault(''));
+    const [sortDirection, _setSortDirection] = useQueryState(
+        tableSearchVariables.sort_direction.toString(),
+        parseAsString.withDefault('asc')
+    );
 
     const fetchData = useCallback(() => {
         setIsLoading(true);
@@ -63,7 +70,7 @@ function MasterMenuPageMappingPageContent() {
         Promise.all([gridPromise, modulePromise]).then(([gridRes, moduleRes]) => {
             if (gridRes.success) {
                 setData(gridRes.data.GridDetails || []);
-                // If API returns pages in onload, keep it, else it might be another call. 
+                // If API returns pages in onload, keep it, else it might be another call.
                 // User only gave Module Dropdown API.
                 setPages(gridRes.data.pages || []);
                 setTotalItems(gridRes.total || 0);
@@ -93,25 +100,14 @@ function MasterMenuPageMappingPageContent() {
                     type='button'
                     onClick={openAddForm}
                     className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4 mr-2' />
+                    <Plus className='mr-2 h-4 w-4' />
                     Add Master Menu Page Mapping
                 </Button>
             </div>
 
-            <CollapsibleSection
-                title='Master Menu Page Mapping List'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'
-            >
+            <CollapsibleSection title='Master Menu Page Mapping List' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='p-4'>
-                    <GenericDataTable
-                        data={data}
-                        columns={columns}
-                        isLoading={isLoading}
-                        totalItems={totalItems}
-                    />
+                    <GenericDataTable data={data} columns={columns} isLoading={isLoading} totalItems={totalItems} />
                 </div>
             </CollapsibleSection>
 
@@ -120,15 +116,9 @@ function MasterMenuPageMappingPageContent() {
     );
 }
 
-function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void, modules: any[], allPages: any[] }) {
-    const {
-        isAddFormOpen,
-        isDeleteFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeDeleteForm,
-        addFormRef
-    } = useFormContext<IMasterMenuPageMappingDTO>();
+function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void; modules: any[]; allPages: any[] }) {
+    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
+        useFormContext<IMasterMenuPageMappingDTO>();
 
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -149,7 +139,7 @@ function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void,
             } else {
                 toast.error(res.message || 'Failed to delete record');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred');
         } finally {
             setIsDeleting(false);
@@ -165,8 +155,7 @@ function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void,
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -192,8 +181,14 @@ function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void,
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={(e) => { e.preventDefault(); handleDelete(); }} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-                            {isDeleting ? <Spinner className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={isDeleting}
+                            className='bg-destructive hover:bg-destructive/90'>
+                            {isDeleting ? <Spinner className='mr-2 h-4 w-4' /> : <X className='mr-2 h-4 w-4' />}
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

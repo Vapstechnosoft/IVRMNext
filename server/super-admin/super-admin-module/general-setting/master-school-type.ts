@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 const FACADE_URL = '/MasterBoardandSchoolTypeFacade';
 
-export async function getMasterSchoolTypeData(searchParams: any) {
+export async function getMasterSchoolTypeData(_searchParams: any) {
     const url = `${FACADE_URL}/get_onload_grid`;
     try {
         const response = await api.get<any>('sadmin', url);
@@ -19,15 +19,15 @@ export async function getMasterSchoolTypeData(searchParams: any) {
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch data",
+            message: response.message || 'Failed to fetch data',
             data: [],
             total: 0
         };
     } catch (error) {
-        console.error("Error fetching onload data:", error);
+        console.error('Error fetching onload data:', error);
         return {
             success: false,
-            message: "Failed to fetch data",
+            message: 'Failed to fetch data',
             data: [],
             total: 0
         };
@@ -45,7 +45,7 @@ export async function saveMasterSchoolType(data: any) {
     } catch (error) {
         return {
             success: false,
-            message: "Failed to save data",
+            message: 'Failed to save data',
             error: error
         };
     }
@@ -64,13 +64,13 @@ export async function getMasterSchoolTypeDetails(id: number) {
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch details",
+            message: response.message || 'Failed to fetch details',
             data: null
         };
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to fetch details",
+            message: 'Failed to fetch details',
             data: null
         };
     }
@@ -84,12 +84,10 @@ export async function deleteMasterSchoolType(id: number) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-school-type');
         }
         return response;
-    } catch (error) {
+    } catch (_error) {
         return {
             success: false,
-            message: "Failed to delete data",
+            message: 'Failed to delete data'
         };
     }
 }
-
-

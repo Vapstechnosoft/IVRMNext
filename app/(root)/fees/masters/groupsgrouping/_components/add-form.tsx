@@ -50,8 +50,6 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
         isLoading: boolean;
     };
 
-    console.log('response', response);
-
     // Extract feeGroups from nested response and ensure it's always an array
     const feeGroups = Array.isArray(response?.data) ? response.data : [];
 

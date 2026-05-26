@@ -1,32 +1,35 @@
 'use client';
 
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { writtenTestScheduleSchema, WrittenTestScheduleFormValues } from '@/schemas/admission/preadmission/transactions/written-test-schedule';
-import {
-    useWrittenTestScheduleDetails,
-    useSaveWrittenTestSchedule,
-    useWrittenTestSelectedRowDetails
-} from '@/hooks/admission/preadmission/transactions/use-written-test-schedule';
-import { getWrittenTestScheduleDetails } from '@/server/admission/preadmission/transactions/written_test_schedule';
-import { IWrittenTestSchedule, IStudentDetails } from '@/types/admission/preadmission/transactions/written-test-schedule';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { format, differenceInMinutes } from 'date-fns';
-import { Loader2, Save, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    useSaveWrittenTestSchedule,
+    useWrittenTestScheduleDetails,
+    useWrittenTestSelectedRowDetails
+} from '@/hooks/admission/preadmission/transactions/use-written-test-schedule';
+import {
+    type WrittenTestScheduleFormValues,
+    writtenTestScheduleSchema
+} from '@/schemas/admission/preadmission/transactions/written-test-schedule';
+import { getWrittenTestScheduleDetails } from '@/server/admission/preadmission/transactions/written_test_schedule';
+import type { IStudentDetails, IWrittenTestSchedule } from '@/types/admission/preadmission/transactions/written-test-schedule';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { ColumnDef } from '@tanstack/react-table';
+import { differenceInMinutes } from 'date-fns';
+import { ChevronDown, ChevronUp, Loader2, RotateCcw, Save } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 interface WrittenTestScheduleFormProps {
     onSuccess: () => void;
@@ -34,7 +37,7 @@ interface WrittenTestScheduleFormProps {
 }
 
 export default function WrittenTestScheduleForm({ onSuccess, initialData }: WrittenTestScheduleFormProps) {
-    const [selectedClassId, setSelectedClassId] = useState<number>(0);
+    const [_selectedClassId, setSelectedClassId] = useState<number>(0);
     // Fetch initial details once (classId = 0)
     const { data: details, isLoading: isDetailsLoading } = useWrittenTestScheduleDetails(0);
     const { data: editData, isLoading: isEditLoading } = useWrittenTestSelectedRowDetails(initialData?.pawtS_Id);
@@ -56,15 +59,15 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
             pawtS_Skills: '',
             pawtS_ScheduleTime: '10:00',
             pawtS_ScheduleTimeTo: '11:00',
-            NoOfStud: 0,
+            NoOfStud: 0
         }
     });
 
     if (isDetailsLoading || (initialData && isEditLoading)) {
         return (
-            <div className="flex flex-col items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Loading schedule details...</p>
+            <div className='flex flex-col items-center justify-center p-8'>
+                <Loader2 className='mb-4 h-8 w-8 animate-spin text-muted-foreground' />
+                <p className='text-muted-foreground'>Loading schedule details...</p>
             </div>
         );
     }
@@ -85,7 +88,7 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                 pawtS_Remarks: data.pawtS_Remarks || '',
                 pawtS_Superviser: data.pawtS_Superviser || '',
                 pawtS_Skills: data.pawtS_Skills || '',
-                NoOfStud: editData.selectedStudentDetails?.length || 0,
+                NoOfStud: editData.selectedStudentDetails?.length || 0
             });
 
             if (firstStudent?.asmcL_Id) {
@@ -93,12 +96,12 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
             }
 
             if (editData.selectedStudentDetails) {
-                // To avoid overriding the whole list, we set all students to the edited ones 
+                // To avoid overriding the whole list, we set all students to the edited ones
                 // and selected ones to the edited ones initially.
                 const mappedEditStudents = editData.selectedStudentDetails.map((s: any) => ({
                     ...s,
                     pasR_Id: s.pasR_Id || s.pasr_id,
-                    classname: s.classname || details?.admissioncatdrpall?.find(c => c.asmcL_Id === s.asmcL_Id)?.asmcL_ClassName || ''
+                    classname: s.classname || details?.admissioncatdrpall?.find((c) => c.asmcL_Id === s.asmcL_Id)?.asmcL_ClassName || ''
                 }));
                 setAllStudents(mappedEditStudents);
                 setSelectedStudents(mappedEditStudents);
@@ -106,8 +109,8 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
         }
     }, [editData, initialData, form]);
 
-    // The initial load useEffect was incorrectly using the studentDetails array from ASMCL_ID=0 
-    // which contains schedule counts instead of actual student data. Removed to keep the table empty 
+    // The initial load useEffect was incorrectly using the studentDetails array from ASMCL_ID=0
+    // which contains schedule counts instead of actual student data. Removed to keep the table empty
     // until a valid class is selected from the dropdown.
     const handleClassChange = async (classId: number) => {
         setSelectedClassId(classId);
@@ -115,9 +118,7 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
         try {
             const response = await getWrittenTestScheduleDetails(classId);
             // Handle both studentDetails and allname5 array formats from the backend
-            const studentsData = (response as any)?.allname5?.length
-                ? (response as any).allname5
-                : ((response as any)?.allname5 || []);
+            const studentsData = (response as any)?.allname5?.length ? (response as any).allname5 : (response as any)?.allname5 || [];
 
             if (studentsData.length > 0) {
                 // Normalize the properties so the data table columns render correctly
@@ -130,7 +131,11 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                     pasR_emailId: s.pasR_emailId || s.email || '',
                     pasR_MobileNo: s.pasR_MobileNo || s.mobileNumber || '',
                     asmcL_Id: s.asmcL_Id || s.classid || 0,
-                    classname: s.classname || s.className || details?.admissioncatdrpall?.find(c => c.asmcL_Id === (s.asmcL_Id || s.classid))?.asmcL_ClassName || '',
+                    classname:
+                        s.classname ||
+                        s.className ||
+                        details?.admissioncatdrpall?.find((c) => c.asmcL_Id === (s.asmcL_Id || s.classid))?.asmcL_ClassName ||
+                        ''
                 }));
                 setAllStudents(mappedStudents);
             } else {
@@ -163,44 +168,44 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
         const cols: ColumnDef<IStudentDetails>[] = [
             {
                 id: 'slno',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="SL.NO" />,
-                cell: ({ row }) => row.index + 1,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+                cell: ({ row }) => row.index + 1
             },
             {
                 accessorKey: 'pasR_FirstName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Student Name" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
                 cell: ({ row }) => {
                     const firstName = row.original.pasR_FirstName || '';
                     const middleName = row.original.pasR_MiddleName ? ` ${row.original.pasR_MiddleName}` : '';
                     const lastName = row.original.pasR_LastName ? ` ${row.original.pasR_LastName}` : '';
                     return `${firstName}${middleName}${lastName}`.trim();
-                },
+                }
             },
             {
                 accessorKey: 'pasR_RegistrationNo',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Registration No" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />
             },
             {
                 accessorKey: 'classname',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Class" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />
             },
             {
                 accessorKey: 'pasR_Sex',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Gender" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />
             },
             {
                 accessorKey: 'pasR_MobileNo',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Mobile Number" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' />
             },
             {
                 accessorKey: 'pasR_emailId',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Email Id" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' />
             },
             {
                 id: 'select',
                 header: ({ table, column }) => (
-                    <div className="flex flex-col items-center gap-1">
-                        <DataTableColumnHeader column={column} title="Action" className="text-black" />
+                    <div className='flex flex-col items-center gap-1'>
+                        <DataTableColumnHeader column={column} title='Action' className='text-black' />
                         <Checkbox
                             checked={table.getIsAllPageRowsSelected()}
                             onCheckedChange={(value: any) => {
@@ -215,22 +220,22 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                     </div>
                 ),
                 cell: ({ row }) => (
-                    <div className="flex justify-center">
+                    <div className='flex justify-center'>
                         <Checkbox
-                            checked={selectedStudents.some(s => s.pasR_Id === row.original.pasR_Id)}
+                            checked={selectedStudents.some((s) => s.pasR_Id === row.original.pasR_Id)}
                             onCheckedChange={(value: any) => {
                                 if (value) {
-                                    setSelectedStudents(prev => {
-                                        if (prev.some(s => s.pasR_Id === row.original.pasR_Id)) return prev;
+                                    setSelectedStudents((prev) => {
+                                        if (prev.some((s) => s.pasR_Id === row.original.pasR_Id)) return prev;
                                         return [...prev, row.original];
                                     });
                                 } else {
-                                    setSelectedStudents(prev => prev.filter(s => s.pasR_Id !== row.original.pasR_Id));
+                                    setSelectedStudents((prev) => prev.filter((s) => s.pasR_Id !== row.original.pasR_Id));
                                 }
                             }}
                         />
                     </div>
-                ),
+                )
             }
         ];
 
@@ -283,14 +288,14 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
             pawtS_ScheduleTime: values.pawtS_ScheduleTime,
             pawtS_ScheduleTimeTo: values.pawtS_ScheduleTimeTo,
             pawtS_AM_PM: from.getHours() >= 12 ? 'PM' : 'AM',
-            pawtS_Remarks: values.pawtS_Remarks || "",
-            pawtS_Superviser: values.pawtS_Superviser || "",
-            pawtS_Skills: values.pawtS_Skills || "",
-            selectedStudentData: selectedStudents.map(s => ({
+            pawtS_Remarks: values.pawtS_Remarks || '',
+            pawtS_Superviser: values.pawtS_Superviser || '',
+            pawtS_Skills: values.pawtS_Skills || '',
+            selectedStudentData: selectedStudents.map((s) => ({
                 pasR_Id: s.pasR_Id,
-                pasR_emailId: s.pasR_emailId || "",
+                pasR_emailId: s.pasR_emailId || '',
                 pasR_MobileNo: Number(s.pasR_MobileNo) || 0,
-                pasr_RegistrationNo: s.pasR_RegistrationNo || ""
+                pasr_RegistrationNo: s.pasR_RegistrationNo || ''
             })),
             selectedStudentDataForEdit: editData?.selectedStudentDetails || []
         };
@@ -324,129 +329,138 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                 });
             }
         });
-    }
+    };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+                <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                     {/* Left Section */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <FormField
                             control={form.control as any}
-                            name="pawtS_ScheduleName"
+                            name='pawtS_ScheduleName'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Schedule Name: <span className="text-red-500">*</span></FormLabel>
-                                    <FormControl className="col-span-3">
-                                        <Input placeholder="Enter schedule name" {...field} />
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Schedule Name: <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <FormControl className='col-span-3'>
+                                        <Input placeholder='Enter schedule name' {...field} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="asmcL_Id"
+                            name='asmcL_Id'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Class: <span className="text-red-500">*</span></FormLabel>
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Class: <span className='text-red-500'>*</span>
+                                    </FormLabel>
                                     <Select
                                         onValueChange={(val: any) => {
                                             field.onChange(val);
                                             handleClassChange(Number(val));
                                         }}
                                         value={field.value}
-                                        disabled={!!initialData}
-                                    >
-                                        <FormControl className="col-span-3">
+                                        disabled={!!initialData}>
+                                        <FormControl className='col-span-3'>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="0">All</SelectItem>
-                                            {details?.admissioncatdrpall
-                                                ?.map((cls: any) => (
-                                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                        {cls.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))}
+                                            <SelectItem value='0'>All</SelectItem>
+                                            {details?.admissioncatdrpall?.map((cls: any) => (
+                                                <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                    {cls.asmcL_ClassName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="pawtS_ScheduleDate"
+                            name='pawtS_ScheduleDate'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Date: <span className="text-red-500">*</span></FormLabel>
-                                    <div className="col-span-3">
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Date: <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <div className='col-span-3'>
                                         <DatePicker
                                             date={field.value}
                                             setDate={field.onChange}
-                                            placeholder="Schedule Date"
+                                            placeholder='Schedule Date'
                                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                         />
                                     </div>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="pawtS_Remarks"
+                            name='pawtS_Remarks'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Remarks:</FormLabel>
-                                    <FormControl className="col-span-3">
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>Remarks:</FormLabel>
+                                    <FormControl className='col-span-3'>
                                         <Input {...field} value={field.value || ''} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="pawtS_Superviser"
+                            name='pawtS_Superviser'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Supervisor:</FormLabel>
-                                    <FormControl className="col-span-3">
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>Supervisor:</FormLabel>
+                                    <FormControl className='col-span-3'>
                                         <Input {...field} value={field.value || ''} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="pawtS_Skills"
+                            name='pawtS_Skills'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-start gap-4 space-y-0">
-                                    <FormLabel className="text-right mt-2">Skill/Knowledge:</FormLabel>
-                                    <FormControl className="col-span-3">
-                                        <Textarea placeholder="Enter Skills/Knowledge" {...field} value={field.value || ''} className="min-h-[80px]" />
+                                <FormItem className='grid grid-cols-4 items-start gap-4 space-y-0'>
+                                    <FormLabel className='mt-2 text-right'>Skill/Knowledge:</FormLabel>
+                                    <FormControl className='col-span-3'>
+                                        <Textarea
+                                            placeholder='Enter Skills/Knowledge'
+                                            {...field}
+                                            value={field.value || ''}
+                                            className='min-h-[80px]'
+                                        />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
                     </div>
 
                     {/* Right Section */}
-                    <div className="space-y-6">
-                        <div className='grid grid-cols-1 gap-6 items-start'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 items-start gap-6'>
                             {/* Time Selectors Column */}
-                            <div className="space-y-6">
+                            <div className='space-y-6'>
                                 <Controller
                                     name='pawtS_ScheduleTime'
                                     control={form.control as any}
@@ -475,16 +489,16 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
 
                             <FormField
                                 control={form.control as any}
-                                name="NoOfStud"
+                                name='NoOfStud'
                                 render={({ field }: any) => (
-                                    <FormItem className="flex items-center gap-4">
-                                        <FormLabel className="font-bold w-40 text-right">Auto Select Students: </FormLabel>
+                                    <FormItem className='flex items-center gap-4'>
+                                        <FormLabel className='w-40 text-right font-bold'>Auto Select Students: </FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="number"
+                                                type='number'
                                                 {...field}
-                                                className="h-10 w-48 bg-slate-100"
-                                                placeholder="Enter Students Count"
+                                                className='h-10 w-48 bg-slate-100'
+                                                placeholder='Enter Students Count'
                                                 onChange={(e) => field.onChange(Number(e.target.value))}
                                             />
                                         </FormControl>
@@ -496,38 +510,41 @@ export default function WrittenTestScheduleForm({ onSuccess, initialData }: Writ
                     </div>
                 </div>
 
-                <Card className="overflow-hidden">
-                    <div className="bg-blue-800 px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <h3 className="text-white font-bold text-sm uppercase">Student Selection</h3>
-                            <div className="px-2 py-0.5 rounded bg-blue-700 text-[10px] text-white font-bold flex items-center gap-2">
-                                Total Grid Records : <span className="bg-white text-blue-800 px-1 rounded">{allStudents.length}</span>
+                <Card className='overflow-hidden'>
+                    <div className='flex items-center justify-between bg-blue-800 px-4 py-2'>
+                        <div className='flex items-center gap-4'>
+                            <h3 className='font-bold text-sm text-white uppercase'>Student Selection</h3>
+                            <div className='flex items-center gap-2 rounded bg-blue-700 px-2 py-0.5 font-bold text-[10px] text-white'>
+                                Total Grid Records : <span className='rounded bg-white px-1 text-blue-800'>{allStudents.length}</span>
                             </div>
                         </div>
-                        <div className="text-[10px] text-blue-100 font-bold uppercase flex items-center gap-2">
-                            Selected: <span className="px-2 py-0.5 rounded bg-blue-700 text-white">{selectedStudents.length} / {allStudents.length}</span>
+                        <div className='flex items-center gap-2 font-bold text-[10px] text-blue-100 uppercase'>
+                            Selected:{' '}
+                            <span className='rounded bg-blue-700 px-2 py-0.5 text-white'>
+                                {selectedStudents.length} / {allStudents.length}
+                            </span>
                         </div>
                     </div>
-                    <CardContent className="p-0">
-                        <div className="[&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-3 [&_thead_tr_th]:text-[11px] [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50">
+                    <CardContent className='p-0'>
+                        <div className='[&_tbody_tr:nth-child(even)]:bg-slate-50 [&_thead_tr_th]:py-3 [&_thead_tr_th]:font-bold [&_thead_tr_th]:text-[11px] [&_thead_tr_th]:text-black [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black'>
                             <GenericDataTable
                                 data={allStudents}
                                 columns={studentColumns}
                                 isLoading={isDetailsLoading || isFetchingStudents}
                                 isSearchRequired={true}
-                                loadingMessage="Fetching students..."
+                                loadingMessage='Fetching students...'
                             />
                         </div>
                     </CardContent>
                 </Card>
 
-                <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline" onClick={() => window.location.reload()} disabled={isSaving}>
-                        <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                <div className='flex justify-end gap-4'>
+                    <Button type='button' variant='outline' onClick={() => window.location.reload()} disabled={isSaving}>
+                        <RotateCcw className='mr-2 h-4 w-4' /> Reset
                     </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        {initialData ? "Update Schedule" : "Save Schedule"}
+                    <Button type='submit' disabled={isSaving}>
+                        {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
+                        {initialData ? 'Update Schedule' : 'Save Schedule'}
                     </Button>
                 </div>
             </form>
@@ -555,8 +572,8 @@ function TimeSpinnerField({
     function parse(v: string) {
         if (!v) return { h: 12, m: 0, ap: 'AM' };
         const parts = v.split(':');
-        let hh = parseInt(parts[0]) || 0;
-        const mm = parseInt(parts[1]) || 0;
+        let hh = Number.parseInt(parts[0]) || 0;
+        const mm = Number.parseInt(parts[1]) || 0;
         let ap = 'AM';
         if (hh >= 12) {
             ap = 'PM';
@@ -579,82 +596,100 @@ function TimeSpinnerField({
     }
 
     return (
-        <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-4">
-                <Label className="text-right w-40 font-bold">{label}</Label>
-                <div className="flex items-center border rounded-md px-3 py-1 shadow-sm bg-white hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 w-fit">
-
+        <div className='flex flex-col gap-1'>
+            <div className='flex items-center gap-4'>
+                <Label className='w-40 text-right font-bold'>{label}</Label>
+                <div className='flex w-fit items-center rounded-md border bg-white px-3 py-1 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-blue-400'>
                     {/* HOURS */}
-                    <div className="flex flex-col items-center">
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h === 12 ? 1 : h + 1, m, ap)}>
-                            <ChevronUp className="h-4 w-4" />
+                    <div className='flex flex-col items-center'>
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h === 12 ? 1 : h + 1, m, ap)}>
+                            <ChevronUp className='h-4 w-4' />
                         </button>
                         <div
                             ref={hoursRef}
-                            className="w-8 text-center text-lg focus:outline-none focus:bg-blue-50 rounded"
+                            className='w-8 rounded text-center text-lg focus:bg-blue-50 focus:outline-none'
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={(e) => {
-                                let val = parseInt(e.currentTarget.textContent || '12');
-                                if (isNaN(val) || val < 1 || val > 12) val = 12;
+                                let val = Number.parseInt(e.currentTarget.textContent || '12');
+                                if (Number.isNaN(val) || val < 1 || val > 12) val = 12;
                                 e.currentTarget.textContent = String(val).padStart(2, '0');
                                 update(val, m, ap);
-                            }}
-                        >
+                            }}>
                             {String(h).padStart(2, '0')}
                         </div>
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h === 1 ? 12 : h - 1, m, ap)}>
-                            <ChevronDown className="h-4 w-4" />
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h === 1 ? 12 : h - 1, m, ap)}>
+                            <ChevronDown className='h-4 w-4' />
                         </button>
                     </div>
 
-                    <span className="text-xl mx-1 font-bold text-slate-300 pb-1">:</span>
+                    <span className='mx-1 pb-1 font-bold text-slate-300 text-xl'>:</span>
 
                     {/* MINUTES */}
-                    <div className="flex flex-col items-center">
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, (m + 1) % 60, ap)}>
-                            <ChevronUp className="h-4 w-4" />
+                    <div className='flex flex-col items-center'>
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h, (m + 1) % 60, ap)}>
+                            <ChevronUp className='h-4 w-4' />
                         </button>
                         <div
                             ref={minutesRef}
-                            className="w-8 text-center text-lg focus:outline-none focus:bg-blue-50 rounded"
+                            className='w-8 rounded text-center text-lg focus:bg-blue-50 focus:outline-none'
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={(e) => {
-                                let val = parseInt(e.currentTarget.textContent || '0');
-                                if (isNaN(val) || val < 0 || val > 59) val = 0;
+                                let val = Number.parseInt(e.currentTarget.textContent || '0');
+                                if (Number.isNaN(val) || val < 0 || val > 59) val = 0;
                                 e.currentTarget.textContent = String(val).padStart(2, '0');
                                 update(h, val, ap);
-                            }}
-                        >
+                            }}>
                             {String(m).padStart(2, '0')}
                         </div>
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, m === 0 ? 59 : m - 1, ap)}>
-                            <ChevronDown className="h-4 w-4" />
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h, m === 0 ? 59 : m - 1, ap)}>
+                            <ChevronDown className='h-4 w-4' />
                         </button>
                     </div>
 
                     {/* AM/PM */}
-                    <div className="flex flex-col items-center ml-2 border-l pl-2">
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
-                            <ChevronUp className="h-4 w-4" />
+                    <div className='ml-2 flex flex-col items-center border-l pl-2'>
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
+                            <ChevronUp className='h-4 w-4' />
                         </button>
                         <div
                             ref={ampmRef}
-                            className="w-10 text-center font-medium focus:outline-none focus:bg-blue-50 rounded cursor-pointer select-none"
-                            onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}
-                        >
+                            className='w-10 cursor-pointer select-none rounded text-center font-medium focus:bg-blue-50 focus:outline-none'
+                            onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
                             {ap}
                         </div>
-                        <button type="button" tabIndex={-1} className="text-slate-400 hover:text-black p-0.5" onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
-                            <ChevronDown className="h-4 w-4" />
+                        <button
+                            type='button'
+                            tabIndex={-1}
+                            className='p-0.5 text-slate-400 hover:text-black'
+                            onClick={() => update(h, m, ap === 'AM' ? 'PM' : 'AM')}>
+                            <ChevronDown className='h-4 w-4' />
                         </button>
                     </div>
                 </div>
             </div>
-            {error && <span className="text-xs text-red-500 font-medium ml-[176px]">{error}</span>}
+            {error && <span className='ml-[176px] font-medium text-red-500 text-xs'>{error}</span>}
         </div>
     );
 }
-
-

@@ -58,7 +58,7 @@ export default function AddSchoolSubjectTopicMappingForm({
     const [subjects, setSubjects] = useState<any[]>([]);
     const [units, setUnits] = useState<any[]>([]);
     const [mainTopics, setMainTopics] = useState<any[]>([]);
-    const [isPending, startTransition] = useTransition();
+    const [_isPending, startTransition] = useTransition();
 
     const extractArray = (res: any, fallbackKey: string): any[] => {
         if (!res) return [];
@@ -268,7 +268,7 @@ export default function AddSchoolSubjectTopicMappingForm({
             } else {
                 toast.error('File upload failed: No path returned');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('File upload failed');
         }
     };
@@ -324,7 +324,7 @@ export default function AddSchoolSubjectTopicMappingForm({
             } else {
                 toast.error(res.message || 'Failed to save');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred');
         }
     };

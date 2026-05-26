@@ -17,7 +17,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterDayClassWisePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterDayClasswiseDetails(searchParams);
-    console.log('response', response);
     return (
         <FormProvider<IMasterDayClassWise>>
             <MasterPeriodClassPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

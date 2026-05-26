@@ -40,7 +40,7 @@ import { ExporttoPrint } from './print';
 type FormFields = z.infer<typeof feeReceiptReportsSchema>;
 
 // Checkbox with full indeterminate support
-const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
+const _Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
 
     //   useEffect(() => {
@@ -85,14 +85,14 @@ export default function FeeReceiptReport() {
 
     //const { data: masterHeads, isLoading: masterHeadsLoading, refetchAll: refetchMasterHeads } = feeReceiptReportHeadDROPDOWN();
 
-    const [loading, setLoading] = useState(false);
+    const [_loading, _setLoading] = useState(false);
     const [headSearch, setheadSearch] = useState('');
 
     const [receiptSearch, setReceiptSearch] = useState('');
 
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [_selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
 
-    const [selectedReceiptItems, setSelectedReceiptItems] = useState<{ fyp_Id: string }[]>([]);
+    const [_selectedReceiptItems, _setSelectedReceiptItems] = useState<{ fyp_Id: string }[]>([]);
 
     const [filters, setFilters] = useState({
         //userType: 'All' as 'All' | 'indi',
@@ -106,18 +106,18 @@ export default function FeeReceiptReport() {
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [reportData, _setReportData] = useState<any[]>([]);
+    const [_reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
-    const [search, setSearch] = useState('');
-    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [_search, _setSearch] = useState('');
+    const [_sortKey, _setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [_sortOrder, _setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const [sectionLoading, setSectionLoading] = useState(false);
+    const [_sectionLoading, setSectionLoading] = useState(false);
 
-    const [studentsloading, setstudentsloading] = useState(false);
+    const [_studentsloading, setstudentsloading] = useState(false);
     const [studentids, setstudentids] = useState<ReceiptReportStudentDropdownList[]>([]);
 
     const [receiptsloading, setreceiptsloading] = useState(false);
@@ -253,7 +253,7 @@ export default function FeeReceiptReport() {
 
             // Convert amount to words (use a proper library in production)
             //const amountInWords = numberToWords.toWords(totalAmount).toUpperCase() + " RUPEES ONLY";
-            const amountInWords = convertNumberToWords(totalAmount) + ' RUPEES ONLY';
+            const amountInWords = `${convertNumberToWords(totalAmount)} RUPEES ONLY`;
 
             //const amountInWords = "";
 
@@ -326,17 +326,17 @@ export default function FeeReceiptReport() {
     // Then import: import * as numberToWords from 'number-to-words';
 
     // ---------------- STATE ----------------
-    const [feeRows, setFeeRows] = useState<FeeRow[]>([]);
-    const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
+    const [feeRows, _setFeeRows] = useState<FeeRow[]>([]);
+    const [paymentRows, _setPaymentRows] = useState<PaymentRow[]>([]);
 
-    const [receiptNo, setReceiptNo] = useState('');
-    const [admissionNo, setAdmissionNo] = useState('');
-    const [studentName, setStudentName] = useState('');
-    const [fatherName, setFatherName] = useState('');
-    const [academicYear, setAcademicYear] = useState('');
-    const [className, setClassName] = useState('');
-    const [paymentMode, setPaymentMode] = useState('');
-    const [amountInWords, setAmountInWords] = useState('');
+    const [receiptNo, _setReceiptNo] = useState('');
+    const [admissionNo, _setAdmissionNo] = useState('');
+    const [studentName, _setStudentName] = useState('');
+    const [fatherName, _setFatherName] = useState('');
+    const [_academicYear, _setAcademicYear] = useState('');
+    const [className, _setClassName] = useState('');
+    const [paymentMode, _setPaymentMode] = useState('');
+    const [amountInWords, _setAmountInWords] = useState('');
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -563,8 +563,6 @@ export default function FeeReceiptReport() {
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), classId);
 
-                console.log('sectionsdata', result);
-
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
 
@@ -596,8 +594,6 @@ export default function FeeReceiptReport() {
 
             try {
                 const result = await getFeeReceiptReportStudentDropdown(Number(academicYearId), classId, sectionId);
-
-                console.log('students', result);
 
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setstudentids(data);
@@ -633,8 +629,6 @@ export default function FeeReceiptReport() {
                 return;
             }
 
-            console.log('studentId', studentId);
-
             const studentIdsPayload = studentId === 0 ? studentids.map((s) => s.amst_Id) : [studentId];
 
             setreceiptsloading(true);
@@ -646,12 +640,8 @@ export default function FeeReceiptReport() {
                 amst_ids: studentIdsPayload
             };
 
-            console.log('payload', payload);
-
             try {
                 const result = await getFeeReceiptReportReceiptDropdown(payload);
-
-                console.log('receipts', result);
 
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setreceiptdsdata(data);
@@ -682,7 +672,6 @@ export default function FeeReceiptReport() {
             setheadsdataloading(true);
             try {
                 const result = await getFeeReceiptReportHeadDropdown(Number(academicYearId), Number(studentId));
-                console.log('receipts', result);
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setheadsdata(data);
 
@@ -700,11 +689,11 @@ export default function FeeReceiptReport() {
         fetchHeadsData();
     }, [academicYearId, classId, setValue, sectionId, studentId, setreceiptdsdata]);
 
-    const toggleRow = (id: number) => {
+    const _toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
-    const toggleAll = () => {
+    const _toggleAll = () => {
         if (selectedIds.length === reportData.length) {
             setSelectedIds([]);
         } else {
@@ -712,7 +701,7 @@ export default function FeeReceiptReport() {
         }
     };
 
-    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
+    const _selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
 
     const selectedCatg = watch('userType');
 
@@ -934,11 +923,7 @@ export default function FeeReceiptReport() {
             payload.fmh_ids = [];
         }
 
-        console.log('Generated Payload:', JSON.stringify(payload, null, 2));
-
         const responsedata = await getReceiptReportDetails(payload);
-
-        console.log('Response Data:', JSON.stringify(responsedata, null, 2));
 
         let processedReceipts: ReceiptData[] = [];
 
@@ -970,7 +955,7 @@ export default function FeeReceiptReport() {
     };
 
     // const isAcademicYearSelected = !!filters.academicYearId;
-    const isAcademicYearSelected = watch('academicYearId');
+    const _isAcademicYearSelected = watch('academicYearId');
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>

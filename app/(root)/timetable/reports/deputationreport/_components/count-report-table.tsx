@@ -24,7 +24,7 @@ interface CountReportData {
 
 export const columns: ColumnDef<CountReportData>[] = [
     {
-        accessorFn: (row, index) => index + 1,
+        accessorFn: (_row, index) => index + 1,
         id: 'serialNumber',
         header: 'SL.NO.',
         cell: (info) => info.getValue()

@@ -32,7 +32,6 @@ export default function ToggleMasterFeePrevilageForm({ rowData, onClose }: Toggl
         resolver: zodResolver(feePrivilegeSchema.delete),
         mode: 'onChange'
     });
-    console.log('rowData', rowData);
 
     function closeDialog() {
         onClose();
@@ -42,8 +41,6 @@ export default function ToggleMasterFeePrevilageForm({ rowData, onClose }: Toggl
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await deleteFeePrivilege(Number(rowData.fgL_Id));
-
-            console.log(response);
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();

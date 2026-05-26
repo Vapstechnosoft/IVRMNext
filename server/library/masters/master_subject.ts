@@ -25,16 +25,32 @@ export async function addOrUpdateMasterSubject(data: any) {
         const toNumber = (val: any) => {
             if (val === undefined || val === null || val === '') return 0;
             const num = Number(val);
-            return isNaN(num) ? val : num;
+            return Number.isNaN(num) ? val : num;
         };
 
         const payload = {
-            LMS_Id: data.lmS_Id !== undefined ? Number(data.lmS_Id) : (data.LMS_Id !== undefined ? Number(data.LMS_Id) : 0),
-            LMS_SubjectNo: data.lmS_SubjectNo !== undefined ? toNumber(data.lmS_SubjectNo) : (data.LMS_SubjectNo !== undefined ? toNumber(data.LMS_SubjectNo) : 0),
+            LMS_Id: data.lmS_Id !== undefined ? Number(data.lmS_Id) : data.LMS_Id !== undefined ? Number(data.LMS_Id) : 0,
+            LMS_SubjectNo:
+                data.lmS_SubjectNo !== undefined
+                    ? toNumber(data.lmS_SubjectNo)
+                    : data.LMS_SubjectNo !== undefined
+                      ? toNumber(data.LMS_SubjectNo)
+                      : 0,
             LMS_SubjectName: data.lmS_SubjectName || data.LMS_SubjectName || '',
-            LMS_ParentId: data.lmS_ParentId !== undefined ? Number(data.lmS_ParentId) : (data.LMS_ParentId !== undefined ? Number(data.LMS_ParentId) : 0),
-            LMS_Level: data.lmS_Level !== undefined ? toNumber(data.lmS_Level) : (data.LMS_Level !== undefined ? toNumber(data.LMS_Level) : 0),
-            LMS_ClassNo: data.lmS_ClassNo !== undefined ? toNumber(data.lmS_ClassNo) : (data.LMS_ClassNo !== undefined ? toNumber(data.LMS_ClassNo) : 0),
+            LMS_ParentId:
+                data.lmS_ParentId !== undefined
+                    ? Number(data.lmS_ParentId)
+                    : data.LMS_ParentId !== undefined
+                      ? Number(data.LMS_ParentId)
+                      : 0,
+            LMS_Level:
+                data.lmS_Level !== undefined ? toNumber(data.lmS_Level) : data.LMS_Level !== undefined ? toNumber(data.LMS_Level) : 0,
+            LMS_ClassNo:
+                data.lmS_ClassNo !== undefined
+                    ? toNumber(data.lmS_ClassNo)
+                    : data.LMS_ClassNo !== undefined
+                      ? toNumber(data.LMS_ClassNo)
+                      : 0,
             MI_Id: session?.mi_id
         };
 
@@ -42,8 +58,8 @@ export async function addOrUpdateMasterSubject(data: any) {
         const res = await api.post<any>('library', url, payload);
 
         const isSuccess =
-            res && (
-                res.success === true ||
+            res &&
+            (res.success === true ||
                 res.returnval === true ||
                 res.returnval === 'save' ||
                 res.returnval === 'update' ||
@@ -54,8 +70,10 @@ export async function addOrUpdateMasterSubject(data: any) {
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('save')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('update')) ||
                 (typeof res.message === 'string' && res.message.toLowerCase().includes('success')) ||
-                (res.returnval !== false && res.returnval !== 'duplicate' && !res.message?.toLowerCase().includes('duplicate') && !res.message?.toLowerCase().includes('fail'))
-            );
+                (res.returnval !== false &&
+                    res.returnval !== 'duplicate' &&
+                    !res.message?.toLowerCase().includes('duplicate') &&
+                    !res.message?.toLowerCase().includes('fail')));
 
         return {
             success: !!isSuccess,

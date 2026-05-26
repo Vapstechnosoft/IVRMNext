@@ -1,7 +1,7 @@
 'use server';
 
-import { InwardInitialData, InwardTransactionData } from '@/types/visitors-management/transactions';
-import { InwardSchema } from '@/schemas/visitors-management/transactions';
+import type { InwardSchema } from '@/schemas/visitors-management/transactions';
+import type { InwardInitialData, InwardTransactionData } from '@/types/visitors-management/transactions';
 
 // Mock Data
 const mockEmployees = [
@@ -68,20 +68,15 @@ export async function getInwardData(): Promise<InwardInitialData> {
     };
 }
 
-export async function saveInwardData(data: InwardSchema) {
+export async function saveInwardData(_data: InwardSchema) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Here you would typically map the schema data to your DB entity
-    // and save it. For mock purposes, we'll just log it.
-    console.log('Saving Inward Data:', data);
 
     // Simulate a successful save
     return { success: true, message: 'Inward Entry Saved Successfully' };
 }
 
-export async function deleteInwardData(id: number) {
+export async function deleteInwardData(_id: number) {
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('Deleting Inward ID:', id);
     return { success: true, message: 'Inward Entry Deleted Successfully' };
 }

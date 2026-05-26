@@ -63,8 +63,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
     });
     const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
-
-        console.log(" form data", data);
         const loanData = {
             HREL_Id: 0,
             MI_Id: HRMS_MI_ID,
@@ -79,7 +77,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_ModeOfPayment: data.modeOfPayment || '',
             HREL_ReferenceNo: data.referenceNo || ''
         };
-        console.log("loanData", loanData)
         saveLoan(loanData, {
             onSuccess: () => {
                 toast.success('Employee loan created successfully!');

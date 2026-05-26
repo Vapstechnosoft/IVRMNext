@@ -24,9 +24,7 @@ export default function FeeTransactionPageStThomas(props: { searchParams: Search
     const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
     const { data: response, isLoading, error } = useFeeTransactionListStThomas(selectedAsmayId ?? 0, searchParams);
-    useEffect(() => {
-        console.log('response', response);
-    }, [response]);
+    useEffect(() => {}, [response]);
     useEffect(() => {
         if (!loadingYears && academicYearData?.data && academicYearData.data.length > 0) {
             const firstId = academicYearData.data[0].asmaY_Id;

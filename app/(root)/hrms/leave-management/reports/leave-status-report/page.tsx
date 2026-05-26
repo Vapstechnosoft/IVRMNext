@@ -56,7 +56,7 @@ function LeaveStatusReportContent() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-    const watchedYear = watch('year');
+    const _watchedYear = watch('year');
 
     // Mapped ID arrays for hook dependencies
     const groupTypeIds = useMemo(() => watchedGroupType.map(Number).filter(Boolean), [watchedGroupType]);
@@ -69,8 +69,11 @@ function LeaveStatusReportContent() {
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData, isLoading: employeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
-    console.log('employeesData', employeesData);
+    const { data: employeesData, isLoading: employeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        groupTypeIds,
+        deptIds,
+        desigIds
+    );
     // Transforms
     const leavesDataTransformed = useMemo(() => {
         return (
@@ -122,10 +125,10 @@ function LeaveStatusReportContent() {
                 const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
                 const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
 
-                const employeeName =
+                const _employeeName =
                     [firstName, middleName, lastName].filter(Boolean).join(' ') || emp.value || emp.employeeName || 'Unknown Employee';
 
-                const employeeCode = emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || emp.employeeCode || id.toString();
+                const _employeeCode = emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || emp.employeeCode || id.toString();
 
                 return {
                     id: Number(id),
@@ -135,8 +138,6 @@ function LeaveStatusReportContent() {
             })
             .filter(Boolean);
     }, [employeesData]);
-
-    console.log('employeesDataTransformed', employeesDataTransformed);
 
     const { mutateAsync: fetchLeaveStatusReport } = useLeaveStatusReport();
     const [isPending, setIsPending] = useState(false);
@@ -152,7 +153,6 @@ function LeaveStatusReportContent() {
             toast.error('Please select Year, Department, Designation, Employees, and Leaves');
             return;
         }
-        console.log('data', data);
         const payload = {
             hrmlY_Id: data.year,
             hrme_Ids: data.employees.join(','),
@@ -163,9 +163,7 @@ function LeaveStatusReportContent() {
 
         try {
             const response = await fetchLeaveStatusReport(payload);
-            console.log('response', response);
             if (response.success && response.data) {
-                console.log('response.data', response.data);
                 if (response.data.length === 0) {
                     setReportData([]);
                     toast.info('No data found for selected criteria');
@@ -244,13 +242,9 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={groupTypesLoading ? 'Loading Group Types...' : 'Select Group Types'}
-                                        className={`${groupTypesLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${groupTypesLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
-
                             />
                         </div>
 
@@ -271,10 +265,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={departmentsLoading ? 'Loading Departments...' : 'Select Departments'}
-                                        className={`${departmentsLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${departmentsLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />
@@ -297,10 +288,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={designationsLoading ? 'Loading Designations...' : 'Select Designations'}
-                                        className={`${designationsLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${designationsLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />
@@ -323,10 +311,7 @@ function LeaveStatusReportContent() {
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder={employeesLoading ? 'Loading Employees...' : 'Select Employees'}
-                                        className={`${employeesLoading
-                                                ? "pointer-events-none opacity-50"
-                                                : ""
-                                            }`}
+                                        className={`${employeesLoading ? 'pointer-events-none opacity-50' : ''}`}
                                     />
                                 )}
                             />

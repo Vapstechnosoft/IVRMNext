@@ -3,11 +3,10 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 
-
-const columnHelper = createColumnHelper<IHostel>();
+const _columnHelper = createColumnHelper<IHostel>();
 
 export const masterHostelColumns: ColumnDef<IHostel, any>[] = [
     {
@@ -78,9 +77,9 @@ export const masterHostelColumns: ColumnDef<IHostel, any>[] = [
     }
 ];
 
-import { ViewFacilitiesModal, ViewWardensModal, ViewDocumentsModal } from './view-modals';
+import type { IHostel } from '@/types/hostel/hostel-management/masters';
 import { useState } from 'react';
-import { IHostel } from '@/types/hostel/hostel-management/masters';
+import { ViewDocumentsModal, ViewFacilitiesModal, ViewWardensModal } from './view-modals';
 
 // ... (existing imports and interface)
 
@@ -91,19 +90,12 @@ function ViewFacilitiesCell({ rowData }: { rowData: IHostel }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Facility
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Facility
             </button>
-            {isOpen && (
-                <ViewFacilitiesModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData}
-                />
-            )}
+            {isOpen && <ViewFacilitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData} />}
         </>
     );
 }
@@ -113,19 +105,12 @@ function ViewWardensCell({ rowData }: { rowData: IHostel }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Emps
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Emps
             </button>
-            {isOpen && (
-                <ViewWardensModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData ?? null}
-                />
-            )}
+            {isOpen && <ViewWardensModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData ?? null} />}
         </>
     );
 }
@@ -135,19 +120,12 @@ function ViewDocumentsCell({ rowData }: { rowData: IHostel }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" />
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' />
             </button>
-            {isOpen && (
-                <ViewDocumentsModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData}
-                />
-            )}
+            {isOpen && <ViewDocumentsModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData} />}
         </>
     );
 }

@@ -10,21 +10,17 @@ export const getStatusColumns = (
     statusList: { pamsT_Id: number; pamsT_Status: string }[],
     onStatusChange: (id: number, statusId: number) => void,
     onRemarkChange: (id: number, remark: string) => void,
-    rptStatus: boolean
+    _rptStatus: boolean
 ): ColumnDef<IStatusStudent>[] => [
     {
         id: 'slno',
         header: 'SL.NO',
-        cell: ({ row }) => (
-            <div className="text-center font-medium">
-                {row.index + 1}
-            </div>
-        ),
+        cell: ({ row }) => <div className='text-center font-medium'>{row.index + 1}</div>
     },
     {
         id: 'select',
         header: ({ table }) => (
-            <div className="flex justify-center">
+            <div className='flex justify-center'>
                 <Checkbox
                     checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                     onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
@@ -33,12 +29,8 @@ export const getStatusColumns = (
             </div>
         ),
         cell: ({ row }) => (
-            <div className="flex justify-center">
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label='Select row'
-                />
+            <div className='flex justify-center'>
+                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
             </div>
         ),
         enableSorting: false,
@@ -47,17 +39,17 @@ export const getStatusColumns = (
     {
         accessorKey: 'name',
         header: 'Student Name',
-        cell: ({ row }) => <div className="font-semibold text-primary/90">{row.getValue('name')}</div>
+        cell: ({ row }) => <div className='font-semibold text-primary/90'>{row.getValue('name')}</div>
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: 'Reg.No',
+        header: 'Reg.No'
     },
     {
         accessorKey: 'statusName',
         header: 'Current Status',
         cell: ({ row }) => (
-            <div className="inline-flex items-center rounded-md bg-secondary/50 px-2 py-0.5 text-xs font-medium border">
+            <div className='inline-flex items-center rounded-md border bg-secondary/50 px-2 py-0.5 font-medium text-xs'>
                 {row.getValue('statusName')}
             </div>
         )
@@ -69,11 +61,10 @@ export const getStatusColumns = (
             const student = row.original;
             return (
                 <Select
-                    value={student.pamsT_Id && student.pamsT_Id !== 786 ? String(student.pamsT_Id) : ""}
-                    onValueChange={(val) => onStatusChange(student.pasR_Id, Number(val))}
-                >
-                    <SelectTrigger className="w-[160px] h-8 bg-background/50 hover:bg-background transition-colors">
-                        <SelectValue placeholder="Select Status" />
+                    value={student.pamsT_Id && student.pamsT_Id !== 786 ? String(student.pamsT_Id) : ''}
+                    onValueChange={(val) => onStatusChange(student.pasR_Id, Number(val))}>
+                    <SelectTrigger className='h-8 w-[160px] bg-background/50 transition-colors hover:bg-background'>
+                        <SelectValue placeholder='Select Status' />
                     </SelectTrigger>
                     <SelectContent>
                         {statusList.map((status) => (
@@ -84,7 +75,7 @@ export const getStatusColumns = (
                     </SelectContent>
                 </Select>
             );
-        },
+        }
     },
     {
         id: 'newRemark',
@@ -95,8 +86,8 @@ export const getStatusColumns = (
                 <Input
                     value={student.remarks || ''}
                     onChange={(e) => onRemarkChange(student.pasR_Id, e.target.value)}
-                    placeholder="Enter remark"
-                    className="h-8 min-w-[150px] bg-background/50"
+                    placeholder='Enter remark'
+                    className='h-8 min-w-[150px] bg-background/50'
                 />
             );
         }
@@ -104,19 +95,18 @@ export const getStatusColumns = (
     {
         accessorKey: 'remark',
         header: 'Previous Remark',
-        cell: ({ row }) => <div className="text-muted-foreground text-xs">{row.getValue('remark') || '-'}</div>
+        cell: ({ row }) => <div className='text-muted-foreground text-xs'>{row.getValue('remark') || '-'}</div>
     },
     {
         accessorKey: 'className',
-        header: 'Admitted Class',
+        header: 'Admitted Class'
     },
     {
         accessorKey: 'repeat_Class_Id',
-        header: 'Repeat Class',
+        header: 'Repeat Class'
     },
     {
         accessorKey: 'pasR_Sex',
-        header: 'Sex',
+        header: 'Sex'
     }
 ];
-

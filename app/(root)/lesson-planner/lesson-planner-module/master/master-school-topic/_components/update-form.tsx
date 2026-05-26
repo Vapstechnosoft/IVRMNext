@@ -37,15 +37,11 @@ export default function UpdateMasterSchoolTopicForm({
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        console.log('[UpdateMasterSchoolTopicForm] selectedRow:', selectedRow);
-        console.log('[UpdateMasterSchoolTopicForm] Keys:', Object.keys(selectedRow));
-
         const fetchEditDetails = async () => {
             setIsLoading(true);
             try {
                 // Handle different ID casings
                 const id = selectedRow.lpmmT_Id || (selectedRow as any).LPMMT_Id;
-                console.log('[UpdateMasterSchoolTopicForm] Fetching edit details for ID:', id);
 
                 if (!id) {
                     console.error('[UpdateMasterSchoolTopicForm] No valid ID found for edit');
@@ -56,7 +52,6 @@ export default function UpdateMasterSchoolTopicForm({
                 }
 
                 const res: any = await editSchoolTopic(id);
-                console.log('Edit API Response:', res);
 
                 if (res.success && res.data) {
                     console.info('[UpdateMasterSchoolTopicForm] API Response Data:', res.data);
@@ -114,14 +109,6 @@ export default function UpdateMasterSchoolTopicForm({
             </div>
         );
     }
-
-    console.log('UpdateForm - Passing to AddForm:', {
-        editData,
-        masterYear,
-        masterUnit,
-        editClasses,
-        editSubjects
-    });
 
     return (
         <div className={className}>

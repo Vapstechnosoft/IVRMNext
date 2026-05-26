@@ -54,23 +54,22 @@ export async function addOrUpdateMasterDriverShift(data: {
                 success: false,
                 message: 'Master driver shift not found'
             };
-        } else {
-            const created = store.create({
-                shift: data.shift,
-                driver: data.driver,
-                fromDate: data.fromDate,
-                toDate: data.toDate,
-                remarks: data.remarks,
-                saturdayOff: data.saturdayOff,
-                sundayWorking: data.sundayWorking,
-                isActive: data.isActive ?? true
-            });
-            return {
-                success: true,
-                data: created,
-                message: 'Master driver shift created successfully'
-            };
         }
+        const created = store.create({
+            shift: data.shift,
+            driver: data.driver,
+            fromDate: data.fromDate,
+            toDate: data.toDate,
+            remarks: data.remarks,
+            saturdayOff: data.saturdayOff,
+            sundayWorking: data.sundayWorking,
+            isActive: data.isActive ?? true
+        });
+        return {
+            success: true,
+            data: created,
+            message: 'Master driver shift created successfully'
+        };
     } catch (error: any) {
         return {
             success: false,

@@ -39,11 +39,7 @@ export default function SchoolStaffPeriodTransactionDeviationReportPage() {
     const handleReportSubmit = async (payload: IDeviationReportPayload) => {
         setIsLoading(true);
         try {
-            console.log('Deviation Report Payload:', payload);
-            console.log('Calling getDeviationReport with:', payload.ASMAY_Id, payload.ASMCL_Id, payload.ASMS_Id, payload.HRME_Id);
-
             const res: any = await getDeviationReport(payload.ASMAY_Id, payload.ASMCL_Id, payload.ASMS_Id, payload.HRME_Id);
-            console.log('Deviation Report API Response:', res);
 
             if (!res) {
                 console.error('Deviation Report: Response is undefined/null');
@@ -55,7 +51,6 @@ export default function SchoolStaffPeriodTransactionDeviationReportPage() {
 
             // Handle flat data array from "data" property (New API Structure)
             if (res.data && Array.isArray(res.data)) {
-                console.log('Handling as Flat Data Array');
                 const flatData = res.data as IDeviationReportDetail[];
                 setReportData(flatData);
 

@@ -1,29 +1,28 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
+    ApproveRejectLeaveStatusRequest,
     GetApprovalStatusRequest,
     GetApprovalStatusResponseData,
-    GetStatusAsyncRequest,
-    GetStatusAsyncResponseData,
-    RejectStatusAsyncRequest,
-    RejectStatusAsyncResponseData,
-    GetApprovedLeaveRequest,
-    GetApprovedLeaveResponseData,
-    ViewLeaveBalanceHistoryRequest,
-    ViewLeaveBalanceHistoryResponseData,
-    GetRequestStatusRequest,
-    GetRequestStatusResponseData,
     GetApproveStatusAsyncRequest,
     GetApproveStatusAsyncResponseData,
+    GetApprovedLeaveRequest,
+    GetApprovedLeaveResponseData,
     GetPeriodApprovalStatusRequest,
     GetPeriodApprovalStatusResponseData,
+    GetRequestStatusRequest,
+    GetRequestStatusResponseData,
+    GetStatusAsyncRequest,
+    GetStatusAsyncResponseData,
+    LeaveApprovalGridItem,
+    LeaveBalanceHistoryItem,
     PeriodLeaveStatusRequest,
     PeriodLeaveStatusResponseData,
-    LeaveApprovalGridItem,
-    ApproveRejectLeaveStatusRequest,
-    LeaveBalanceHistoryItem
+    RejectStatusAsyncRequest,
+    RejectStatusAsyncResponseData,
+    ViewLeaveBalanceHistoryRequest,
+    ViewLeaveBalanceHistoryResponseData
 } from '@/types/hrms/leave-management/leave-approval';
 
 /**
@@ -40,11 +39,8 @@ export async function getApprovalStatus(request: GetApprovalStatusRequest): Prom
     const requestBody: GetApprovalStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
-
-    console.log('🔵 [SERVER] POST Request URL:', url);
     try {
         const response = await api.post<any>('hmslms', url, requestBody);
-        console.log('🔵 [SERVER] POST Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         return {
@@ -62,7 +58,6 @@ export async function getApprovalStatus(request: GetApprovalStatusRequest): Prom
     }
 }
 
-
 /**
  * Approve leave application
  * POST /api/AdminOnDutyApply/approve_leave (placeholder - implement when endpoint is available)
@@ -70,11 +65,8 @@ export async function getApprovalStatus(request: GetApprovalStatusRequest): Prom
 export async function approveLeave(hrelapId: number, remarks?: string): Promise<ApiResponse<any>> {
     // TODO: Replace with actual approve endpoint when available
     const url = `/api/AdminOnDutyApply/approve_leave/${hrelapId}`;
-
-    console.log('🟢 [SERVER] POST Request URL:', url);
     try {
         const response = await api.post<any>('hmslms', url, { remarks: remarks || '' });
-        console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -97,11 +89,8 @@ export async function approveLeave(hrelapId: number, remarks?: string): Promise<
 export async function rejectLeave(hrelapId: number, remarks: string): Promise<ApiResponse<any>> {
     // TODO: Replace with actual reject endpoint when available
     const url = `/api/AdminOnDutyApply/reject_leave/${hrelapId}`;
-
-    console.log('🔴 [SERVER] POST Request URL:', url);
     try {
         const response = await api.post<any>('hmslms', url, { remarks });
-        console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -123,11 +112,8 @@ export async function rejectLeave(hrelapId: number, remarks: string): Promise<Ap
  */
 export async function getLeaveDetailsById(hrelapId: number): Promise<ApiResponse<any>> {
     const url = `/api/AdminOnDutyApply/get_leave_details_by_id/${hrelapId}`;
-
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -157,11 +143,8 @@ export async function getLeaveDetailsById(hrelapId: number): Promise<ApiResponse
  */
 export async function getEmployeeOnDutyDetails(hrmeId: number): Promise<ApiResponse<any>> {
     const url = `/api/AdminOnDutyApply/employee_on_duty_details_by_id/${hrmeId}`;
-
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -267,7 +250,6 @@ export async function getApprovedLeave(request: GetApprovedLeaveRequest): Promis
     };
 
     try {
-        console.log('🔵 [SERVER] POST Request URL:', url);
         const response = await api.post<any>('hmslms', url, requestBody);
 
         // Handle response gracefully
@@ -309,7 +291,9 @@ export async function getApprovedLeave(request: GetApprovedLeaveRequest): Promis
  * View leave balance history
  * POST /api/LeaveApprovalFacade/ViewLeaveBalanceHistory
  */
-export async function viewLeaveBalanceHistory(request: ViewLeaveBalanceHistoryRequest): Promise<ApiResponse<ViewLeaveBalanceHistoryResponseData>> {
+export async function viewLeaveBalanceHistory(
+    request: ViewLeaveBalanceHistoryRequest
+): Promise<ApiResponse<ViewLeaveBalanceHistoryResponseData>> {
     const url = '/api/LeaveApproval/view_leave_balance_history';
     const requestBody: ViewLeaveBalanceHistoryRequest = {
         HRME_Id: request.HRME_Id || 0
@@ -366,7 +350,9 @@ export async function getRequestStatus(request: GetRequestStatusRequest): Promis
  * Get approve status async
  * POST /api/LeaveApprovalFacade/GetApproveStatusAsync
  */
-export async function getApproveStatusAsync(request: GetApproveStatusAsyncRequest): Promise<ApiResponse<GetApproveStatusAsyncResponseData>> {
+export async function getApproveStatusAsync(
+    request: GetApproveStatusAsyncRequest
+): Promise<ApiResponse<GetApproveStatusAsyncResponseData>> {
     const url = '/api/LeaveApproval/get_approve_status_async';
     const requestBody: GetApproveStatusAsyncRequest = {
         LoginId: request.LoginId || 0,
@@ -399,7 +385,9 @@ export async function getApproveStatusAsync(request: GetApproveStatusAsyncReques
  * Get period approval status
  * POST /api/LeaveApproval/get_period_approval_status
  */
-export async function getPeriodApprovalStatus(request: GetPeriodApprovalStatusRequest): Promise<ApiResponse<GetPeriodApprovalStatusResponseData>> {
+export async function getPeriodApprovalStatus(
+    request: GetPeriodApprovalStatusRequest
+): Promise<ApiResponse<GetPeriodApprovalStatusResponseData>> {
     const url = '/api/LeaveApproval/get_period_approval_status';
     const requestBody: GetPeriodApprovalStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -464,7 +452,6 @@ export async function periodLeaveStatus(request: PeriodLeaveStatusRequest): Prom
  */
 export async function getLeaveAppliedOrApprovalGrid(): Promise<ApiResponse<LeaveApprovalGridItem[]>> {
     const url = '/api/LeaveApproval/get_leave_applied_or_approval_grid';
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
@@ -493,9 +480,6 @@ export async function approveOrRejectLeaveStatus(data: ApproveRejectLeaveStatusR
         ...data
     };
 
-    console.log('🟠 [SERVER] POST Request URL:', url);
-    console.log('📦 [SERVER] Payload:', JSON.stringify(payload, null, 2));
-
     try {
         const response = await api.post<any>('hmslms', url, payload);
         const res = response as any;
@@ -518,7 +502,6 @@ export async function approveOrRejectLeaveStatus(data: ApproveRejectLeaveStatusR
  */
 export async function viewLeaveBalanceHistoryByEmpId(hrmeId: number): Promise<ApiResponse<LeaveBalanceHistoryItem[]>> {
     const url = `/api/LeaveApproval/view_leave_balance_history/${hrmeId}`;
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;

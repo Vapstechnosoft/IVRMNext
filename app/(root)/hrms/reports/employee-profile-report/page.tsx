@@ -1,26 +1,24 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { MultiSelect } from '@/components/ui/multi-select';
 import {
-    useReportGroupTypes,
+    useEmployeeProfileReport,
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
-    useEmployeeProfileReport,
-    useReportEmployeesByGroupTypeDeptAndDesignation
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { Download, Loader2, Printer, Search } from 'lucide-react';
+import { Loader2, Printer, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
-import { printEmployeeProfileReport } from './_components/employee-profile-print';
 import { EmployeeProfileCard } from './_components/employee-profile-card';
+import { printEmployeeProfileReport } from './_components/employee-profile-print';
 
 interface FilterFormValues {
     groupType: string[];
@@ -63,7 +61,6 @@ function EmployeeProfileReportContent() {
     const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
     // const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
     const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
-    console.log('employeesData', employeesData);
     // Transforms
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -109,7 +106,6 @@ function EmployeeProfileReportContent() {
                 };
             })
             .filter(Boolean);
-
     }, [employeesData]);
 
     const { mutateAsync: fetchEmployeeProfileReport } = useEmployeeProfileReport();
@@ -124,19 +120,17 @@ function EmployeeProfileReportContent() {
         const payload = {
             hrmE_IdList: data.employees.map(Number)
         };
-        console.log("Payload:", payload);
 
         setIsPending(true);
 
         try {
             const response = await fetchEmployeeProfileReport(payload);
-            console.log("Fetch Employee Profile Report API Response:", response);
 
             const responseData = response?.data as any;
 
             let finalData: any[] = [];
 
-            if (responseData && responseData.employeeReports) {
+            if (responseData?.employeeReports) {
                 // Map the new response structure
                 const { institutionName, institutionAddress, institutionPincode, employeeReports } = responseData;
 
@@ -148,13 +142,11 @@ function EmployeeProfileReportContent() {
                 }));
             } else if (responseData && Array.isArray(responseData)) {
                 finalData = responseData;
-            } else if (responseData && responseData.employeeDetails) {
+            } else if (responseData?.employeeDetails) {
                 finalData = Array.isArray(responseData.employeeDetails) ? responseData.employeeDetails : [responseData.employeeDetails];
-            } else if (response && response.data) {
+            } else if (response?.data) {
                 finalData = Array.isArray(response.data) ? response.data : [response.data];
             }
-
-            
 
             if (finalData.length === 0) {
                 toast.info('No data found for selected criteria');
@@ -178,7 +170,6 @@ function EmployeeProfileReportContent() {
         printEmployeeProfileReport(reportData);
     };
 
-
     const resetHandler = () => {
         reset({
             groupType: [],
@@ -198,21 +189,20 @@ function EmployeeProfileReportContent() {
             <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-
                         {/* Group Type */}
                         <div className='space-y-2'>
-                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Group Type <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='groupType'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            groupTypesDataTransformed.map((gt: any) => ({
-                                                label: gt.name,
-                                                value: String(gt.id)
-                                            }))
-                                        }
+                                        options={groupTypesDataTransformed.map((gt: any) => ({
+                                            label: gt.name,
+                                            value: String(gt.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder='Select Group Types'
@@ -223,18 +213,18 @@ function EmployeeProfileReportContent() {
 
                         {/* Department */}
                         <div className='space-y-2'>
-                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Department <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='department'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            departmentsDataTransformed.map((dept: any) => ({
-                                                label: dept.name,
-                                                value: String(dept.id)
-                                            }))
-                                        }
+                                        options={departmentsDataTransformed.map((dept: any) => ({
+                                            label: dept.name,
+                                            value: String(dept.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder='Select Departments'
@@ -245,18 +235,18 @@ function EmployeeProfileReportContent() {
 
                         {/* Designation */}
                         <div className='space-y-2'>
-                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Designation <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='designation'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            designationsDataTransformed.map((desg: any) => ({
-                                                label: desg.name,
-                                                value: String(desg.id)
-                                            }))
-                                        }
+                                        options={designationsDataTransformed.map((desg: any) => ({
+                                            label: desg.name,
+                                            value: String(desg.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder='Select Designations'
@@ -267,18 +257,18 @@ function EmployeeProfileReportContent() {
 
                         {/* Employees */}
                         <div className='space-y-2'>
-                            <Label>Employees <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Employees <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='employees'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={
-                                            employeesDataTransformed.map((emp: any) => ({
-                                                label: `${emp.employeeName} - [${emp.employeeCode}]`,
-                                                value: String(emp.id)
-                                            }))
-                                        }
+                                        options={employeesDataTransformed.map((emp: any) => ({
+                                            label: `${emp.employeeName} - [${emp.employeeCode}]`,
+                                            value: String(emp.id)
+                                        }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
                                         placeholder='Select Employees'
@@ -286,7 +276,6 @@ function EmployeeProfileReportContent() {
                                 )}
                             />
                         </div>
-
                     </div>
 
                     <div className='flex justify-center gap-4'>
@@ -302,8 +291,7 @@ function EmployeeProfileReportContent() {
                             onClick={(e) => {
                                 e.preventDefault();
                                 resetHandler();
-                            }}
-                        >
+                            }}>
                             <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
@@ -326,24 +314,20 @@ function EmployeeProfileReportContent() {
                             </Button>
                         </div>
                     }>
-                    <div className='h-[700px] overflow-y-auto w-full p-4 print:p-0'>
+                    <div className='h-[700px] w-full overflow-y-auto p-4 print:p-0'>
                         {reportData.length > 0 && (
-                            <div className='mb-6 text-center border-b pb-4 print:border-b-2 print:border-gray-800 print:mb-8'>
-                                <h2 className='text-xl font-bold uppercase text-primary print:text-black'>
+                            <div className='mb-6 border-b pb-4 text-center print:mb-8 print:border-gray-800 print:border-b-2'>
+                                <h2 className='font-bold text-primary text-xl uppercase print:text-black'>
                                     {reportData[0].institutionName || 'Institution Name'}
                                 </h2>
-                                {reportData[0].institutionAddress && (
-                                    <h4 className='text-sm mt-1'>{reportData[0].institutionAddress}</h4>
-                                )}
+                                {reportData[0].institutionAddress && <h4 className='mt-1 text-sm'>{reportData[0].institutionAddress}</h4>}
                                 {reportData[0].institutionPincode && (
-                                    <h4 className='text-sm mt-1'>PIN: {reportData[0].institutionPincode}</h4>
+                                    <h4 className='mt-1 text-sm'>PIN: {reportData[0].institutionPincode}</h4>
                                 )}
-                                <h5 className='text-md font-semibold mt-2 uppercase'>Employee Profile Report</h5>
+                                <h5 className='mt-2 font-semibold text-md uppercase'>Employee Profile Report</h5>
                             </div>
                         )}
-                        {reportData.length > 0 && reportData.map((profile, index) => (
-                            <EmployeeProfileCard key={index} profile={profile} />
-                        ))}
+                        {reportData.length > 0 && reportData.map((profile, index) => <EmployeeProfileCard key={index} profile={profile} />)}
                     </div>
                 </CollapsibleSection>
             )}

@@ -50,9 +50,8 @@ export default function AddForm({ onSearch }: AddFormProps) {
                 TRMR_Id: values.trmR_Id,
                 RegularNew: values.newreg
             };
-            console.log('search students', payload);
             const response = await searchTransportApprovedDetails(payload);
-            if (response && response.data && response.data.length > 0) {
+            if (response?.data && response.data.length > 0) {
                 onSearch(response.data);
             } else {
                 toast.warning('No records found');
@@ -188,11 +187,7 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         <Search className='mr-2 h-4 w-4' />
                         Search
                     </Button>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => window.location.reload()}
-                        disabled={isLoading}>
+                    <Button type='button' variant='outline' onClick={() => window.location.reload()} disabled={isLoading}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>

@@ -1,12 +1,12 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export interface saveOrUpdateLocationPayload {
-  hrmlO_Id: number;
-  mi_Id: number;
-  hrmlO_LocationName: string;
-  hrmlO_LocationDesc: string;
-  hrmlO_ActiveFlg: boolean;
+    hrmlO_Id: number;
+    mi_Id: number;
+    hrmlO_LocationName: string;
+    hrmlO_LocationDesc: string;
+    hrmlO_ActiveFlg: boolean;
 }
 
 export async function getMasterLocation(): Promise<ApiResponse<any>> {
@@ -16,7 +16,7 @@ export async function getMasterLocation(): Promise<ApiResponse<any>> {
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master job grid data:', error);
@@ -31,7 +31,7 @@ export async function getMasterLocationGridData(mi_id: number): Promise<ApiRespo
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master job grid data:', error);
@@ -46,7 +46,7 @@ export async function saveOrUpdateLocation(payload: saveOrUpdateLocationPayload)
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving master location data:', error);
@@ -61,7 +61,7 @@ export async function toggleLocationStatusData(hrmlO_Id: number): Promise<ApiRes
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving master location data:', error);

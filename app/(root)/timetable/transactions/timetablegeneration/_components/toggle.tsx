@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useGenerationMasters } from '@/hooks/timetable/useTransactions';
 import { ttGenerationSchema } from '@/schemas/timetable/transactions';
 import { toggleTimeTableGeneration } from '@/server/timetable/transactions/timetablegeneration';
-import { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
+import type { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -43,9 +43,7 @@ export default function ToggleTTGeneration({ rowData, onClose }: ToggleTTGenerat
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            console.log('Toggling TTFG_Id:', rowData.ttfG_Id);
             const response = await toggleTimeTableGeneration(Number(rowData.ttfG_Id));
-            console.log('Toggle Response:', response);
 
             if (response.success) {
                 toast.success(response.message);
@@ -85,5 +83,3 @@ export default function ToggleTTGeneration({ rowData, onClose }: ToggleTTGenerat
         </AdaptiveDialog>
     );
 }
-
-

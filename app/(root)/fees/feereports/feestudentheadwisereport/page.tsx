@@ -14,7 +14,8 @@ import {
 import { getFeeStudentheadWiseReportforCBCS } from '@/server/fees/reports/headwiseReport';
 import type { IFeeStudentHeadWiseReport } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
@@ -237,10 +238,8 @@ export default function FeeStudentHeadWiseReport() {
                 fillseccls: sectionId,
                 asmaY_Id: academicYearId
             };
-            console.log('payload', payload);
             const response = await getFeeStudentheadWiseReportforCBCS(payload);
             const apiList = response?.data ?? [];
-            console.log('apiList', apiList);
             const mapApiToReportRows = (apiData: any[]): IFeeStudentHeadWiseReport[] => {
                 return apiData.map((item, index) => ({
                     id: index + 1,

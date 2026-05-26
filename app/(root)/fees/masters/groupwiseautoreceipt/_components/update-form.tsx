@@ -297,8 +297,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_Starting_No: startingNumber,
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
-
-            console.log('auto receipt payload', JSON.stringify(payload));
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {

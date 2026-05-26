@@ -1,24 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider } from '@/components/ui/form/form-provider';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
-import { exportToExcel } from '@/lib/export-to-file';
 import { usePFChallan, usePFChallanOnload } from '@/hooks/hrms/useReports';
-import { Loader2, Search, Download, X } from 'lucide-react';
+import { exportToExcel } from '@/lib/export-to-file';
+import { Download, Loader2, Search, X } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 interface FilterFormValues {
@@ -63,25 +71,27 @@ function PFChallanContent() {
             return;
         }
 
-
         const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
         const yearString = selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year;
 
-        generateReport({
-            hreS_Year: yearString,
-            hreS_Month: data.month
-        }, {
-            onSuccess: (res) => {
-                if (res.success && res.data) {
-                    // Robust data binding: handle direct array or nested properties
-                    const dataArr = res.data.alldata || res.data.pfreport || (Array.isArray(res.data) ? res.data : []);
-                    setReportData(dataArr);
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.error(res.message || 'No data found');
+        generateReport(
+            {
+                hreS_Year: yearString,
+                hreS_Month: data.month
+            },
+            {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        // Robust data binding: handle direct array or nested properties
+                        const dataArr = res.data.alldata || res.data.pfreport || (Array.isArray(res.data) ? res.data : []);
+                        setReportData(dataArr);
+                        toast.success('Report generated successfully');
+                    } else {
+                        toast.error(res.message || 'No data found');
+                    }
                 }
             }
-        });
+        );
     };
 
     const handleExport = () => {
@@ -153,61 +163,73 @@ function PFChallanContent() {
         },
         {
             accessorKey: 'fatherHusbandName',
-            header: 'Father/Husband Name',
+            header: 'Father/Husband Name'
         }
     ];
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
             <div className='flex items-center justify-between'>
-                <h2 className='text-2xl font-bold tracking-tight'>PF Challan Report</h2>
+                <h2 className='font-bold text-2xl tracking-tight'>PF Challan Report</h2>
             </div>
 
-            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+            <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {yearsData?.data?.map((y: any) => (
-                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
-                                                {y.hrmlY_LeaveYear}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='year'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Year' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {yearsData?.data?.map((y: any) => (
+                                                <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                    {y.hrmlY_LeaveYear}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {monthsData?.data?.length > 0 ? (
-                                            monthsData.data.map((m: any) => (
-                                                <SelectItem key={m.ivrM_Month_Id || m.IVRM_Month_Id} value={m.ivrM_Month_Name || m.IVRM_Month_Name}>
-                                                    {m.ivrM_Month_Name || m.IVRM_Month_Name}
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            MONTH_LIST.map((m) => (
-                                                <SelectItem key={m.id} value={m.name}>
-                                                    {m.name}
-                                                </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            )} />
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='month'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Month' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {monthsData?.data?.length > 0
+                                                ? monthsData.data.map((m: any) => (
+                                                      <SelectItem
+                                                          key={m.ivrM_Month_Id || m.IVRM_Month_Id}
+                                                          value={m.ivrM_Month_Name || m.IVRM_Month_Name}>
+                                                          {m.ivrM_Month_Name || m.IVRM_Month_Name}
+                                                      </SelectItem>
+                                                  ))
+                                                : MONTH_LIST.map((m) => (
+                                                      <SelectItem key={m.id} value={m.name}>
+                                                          {m.name}
+                                                      </SelectItem>
+                                                  ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
                     </div>
 
@@ -217,11 +239,11 @@ function PFChallanContent() {
                             variant='outline'
                             onClick={handleCancel}
                             disabled={isPending}
-                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            className='w-32 rounded-xl border-orange-500 text-orange-600 transition-all hover:bg-orange-50'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
+                        <Button type='submit' disabled={isPending} className='w-32 rounded-xl transition-all'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>
@@ -230,7 +252,10 @@ function PFChallanContent() {
             </CollapsibleSection>
 
             {reportData && (
-                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                <CollapsibleSection
+                    title='Report Details'
+                    defaultOpen={true}
+                    className='border shadow-md'
                     rightElement={
                         <div className='flex gap-2'>
                             <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
@@ -238,8 +263,7 @@ function PFChallanContent() {
                                 Export
                             </Button>
                         </div>
-                    }
-                >
+                    }>
                     <GenericDataTable
                         data={reportData}
                         columns={columns}

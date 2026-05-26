@@ -1,20 +1,20 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, RotateCcw, Printer, Loader2, Check, FileText, GraduationCap, Search, FileCheck } from 'lucide-react';
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { CalendarIcon, Check, FileCheck, GraduationCap, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 import {
     useSophiaStudyCertDetails,
@@ -56,7 +56,7 @@ export default function SophiaStudyCertificatePage() {
         return {
             allAcademicYear: Array.isArray(data?.allAcademicYear) ? data.allAcademicYear : [],
             allclasslist: Array.isArray(data?.allclasslist) ? data.allclasslist : [],
-            allsectionlist: Array.isArray(data?.allsectionlist) ? data.allsectionlist : [],
+            allsectionlist: Array.isArray(data?.allsectionlist) ? data.allsectionlist : []
         } as LoadData;
     }, [loadDataResponse]);
 
@@ -95,30 +95,37 @@ export default function SophiaStudyCertificatePage() {
         const timer = setTimeout(() => {
             // Using the API as specified for global search: /StudyCertificate/searchfilter
             // Search always uses ASMCL_Id: 0, ASMC_Id: 0 and allorindid: 'A' to find students across the whole year
-            searchMutation.mutate({
-                ASMAY_Id: academicYearId,
-                AMST_SOL: studentStatus,
-                ASMCL_Id: 0,
-                ASMC_Id: 0,
-                searchfilter: searchQuery,
-                allorindid: 'A'
-            }, {
-                onSuccess: (response: any) => {
-                    const data = response?.data || response;
-                    // Backend returns list in 'fillstudlist' or 'studentList'
-                    const list = data?.fillstudlist || data?.studentList || [];
-                    setStudentListFromSearch(Array.isArray(list) ? list.map((s: any) => ({
-                        ...s,
-                        amst_id: s.amsT_Id || s.AMST_Id,
-                        studentname: s.amsT_FirstName || s.AMST_FirstName || s.studentname || s.studentName,
-                        amst_admno: s.amsT_AdmNo || s.AMST_AdmNo || s.admNo,
-                        asmcl_classname: s.asmcL_ClassName || s.ASMCL_ClassName || s.class || s.className
-                    })) : []);
+            searchMutation.mutate(
+                {
+                    ASMAY_Id: academicYearId,
+                    AMST_SOL: studentStatus,
+                    ASMCL_Id: 0,
+                    ASMC_Id: 0,
+                    searchfilter: searchQuery,
+                    allorindid: 'A'
                 },
-                onError: () => {
-                    toast.error('Error searching students');
+                {
+                    onSuccess: (response: any) => {
+                        const data = response?.data || response;
+                        // Backend returns list in 'fillstudlist' or 'studentList'
+                        const list = data?.fillstudlist || data?.studentList || [];
+                        setStudentListFromSearch(
+                            Array.isArray(list)
+                                ? list.map((s: any) => ({
+                                      ...s,
+                                      amst_id: s.amsT_Id || s.AMST_Id,
+                                      studentname: s.amsT_FirstName || s.AMST_FirstName || s.studentname || s.studentName,
+                                      amst_admno: s.amsT_AdmNo || s.AMST_AdmNo || s.admNo,
+                                      asmcl_classname: s.asmcL_ClassName || s.ASMCL_ClassName || s.class || s.className
+                                  }))
+                                : []
+                        );
+                    },
+                    onError: () => {
+                        toast.error('Error searching students');
+                    }
                 }
-            });
+            );
         }, 500);
 
         return () => clearTimeout(timer);
@@ -129,22 +136,35 @@ export default function SophiaStudyCertificatePage() {
         if (!dateStr) return '';
         try {
             const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
+            if (Number.isNaN(date.getTime())) return dateStr;
             return format(date, formatStr);
-        } catch (e) {
+        } catch (_e) {
             return dateStr;
         }
     };
 
     const handleReport = async () => {
-        if (!academicYearId) { toast.error('Select Academic Year'); return; }
+        if (!academicYearId) {
+            toast.error('Select Academic Year');
+            return;
+        }
         if (studentScope === 'I') {
-            if (!classId) { toast.error('Select Class'); return; }
-            if (!sectionId) { toast.error('Select Section'); return; }
-            if (!studentId) { toast.error('Select Student'); return; }
+            if (!classId) {
+                toast.error('Select Class');
+                return;
+            }
+            if (!sectionId) {
+                toast.error('Select Section');
+                return;
+            }
+            if (!studentId) {
+                toast.error('Select Student');
+                return;
+            }
         }
         if (certificateType === '2' && (!visaFromDate || !visaToDate)) {
-            toast.error('Select From and To dates'); return;
+            toast.error('Select From and To dates');
+            return;
         }
 
         const payload = {
@@ -202,7 +222,7 @@ export default function SophiaStudyCertificatePage() {
                 toast.error('No records found for the selected criteria');
                 setShowCertificate(false);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to fetch report details');
         }
     };
@@ -231,84 +251,109 @@ export default function SophiaStudyCertificatePage() {
 
     if (isLoadDataLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50">
+            <div className='flex h-screen items-center justify-center bg-gray-50'>
                 <div className='flex flex-col items-center gap-2'>
-                    <Loader2 className="h-10 w-10 animate-spin text-[#3f51b5]" />
-                    <span className='text-sm font-medium text-gray-500'>Initializing...</span>
+                    <Loader2 className='h-10 w-10 animate-spin text-[#3f51b5]' />
+                    <span className='font-medium text-gray-500 text-sm'>Initializing...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className='min-h-screen bg-[#f1f5f9] p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 bg-[#f1f5f9] p-4'>
             {/* Blue Header Bar */}
-            <div className='bg-[#3f51b5] text-white p-4 rounded-t-lg shadow-md flex items-center justify-between'>
+            <div className='flex items-center justify-between rounded-t-lg bg-[#3f51b5] p-4 text-white shadow-md'>
                 <div className='flex items-center gap-3'>
                     <GraduationCap className='h-6 w-6' />
-                    <h1 className='text-xl font-bold tracking-tight uppercase'>STUDYCERTIFICATE CERTIFICATE REPORT</h1>
+                    <h1 className='font-bold text-xl uppercase tracking-tight'>STUDYCERTIFICATE CERTIFICATE REPORT</h1>
                 </div>
-                <div className='text-[10px] font-medium opacity-70'>ADMISSION &gt; REPORTS &gt; SOPHIA STUDY CERTIFICATE</div>
+                <div className='font-medium text-[10px] opacity-70'>ADMISSION &gt; REPORTS &gt; SOPHIA STUDY CERTIFICATE</div>
             </div>
 
-            <Card className='rounded-none rounded-b-lg border-none shadow-lg bg-white overflow-hidden'>
-                <CardContent className='p-8 space-y-8'>
+            <Card className='overflow-hidden rounded-none rounded-b-lg border-none bg-white shadow-lg'>
+                <CardContent className='space-y-8 p-8'>
                     {/* Filter Section Row */}
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         <div className='flex flex-col gap-2'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase px-1'>Scope</Label>
-                            <div className='flex items-center justify-center p-3 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white transition-colors duration-200 group'>
-                                <RadioGroup value={studentScope} onValueChange={(v) => {
-                                    setStudentScope(v as any);
-                                    if (v === 'A') { setStudentId(null); setSearchQuery(''); }
-                                }} className="flex gap-10">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="A" id="scope-all" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="scope-all" className="text-sm font-semibold cursor-pointer text-gray-700">All</Label>
+                            <Label className='px-1 font-bold text-gray-500 text-xs uppercase'>Scope</Label>
+                            <div className='group flex items-center justify-center rounded-xl border-2 border-gray-200 border-dashed bg-gray-50/50 p-3 transition-colors duration-200 hover:bg-white'>
+                                <RadioGroup
+                                    value={studentScope}
+                                    onValueChange={(v) => {
+                                        setStudentScope(v as any);
+                                        if (v === 'A') {
+                                            setStudentId(null);
+                                            setSearchQuery('');
+                                        }
+                                    }}
+                                    className='flex gap-10'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='A' id='scope-all' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='scope-all' className='cursor-pointer font-semibold text-gray-700 text-sm'>
+                                            All
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="I" id="scope-ind" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="scope-ind" className="text-sm font-semibold cursor-pointer text-gray-700">Individual</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='I' id='scope-ind' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='scope-ind' className='cursor-pointer font-semibold text-gray-700 text-sm'>
+                                            Individual
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
                         </div>
 
                         <div className='flex flex-col gap-2'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase px-1'>Status</Label>
-                            <div className='flex items-center justify-center p-3 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white transition-colors duration-200'>
-                                <RadioGroup value={studentStatus} onValueChange={(v) => setStudentStatus(v as any)} className="flex gap-10">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="S" id="status-studying" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="status-studying" className="text-sm font-semibold cursor-pointer text-gray-700">Studying</Label>
+                            <Label className='px-1 font-bold text-gray-500 text-xs uppercase'>Status</Label>
+                            <div className='flex items-center justify-center rounded-xl border-2 border-gray-200 border-dashed bg-gray-50/50 p-3 transition-colors duration-200 hover:bg-white'>
+                                <RadioGroup value={studentStatus} onValueChange={(v) => setStudentStatus(v as any)} className='flex gap-10'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='S' id='status-studying' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='status-studying' className='cursor-pointer font-semibold text-gray-700 text-sm'>
+                                            Studying
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="L" id="status-left" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="status-left" className="text-sm font-semibold cursor-pointer text-gray-700">Left</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='L' id='status-left' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='status-left' className='cursor-pointer font-semibold text-gray-700 text-sm'>
+                                            Left
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
                         </div>
 
                         <div className='flex flex-col gap-2'>
-                            <Label className='text-xs font-bold text-gray-500 uppercase px-1'>Certificate Type</Label>
-                            <div className='flex flex-wrap items-center justify-center p-3 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white transition-colors duration-200 min-h-[50px]'>
-                                <RadioGroup value={certificateType} onValueChange={(v) => setCertificateType(v)} className="flex flex-wrap gap-x-6 gap-y-2 justify-center">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="0" id="type-0" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="type-0" className="text-[11px] font-bold cursor-pointer text-gray-600">Study Certificate</Label>
+                            <Label className='px-1 font-bold text-gray-500 text-xs uppercase'>Certificate Type</Label>
+                            <div className='flex min-h-[50px] flex-wrap items-center justify-center rounded-xl border-2 border-gray-200 border-dashed bg-gray-50/50 p-3 transition-colors duration-200 hover:bg-white'>
+                                <RadioGroup
+                                    value={certificateType}
+                                    onValueChange={(v) => setCertificateType(v)}
+                                    className='flex flex-wrap justify-center gap-x-6 gap-y-2'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='0' id='type-0' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='type-0' className='cursor-pointer font-bold text-[11px] text-gray-600'>
+                                            Study Certificate
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="1" id="type-1" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="type-1" className="text-[11px] font-bold cursor-pointer text-gray-600">Study Certificate CET</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='1' id='type-1' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='type-1' className='cursor-pointer font-bold text-[11px] text-gray-600'>
+                                            Study Certificate CET
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="2" id="type-2" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="type-2" className="text-[11px] font-bold cursor-pointer text-gray-600">Study Certificate Visa</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='2' id='type-2' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='type-2' className='cursor-pointer font-bold text-[11px] text-gray-600'>
+                                            Study Certificate Visa
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="3" id="type-3" className='border-[#3f51b5] text-[#3f51b5]' />
-                                        <Label htmlFor="type-3" className="text-[11px] font-bold cursor-pointer text-gray-600">Conduct Certificate</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='3' id='type-3' className='border-[#3f51b5] text-[#3f51b5]' />
+                                        <Label htmlFor='type-3' className='cursor-pointer font-bold text-[11px] text-gray-600'>
+                                            Conduct Certificate
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             </div>
@@ -318,46 +363,78 @@ export default function SophiaStudyCertificatePage() {
                     <Separator className='bg-gray-100' />
 
                     {/* Form Controls Area */}
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-x-16 gap-y-8'>
+                    <div className='grid grid-cols-1 gap-x-16 gap-y-8 lg:grid-cols-2'>
                         {/* Left Column */}
                         <div className='space-y-6'>
                             <div className='flex flex-col gap-1.5'>
-                                <Label className='text-sm font-bold text-gray-700'>Academic Year <span className='text-red-500'>*</span></Label>
-                                <Select value={academicYearId?.toString()} onValueChange={(v) => { setAcademicYearId(Number(v)); setStudentId(null); setSearchQuery(''); }}>
-                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white hover:border-[#3f51b5] transition-all shadow-sm'>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    value={academicYearId?.toString()}
+                                    onValueChange={(v) => {
+                                        setAcademicYearId(Number(v));
+                                        setStudentId(null);
+                                        setSearchQuery('');
+                                    }}>
+                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white shadow-sm transition-all hover:border-[#3f51b5]'>
                                         <SelectValue placeholder='--Select Academic Year--' />
                                     </SelectTrigger>
                                     <SelectContent className='rounded-lg'>
                                         {loadData.allAcademicYear?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div className='flex flex-col gap-1.5'>
-                                <Label className='text-sm font-bold text-gray-700'>Class <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span></Label>
-                                <Select disabled={studentScope === 'A'} value={classId?.toString()} onValueChange={(v) => { setClassId(Number(v)); setStudentId(null); setSearchQuery(''); }}>
-                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white hover:border-[#3f51b5] transition-all shadow-sm'>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Class <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span>
+                                </Label>
+                                <Select
+                                    disabled={studentScope === 'A'}
+                                    value={classId?.toString()}
+                                    onValueChange={(v) => {
+                                        setClassId(Number(v));
+                                        setStudentId(null);
+                                        setSearchQuery('');
+                                    }}>
+                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white shadow-sm transition-all hover:border-[#3f51b5]'>
                                         <SelectValue placeholder='--Select Class--' />
                                     </SelectTrigger>
                                     <SelectContent className='rounded-lg'>
                                         {loadData.allclasslist?.map((item) => (
-                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
+                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                {item.asmcL_ClassName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div className='flex flex-col gap-1.5'>
-                                <Label className='text-sm font-bold text-gray-700'>Section <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span></Label>
-                                <Select disabled={studentScope === 'A' || !classId} value={sectionId?.toString()} onValueChange={(v) => { setSectionId(Number(v)); setStudentId(null); setSearchQuery(''); }}>
-                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white hover:border-[#3f51b5] transition-all shadow-sm'>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Section <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span>
+                                </Label>
+                                <Select
+                                    disabled={studentScope === 'A' || !classId}
+                                    value={sectionId?.toString()}
+                                    onValueChange={(v) => {
+                                        setSectionId(Number(v));
+                                        setStudentId(null);
+                                        setSearchQuery('');
+                                    }}>
+                                    <SelectTrigger className='h-11 rounded-lg border-gray-200 bg-white shadow-sm transition-all hover:border-[#3f51b5]'>
                                         <SelectValue placeholder='--Select Section--' />
                                     </SelectTrigger>
                                     <SelectContent className='rounded-lg'>
                                         {loadData.allsectionlist?.map((item) => (
-                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmC_SectionName}</SelectItem>
+                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                {item.asmC_SectionName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -367,79 +444,118 @@ export default function SophiaStudyCertificatePage() {
                         {/* Right Column */}
                         <div className='space-y-6'>
                             <div className='flex flex-col gap-1.5'>
-                                <Label className='text-sm font-bold text-gray-700'>Certificate Date <span className='text-red-500'>*</span></Label>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Certificate Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button variant='outline' className='h-11 w-full justify-between text-left font-normal border-gray-200 bg-white hover:border-[#3f51b5] transition-all shadow-sm'>
+                                        <Button
+                                            variant='outline'
+                                            className='h-11 w-full justify-between border-gray-200 bg-white text-left font-normal shadow-sm transition-all hover:border-[#3f51b5]'>
                                             {selectedDate ? format(selectedDate, 'dd MMMM yyyy') : 'Pick a date'}
                                             <CalendarIcon className='h-4 w-4 text-[#3f51b5]' />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent align='start' className='p-0 rounded-xl border-none shadow-2xl'>
+                                    <PopoverContent align='start' className='rounded-xl border-none p-0 shadow-2xl'>
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={selectedDate || undefined}
-                                            onDayClick={(date) => { setSelectedDate(date); setDateOpen(false); }}
+                                            onDayClick={(date) => {
+                                                setSelectedDate(date);
+                                                setDateOpen(false);
+                                            }}
                                         />
                                     </PopoverContent>
                                 </Popover>
                             </div>
 
                             <div className='flex flex-col gap-1.5'>
-                                <Label className='text-sm font-bold text-gray-700'>Search Student <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span></Label>
-                                <div className='relative w-full group'>
+                                <Label className='font-bold text-gray-700 text-sm'>
+                                    Search Student <span className={cn(studentScope === 'I' ? 'text-red-500' : 'hidden')}>*</span>
+                                </Label>
+                                <div className='group relative w-full'>
                                     <Popover open={studentOpen} onOpenChange={setStudentOpen}>
                                         <PopoverTrigger asChild>
                                             <div className='relative'>
-                                                <div className="absolute left-3 top-3.5">
-                                                    <Search className={cn("h-4 w-4 transition-colors", searchQuery.length >= 3 ? "text-[#3f51b5]" : "text-gray-400")} />
+                                                <div className='absolute top-3.5 left-3'>
+                                                    <Search
+                                                        className={cn(
+                                                            'h-4 w-4 transition-colors',
+                                                            searchQuery.length >= 3 ? 'text-[#3f51b5]' : 'text-gray-400'
+                                                        )}
+                                                    />
                                                 </div>
                                                 <input
                                                     disabled={!academicYearId}
-                                                    value={studentId ? studentListFromSearch.find((s: any) => s.amst_id === studentId)?.studentname || searchQuery : searchQuery}
+                                                    value={
+                                                        studentId
+                                                            ? studentListFromSearch.find((s: any) => s.amst_id === studentId)
+                                                                  ?.studentname || searchQuery
+                                                            : searchQuery
+                                                    }
                                                     onChange={(e) => {
                                                         setSearchQuery(e.target.value);
                                                         setStudentId(null);
                                                         setStudentOpen(true);
                                                     }}
                                                     onFocus={() => setStudentOpen(true)}
-                                                    className='flex h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2 text-sm shadow-sm transition-all focus:border-[#3f51b5] focus:outline-none focus:ring-1 focus:ring-[#3f51b5] disabled:bg-gray-50'
+                                                    className='flex h-11 w-full rounded-lg border border-gray-200 bg-white py-2 pr-10 pl-10 text-sm shadow-sm transition-all focus:border-[#3f51b5] focus:outline-none focus:ring-1 focus:ring-[#3f51b5] disabled:bg-gray-50'
                                                     placeholder='Type at least 3 characters to search...'
                                                 />
                                                 {searchMutation.isPending && (
-                                                    <div className="absolute right-3 top-3.5">
-                                                        <Loader2 className="h-4 w-4 animate-spin text-[#3f51b5]" />
+                                                    <div className='absolute top-3.5 right-3'>
+                                                        <Loader2 className='h-4 w-4 animate-spin text-[#3f51b5]' />
                                                     </div>
                                                 )}
                                             </div>
                                         </PopoverTrigger>
-                                        <PopoverContent className='w-[450px] p-0 rounded-xl shadow-2xl border-none' align='start' onOpenAutoFocus={(e) => e.preventDefault()}>
+                                        <PopoverContent
+                                            className='w-[450px] rounded-xl border-none p-0 shadow-2xl'
+                                            align='start'
+                                            onOpenAutoFocus={(e) => e.preventDefault()}>
                                             <Command shouldFilter={false} className='rounded-xl'>
                                                 <CommandList>
                                                     {searchMutation.isPending && (
-                                                        <div className="p-10 text-center flex flex-col items-center gap-2">
-                                                            <Loader2 className="h-8 w-8 animate-spin text-[#3f51b5]" />
-                                                            <p className='text-xs font-bold text-gray-400 uppercase tracking-widest'>Searching Database</p>
+                                                        <div className='flex flex-col items-center gap-2 p-10 text-center'>
+                                                            <Loader2 className='h-8 w-8 animate-spin text-[#3f51b5]' />
+                                                            <p className='font-bold text-gray-400 text-xs uppercase tracking-widest'>
+                                                                Searching Database
+                                                            </p>
                                                         </div>
                                                     )}
                                                     {!searchMutation.isPending && searchQuery.length < 3 && (
-                                                        <div className='p-8 text-center text-gray-400 italic text-sm'>Please type 3 or more characters</div>
+                                                        <div className='p-8 text-center text-gray-400 text-sm italic'>
+                                                            Please type 3 or more characters
+                                                        </div>
                                                     )}
                                                     <CommandEmpty>No matching student found.</CommandEmpty>
                                                     <CommandGroup>
                                                         {studentListFromSearch.map((s: any) => (
-                                                            <CommandItem key={s.amst_id} value={s.studentname} onSelect={() => {
-                                                                setStudentId(s.amst_id);
-                                                                setSearchQuery(s.studentname);
-                                                                setStudentOpen(false);
-                                                            }} className='p-3 cursor-pointer hover:bg-blue-50/50 transition-colors'>
-                                                                <Check className={cn('mr-3 h-4 w-4 text-green-500', studentId === s.amst_id ? 'opacity-100' : 'opacity-0')} />
+                                                            <CommandItem
+                                                                key={s.amst_id}
+                                                                value={s.studentname}
+                                                                onSelect={() => {
+                                                                    setStudentId(s.amst_id);
+                                                                    setSearchQuery(s.studentname);
+                                                                    setStudentOpen(false);
+                                                                }}
+                                                                className='cursor-pointer p-3 transition-colors hover:bg-blue-50/50'>
+                                                                <Check
+                                                                    className={cn(
+                                                                        'mr-3 h-4 w-4 text-green-500',
+                                                                        studentId === s.amst_id ? 'opacity-100' : 'opacity-0'
+                                                                    )}
+                                                                />
                                                                 <div className='flex flex-col gap-0.5'>
                                                                     <span className='font-bold text-gray-800'>{s.studentname}</span>
                                                                     <div className='flex items-center gap-2'>
-                                                                        <span className='text-[10px] font-black text-gray-400 uppercase tracking-tighter'>Adm No: {s.amst_admno}</span>
+                                                                        <span className='font-black text-[10px] text-gray-400 uppercase tracking-tighter'>
+                                                                            Adm No: {s.amst_admno}
+                                                                        </span>
                                                                         <Separator orientation='vertical' className='h-2 bg-gray-200' />
-                                                                        <span className='text-[10px] font-black text-[#3f51b5] uppercase'>{s.asmcl_classname}</span>
+                                                                        <span className='font-black text-[#3f51b5] text-[10px] uppercase'>
+                                                                            {s.asmcl_classname}
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             </CommandItem>
@@ -454,37 +570,53 @@ export default function SophiaStudyCertificatePage() {
 
                             {/* Visa Certificate Specific Fields */}
                             {certificateType === '2' && (
-                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl border-2 border-dashed border-blue-100 bg-blue-50/30 animate-in slide-in-from-top-2 duration-300'>
+                                <div className='slide-in-from-top-2 grid animate-in grid-cols-1 gap-4 rounded-xl border-2 border-blue-100 border-dashed bg-blue-50/30 p-4 duration-300 md:grid-cols-2'>
                                     <div className='flex flex-col gap-1.5'>
-                                        <Label className='text-xs font-bold text-gray-600'>From Date <span className='text-red-500'>*</span></Label>
+                                        <Label className='font-bold text-gray-600 text-xs'>
+                                            From Date <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button variant='outline' className='h-10 w-full justify-between text-left font-normal border-gray-200 bg-white shadow-sm'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='h-10 w-full justify-between border-gray-200 bg-white text-left font-normal shadow-sm'>
                                                     {visaFromDate ? format(visaFromDate, 'dd-MM-yyyy') : 'From Date'}
                                                     <CalendarIcon className='h-4 w-4 text-blue-400' />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent align='start' className='p-0 rounded-xl shadow-2xl'>
-                                                <DatePickerWithYear mode='single' selected={visaFromDate || undefined} onDayClick={(date) => setVisaFromDate(date)} />
+                                            <PopoverContent align='start' className='rounded-xl p-0 shadow-2xl'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={visaFromDate || undefined}
+                                                    onDayClick={(date) => setVisaFromDate(date)}
+                                                />
                                             </PopoverContent>
                                         </Popover>
                                     </div>
                                     <div className='flex flex-col gap-1.5'>
-                                        <Label className='text-xs font-bold text-gray-600'>To Date <span className='text-red-500'>*</span></Label>
+                                        <Label className='font-bold text-gray-600 text-xs'>
+                                            To Date <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button variant='outline' className='h-10 w-full justify-between text-left font-normal border-gray-200 bg-white shadow-sm'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='h-10 w-full justify-between border-gray-200 bg-white text-left font-normal shadow-sm'>
                                                     {visaToDate ? format(visaToDate, 'dd-MM-yyyy') : 'To Date'}
                                                     <CalendarIcon className='h-4 w-4 text-blue-400' />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent align='start' className='p-0 rounded-xl shadow-2xl'>
-                                                <DatePickerWithYear mode='single' selected={visaToDate || undefined} onDayClick={(date) => setVisaToDate(date)} />
+                                            <PopoverContent align='start' className='rounded-xl p-0 shadow-2xl'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={visaToDate || undefined}
+                                                    onDayClick={(date) => setVisaToDate(date)}
+                                                />
                                             </PopoverContent>
                                         </Popover>
                                     </div>
                                     <div className='flex flex-col gap-1.5 md:col-span-2'>
-                                        <Label className='text-xs font-bold text-gray-600'>Vacation reason:</Label>
+                                        <Label className='font-bold text-gray-600 text-xs'>Vacation reason:</Label>
                                         <input
                                             value={vacationReason}
                                             onChange={(e) => setVacationReason(e.target.value)}
@@ -501,17 +633,19 @@ export default function SophiaStudyCertificatePage() {
                                     size='lg'
                                     onClick={handleReport}
                                     disabled={detailsMutation.isPending}
-                                    className='bg-[#3f51b5] hover:bg-[#303f9f] text-white px-8 h-11 shadow-lg shadow-blue-100 rounded-lg uppercase text-xs font-black tracking-widest transition-all active:scale-95'
-                                >
-                                    {detailsMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileCheck className='mr-2 h-4 w-4' />}
+                                    className='h-11 rounded-lg bg-[#3f51b5] px-8 font-black text-white text-xs uppercase tracking-widest shadow-blue-100 shadow-lg transition-all hover:bg-[#303f9f] active:scale-95'>
+                                    {detailsMutation.isPending ? (
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                    ) : (
+                                        <FileCheck className='mr-2 h-4 w-4' />
+                                    )}
                                     REPORT
                                 </Button>
                                 <Button
                                     size='lg'
                                     variant='outline'
                                     onClick={handleReset}
-                                    className='border-2 border-[#ff5722] text-[#ff5722] hover:bg-[#ff5722] hover:text-white px-8 h-11 shadow-lg shadow-orange-50 rounded-lg uppercase text-xs font-black tracking-widest transition-all active:scale-95'
-                                >
+                                    className='h-11 rounded-lg border-2 border-[#ff5722] px-8 font-black text-[#ff5722] text-xs uppercase tracking-widest shadow-lg shadow-orange-50 transition-all hover:bg-[#ff5722] hover:text-white active:scale-95'>
                                     <RotateCcw className='mr-2 h-4 w-4' />
                                     CANCEL
                                 </Button>
@@ -519,8 +653,7 @@ export default function SophiaStudyCertificatePage() {
                                     size='lg'
                                     onClick={handlePrint}
                                     disabled={!showCertificate}
-                                    className='bg-gray-200 hover:bg-gray-300 text-gray-600 px-8 h-11 shadow-lg shadow-gray-100 disabled:opacity-50 disabled:shadow-none rounded-lg uppercase text-xs font-black tracking-widest transition-all active:scale-95'
-                                >
+                                    className='h-11 rounded-lg bg-gray-200 px-8 font-black text-gray-600 text-xs uppercase tracking-widest shadow-gray-100 shadow-lg transition-all hover:bg-gray-300 active:scale-95 disabled:opacity-50 disabled:shadow-none'>
                                     <Printer className='mr-2 h-4 w-4' />
                                     PRINT
                                 </Button>
@@ -532,9 +665,10 @@ export default function SophiaStudyCertificatePage() {
 
             {/* Certificate Preview with B5 Formatting */}
             {showCertificate && reportData && (
-                <div className='mt-12 flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-10 duration-700'>
-                    <style dangerouslySetInnerHTML={{
-                        __html: `
+                <div className='fade-in slide-in-from-bottom-10 mt-12 flex animate-in flex-col items-center gap-6 duration-700'>
+                    <style
+                        dangerouslySetInnerHTML={{
+                            __html: `
                         @media print {
                             @page {
                                 size: B5 portrait;
@@ -549,52 +683,80 @@ export default function SophiaStudyCertificatePage() {
                                 ring: none !important;
                             }
                         }
-                    `}} />
+                    `
+                        }}
+                    />
 
-                    <div className='flex items-center gap-2 px-4 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-bold uppercase tracking-widest'>
-                        <div className='h-2 w-2 rounded-full bg-green-500 animate-pulse' />
+                    <div className='flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-4 py-1.5 font-bold text-green-700 text-xs uppercase tracking-widest'>
+                        <div className='h-2 w-2 animate-pulse rounded-full bg-green-500' />
                         Report Ready (B5 Format)
                     </div>
 
-                    <div className='bg-gray-300 p-6 md:p-12 rounded-[2rem] shadow-inner w-full flex justify-center overflow-auto'>
-                        <div ref={printRef} className='bg-white shadow-2xl p-10 w-full max-w-[176mm] min-h-[250mm] printable-content text-black ring-1 ring-gray-100 rounded-sm overflow-hidden'>
+                    <div className='flex w-full justify-center overflow-auto rounded-[2rem] bg-gray-300 p-6 shadow-inner md:p-12'>
+                        <div
+                            ref={printRef}
+                            className='printable-content min-h-[250mm] w-full max-w-[176mm] overflow-hidden rounded-sm bg-white p-10 text-black shadow-2xl ring-1 ring-gray-100'>
                             {reportData.studentList?.map((student: any, index: number) => (
-                                <div key={index} className="page-break-after-always">
+                                <div key={index} className='page-break-after-always'>
                                     {/* Type 0: Study Certificate (B5 Optimized) */}
                                     {String(certificateType) === '0' && (
-                                        <div className="certificate-container" style={{ marginTop: '100px', lineHeight: '2.0', fontSize: '19px', marginLeft: '4%', paddingRight: '4%', fontFamily: "'Times New Roman', Times, serif", color: '#000' }}>
+                                        <div
+                                            className='certificate-container'
+                                            style={{
+                                                marginTop: '100px',
+                                                lineHeight: '2.0',
+                                                fontSize: '19px',
+                                                marginLeft: '4%',
+                                                paddingRight: '4%',
+                                                fontFamily: "'Times New Roman', Times, serif",
+                                                color: '#000'
+                                            }}>
                                             <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '17px', marginBottom: '30px' }}>
                                                 Date: {safeDateFormat(selectedDate || new Date(), 'dd/MMM/yyyy')}
                                             </div>
 
-                                            <h3 className="text-center" style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold', letterSpacing: '1px' }}>
+                                            <h3
+                                                className='text-center'
+                                                style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold', letterSpacing: '1px' }}>
                                                 STUDY CERTIFICATE
                                             </h3>
 
                                             <div style={{ textAlign: 'justify' }}>
                                                 <p style={{ marginBottom: '25px' }}>
-                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of
-                                                    Mr. <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> is a student of this school studying in Std. <strong>{student.classstudying}</strong> With admission number <strong>{student.admNo}</strong> during the academic year {student.acadamicyear}.
+                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of Mr.{' '}
+                                                    <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> is a
+                                                    student of this school studying in Std. <strong>{student.classstudying}</strong> With
+                                                    admission number <strong>{student.admNo}</strong> during the academic year{' '}
+                                                    {student.acadamicyear}.
                                                 </p>
 
                                                 <p style={{ marginBottom: '25px' }}>
-                                                    {student.gender1} is a student in this school since <strong>{safeDateFormat(student.admyear, 'yyyy')}</strong> and {student.gender2} date of birth as per our records is <strong>{safeDateFormat(student.dob12, 'dd-MMM-yyyy')}</strong>.
+                                                    {student.gender1} is a student in this school since{' '}
+                                                    <strong>{safeDateFormat(student.admyear, 'yyyy')}</strong> and {student.gender2} date of
+                                                    birth as per our records is{' '}
+                                                    <strong>{safeDateFormat(student.dob12, 'dd-MMM-yyyy')}</strong>.
                                                 </p>
 
                                                 <div style={{ marginBottom: '60px' }}>
                                                     <p style={{ marginBottom: '10px' }}>{student.gender2} local address :</p>
                                                     <div style={{ fontWeight: 'bold', lineHeight: '1.5' }}>
-                                                        {student.AMST_PerStreet || student.amsT_PerStreet || student.address1 || ''}<br />
-                                                        {student.AMST_PerArea || student.amsT_PerArea || student.address2 || ''}<br />
-                                                        {student.AMST_PerCity || student.amsT_PerCity || student.city || ''}<br />
-                                                        {student.ivrmms_name || student.state || ''} - {student.AMST_PerPincode || student.amsT_PerPincode || student.pincode || ''}
+                                                        {student.AMST_PerStreet || student.amsT_PerStreet || student.address1 || ''}
+                                                        <br />
+                                                        {student.AMST_PerArea || student.amsT_PerArea || student.address2 || ''}
+                                                        <br />
+                                                        {student.AMST_PerCity || student.amsT_PerCity || student.city || ''}
+                                                        <br />
+                                                        {student.ivrmms_name || student.state || ''} -{' '}
+                                                        {student.AMST_PerPincode || student.amsT_PerPincode || student.pincode || ''}
                                                     </div>
                                                 </div>
 
                                                 <div style={{ marginTop: '60px' }}>
                                                     <p style={{ marginBottom: '40px' }}>Yours sincerely,</p>
                                                     <div style={{ textAlign: 'left' }}>
-                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>Sr. M. Alpana, S.N.D.</p>
+                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>
+                                                            Sr. M. Alpana, S.N.D.
+                                                        </p>
                                                         <p style={{ margin: '0', fontSize: '18px' }}>(Principal)</p>
                                                     </div>
                                                 </div>
@@ -604,23 +766,49 @@ export default function SophiaStudyCertificatePage() {
 
                                     {/* Type 1: Study Certificate CET (B5 Optimized) */}
                                     {String(certificateType) === '1' && (
-                                        <div className="certificate-container" style={{ marginTop: '100px', lineHeight: '2.0', fontSize: '19px', marginLeft: '4%', paddingRight: '4%', fontFamily: "'Times New Roman', Times, serif", color: '#000' }}>
+                                        <div
+                                            className='certificate-container'
+                                            style={{
+                                                marginTop: '100px',
+                                                lineHeight: '2.0',
+                                                fontSize: '19px',
+                                                marginLeft: '4%',
+                                                paddingRight: '4%',
+                                                fontFamily: "'Times New Roman', Times, serif",
+                                                color: '#000'
+                                            }}>
                                             <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '17px', marginBottom: '30px' }}>
                                                 Date: {safeDateFormat(selectedDate || new Date(), 'dd/MM/yyyy')}
                                             </div>
 
-                                            <h3 className="text-center" style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold', letterSpacing: '1px' }}>
+                                            <h3
+                                                className='text-center'
+                                                style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold', letterSpacing: '1px' }}>
                                                 STUDY CERTIFICATE
                                             </h3>
 
                                             <div style={{ textAlign: 'justify' }}>
                                                 <p style={{ marginBottom: '35px' }}>
-                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of
-                                                    Mr. <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> has studied <strong>std.{student.joinedClass} to {student.PresentClass}</strong> standard in our institution from <strong>{student.joinedyear} to {student.presentYear}</strong> academic years.
+                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of Mr.{' '}
+                                                    <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> has
+                                                    studied{' '}
+                                                    <strong>
+                                                        std.{student.joinedClass} to {student.PresentClass}
+                                                    </strong>{' '}
+                                                    standard in our institution from{' '}
+                                                    <strong>
+                                                        {student.joinedyear} to {student.presentYear}
+                                                    </strong>{' '}
+                                                    academic years.
                                                 </p>
 
                                                 <p style={{ marginBottom: '35px' }}>
-                                                    {student.gender1} belongs to <strong>{student.religion}({student.caste_name})</strong> religion & the mother tongue of the above student is <strong>{student.stuMT}</strong> as per the admission register maintained in the institution.
+                                                    {student.gender1} belongs to{' '}
+                                                    <strong>
+                                                        {student.religion}({student.caste_name})
+                                                    </strong>{' '}
+                                                    religion & the mother tongue of the above student is <strong>{student.stuMT}</strong> as
+                                                    per the admission register maintained in the institution.
                                                 </p>
 
                                                 <p style={{ marginBottom: '60px' }}>
@@ -629,7 +817,9 @@ export default function SophiaStudyCertificatePage() {
 
                                                 <div style={{ marginTop: '80px' }}>
                                                     <div style={{ textAlign: 'left' }}>
-                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>Sr. M. Alpana, S.N.D.</p>
+                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>
+                                                            Sr. M. Alpana, S.N.D.
+                                                        </p>
                                                         <p style={{ margin: '0', fontSize: '18px' }}>(Principal)</p>
                                                     </div>
                                                 </div>
@@ -639,37 +829,63 @@ export default function SophiaStudyCertificatePage() {
 
                                     {/* Type 2: Study Certificate Visa (B5 Optimized) */}
                                     {String(certificateType) === '2' && (
-                                        <div className="certificate-container" style={{ marginTop: '100px', lineHeight: '2.0', fontSize: '19px', marginLeft: '4%', paddingRight: '4%', fontFamily: "'Times New Roman', Times, serif", color: '#000' }}>
+                                        <div
+                                            className='certificate-container'
+                                            style={{
+                                                marginTop: '100px',
+                                                lineHeight: '2.0',
+                                                fontSize: '19px',
+                                                marginLeft: '4%',
+                                                paddingRight: '4%',
+                                                fontFamily: "'Times New Roman', Times, serif",
+                                                color: '#000'
+                                            }}>
                                             <div style={{ textAlign: 'right', fontSize: '17px', marginBottom: '40px' }}>
                                                 Date: {safeDateFormat(selectedDate || new Date(), 'dd/MM/yyyy')}
                                             </div>
 
-                                            <h3 className="text-center" style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold' }}>
+                                            <h3 className='text-center' style={{ fontSize: '28px', margin: '40px 0', fontWeight: 'bold' }}>
                                                 STUDY CERTIFICATE
                                             </h3>
 
                                             <div style={{ textAlign: 'justify' }}>
                                                 <p style={{ marginBottom: '20px' }}>
-                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of
-                                                    Mr. <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> is a student of this school studying in Std. <strong>{student.classstudying}</strong> with admission number <strong>{student.admNo}</strong> during the academic year {student.acadamicyear}.
+                                                    This is to certify that <strong>{student.studentname}</strong> {student.gender3} of Mr.{' '}
+                                                    <strong>{student.fathername}</strong> & Mrs. <strong>{student.mothername}</strong> is a
+                                                    student of this school studying in Std. <strong>{student.classstudying}</strong> with
+                                                    admission number <strong>{student.admNo}</strong> during the academic year{' '}
+                                                    {student.acadamicyear}.
                                                 </p>
 
                                                 <p style={{ marginBottom: '20px' }}>
-                                                    {student.gender4} is a student in this school since <strong>{safeDateFormat(student.admyear, 'yyyy')}</strong> and {student.gender8} date of birth as per our records is <strong>{safeDateFormat(student.dob12, 'dd-MMM-yyyy')}</strong>.
+                                                    {student.gender4} is a student in this school since{' '}
+                                                    <strong>{safeDateFormat(student.admyear, 'yyyy')}</strong> and {student.gender8} date of
+                                                    birth as per our records is{' '}
+                                                    <strong>{safeDateFormat(student.dob12, 'dd-MMM-yyyy')}</strong>.
                                                 </p>
 
                                                 <p style={{ marginBottom: '20px' }}>
-                                                    {vacationReason} from <strong> {safeDateFormat(visaFromDate, 'dd-MM-yyyy')} to {safeDateFormat(visaToDate, 'dd-MM-yyyy')} .</strong>
+                                                    {vacationReason} from{' '}
+                                                    <strong>
+                                                        {' '}
+                                                        {safeDateFormat(visaFromDate, 'dd-MM-yyyy')} to{' '}
+                                                        {safeDateFormat(visaToDate, 'dd-MM-yyyy')} .
+                                                    </strong>
                                                 </p>
 
                                                 <p style={{ marginBottom: '40px' }}>
-                                                    {student.gender4} is permitted to travel abroad during this period <strong>{safeDateFormat(visaFromDate, 'dd-MM-yyyy')}</strong> and <strong>{safeDateFormat(visaToDate, 'dd-MM-yyyy')}</strong> will return to school after {student.gender8} visit.
+                                                    {student.gender4} is permitted to travel abroad during this period{' '}
+                                                    <strong>{safeDateFormat(visaFromDate, 'dd-MM-yyyy')}</strong> and{' '}
+                                                    <strong>{safeDateFormat(visaToDate, 'dd-MM-yyyy')}</strong> will return to school after{' '}
+                                                    {student.gender8} visit.
                                                 </p>
 
                                                 <div style={{ marginTop: '40px' }}>
                                                     <p style={{ marginBottom: '30px' }}>Yours sincerely,</p>
                                                     <div style={{ textAlign: 'left' }}>
-                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>Sr. M. Alpana, S.N.D.</p>
+                                                        <p style={{ margin: '0', fontWeight: 'bold', fontSize: '20px' }}>
+                                                            Sr. M. Alpana, S.N.D.
+                                                        </p>
                                                         <p style={{ margin: '0', fontSize: '18px' }}>(Principal)</p>
                                                     </div>
                                                 </div>
@@ -679,8 +895,26 @@ export default function SophiaStudyCertificatePage() {
 
                                     {/* Type 3: Conduct Certificate (B5 Optimized) */}
                                     {String(certificateType) === '3' && (
-                                        <div className="certificate-container" style={{ marginTop: '120px', lineHeight: '2.5', fontSize: '22px', marginLeft: '2%', paddingRight: '2%', fontFamily: "'Times New Roman', Times, serif", color: '#000' }}>
-                                            <h3 className="text-center" style={{ fontSize: '30px', margin: '60px 0', fontWeight: 'bold', color: '#3f51b5', textDecoration: 'underline' }}>
+                                        <div
+                                            className='certificate-container'
+                                            style={{
+                                                marginTop: '120px',
+                                                lineHeight: '2.5',
+                                                fontSize: '22px',
+                                                marginLeft: '2%',
+                                                paddingRight: '2%',
+                                                fontFamily: "'Times New Roman', Times, serif",
+                                                color: '#000'
+                                            }}>
+                                            <h3
+                                                className='text-center'
+                                                style={{
+                                                    fontSize: '30px',
+                                                    margin: '60px 0',
+                                                    fontWeight: 'bold',
+                                                    color: '#3f51b5',
+                                                    textDecoration: 'underline'
+                                                }}>
                                                 CONDUCT CERTIFICATE
                                             </h3>
 
@@ -699,20 +933,25 @@ export default function SophiaStudyCertificatePage() {
                                                 </p>
                                             </div>
 
-                                            <div style={{ marginTop: '180px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 20px' }}>
+                                            <div
+                                                style={{
+                                                    marginTop: '180px',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'flex-end',
+                                                    padding: '0 20px'
+                                                }}>
                                                 <div style={{ textAlign: 'left', fontSize: '18px' }}>
                                                     Date: {safeDateFormat(selectedDate || new Date(), 'dd-MMM-yyyy')}
                                                 </div>
-                                                <div style={{ textAlign: 'right', fontSize: '20px', fontWeight: 'bold' }}>
-                                                    PRINCIPAL
-                                                </div>
+                                                <div style={{ textAlign: 'right', fontSize: '20px', fontWeight: 'bold' }}>PRINCIPAL</div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Placeholder for other types */}
                                     {['0', '1', '2', '3'].indexOf(String(certificateType)) === -1 && (
-                                        <div className='h-[500px] flex items-center justify-center text-gray-200 font-bold italic p-10 border-4 border-dashed border-gray-100 rounded-[2rem]'>
+                                        <div className='flex h-[500px] items-center justify-center rounded-[2rem] border-4 border-gray-100 border-dashed p-10 font-bold text-gray-200 italic'>
                                             Preview for Type {certificateType} is ready for generation.
                                         </div>
                                     )}

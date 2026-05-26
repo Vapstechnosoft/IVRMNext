@@ -40,7 +40,7 @@ function MasterClassPageContent({
     const { openAddForm } = useFormContext<IMasterSubjectList>();
     const tableProps = useDataTableProps(response);
 
-    const handleSuccess = () => {
+    const _handleSuccess = () => {
         refetch();
     };
     return (

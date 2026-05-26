@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { FeedbackTransactionLoadData, FeedbackDetailsRequest, FeedbackDetailsResponse, FeedbackTransactionSaveRequest } from './types';
+import type { FeedbackDetailsRequest, FeedbackDetailsResponse, FeedbackTransactionLoadData, FeedbackTransactionSaveRequest } from './types';
 
 // Mock data as fallback
 const mockLoadData: FeedbackTransactionLoadData = {
@@ -17,28 +17,28 @@ const mockLoadData: FeedbackTransactionLoadData = {
 export async function getFeedbackTransactionLoadData() {
     // "MI_Id": 4, "Flag": 'Parents' - taken from legacy BindData
     const data = {
-        "MI_Id": 4,
-        "Flag": 'Parents'
+        MI_Id: 4,
+        Flag: 'Parents'
     };
-    const url = `/FeedbackTransaction/getdetails`;
+    const url = '/FeedbackTransaction/getdetails';
     try {
         const response = await api.post<FeedbackTransactionLoadData>('default', url, data);
-        if (response && response.data) return response.data;
+        if (response?.data) return response.data;
         return response as unknown as FeedbackTransactionLoadData;
     } catch (e) {
-        console.warn("API Failed, using mock data for getFeedbackTransactionLoadData", e);
+        console.warn('API Failed, using mock data for getFeedbackTransactionLoadData', e);
         return mockLoadData;
     }
 }
 
 export async function getFeedbackDetails(requestData: FeedbackDetailsRequest) {
-    const url = `/FeedbackTransaction/getfeedback`;
+    const url = '/FeedbackTransaction/getfeedback';
     try {
         const response = await api.post<FeedbackDetailsResponse>('default', url, requestData);
-        if (response && response.data) return response.data;
+        if (response?.data) return response.data;
         return response as unknown as FeedbackDetailsResponse;
     } catch (e) {
-        console.warn("API Failed, using mock data for getFeedbackDetails", e);
+        console.warn('API Failed, using mock data for getFeedbackDetails', e);
         // Return null or handle error gracefully in client
         // Mocking response for a specific type
         if (requestData.FMTY_Id === 1) {
@@ -50,9 +50,33 @@ export async function getFeedbackDetails(requestData: FeedbackDetailsRequest) {
                     { fmqE_Id: 102, fmqE_FeedbackQuestions: 'Any suggestions for improvement?', fmqE_ManualEntryFlg: true, fmtY_Id: 1 }
                 ],
                 mappedoptiondeetails: [
-                    { fmoP_Id: 1, fmoP_FeedbackOptions: 'Excellent', fmoP_OptionsValue: 5, fmoP_FeedbackORemarks: '', fmoP_ActiveFlag: true, fmtY_Id: 1, fmqE_Id: 101 },
-                    { fmoP_Id: 2, fmoP_FeedbackOptions: 'Good', fmoP_OptionsValue: 4, fmoP_FeedbackORemarks: '', fmoP_ActiveFlag: true, fmtY_Id: 1, fmqE_Id: 101 },
-                    { fmoP_Id: 3, fmoP_FeedbackOptions: 'Average', fmoP_OptionsValue: 3, fmoP_FeedbackORemarks: '', fmoP_ActiveFlag: true, fmtY_Id: 1, fmqE_Id: 101 }
+                    {
+                        fmoP_Id: 1,
+                        fmoP_FeedbackOptions: 'Excellent',
+                        fmoP_OptionsValue: 5,
+                        fmoP_FeedbackORemarks: '',
+                        fmoP_ActiveFlag: true,
+                        fmtY_Id: 1,
+                        fmqE_Id: 101
+                    },
+                    {
+                        fmoP_Id: 2,
+                        fmoP_FeedbackOptions: 'Good',
+                        fmoP_OptionsValue: 4,
+                        fmoP_FeedbackORemarks: '',
+                        fmoP_ActiveFlag: true,
+                        fmtY_Id: 1,
+                        fmqE_Id: 101
+                    },
+                    {
+                        fmoP_Id: 3,
+                        fmoP_FeedbackOptions: 'Average',
+                        fmoP_OptionsValue: 3,
+                        fmoP_FeedbackORemarks: '',
+                        fmoP_ActiveFlag: true,
+                        fmtY_Id: 1,
+                        fmqE_Id: 101
+                    }
                 ]
             } as unknown as FeedbackDetailsResponse;
         }
@@ -61,13 +85,13 @@ export async function getFeedbackDetails(requestData: FeedbackDetailsRequest) {
 }
 
 export async function saveFeedbackTransaction(requestData: FeedbackTransactionSaveRequest) {
-    const url = `/FeedbackTransaction/savedata`;
+    const url = '/FeedbackTransaction/savedata';
     try {
-        const response = await api.post<{ returnval: boolean, message?: string }>('default', url, requestData);
-        if (response && response.data) return response.data;
-        return response as unknown as { returnval: boolean, message?: string };
+        const response = await api.post<{ returnval: boolean; message?: string }>('default', url, requestData);
+        if (response?.data) return response.data;
+        return response as unknown as { returnval: boolean; message?: string };
     } catch (e) {
-        console.warn("API Failed, using mock data for saveFeedbackTransaction", e);
-        return { returnval: true, message: "Saved Successfully (Mock)" };
+        console.warn('API Failed, using mock data for saveFeedbackTransaction', e);
+        return { returnval: true, message: 'Saved Successfully (Mock)' };
     }
 }

@@ -11,7 +11,7 @@ interface ViewFilesModalProps {
 }
 
 export default function ViewFilesModal({ isOpen, onClose, files, type }: ViewFilesModalProps) {
-    const getFileIcon = (fileName: string) => {
+    const _getFileIcon = (_fileName: string) => {
         // Logic to return icon based on extension if needed
         return null;
     };

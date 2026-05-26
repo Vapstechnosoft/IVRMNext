@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
 import {
-    getInitialData,
     getDetails,
+    getInitialData,
+    getReportData,
     getSections,
-    getStudentData,
-    getReportData
+    getStudentData
 } from '@/server/sports/transactions/sport-venuewise-participation-report';
-import {
-    ISportVenueWiseParticipationReportYear,
+import type {
     ISportVenueWiseParticipationReportClass,
+    ISportVenueWiseParticipationReportHouse,
+    ISportVenueWiseParticipationReportPayload,
     ISportVenueWiseParticipationReportSection,
     ISportVenueWiseParticipationReportStudent,
     ISportVenueWiseParticipationReportVenue,
-    ISportVenueWiseParticipationReportHouse,
-    ISportVenueWiseParticipationReportPayload
+    ISportVenueWiseParticipationReportYear
 } from '@/types/sports/reports/venue-wise-participation-report';
+import { useEffect, useState } from 'react';
 
 export const useVenueWiseParticipationReport = () => {
     const [years, setYears] = useState<ISportVenueWiseParticipationReportYear[]>([]);
@@ -33,12 +33,12 @@ export const useVenueWiseParticipationReport = () => {
                 const response = await getInitialData();
                 if (response.success && response.data) {
                     setYears(response.data.yearlist || []);
-                    // Initial load typically only guarantees years based on similar reports, 
+                    // Initial load typically only guarantees years based on similar reports,
                     // but we will see if we need to load others.
                 } else {
                     setError(response.message || 'Failed to load initial data');
                 }
-            } catch (err) {
+            } catch (_err) {
                 setError('An error occurred while loading initial data');
             } finally {
                 setLoading(false);
@@ -98,10 +98,9 @@ export const useVenueWiseParticipationReport = () => {
             const response = await getReportData(payload);
             if (response.success) {
                 return response.data;
-            } else {
-                setError(response.message || 'Failed to generate report');
-                return [];
             }
+            setError(response.message || 'Failed to generate report');
+            return [];
         } catch (err) {
             console.error('Error generating report:', err);
             setError('An error occurred while generating report');
@@ -110,7 +109,6 @@ export const useVenueWiseParticipationReport = () => {
             setLoading(false);
         }
     };
-
 
     return {
         years,

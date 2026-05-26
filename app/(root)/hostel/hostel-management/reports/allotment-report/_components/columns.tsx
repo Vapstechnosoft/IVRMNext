@@ -1,7 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const studentColumns: ColumnDef<any>[] = [
     {
@@ -27,8 +27,9 @@ export const studentColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => row.original.HLHSALT_AllotmentDate ? new Date(row.original.HLHSALT_AllotmentDate).toLocaleDateString('en-GB') : ''
-    },
+        cell: ({ row }) =>
+            row.original.HLHSALT_AllotmentDate ? new Date(row.original.HLHSALT_AllotmentDate).toLocaleDateString('en-GB') : ''
+    }
 ];
 
 export const staffColumns: ColumnDef<any>[] = [
@@ -50,12 +51,13 @@ export const staffColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHSTALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => row.original.HLHSTALT_AllotmentDate ? new Date(row.original.HLHSTALT_AllotmentDate).toLocaleDateString('en-GB') : ''
+        cell: ({ row }) =>
+            row.original.HLHSTALT_AllotmentDate ? new Date(row.original.HLHSTALT_AllotmentDate).toLocaleDateString('en-GB') : ''
     },
     { accessorKey: 'HLMH_Name', header: ({ column }) => <ColumnHeader column={column} title='Hostel' /> },
     { accessorKey: 'HLMRCA_RoomCategory', header: ({ column }) => <ColumnHeader column={column} title='Category' /> },
     { accessorKey: 'HRMRM_RoomNo', header: ({ column }) => <ColumnHeader column={column} title='Room No' /> },
-    { accessorKey: 'HLHSTALT_AllotRemarks', header: ({ column }) => <ColumnHeader column={column} title='Remarks' /> },
+    { accessorKey: 'HLHSTALT_AllotRemarks', header: ({ column }) => <ColumnHeader column={column} title='Remarks' /> }
 ];
 
 export const guestColumns: ColumnDef<any>[] = [
@@ -74,7 +76,8 @@ export const guestColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'HLHGSTALT_AllotmentDate',
         header: ({ column }) => <ColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => row.original.HLHGSTALT_AllotmentDate ? new Date(row.original.HLHGSTALT_AllotmentDate).toLocaleDateString('en-GB') : ''
+        cell: ({ row }) =>
+            row.original.HLHGSTALT_AllotmentDate ? new Date(row.original.HLHGSTALT_AllotmentDate).toLocaleDateString('en-GB') : ''
     },
     { accessorKey: 'HLMH_Name', header: ({ column }) => <ColumnHeader column={column} title='Hostel' /> },
     { accessorKey: 'HLMRCA_RoomCategory', header: ({ column }) => <ColumnHeader column={column} title='Category' /> },
@@ -82,5 +85,5 @@ export const guestColumns: ColumnDef<any>[] = [
     { accessorKey: 'HLHGSTALT_GuestPhoneNo', header: ({ column }) => <ColumnHeader column={column} title='Phone' /> },
     { accessorKey: 'HLHGSTALT_GuestEmailId', header: ({ column }) => <ColumnHeader column={column} title='Email' /> },
     { accessorKey: 'HLHGSTALT_GuestAddress', header: ({ column }) => <ColumnHeader column={column} title='Address' /> },
-    { accessorKey: 'HLHGSTALT_AllotRemarks', header: ({ column }) => <ColumnHeader column={column} title='Remarks' /> },
+    { accessorKey: 'HLHGSTALT_AllotRemarks', header: ({ column }) => <ColumnHeader column={column} title='Remarks' /> }
 ];

@@ -318,8 +318,6 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, cla
             // user_id: 1001
         };
 
-        console.log('Update payload:', JSON.stringify(payload)); // Log the payload);
-
         try {
             const response = await addMasterOnlinePaymentHeadGroup(payload);
             if (response.success) {

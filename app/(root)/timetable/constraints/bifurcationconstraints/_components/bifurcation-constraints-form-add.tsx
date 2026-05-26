@@ -86,15 +86,12 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
         error: sectiondataError,
         refetchAll: sectiondataRefetch
     } = useSectionDropdownBifurcationConstraints();
-
-    console.log('sectionListFromHook', sectionListFromHook);
     const {
         data: staffListNew,
         isLoading: staffdataloading,
         error: staffdataError,
         refetchAll: staffdataRefetch
     } = useStaffDropdownBifurcationConstraints();
-    console.log('staffListNew', staffListNew);
     const {
         data: subjectListNew,
         isLoading: subjectdataloading,
@@ -131,7 +128,6 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
     useEffect(() => {
         const fetchClassesHelper = async () => {
             if (watchedAcademicYear && watchedCategory) {
-                console.log('watchedCategory', watchedCategory);
                 try {
                     // Reset dependent fields when primary filters change
                     setValue('ASMCL_Id_temp', 0);
@@ -159,7 +155,7 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     // Fetch Staff/Section on Class Selection (for Temp Row)
-    const handleClassChange = async (classId: number) => {
+    const handleClassChange = async (_classId: number) => {
         setValue('ASMS_Id_temp', 0);
         setValue('HRME_Id_temp', 0);
         setValue('ISMS_Id_temp', 0);
@@ -173,7 +169,7 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
         setValue('ISMS_Id_temp', 0);
         const watchedClass = watch('ASMCL_Id_temp');
         if (watchedClass && sectionId && watchedAcademicYear && watchedCategory) {
-            const payload = {
+            const _payload = {
                 ASMAY_Id: watchedAcademicYear,
                 TTMC_Id: watchedCategory,
                 ASMCL_Id: watchedClass,
@@ -189,12 +185,12 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
         }
     };
 
-    const handleStaffChange = async (staffId: number) => {
+    const _handleStaffChange = async (staffId: number) => {
         setValue('ISMS_Id_temp', 0);
         const watchedClass = watch('ASMCL_Id_temp');
         const watchedSection = watch('ASMS_Id_temp');
         if (watchedClass && watchedSection && staffId && watchedAcademicYear && watchedCategory) {
-            const payload = {
+            const _payload = {
                 ASMAY_Id: watchedAcademicYear,
                 TTMC_Id: watchedCategory,
                 ASMCL_Id: watchedClass,
@@ -280,7 +276,7 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
             } else {
                 toast.error(response.message);
             }
-        } catch (error : any) {
+        } catch (error: any) {
             toast.error(error.message);
         }
     };

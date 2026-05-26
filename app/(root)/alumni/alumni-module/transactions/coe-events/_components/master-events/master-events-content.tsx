@@ -46,7 +46,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
             const res = await getViewRecordsMaster(id);
             const details = (res as any).event_mapping_list || (res as any).view_records || (res as any).data || [];
             setViewData(details);
-        } catch (error) {
+        } catch (_error) {
             console.error('Failed to fetch mapping details');
         } finally {
             setViewLoading(false);

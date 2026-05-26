@@ -38,8 +38,8 @@ export default function UpdateMasterVenueForm({ selectedRow, onSuccess }: Update
             const msg = (response?.message || response?.Message || '') as string;
             const isSuccess =
                 response?.success ||
-                response?.returnval == true ||
-                response?.returnVal == true ||
+                response?.returnval === true ||
+                response?.returnVal === true ||
                 response?.returnVal === 'updated' ||
                 msg.toLowerCase() === 'updated' ||
                 msg.toLowerCase().includes('success');

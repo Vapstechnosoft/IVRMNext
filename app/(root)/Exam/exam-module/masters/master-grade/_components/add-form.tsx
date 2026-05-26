@@ -16,7 +16,11 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-export default function AddMasterGradeForm({ onSuccess, refetchGrid, className = '' }: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
+export default function AddMasterGradeForm({
+    onSuccess,
+    refetchGrid,
+    className = ''
+}: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {

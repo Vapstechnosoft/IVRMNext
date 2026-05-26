@@ -10,7 +10,7 @@ import type {
 const FACADE = 'AvailableBooksReport';
 
 export async function getAvailableBooksReportInitialData() {
-    const url = `AvailableBooksReport/getdetails`;
+    const url = 'AvailableBooksReport/getdetails';
     return await api.get<IAvailableBooksReportInitialData>('library', url);
 }
 

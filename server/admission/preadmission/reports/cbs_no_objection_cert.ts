@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getCBSNoObjectionLoadData() {
-    return await api.get<any>('admission', `/HHSStudyCertificate/getdetails/`);
+    return await api.get<any>('admission', '/HHSStudyCertificate/getdetails/');
 }
 
 export async function getCBSNoObjectionStudentStatusChange(data: {

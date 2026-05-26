@@ -18,7 +18,7 @@ export async function getMasterTermsPeriod(searchParams?: ApiSearchparams) {
     return await api.get<IMasterTermsPeriodList[]>('fees', url);
 }
 
-export async function getFeeTermHeadDueDateGridList(asmay_id: number, fmt_id: number, fmh_id: number) {
+export async function getFeeTermHeadDueDateGridList(_asmay_id: number, fmt_id: number, fmh_id: number) {
     const url = `/FeeMasterTerms/GetDueDates/${fmt_id}/${fmh_id}`;
     return await api.get<IFeeTermFeeHeadDueDateGridList[]>('fees', url);
 }

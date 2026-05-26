@@ -1,6 +1,6 @@
 'use server';
-import { createLocalCrud } from '@/lib/localdb';
 import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
 export async function getLeaveCredit() {
     const db = createLocalCrud<LeaveCredit>('leaveCredit');
     const data = db.list();
@@ -19,14 +19,13 @@ export async function addOrUpdateLeaveCredit(credit: LeaveCredit) {
             data: credit,
             message: 'Leave credit updated successfully'
         };
-    } else {
-        const newCredit = db.create(credit);
-        return {
-            success: true,
-            data: newCredit,
-            message: 'Leave credit created successfully'
-        };
     }
+    const newCredit = db.create(credit);
+    return {
+        success: true,
+        data: newCredit,
+        message: 'Leave credit created successfully'
+    };
 }
 export async function deleteLeaveCredit(id: number) {
     const db = createLocalCrud<LeaveCredit>('leaveCredit');

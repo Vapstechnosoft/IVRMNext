@@ -272,4 +272,3 @@ export interface InstitutionResponse {
     page: number | null;
     page_size: number | null;
 }
-

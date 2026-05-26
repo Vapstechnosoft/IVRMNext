@@ -113,7 +113,7 @@ export default function UserPasswordCreationPage() {
                             showExportOptions={true}
                             onRowSelectionChange={setSelectedStudents}
                             totalItems={totalItems}
-                        //manualPagination={false}
+                            //manualPagination={false}
                         />
 
                         {selectedStudents.length > 0 && (

@@ -21,11 +21,11 @@ export default function ProgramMasterPage(props: { searchParams: SearchParams })
 
     return (
         <FormProvider<IMasterProgram>>
-            <ProgramMasterPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <ProgramMasterPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -158,11 +158,7 @@ function ProgramMasterPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterProgramForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterProgramForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

@@ -60,7 +60,7 @@ function ActionButtonsCell({ rowData }: { rowData: MasterEventCoe }) {
         [openToggleForm]
     );
 
-    const handleDelete = useCallback(
+    const _handleDelete = useCallback(
         (data: MasterEventCoe) => {
             openDeleteForm(data);
         },

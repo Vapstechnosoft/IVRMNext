@@ -111,8 +111,7 @@ export default function AddSpecialFeeHeadFormForm({ onSuccess, termname = '' }: 
                 }))
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateSpecialfeehead(payload);
 
@@ -129,7 +128,7 @@ export default function AddSpecialFeeHeadFormForm({ onSuccess, termname = '' }: 
         }
     };
 
-    const handleHeadSelection = (selectedValues: string[]) => {
+    const _handleHeadSelection = (selectedValues: string[]) => {
         setSelectedHeadsItems(
             selectedValues.map((value) => ({
                 fmH_Id: value.toString() // Store only the fmH_Id as a string

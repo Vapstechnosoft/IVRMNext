@@ -44,12 +44,10 @@ export async function getFeeDetailsLoadData() {
     }
 }
 
-export async function getFeeDetails(data: FeeDetailsRequest) {
-    const url = `/FeeDetails/Getdetails`;
+export async function getFeeDetails(_data: FeeDetailsRequest) {
+    const url = '/FeeDetails/Getdetails';
     try {
         const response = await api.get<FeeDetailsResponse>('portal', url, {});
-
-        console.log('bbbbbbbbb', response);
         if (response.data) return response.data;
         return response as unknown as FeeDetailsResponse;
     } catch (e) {

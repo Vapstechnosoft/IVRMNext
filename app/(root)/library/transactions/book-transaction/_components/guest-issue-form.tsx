@@ -42,12 +42,12 @@ export function GuestIssueForm({ bookType, bookCategory }: GuestIssueFormProps) 
 
     const issueBookMutation = useIssueBook();
 
-    const onVerifyGuest = (data: GuestFormValues) => {
+    const onVerifyGuest = (_data: GuestFormValues) => {
         setGuestVerified(true);
         toast.success('Guest information verified');
     };
 
-    const handleAddBook = (book: any) => {
+    const _handleAddBook = (book: any) => {
         if (selectedBooks.find((b) => b.lmbanO_Id === book.lmbanO_Id)) {
             toast.error('Book already added');
             return;

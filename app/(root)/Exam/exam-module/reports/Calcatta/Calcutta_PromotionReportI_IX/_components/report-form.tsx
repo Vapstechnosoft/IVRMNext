@@ -8,12 +8,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type CalcuttaPromotionReportItoIXSchema, calcuttaPromotionReportItoIXSchema } from '@/schemas/exam/exam-module/reports';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -46,7 +46,7 @@ export default function CalcuttaPromotionReportItoIXForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [terms, setTerms] = useState<{ empG_GroupName: string, empG_DisplayName?: string }[]>([]);
+    const [terms, setTerms] = useState<{ empG_GroupName: string; empG_DisplayName?: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -60,7 +60,7 @@ export default function CalcuttaPromotionReportItoIXForm({
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingTerms, setLoadingTerms] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     // set academic years
     useEffect(() => {
@@ -136,9 +136,7 @@ export default function CalcuttaPromotionReportItoIXForm({
                     selectedSection
                 );
 
-                const valid = Array.isArray(studentRes?.data)
-                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(studentRes?.data) ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id) : [];
 
                 const formattedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
@@ -155,12 +153,11 @@ export default function CalcuttaPromotionReportItoIXForm({
                 try {
                     const { data: termsData } = await getPromotionalGroups(selectedYear, selectedClass, selectedSection);
                     setTerms(Array.isArray(termsData) ? termsData : []);
-                } catch (e) {
+                } catch (_e) {
                     setTerms([]);
                 }
 
                 setValue('studentList', []);
-
             } catch {
                 toast.error('Failed to load students and terms');
             } finally {
@@ -183,9 +180,9 @@ export default function CalcuttaPromotionReportItoIXForm({
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
-            Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
+            Temp_AmstIds: data.studentList.map((s) => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: data.allTerm ? '' : data.empG_GroupName,
-            flag: "4",
+            flag: '4',
             academicDate: data.academicDate,
             issueDate: data.issueDate,
             reportPrintedDate: data.reportPrintedDate
@@ -377,12 +374,8 @@ export default function CalcuttaPromotionReportItoIXForm({
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                                         <div className='sm:w-40' />
                                         <div className='flex flex-1 items-center gap-2'>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                id="allTerm"
-                                            />
-                                            <Label htmlFor="allTerm" className='font-medium text-sm'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='allTerm' />
+                                            <Label htmlFor='allTerm' className='font-medium text-sm'>
                                                 All Term
                                             </Label>
                                         </div>
@@ -399,10 +392,7 @@ export default function CalcuttaPromotionReportItoIXForm({
                                             New Academic Date <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -414,14 +404,9 @@ export default function CalcuttaPromotionReportItoIXForm({
                                 name='reportPrintedDate'
                                 render={({ field, fieldState }) => (
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Report Printed On
-                                        </Label>
+                                        <Label className='font-medium text-sm sm:w-40'>Report Printed On</Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -437,16 +422,12 @@ export default function CalcuttaPromotionReportItoIXForm({
                                             Issue Date <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={(date: any) => field.onChange(date)}
-                                            />
+                                            <DatePicker date={field.value} setDate={(date: any) => field.onChange(date)} />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
                                 )}
                             />
-
                         </div>
 
                         <div className='space-y-6'>
@@ -479,9 +460,9 @@ export default function CalcuttaPromotionReportItoIXForm({
                                                     value: s.amsT_Id.toString()
                                                 }))}
                                                 onChange={(selectedValues) => {
-                                                    field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
+                                                    field.onChange(selectedValues.map((id) => ({ amsT_Id: Number(id) })));
                                                 }}
-                                                value={field.value?.map(v => String(v.amsT_Id)) ?? []}
+                                                value={field.value?.map((v) => String(v.amsT_Id)) ?? []}
                                                 placeholder='Select Students'
                                                 height='300px'
                                                 isSearchRequired

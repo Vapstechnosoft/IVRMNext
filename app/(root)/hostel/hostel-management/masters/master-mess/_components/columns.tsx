@@ -3,10 +3,10 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IMess } from '@/server/hostel/hostel-management/masters/mess';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import type { IMess } from '@/server/hostel/hostel-management/masters/mess';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 
-const columnHelper = createColumnHelper<IMess>();
+const _columnHelper = createColumnHelper<IMess>();
 
 export const masterMessColumns: ColumnDef<IMess, any>[] = [
     {

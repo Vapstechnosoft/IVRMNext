@@ -19,7 +19,7 @@ export function FileUploadSection({ name, label, files, onAdd, onRemove, onUploa
     const { control } = useFormContext();
 
     const handleFileChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
+        if (e.target.files?.[0]) {
             onUpload(index, e.target.files[0]);
         }
     };

@@ -47,11 +47,6 @@ const MOCK_EVENTS: COEReport[] = [
 ];
 
 export async function getCOELoadData(): Promise<COELoadData> {
-    // In a real application, fetch from API
-    // const response = await apiService.getDATA("COE/getloaddata");
-    // return response;
-
-    console.log('Fetching COE load data');
     return {
         coeyearlist: MOCK_ACADEMIC_YEARS,
         currentyear: [MOCK_ACADEMIC_YEARS[0]]
@@ -59,12 +54,6 @@ export async function getCOELoadData(): Promise<COELoadData> {
 }
 
 export async function getCOEData(data: COEDataPayload): Promise<COEDataResponse> {
-    // In a real application, fetch from API
-    // const response = await apiService.create("COE/getcoedata", data);
-    // return response;
-
-    console.log('Fetching COE data for:', data);
-
     // Filter mock data based on month if needed, but for now return all or random subset
     // to simulate finding records.
 

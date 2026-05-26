@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     ESIReportOnloadRequest,
     ESIReportOnloadResponse,
@@ -12,20 +12,15 @@ import type {
  * Request: { MI_Id, LogInUserId }
  * Response: { MI_Id, retrunMsg, roleId, HRES_Year, HRES_Month, monthdropdown, leaveyeardropdown, departmentdropdown, designationdropdown, employeeTypedropdown, groupTypedropdown, ... }
  */
-export async function getESIReportOnload(
-    MI_Id = 30,
-    LogInUserId = 0
-): Promise<ApiResponse<ESIReportOnloadResponse>> {
+export async function getESIReportOnload(MI_Id = 30, LogInUserId = 0): Promise<ApiResponse<ESIReportOnloadResponse>> {
     const url = '/api/ESIReportFacade/onloadgetdetails';
     const requestBody: ESIReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<ESIReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -88,9 +83,7 @@ export async function getESIReportOnload(
  * Request: { MI_Id, groupTypeselected, departmentselected, designationselected, HRES_Year, HRES_Month }
  * Note: Arrays should be empty [] when no selection is made
  */
-export async function searchESIReport(
-    request: ESIReportSearchRequest
-): Promise<ApiResponse<ESIReportSearchResponse>> {
+export async function searchESIReport(request: ESIReportSearchRequest): Promise<ApiResponse<ESIReportSearchResponse>> {
     const url = '/api/ESIReportFacade/getEmployeedetailsBySelection';
     const requestBody: ESIReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
@@ -100,11 +93,9 @@ export async function searchESIReport(
         HRES_Year: request.HRES_Year || '',
         HRES_Month: request.HRES_Month || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<ESIReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

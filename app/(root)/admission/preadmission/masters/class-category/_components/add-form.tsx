@@ -51,8 +51,6 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
     const { mutate: addClassCategory, isPending } = useMutation({
         mutationFn: addMasterClassCategory,
         onSuccess: (data: any) => {
-            console.log('Add Master Class Category Response:', data);
-
             // Permissive success logic:
             // 1. Explicit success flags
             // 2. OR Object with NO error flags (handles empty object, or object with just data)
@@ -95,7 +93,6 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
             })),
             is_Active: true
         };
-        console.log('Submitting payload:', payload);
         addClassCategory(payload);
     };
 
@@ -248,12 +245,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                             'Save'
                         )}
                     </Button>
-                    <Button
-                        type='button'
-                        size='sm'
-                        variant='outline'
-                        className='w-full sm:w-auto'
-                        onClick={() => window.location.reload()}>
+                    <Button type='button' size='sm' variant='outline' className='w-full sm:w-auto' onClick={() => window.location.reload()}>
                         Clear
                     </Button>
                 </div>

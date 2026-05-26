@@ -1,16 +1,11 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { type ApiResponse, api } from '@/lib/apiService';
 
-
-
-
-export async function getLateLeaveReport(page: number = 1, pageSize: number = 10): Promise<ApiResponse<any>> {
+export async function getLateLeaveReport(page = 1, pageSize = 10): Promise<ApiResponse<any>> {
     const url = `/api/LeaveTransfer/get_manual_leave_deduct_grid?page=${page}&page_size=${pageSize}`;
 
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('📊 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             return response as ApiResponse<any>;
@@ -53,12 +48,12 @@ export async function submitLateLeave(data: SubmitLateLeaveRequest) {
                 success: true,
                 message: response.message,
                 data: response.data
-            }
+            };
         }
         return {
             success: false,
-            message: response.message,
-        }
+            message: response.message
+        };
     } catch (error: any) {
         throw new Error(error?.response?.data?.message || error?.message || 'Failed to submit late leave deduction');
     }

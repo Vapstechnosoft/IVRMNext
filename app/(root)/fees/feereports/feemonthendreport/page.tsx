@@ -34,7 +34,7 @@ interface IAcademicYear {
 }
 
 export default function FeeMonthEndReport() {
-    const [loading, setLoading] = useState(false);
+    const [_loading, _setLoading] = useState(false);
 
     const {
         control,
@@ -53,21 +53,21 @@ export default function FeeMonthEndReport() {
         }
     });
 
-    const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
+    const [_academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
 
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [_reportLoading, _setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [_selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
 
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+    const [_selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
     const [splitAcademicYear, setSplitAcademicYear] = useState<any>(null); // store API result
 
-    const [isSplitLoading, setIsSplitLoading] = useState(false);
-    const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
+    const [_isSplitLoading, setIsSplitLoading] = useState(false);
+    const [_selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
 
     const [reportData, setReportData] = useState<FeeMonthEndData | null>(null);
 
@@ -102,13 +102,13 @@ export default function FeeMonthEndReport() {
         }
     }, [academicData, academicError]);
 
-    const toggleRow = (id: number) => {
+    const _toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
-    const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || 'My School';
-    const schoolAddress = process.env.NEXT_PUBLIC_SCHOOL_ADDRESS || 'My Address';
-    const month = watch('from_Month') || '';
+    const _schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || 'My School';
+    const _schoolAddress = process.env.NEXT_PUBLIC_SCHOOL_ADDRESS || 'My Address';
+    const _month = watch('from_Month') || '';
 
     const designation = 'Implementation Engineer';
     const iename = watch('iename') || '';
@@ -135,7 +135,6 @@ export default function FeeMonthEndReport() {
                 setSelectedSplitYear(null); // 🔥 Reset selected option
                 try {
                     const response = await get_split_year(Number(selectedAcademicYear));
-                    console.log('Split Academic Year:', response);
                     setSplitAcademicYear(response.data); // store result if needed
                 } catch (err) {
                     console.error('Failed to fetch split academic year', err);
@@ -191,8 +190,6 @@ export default function FeeMonthEndReport() {
             Number(data.userentry ?? 0),
             Number(data.settlement ?? 0)
         );
-
-        console.log('Fee Month End Report Data:', JSON.stringify(response));
 
         if (!response || !response.success || !response.data || !Array.isArray(response.data.list) || response.data.list.length === 0) {
             toast.error('No data found for the selected criteria');

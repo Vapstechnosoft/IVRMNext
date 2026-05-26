@@ -93,34 +93,34 @@ export default function AddFeeRefundableForm({
 
     const [headData, setheadData] = useState<any[]>([]);
     const [loadingGroups, setLoadingGroups] = useState(false); // <-- add this
-    const [selectedGroupItems, setSelectedGroupItems] = useState<{ fmG_Id: string }[]>([]);
+    const [_selectedGroupItems, setSelectedGroupItems] = useState<{ fmG_Id: string }[]>([]);
     const [groupSearch, setgroupSearch] = useState('');
     const academicYearId = useWatch({ control, name: 'academicYearId' });
     const classId = useWatch({ control, name: 'classId' });
     const sectionId = useWatch({ control, name: 'sectionId' });
     //const headId = useWatch({ control, name: 'headId' });
 
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [selectionType, setSelectionType] = useState<'T' | 'G' | 'C'>('T');
+    const [_selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectionType, _setSelectionType] = useState<'T' | 'G' | 'C'>('T');
     const [refundableType, setRefundableType] = useState<'Refunable' | 'NonRefunable'>('Refunable');
     const [activeType, setActiveType] = useState<'Active' | 'Left'>('Active');
-    const [activefee, setActivefee] = useState<'Fee' | 'PDA'>('Fee');
+    const [_activefee, setActivefee] = useState<'Fee' | 'PDA'>('Fee');
     const [nameType, setNameType] = useState<'NameRegNo' | 'RegNameNo'>('NameRegNo');
-    const [studentWise, setStudentWise] = useState<string>('');
+    const [_studentWise, setStudentWise] = useState<string>('');
 
-    const [students, setStudents] = useState<StudentRow[]>([]);
-    const [showTable, setShowTable] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
-    const [saving, setSaving] = useState(false);
+    const [_students, setStudents] = useState<StudentRow[]>([]);
+    const [_showTable, setShowTable] = useState(false);
+    const [_loadingStudents, _setLoadingStudents] = useState(false);
+    const [_saving, setSaving] = useState(false);
     const [studentDropdownList, setStudentDropdownList] = useState<{ value: string; label: string }[]>([]);
-    const [loadingDropdown, setLoadingDropdown] = useState(false);
+    const [_loadingDropdown, setLoadingDropdown] = useState(false);
     const [searchValue, setSearchValue] = useState('');
     const [formKey, setFormKey] = useState(0);
 
     const [selectedAll, setSelectedAll] = useState(false);
     const [paymentMode, setPaymentMode] = useState<'C' | 'B' | 'O' | ''>('');
     const [narration, setNarration] = useState('');
-    const [search, setSearch] = useState('');
+    const [_search, _setSearch] = useState('');
 
     const [headLoading, setHeadLoading] = useState(false);
     const [headError, setHeadError] = useState('');
@@ -136,8 +136,6 @@ export default function AddFeeRefundableForm({
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
     );
-
-    console.log('sectionData', sectionData);
 
     // const toggleAll = () => {
     //     const newVal = !selectedAll;
@@ -162,7 +160,7 @@ export default function AddFeeRefundableForm({
     //     );
     // };
 
-    const toggleAll = () => {
+    const _toggleAll = () => {
         const newVal = !selectedAll;
         setSelectedAll(newVal);
 
@@ -263,7 +261,7 @@ export default function AddFeeRefundableForm({
     };
 
     const [showChargesModal, setShowChargesModal] = useState(false);
-    const [instantRefundChecked, setInstantRefundChecked] = useState(false);
+    const [_instantRefundChecked, _setInstantRefundChecked] = useState(false);
 
     // CRITICAL FIX: Clear dependent fields when refundableType or headId changes
 
@@ -339,8 +337,6 @@ export default function AddFeeRefundableForm({
                 setGroupData([]);
                 return;
             }
-
-            console.log('selectedStudentId', selectedStudentId);
 
             try {
                 setLoadingGroups(true); // start loading
@@ -480,8 +476,6 @@ export default function AddFeeRefundableForm({
             try {
                 const res = await getFeeRefundableStudentDropdownDetails(Number(academicYearId), Number(classId), Number(sectionId));
 
-                console.log('res', res);
-
                 if (res?.data && Array.isArray(res.data)) {
                     // const list = res.data.map((s: any) => ({
                     //     value: String(s.amst_Id || s.AMST_Id),
@@ -575,8 +569,7 @@ export default function AddFeeRefundableForm({
                 refundItems: refundItems
             };
 
-            const jsondata = JSON.stringify(payload);
-            console.log('payload in onSubmit', jsondata);
+            const _jsondata = JSON.stringify(payload);
             const res = await addOrUpdateFeeRefundableDetails(payload);
             if (res.success || res.returnval) {
                 toast.success(res.message);

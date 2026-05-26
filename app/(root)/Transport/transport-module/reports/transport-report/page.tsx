@@ -49,8 +49,8 @@ export default function TransportReportPage() {
     });
 
     const reportType = form.watch('allorindiv');
-    const masterReportType = form.watch('regorname_m');
-    const mapReportType = form.watch('regorname_map');
+    const _masterReportType = form.watch('regorname_m');
+    const _mapReportType = form.watch('regorname_map');
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         setReportData([]);
@@ -61,12 +61,9 @@ export default function TransportReportPage() {
             regorname_m: values.allorindiv === 'All' ? values.regorname_m : undefined,
             regorname_map: values.allorindiv === 'indi' ? values.regorname_map : undefined
         };
-
-        console.log('report payload', payload);
         generateReport(payload, {
             onSuccess: (response: any) => {
-                console.log('transport report response', response);
-                if (response && response.data && response.data.length > 0) {
+                if (response?.data && response.data.length > 0) {
                     setReportData(response.data);
 
                     // Set title based on selection
@@ -208,7 +205,7 @@ export default function TransportReportPage() {
             return;
         }
 
-        const selectedData = reportData.filter((_, index) => selectedRows.includes(index));
+        const _selectedData = reportData.filter((_, index) => selectedRows.includes(index));
 
         // Transform data for Excel (removing internal keys if needed, or mapping to display names)
         // For simplicity, we just export the raw filtered data, but ideally we should format it.
@@ -425,11 +422,7 @@ export default function TransportReportPage() {
                                             </>
                                         )}
                                         {/* Master Fuel */}
-                                        {currentReportType === 'masterfueltype' && (
-                                            <>
-                                                <TableHead className='font-bold'>Fuel Type</TableHead>
-                                            </>
-                                        )}
+                                        {currentReportType === 'masterfueltype' && <TableHead className='font-bold'>Fuel Type</TableHead>}
                                         {/* Master Location */}
                                         {currentReportType === 'masterlocation' && (
                                             <>
@@ -473,9 +466,7 @@ export default function TransportReportPage() {
                                         )}
                                         {/* Master Schedule */}
                                         {currentReportType === 'masterrouteschedule' && (
-                                            <>
-                                                <TableHead className='font-bold'>Schedule Name</TableHead>
-                                            </>
+                                            <TableHead className='font-bold'>Schedule Name</TableHead>
                                         )}
 
                                         {/* Mapping: Route Location */}
@@ -546,11 +537,7 @@ export default function TransportReportPage() {
                                                 </>
                                             )}
                                             {/* Master Fuel */}
-                                            {currentReportType === 'masterfueltype' && (
-                                                <>
-                                                    <TableCell>{item.trmfT_FuelType}</TableCell>
-                                                </>
-                                            )}
+                                            {currentReportType === 'masterfueltype' && <TableCell>{item.trmfT_FuelType}</TableCell>}
                                             {/* Master Location */}
                                             {currentReportType === 'masterlocation' && (
                                                 <>
@@ -594,9 +581,7 @@ export default function TransportReportPage() {
                                             )}
                                             {/* Master Schedule */}
                                             {currentReportType === 'masterrouteschedule' && (
-                                                <>
-                                                    <TableCell>{item.trrsC_ScheduleName}</TableCell>
-                                                </>
+                                                <TableCell>{item.trrsC_ScheduleName}</TableCell>
                                             )}
 
                                             {/* Mapping: Route Location */}

@@ -1,7 +1,6 @@
 'use client';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { format, isValid } from 'date-fns';
-import React from 'react';
 
 interface AddressBookPrintProps {
     data: IMasterStudentCountReportList[];
@@ -13,21 +12,13 @@ interface AddressBookPrintProps {
     rangeType: string;
 }
 
-const formatDate = (date: any) => {
+const _formatDate = (date: any) => {
     if (!date) return 'N/A';
     const d = new Date(date);
     return isValid(d) ? format(d, 'dd-MM-yyyy') : 'N/A';
 };
 
-export default function AddressBookPrint({ 
-    data, 
-    logo, 
-    reportType, 
-    academicYear, 
-    fromDate, 
-    toDate, 
-    rangeType 
-}: AddressBookPrintProps) {
+export default function AddressBookPrint({ data, logo, reportType, academicYear, fromDate, toDate, rangeType }: AddressBookPrintProps) {
     const reportNames: Record<string, string> = {
         '1': 'Registered list',
         '2': 'Registered but not filled application form',
@@ -41,7 +32,7 @@ export default function AddressBookPrint({
     };
 
     const title = reportNames[reportType] || 'Total Count Report';
-    
+
     let dateRange = '';
     if (rangeType === 'between' && fromDate && toDate) {
         const d1 = new Date(fromDate);
@@ -55,47 +46,52 @@ export default function AddressBookPrint({
 
     if (!data || !Array.isArray(data) || data.length === 0) {
         return (
-            <div className="p-8 text-center text-black bg-white printable-content">
-                <h1 className="font-bold text-2xl uppercase underline mb-4">Address Book</h1>
+            <div className='printable-content bg-white p-8 text-center text-black'>
+                <h1 className='mb-4 font-bold text-2xl uppercase underline'>Address Book</h1>
                 <p>No records found.</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8 print:pt-12 print:px-0 bg-white text-black printable-content" style={{ minHeight: '100%', background: 'white' }}>
-            <style dangerouslySetInnerHTML={{ __html: `
+        <div
+            className='printable-content bg-white p-8 text-black print:px-0 print:pt-12'
+            style={{ minHeight: '100%', background: 'white' }}>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         margin: 1.5cm 1cm 1cm 1cm;
                     }
                 }
-            ` }} />
-            <div className="mb-6 text-center">
-                {logo && <img src={logo} alt="Logo" className="mx-auto mb-2 max-h-24" />}
-                <h1 className="font-bold text-2xl uppercase underline" style={{ color: 'black' }}>
-                    Address Book - {title}{dateRange}
+            `
+                }}
+            />
+            <div className='mb-6 text-center'>
+                {logo && <img src={logo} alt='Logo' className='mx-auto mb-2 max-h-24' />}
+                <h1 className='font-bold text-2xl uppercase underline' style={{ color: 'black' }}>
+                    Address Book - {title}
+                    {dateRange}
                 </h1>
             </div>
 
-            <table className="w-full border-collapse">
+            <table className='w-full border-collapse'>
                 <tbody>
                     {/* Process data in pairs for 2 columns */}
                     {Array.from({ length: Math.ceil(data.length / 2) }).map((_, rowIndex) => (
                         <tr key={rowIndex}>
                             {[0, 1].map((colIndex) => {
                                 const user = data[rowIndex * 2 + colIndex];
-                                if (!user) return <td key={colIndex} className="w-1/2" />;
+                                if (!user) return <td key={colIndex} className='w-1/2' />;
                                 const fullName = [user.FirstName, user.MiddleName, user.LastName].filter(Boolean).join(' ');
                                 return (
-                                    <td key={colIndex} className="w-1/2 p-4 align-top">
-                                        <div className="flex flex-col space-y-1 border-b border-gray-300 pb-4">
+                                    <td key={colIndex} className='w-1/2 p-4 align-top'>
+                                        <div className='flex flex-col space-y-1 border-gray-300 border-b pb-4'>
                                             <div style={{ fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase' }}>
                                                 D/o {fullName || 'N/A'}
                                             </div>
-                                            <div style={{ fontSize: '12px' }}>
-                                                Mobile No : {user.Mobileno || 'N/A'}
-                                            </div>
+                                            <div style={{ fontSize: '12px' }}>Mobile No : {user.Mobileno || 'N/A'}</div>
                                         </div>
                                     </td>
                                 );
@@ -105,7 +101,7 @@ export default function AddressBookPrint({
                 </tbody>
             </table>
 
-            <div className="mt-8 flex justify-between text-[10px] italic" style={{ color: 'black' }}>
+            <div className='mt-8 flex justify-between text-[10px] italic' style={{ color: 'black' }}>
                 <span>Printed on: {format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</span>
                 <span>Generated by System</span>
             </div>

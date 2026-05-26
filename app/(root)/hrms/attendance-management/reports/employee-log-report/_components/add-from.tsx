@@ -10,18 +10,16 @@ import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import {
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
     useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { cn } from '@/lib/utils';
 import { employeeLogReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { getEmployeeLogReport } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { format, addMonths } from 'date-fns';
+import { addMonths, format } from 'date-fns';
 import { Save } from 'lucide-react';
+import { useMemo } from 'react';
 import { Label } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -88,10 +86,6 @@ export default function AddEmployeeLogReportForm({
     const deptIds = watchedDepartment.map(Number).filter(Boolean);
     const desigIds = watchedDesignation.map(Number).filter(Boolean);
 
-    console.log("Selected Group Type IDs", groupTypeIds);
-    console.log("Selected Department IDs", deptIds);
-    console.log("Selected Designation IDs", desigIds);
-
     // Cascading Hooks
     const { data: groupTypesData, isLoading: isGroupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: isDepartmentsLoading } = useReportDepartments(groupTypeIds.toString());
@@ -101,8 +95,6 @@ export default function AddEmployeeLogReportForm({
         deptIds,
         desigIds
     );
-
-    console.log("employeesData", employeesData);
 
     const groupTypesDataTransformed = useMemo(() => {
         return (
@@ -144,14 +136,13 @@ export default function AddEmployeeLogReportForm({
                 // const middleName = (emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '').trim();
                 // const lastName = (emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '').trim();
 
-                const employeeName = emp.employeeFullName
+                const employeeName = emp.employeeFullName;
                 // [firstName, middleName, lastName].filter(Boolean).join(' ') ||
                 // emp.value ||
                 // emp.employeeName ||
                 // 'Unknown Employee';
 
-                const employeeCode = id
-
+                const employeeCode = id;
 
                 return {
                     id: Number(id),
@@ -164,8 +155,6 @@ export default function AddEmployeeLogReportForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-
-            console.log("form data", data)
             const punchTypeMap: Record<string, string> = {
                 'Punch Time': 'punch',
                 'Late In': 'late',
@@ -193,7 +182,6 @@ export default function AddEmployeeLogReportForm({
                 select_year = format(d, 'yyyy');
                 from_date = select_date;
                 to_date = select_date;
-                console.log("Selected Month", select_month, "Selected Year", select_year);
             } else if (data.dateMode === 'Monthly' && data.month && data.year) {
                 select_month = data.month;
                 select_year = data.year;
@@ -230,9 +218,7 @@ export default function AddEmployeeLogReportForm({
                 to_date,
                 punch_type: punchTypeMap[data.metric] || 'punch'
             };
-            console.log("Payload", payload)
             const response = await getEmployeeLogReport(payload);
-            console.log("Response", response)
             if (response.success && response.data?.length > 0) {
                 toast.success(response.message || 'Report generated successfully');
                 response.fromdate = from_date;
@@ -240,12 +226,11 @@ export default function AddEmployeeLogReportForm({
                 try {
                     queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT, {}], response);
                 } catch (e) {
-                    console.error("Error setting query data:", e);
+                    console.error('Error setting query data:', e);
                 }
-            } else if (response.success && response.data?.length == 0) {
+            } else if (response.success && response.data?.length === 0) {
                 toast.error('No data found');
-            }
-            else {
+            } else {
                 toast.error(response.message || 'Failed to generate report');
             }
         } catch (error: any) {
@@ -254,27 +239,30 @@ export default function AddEmployeeLogReportForm({
     };
 
     const handleReset = () => {
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            allOrIndividual: 'All',
-            codeOrName: 'Code',
-            query: '',
-            dateMode: 'Date',
-            date: '',
-            month: '',
-            year: '',
-            fromDate: '',
-            toDate: '',
-            metric: 'Punch Time'
-        }, {
-            keepDefaultValues: false,
-            keepErrors: false,
-            keepDirty: false,
-            keepTouched: false,
-            keepIsValid: false
-        });
+        reset(
+            {
+                type: [],
+                department: [],
+                designation: [],
+                allOrIndividual: 'All',
+                codeOrName: 'Code',
+                query: '',
+                dateMode: 'Date',
+                date: '',
+                month: '',
+                year: '',
+                fromDate: '',
+                toDate: '',
+                metric: 'Punch Time'
+            },
+            {
+                keepDefaultValues: false,
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepIsValid: false
+            }
+        );
         setTimeout(() => {
             clearErrors();
         }, 0);
@@ -415,20 +403,19 @@ export default function AddEmployeeLogReportForm({
                                                     <SelectValue placeholder={isEmployeesLoading ? 'Loading...' : 'Select Employee'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {
-                                                        employeesDataTransformed.length === 0 ? (
-                                                            <div className="p-4 text-center text-sm text-muted-foreground">
-                                                                No employees found for the selected criteria.
-                                                            </div>
-                                                        ) : (employeesDataTransformed as any[]).map((emp: any) => {
+                                                    {employeesDataTransformed.length === 0 ? (
+                                                        <div className='p-4 text-center text-muted-foreground text-sm'>
+                                                            No employees found for the selected criteria.
+                                                        </div>
+                                                    ) : (
+                                                        (employeesDataTransformed as any[]).map((emp: any) => {
                                                             return (
                                                                 <SelectItem key={emp.id} value={emp.id?.toString() || ''}>
                                                                     {emp.employeeName} - [{emp.employeeCode}]
                                                                 </SelectItem>
                                                             );
                                                         })
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -580,9 +567,9 @@ export default function AddEmployeeLogReportForm({
                                                             const day = String(date.getDate()).padStart(2, '0');
                                                             field.onChange(`${year}-${month}-${day}`);
                                                             const nextMonthDate = addMonths(date, 1);
-                                                            const nextYear = nextMonthDate.getFullYear();
-                                                            const nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
-                                                            const nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
+                                                            const _nextYear = nextMonthDate.getFullYear();
+                                                            const _nextMonth = String(nextMonthDate.getMonth() + 1).padStart(2, '0');
+                                                            const _nextDay = String(nextMonthDate.getDate()).padStart(2, '0');
                                                             // setValue('toDate', `${nextYear}-${nextMonth}-${nextDay}`);
                                                         } else {
                                                             field.onChange('');
@@ -620,12 +607,7 @@ export default function AddEmployeeLogReportForm({
                                                     placeholder='To date'
                                                     className={errors.toDate ? 'border-red-500' : ''}
                                                     disabled={
-                                                        fromDateObject
-                                                            ? [
-                                                                { before: fromDateObject },
-                                                                { after: today }
-                                                            ]
-                                                            : [{ after: today }]
+                                                        fromDateObject ? [{ before: fromDateObject }, { after: today }] : [{ after: today }]
                                                     }
                                                 />
                                             )}

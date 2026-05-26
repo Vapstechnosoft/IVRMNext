@@ -20,7 +20,11 @@ export default function LibTransactionReportPage() {
         setIsStatusCount(data.statuscount);
         searchMutation.mutate(data, {
             onSuccess: (response: any) => {
-                const list = (response.alldata || response.reportlist || response.griddata || response.statuslist || (Array.isArray(response) ? response : [])) as ILibTransactionReportGridData[];
+                const list = (response.alldata ||
+                    response.reportlist ||
+                    response.griddata ||
+                    response.statuslist ||
+                    (Array.isArray(response) ? response : [])) as ILibTransactionReportGridData[];
                 setReportData(list);
             }
         });
@@ -38,11 +42,7 @@ export default function LibTransactionReportPage() {
                   { label: 'Count', value: 'seccount' }
               ];
 
-        exportToExcel(
-            'Lib_Transaction_Report',
-            JSON.stringify(columns),
-            JSON.stringify(reportData)
-        );
+        exportToExcel('Lib_Transaction_Report', JSON.stringify(columns), JSON.stringify(reportData));
     };
 
     return (

@@ -12,7 +12,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export function ReturnBookForm() {
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, _setSearchResults] = useState<any[]>([]);
     const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
     const [fineAmount, setFineAmount] = useState(0);
     const [fineCollected, setFineCollected] = useState(0);
@@ -26,7 +26,7 @@ export function ReturnBookForm() {
     });
 
     const searchValue = watch('searchValue');
-    const searchType = watch('searchType');
+    const _searchType = watch('searchType');
     const returnDate = watch('returnDate');
 
     const returnBookMutation = useReturnBook();
@@ -53,7 +53,7 @@ export function ReturnBookForm() {
         return daysLate * 5;
     };
 
-    const handleSelectTransaction = (transaction: any) => {
+    const _handleSelectTransaction = (transaction: any) => {
         setSelectedTransaction(transaction);
         const fine = calculateFine(transaction.due_Date, returnDate);
         setFineAmount(fine);

@@ -1,9 +1,8 @@
 'use client';
-import React from 'react';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
+import type { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
@@ -180,9 +179,5 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
     }
 
     // Combine: Shared + Specific + Status/Dates
-    return [
-        ...SharedColumns,
-        ...specificColumns,
-        ...StatusDateColumns
-    ];
+    return [...SharedColumns, ...specificColumns, ...StatusDateColumns];
 };

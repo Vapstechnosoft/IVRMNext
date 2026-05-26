@@ -199,12 +199,14 @@ export default function UpdateGradeForm({ onSuccess, className = '', selectedRow
 
                         <div className='flex flex-col gap-2'>
                             {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
-{/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className='text-sm font-medium'>Pay Scale Range</label>
+                            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                            <label className='text-sm font-medium'>Pay Scale Range</label>
                             <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
                                 <PayScaleRangeDisplay control={control} />
                             </div>
-                            {errors.hrmG_PayScaleTo && <p className='text-[0.8rem] font-medium text-destructive'>{errors.hrmG_PayScaleTo.message}</p>}
+                            {errors.hrmG_PayScaleTo && (
+                                <p className='font-medium text-[0.8rem] text-destructive'>{errors.hrmG_PayScaleTo.message}</p>
+                            )}
                         </div>
 
                         {/* Order field removed as per request */}

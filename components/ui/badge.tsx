@@ -1,7 +1,7 @@
-import { type VariantProps, cva } from 'class-variance-authority';
-import type * as React from 'react';
 import { StandardTooltip } from '@/components/StandardTooltip';
 import { cn } from '@/lib/utils';
+import { type VariantProps, cva } from 'class-variance-authority';
+import type * as React from 'react';
 
 const badgeVariants = cva(
     'inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
@@ -54,11 +54,7 @@ function Badge({ className, variant, size, shape, toolTip, ...props }: BadgeProp
     const badgeContent = <div className={cn(badgeVariants({ variant, size, shape }), 'cursor-default', className)} {...props} />;
 
     if (toolTip) {
-        return (
-            <StandardTooltip content={toolTip}>
-                {badgeContent}
-            </StandardTooltip>
-        );
+        return <StandardTooltip content={toolTip}>{badgeContent}</StandardTooltip>;
     }
 
     return badgeContent;

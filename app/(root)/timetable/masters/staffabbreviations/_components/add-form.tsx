@@ -55,7 +55,6 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                 ttmsaB_PerWeekMaxDeputation: TTMSAB_PerWeekMaxDeputation,
                 ttmsaB_PerYearMaxDeputation: TTMSAB_PerYearMaxDeputation
             };
-            console.log(JSON.stringify(payload));
             const response = await addOrUpdateStaffAbbreviation(payload);
             if (response.success) {
                 toast.success(response.message);

@@ -19,8 +19,6 @@ export default function ThirdPartyTrasactionEntryPage(props: { searchParams: Sea
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useFeeThirdParty(searchParams);
 
-    console.log(response);
-
     return (
         <FormProvider<IFeeThirdPartyTransaction>>
             <ThirdPartyTrasactionEntryPageContent response={response} isLoading={isLoading} error={error} />

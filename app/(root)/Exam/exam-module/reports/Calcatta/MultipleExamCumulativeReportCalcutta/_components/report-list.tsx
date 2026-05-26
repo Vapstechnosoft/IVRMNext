@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Printer } from 'lucide-react';
-import React from 'react';
 import * as XLSX from 'xlsx';
 
 interface MultipleExamCumulativeReportCalcuttaListProps {
@@ -10,16 +9,7 @@ interface MultipleExamCumulativeReportCalcuttaListProps {
 }
 
 const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulativeReportCalcuttaListProps) => {
-    const {
-        getinstitution = [],
-        getsubjectslist = [],
-        studentlistd = [],
-        subcolmns = [],
-        yr,
-        cla,
-        sec,
-        colnspan
-    } = data;
+    const { getinstitution = [], getsubjectslist = [], studentlistd = [], subcolmns = [], yr, cla, sec, colnspan } = data;
 
     const inst = getinstitution[0] || {};
 
@@ -27,10 +17,10 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
         const printContent = document.getElementById('printidnew');
         if (printContent) {
             const windowUrl = 'about:blank';
-            const uniqueName = new Date().getTime();
-            const windowName = 'Print' + uniqueName;
+            const uniqueName = Date.now();
+            const windowName = `Print${uniqueName}`;
             const printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
-            
+
             if (printWindow) {
                 printWindow.document.write(`
                     <html>
@@ -82,84 +72,91 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
     if (!studentlistd || studentlistd.length === 0) return null;
 
     return (
-        <div className="space-y-4 mt-6">
-            <div className="flex justify-end gap-2 no-print">
-                <Button onClick={handlePrint} className="bg-sky-800 hover:bg-sky-900">
-                    <Printer className="mr-2 h-4 w-4" /> Print
+        <div className='mt-6 space-y-4'>
+            <div className='no-print flex justify-end gap-2'>
+                <Button onClick={handlePrint} className='bg-sky-800 hover:bg-sky-900'>
+                    <Printer className='mr-2 h-4 w-4' /> Print
                 </Button>
-                <Button onClick={handleExport} className="bg-emerald-700 hover:bg-emerald-800">
-                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+                <Button onClick={handleExport} className='bg-emerald-700 hover:bg-emerald-800'>
+                    <FileSpreadsheet className='mr-2 h-4 w-4' /> Excel
                 </Button>
             </div>
 
-            <div className="bg-white p-4 overflow-x-auto rounded-lg border shadow-sm" id="printidnew">
-                <table className="w-full border-collapse border border-black text-[12px]" id="table1">
+            <div className='overflow-x-auto rounded-lg border bg-white p-4 shadow-sm' id='printidnew'>
+                <table className='w-full border-collapse border border-black text-[12px]' id='table1'>
                     <thead>
                         <tr>
-                            <th colSpan={colnspan} className="p-4 bg-white text-black border border-black">
-                                <div className="text-center space-y-1">
-                                    <h1 className="text-2xl font-bold uppercase">{inst.mI_Name}</h1>
-                                    <p className="text-sm font-bold">{inst.mI_Address1}, {inst.ivrmmcT_Name}-{inst.mI_Pincode}</p>
-                                    <div className="border-b border-black py-1">
-                                        <h2 className="text-lg font-bold">CONSOLIDATED MARKS SHEET</h2>
+                            <th colSpan={colnspan} className='border border-black bg-white p-4 text-black'>
+                                <div className='space-y-1 text-center'>
+                                    <h1 className='font-bold text-2xl uppercase'>{inst.mI_Name}</h1>
+                                    <p className='font-bold text-sm'>
+                                        {inst.mI_Address1}, {inst.ivrmmcT_Name}-{inst.mI_Pincode}
+                                    </p>
+                                    <div className='border-black border-b py-1'>
+                                        <h2 className='font-bold text-lg'>CONSOLIDATED MARKS SHEET</h2>
                                     </div>
-                                    <div className="flex justify-center gap-12 mt-2 font-bold text-sm">
+                                    <div className='mt-2 flex justify-center gap-12 font-bold text-sm'>
                                         <span>ACADEMIC YEAR : {yr}</span>
-                                        <span>CLASS & SEC : {cla} - {sec}</span>
+                                        <span>
+                                            CLASS & SEC : {cla} - {sec}
+                                        </span>
                                     </div>
                                 </div>
                             </th>
                         </tr>
                         <tr>
-                            <th className="border border-black p-2 bg-slate-50 w-10" rowSpan={2}>
-                                <div className="vertical-text font-bold mx-auto">Roll No</div>
+                            <th className='w-10 border border-black bg-slate-50 p-2' rowSpan={2}>
+                                <div className='vertical-text mx-auto font-bold'>Roll No</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 min-w-[200px]" rowSpan={2}>
-                                <div className="vertical-text font-bold mx-auto">Student Name</div>
+                            <th className='min-w-[200px] border border-black bg-slate-50 p-2' rowSpan={2}>
+                                <div className='vertical-text mx-auto font-bold'>Student Name</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 w-24" rowSpan={2}>
-                                <div className="vertical-text font-bold mx-auto">Reg.NO</div>
+                            <th className='w-24 border border-black bg-slate-50 p-2' rowSpan={2}>
+                                <div className='vertical-text mx-auto font-bold'>Reg.NO</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 w-16" rowSpan={2}>
-                                <div className="vertical-text font-bold mx-auto">ATTENDANCE %</div>
+                            <th className='w-16 border border-black bg-slate-50 p-2' rowSpan={2}>
+                                <div className='vertical-text mx-auto font-bold'>ATTENDANCE %</div>
                             </th>
                             {getsubjectslist.map((sub: any, idx: number) => (
-                                <th key={idx} colSpan={sub.colspan} className="border border-black p-2 text-center bg-slate-50 font-bold">
+                                <th key={idx} colSpan={sub.colspan} className='border border-black bg-slate-50 p-2 text-center font-bold'>
                                     {sub.ISMS_SubjectName}
                                 </th>
                             ))}
                         </tr>
                         <tr>
                             {subcolmns.map((col: any, idx: number) => (
-                                <th key={idx} className="border border-black p-2 bg-slate-50 text-center w-10">
-                                    <div className="vertical-text mx-auto text-[10px]">{col.EMSE_SubExamName}</div>
+                                <th key={idx} className='w-10 border border-black bg-slate-50 p-2 text-center'>
+                                    <div className='vertical-text mx-auto text-[10px]'>{col.EMSE_SubExamName}</div>
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {studentlistd.map((stu: any, sIdx: number) => (
-                            <tr key={sIdx} className="hover:bg-slate-50 transition-colors">
-                                <td className="border border-black p-2 text-center">{stu.AMAY_RollNo}</td>
-                                <td className="border border-black p-2 text-left font-medium">{stu.AMST_FirstName}</td>
-                                <td className="border border-black p-2 text-left">{stu.AMST_AdmNo}</td>
-                                <td className="border border-black p-2 text-left">{stu.ATTENDANCEPERCENTAGE}</td>
+                            <tr key={sIdx} className='transition-colors hover:bg-slate-50'>
+                                <td className='border border-black p-2 text-center'>{stu.AMAY_RollNo}</td>
+                                <td className='border border-black p-2 text-left font-medium'>{stu.AMST_FirstName}</td>
+                                <td className='border border-black p-2 text-left'>{stu.AMST_AdmNo}</td>
+                                <td className='border border-black p-2 text-left'>{stu.ATTENDANCEPERCENTAGE}</td>
                                 {stu.markslist?.map((mark: any, mIdx: number) => (
-                                    <td key={mIdx} className="border border-black p-1 text-center">
-                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' && mark.EYCES_MarksDisplayFlg === true && mark.ESTMPSSS_ObtainedMarks > 0 && (
-                                            <span className={mark.EME_Id === 98000 || mark.EME_Id === 98001 ? 'font-bold' : ''}>
-                                                {mark.ESTMPSSS_ObtainedMarks}
-                                            </span>
-                                        )}
-                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' && mark.EYCES_GradeDisplayFlg === true && mark.ESTMPSSS_ObtainedGrade && mark.ESTMPSSS_ObtainedGrade !== '0' && (
-                                            <span>{mark.ESTMPSSS_ObtainedGrade}</span>
-                                        )}
+                                    <td key={mIdx} className='border border-black p-1 text-center'>
+                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' &&
+                                            mark.EYCES_MarksDisplayFlg === true &&
+                                            mark.ESTMPSSS_ObtainedMarks > 0 && (
+                                                <span className={mark.EME_Id === 98000 || mark.EME_Id === 98001 ? 'font-bold' : ''}>
+                                                    {mark.ESTMPSSS_ObtainedMarks}
+                                                </span>
+                                            )}
+                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' &&
+                                            mark.EYCES_GradeDisplayFlg === true &&
+                                            mark.ESTMPSSS_ObtainedGrade &&
+                                            mark.ESTMPSSS_ObtainedGrade !== '0' && <span>{mark.ESTMPSSS_ObtainedGrade}</span>}
                                         {mark.ESTMPSSS_PassFailFlg === 'AB' && mark.ESTMPSSS_ObtainedMarks === 0 && (
-                                            <span className="text-red-500 font-bold">{mark.ESTMPSSS_PassFailFlg}</span>
+                                            <span className='font-bold text-red-500'>{mark.ESTMPSSS_PassFailFlg}</span>
                                         )}
-                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' && mark.ESTMPSSS_ObtainedMarks === 0 && mark.EYCES_MarksDisplayFlg === true && (
-                                            <span>{mark.ESTMPSSS_ObtainedMarks}</span>
-                                        )}
+                                        {mark.ESTMPSSS_PassFailFlg !== 'AB' &&
+                                            mark.ESTMPSSS_ObtainedMarks === 0 &&
+                                            mark.EYCES_MarksDisplayFlg === true && <span>{mark.ESTMPSSS_ObtainedMarks}</span>}
                                     </td>
                                 ))}
                             </tr>

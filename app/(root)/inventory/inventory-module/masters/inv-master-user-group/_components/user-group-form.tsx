@@ -28,7 +28,7 @@ interface UserGroupFormProps {
 }
 
 function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
     const [resetKey, setResetKey] = useState(0);
 
     const { mainGroupOptions, isLoading: isDropdownLoading } = useInvMainGroupDropdown();
@@ -175,9 +175,7 @@ function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
     );
 }
 
-export function AddUserGroupForm({
-    onSuccess
-}: { onSuccess: () => void }) {
+export function AddUserGroupForm({ onSuccess }: { onSuccess: () => void }) {
     return <UserGroupForm onSuccess={onSuccess} mode='add' />;
 }
 

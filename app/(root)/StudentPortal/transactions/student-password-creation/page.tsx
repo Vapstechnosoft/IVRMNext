@@ -102,12 +102,12 @@ export default function StudentPasswordCreationPage() {
             } else {
                 toast.error((res as any).message || 'Failed to reset password');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to reset password');
         }
     };
 
-    const handleSendSMS = async () => {
+    const _handleSendSMS = async () => {
         if (selectedStudents.length === 0) {
             toast.warning('Please select atleast one student');
             return;
@@ -117,12 +117,12 @@ export default function StudentPasswordCreationPage() {
             if ((res as any).success === 'success' || (res as any).success === true)
                 toast.success((res as any).message || 'SMS Sent Successfully');
             else toast.error((res as any).message || 'Failed to send SMS');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to send SMS');
         }
     };
 
-    const handleSendEmail = async () => {
+    const _handleSendEmail = async () => {
         if (selectedStudents.length === 0) {
             toast.warning('Please select atleast one student');
             return;
@@ -132,12 +132,12 @@ export default function StudentPasswordCreationPage() {
             if ((res as any).success === 'success' || (res as any).success === true)
                 toast.success((res as any).message || 'Email Sent Successfully');
             else toast.error((res as any).message || 'Failed to send Email');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to send Email');
         }
     };
 
-    const handleSendWhatsApp = async () => {
+    const _handleSendWhatsApp = async () => {
         if (selectedStudents.length === 0) {
             toast.warning('Please select atleast one student');
             return;
@@ -147,7 +147,7 @@ export default function StudentPasswordCreationPage() {
             if ((res as any).success === 'success' || (res as any).success === true)
                 toast.success((res as any).message || 'WhatsApp Sent Successfully');
             else toast.error((res as any).message || 'Failed to send WhatsApp');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to send WhatsApp');
         }
     };

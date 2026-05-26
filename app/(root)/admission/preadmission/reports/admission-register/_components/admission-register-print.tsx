@@ -9,22 +9,21 @@ interface AdmissionRegisterPrintProps {
     selectedFields: string[];
 }
 
-export const AdmissionRegisterPrint = React.forwardRef<HTMLDivElement, AdmissionRegisterPrintProps>(
-    ({ data, selectedFields }, ref) => {
-        const currentDate = format(new Date(), 'dd/MM/yyyy');
+export const AdmissionRegisterPrint = React.forwardRef<HTMLDivElement, AdmissionRegisterPrintProps>(({ data, selectedFields }, ref) => {
+    const currentDate = format(new Date(), 'dd/MM/yyyy');
 
-        if (!data || data.length === 0) {
-            return (
-                <div ref={ref} className='bg-white p-5 text-center text-black'>
-                    No data available for printing.
-                </div>
-            );
-        }
-
+    if (!data || data.length === 0) {
         return (
-            <div ref={ref} className='print-preview-container bg-white text-black min-h-full w-full'>
-                <style>
-                    {`
+            <div ref={ref} className='bg-white p-5 text-center text-black'>
+                No data available for printing.
+            </div>
+        );
+    }
+
+    return (
+        <div ref={ref} className='print-preview-container min-h-full w-full bg-white text-black'>
+            <style>
+                {`
                         @media print {
                             @page {
                                 margin: 10mm;
@@ -88,71 +87,66 @@ export const AdmissionRegisterPrint = React.forwardRef<HTMLDivElement, Admission
                             }
                         }
                     `}
-                </style>
+            </style>
 
-                <table className='main-table no-border'>
-                    <thead>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Header */}
-                                <div className='header-section'>
-                                    <h2 className='text-xl font-bold uppercase'>Admission Register Report</h2>
-                                    <p className='text-sm text-gray-600'>Generated Date: {currentDate}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Table */}
-                                <table className='data-table w-full'>
-                                    <thead>
-                                        <tr className='bg-gray-100'>
-                                            <th className='w-12'>Sl.No</th>
-                                            {selectedFields.map((fieldId) => (
-                                                <th key={fieldId} className='font-bold'>
-                                                    {FIELD_CONFIG[fieldId]?.label || fieldId}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.map((student, index) => (
-                                            <tr key={index}>
-                                                <td>{index + 1}</td>
-                                                {selectedFields.map((fieldId) => {
-                                                    const value = student[fieldId];
-                                                    const config = FIELD_CONFIG[fieldId];
-                                                    const displayValue = config?.isDate ? formatDate(value) : (value ?? 'N/A');
-                                                    return (
-                                                        <td key={`${index}-${fieldId}`}>
-                                                            {String(displayValue)}
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
+            <table className='main-table no-border'>
+                <thead>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Header */}
+                            <div className='header-section'>
+                                <h2 className='font-bold text-xl uppercase'>Admission Register Report</h2>
+                                <p className='text-gray-600 text-sm'>Generated Date: {currentDate}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Table */}
+                            <table className='data-table w-full'>
+                                <thead>
+                                    <tr className='bg-gray-100'>
+                                        <th className='w-12'>Sl.No</th>
+                                        {selectedFields.map((fieldId) => (
+                                            <th key={fieldId} className='font-bold'>
+                                                {FIELD_CONFIG[fieldId]?.label || fieldId}
+                                            </th>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td className='no-border'>
-                                {/* Footer */}
-                                <div className='footer-section flex justify-between px-4'>
-                                    <div className='text-sm italic'>Printed on: {currentDate}</div>
-                                    <div className='border-t border-black px-8 pt-1 text-sm font-semibold'>Signature</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        );
-    }
-);
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.map((student, index) => (
+                                        <tr key={index}>
+                                            <td>{index + 1}</td>
+                                            {selectedFields.map((fieldId) => {
+                                                const value = student[fieldId];
+                                                const config = FIELD_CONFIG[fieldId];
+                                                const displayValue = config?.isDate ? formatDate(value) : (value ?? 'N/A');
+                                                return <td key={`${index}-${fieldId}`}>{String(displayValue)}</td>;
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td className='no-border'>
+                            {/* Footer */}
+                            <div className='footer-section flex justify-between px-4'>
+                                <div className='text-sm italic'>Printed on: {currentDate}</div>
+                                <div className='border-black border-t px-8 pt-1 font-semibold text-sm'>Signature</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    );
+});
 
 AdmissionRegisterPrint.displayName = 'AdmissionRegisterPrint';

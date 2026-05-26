@@ -22,7 +22,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 // helper to compare local dates
-const isSameLocalDate = (a: Date, b: Date) =>
+const _isSameLocalDate = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 // allow dates up to today (today or any previous day)
@@ -53,7 +53,7 @@ export default function StudyCertificateReportPage(props: {
     const searchParams = (React as any).use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [shouldFetch, setShouldFetch] = useState(false);
+    const [_shouldFetch, setShouldFetch] = useState(false);
     const {
         control,
         handleSubmit,
@@ -109,8 +109,8 @@ export default function StudyCertificateReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);

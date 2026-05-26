@@ -1,26 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useHostelDropdownList } from '@/hooks/hostel/useMasterHostel';
+import { useMasterRoomDropdown } from '@/hooks/hostel/useMasterRoom';
+import { useRoomCategoryDropdownList } from '@/hooks/hostel/useRoomCategory';
 import { cn } from '@/lib/utils';
+import { type GuestAllotmentSchema, guestAllotmentSchema } from '@/schemas/hostel/transactions/guest-allotment.schema';
+import { getEditData, getRoomDetails, saveGuestAllotment } from '@/server/hostel/hostel-management/transactions/guest-allotment';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { guestAllotmentSchema, type GuestAllotmentSchema } from '@/schemas/hostel/transactions/guest-allotment.schema';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { getRoomDetails, saveGuestAllotment, getEditData } from '@/server/hostel/hostel-management/transactions/guest-allotment';
-import { useHostelDropdownList } from '@/hooks/hostel/useMasterHostel';
-import { useRoomCategoryDropdownList } from '@/hooks/hostel/useRoomCategory';
-import { useMasterRoomDropdown } from '@/hooks/hostel/useMasterRoom';
-import { GuestAllotmentColumn } from './columns';
+import type { GuestAllotmentColumn } from './columns';
 
 interface AddFormProps {
     onSuccess?: () => void;
@@ -44,7 +44,7 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
             HLMRCA_Id: 0,
             HLHGSTALT_AddressProof: '',
             HLHGSTALT_GuestAddress: '',
-            HLHGSTALT_GuestPhoto: '',
+            HLHGSTALT_GuestPhoto: ''
         }
     });
     const { data: hostels } = useHostelDropdownList();
@@ -67,77 +67,52 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
             return;
         }
 
-        console.log(initialData);
-
         const fetchEditData = async () => {
             try {
                 setIsFetchingEditData(true);
 
                 const res = await getEditData(initialData.hlhgstalT_Id);
 
-                const editData = Array.isArray(res?.data)
-                    ? res.data[0]
-                    : res?.data;
+                const editData = Array.isArray(res?.data) ? res.data[0] : res?.data;
 
                 if (!editData) return;
 
                 reset({
-                    HLHGSTALT_Id:
-                        editData.hlhgstalT_Id ||
-                        editData.hlhgstalt_Id ||
-                        editData.HLHGSTALT_Id ||
-                        0,
+                    HLHGSTALT_Id: editData.hlhgstalT_Id || editData.hlhgstalt_Id || editData.HLHGSTALT_Id || 0,
 
-                    HLHGSTALT_GuestName:
-                        editData.hlhgstalT_GuestName || '',
+                    HLHGSTALT_GuestName: editData.hlhgstalT_GuestName || '',
 
-                    HLHGSTALT_GuestPhoneNo:
-                        editData.hlhgstalT_GuestPhoneNo || '',
+                    HLHGSTALT_GuestPhoneNo: editData.hlhgstalT_GuestPhoneNo || '',
 
-                    HLMH_Id:
-                        editData.hlmH_Id || 0,
+                    HLMH_Id: editData.hlmH_Id || 0,
 
-                    HRMRM_Id:
-                        editData.hrmrM_Id || 0,
+                    HRMRM_Id: editData.hrmrM_Id || 0,
 
-                    HLHGSTALT_NoOfBeds:
-                        editData.hlhgstalT_NoOfBeds || 0,
+                    HLHGSTALT_NoOfBeds: editData.hlhgstalT_NoOfBeds || 0,
 
-                    HLHGSTALT_AllotRemarks:
-                        editData.hlhgstalT_AllotRemarks || '',
+                    HLHGSTALT_AllotRemarks: editData.hlhgstalT_AllotRemarks || '',
 
-                    HLHGSTALT_AllotmentDate:
-                        editData.hlhgstalT_AllotmentDate
-                            ? new Date(editData.hlhgstalT_AllotmentDate)
-                            : new Date(),
+                    HLHGSTALT_AllotmentDate: editData.hlhgstalT_AllotmentDate ? new Date(editData.hlhgstalT_AllotmentDate) : new Date(),
 
-                    HLHGSTALT_GuestEmailId:
-                        editData.hlhgstalT_GuestEmailId || '',
+                    HLHGSTALT_GuestEmailId: editData.hlhgstalT_GuestEmailId || '',
 
-                    HLMRCA_Id:
-                        editData.hlmrcA_Id || 0,
+                    HLMRCA_Id: editData.hlmrcA_Id || 0,
 
-                    HLHGSTALT_AddressProof:
-                        editData.hlhgstalT_AddressProof || '',
+                    HLHGSTALT_AddressProof: editData.hlhgstalT_AddressProof || '',
 
-                    HLHGSTALT_GuestAddress:
-                        editData.hlhgstalT_GuestAddress || '',
+                    HLHGSTALT_GuestAddress: editData.hlhgstalT_GuestAddress || '',
 
-                    HLHGSTALT_GuestPhoto:
-                        editData.hlhgstalT_GuestPhoto || '',
+                    HLHGSTALT_GuestPhoto: editData.hlhgstalT_GuestPhoto || ''
                 });
-
             } catch (err) {
-                console.error("getEditData Error:", err);
-                toast.error("Failed to load edit details");
-            }
-            finally {
+                console.error('getEditData Error:', err);
+                toast.error('Failed to load edit details');
+            } finally {
                 setIsFetchingEditData(false);
             }
         };
 
         fetchEditData();
-
     }, [initialData, reset]);
 
     const selectedRoomId = useWatch({ control, name: 'HRMRM_Id' });
@@ -171,29 +146,31 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
 
     if (isFetchingEditData) {
         return (
-            <div className="w-full rounded-2xl bg-white p-6 shadow-sm border flex items-center justify-center min-h-[300px]">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className='flex min-h-[300px] w-full items-center justify-center rounded-2xl border bg-white p-6 shadow-sm'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
-        <div className="w-full rounded-2xl bg-white p-6 shadow-sm border">
+        <div className='w-full rounded-2xl border bg-white p-6 shadow-sm'>
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <h3 className='font-semibold text-gray-800 text-lg'>
                         {initialData?.hlhgstalT_Id ? 'Edit Guest Allotment' : 'Hostel Allotment For Guest'}
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Guest Name */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_GuestName"
+                            name='HLHGSTALT_GuestName'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Guest Name <span className="text-red-500">*</span></Label>
-                                    <Input {...field} placeholder="Enter Guest Name" />
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Guest Name <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Input {...field} placeholder='Enter Guest Name' />
                                     {errors.HLHGSTALT_GuestName && <FormError>{errors.HLHGSTALT_GuestName.message}</FormError>}
                                 </div>
                             )}
@@ -202,11 +179,13 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Guest Phone */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_GuestPhoneNo"
+                            name='HLHGSTALT_GuestPhoneNo'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Guest Phone No <span className="text-red-500">*</span></Label>
-                                    <Input {...field} placeholder="Enter Phone No" maxLength={10} />
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Guest Phone No <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Input {...field} placeholder='Enter Phone No' maxLength={10} />
                                     {errors.HLHGSTALT_GuestPhoneNo && <FormError>{errors.HLHGSTALT_GuestPhoneNo.message}</FormError>}
                                 </div>
                             )}
@@ -215,11 +194,13 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Guest Email */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_GuestEmailId"
+                            name='HLHGSTALT_GuestEmailId'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Guest Email ID <span className="text-red-500">*</span></Label>
-                                    <Input {...field} placeholder="Enter Email" />
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Guest Email ID <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Input {...field} placeholder='Enter Email' />
                                     {errors.HLHGSTALT_GuestEmailId && <FormError>{errors.HLHGSTALT_GuestEmailId.message}</FormError>}
                                 </div>
                             )}
@@ -228,30 +209,26 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Allotment Date */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_AllotmentDate"
+                            name='HLHGSTALT_AllotmentDate'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Alloted Date <span className="text-red-500">*</span></Label>
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Alloted Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant={"outline"}
+                                                variant={'outline'}
                                                 className={cn(
-                                                    "w-full justify-start text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                    'w-full justify-start text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                initialFocus
-                                            />
+                                        <PopoverContent className='w-auto p-0'>
+                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     {errors.HLHGSTALT_AllotmentDate && <FormError>{errors.HLHGSTALT_AllotmentDate.message}</FormError>}
@@ -262,16 +239,15 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Hostel */}
                         <Controller
                             control={control}
-                            name="HLMH_Id"
+                            name='HLMH_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Hostel <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                    >
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Hostel <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Hostel" />
+                                            <SelectValue placeholder='Select Hostel' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hostels?.map((h: any) => (
@@ -289,16 +265,15 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Room Category */}
                         <Controller
                             control={control}
-                            name="HLMRCA_Id"
+                            name='HLMRCA_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Room Category <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                    >
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Room Category <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Category" />
+                                            <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(roomCategories as any[])?.map((c: any) => (
@@ -316,16 +291,15 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Room No */}
                         <Controller
                             control={control}
-                            name="HRMRM_Id"
+                            name='HRMRM_Id'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Room <span className="text-red-500">*</span></Label>
-                                    <Select
-                                        value={String(field.value || '')}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                    >
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Room <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select value={String(field.value || '')} onValueChange={(v) => field.onChange(Number(v))}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Room" />
+                                            <SelectValue placeholder='Select Room' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {rooms?.data?.map((r: any) => (
@@ -343,11 +317,11 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* No of Beds (Readonly) */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_NoOfBeds"
+                            name='HLHGSTALT_NoOfBeds'
                             render={({ field }) => (
-                                <div className="space-y-1">
+                                <div className='space-y-1'>
                                     <Label>No of Bed</Label>
-                                    <Input {...field} disabled className="bg-gray-50" />
+                                    <Input {...field} disabled className='bg-gray-50' />
                                 </div>
                             )}
                         />
@@ -355,11 +329,13 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Guest Proof */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_AddressProof"
+                            name='HLHGSTALT_AddressProof'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Guest Proof <span className="text-red-500">*</span></Label>
-                                    <Input {...field} placeholder="Enter Guest Proof" />
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Guest Proof <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Input {...field} placeholder='Enter Guest Proof' />
                                     {errors.HLHGSTALT_AddressProof && <FormError>{errors.HLHGSTALT_AddressProof.message}</FormError>}
                                 </div>
                             )}
@@ -368,11 +344,13 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                         {/* Remarks */}
                         <Controller
                             control={control}
-                            name="HLHGSTALT_AllotRemarks"
+                            name='HLHGSTALT_AllotRemarks'
                             render={({ field }) => (
-                                <div className="space-y-1">
-                                    <Label>Remarks <span className="text-red-500">*</span></Label>
-                                    <Input {...field} placeholder="Enter Remarks" />
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Remarks <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Input {...field} placeholder='Enter Remarks' />
                                     {errors.HLHGSTALT_AllotRemarks && <FormError>{errors.HLHGSTALT_AllotRemarks.message}</FormError>}
                                 </div>
                             )}
@@ -382,20 +360,26 @@ export default function GuestAllotmentForm({ onSuccess, initialData }: AddFormPr
                     {/* Guest Address */}
                     <Controller
                         control={control}
-                        name="HLHGSTALT_GuestAddress"
+                        name='HLHGSTALT_GuestAddress'
                         render={({ field }) => (
-                            <div className="space-y-1">
-                                <Label>Guest Address <span className="text-red-500">*</span></Label>
-                                <Textarea {...field} placeholder="Enter Address" maxLength={350} />
+                            <div className='space-y-1'>
+                                <Label>
+                                    Guest Address <span className='text-red-500'>*</span>
+                                </Label>
+                                <Textarea {...field} placeholder='Enter Address' maxLength={350} />
                                 {errors.HLHGSTALT_GuestAddress && <FormError>{errors.HLHGSTALT_GuestAddress.message}</FormError>}
                             </div>
                         )}
                     />
 
                     {/* Actions */}
-                    <div className="flex items-center justify-center gap-4 pt-4">
-                        <Button type="button" variant="outline" onClick={() => reset()}>Cancel</Button>
-                        <Button type="submit" disabled={isSubmitting}>Save</Button>
+                    <div className='flex items-center justify-center gap-4 pt-4'>
+                        <Button type='button' variant='outline' onClick={() => reset()}>
+                            Cancel
+                        </Button>
+                        <Button type='submit' disabled={isSubmitting}>
+                            Save
+                        </Button>
                     </div>
                 </form>
             </FormProvider>

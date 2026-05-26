@@ -39,7 +39,7 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
         reset();
     }
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // Try the form value first, then try common id fields from rowData.
             // const idToToggle = Number((data?.fmcC_Id as any) ?? (rowData as any).fmcC_Id);

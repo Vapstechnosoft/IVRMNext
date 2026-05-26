@@ -1,10 +1,9 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
-const formatDate = (date: unknown): string => {
+const _formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
     if (!date) return 'N/A';
     return format(new Date(date), 'dd-MM-yyyy');
@@ -50,15 +49,15 @@ export const getEmployeeLateInEarlyOutReportColumns = (dateColumns: string[], mo
         },
         {
             accessorKey: 'ecode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Code'  />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Code' />,
             cell: ({ row }) => <div className='text-center text-xs'>{row.getValue('ecode')}</div>,
             enableSorting: true,
             enableHiding: true
         },
         {
             accessorKey: 'ename',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name'  />,
-            cell: ({ row }) => <div className='truncate text-left text-xs font-medium uppercase'>{row.getValue('ename')}</div>,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+            cell: ({ row }) => <div className='truncate text-left font-medium text-xs uppercase'>{row.getValue('ename')}</div>,
             enableSorting: true,
             enableHiding: true
         },
@@ -75,45 +74,41 @@ export const getEmployeeLateInEarlyOutReportColumns = (dateColumns: string[], mo
         const dateObj = new Date(dateStr);
         let title = dateStr;
         try {
-            if (!isNaN(dateObj.getTime())) {
+            if (!Number.isNaN(dateObj.getTime())) {
                 title = `${format(dateObj, 'dd-MM')} ${format(dateObj, 'EEEE').substring(0, 3)}`;
             }
-        } catch (e) { }
+        } catch (_e) {}
 
         return {
             accessorKey: dateStr,
             header: ({ column }) => (
-                <DataTableColumnHeader 
-                    column={column} 
-                    title={title} 
-                    className="flex flex-col items-center justify-center text-center text-xs"
+                <DataTableColumnHeader
+                    column={column}
+                    title={title}
+                    className='flex flex-col items-center justify-center text-center text-xs'
                 />
             ),
             cell: ({ row }) => {
                 const val = row.getValue(dateStr) as any;
-                
+
                 // For Late In-Early Out mode, show nested table color-coded
                 if (mode === 'Late In Early Out') {
                     if (typeof val === 'object' && val !== null) {
                         return (
                             <div className='flex flex-col items-center justify-center gap-1 py-1'>
-                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center border-b border-gray-100 px-2 text-[10px] font-bold text-green-600'>
+                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center border-gray-100 border-b px-2 font-bold text-[10px] text-green-600'>
                                     {val.in || '--'}
                                 </div>
-                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center px-2 text-[10px] font-bold text-red-600'>
+                                <div className='flex min-h-[24px] min-w-[60px] items-center justify-center px-2 font-bold text-[10px] text-red-600'>
                                     {val.out || '--'}
                                 </div>
                             </div>
                         );
                     }
                 }
-                
+
                 // For other modes, just show the time/value
-                return (
-                    <div className="flex h-8 items-center justify-center text-[10px] font-medium">
-                        {val || '--'}
-                    </div>
-                );
+                return <div className='flex h-8 items-center justify-center font-medium text-[10px]'>{val || '--'}</div>;
             },
             enableSorting: false,
             enableHiding: false

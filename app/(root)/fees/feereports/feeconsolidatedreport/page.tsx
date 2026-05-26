@@ -31,7 +31,7 @@ import { exportToExcel, exportToExcelAll, printTable, printTableAll } from './ex
 type FormFields = z.infer<typeof feeConsolidatedReportsSchema>;
 
 // Checkbox with full indeterminate support
-const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
+const _Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
 
     //   useEffect(() => {
@@ -74,7 +74,7 @@ export default function FeeConsolidatedReport() {
         }
     });
 
-    const [loading, setLoading] = useState(false);
+    const [_loading, setLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         userType: 'All' as 'All' | 'indi',
@@ -89,17 +89,17 @@ export default function FeeConsolidatedReport() {
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
 
     const [reportData, setReportData] = useState<any[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [_reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
     const [installments, setInstallments] = useState<ConsolidatedReportInstallemntDropdownList[]>([]);
 
-    const [search, setSearch] = useState('');
-    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [_search, _setSearch] = useState('');
+    const [_sortKey, _setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [_sortOrder, _setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const [sectionLoading, setSectionLoading] = useState(false);
+    const [_sectionLoading, setSectionLoading] = useState(false);
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -165,8 +165,6 @@ export default function FeeConsolidatedReport() {
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), classId);
 
-                console.log('sectionsdata', result);
-
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
 
@@ -198,15 +196,13 @@ export default function FeeConsolidatedReport() {
 
             try {
                 const result = await getInstallmentDropdownData(Number(academicYearId));
-
-                console.log('installments', JSON.stringify(result));
                 const data = Array.isArray(result?.data) ? result.data : [];
 
                 setInstallments(data);
                 if (data.length === 0) {
                     //  toast.info('No sections found for this class');
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 // toast.error(error.message);
                 setInstallments([]);
             }
@@ -329,7 +325,7 @@ export default function FeeConsolidatedReport() {
         }));
 
         // ✅ TOTAL ROW
-        const totalAmount = selectedRows.reduce((sum, row) => sum + (row.tuitionFee || 0), 0);
+        const _totalAmount = selectedRows.reduce((sum, row) => sum + (row.tuitionFee || 0), 0);
 
         const totalRow = {
             // 'Sl No': '',
@@ -383,8 +379,6 @@ export default function FeeConsolidatedReport() {
 
         const response = await getFeeConsolidatedReportData(Number(data.academicYearId), data.classId, data.sectionId, filters.userType);
 
-        console.log('responsedata', JSON.stringify(response));
-
         const mapIndiResponseToTable = (data: any[]) => {
             return data.map((item, index) => ({
                 id: index + 1,
@@ -423,9 +417,9 @@ export default function FeeConsolidatedReport() {
     };
 
     // const isAcademicYearSelected = !!filters.academicYearId;
-    const isAcademicYearSelected = watch('academicYearId');
+    const _isAcademicYearSelected = watch('academicYearId');
 
-    const showBalancecheckbox = filters.userType === 'All';
+    const _showBalancecheckbox = filters.userType === 'All';
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>

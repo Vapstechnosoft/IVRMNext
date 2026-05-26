@@ -46,7 +46,7 @@ export const useVehicleDriverMapping = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-export const useVehicleDropDown = (searchParams?: ApiSearchparams) => {
+export const useVehicleDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -63,7 +63,7 @@ export const useVehicleDropDown = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-export const useDriverDropDown = (searchParams?: ApiSearchparams) => {
+export const useDriverDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -81,7 +81,7 @@ export const useDriverDropDown = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useSessionDropDown = (searchParams?: ApiSearchparams) => {
+export const useSessionDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -116,7 +116,7 @@ export const useVehicleRouteMapping = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-export const useRouteDropDown = (searchParams?: ApiSearchparams) => {
+export const useRouteDropDown = (_searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {

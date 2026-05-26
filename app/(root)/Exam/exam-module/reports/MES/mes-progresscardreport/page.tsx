@@ -4,7 +4,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 import { getExamReportCard, getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import MESProgressCardForm from './_components/add-form';
 import MESProgressCardReport from './_components/mes-progresscard-report';
@@ -12,9 +12,9 @@ import MESProgressCardReport from './_components/mes-progresscard-report';
 export default function MESProgressCardReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
     const [saveList, setSaveList] = useState<any[]>([]);
-    const [workAttendance, setWorkAttendance] = useState<any[]>([]);
-    const [presentAttendance, setPresentAttendance] = useState<any[]>([]);
-    const [promotionRemarks, setPromotionRemarks] = useState<any[]>([]);
+    const [workAttendance, _setWorkAttendance] = useState<any[]>([]);
+    const [presentAttendance, _setPresentAttendance] = useState<any[]>([]);
+    const [promotionRemarks, _setPromotionRemarks] = useState<any[]>([]);
     const [examName, setExamName] = useState<string>('');
     const [examCode, setExamCode] = useState<string>('');
     const [year, setYear] = useState<string>('');
@@ -43,9 +43,7 @@ export default function MESProgressCardReportPage() {
 
     const handleReportSuccess = async (payload: any) => {
         try {
-            console.log('MES Report Payload', payload);
             const res = await getExamReportCard(payload);
-            console.log('MES Report Response', res);
 
             if (!res || !res.data || res.data.length === 0) {
                 toast.error('No records found');

@@ -2,7 +2,12 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IBMICalculation, IBMIClassResponse, IBMISectionResponse, IBMIStudentResponse } from '@/types/sports/transactions/bmi-calculation';
+import type {
+    IBMICalculation,
+    IBMIClassResponse,
+    IBMISectionResponse,
+    IBMIStudentResponse
+} from '@/types/sports/transactions/bmi-calculation';
 
 export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
     const params = { ...searchParams };
@@ -11,7 +16,8 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
     }
     // Default search columns for multi-column search if not provided
     if (!params.search_column && !params.search_columns) {
-        params.search_columns = 'studentName,AMST_AdmNo,ASMCL_ClassName,ASMC_SectionName,ASMAY_Year,asondate,SPCCSHW_Height,SPCCSHW_Weight,SPCCSHW_BMI,SPCCSHW_BMIRemark';
+        params.search_columns =
+            'studentName,AMST_AdmNo,ASMCL_ClassName,ASMC_SectionName,ASMAY_Year,asondate,SPCCSHW_Height,SPCCSHW_Weight,SPCCSHW_BMI,SPCCSHW_BMIRemark';
     }
 
     const urlParams = getSearchParamsUrl(params);
@@ -44,7 +50,7 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
             Array.isArray(response.data) ? response.data : null
         ];
 
-        const list = possibleLists.find(l => Array.isArray(l) && l.length > 0);
+        const list = possibleLists.find((l) => Array.isArray(l) && l.length > 0);
 
         if (list) {
             response.data = list;
@@ -70,13 +76,13 @@ export async function getBMILoadGrid(searchParams?: ApiSearchparams) {
         return {
             success: false,
             message: 'Failed to load grid data',
-            data: [],
+            data: []
         };
     }
 }
 
 export async function getBMIClasses(data: any): Promise<IBMIClassResponse> {
-    const url = `/BMICalculation/get_classes`;
+    const url = '/BMICalculation/get_classes';
     try {
         const response = await api.post<any>('sports', url, data);
         return response as unknown as IBMIClassResponse;
@@ -91,7 +97,7 @@ export async function getBMIClasses(data: any): Promise<IBMIClassResponse> {
 }
 
 export async function getBMISections(data: any): Promise<IBMISectionResponse> {
-    const url = `/BMICalculation/get_section`;
+    const url = '/BMICalculation/get_section';
     try {
         const response = await api.post<any>('sports', url, data);
         return response as unknown as IBMISectionResponse;
@@ -106,7 +112,7 @@ export async function getBMISections(data: any): Promise<IBMISectionResponse> {
 }
 
 export async function getBMIStudents(data: any): Promise<IBMIStudentResponse> {
-    const url = `/BMICalculation/getStudents`;
+    const url = '/BMICalculation/getStudents';
     try {
         const response = await api.post<any>('sports', url, data);
         return response as unknown as IBMIStudentResponse;
@@ -131,6 +137,6 @@ export async function deactivateBMIRecord(id: number) {
 }
 
 export async function editBMIRecord(data: any) {
-    const url = `/BMICalculation/editdata`;
+    const url = '/BMICalculation/editdata';
     return await api.post<any>('sports', url, data);
 }

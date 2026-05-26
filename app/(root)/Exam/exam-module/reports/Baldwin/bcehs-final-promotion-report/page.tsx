@@ -14,18 +14,11 @@ export default function BCEHSFinalPromotionReportPage() {
     };
 
     return (
-        <div className="container overflow-hidden p-0">
-            <div className="flex flex-col gap-4">
-
-
+        <div className='container overflow-hidden p-0'>
+            <div className='flex flex-col gap-4'>
                 <ReportForm onReportGenerated={handleFormSubmit} />
 
-                {reportData && (
-                    <ReportList
-                        reportData={reportData}
-                        reportParams={reportParams}
-                    />
-                )}
+                {reportData && <ReportList reportData={reportData} reportParams={reportParams} />}
             </div>
         </div>
     );

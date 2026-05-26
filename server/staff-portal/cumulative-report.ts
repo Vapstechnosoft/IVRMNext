@@ -1,14 +1,14 @@
 'use server';
 
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    ICumulativeReportInitialData,
     IClass,
-    ISection,
+    ICumulativeReportInitialData,
     IExam,
-    IStudent,
+    IReportResponse,
     ISearchRequest,
-    IReportResponse
+    ISection,
+    IStudent
 } from '@/types/staff-portal/cumulative-report';
 
 const EXAM_URL = '/ExamCalculation_SSSE';
@@ -30,7 +30,13 @@ export async function getSections(asmaY_Id: number, asmcL_Id: number): Promise<A
     });
 }
 
-export async function getExams(data: { ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, Left_Flag: boolean, Deactive_Flag: boolean }): Promise<ApiResponse<{ exmstdlist: IExam[], studentlist: IStudent[] }>> {
+export async function getExams(data: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    Left_Flag: boolean;
+    Deactive_Flag: boolean;
+}): Promise<ApiResponse<{ exmstdlist: IExam[]; studentlist: IStudent[] }>> {
     return await api.post('portal', `${EXAM_URL}/get_exams`, data);
 }
 

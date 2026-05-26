@@ -40,7 +40,6 @@ export default function ToggleMasterPublisherForm({ rowData, onClose }: toggleMa
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            console.log('Toggling Master Publisher with ID:', rowData.lmP_Id);
             const response = await toggleMasterPublisher(Number(rowData.lmP_Id));
 
             if (response.success) {

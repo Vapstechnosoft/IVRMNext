@@ -1,8 +1,8 @@
 'use client';
 
-import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
-import { GenericDataTable, useDataTableProps } from "@/components/ui/view-data-table/view-generic-data-table";
-import { columns } from "./columns";
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import { columns } from './columns';
 
 interface LeaveDetailsGridProps {
     response: any;

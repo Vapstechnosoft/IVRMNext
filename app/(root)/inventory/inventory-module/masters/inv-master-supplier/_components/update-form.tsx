@@ -1,16 +1,16 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useInvMasterSupplier } from '@/hooks/inventory/masters/use-inv-master-supplier';
-import { invMasterSupplierSchema, type InvMasterSupplierSchema } from '@/schemas/inventory/masters/inv-master-supplier';
+import { type InvMasterSupplierSchema, invMasterSupplierSchema } from '@/schemas/inventory/masters/inv-master-supplier';
 import { saveInvMasterSupplier } from '@/server/inventory/masters/inv-master-supplier';
-import { toast } from 'sonner';
 import type { IInvMasterSupplier } from '@/types/inventory/masters/inv-master-supplier';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface UpdateInvMasterSupplierFormProps {
     onSuccess: () => void;
@@ -34,7 +34,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
             invmS_EmailId: selectedRow.invmS_EmailId,
             invmS_GSTNo: selectedRow.invmS_GSTNo || '',
             invmS_SupplierAddress: selectedRow.invmS_SupplierAddress || '',
-            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg,
+            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg
         } as any
     });
 
@@ -43,7 +43,6 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
     };
 
     const onSubmit = async (data: InvMasterSupplierSchema) => {
-        console.log('UpdateInvMasterSupplierForm: onSubmit triggered with data:', data);
         try {
             const result = await saveInvMasterSupplier(data);
             if (result.success || result.returnval) {
@@ -62,7 +61,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_SupplierName'>
                         Supplier Name <span className='text-red-500'>*</span>
@@ -79,9 +78,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                             />
                         )}
                     />
-                    {errors.invmS_SupplierName && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_SupplierName.message}</p>
-                    )}
+                    {errors.invmS_SupplierName && <p className='text-red-500 text-xs'>{errors.invmS_SupplierName.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -89,13 +86,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                     <Controller
                         name='invmS_SupplierCode'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_SupplierCode'
-                                placeholder='Enter Supplier Code'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_SupplierCode' placeholder='Enter Supplier Code' />}
                     />
                 </div>
 
@@ -104,13 +95,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                     <Controller
                         name='invmS_SupplierConatctPerson'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_SupplierConatctPerson'
-                                placeholder='Enter Contact Person'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_SupplierConatctPerson' placeholder='Enter Contact Person' />}
                     />
                 </div>
 
@@ -131,9 +116,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                             />
                         )}
                     />
-                    {errors.invmS_SupplierConatctNo && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_SupplierConatctNo.message}</p>
-                    )}
+                    {errors.invmS_SupplierConatctNo && <p className='text-red-500 text-xs'>{errors.invmS_SupplierConatctNo.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -152,9 +135,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                             />
                         )}
                     />
-                    {errors.invmS_EmailId && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_EmailId.message}</p>
-                    )}
+                    {errors.invmS_EmailId && <p className='text-red-500 text-xs'>{errors.invmS_EmailId.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -162,13 +143,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                     <Controller
                         name='invmS_GSTNo'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_GSTNo'
-                                placeholder='Enter GST No.'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_GSTNo' placeholder='Enter GST No.' />}
                     />
                 </div>
 
@@ -178,12 +153,7 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
                         name='invmS_SupplierAddress'
                         control={control}
                         render={({ field }) => (
-                            <Textarea
-                                {...field}
-                                id='invmS_SupplierAddress'
-                                placeholder='Enter Supplier Address'
-                                rows={3}
-                            />
+                            <Textarea {...field} id='invmS_SupplierAddress' placeholder='Enter Supplier Address' rows={3} />
                         )}
                     />
                 </div>

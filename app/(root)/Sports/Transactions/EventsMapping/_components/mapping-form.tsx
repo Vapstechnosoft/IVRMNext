@@ -1,33 +1,25 @@
 'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useEventsMapping } from '@/hooks/sports/useEventsMapping';
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { EventsMappingSchema, EventsMappingFormSchema, IEventsMappingDropdowns, IEventsMappingData } from "@/types/sports/events-mapping";
-import { useEventsMapping } from "@/hooks/sports/useEventsMapping";
+    type EventsMappingFormSchema,
+    EventsMappingSchema,
+    type IEventsMappingData,
+    type IEventsMappingDropdowns
+} from '@/types/sports/events-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface MappingFormProps {
     dropdowns: IEventsMappingDropdowns;
@@ -51,8 +43,8 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
             SPCCE_StartTime: '',
             SPCCE_EndTime: '',
             SPCCE_SponsorFlag: false,
-            selectedSponsors: [],
-        },
+            selectedSponsors: []
+        }
     });
 
     useEffect(() => {
@@ -69,9 +61,9 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                 SPCCE_StartTime: editData.spccE_StartTime,
                 SPCCE_EndTime: editData.spccE_EndTime,
                 SPCCE_SponsorFlag: editData.spccE_SponsorFlag,
-                selectedSponsors: [],
+                selectedSponsors: []
             });
-            toast.info("Edit mode loaded with mock data (IDs not mapped)");
+            toast.info('Edit mode loaded with mock data (IDs not mapped)');
         }
     }, [editData, form]);
 
@@ -79,12 +71,12 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
 
     const onSubmit = (data: EventsMappingFormSchema) => {
         saveData.mutate(data, {
-            onSuccess: (result) => {
+            onSuccess: (_result) => {
                 toast.success('Record Saved Successfully');
                 form.reset();
                 onSuccess();
             },
-            onError: (error) => {
+            onError: (_error) => {
                 toast.error('Failed to save record');
             }
         });
@@ -92,21 +84,21 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <FormField
                         control={form.control}
-                        name="ASMAY_Id"
+                        name='ASMAY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -125,14 +117,16 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* Venue */}
                     <FormField
                         control={form.control}
-                        name="SPCCMEV_Id"
+                        name='SPCCMEV_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Venue <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Venue <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -151,14 +145,16 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* Event Name */}
                     <FormField
                         control={form.control}
-                        name="SPCCME_Id"
+                        name='SPCCME_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Event /Competition Name <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Event /Competition Name <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -177,12 +173,12 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* Remarks */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_Remarks"
+                        name='SPCCE_Remarks'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Remarks</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Enter Remarks..." className="resize-none" {...field} />
+                                    <Textarea placeholder='Enter Remarks...' className='resize-none' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -190,20 +186,18 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Start Date */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_StartDate"
+                        name='SPCCE_StartDate'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Start Date <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    Start Date <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder="Select date..."
-                                    />
+                                    <DatePicker date={field.value} setDate={field.onChange} placeholder='Select date...' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -213,16 +207,14 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* End Date */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_EndDate"
+                        name='SPCCE_EndDate'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>End Date <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>
+                                    End Date <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder="Select date..."
-                                    />
+                                    <DatePicker date={field.value} setDate={field.onChange} placeholder='Select date...' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -232,12 +224,12 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* Start Time */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_StartTime"
+                        name='SPCCE_StartTime'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Start Time</FormLabel>
                                 <FormControl>
-                                    <Input type="time" {...field} />
+                                    <Input type='time' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -247,12 +239,12 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {/* End Time */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_EndTime"
+                        name='SPCCE_EndTime'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>End Time</FormLabel>
                                 <FormControl>
-                                    <Input type="time" {...field} />
+                                    <Input type='time' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -260,23 +252,18 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Sponsor Flag */}
                     <FormField
                         control={form.control}
-                        name="SPCCE_SponsorFlag"
+                        name='SPCCE_SponsorFlag'
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
                                 <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                 </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel>
-                                        Sponsor Flag
-                                    </FormLabel>
+                                <div className='space-y-1 leading-none'>
+                                    <FormLabel>Sponsor Flag</FormLabel>
                                 </div>
                             </FormItem>
                         )}
@@ -286,38 +273,41 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     {watchedSponsorFlag && (
                         <FormField
                             control={form.control}
-                            name="selectedSponsors"
+                            name='selectedSponsors'
                             render={() => (
                                 <FormItem>
-                                    <div className="mb-2">
-                                        <FormLabel>Sponsor <span className="text-red-500">*</span></FormLabel>
+                                    <div className='mb-2'>
+                                        <FormLabel>
+                                            Sponsor <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                     </div>
-                                    <ScrollArea className="h-[150px] w-full border rounded-md p-2">
+                                    <ScrollArea className='h-[150px] w-full rounded-md border p-2'>
                                         {dropdowns?.sponsorList.map((item) => (
                                             <FormField
                                                 key={item.spccmsP_Id}
                                                 control={form.control}
-                                                name="selectedSponsors"
+                                                name='selectedSponsors'
                                                 render={({ field }) => {
                                                     return (
                                                         <FormItem
                                                             key={item.spccmsP_Id}
-                                                            className="flex flex-row items-start space-x-3 space-y-0 mb-2"
-                                                        >
+                                                            className='mb-2 flex flex-row items-start space-x-3 space-y-0'>
                                                             <FormControl>
                                                                 <Checkbox
-                                                                    checked={field.value?.some(val => val.spccmsP_Id === item.spccmsP_Id)}
+                                                                    checked={field.value?.some((val) => val.spccmsP_Id === item.spccmsP_Id)}
                                                                     onCheckedChange={(checked) => {
                                                                         const current = field.value || [];
                                                                         return checked
                                                                             ? field.onChange([...current, { spccmsP_Id: item.spccmsP_Id }])
-                                                                            : field.onChange(current.filter(val => val.spccmsP_Id !== item.spccmsP_Id));
+                                                                            : field.onChange(
+                                                                                  current.filter(
+                                                                                      (val) => val.spccmsP_Id !== item.spccmsP_Id
+                                                                                  )
+                                                                              );
                                                                     }}
                                                                 />
                                                             </FormControl>
-                                                            <FormLabel className="font-normal">
-                                                                {item.spccmsP_SponsorName}
-                                                            </FormLabel>
+                                                            <FormLabel className='font-normal'>{item.spccmsP_SponsorName}</FormLabel>
                                                         </FormItem>
                                                     );
                                                 }}
@@ -331,16 +321,19 @@ export const MappingForm = ({ dropdowns, onSuccess, editData, onCancel }: Mappin
                     )}
                 </div>
 
-                <div className="flex justify-center gap-2">
-                    <Button type="submit" disabled={saveData.isPending}>
-                        {saveData.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <i className="fa fa-floppy-o mr-2" aria-hidden="true"></i>}
+                <div className='flex justify-center gap-2'>
+                    <Button type='submit' disabled={saveData.isPending}>
+                        {saveData.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <i className='fa fa-floppy-o mr-2' />}
                         Save
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => {
-                        form.reset();
-                        onCancel();
-                    }}>
-                        <i className="fa fa-times mr-2" aria-hidden="true"></i>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset();
+                            onCancel();
+                        }}>
+                        <i className='fa fa-times mr-2' />
                         Cancel
                     </Button>
                 </div>

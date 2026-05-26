@@ -88,8 +88,6 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
 
     const { data: feeHeadResponse, isLoading: isLoadingHeads } = useFeeMasterHead();
     const { data: installmentResponse, isLoading: isLoadingInstallments } = useFeeMasterInstallment();
-    console.log('feeinstaellments', installmentResponse);
-    console.log('feeHeads', feeHeadResponse);
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
     //const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
@@ -119,7 +117,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
         }
     ]);
 
-    const apiSearchParams: ApiSearchparams | null = useMemo(() => {
+    const _apiSearchParams: ApiSearchparams | null = useMemo(() => {
         if (academicYear && feeGroup) {
             return {
                 ASMAY_Id: Number(academicYear),
@@ -147,8 +145,6 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
             if (selectedAsmayId) {
                 try {
                     const response = await getFeeGroupBeasedOnAcademicYear(Number(selectedAsmayId));
-
-                    console.log('Fee groups:', response);
 
                     if (response.success && response.data) {
                         // Remove duplicate entries based on fmG_Id
@@ -416,7 +412,6 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                 fyghM_Id: 0
             }))
         };
-        console.log('Payload to save:', JSON.stringify(payload));
         try {
             const res = await addMasterYearlyGroupMapping(payload);
             const ok = res && (res.success === undefined || res.success === true);

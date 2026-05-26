@@ -81,7 +81,6 @@ export default function UpdateMasterAccessoriesForm({ onSuccess, className = '',
         });
     };
 
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>

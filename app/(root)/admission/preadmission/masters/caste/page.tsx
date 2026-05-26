@@ -1,10 +1,4 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterCaste } from '@/hooks/admission/preadmission/useMasters';
-import type { IMasterCasteList } from '@/types/admission/preadmission/masters';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,8 +9,14 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { useMasterCaste } from '@/hooks/admission/preadmission/useMasters';
 import { deleteMasterCaste } from '@/server/admission/preadmission/masters/caste';
+import type { IMasterCasteList } from '@/types/admission/preadmission/masters';
 import { Plus, Trash2, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
@@ -120,7 +120,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
             } else {
                 toast.error(res.message || 'Failed to delete Master Caste');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while deleting');
         } finally {
             setIsDeleting(false);
@@ -196,8 +196,8 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the caste{' '}
-                            <span className='font-bold text-foreground'>"{selectedRow?.imC_CasteName}"</span> and remove it
-                            from our servers.
+                            <span className='font-bold text-foreground'>"{selectedRow?.imC_CasteName}"</span> and remove it from our
+                            servers.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -3,15 +3,9 @@
 import { api } from '@/lib/apiService';
 
 export async function getCharacterLoadData() {
+    const res = await api.get<any>('admission', '/StudyCertificate/get_loaddata');
 
-    try {
-        const res = await api.get<any>('admission', '/StudyCertificate/get_loaddata');
-
-        return res;
-    } catch (e: any) {
-
-        throw e;
-    }
+    return res;
 }
 
 export async function getCharacterSearchFilter(data: {
@@ -24,15 +18,9 @@ export async function getCharacterSearchFilter(data: {
     allorindid: string;
 }) {
     const url = `/HHSStudyCertificate/searchfilter?ASMAY_Id=${data.ASMAY_Id}&AMST_SOL=${data.AMST_SOL}&ASMCL_Id=${data.ASMCL_Id}&ASMS_Id=${data.ASMS_Id}&searchfilter=${data.searchfilter}&allorindid=${data.allorindid}`;
+    const res = await api.post<any>('admission', url, {});
 
-    try {
-        const res = await api.post<any>('admission', url, {});
-
-        return res;
-    } catch (e: any) {
-
-        throw e;
-    }
+    return res;
 }
 
 export async function getCharacterStudDetails(data: {
@@ -45,13 +33,7 @@ export async function getCharacterStudDetails(data: {
     const url = `/StudyCertificate/getStudData?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
     console.info('🔍 [SERVER] getCharacterStudDetails INITIATED');
     console.info('🔍 [SERVER] Target URL:', url);
+    const res = await api.post<any>('admission', url, {});
 
-    try {
-        const res = await api.post<any>('admission', url, {});
-
-        return res;
-    } catch (e: any) {
-
-        throw e;
-    }
+    return res;
 }

@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { format, isValid } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { format, isValid } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -35,15 +35,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         return (
             <Card className='mt-6'>
                 <CardContent className='flex h-40 items-center justify-center p-6'>
-                    <p className='text-gray-500 font-medium'>No records found for the selected criteria.</p>
+                    <p className='font-medium text-gray-500'>No records found for the selected criteria.</p>
                 </CardContent>
             </Card>
         );
     }
 
     // Helper: subjects for a student
-    const getStudentSubjects = (studentId: number) =>
-        (subList || []).filter((s: any) => Number(s.amsT_Id) === Number(studentId));
+    const getStudentSubjects = (studentId: number) => (subList || []).filter((s: any) => Number(s.amsT_Id) === Number(studentId));
 
     // Helper: Safe date formatting
     const formatDateSafe = (dateStr: string, formatStr: string) => {
@@ -54,24 +53,24 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     // ── Format 1 – Grid View (daily) ─────────────────────────────────────────
     const renderGridView = () => (
-        <div className='p-4 bg-white'>
-            <div className='text-center mb-6'>
+        <div className='bg-white p-4'>
+            <div className='mb-6 text-center'>
                 {imgname && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgname} alt='School Logo' className='max-w-[150px] mx-auto mb-2' />
+                    <img src={imgname} alt='School Logo' className='mx-auto mb-2 max-w-[150px]' />
                 )}
-                <h3 className='text-2xl font-bold uppercase'>Hall Ticket Report {accyear}</h3>
+                <h3 className='font-bold text-2xl uppercase'>Hall Ticket Report {accyear}</h3>
             </div>
 
             <table className='w-full border-collapse border border-black'>
                 <thead>
                     <tr className='bg-gray-100'>
-                        <th className='border border-black p-2 text-center text-sm font-bold'>Sl No</th>
-                        <th className='border border-black p-2 text-left text-sm font-bold'>Student Name</th>
-                        <th className='border border-black p-2 text-left text-sm font-bold'>Admn No</th>
-                        <th className='border border-black p-2 text-left text-sm font-bold'>Class</th>
-                        <th className='border border-black p-2 text-left text-sm font-bold'>Section</th>
-                        <th className='border border-black p-2 text-left text-sm font-bold'>Hall Ticket</th>
+                        <th className='border border-black p-2 text-center font-bold text-sm'>Sl No</th>
+                        <th className='border border-black p-2 text-left font-bold text-sm'>Student Name</th>
+                        <th className='border border-black p-2 text-left font-bold text-sm'>Admn No</th>
+                        <th className='border border-black p-2 text-left font-bold text-sm'>Class</th>
+                        <th className='border border-black p-2 text-left font-bold text-sm'>Section</th>
+                        <th className='border border-black p-2 text-left font-bold text-sm'>Hall Ticket</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,7 +102,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <div style={{ fontSize: '13px' }}> (Affiliated to the CBSE, Delhi) </div>
                         <div style={{ fontSize: '13px' }}> G M Global Village, Brahmavar, Udupi District, Karnataka - 576213 </div>
                         <div style={{ fontSize: '13px' }}> Mob: +91 9845317165, +91 7090737165 </div>
-                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}> {examname} - {accyear} </div>
+                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                            {' '}
+                            {examname} - {accyear}{' '}
+                        </div>
                         <div style={{ fontSize: '18px', fontWeight: 'bold', textDecoration: 'underline' }}> ADMIT CARD </div>
                     </div>
 
@@ -126,8 +128,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <div style={{ width: '120px', height: '140px', border: '1px solid #000', textAlign: 'center', overflow: 'hidden' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src={user.amsT_Photoname || "https://vapsclg.blob.core.windows.net/files/82/NoticeUpload/18c39d47-32e8-4baa-b66d-ef053750fe35.png"}
-                                alt="Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                src={
+                                    user.amsT_Photoname ||
+                                    'https://vapsclg.blob.core.windows.net/files/82/NoticeUpload/18c39d47-32e8-4baa-b66d-ef053750fe35.png'
+                                }
+                                alt='Student'
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         </div>
                     </div>
@@ -152,13 +158,24 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center' }}>
                                             {formatDateSafe(exm.exttS_Date, 'EEEE').toUpperCase()}
                                         </td>
-                                        <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'left' }}> {exm.ismS_SubjectName} </td>
-                                        <td style={{ border: '1px solid #000', padding: '8px' }}></td>
+                                        <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'left' }}>
+                                            {' '}
+                                            {exm.ismS_SubjectName}{' '}
+                                        </td>
+                                        <td style={{ border: '1px solid #000', padding: '8px' }} />
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} style={{ border: '1px solid #000', padding: '20px', textAlign: 'center', color: '#999', fontStyle: 'italic' }}>
+                                    <td
+                                        colSpan={4}
+                                        style={{
+                                            border: '1px solid #000',
+                                            padding: '20px',
+                                            textAlign: 'center',
+                                            color: '#999',
+                                            fontStyle: 'italic'
+                                        }}>
                                         No exam schedule available
                                     </td>
                                 </tr>
@@ -168,19 +185,29 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                     {/* SIGNATURES */}
                     <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                        <div style={{ width: '45%', textAlign: 'center', borderTop: '1px solid #000', paddingTop: '5px' }}> Candidate&apos;s Signature </div>
-                        <div style={{ width: '45%', textAlign: 'center', borderTop: '1px solid #000', paddingTop: '5px' }}> Parent&apos;s / Guardian&apos;s Signature </div>
+                        <div style={{ width: '45%', textAlign: 'center', borderTop: '1px solid #000', paddingTop: '5px' }}>
+                            {' '}
+                            Candidate&apos;s Signature{' '}
+                        </div>
+                        <div style={{ width: '45%', textAlign: 'center', borderTop: '1px solid #000', paddingTop: '5px' }}>
+                            {' '}
+                            Parent&apos;s / Guardian&apos;s Signature{' '}
+                        </div>
                     </div>
                     <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                         <div style={{ width: '45%', textAlign: 'center' }}>
                             <div style={{ height: '40px' }}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png" style={{ height: '40px', margin: '0 auto' }} alt="Principal Signature" />
+                                <img
+                                    src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png'
+                                    style={{ height: '40px', margin: '0 auto' }}
+                                    alt='Principal Signature'
+                                />
                             </div>
                             <div style={{ borderTop: '1px solid #000', paddingTop: '5px' }}> Principal&apos;s Signature </div>
                         </div>
                         <div style={{ width: '45%', textAlign: 'center' }}>
-                            <div style={{ height: '40px' }}></div>
+                            <div style={{ height: '40px' }} />
                             <div style={{ borderTop: '1px solid #000', paddingTop: '5px' }}> Class Teacher&apos;s Signature </div>
                         </div>
                     </div>
@@ -190,7 +217,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     return (
-        <Card className='mt-6 border-none shadow-none bg-transparent'>
+        <Card className='mt-6 border-none bg-transparent shadow-none'>
             <div className='no-print mb-4 flex items-center justify-between rounded-lg border bg-white px-6 py-3 shadow-sm'>
                 <h3 className='font-semibold text-lg'>Report Viewer</h3>
                 <div className='flex gap-2'>
@@ -200,7 +227,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 </div>
             </div>
 
-            <CardContent className='p-0 overflow-visible'>
+            <CardContent className='overflow-visible p-0'>
                 <div ref={printRef} className='print-container mx-auto p-4' style={{ maxWidth: '900px' }}>
                     {reportFormat === 'format1' && renderGridView()}
 
@@ -208,10 +235,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         mainList.map((user: any, index: number) => (
                             <div key={index}>
                                 {renderAdmitCard(user)}
-                                {index < mainList.length - 1 && <div className='page-break mb-8 border-b-2 border-dashed border-gray-300' />}
+                                {index < mainList.length - 1 && (
+                                    <div className='page-break mb-8 border-gray-300 border-b-2 border-dashed' />
+                                )}
                             </div>
-                        ))
-                    }
+                        ))}
                 </div>
             </CardContent>
 

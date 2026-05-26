@@ -5,7 +5,10 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCourseList, IMasterCourseSetOrderList } from '@/types/hrms/hrms-config/master';
 
 export async function getMasterCourse(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmC_QulaificationName,hrmC_QualificationDesc,hrmC_Order,hrmC_DefaultQualFag,hrmC_SpecialisationFlag');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'hrmC_QulaificationName,hrmC_QualificationDesc,hrmC_Order,hrmC_DefaultQualFag,hrmC_SpecialisationFlag'
+    );
     const url = `/api/MasterCourse?${urlParams}`;
     try {
         const response = await api.get<IMasterCourseList[]>('hrms', url);
@@ -42,15 +45,13 @@ export async function getCourseSetOrder() {
 }
 
 export async function updateCourseSetorder(data: any) {
-    console.log('🔙 [SERVER ACTION] updateCourseSetorder called with data:', JSON.stringify(data, null, 2));
     const url = '/api/MasterCourse/update_course_order_number';
     try {
         const response = await api.post<any>('hrms', url, data);
-        console.log('🔙 [SERVER ACTION] updateCourseSetorder response:', JSON.stringify(response, null, 2));
         return response;
     } catch (error: any) {
         console.error('🔙 [SERVER ACTION] updateCourseSetorder error:', error);
         // Throw an actual Error object instead of a string to avoid serialization issues in Next.js Server Actions
-        throw new Error(typeof error === 'string' ? error : (error?.message || 'An unknown error occurred during order update'));
+        throw new Error(typeof error === 'string' ? error : error?.message || 'An unknown error occurred during order update');
     }
 }

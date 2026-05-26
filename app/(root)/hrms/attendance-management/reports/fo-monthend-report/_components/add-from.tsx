@@ -76,7 +76,7 @@ export default function AddFOMonthEndReportForm({ onSuccess, className = '', sea
                     } else {
                         queryClient.setQueryData([HRMS_QUERY_KEYS.FO_MONTHEND_REPORT, searchParams ?? {}], response);
                     }
-                } catch (e) {
+                } catch (_e) {
                     // noop
                 }
                 reset();

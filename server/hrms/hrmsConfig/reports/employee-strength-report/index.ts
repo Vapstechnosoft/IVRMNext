@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeStrengthReportOnloadRequest,
     EmployeeStrengthReportOnloadResponse,
@@ -21,11 +21,9 @@ export async function getEmployeeStrengthReportOnload(
         MI_Id,
         LogInUserId
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<EmployeeStrengthReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -101,11 +99,9 @@ export async function searchEmployeeStrengthReport(
         fromDate: request.fromDate || '',
         toDate: request.toDate || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<EmployeeStrengthReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

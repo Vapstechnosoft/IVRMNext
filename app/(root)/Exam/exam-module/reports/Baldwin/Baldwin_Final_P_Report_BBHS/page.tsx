@@ -1,9 +1,9 @@
 'use client';
 
+import { getBBHSFinalPromotionReportBBHS } from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
 import { useState } from 'react';
 import { ReportForm } from '../_components/report-form';
 import { ReportList } from './_components/report-list';
-import { getBBHSFinalPromotionReportBBHS } from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
 
 export default function Baldwin_Final_P_Report_BBHS_Page() {
     const [reportData, setReportData] = useState<any>(null);
@@ -21,15 +21,13 @@ export default function Baldwin_Final_P_Report_BBHS_Page() {
 
     return (
         <div className='flex flex-col gap-6 p-4'>
-            <ReportForm 
-                title='Baldwin Final Promotion Report BBHS' 
-                onReportGenerated={handleReportGenerated} 
-                onReset={handleReset} 
+            <ReportForm
+                title='Baldwin Final Promotion Report BBHS'
+                onReportGenerated={handleReportGenerated}
+                onReset={handleReset}
                 apiAction={getBBHSFinalPromotionReportBBHS}
             />
-            {reportData && (
-                <ReportList data={reportData} params={reportParams} />
-            )}
+            {reportData && <ReportList data={reportData} params={reportParams} />}
         </div>
     );
 }

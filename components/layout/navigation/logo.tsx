@@ -16,7 +16,7 @@ export default function Logo({ className = '', herf = '', size = 'text' }: LogoP
                 alt='VAPS Logo'
                 width={200}
                 height={50}
-                className="h-10 w-auto object-contain brightness-110 contrast-110 drop-shadow-sm transition-all duration-300 hover:scale-[1.02]"
+                className='h-10 w-auto object-contain brightness-110 contrast-110 drop-shadow-sm transition-all duration-300 hover:scale-[1.02]'
                 priority
             />
         </div>

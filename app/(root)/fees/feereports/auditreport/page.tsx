@@ -28,7 +28,7 @@ interface IAcademicYear {
 }
 
 export default function FeeAuditReport() {
-    const [loading, setLoading] = useState(false);
+    const [_loading, _setLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         fromDate: new Date(),
@@ -59,15 +59,15 @@ export default function FeeAuditReport() {
     //const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     //const [reportData, setReportData] = useState<any>([]);
 
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [_reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [reportData, setReportData] = useState<auditreportow[]>([]);
 
-    const [fromDate, setFromDate] = useState<Date>(new Date());
+    const [_fromDate, _setFromDate] = useState<Date>(new Date());
 
-    const [toDate, setToDate] = useState<Date>(new Date());
+    const [_toDate, _setToDate] = useState<Date>(new Date());
 
     type auditreportow = {
         id: number;
@@ -183,8 +183,6 @@ export default function FeeAuditReport() {
             // toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
             flag: filters.breakdown
         };
-
-        console.log('payload', payload);
         const response = await getAuditReport(payload);
 
         if (!response?.success || !Array.isArray(response.data)) {

@@ -1,9 +1,9 @@
 'use server';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     LeaveOpeningBalanceEntry,
-    SaveLeaveOpeningBalancePayload,
-    LeaveOpeningBalanceSearch
+    LeaveOpeningBalanceSearch,
+    SaveLeaveOpeningBalancePayload
 } from '@/types/hrms/leave-management/transaction/leave-opening-balance';
 
 /**
@@ -16,8 +16,6 @@ export async function getEmployeeLeaveOpeningBalanceGrid(
     const baseUrl = '/api/LeaveOpeningBalance/get_employee_leave_opening_balance_grid';
     const queryParams = getSearchParamsUrl(searchParams);
     const url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
-
-    console.log('🔵 [SERVER] LeaveOpeningBalance - Requesting:', url);
     try {
         const response = await api.get<any>('hmslms', url);
         const res = response as any;
@@ -50,11 +48,8 @@ export async function getEmployeeLeaveOpeningBalanceGrid(
  * Add or update employee leave opening balance
  * POST /api/LeaveOpeningBalance/add_or_update_emp_leave_opening_balance
  */
-export async function addOrUpdateEmpLeaveOpeningBalance(
-    payload: SaveLeaveOpeningBalancePayload
-): Promise<ApiResponse<any>> {
+export async function addOrUpdateEmpLeaveOpeningBalance(payload: SaveLeaveOpeningBalancePayload): Promise<ApiResponse<any>> {
     const url = '/api/LeaveOpeningBalance/add_or_update_emp_leave_opening_balance';
-    console.log('🟠 [SERVER] LeaveOpeningBalance - Saving:', url, payload);
     try {
         const response = await api.post<any>('hmslms', url, payload);
         const res = response as any;
@@ -77,7 +72,6 @@ export async function addOrUpdateEmpLeaveOpeningBalance(
  */
 export async function deleteEmpLeaveOpeningBalance(hreobl_id: number): Promise<ApiResponse<any>> {
     const url = `/api/LeaveOpeningBalance/delete_emp_leave_opening_balance/${hreobl_id}`;
-    console.log('🔴 [SERVER] LeaveOpeningBalance - Deleting:', url);
     try {
         const response = await api.delete<any>('hmslms', url);
         const res = response as any;

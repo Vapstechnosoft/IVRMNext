@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 export default function SophiaReportCardPreView({ data }: { data: any }) {
     if (!data || !data.getstudentdetails || data.getstudentdetails.length === 0) {
@@ -20,7 +19,7 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
     const institution = data.getinstitution?.[0] || {};
     const students = data.getstudentdetails || [];
     const scholasticData = data.getstudentwisesubjectlist || [];
-    const performanceMarks = data.getstudentmarksdetails || [];
+    const _performanceMarks = data.getstudentmarksdetails || [];
     const remarksData = data.getpromotionremarksdetails || [];
     const classTeacherData = data.clstchname || [];
 
@@ -67,7 +66,7 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                 }
             `}</style>
 
-            <div className='no-print flex justify-end pb-1 pr-4 pt-2'>
+            <div className='no-print flex justify-end pt-2 pr-4 pb-1'>
                 <Button onClick={handlePrint} size='sm' className='flex w-auto items-center gap-1 px-3 py-1 text-xs'>
                     <Printer className='h-3 w-3' /> Print
                 </Button>
@@ -75,14 +74,32 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
 
             <div id='sopia-print-area'>
                 {students.map((student: any, index: number) => (
-                    <div key={student.amsT_Id} className={index < students.length - 1 ? 'page-break' : ''} style={{ padding: '10px 20px', marginTop: '40px' }}>
+                    <div
+                        key={student.amsT_Id}
+                        className={index < students.length - 1 ? 'page-break' : ''}
+                        style={{ padding: '10px 20px', marginTop: '40px' }}>
                         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
-                             {institution.mI_Logo && (
-                                <img src={institution.mI_Logo} alt="School Logo" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '-60px', maxHeight: '100px' }} />
+                            {institution.mI_Logo && (
+                                <img
+                                    src={institution.mI_Logo}
+                                    alt='School Logo'
+                                    style={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        top: '-60px',
+                                        maxHeight: '100px'
+                                    }}
+                                />
                             )}
-                            <br /><br /><br /><br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
                             <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{institution.mI_Name}</div>
-                            <div style={{ fontSize: '14px' }}>{institution.mI_Address1}, {institution.mI_Address2}, {institution.ivrmmcT_Name} - {institution.mI_Pincode}</div>
+                            <div style={{ fontSize: '14px' }}>
+                                {institution.mI_Address1}, {institution.mI_Address2}, {institution.ivrmmcT_Name} - {institution.mI_Pincode}
+                            </div>
                             <div style={{ fontWeight: 'bold', textAlign: 'center', marginTop: '10px' }}>REPORT CARD</div>
                             <div style={{ position: 'absolute', top: 50, right: 0 }}>2025-2026</div>
                         </div>
@@ -99,7 +116,9 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '35%' }}>Class &amp; Division</div>
-                                                    <div style={{ marginLeft: '-5%' }}>: {student.className} {student.sectionName}</div>
+                                                    <div style={{ marginLeft: '-5%' }}>
+                                                        : {student.className} {student.sectionName}
+                                                    </div>
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '35%' }}>Date of Birth</div>
@@ -121,7 +140,9 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '60%' }}>Attendance</div>
-                                                    <div>: {student.presentDays || '-'}/{student.totalWorkingDays || '-'}</div>
+                                                    <div>
+                                                        : {student.presentDays || '-'}/{student.totalWorkingDays || '-'}
+                                                    </div>
                                                 </div>
                                                 <div style={{ display: 'flex', lineHeight: '1.6' }}>
                                                     <div style={{ width: '60%' }}>Attendance %</div>
@@ -137,14 +158,24 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                         <table className='soph-tablecustom' style={{ width: '100%', marginTop: '0' }}>
                             <tbody className='table-bordered'>
                                 <tr>
-                                    <td rowSpan={2} width='20' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Sl.No</td>
-                                    <td width='400' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Subjects</td>
-                                    <td colSpan={3} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Marks</td>
-                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>Remarks</td>
+                                    <td rowSpan={2} width='20' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Sl.No
+                                    </td>
+                                    <td width='400' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Subjects
+                                    </td>
+                                    <td colSpan={3} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Marks
+                                    </td>
+                                    <td width='180' rowSpan={2} style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                        Remarks
+                                    </td>
                                 </tr>
                                 <tr>
                                     {['Max', 'Min', 'Obtained'].map((h, i) => (
-                                        <td key={i} width='70' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>{h}</td>
+                                        <td key={i} width='70' style={{ textAlign: 'center', height: '40px', fontWeight: 'bold' }}>
+                                            {h}
+                                        </td>
                                     ))}
                                 </tr>
                             </tbody>
@@ -154,11 +185,17 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                                 .map((r: any, rIdx: number) => (
                                     <tbody key={rIdx}>
                                         <tr style={{ lineHeight: '0.5em', height: '1em' }}>
-                                            <td style={{ textAlign: 'center' }}><b>{rIdx + 1}</b></td>
-                                            <td style={{ textAlign: 'left' }}><b>{r.subjectName}</b></td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <b>{rIdx + 1}</b>
+                                            </td>
+                                            <td style={{ textAlign: 'left' }}>
+                                                <b>{r.subjectName}</b>
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>{r.subjectMaxMarks}</td>
                                             <td style={{ textAlign: 'center' }}>{r.subjectMinMarks || '-'}</td>
-                                            <td style={{ textAlign: 'center' }}><b>{r.subjectObtainedMarks}</b></td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                <b>{r.subjectObtainedMarks}</b>
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>{r.subjectGrade}</td>
                                         </tr>
                                     </tbody>
@@ -167,7 +204,9 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                             <tbody>
                                 <tr style={{ height: '20px' }}>
                                     <td>&nbsp;</td>
-                                    <td style={{ textAlign: 'right' }}><b>TOTAL</b></td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        <b>TOTAL</b>
+                                    </td>
                                     <td style={{ textAlign: 'center' }}>{student.overallMaxMarks || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>-</td>
                                     <td style={{ textAlign: 'center' }}>{student.overallObtainedMarks || '-'}</td>
@@ -192,11 +231,12 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                         </table>
 
                         <div style={{ marginTop: '6px' }}>
-                             <table style={{ border: '0.5px solid grey', width: '100%' }}>
+                            <table style={{ border: '0.5px solid grey', width: '100%' }}>
                                 <tbody>
                                     <tr style={{ height: '60px', verticalAlign: 'top' }}>
                                         <td style={{ padding: '4px 6px' }}>
-                                            Teacher&apos;s Remarks : <strong>{remarksData.find((r: any) => r.amsT_Id === student.amsT_Id)?.remarks || ''}</strong>
+                                            Teacher&apos;s Remarks :{' '}
+                                            <strong>{remarksData.find((r: any) => r.amsT_Id === student.amsT_Id)?.remarks || ''}</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -206,7 +246,9 @@ export default function SophiaReportCardPreView({ data }: { data: any }) {
                                 <tbody>
                                     <tr style={{ height: '60px' }}>
                                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', width: '33.33%' }}>
-                                            <div style={{ fontWeight: 'bold' }}>{classTeacherData[0]?.hrmE_EmployeeFirstName || 'CLASS TEACHER'}</div>
+                                            <div style={{ fontWeight: 'bold' }}>
+                                                {classTeacherData[0]?.hrmE_EmployeeFirstName || 'CLASS TEACHER'}
+                                            </div>
                                             <div>CLASS TEACHER</div>
                                         </td>
                                         <td style={{ verticalAlign: 'bottom', textAlign: 'center', width: '33.33%' }}>PRINCIPAL</td>

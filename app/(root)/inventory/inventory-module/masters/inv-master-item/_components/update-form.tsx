@@ -1,25 +1,19 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item';
-import { invMasterItemSchema, type TInvMasterItem } from '@/schemas/inventory/masters/inv-master-item';
-import { saveInvMasterItem, getItemTax } from '@/server/inventory/masters/inv-master-item';
-import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item';
+import { type TInvMasterItem, invMasterItemSchema } from '@/schemas/inventory/masters/inv-master-item';
+import { getItemTax, saveInvMasterItem } from '@/server/inventory/masters/inv-master-item';
 import type { IInvMasterItem } from '@/types/inventory/masters/inv-master-item';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface UpdateInvMasterItemFormProps {
     onSuccess: () => void;
@@ -67,13 +61,11 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
             invmI_MaintenanceAplFlg: selectedRow.invmI_MaintenanceAplFlg,
             famcomP_Id: selectedRow.famcomP_Id || 0,
             famleD_Id: selectedRow.famleD_Id || 0,
-            tax_Applicable: [],
+            tax_Applicable: []
         }
     });
 
     const isTaxApplied = watch('invmI_TaxAplFlg');
-
-
 
     useEffect(() => {
         if (selectedRow.invmG_Id && dropdowns.get_maingroup) {
@@ -124,11 +116,11 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
     }, [selectedRow]);
 
     const onTaxToggle = (taxId: number, checked: boolean) => {
-        setSelectedTaxes(prev => ({ ...prev, [taxId]: checked }));
+        setSelectedTaxes((prev) => ({ ...prev, [taxId]: checked }));
     };
 
     const onTaxValueChange = (taxId: number, value: string) => {
-        setTaxValues(prev => ({ ...prev, [taxId]: parseFloat(value) || 0 }));
+        setTaxValues((prev) => ({ ...prev, [taxId]: Number.parseFloat(value) || 0 }));
     };
 
     const onSubmit = async (data: TInvMasterItem) => {
@@ -151,7 +143,12 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
             const res = result as any;
 
             if (res.success || res.returnval === true) {
-                const msg = typeof res.message === 'string' ? res.message : (typeof res.returnval === 'string' ? res.returnval : 'Record updated successfully');
+                const msg =
+                    typeof res.message === 'string'
+                        ? res.message
+                        : typeof res.returnval === 'string'
+                          ? res.returnval
+                          : 'Record updated successfully';
                 toast.success(msg);
                 setTimeout(() => {
                     window.location.reload();
@@ -169,19 +166,18 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>Group <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Group <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmG_Id'
                             control={control}
                             render={({ field }) => (
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString() || ''}
-                                >
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
                                     <SelectTrigger className={errors.invmG_Id ? 'border-red-500' : ''}>
                                         <SelectValue placeholder='Select Group' />
                                     </SelectTrigger>
@@ -199,7 +195,9 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Item Name <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Item Name <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmI_ItemName'
                             control={control}
@@ -268,7 +266,9 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                 {/* Right Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <Label>UOM <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            UOM <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='invmuoM_Id'
                             control={control}
@@ -278,7 +278,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                                         <SelectValue placeholder='Select UOM' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns.get_UOM?.map(uom => (
+                                        {dropdowns.get_UOM?.map((uom) => (
                                             <SelectItem key={uom.invmuoM_Id} value={uom.invmuoM_Id?.toString() || uom.invmuoM_Id || ''}>
                                                 {uom.invmuoM_UOMName}
                                             </SelectItem>
@@ -295,9 +295,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                         <Controller
                             name='invmI_ItemCode'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} placeholder='Enter Item Code' value={field.value || ''} />
-                            )}
+                            render={({ field }) => <Input {...field} placeholder='Enter Item Code' value={field.value || ''} />}
                         />
                     </div>
 
@@ -317,9 +315,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                         <Controller
                             name='invmI_HSNCode'
                             control={control}
-                            render={({ field }) => (
-                                <Input {...field} placeholder='Enter HSN Code' value={field.value || ''} />
-                            )}
+                            render={({ field }) => <Input {...field} placeholder='Enter HSN Code' value={field.value || ''} />}
                         />
                     </div>
                 </div>
@@ -327,9 +323,9 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
 
             {/* Tax Grid Section */}
             {isTaxApplied && dropdowns.get_tax?.length > 0 && (
-                <div className='mt-8 border rounded-lg p-4 bg-muted/30'>
-                    <h3 className='text-sm font-semibold mb-3'>Tax Details {isLoadingTaxes && '(Loading existing...)'}</h3>
-                    <div className='max-h-[300px] overflow-auto border rounded'>
+                <div className='mt-8 rounded-lg border bg-muted/30 p-4'>
+                    <h3 className='mb-3 font-semibold text-sm'>Tax Details {isLoadingTaxes && '(Loading existing...)'}</h3>
+                    <div className='max-h-[300px] overflow-auto rounded border'>
                         <Table>
                             <TableHeader className='bg-muted'>
                                 <TableRow>
@@ -370,7 +366,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                 </div>
             )}
 
-            <div className='flex justify-end gap-3 pt-4 border-t'>
+            <div className='flex justify-end gap-3 border-t pt-4'>
                 <Button type='button' variant='outline' onClick={onSuccess}>
                     Cancel
                 </Button>

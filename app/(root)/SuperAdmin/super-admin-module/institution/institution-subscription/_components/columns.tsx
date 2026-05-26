@@ -1,13 +1,13 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
-import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>[] = [
     {
@@ -65,16 +65,16 @@ export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>
                     rowData={row.original}
                     buttons={{ edit: true, toggle: true, delete: false }}
                     toggleConditionKey='misV_ActiveFlag'
-                    onEdit={(data) => console.log('Edit', data)}
-                    onToggle={(data, checked) => console.log('Toggle', data, checked)}
+                    onEdit={(_data) => }
+                    onToggle={(_data, _checked) => }
                 />
                 {row.original.misV_ActiveFlag && row.original.misV_ApprovalFlag !== 'P' && (
                     <Button
                         variant='ghost'
                         size='icon'
-                        onClick={() => console.log('Renewal Request', row.original)}
+                        onClick={() => }
                         title='Renewal Request'
-                        className='text-green-600 hover:text-green-700 hover:bg-green-50'
+                        className='text-green-600 hover:bg-green-50 hover:text-green-700'
                     >
                         <RefreshCw className='h-4 w-4' />
                     </Button>

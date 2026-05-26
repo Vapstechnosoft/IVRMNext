@@ -81,8 +81,8 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
     });
 
     const schoolCollegeFlag = useWatch({ control, name: 'mI_SchoolCollegeFlag' });
-    const naacType = useWatch({ control, name: 'mI_NAAC_InstitutionTypeFlg' });
-    const vcDetailsWatch = useWatch({ control, name: 'vcDetails' });
+    const _naacType = useWatch({ control, name: 'mI_NAAC_InstitutionTypeFlg' });
+    const _vcDetailsWatch = useWatch({ control, name: 'vcDetails' });
     const countryId = useWatch({ control, name: 'ivrmmC_Id' });
 
     const [showMSTeams, setShowMSTeams] = React.useState(false);
@@ -132,9 +132,8 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
     const { fields: smsEmailFields, append: appendSmsEmail, remove: removeSmsEmail } = useFieldArray({ control, name: 'emails1' });
     const { fields: vcFields, replace: replaceVC } = useFieldArray({ control, name: 'vcDetails' });
 
-    const onSubmit = async (data: FormFields) => {
+    const onSubmit = async (_data: FormFields) => {
         try {
-            console.log('Form Data:', data);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             toast.success('Institution Master added successfully (Simulation)');
             reset();

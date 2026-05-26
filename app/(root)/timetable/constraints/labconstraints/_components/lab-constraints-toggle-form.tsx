@@ -46,8 +46,6 @@ export default function LabConstraintsToggleForm({ isOpen, onClose, onConfirm, d
             await onConfirm();
             closeDialog();
         } catch (error: any) {
-            console.log('FULL ERROR:', error);
-
             const errorMessage = error?.response?.data?.message || error?.message || 'Something went wrong';
 
             toast.error(errorMessage);

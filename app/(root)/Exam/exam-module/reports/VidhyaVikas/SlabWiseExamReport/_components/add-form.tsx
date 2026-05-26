@@ -1,23 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm, Controller, FormProvider, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label, FormError } from '@/components/ui/extension/field';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
-import { slabWiseExamReportSchema, type SlabWiseExamReportValues } from '@/schemas/exam/exam-module/reports/vidhya-vikas/slab-wise-exam-report.schema';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    type SlabWiseExamReportValues,
+    slabWiseExamReportSchema
+} from '@/schemas/exam/exam-module/reports/vidhya-vikas/slab-wise-exam-report.schema';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getInitialData, getSubjects } from '@/server/exam/exam-module/reports/slab-wise-exam-report';
-import { RefreshCcw, FileText, Printer } from 'lucide-react';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getSubjects } from '@/server/exam/exam-module/reports/slab-wise-exam-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Printer, RefreshCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function SlabWiseExamReportForm({
     onSuccess,
@@ -40,7 +43,13 @@ export default function SlabWiseExamReportForm({
         }
     });
 
-    const { control, handleSubmit, setValue, reset, formState: { isSubmitting } } = methods;
+    const {
+        control,
+        handleSubmit,
+        setValue,
+        reset,
+        formState: { isSubmitting }
+    } = methods;
 
     const [years, setYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
@@ -81,7 +90,7 @@ export default function SlabWiseExamReportForm({
                         setValue('asmS_Id', 0);
                         setValue('emE_Id', 0);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to load classes');
                 } finally {
                     setLoadingClasses(false);
@@ -104,7 +113,7 @@ export default function SlabWiseExamReportForm({
                         setValue('asmS_Id', 0);
                         setValue('emE_Id', 0);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to load sections');
                 } finally {
                     setLoadingSections(false);
@@ -126,7 +135,7 @@ export default function SlabWiseExamReportForm({
                         setExams(response.data);
                         setValue('emE_Id', 0);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to load exams');
                 } finally {
                     setLoadingExams(false);
@@ -153,7 +162,7 @@ export default function SlabWiseExamReportForm({
                     if (response.success && response.data) {
                         setSubjects(response.data.subjectlist || []);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to load subjects');
                 } finally {
                     setLoadingSubjects(false);
@@ -170,50 +179,51 @@ export default function SlabWiseExamReportForm({
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="rounded-lg border bg-card p-6 shadow-sm">
-                    <div className="mb-6 flex items-center justify-between border-b pb-4">
-                        <h3 className="font-semibold text-lg">Slab Wise Exam Marks Report</h3>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='rounded-lg border bg-card p-6 shadow-sm'>
+                    <div className='mb-6 flex items-center justify-between border-b pb-4'>
+                        <h3 className='font-semibold text-lg'>Slab Wise Exam Marks Report</h3>
                     </div>
 
-                    <div className="mb-6 flex justify-center space-x-8 rounded-md bg-muted/50 p-4">
+                    <div className='mb-6 flex justify-center space-x-8 rounded-md bg-muted/50 p-4'>
                         <Controller
                             control={control}
-                            name="reporttype"
+                            name='reporttype'
                             render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    className="flex items-center space-x-6"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Marks" id="marks" />
-                                        <Label htmlFor="marks" className="cursor-pointer">Between Marks</Label>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center space-x-6'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Marks' id='marks' />
+                                        <Label htmlFor='marks' className='cursor-pointer'>
+                                            Between Marks
+                                        </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Percentage" id="percentage" />
-                                        <Label htmlFor="percentage" className="cursor-pointer">Between Percentage</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Percentage' id='percentage' />
+                                        <Label htmlFor='percentage' className='cursor-pointer'>
+                                            Between Percentage
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div className="space-y-4">
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-4'>
                             <Controller
                                 control={control}
-                                name="asmaY_Id"
+                                name='asmaY_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>Academic Year <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Academic Year <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Select
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value ? String(field.value) : undefined}
-                                            disabled={academicYearLoading}
-                                        >
+                                            disabled={academicYearLoading}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={academicYearLoading ? "Loading..." : "Select Academic Year"} />
+                                                <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {years.map((y) => (
@@ -230,17 +240,18 @@ export default function SlabWiseExamReportForm({
 
                             <Controller
                                 control={control}
-                                name="asmS_Id"
+                                name='asmS_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>Section <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Section <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Select
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value ? String(field.value) : undefined}
-                                            disabled={loadingSections}
-                                        >
+                                            disabled={loadingSections}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingSections ? "Loading Sections..." : "Select Section"} />
+                                                <SelectValue placeholder={loadingSections ? 'Loading Sections...' : 'Select Section'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sections.map((s) => (
@@ -256,20 +267,21 @@ export default function SlabWiseExamReportForm({
                             />
                         </div>
 
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             <Controller
                                 control={control}
-                                name="asmcL_Id"
+                                name='asmcL_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>Class <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Class <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Select
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value ? String(field.value) : undefined}
-                                            disabled={loadingClasses}
-                                        >
+                                            disabled={loadingClasses}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingClasses ? "Loading Classes..." : "Select Class"} />
+                                                <SelectValue placeholder={loadingClasses ? 'Loading Classes...' : 'Select Class'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {classes.map((c) => (
@@ -286,17 +298,18 @@ export default function SlabWiseExamReportForm({
 
                             <Controller
                                 control={control}
-                                name="emE_Id"
+                                name='emE_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>Exam Name <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Exam Name <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Select
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value ? String(field.value) : undefined}
-                                            disabled={loadingExams}
-                                        >
+                                            disabled={loadingExams}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingExams ? "Loading Exams..." : "Select Exam Name"} />
+                                                <SelectValue placeholder={loadingExams ? 'Loading Exams...' : 'Select Exam Name'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {exams.map((e) => (
@@ -313,21 +326,22 @@ export default function SlabWiseExamReportForm({
                         </div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {watchReportType === 'Marks' && (
                             <Controller
                                 control={control}
-                                name="ISMS_Id"
+                                name='ISMS_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>Select Subject <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            Select Subject <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Select
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value ? String(field.value) : undefined}
-                                            disabled={loadingSubjects}
-                                        >
+                                            disabled={loadingSubjects}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingSubjects ? "Loading subjects..." : "Select Subject"} />
+                                                <SelectValue placeholder={loadingSubjects ? 'Loading subjects...' : 'Select Subject'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {subjects.map((s) => (
@@ -343,15 +357,18 @@ export default function SlabWiseExamReportForm({
                             />
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className='grid grid-cols-2 gap-4'>
                             <Controller
                                 control={control}
-                                name="frommarks"
+                                name='frommarks'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>{watchReportType === 'Marks' ? 'From Marks' : 'From %'} <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            {watchReportType === 'Marks' ? 'From Marks' : 'From %'}{' '}
+                                            <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
-                                            type="number"
+                                            type='number'
                                             placeholder={watchReportType === 'Marks' ? 'From Marks' : 'From %'}
                                             {...field}
                                             onChange={(e) => field.onChange(Number(e.target.value))}
@@ -362,12 +379,14 @@ export default function SlabWiseExamReportForm({
                             />
                             <Controller
                                 control={control}
-                                name="tomarks"
+                                name='tomarks'
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-2">
-                                        <Label>{watchReportType === 'Marks' ? 'To Marks' : 'To %'} <span className="text-destructive">*</span></Label>
+                                    <div className='space-y-2'>
+                                        <Label>
+                                            {watchReportType === 'Marks' ? 'To Marks' : 'To %'} <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
-                                            type="number"
+                                            type='number'
                                             placeholder={watchReportType === 'Marks' ? 'To Marks' : 'To %'}
                                             {...field}
                                             onChange={(e) => field.onChange(Number(e.target.value))}
@@ -379,31 +398,17 @@ export default function SlabWiseExamReportForm({
                         </div>
                     </div>
 
-                    <div className="mt-8 flex justify-center space-x-4 border-t pt-6">
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-32"
-                        >
-                            <FileText className="mr-2 h-4 w-4" />
+                    <div className='mt-8 flex justify-center space-x-4 border-t pt-6'>
+                        <Button type='submit' disabled={isSubmitting} className='w-32'>
+                            <FileText className='mr-2 h-4 w-4' />
                             Report
                         </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => reset()}
-                            className="w-32"
-                        >
-                            <RefreshCcw className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='secondary' onClick={() => reset()} className='w-32'>
+                            <RefreshCcw className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onPrint}
-                            className="w-32"
-                        >
-                            <Printer className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='outline' onClick={onPrint} className='w-32'>
+                            <Printer className='mr-2 h-4 w-4' />
                             Print
                         </Button>
                     </div>

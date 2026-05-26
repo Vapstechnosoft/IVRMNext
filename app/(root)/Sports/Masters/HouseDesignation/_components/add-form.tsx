@@ -28,14 +28,15 @@ export default function AddMasterHouseDesignationForm({ onSuccess }: AddMasterHo
 
                     // Robust success check for IVRM backend responses
                     const msg = (response?.message || response?.Message || '') as string;
-                    const isSuccess = response?.success || 
-                                     response?.returnval == true || 
-                                     response?.returnVal == true ||
-                                     response?.returnVal === 'saved' || 
-                                     response?.returnVal === 'updated' || 
-                                     msg.toLowerCase() === 'saved' ||
-                                     msg.toLowerCase() === 'updated' ||
-                                     msg.toLowerCase().includes('success');
+                    const isSuccess =
+                        response?.success ||
+                        response?.returnval === true ||
+                        response?.returnVal === true ||
+                        response?.returnVal === 'saved' ||
+                        response?.returnVal === 'updated' ||
+                        msg.toLowerCase() === 'saved' ||
+                        msg.toLowerCase() === 'updated' ||
+                        msg.toLowerCase().includes('success');
 
                     if (isSuccess) {
                         toast.success('Record saved successfully');

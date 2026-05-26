@@ -89,9 +89,9 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
         }
     };
 
-    const fetchSubjects = async (yearId: number, categoryId: number, classId: number, sectionId: number, staffId: number) => {
+    const fetchSubjects = async (_yearId: number, _categoryId: number, _classId: number, _sectionId: number, _staffId: number) => {
         try {
-            const res = await getSubjectDropDown();
+            const _res = await getSubjectDropDown();
             const list = extractList('subjectlist');
             setSubjectList(filterData(list || [], 'ismS_SubjectName'));
         } catch (error) {

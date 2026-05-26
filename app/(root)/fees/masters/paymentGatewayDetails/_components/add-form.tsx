@@ -98,8 +98,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                 fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
             };
 
-            console.log('Payload to be sent:', JSON.stringify(payload));
-
             const response = await addOrUpdatepaymentgatewaydetails(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -131,13 +129,13 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
     const [submerchantIds, setSubmerchantIds] = useState([{ id: '' }]);
 
-    const handleChange = (index: number, value: string) => {
+    const _handleChange = (index: number, value: string) => {
         const updated = [...submerchantIds];
         updated[index].id = value;
         setSubmerchantIds(updated);
     };
 
-    const addNew = () => {
+    const _addNew = () => {
         if (submerchantIds.length < 5) {
             setSubmerchantIds([...submerchantIds, { id: '' }]);
         }

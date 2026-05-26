@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
-
 
 export default function GmvpsPromotionReportCardPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -12,12 +11,7 @@ export default function GmvpsPromotionReportCardPage() {
     const [generatedDate, setGeneratedDate] = useState<Date | undefined>(undefined);
     const listRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = (
-        data: any, 
-        year: string, 
-        analysis: boolean,
-        gDate?: Date
-    ) => {
+    const handleReportGenerated = (data: any, year: string, analysis: boolean, gDate?: Date) => {
         setReportData(data);
         setAcademicYear(year);
         setPerformanceAnalysis(analysis);
@@ -40,15 +34,15 @@ export default function GmvpsPromotionReportCardPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-700">
-            <div className="grid grid-cols-1 gap-8">
-                <section className="transition-all duration-500">
+        <div className='fade-in container mx-auto animate-in space-y-8 py-8 duration-700'>
+            <div className='grid grid-cols-1 gap-8'>
+                <section className='transition-all duration-500'>
                     <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
                 </section>
 
-                <div ref={listRef} className="transition-all duration-500">
+                <div ref={listRef} className='transition-all duration-500'>
                     {reportData && (
-                        <section className="animate-in slide-in-from-bottom-4 duration-500">
+                        <section className='slide-in-from-bottom-4 animate-in duration-500'>
                             <ReportList
                                 data={reportData}
                                 academicYear={academicYear}

@@ -1,14 +1,14 @@
 'use client';
 
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Button } from '@/components/ui/button';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
 import { invMasterTaxSchema } from '@/schemas/inventory/masters/inv-master-tax';
 import { saveInvMasterTax } from '@/server/inventory/masters/inv-master-tax';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface AddInvMasterTaxFormProps {
     onSuccess: () => void;
@@ -31,12 +31,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
         }
     });
 
-
-
-
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log("AddInvMasterTaxForm: Submitting data", data); // DEBUG LOG
         try {
             // Using PascalCase for payload as requested
             const payload = {
@@ -45,7 +40,6 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
                 INVMT_TaxAliasName: data.INVMT_TaxAliasName,
                 INVMT_ActiveFlg: true
             };
-            console.log("AddInvMasterTaxForm: Payload", payload); // DEBUG LOG
 
             const result = await saveInvMasterTax(payload);
 

@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type CalcuttaPromotionReportItoIXSchema, calcuttaPromotionReportItoIXSchema } from '@/schemas/exam/exam-module/reports';
 import {
@@ -54,7 +54,7 @@ export default function CalcuttaPromotionReportForm({
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     // set academic years
     useEffect(() => {
@@ -127,9 +127,7 @@ export default function CalcuttaPromotionReportForm({
                     selectedSection
                 );
 
-                const valid = Array.isArray(studentRes.data)
-                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(studentRes.data) ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id) : [];
 
                 const formattedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
@@ -157,9 +155,9 @@ export default function CalcuttaPromotionReportForm({
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
-            Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
+            Temp_AmstIds: data.studentList.map((s) => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: '',
-            flag: "4",
+            flag: '4',
             academicDate: data.academicDate,
             issueDate: data.issueDate,
             reportPrintedDate: data.reportPrintedDate
@@ -308,11 +306,7 @@ export default function CalcuttaPromotionReportForm({
                                             New Academic Date <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                                placeholder='Select Date'
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -324,15 +318,9 @@ export default function CalcuttaPromotionReportForm({
                                 name='reportPrintedDate'
                                 render={({ field, fieldState }) => (
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-44'>
-                                            Report Printed On
-                                        </Label>
+                                        <Label className='font-medium text-sm sm:w-44'>Report Printed On</Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                                placeholder='Select Date'
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -348,11 +336,7 @@ export default function CalcuttaPromotionReportForm({
                                             Issue Date <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                                placeholder='Select Date'
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -390,9 +374,9 @@ export default function CalcuttaPromotionReportForm({
                                                     value: s.amsT_Id.toString()
                                                 }))}
                                                 onChange={(selectedValues) => {
-                                                    field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
+                                                    field.onChange(selectedValues.map((id) => ({ amsT_Id: Number(id) })));
                                                 }}
-                                                value={field.value?.map(v => String(v.amsT_Id)) ?? []}
+                                                value={field.value?.map((v) => String(v.amsT_Id)) ?? []}
                                                 placeholder='Select Students'
                                                 height='300px'
                                                 isSearchRequired

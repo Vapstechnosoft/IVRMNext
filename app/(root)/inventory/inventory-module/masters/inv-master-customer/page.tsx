@@ -1,18 +1,18 @@
 'use client';
 
-import { use } from 'react';
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Users, PlusCircle, Pencil } from 'lucide-react';
-import { Heading } from '@/components/layout/heading';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
-import { invMasterCustomerColumns } from './_components/columns';
-import AddCustomerForm from './_components/add-form';
-import UpdateCustomerForm from './_components/update-form';
-import { ToggleCustomerModal } from './_components/toggle-form';
 import type { IInvMasterCustomer } from '@/types/inventory/masters/inv-master-customer';
+import { Pencil, Plus, PlusCircle, Users, X } from 'lucide-react';
+import { use } from 'react';
+import AddCustomerForm from './_components/add-form';
+import { invMasterCustomerColumns } from './_components/columns';
+import { ToggleCustomerModal } from './_components/toggle-form';
+import UpdateCustomerForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -22,11 +22,7 @@ export default function InvMasterCustomerPage(props: { searchParams: SearchParam
 
     return (
         <FormProvider<IInvMasterCustomer>>
-            <InvMasterCustomerPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-            />
+            <InvMasterCustomerPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -40,12 +36,7 @@ function InvMasterCustomerPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const {
-        openAddForm,
-        selectedRow,
-        isToggleFormOpen,
-        closeToggleForm
-    } = useFormContext<IInvMasterCustomer>();
+    const { openAddForm, selectedRow, isToggleFormOpen, closeToggleForm } = useFormContext<IInvMasterCustomer>();
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_customer',
@@ -56,15 +47,9 @@ function InvMasterCustomerPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-4'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <Heading
-                        title='Customer Master'
-                        description='Manage Customer Details'
-                    />
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105'>
-                        <Plus className='h-4 w-4 mr-2' />
+                    <Heading title='Customer Master' description='Manage Customer Details' />
+                    <Button type='button' onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105'>
+                        <Plus className='mr-2 h-4 w-4' />
                         New Customer
                     </Button>
                 </div>
@@ -92,24 +77,15 @@ function InvMasterCustomerPageContent({
                     />
                 </CollapsibleSection>
 
-                {isToggleFormOpen && selectedRow && (
-                    <ToggleCustomerModal rowData={selectedRow} onClose={closeToggleForm} />
-                )}
+                {isToggleFormOpen && selectedRow && <ToggleCustomerModal rowData={selectedRow} onClose={closeToggleForm} />}
             </div>
         </div>
     );
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IInvMasterCustomer>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IInvMasterCustomer>();
 
     return (
         <>
@@ -121,7 +97,7 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                        className='slide-in-from-top-4 mb-6 animate-in shadow-md duration-300'
                         icon={<PlusCircle className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button
@@ -145,7 +121,7 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                        className='slide-in-from-top-4 mb-6 animate-in border-primary/20 shadow-md duration-300'
                         icon={<Pencil className='h-5 w-5' />}>
                         <div className='relative'>
                             <Button

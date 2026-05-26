@@ -1,10 +1,5 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { deleteFeeChequeBounce } from '@/server/fees/trasactions/fee_cheque_bounce';
-import { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
-import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,6 +10,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { deleteFeeChequeBounce } from '@/server/fees/trasactions/fee_cheque_bounce';
+import type { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function DeleteFeeChequeBounceForm({
     rowData,
@@ -54,8 +53,7 @@ export default function DeleteFeeChequeBounceForm({
                     <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={() => mutation.mutate()}
-                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                    >
+                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
                         {mutation.isPending ? 'Deleting...' : 'Yes, Delete it'}
                     </AlertDialogAction>
                 </AlertDialogFooter>

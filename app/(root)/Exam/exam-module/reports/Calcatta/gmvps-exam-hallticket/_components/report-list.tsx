@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -16,11 +16,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
     const { reportFormat, accyear, examname } = params ?? {};
 
-    const {
-        datareport: mainList = [],
-        subarray: subList = [],
-        institute = []
-    } = data ?? {};
+    const { datareport: mainList = [], subarray: subList = [], institute = [] } = data ?? {};
 
     // Get logo path from institute data
     const imgname = (institute || []).length > 0 ? institute[0].mI_Logo : '';
@@ -42,8 +38,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     }
 
     // Helper: subjects for a student
-    const getStudentSubjects = (studentId: number) =>
-        (subList || []).filter((s: any) => s.amsT_Id === studentId);
+    const getStudentSubjects = (studentId: number) => (subList || []).filter((s: any) => s.amsT_Id === studentId);
 
     // ── Format 1 – Admit Card (Logo Header) ──────────────────────────────────
     const renderAdmitCardFormat1 = (user: any) => {
@@ -56,11 +51,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     <div style={{ textAlign: 'center', lineHeight: '1.4' }}>
                         {imgname && (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={imgname} alt='School Logo' className='max-w-[150px] mx-auto mb-2' />
+                            <img src={imgname} alt='School Logo' className='mx-auto mb-2 max-w-[150px]' />
                         )}
                         <div style={{ fontSize: '18px', fontWeight: 'bold' }}> G M VIDYANIKETAN PUBLIC SCHOOL </div>
                         <div style={{ fontSize: '13px' }}> (Affiliated to the CBSE, Delhi, No-830189) </div>
-                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}> {examname} - {accyear} </div>
+                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                            {' '}
+                            {examname} - {accyear}{' '}
+                        </div>
                         <div style={{ fontSize: '16px', fontWeight: 'bold' }}> ADMIT CARD </div>
                     </div>
 
@@ -85,7 +83,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </div>
                         <div style={{ width: '120px', height: '140px', border: '1px solid #000', textAlign: 'center', overflow: 'hidden' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={user.amsT_Photoname} alt="Student Photo" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }} />
+                            <img
+                                src={user.amsT_Photoname}
+                                alt='Student Photo'
+                                style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }}
+                            />
                         </div>
                     </div>
 
@@ -102,14 +104,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <tbody>
                             {studentSubjects.map((exm: any, i: number) => (
                                 <tr key={i}>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> 
-                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'dd.MM.yyyy') : ''} 
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'dd.MM.yyyy') : ''}
                                     </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> 
-                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'EEEE').toUpperCase() : ''} 
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'EEEE').toUpperCase() : ''}
                                     </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> {exm.ismS_SubjectName} </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px' }}></td>
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {' '}
+                                        {exm.ismS_SubjectName}{' '}
+                                    </td>
+                                    <td style={{ border: '1px solid #000', padding: '6px' }} />
                                 </tr>
                             ))}
                         </tbody>
@@ -118,18 +123,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     {/* SIGNATURES */}
                     <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
                         <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}> Candidate&apos;s Signature </div>
-                        <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}> Parent&apos;s / Guardian&apos;s Signature </div>
+                        <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}>
+                            {' '}
+                            Parent&apos;s / Guardian&apos;s Signature{' '}
+                        </div>
                     </div>
                     <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'space-between' }}>
                         {/* Principal Signature */}
                         <div style={{ width: '45%', textAlign: 'center' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png" alt="Principal Signature" style={{ height: '40px', marginBottom: '5px', marginLeft: 'auto', marginRight: 'auto' }} />
+                            <img
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png'
+                                alt='Principal Signature'
+                                style={{ height: '40px', marginBottom: '5px', marginLeft: 'auto', marginRight: 'auto' }}
+                            />
                             <div style={{ paddingTop: '5px' }}> Principal&apos;s Signature </div>
                         </div>
                         {/* Class Teacher Signature */}
                         <div style={{ width: '45%', textAlign: 'center' }}>
-                            <div style={{ height: '40px' }}></div>
+                            <div style={{ height: '40px' }} />
                             <div style={{ paddingTop: '5px' }}> Class Teacher&apos;s Signature </div>
                         </div>
                     </div>
@@ -149,10 +161,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     <div style={{ textAlign: 'center', lineHeight: '1.4' }}>
                         <div style={{ fontSize: '18px', fontWeight: 'bold' }}> G M VIDYANIKETAN PUBLIC SCHOOL </div>
                         <div style={{ fontSize: '13px' }}> (Affiliated to the CBSE, Delhi, No-830189) </div>
-                        <div style={{ fontSize: '13px' }}> G M Global Village, Post Box No.12, Brahmavar, Udupi District, Karnataka - 576213 </div>
+                        <div style={{ fontSize: '13px' }}>
+                            {' '}
+                            G M Global Village, Post Box No.12, Brahmavar, Udupi District, Karnataka - 576213{' '}
+                        </div>
                         <div style={{ fontSize: '13px' }}> Mob: +91 9845317165, +91 7090737165 </div>
                         <div style={{ fontSize: '13px' }}> Email: gmvidyaniketan@gmail.com &nbsp; Website: www.gmvps.net </div>
-                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}> {examname} - {accyear} </div>
+                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                            {' '}
+                            {examname} - {accyear}{' '}
+                        </div>
                         <div style={{ fontSize: '16px', fontWeight: 'bold' }}> ADMIT CARD </div>
                     </div>
 
@@ -177,7 +195,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </div>
                         <div style={{ width: '120px', height: '140px', border: '1px solid #000', textAlign: 'center', overflow: 'hidden' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={user.amsT_Photoname} alt="Student Photo" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }} />
+                            <img
+                                src={user.amsT_Photoname}
+                                alt='Student Photo'
+                                style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }}
+                            />
                         </div>
                     </div>
 
@@ -194,14 +216,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <tbody>
                             {studentSubjects.map((exm: any, i: number) => (
                                 <tr key={i}>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> 
-                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'dd.MM.yyyy') : ''} 
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'dd.MM.yyyy') : ''}
                                     </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> 
-                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'EEEE').toUpperCase() : ''} 
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'EEEE').toUpperCase() : ''}
                                     </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}> {exm.ismS_SubjectName} </td>
-                                    <td style={{ border: '1px solid #000', padding: '6px' }}></td>
+                                    <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center' }}>
+                                        {' '}
+                                        {exm.ismS_SubjectName}{' '}
+                                    </td>
+                                    <td style={{ border: '1px solid #000', padding: '6px' }} />
                                 </tr>
                             ))}
                         </tbody>
@@ -210,18 +235,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     {/* SIGNATURES */}
                     <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
                         <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}> Candidate&apos;s Signature </div>
-                        <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}> Parent&apos;s / Guardian&apos;s Signature </div>
+                        <div style={{ width: '45%', textAlign: 'center', paddingTop: '5px' }}>
+                            {' '}
+                            Parent&apos;s / Guardian&apos;s Signature{' '}
+                        </div>
                     </div>
                     <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'space-between' }}>
                         {/* Principal Signature */}
                         <div style={{ width: '45%', textAlign: 'center' }}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png" alt="Principal Signature" style={{ height: '40px', marginBottom: '5px', marginLeft: 'auto', marginRight: 'auto' }} />
+                            <img
+                                src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/b3ed8ce4-b047-4566-8fd7-b476e00c58e6.png'
+                                alt='Principal Signature'
+                                style={{ height: '40px', marginBottom: '5px', marginLeft: 'auto', marginRight: 'auto' }}
+                            />
                             <div style={{ paddingTop: '5px' }}> Principal&apos;s Signature </div>
                         </div>
                         {/* Class Teacher Signature */}
                         <div style={{ width: '45%', textAlign: 'center' }}>
-                            <div style={{ height: '40px' }}></div>
+                            <div style={{ height: '40px' }} />
                             <div style={{ paddingTop: '5px' }}> Class Teacher&apos;s Signature </div>
                         </div>
                     </div>
@@ -241,8 +273,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 </div>
             </div>
 
-            <CardContent className='p-6 overflow-auto bg-gray-50'>
-                <div ref={printRef} className='print-container bg-white p-4 mx-auto' style={{ maxWidth: '900px' }}>
+            <CardContent className='overflow-auto bg-gray-50 p-6'>
+                <div ref={printRef} className='print-container mx-auto bg-white p-4' style={{ maxWidth: '900px' }}>
                     {/* Format 1: Admit Card with Logo */}
                     {reportFormat === 'format1' &&
                         mainList.map((user: any, index: number) => (
@@ -250,8 +282,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {renderAdmitCardFormat1(user)}
                                 {index < mainList.length - 1 && <div className='page-break' />}
                             </div>
-                        ))
-                    }
+                        ))}
 
                     {/* Format 2 & 3: Admit Card with Text Header */}
                     {(reportFormat === 'format2' || reportFormat === 'format3') &&
@@ -260,8 +291,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {renderAdmitCardFormat2(user)}
                                 {index < mainList.length - 1 && <div className='page-break' />}
                             </div>
-                        ))
-                    }
+                        ))}
                 </div>
             </CardContent>
 

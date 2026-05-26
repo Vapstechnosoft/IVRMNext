@@ -1,11 +1,6 @@
 'use client';
 
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 
 interface ViewShiftSettingMasterDetailsProps {
@@ -14,11 +9,7 @@ interface ViewShiftSettingMasterDetailsProps {
     rowData: IMasterShiftSettingList | null;
 }
 
-export default function ViewShiftSettingMasterDetails({
-    isOpen,
-    onClose,
-    rowData
-}: ViewShiftSettingMasterDetailsProps) {
+export default function ViewShiftSettingMasterDetails({ isOpen, onClose, rowData }: ViewShiftSettingMasterDetailsProps) {
     if (!rowData) return null;
 
     const details = [
@@ -31,28 +22,22 @@ export default function ViewShiftSettingMasterDetails({
         { label: 'Half Day Working Hours', value: rowData.fomsT_HDWHrMin },
         { label: 'Lunch Hours', value: rowData.fomsT_LunchHoursDuration },
         { label: 'Delay Per Shift', value: rowData.fomsT_DelayPerShiftHrMin },
-        { label: 'Early Per Shift', value: rowData.fomsT_EarlyPerShiftHrMin },
+        { label: 'Early Per Shift', value: rowData.fomsT_EarlyPerShiftHrMin }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className='max-w-2xl'>
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold border-b pb-2">
-                        {rowData.fomS_ShiftName} Details
-                    </DialogTitle>
+                    <DialogTitle className='border-b pb-2 font-bold text-xl'>{rowData.fomS_ShiftName} Details</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
-                    <table className="w-full border-collapse">
+                <div className='mt-4'>
+                    <table className='w-full border-collapse'>
                         <tbody>
                             {details.map((detail, index) => (
-                                <tr key={index} className="border-b last:border-0">
-                                    <td className="py-3 px-4 font-semibold text-gray-700 w-1/2">
-                                        {detail.label} :
-                                    </td>
-                                    <td className="py-3 px-4 text-gray-600">
-                                        {detail.value || '-'}
-                                    </td>
+                                <tr key={index} className='border-b last:border-0'>
+                                    <td className='w-1/2 px-4 py-3 font-semibold text-gray-700'>{detail.label} :</td>
+                                    <td className='px-4 py-3 text-gray-600'>{detail.value || '-'}</td>
                                 </tr>
                             ))}
                         </tbody>

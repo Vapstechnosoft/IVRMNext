@@ -82,8 +82,6 @@ export async function deactivateFixingDayStaff(data: { TTFDS_Id: number; TTFDS_A
 
 export async function saveFixingDaySubject(data: FixingDaySubjectSchema) {
     const url = '/FixingFacade/FixingDaySubjectSave';
-    // /FixingFacade/FixingDaySubjectSave
-    console.log('Saving Day Subject with data:', data);
     return await api.post<any>('timetable', url, data);
 }
 
@@ -215,7 +213,6 @@ export async function getFixingDaySubjectGridData(searchParams?: any) {
 export async function getFixingDayStaffGridData(searchParams?: any) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttmD_DayName,ttfdS_Id,ttfdS_ActiveFlag');
     const url = `/FixingFacade/DayStaffGridData?${urlParams}`;
-    console.log('day staff grid data', url);
     return await api.get<TTDayStaffGridData[]>('timetable', url);
 }
 

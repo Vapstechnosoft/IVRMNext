@@ -10,11 +10,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import {
-    useMassUpdationOnload,
-    useSaveMassUpdation,
-    useSearchMassUpdationEmployees
-} from '@/hooks/hrms/useTransactions';
+import { useMassUpdationOnload, useSaveMassUpdation, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
 import {
     getDepartmentDropdownByGroupType,
     getDesignationDropdownByGroupTypeAndDesignation,
@@ -88,7 +84,7 @@ export default function MassUpdationPage() {
                 const { groupTypedropdown } = await getGroupTypeDropdown();
                 setGroupTypes(groupTypedropdown || []);
             } catch (err) {
-                console.error("Failed to load group types", err);
+                console.error('Failed to load group types', err);
             }
         }
         fetchGroupTypes();
@@ -99,7 +95,7 @@ export default function MassUpdationPage() {
                 const { headdropdown } = await getHeadDropdown();
                 setHeads(headdropdown || []);
             } catch (err) {
-                console.error("Failed to load heads", err);
+                console.error('Failed to load heads', err);
             }
         }
         fetchHeads();
@@ -124,7 +120,7 @@ export default function MassUpdationPage() {
                     const { departmentdropdown } = await getDepartmentDropdownByGroupType(ids);
                     setDepartments(departmentdropdown || []);
                 } catch (error) {
-                    console.error("Error fetching departments", error);
+                    console.error('Error fetching departments', error);
                     setDepartments([]);
                 }
             } else {
@@ -163,7 +159,7 @@ export default function MassUpdationPage() {
                     const { designationdropdown } = await getDesignationDropdownByGroupTypeAndDesignation(gIds, dIds);
                     setDesignations(designationdropdown || []);
                 } catch (error) {
-                    console.error("Error fetching designations", error);
+                    console.error('Error fetching designations', error);
                     setDesignations([]);
                 }
             } else {
@@ -172,7 +168,6 @@ export default function MassUpdationPage() {
         }
         fetchDesignations();
     }, [watchedDepartment, watchedGroupType, groupTypes, departments, isClient]);
-
 
     // ------------------------------------------------------------------------
     // Actions
@@ -272,7 +267,7 @@ export default function MassUpdationPage() {
                     setValue('amountValue', '');
                     setValue('selectedHead', '');
                     setValue('addRemove', '');
-                    // We might need to refresh grid if "Add/Remove" changes data that is visible, 
+                    // We might need to refresh grid if "Add/Remove" changes data that is visible,
                     // but here the grid just shows names. So no refresh needed.
                 }
             }
@@ -323,9 +318,11 @@ export default function MassUpdationPage() {
     const processedGridData = useMemo(() => {
         if (!localSearch) return employees;
         const lower = localSearch.toLowerCase();
-        return employees.filter(e =>
-            (e.HRME_EmployeeFirstName + ' ' + (e.HRME_EmployeeMiddleName || '') + ' ' + (e.HRME_EmployeeLastName || '')).toLowerCase().includes(lower) ||
-            (e.HRME_EmployeeCode || '').toLowerCase().includes(lower)
+        return employees.filter(
+            (e) =>
+                `${e.HRME_EmployeeFirstName} ${e.HRME_EmployeeMiddleName || ''} ${e.HRME_EmployeeLastName || ''}`
+                    .toLowerCase()
+                    .includes(lower) || (e.HRME_EmployeeCode || '').toLowerCase().includes(lower)
         );
     }, [employees, localSearch]);
 
@@ -333,11 +330,11 @@ export default function MassUpdationPage() {
     const columns = [
         {
             header: 'SNO',
-            cell: ({ row }: any) => <div>{row.index + 1}</div>,
+            cell: ({ row }: any) => <div>{row.index + 1}</div>
         },
         {
             accessorKey: 'HRME_EmployeeCode',
-            header: 'Employee Code',
+            header: 'Employee Code'
         },
         {
             accessorKey: 'HRME_EmployeeFirstName',
@@ -356,12 +353,12 @@ export default function MassUpdationPage() {
                     onCheckedChange={(value) => {
                         table.toggleAllPageRowsSelected(!!value);
                         if (value) {
-                            setSelectedEmployeeIds(employees.map(e => e.HRME_Id));
+                            setSelectedEmployeeIds(employees.map((e) => e.HRME_Id));
                         } else {
                             setSelectedEmployeeIds([]);
                         }
                     }}
-                    aria-label="Select all"
+                    aria-label='Select all'
                 />
             ),
             cell: ({ row }: any) => (
@@ -370,16 +367,16 @@ export default function MassUpdationPage() {
                     onCheckedChange={(value) => {
                         row.toggleSelected(!!value);
                         if (value) {
-                            setSelectedEmployeeIds(prev => [...prev, row.original.HRME_Id]);
+                            setSelectedEmployeeIds((prev) => [...prev, row.original.HRME_Id]);
                         } else {
-                            setSelectedEmployeeIds(prev => prev.filter(id => id !== row.original.HRME_Id));
+                            setSelectedEmployeeIds((prev) => prev.filter((id) => id !== row.original.HRME_Id));
                         }
                     }}
-                    aria-label="Select row"
+                    aria-label='Select row'
                 />
             ),
             enableSorting: false,
-            enableHiding: false,
+            enableHiding: false
         }
     ];
 
@@ -388,60 +385,96 @@ export default function MassUpdationPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <h2 className="text-2xl font-bold tracking-tight">Mass Updation</h2>
+                <h2 className='font-bold text-2xl tracking-tight'>Mass Updation</h2>
 
                 {/* Filters */}
                 <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg'>
                     <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Group Type <span className='text-destructive'>*</span></Label>
-                                <Controller name='groupType' control={control} rules={{ required: true }} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[ ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Group Types'
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Group Type <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='groupType'
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                ...groupTypes.map((gt: any) => ({
+                                                    label: gt.HRMGT_EmployeeGroupType,
+                                                    value: gt.HRMGT_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Group Types'
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Department <span className='text-destructive'>*</span></Label>
-                                <Controller name='department' control={control} rules={{ required: true }} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[ ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Departments'
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Department <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='department'
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                ...departments.map((d: any) => ({
+                                                    label: d.HRMD_DepartmentName,
+                                                    value: d.HRMD_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Departments'
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Designation <span className='text-destructive'>*</span></Label>
-                                <Controller name='designation' control={control} rules={{ required: true }} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[ ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Designations'
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Designation <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='designation'
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                ...designations.map((d: any) => ({
+                                                    label: d.HRMDES_DesignationName,
+                                                    value: d.HRMDES_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Designations'
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
                         </div>
                         <div className='flex justify-end gap-2'>
                             <Button type='submit' className='w-32' disabled={isSearching}>
-                                {isSearching ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
+                                {isSearching ? <RefreshCw className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                                 Search
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
                                 onClick={handleCancel}
-                                className='w-32 text-orange-600 hover:bg-orange-50 hover:text-orange-700 shadow-md hover:shadow-orange-200/50 transition-all rounded-xl '>
-                                <X className='h-4 w-4 mr-2' />
+                                className='w-32 rounded-xl text-orange-600 shadow-md transition-all hover:bg-orange-50 hover:text-orange-700 hover:shadow-orange-200/50 '>
+                                <X className='mr-2 h-4 w-4' />
                                 CANCEL
                             </Button>
                         </div>
@@ -450,73 +483,104 @@ export default function MassUpdationPage() {
 
                 {/* Action & Grid Area */}
                 {hasSearched && (
-                    <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         {/* Left: Actions */}
-                        <div className='lg:col-span-1 space-y-4'>
-                            <CollapsibleSection defaultOpen={true} title="Update Settings" variant='default' className='shadow-md border h-full'>
+                        <div className='space-y-4 lg:col-span-1'>
+                            <CollapsibleSection
+                                defaultOpen={true}
+                                title='Update Settings'
+                                variant='default'
+                                className='h-full border shadow-md'>
                                 <div className='space-y-6 pt-2'>
                                     <div className='space-y-2'>
-                                        <Label>Earning / Deduction <span className='text-destructive'>*</span></Label>
-                                        <Controller name="earningDeduction" control={control} rules={{ required: true }} render={({ field }) => (
-                                            <RadioGroup
-                                                value={field.value}
-                                                onValueChange={(val) => {
-                                                    field.onChange(val);
-                                                    setValue('selectedHead', ''); // Reset head on type change
-                                                }}
-                                                className="flex flex-col space-y-1"
-                                            >
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Earning" id="r-earning" />
-                                                    <Label htmlFor="r-earning" className='font-normal cursor-pointer'>Earning</Label>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Deduction" id="r-deduction" />
-                                                    <Label htmlFor="r-deduction" className='font-normal cursor-pointer'>Deduction</Label>
-                                                </div>
-                                            </RadioGroup>
-                                        )} />
+                                        <Label>
+                                            Earning / Deduction <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='earningDeduction'
+                                            control={control}
+                                            rules={{ required: true }}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value}
+                                                    onValueChange={(val) => {
+                                                        field.onChange(val);
+                                                        setValue('selectedHead', ''); // Reset head on type change
+                                                    }}
+                                                    className='flex flex-col space-y-1'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Earning' id='r-earning' />
+                                                        <Label htmlFor='r-earning' className='cursor-pointer font-normal'>
+                                                            Earning
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Deduction' id='r-deduction' />
+                                                        <Label htmlFor='r-deduction' className='cursor-pointer font-normal'>
+                                                            Deduction
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
                                     </div>
 
                                     <div className='space-y-2'>
-                                        <Label>Amount / Percentage <span className='text-destructive'>*</span></Label>
-                                        <Controller name="amountType" control={control} rules={{ required: true }} render={({ field }) => (
-                                            <RadioGroup
-                                                value={field.value}
-                                                onValueChange={(val) => {
-                                                    field.onChange(val);
-                                                    setValue('selectedHead', ''); // Reset head on type change
-                                                }}
-                                                className="flex flex-col space-y-1"
-                                            >
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Amount" id="r-amount" />
-                                                    <Label htmlFor="r-amount" className='font-normal cursor-pointer'>Amount</Label>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Percentage" id="r-percentage" />
-                                                    <Label htmlFor="r-percentage" className='font-normal cursor-pointer'>Percentage</Label>
-                                                </div>
-                                            </RadioGroup>
-                                        )} />
+                                        <Label>
+                                            Amount / Percentage <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='amountType'
+                                            control={control}
+                                            rules={{ required: true }}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value}
+                                                    onValueChange={(val) => {
+                                                        field.onChange(val);
+                                                        setValue('selectedHead', ''); // Reset head on type change
+                                                    }}
+                                                    className='flex flex-col space-y-1'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Amount' id='r-amount' />
+                                                        <Label htmlFor='r-amount' className='cursor-pointer font-normal'>
+                                                            Amount
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Percentage' id='r-percentage' />
+                                                        <Label htmlFor='r-percentage' className='cursor-pointer font-normal'>
+                                                            Percentage
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
                                     </div>
 
                                     <div className='space-y-2'>
-                                        <Label>Head <span className='text-destructive'>*</span></Label>
-                                        <Controller name="selectedHead" control={control} rules={{ required: true }} render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select Head" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {filteredHeads.map((h: any) => (
-                                                        <SelectItem key={h.HRMED_Id} value={h.HRMED_Id.toString()}>
-                                                            {h.HRMED_Name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )} />
+                                        <Label>
+                                            Head <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='selectedHead'
+                                            control={control}
+                                            rules={{ required: true }}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Head' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {filteredHeads.map((h: any) => (
+                                                            <SelectItem key={h.HRMED_Id} value={h.HRMED_Id.toString()}>
+                                                                {h.HRMED_Name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
                                     </div>
 
                                     <div className='space-y-2'>
@@ -524,47 +588,62 @@ export default function MassUpdationPage() {
                                             {watchedAmountType === 'Percentage' ? 'Percentage' : 'Amount'}
                                             {watch('addRemove') !== 'Remove' && <span className='text-destructive'> *</span>}
                                         </Label>
-                                        <Controller name="amountValue" control={control} render={({ field }) => (
-                                            <InputText
-                                                {...field}
-                                                type='number'
-                                                step='0.01'
-                                                placeholder={watchedAmountType === 'Percentage' ? 'Enter %' : 'Enter Amount'}
-                                                disabled={watch('addRemove') === 'Remove'}
-                                            />
-                                        )} />
+                                        <Controller
+                                            name='amountValue'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <InputText
+                                                    {...field}
+                                                    type='number'
+                                                    step='0.01'
+                                                    placeholder={watchedAmountType === 'Percentage' ? 'Enter %' : 'Enter Amount'}
+                                                    disabled={watch('addRemove') === 'Remove'}
+                                                />
+                                            )}
+                                        />
                                     </div>
 
                                     <div className='space-y-2 border-t pt-4'>
-                                        <Label>Action <span className='text-destructive'>*</span></Label>
-                                        <Controller name="addRemove" control={control} rules={{ required: true }} render={({ field }) => (
-                                            <RadioGroup
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                className="flex flex-row space-x-4"
-                                            >
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Add" id="r-add" />
-                                                    <Label htmlFor="r-add" className='font-normal cursor-pointer'>Add / Update</Label>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="Remove" id="r-remove" />
-                                                    <Label htmlFor="r-remove" className='font-normal cursor-pointer'>Remove</Label>
-                                                </div>
-                                            </RadioGroup>
-                                        )} />
+                                        <Label>
+                                            Action <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='addRemove'
+                                            control={control}
+                                            rules={{ required: true }}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                    className='flex flex-row space-x-4'>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Add' id='r-add' />
+                                                        <Label htmlFor='r-add' className='cursor-pointer font-normal'>
+                                                            Add / Update
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <RadioGroupItem value='Remove' id='r-remove' />
+                                                        <Label htmlFor='r-remove' className='cursor-pointer font-normal'>
+                                                            Remove
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
                                     </div>
                                 </div>
                             </CollapsibleSection>
                         </div>
 
                         {/* Right: Grid */}
-                        <div className='lg:col-span-2 space-y-4'>
-                            <CollapsibleSection defaultOpen={true} title="Employee List" variant='default' className='shadow-md border'>
-                                <div className='p-2 space-y-4'>
-                                    <div className='flex justify-between items-center'>
-                                        <div className='text-sm text-muted-foreground'>
-                                            Selected: <span className='font-bold text-primary'>{selectedEmployeeIds.length}</span> / {employees.length}
+                        <div className='space-y-4 lg:col-span-2'>
+                            <CollapsibleSection defaultOpen={true} title='Employee List' variant='default' className='border shadow-md'>
+                                <div className='space-y-4 p-2'>
+                                    <div className='flex items-center justify-between'>
+                                        <div className='text-muted-foreground text-sm'>
+                                            Selected: <span className='font-bold text-primary'>{selectedEmployeeIds.length}</span> /{' '}
+                                            {employees.length}
                                         </div>
                                         <div className='w-64'>
                                             <InputText
@@ -575,7 +654,7 @@ export default function MassUpdationPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="h-[400px] overflow-y-auto border rounded-md">
+                                    <div className='h-[400px] overflow-y-auto rounded-md border'>
                                         <GenericDataTable
                                             data={processedGridData}
                                             columns={columns}
@@ -588,12 +667,15 @@ export default function MassUpdationPage() {
                                 </div>
                             </CollapsibleSection>
 
-                            <div className='flex justify-end gap-2 p-4 bg-muted/20 rounded-lg border'>
-                                <Button onClick={onSave} disabled={isSaving} className='bg-blue-600 hover:bg-blue-700 w-32'>
+                            <div className='flex justify-end gap-2 rounded-lg border bg-muted/20 p-4'>
+                                <Button onClick={onSave} disabled={isSaving} className='w-32 bg-blue-600 hover:bg-blue-700'>
                                     <RefreshCw className={`mr-2 h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} />
                                     {isSaving ? 'Saving...' : 'Save'}
                                 </Button>
-                                <Button variant='outline' onClick={handleCancel} className='border-orange-500 text-orange-600 hover:bg-orange-50'>
+                                <Button
+                                    variant='outline'
+                                    onClick={handleCancel}
+                                    className='border-orange-500 text-orange-600 hover:bg-orange-50'>
                                     <X className='mr-2 h-4 w-4' />
                                     Cancel
                                 </Button>

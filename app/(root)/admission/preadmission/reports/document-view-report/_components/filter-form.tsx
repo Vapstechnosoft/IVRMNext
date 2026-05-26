@@ -1,15 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Search } from 'lucide-react';
-import { useEffect } from 'react';
-import { Label } from '@/components/ui/extension/field';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { FormError } from '@/components/ui/extension/field';
 
 const filterSchema = z.object({
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
@@ -56,15 +55,14 @@ export default function FilterForm({ onFilterChange }: FilterFormProps) {
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='space-y-2'>
-                    <Label htmlFor='asmaY_Id'>Academic Year <span className='text-destructive'>*</span></Label>
+                    <Label htmlFor='asmaY_Id'>
+                        Academic Year <span className='text-destructive'>*</span>
+                    </Label>
                     <Controller
                         name='asmaY_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(v) => field.onChange(Number(v))}
-                                value={field.value ? String(field.value) : undefined}
-                            >
+                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -87,10 +85,7 @@ export default function FilterForm({ onFilterChange }: FilterFormProps) {
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(v) => field.onChange(Number(v))}
-                                value={field.value ? String(field.value) : undefined}
-                            >
+                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>

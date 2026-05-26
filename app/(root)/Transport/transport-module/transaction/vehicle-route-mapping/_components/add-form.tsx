@@ -39,10 +39,6 @@ export default function AddForm({ onClose }: AddFormProps) {
     const routes = Array.isArray(routeData) ? routeData : routeData?.data || [];
     const sessions = Array.isArray(sessionData) ? sessionData : sessionData?.data || [];
 
-    console.log('vehicleData', vehicles);
-    console.log('routeData', routes);
-    console.log('sessionData', sessions);
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -65,7 +61,6 @@ export default function AddForm({ onClose }: AddFormProps) {
                 trvR_Date: values.trvR_Date,
                 trvR_Id: values.trvR_Id
             };
-            console.log('vehicleroutemapping', payload);
             const response = await saveVehicleRouteMapping(payload);
 
             if (response.success) {

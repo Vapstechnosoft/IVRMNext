@@ -31,13 +31,13 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
 
     const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string }[]>([]);
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const [_isPopoverOpen, _setIsPopoverOpen] = useState(false);
 
     const [isHeadPopoverOpen, setIsHeadPopoverOpen] = useState(false);
     const [isInstallPopoverOpen, setIsInstallPopoverOpen] = useState(false);
 
-    const [headSearch, setHeadSearch] = useState('');
-    const [installSearch, setInstallSearch] = useState('');
+    const [_headSearch, _setHeadSearch] = useState('');
+    const [_installSearch, _setInstallSearch] = useState('');
     const [search, setSearch] = useState('');
 
     const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
@@ -63,8 +63,6 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
             fmT_Id: row.fmT_Id || 0
         }
     });
-
-    console.log('Selected row data :', row);
 
     function OnReset() {
         reset();
@@ -100,12 +98,12 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
         }
     }, [row, masterHeads, masterInstallment, reset]);
 
-    const selectedheads =
+    const _selectedheads =
         masterHeads?.data && selectedHeadsItems.length > 0
             ? masterHeads.data.find((fh) => fh.fmH_Id.toString() === selectedHeadsItems[0].fmH_Id)?.fmH_FeeName || 'Select Fee Heads'
             : 'Select Fee Heads';
 
-    const selectedInstallemnts =
+    const _selectedInstallemnts =
         masterInstallment?.data && SelectedInstallmentsItems.length > 0
             ? masterInstallment.data.find((fh) => fh.ftI_ID.toString() === SelectedInstallmentsItems[0].ftI_ID)?.ftI_NAME ||
               'Select Fee Installemnts'
@@ -127,8 +125,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                 }))
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateFeeTermHead(payload);
 
@@ -149,7 +146,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
         reset();
     };
 
-    const handleHeadSelection = (selectedValues: string[]) => {
+    const _handleHeadSelection = (selectedValues: string[]) => {
         setSelectedHeadsItems(
             selectedValues.map((value) => ({
                 fmH_Id: value.toString() // Store only the fmH_Id as a string
@@ -157,7 +154,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
         );
     };
 
-    const handleInstallmentSelection = (selectedValues: string[]) => {
+    const _handleInstallmentSelection = (selectedValues: string[]) => {
         setSelectedInstallmentsItems(
             selectedValues.map((value) => ({
                 ftI_ID: value.toString() // Store only the ftI_ID as a string

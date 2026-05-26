@@ -16,7 +16,6 @@ export default function MasterCOEPage() {
     const fetchInitialData = useCallback(async () => {
         try {
             const res = await getMasterCOEInitialData();
-            console.log('🔍 Master COE API Response:', res);
             setInitialData(res);
         } catch (error) {
             console.error('Failed to fetch initial data:', error);

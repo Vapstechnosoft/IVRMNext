@@ -26,7 +26,7 @@ interface DailyFeeProps {
     onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => void;
     apiSearchParams: ApiSearchparams;
 }
-const today = new Date().toISOString().split('T')[0];
+const _today = new Date().toISOString().split('T')[0];
 
 export default function FeeDueDateReportForm() {
     // ---------------------------- FORM ----------------------------
@@ -47,18 +47,18 @@ export default function FeeDueDateReportForm() {
         }
     });
 
-    const [submitClicked, setSubmitClicked] = useState(false);
+    const [_submitClicked, setSubmitClicked] = useState(false);
 
     // ---------------------------- WATCH ----------------------------
 
-    const [refreshAY, setRefreshAY] = useState(0);
-    const [tableSumRow, setTableSumRow] = useState<any>(null);
+    const [refreshAY, _setRefreshAY] = useState(0);
+    const [_tableSumRow, _setTableSumRow] = useState<any>(null);
 
     // ---------------------------- DROPDOWNS ----------------------------
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classcategory, setClassCategory] = useState<HeadwiseClassCategoryDropDown[]>([]);
     const [classCategoryLoading, setClassCategoryLoading] = useState(false);
-    const [classes, setClasses] = useState<any[]>([]);
+    const [_classes, _setClasses] = useState<any[]>([]);
 
     const [formKey, setFormKey] = useState(0);
 
@@ -94,8 +94,8 @@ export default function FeeDueDateReportForm() {
         }
     };
 
-    const [loading, setLoading] = useState(false);
-    const [tableColumns, setTableColumns] = useState<string[]>([]);
+    const [_loading, setLoading] = useState(false);
+    const [_tableColumns, setTableColumns] = useState<string[]>([]);
     const [tableRows, setTableRows] = useState<any[]>([]);
     const [showTable, setShowTable] = useState(false);
 
@@ -105,7 +105,7 @@ export default function FeeDueDateReportForm() {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    const ITEMS_PER_PAGE = 10;
+    const _ITEMS_PER_PAGE = 10;
 
     // const filteredRows =
     //     searchTerm.trim() === ''
@@ -145,7 +145,7 @@ export default function FeeDueDateReportForm() {
 
     const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB');
 
-    const flattenData = (data: any[]) => {
+    const _flattenData = (data: any[]) => {
         return data.map((item) => ({
             Date: formatDate(item.date),
             ...item.feeHeadAmounts,
@@ -244,10 +244,6 @@ export default function FeeDueDateReportForm() {
             const { asmaY_Id, classcategoryid } = data;
 
             const response = await getDueDateReportData(Number(asmaY_Id), Number(classcategoryid));
-
-            //const response = await getHeadWiseReportData(231, 170);
-
-            console.log('response', response);
             const rawData = (response as any)?.data ?? [];
 
             if (!Array.isArray(rawData) || rawData.length === 0) {

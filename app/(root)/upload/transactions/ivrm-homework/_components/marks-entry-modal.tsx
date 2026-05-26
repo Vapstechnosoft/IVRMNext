@@ -1,10 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import {
-    AdaptiveBody,
-    AdaptiveDialog,
-    AdaptiveFooter
-} from '@/components/ui/extension/adaptive-dialog';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fetchHomeWorkMarksList, updateHomeWorkMarks } from '@/server/upload/transactions/ivrm-homework/server-action';
@@ -42,7 +38,7 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
 
             const response: any = await fetchHomeWorkMarksList(payload);
             const list = response.data || response.students || [];
-            
+
             // Map keys if needed (e.g. AMST_Id -> amst_Id)
             const normalizedList = list.map((s: any) => ({
                 ...s,
@@ -50,9 +46,9 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
                 studentName: s.studentName || s.StudentName,
                 ihwupl_Marks: s.ihwupl_Marks || ''
             }));
-            
+
             setStudents(normalizedList);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load student list');
         } finally {
             setIsLoading(false);
@@ -86,7 +82,7 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
             } else {
                 toast.error(result.message || 'Failed to update marks');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving marks');
         } finally {
             setIsSaving(false);
@@ -94,33 +90,32 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
     };
 
     return (
-        <AdaptiveDialog 
-            isOpen={isOpen} 
-            onClose={onClose} 
+        <AdaptiveDialog
+            isOpen={isOpen}
+            onClose={onClose}
             size='lg'
             title={
                 <div className='flex items-center gap-2'>
                     <UserCheck className='h-5 w-5 text-blue-600' />
-                    <span className='text-blue-800 font-semibold'>Marks Entry - {selectedRow.IHW_Topic}</span>
+                    <span className='font-semibold text-blue-800'>Marks Entry - {selectedRow.IHW_Topic}</span>
                 </div>
             }
             description={
-                <div className='mt-1 text-xs text-muted-foreground'>
+                <div className='mt-1 text-muted-foreground text-xs'>
                     {selectedRow.ASMCL_ClassName} - {selectedRow.ASMC_SectionName} | {selectedRow.ISMS_SubjectName}
                 </div>
-            }
-        >
+            }>
             <AdaptiveBody>
                 {isLoading ? (
                     <div className='flex h-64 flex-col items-center justify-center gap-3'>
                         <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
-                        <p className='text-sm text-muted-foreground'>Fetching student list...</p>
+                        <p className='text-muted-foreground text-sm'>Fetching student list...</p>
                     </div>
                 ) : students.length > 0 ? (
-                    <div className='rounded-xl border border-slate-200 overflow-hidden bg-white shadow-sm'>
+                    <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
                         <div className='max-h-[500px] overflow-y-auto'>
                             <Table>
-                                <TableHeader className='bg-slate-50 sticky top-0 z-10'>
+                                <TableHeader className='sticky top-0 z-10 bg-slate-50'>
                                     <TableRow>
                                         <TableHead className='w-16 text-center font-bold text-slate-700'>SL</TableHead>
                                         <TableHead className='font-bold text-slate-700'>Student Name</TableHead>
@@ -129,7 +124,7 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
                                 </TableHeader>
                                 <TableBody>
                                     {students.map((student, index) => (
-                                        <TableRow key={student.amst_Id} className='hover:bg-blue-50/30 transition-colors'>
+                                        <TableRow key={student.amst_Id} className='transition-colors hover:bg-blue-50/30'>
                                             <TableCell className='text-center text-slate-500'>{index + 1}</TableCell>
                                             <TableCell className='font-medium text-slate-700'>{student.studentName}</TableCell>
                                             <TableCell>
@@ -158,11 +153,10 @@ export default function MarksEntryModal({ isOpen, onClose, selectedRow }: MarksE
                 <Button variant='ghost' onClick={onClose} disabled={isSaving}>
                     <X className='mr-2 h-4 w-4' /> Cancel
                 </Button>
-                <Button 
-                    onClick={handleSave} 
-                    disabled={isSaving || students.length === 0} 
-                    className='bg-blue-600 hover:bg-blue-700 shadow-md transition-all active:scale-95'
-                >
+                <Button
+                    onClick={handleSave}
+                    disabled={isSaving || students.length === 0}
+                    className='bg-blue-600 shadow-md transition-all hover:bg-blue-700 active:scale-95'>
                     {isSaving ? (
                         <>
                             <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Saving...

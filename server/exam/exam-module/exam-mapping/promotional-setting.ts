@@ -3,12 +3,12 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
-    IPromotionSetting,
     IPromotionCategory,
+    IPromotionDetailsByIdResponse,
+    IPromotionSetting,
     IPromotionalGroupDetails,
     IPromotionalGroupMappedExamDetails,
-    IPromotionalSubjectDetails,
-    IPromotionDetailsByIdResponse
+    IPromotionalSubjectDetails
 } from '@/types/exam/exam-module/exam-mapping';
 export async function getPromotionalSettings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});

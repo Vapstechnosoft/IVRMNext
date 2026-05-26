@@ -59,7 +59,7 @@ export default function TransactionGrid({
             };
             setItems(newItems);
             toast.success('File Uploaded');
-        } catch (e) {
+        } catch (_e) {
             toast.error('File Upload Failed');
         }
     };

@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { autoMappingSchema } from '@/schemas/super-admin/super-admin-module/institution/auto-mapping';
-import { z } from 'zod';
+import type { autoMappingSchema } from '@/schemas/super-admin/super-admin-module/institution/auto-mapping';
+import type { z } from 'zod';
 
 export async function saveAutoMapping(data: z.infer<typeof autoMappingSchema.addOrUpdate>) {
     const url = 'InstitutionFacade/add_or_update_auto_mapping';

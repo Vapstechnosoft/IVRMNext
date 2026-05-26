@@ -40,8 +40,6 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
     const [isHeadPopoverOpen, setIsHeadPopoverOpen] = useState(false);
     const [search, setSearch] = useState('');
 
-    console.log('Selected Row Data in Update Form:', row);
-
     // Form setup
     const {
         control,
@@ -146,9 +144,7 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
                     fmH_ID: Number(item.fmH_Id)
                 }))
             };
-            const js = JSON.stringify(payload);
-
-            console.log('Payload for Special Fee Head Submission:', js);
+            const _js = JSON.stringify(payload);
             const response = await addOrUpdateSpecialfeehead(payload);
 
             if (response.success) {
@@ -164,7 +160,7 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
     };
 
     // Handle multi-select changes
-    const handleHeadSelection = (selectedValues: string[]) => {
+    const _handleHeadSelection = (selectedValues: string[]) => {
         setSelectedHeadsItems(
             selectedValues.map((value) => ({
                 fmH_Id: value.toString()

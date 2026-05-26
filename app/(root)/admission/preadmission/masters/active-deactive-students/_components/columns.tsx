@@ -67,18 +67,14 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
             const value = meta?.studentData?.get(studentId)?.reason || '';
 
             return (
-                <Select
-                    disabled={!isSelected}
-                    value={value}
-                    onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}
-                >
-                    <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Select Reason" />
+                <Select disabled={!isSelected} value={value} onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}>
+                    <SelectTrigger className='w-[140px]'>
+                        <SelectValue placeholder='Select Reason' />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Fee Due">Fee Due</SelectItem>
-                        <SelectItem value="Long Absent">Long Absent</SelectItem>
-                        <SelectItem value="Medical">Medical</SelectItem>
+                        <SelectItem value='Fee Due'>Fee Due</SelectItem>
+                        <SelectItem value='Long Absent'>Long Absent</SelectItem>
+                        <SelectItem value='Medical'>Medical</SelectItem>
                     </SelectContent>
                 </Select>
             );
@@ -95,11 +91,11 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
 
             return (
                 <Input
-                    className="w-[180px]"
+                    className='w-[180px]'
                     disabled={!isSelected}
                     value={value}
                     onChange={(e) => meta?.updateStudentData(studentId, 'remark', e.target.value)}
-                    placeholder="Enter Remarks"
+                    placeholder='Enter Remarks'
                 />
             );
         }

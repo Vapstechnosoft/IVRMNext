@@ -46,12 +46,10 @@ export async function getOpeningAcademicYearDropdownData() {
 
 export async function getOpeningClassDropdownData() {
     const url = 'FeeOpeningBalance/class-dropdown';
-    console.log('Calling API:', url);
 
     // Try with full path or check if baseURL is correct
     try {
         const response = await api.get<IFeeOpeningClassDropdownList[]>('fees', url);
-        console.log('API response:', response);
         return response;
     } catch (error) {
         console.error('API call failed:', error);

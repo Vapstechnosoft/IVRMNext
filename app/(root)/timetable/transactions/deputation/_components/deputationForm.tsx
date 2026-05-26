@@ -62,7 +62,6 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         ttmD_Date: watchDate ? format(watchDate, 'yyyy-MM-dd') : '',
         absent_Staff_Flag: watchAbsent
     });
-    console.log('absentStaffData', absentStaffData, absentStaffData?.data);
 
     useEffect(() => {
         if (watchDate) {
@@ -273,5 +272,3 @@ export default function DeputationForm({ onFetch }: DeputationFormProps) {
         </CollapsibleSection>
     );
 }
-
-

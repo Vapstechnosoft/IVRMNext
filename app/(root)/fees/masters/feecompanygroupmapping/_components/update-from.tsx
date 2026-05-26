@@ -40,8 +40,6 @@ export default function UpdateFeeCompanyGroupMappingForm({
 }: UpdateFeeCompanyGroupMappingFormProps) {
     const { refetchAll } = useFeeCompanyGroupMapping();
 
-    console.log('Selected Row Data in Update Form:', row);
-
     // For selected groupss in multiselect
     const [selectedGroupsItems, setselectedGroupsItems] = useState<{ fmG_Id: string }[]>([]);
 
@@ -58,8 +56,6 @@ export default function UpdateFeeCompanyGroupMappingForm({
 
     const [isgroupsPopoverOpen, setIsgroupsPopoverOpen] = useState(false);
     const [search, setSearch] = useState('');
-
-    console.log('Selected Row Data in Update Form:', row);
 
     // Form setup
     const {
@@ -142,7 +138,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
     // Handle submit
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const initial = initialDataRef.current;
+            const _initial = initialDataRef.current;
 
             // if (initial) {
             //     const currentName = data.fmsfH_Name.trim();
@@ -166,9 +162,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
                     fmG_Id: Number(item.fmG_Id)
                 }))
             };
-            const js = JSON.stringify(payload);
-
-            console.log('Payload for Special Fee groups Submission:', js);
+            const _js = JSON.stringify(payload);
             const response = await addOrUpdateCompanyFeeGroupMapping(payload);
 
             if (response.success) {
@@ -184,7 +178,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
     };
 
     // Handle multi-select changes
-    const handlegroupsSelection = (selectedValues: string[]) => {
+    const _handlegroupsSelection = (selectedValues: string[]) => {
         setselectedGroupsItems(
             selectedValues.map((value) => ({
                 fmG_Id: value.toString()

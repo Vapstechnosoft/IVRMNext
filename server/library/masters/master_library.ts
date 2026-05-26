@@ -2,7 +2,6 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
 
 import { auth } from '@/lib/auth';
 
@@ -54,7 +53,7 @@ export async function toggleMasterLibrary(LMAL_Id: number) {
     try {
         // Updated to use the specific endpoint requested by the user
         const url = `/MasterLibrary/toggle-master-library/${LMAL_Id}`;
-        // Using PUT as it's common for status updates, but POST is also a possibility in VAPS. 
+        // Using PUT as it's common for status updates, but POST is also a possibility in VAPS.
         // We'll keep it as PUT for now as it matches the previous implementation and follows REST standards.
         return await api.put('library', url, {});
     } catch (error: any) {
@@ -123,5 +122,3 @@ export async function saveStaffMapping(data: { LUL_Id: number; LMAL_Id: number; 
         return { success: false, message: error?.message || 'Failed to save staff mapping' };
     }
 }
-
-

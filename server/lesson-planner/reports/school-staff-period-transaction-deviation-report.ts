@@ -6,7 +6,7 @@ import type { IDeviationReportResponse } from '@/types/lesson-planner/reports/sc
 const BASE_URL = 'lessonplanner';
 
 export async function getInitialData() {
-    const url = `/SchoolStaffperiodtransactionreport/Get_detailstransaction`;
+    const url = '/SchoolStaffperiodtransactionreport/Get_detailstransaction';
     return await api.get<IDeviationReportResponse>(BASE_URL, url);
 }
 

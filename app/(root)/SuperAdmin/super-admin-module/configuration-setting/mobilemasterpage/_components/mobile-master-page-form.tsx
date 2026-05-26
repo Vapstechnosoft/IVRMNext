@@ -72,7 +72,7 @@ export function MobileMasterPageForm({ selectedRow, onSuccess, onCancel }: Mobil
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving.');
         } finally {
             setIsSubmitting(false);

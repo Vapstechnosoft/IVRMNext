@@ -29,7 +29,6 @@ export default function MasterSubSubjectPage(props: { searchParams: SearchParams
     );
 }
 
-
 function MasterSubSubjectPageContent({
     response,
     isLoading,
@@ -41,9 +40,7 @@ function MasterSubSubjectPageContent({
     error: any;
     refetchAll: any;
 }) {
-    useEffect(() => {
-        console.log(response);
-    }, [response])
+    useEffect(() => {}, [response]);
     const { openAddForm } = useFormContext<IMasterSubSubject>();
     const tableProps = useDataTableProps(response);
     const [orderModalOpen, setOrderModalOpen] = useState(false);

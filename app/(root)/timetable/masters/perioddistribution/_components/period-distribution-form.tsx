@@ -44,7 +44,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     const [tempList, setTempList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(1);
     const [classList, setClassList] = useState<any[]>([]);
-    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const [_isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const academicList = (academicData as any) || [];
     const staffList = (staffData as any) || [];
@@ -86,7 +86,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
     const watchedTotalWeeklyPeriods = watch('nop1');
-    const watchedStaff = watch('hrmE_Id');
+    const _watchedStaff = watch('hrmE_Id');
 
     // Fetch full details if editing — using new GET facade endpoint
     const { data: editData, isLoading: isLoadingEdit } = useEditPeriodDistribution({
@@ -341,10 +341,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
             }))
         };
 
-        console.log('payload', JSON.stringify(payload));
-
         const response = await saveperioddistribution(payload);
-        console.log('response', response);
         if (response.success) {
             toast.success(response.message);
             reset();

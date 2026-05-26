@@ -25,7 +25,7 @@ export function FileUploader({ onFileSelect, isLoading }: FileUploaderProps) {
                 </div>
                 <div className='text-center'>
                     <h3 className='font-semibold text-sm leading-none'>Upload Your Report Card</h3>
-                    <p className='text-muted-foreground text-[10px]'>PDF, CSV, Excel (.xlsx, .xls)</p>
+                    <p className='text-[10px] text-muted-foreground'>PDF, CSV, Excel (.xlsx, .xls)</p>
                 </div>
                 <div className='flex flex-col items-center'>
                     <input
@@ -36,10 +36,14 @@ export function FileUploader({ onFileSelect, isLoading }: FileUploaderProps) {
                         disabled={isLoading}
                         id='file-upload'
                     />
-                    <Button size='sm' className='h-7 rounded-full px-4 text-[11px]' disabled={isLoading} onClick={() => document.getElementById('file-upload')?.click()}>
+                    <Button
+                        size='sm'
+                        className='h-7 rounded-full px-4 text-[11px]'
+                        disabled={isLoading}
+                        onClick={() => document.getElementById('file-upload')?.click()}>
                         Select File
                     </Button>
-                    {isLoading && <p className='animate-pulse text-muted-foreground text-[9px]'>Processing...</p>}
+                    {isLoading && <p className='animate-pulse text-[9px] text-muted-foreground'>Processing...</p>}
                 </div>
             </CardContent>
         </Card>

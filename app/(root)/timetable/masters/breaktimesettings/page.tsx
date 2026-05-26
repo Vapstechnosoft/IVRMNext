@@ -39,7 +39,7 @@ function BreakTimeSettingsPageContent({
     const { openAddForm } = useFormContext<BreakTimeSettingsGridData>();
     const tableProps = useDataTableProps(response?.breaktimelist ? { ...response, data: response.breaktimelist } : response);
 
-    const dataList = response?.breaktimelist || [];
+    const _dataList = response?.breaktimelist || [];
 
     return (
         <div className='min-h-screen'>

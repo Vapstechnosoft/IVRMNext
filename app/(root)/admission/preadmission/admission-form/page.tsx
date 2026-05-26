@@ -54,8 +54,6 @@ function StudentApplicationPageContent({
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
 
-
-
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
         // Session handling should be addressed centrally; avoid reloads here.

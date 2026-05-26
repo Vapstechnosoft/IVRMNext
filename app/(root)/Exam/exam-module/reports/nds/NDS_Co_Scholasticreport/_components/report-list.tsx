@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import { useRef, useMemo } from 'react';
 import { format } from 'date-fns';
+import { Printer } from 'lucide-react';
+import { useMemo, useRef } from 'react';
 
 interface ReportListProps {
     data: any;
@@ -49,9 +49,11 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 gettermdetails.forEach((term: any) => {
                     const termId = term.ecT_Id || term.ECT_Id;
                     getstudentwiseskillslist.forEach((dd: any) => {
-                        if ((dd.AMST_Id || dd.amsT_Id) === studentId &&
+                        if (
+                            (dd.AMST_Id || dd.amsT_Id) === studentId &&
                             skill.ECS_SkillName === dd.ECS_SkillName &&
-                            termId === (dd.ECT_Id || dd.ecT_Id)) {
+                            termId === (dd.ECT_Id || dd.ecT_Id)
+                        ) {
                             skill_score_details.push({ scoregrade: dd.EMGD_Name, ecT_Id: termId });
                         }
                     });
@@ -74,9 +76,11 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 gettermdetails.forEach((term: any) => {
                     const termId = term.ecT_Id || term.ECT_Id;
                     getstudentwiseactiviteslist.forEach((dd: any) => {
-                        if (studentId === (dd.AMST_Id || dd.amsT_Id) &&
+                        if (
+                            studentId === (dd.AMST_Id || dd.amsT_Id) &&
                             act.ECACTA_SkillArea === dd.ECACTA_SkillArea &&
-                            termId === (dd.ECT_Id || dd.ecT_Id)) {
+                            termId === (dd.ECT_Id || dd.ecT_Id)
+                        ) {
                             activity_score_details.push({ EMGD_Name: dd.EMGD_Name, ecT_Id: termId });
                         }
                     });
@@ -87,7 +91,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
             // Co-Scholastic Subjects (subjects with Max Marks 50 or empty grade in summary)
             const subject_main_list: any[] = [];
             getstudentwisesubjectlist.forEach((subj: any) => {
-                if ((subj.AMST_Id || subj.amsT_Id) === studentId && (subj.subjectMaxMarks === 50 || subj.subjectGrade === "")) {
+                if ((subj.AMST_Id || subj.amsT_Id) === studentId && (subj.subjectMaxMarks === 50 || subj.subjectGrade === '')) {
                     if (!subject_main_list.some((s) => s.subjectName === subj.subjectName)) {
                         subject_main_list.push({ subjectName: subj.subjectName });
                     }
@@ -102,14 +106,15 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                         .filter((te: any) => (te.ecT_Id || te.ECT_Id) === termId)
                         .map((te: any) => te.emE_Id || te.EME_Id);
 
-                    const marks = getstudentmarksdetails.filter((m: any) =>
-                        (m.AMST_Id || m.amsT_Id) === studentId &&
-                        (m.ISMS_SubjectName || m.ismS_SubjectName || m.subjectName) === subj.subjectName &&
-                        termExams.includes(m.emE_Id || m.EME_Id)
+                    const marks = getstudentmarksdetails.filter(
+                        (m: any) =>
+                            (m.AMST_Id || m.amsT_Id) === studentId &&
+                            (m.ISMS_SubjectName || m.ismS_SubjectName || m.subjectName) === subj.subjectName &&
+                            termExams.includes(m.emE_Id || m.EME_Id)
                     );
 
                     if (marks.length > 0) {
-                        const grade = marks[marks.length - 1].obtainedGrade || marks[marks.length - 1].obtainedgrade || "";
+                        const grade = marks[marks.length - 1].obtainedGrade || marks[marks.length - 1].obtainedgrade || '';
                         subject_score_details.push({ scoregrade: grade, ecT_Id: termId });
                     }
                 });
@@ -124,8 +129,8 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                 skill_main_list,
                 activity_main_list,
                 subject_main_list,
-                remarks: remarks_detail?.eprD_Remarks || "",
-                promotedclass: remarks_detail?.eprD_ClassPromoted || ""
+                remarks: remarks_detail?.eprD_Remarks || '',
+                promotedclass: remarks_detail?.eprD_ClassPromoted || ''
             };
         });
     }, [getstudentdetails, getstudentwiseskillslist, getstudentwiseactiviteslist, gettermdetails, getpromotionremarksdetails]);
@@ -169,7 +174,7 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
     if (reports.length === 0) return null;
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <style>{`
                 #HHS02 .row { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
                 #HHS02 .col-xs-6 { width: 50%; padding: 0 15px; box-sizing: border-box; }
@@ -189,181 +194,191 @@ export const ReportList = ({ data, academicYear }: ReportListProps) => {
                     .no-print { display: none; }
                 }
             `}</style>
-            <div className="flex justify-end no-print">
-                <Button onClick={handlePrint} className="bg-primary hover:bg-primary/90 shadow-lg">
-                    <Printer className="mr-2 h-4 w-4" />
+            <div className='no-print flex justify-end'>
+                <Button onClick={handlePrint} className='bg-primary shadow-lg hover:bg-primary/90'>
+                    <Printer className='mr-2 h-4 w-4' />
                     Print Reports
                 </Button>
             </div>
 
-            <div ref={printRef} id="HHS02" className="bg-white p-4">
+            <div ref={printRef} id='HHS02' className='bg-white p-4'>
                 {reports.map((report: any, index: number) => (
-                    <div key={index} className="pagelayout bg-white" style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
-                        <div className="row margin-top-5">
-                            <div className="col-sm-12">
-                                <img
-                                    src={getinstitution[0]?.mI_Logo}
-                                    className="img-responsive"
-                                    style={{ width: '100%' }}
-                                    alt="Header"
-                                />
+                    <div key={index} className='pagelayout bg-white' style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
+                        <div className='row margin-top-5'>
+                            <div className='col-sm-12'>
+                                <img src={getinstitution[0]?.mI_Logo} className='img-responsive' style={{ width: '100%' }} alt='Header' />
                             </div>
                         </div>
-                        <h4 className="text-center font-bold margin-top-10">
-                            Report Card for Co-Scholastic Areas (Class {report.className || report.classname} Academic Session : {academicYear})
+                        <h4 className='margin-top-10 text-center font-bold'>
+                            Report Card for Co-Scholastic Areas (Class {report.className || report.classname} Academic Session :{' '}
+                            {academicYear})
                         </h4>
 
-                        <div className="row margin-top-10">
-                            <div className="col-sm-12">
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <div className="row">
-                                            <div className="col-xs-4 text-bold">Roll No.</div>
-                                            <div className="col-xs-8">: {report.rollNo || report.rollno || report.AMAY_RollNo || ""}</div>
+                        <div className='row margin-top-10'>
+                            <div className='col-sm-12'>
+                                <div className='row'>
+                                    <div className='col-xs-6'>
+                                        <div className='row'>
+                                            <div className='col-xs-4 text-bold'>Roll No.</div>
+                                            <div className='col-xs-8'>: {report.rollNo || report.rollno || report.AMAY_RollNo || ''}</div>
                                         </div>
                                     </div>
-                                    <div className="col-xs-6">
-                                        <div className="row">
-                                            <div className="col-xs-4 text-bold">Student's Name</div>
-                                            <div className="col-xs-8">: {(report.studentName || report.studentname || "")?.toUpperCase()}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <div className="row">
-                                            <div className="col-xs-4 text-bold">Mother's Name</div>
-                                            <div className="col-xs-8">: {(report.motherName || report.mothername || "")?.toUpperCase()}</div>
-                                        </div>
-                                    </div>
-                                    <div className="col-xs-6">
-                                        <div className="row">
-                                            <div className="col-xs-4 text-bold">Date Of Birth</div>
-                                            <div className="col-xs-8">: {report.dob || ""}</div>
+                                    <div className='col-xs-6'>
+                                        <div className='row'>
+                                            <div className='col-xs-4 text-bold'>Student's Name</div>
+                                            <div className='col-xs-8'>
+                                                : {(report.studentName || report.studentname || '')?.toUpperCase()}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <div className="row">
-                                            <div className="col-xs-4 text-bold">Father's Name</div>
-                                            <div className="col-xs-8">: {(report.fatherName || report.fathername || "")?.toUpperCase()}</div>
+                                <div className='row'>
+                                    <div className='col-xs-6'>
+                                        <div className='row'>
+                                            <div className='col-xs-4 text-bold'>Mother's Name</div>
+                                            <div className='col-xs-8'>
+                                                : {(report.motherName || report.mothername || '')?.toUpperCase()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='col-xs-6'>
+                                        <div className='row'>
+                                            <div className='col-xs-4 text-bold'>Date Of Birth</div>
+                                            <div className='col-xs-8'>: {report.dob || ''}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='row'>
+                                    <div className='col-xs-6'>
+                                        <div className='row'>
+                                            <div className='col-xs-4 text-bold'>Father's Name</div>
+                                            <div className='col-xs-8'>
+                                                : {(report.fatherName || report.fathername || '')?.toUpperCase()}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="row margin-top-10">
-                            <div className="col-sm-12">
-                                <table className="table table-bordered">
+                        <div className='row margin-top-10'>
+                            <div className='col-sm-12'>
+                                <table className='table-bordered table'>
                                     <thead>
                                         <tr>
-                                            <td className="text-left text-bold" style={{ width: '70%' }}>
+                                            <td className='text-left text-bold' style={{ width: '70%' }}>
                                                 Co-Scholastic Areas : {'{on 5- Point(A-E) grading scale}'}
                                             </td>
                                             {gettermdetails.length > 0 ? (
-                                                gettermdetails.map((term: any, tIdx: number) => (
-                                                    <td key={tIdx} className="text-center text-bold">Grade</td>
+                                                gettermdetails.map((_term: any, tIdx: number) => (
+                                                    <td key={tIdx} className='text-center text-bold'>
+                                                        Grade
+                                                    </td>
                                                 ))
                                             ) : (
-                                                <td className="text-center text-bold">Grade</td>
+                                                <td className='text-center text-bold'>Grade</td>
                                             )}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {report.subject_main_list && report.subject_main_list.length > 0 ? (
-                                            report.subject_main_list.map((sub: any, sIdx: number) => (
-                                                <tr key={`subj-${sIdx}`}>
-                                                    <td className="text-left" style={{ wordWrap: 'break-word' }}>
-                                                        <b>{sub.subjectName}</b>
-                                                    </td>
-                                                    {gettermdetails.length > 0 ? (
-                                                        gettermdetails.map((cos: any, tIdx: number) => (
-                                                            <td key={tIdx} className="text-center">
-                                                                {sub.subject_score_details
-                                                                    .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
-                                                                    .map((sc: any, scIdx: number) => (
-                                                                        <b key={scIdx}>{sc.scoregrade}</b>
-                                                                    ))}
-                                                            </td>
-                                                        ))
-                                                    ) : (
-                                                        <td className="text-center"></td>
-                                                    )}
-                                                </tr>
-                                            ))
-                                        ) : null}
+                                        {report.subject_main_list && report.subject_main_list.length > 0
+                                            ? report.subject_main_list.map((sub: any, sIdx: number) => (
+                                                  <tr key={`subj-${sIdx}`}>
+                                                      <td className='text-left' style={{ wordWrap: 'break-word' }}>
+                                                          <b>{sub.subjectName}</b>
+                                                      </td>
+                                                      {gettermdetails.length > 0 ? (
+                                                          gettermdetails.map((cos: any, tIdx: number) => (
+                                                              <td key={tIdx} className='text-center'>
+                                                                  {sub.subject_score_details
+                                                                      .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
+                                                                      .map((sc: any, scIdx: number) => (
+                                                                          <b key={scIdx}>{sc.scoregrade}</b>
+                                                                      ))}
+                                                              </td>
+                                                          ))
+                                                      ) : (
+                                                          <td className='text-center' />
+                                                      )}
+                                                  </tr>
+                                              ))
+                                            : null}
                                         {report.subject_main_list && report.subject_main_list.length > 0 && (
                                             <tr>
                                                 <td colSpan={(gettermdetails.length || 1) + 1}>&nbsp;</td>
                                             </tr>
                                         )}
-                                        {report.skill_main_list && report.skill_main_list.length > 0 ? (
-                                            report.skill_main_list.map((subjco: any, sIdx: number) => (
-                                                <tr key={`skill-${sIdx}`}>
-                                                    <td className="text-left" style={{ wordWrap: 'break-word' }}>
-                                                        <b>{subjco.ECS_SkillName}</b>
-                                                    </td>
-                                                    {gettermdetails.length > 0 ? (
-                                                        gettermdetails.map((cos: any, tIdx: number) => (
-                                                            <td key={tIdx} className="text-center">
-                                                                {subjco.skill_score_details
-                                                                    .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
-                                                                    .map((sc: any, scIdx: number) => (
-                                                                        <b key={scIdx}>{sc.scoregrade}</b>
-                                                                    ))}
-                                                            </td>
-                                                        ))
-                                                    ) : (
-                                                        <td className="text-center"></td>
-                                                    )}
-                                                </tr>
-                                            ))
-                                        ) : null}
+                                        {report.skill_main_list && report.skill_main_list.length > 0
+                                            ? report.skill_main_list.map((subjco: any, sIdx: number) => (
+                                                  <tr key={`skill-${sIdx}`}>
+                                                      <td className='text-left' style={{ wordWrap: 'break-word' }}>
+                                                          <b>{subjco.ECS_SkillName}</b>
+                                                      </td>
+                                                      {gettermdetails.length > 0 ? (
+                                                          gettermdetails.map((cos: any, tIdx: number) => (
+                                                              <td key={tIdx} className='text-center'>
+                                                                  {subjco.skill_score_details
+                                                                      .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
+                                                                      .map((sc: any, scIdx: number) => (
+                                                                          <b key={scIdx}>{sc.scoregrade}</b>
+                                                                      ))}
+                                                              </td>
+                                                          ))
+                                                      ) : (
+                                                          <td className='text-center' />
+                                                      )}
+                                                  </tr>
+                                              ))
+                                            : null}
                                         {report.skill_main_list && report.skill_main_list.length > 0 && (
                                             <tr>
                                                 <td colSpan={(gettermdetails.length || 1) + 1}>&nbsp;</td>
                                             </tr>
                                         )}
-                                        {report.activity_main_list && report.activity_main_list.length > 0 ? (
-                                            report.activity_main_list.map((subjco: any, aIdx: number) => (
-                                                <tr key={`act-${aIdx}`}>
-                                                    <td className="text-left" style={{ wordWrap: 'break-word' }}>
-                                                        <b>{subjco.ECACTA_SkillArea}</b>
-                                                    </td>
-                                                    {gettermdetails.length > 0 ? (
-                                                        gettermdetails.map((cos: any, tIdx: number) => (
-                                                            <td key={tIdx} className="text-center">
-                                                                {subjco.activity_score_details
-                                                                    .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
-                                                                    .map((sc: any, scIdx: number) => (
-                                                                        <b key={scIdx}>{sc.EMGD_Name}</b>
-                                                                    ))}
-                                                            </td>
-                                                        ))
-                                                    ) : (
-                                                        <td className="text-center"></td>
-                                                    )}
-                                                </tr>
-                                            ))
-                                        ) : null}
+                                        {report.activity_main_list && report.activity_main_list.length > 0
+                                            ? report.activity_main_list.map((subjco: any, aIdx: number) => (
+                                                  <tr key={`act-${aIdx}`}>
+                                                      <td className='text-left' style={{ wordWrap: 'break-word' }}>
+                                                          <b>{subjco.ECACTA_SkillArea}</b>
+                                                      </td>
+                                                      {gettermdetails.length > 0 ? (
+                                                          gettermdetails.map((cos: any, tIdx: number) => (
+                                                              <td key={tIdx} className='text-center'>
+                                                                  {subjco.activity_score_details
+                                                                      .filter((sc: any) => sc.ecT_Id === cos.ecT_Id)
+                                                                      .map((sc: any, scIdx: number) => (
+                                                                          <b key={scIdx}>{sc.EMGD_Name}</b>
+                                                                      ))}
+                                                              </td>
+                                                          ))
+                                                      ) : (
+                                                          <td className='text-center' />
+                                                      )}
+                                                  </tr>
+                                              ))
+                                            : null}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <div className="row margin-top-10" style={{ marginTop: '40px' }}>
-                            <div className="col-sm-12">
-                                <div className="row">
-                                    <div className="col-xs-4 text-center">
-                                        <label className="control-label"><b>Date : {format(generateddate, 'dd/MM/yyyy')}</b></label>
+                        <div className='row margin-top-10' style={{ marginTop: '40px' }}>
+                            <div className='col-sm-12'>
+                                <div className='row'>
+                                    <div className='col-xs-4 text-center'>
+                                        <label className='control-label'>
+                                            <b>Date : {format(generateddate, 'dd/MM/yyyy')}</b>
+                                        </label>
                                     </div>
-                                    <div className="col-xs-4 text-center">
-                                        <label className="control-label"><b>Sig of Teacher</b></label>
+                                    <div className='col-xs-4 text-center'>
+                                        <label className='control-label'>
+                                            <b>Sig of Teacher</b>
+                                        </label>
                                     </div>
-                                    <div className="col-xs-4 text-center">
-                                        <label className="control-label"><b>Sign of Principal</b></label>
+                                    <div className='col-xs-4 text-center'>
+                                        <label className='control-label'>
+                                            <b>Sign of Principal</b>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

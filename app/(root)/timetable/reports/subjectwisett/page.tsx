@@ -94,12 +94,6 @@ export default function SubjectWiseReportPage() {
         const gridWeeks = getList(root, 'gridweeks', 'gridWeeks', 'day_list', 'day_List', 'Table');
         const breakList = getList(root, 'tT_Break_list', 'breakList', 'Table2', 'tt_break_list');
 
-        console.log('SubjectWise Report Analysis:', {
-            periods: periodList.length,
-            days: gridWeeks.length,
-            tt: timetable.length
-        });
-
         const subjectsToProcess = Array.isArray(selectedSubjects) ? selectedSubjects : [];
 
         subjectsToProcess.forEach((sub: any) => {

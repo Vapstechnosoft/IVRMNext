@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -16,13 +16,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
     const { reportFormat } = params ?? {};
 
-    const {
-        datareport: mainList = [],
-        subarray: subList = [],
-        institute = [],
-        accyear = '',
-        examname = ''
-    } = data ?? {};
+    const { datareport: mainList = [], subarray: subList = [], institute = [], accyear = '', examname = '' } = data ?? {};
 
     // Get logo path from institute data
     const imgname = (institute || []).length > 0 ? institute[0].mI_Logo : '';
@@ -46,18 +40,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     }
 
     // Helper: subjects for a student
-    const getStudentSubjects = (studentId: number) =>
-        (subList || []).filter((s: any) => s.amsT_Id === studentId);
+    const getStudentSubjects = (studentId: number) => (subList || []).filter((s: any) => s.amsT_Id === studentId);
 
     // ── Format 1 – Grid View (daily) ─────────────────────────────────────────
     const renderFormat1 = () => (
-        <div id='table' className='w-full p-4 bg-white'>
-            <div className='text-center mb-4'>
+        <div id='table' className='w-full bg-white p-4'>
+            <div className='mb-4 text-center'>
                 {imgname && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imgname} alt='School Logo' className='max-w-[400px] mx-auto' />
+                    <img src={imgname} alt='School Logo' className='mx-auto max-w-[400px]' />
                 )}
-                <h3 className='text-2xl font-bold mt-2 uppercase'>Hall Ticket Report {accyear}</h3>
+                <h3 className='mt-2 font-bold text-2xl uppercase'>Hall Ticket Report {accyear}</h3>
             </div>
 
             <table className='w-full border-collapse border border-black text-sm'>
@@ -98,40 +91,46 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         <tr>
                             {/* Left Side: Student Info & Signatures */}
                             <td className='p-3 align-top' style={{ width: '60%', borderRight: '1px solid black' }}>
-                                <div className='text-center mb-4'>
+                                <div className='mb-4 text-center'>
                                     {imgname && (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={imgname} alt='Logo' className='max-w-[80%] mx-auto' />
+                                        <img src={imgname} alt='Logo' className='mx-auto max-w-[80%]' />
                                     )}
-                                    <h4 className='font-bold text-lg mt-2 uppercase'>{examname} - ADMIT CARD</h4>
+                                    <h4 className='mt-2 font-bold text-lg uppercase'>{examname} - ADMIT CARD</h4>
                                 </div>
 
                                 <div className='flex items-start justify-between'>
                                     <div className='flex-1 space-y-2 text-base'>
-                                        <div><b>Name</b> : {user.amsT_FirstName}</div>
-                                        <div><b>Std</b> : {user.asmcL_ClassName} {user.asmC_SectionName}</div>
-                                        <div><b>Roll.No</b> : {user.amaY_Rollno}</div>
+                                        <div>
+                                            <b>Name</b> : {user.amsT_FirstName}
+                                        </div>
+                                        <div>
+                                            <b>Std</b> : {user.asmcL_ClassName} {user.asmC_SectionName}
+                                        </div>
+                                        <div>
+                                            <b>Roll.No</b> : {user.amaY_Rollno}
+                                        </div>
                                     </div>
                                     {user.amsT_Photoname && (
                                         <div className='border border-black p-1' style={{ width: '100px', height: '120px' }}>
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={user.amsT_Photoname} alt='Student' className='w-full h-full object-contain' />
+                                            <img src={user.amsT_Photoname} alt='Student' className='h-full w-full object-contain' />
                                         </div>
                                     )}
                                 </div>
 
-                                <div className='mt-12 flex justify-between items-end'>
+                                <div className='mt-12 flex items-end justify-between'>
                                     <div className='text-center'>
                                         <div className='h-12' />
-                                        <p className='border-t border-black pt-1 px-2 text-sm'>Sign. of Class Teacher</p>
+                                        <p className='border-black border-t px-2 pt-1 text-sm'>Sign. of Class Teacher</p>
                                     </div>
                                     <div className='text-center'>
                                         {principalSign && (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={principalSign} alt='Principal' className='h-12 mx-auto' />
+                                            <img src={principalSign} alt='Principal' className='mx-auto h-12' />
                                         )}
                                         <div className={!principalSign ? 'h-12' : ''} />
-                                        <p className='border-t border-black pt-1 px-2 text-sm'>Sign. of Principal</p>
+                                        <p className='border-black border-t px-2 pt-1 text-sm'>Sign. of Principal</p>
                                     </div>
                                 </div>
                             </td>
@@ -152,10 +151,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <td className='border border-black p-2'>{exm.ismS_SubjectName}</td>
                                                 <td className='border border-black p-2'>
                                                     {exm.exttS_Date ? format(new Date(exm.exttS_Date), 'dd/MM/yyyy') : ''}
-                                                    <br />
-                                                    ({exm.ettS_StartTime} -- {exm.ettS_EndTime})
+                                                    <br />({exm.ettS_StartTime} -- {exm.ettS_EndTime})
                                                 </td>
-                                                <td className='border border-black p-2'></td>
+                                                <td className='border border-black p-2' />
                                             </tr>
                                         ))}
                                     </tbody>
@@ -169,16 +167,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     return (
-        <Card className='mt-6 border-none shadow-none bg-transparent'>
+        <Card className='mt-6 border-none bg-transparent shadow-none'>
             {/* Toolbar */}
-            <div className='no-print flex items-center justify-between border-b bg-white rounded-t-lg px-6 py-3 shadow-sm'>
+            <div className='no-print flex items-center justify-between rounded-t-lg border-b bg-white px-6 py-3 shadow-sm'>
                 <h3 className='font-semibold text-lg'>Hall Ticket Report</h3>
                 <Button variant='outline' size='sm' onClick={handlePrint} className='flex items-center gap-2'>
                     <Printer className='h-4 w-4' /> Print
                 </Button>
             </div>
 
-            <CardContent className='p-6 bg-white rounded-b-lg shadow-sm overflow-auto'>
+            <CardContent className='overflow-auto rounded-b-lg bg-white p-6 shadow-sm'>
                 <div ref={printRef} className='print-container'>
                     {reportFormat === 'format1' && renderFormat1()}
                     {(reportFormat === 'format2' || reportFormat === 'format3') &&
@@ -187,8 +185,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {renderAdmitCard(user)}
                                 {index < mainList.length - 1 && <div className='page-break' />}
                             </div>
-                        ))
-                    }
+                        ))}
                 </div>
             </CardContent>
 

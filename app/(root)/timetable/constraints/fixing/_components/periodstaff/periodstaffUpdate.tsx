@@ -40,9 +40,9 @@ export default function PeriodStaffUpdate({
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [subSubjectList, setSubSubjectList] = useState<any[]>([]);
-    const [isClassLoading, setIsClassLoading] = useState(false);
+    const [isClassLoading, _setIsClassLoading] = useState(false);
 
-    const [masterClasses, setMasterClasses] = useState<any[]>([]);
+    const [_masterClasses, setMasterClasses] = useState<any[]>([]);
     const [masterSections, setMasterSections] = useState<any[]>([]);
     const [masterSubjects, setMasterSubjects] = useState<any[]>([]);
 
@@ -71,7 +71,7 @@ export default function PeriodStaffUpdate({
         control,
         reset
     } = form;
-    const asmaY_Id = watch('asmaY_Id');
+    const _asmaY_Id = watch('asmaY_Id');
     const ttfpS_SUbSelcFlag = watch('ttfpS_SUbSelcFlag');
 
     const { fields, append, remove, replace, update } = useFieldArray({
@@ -108,7 +108,6 @@ export default function PeriodStaffUpdate({
                 if (!id) return;
 
                 const res = await getFixingPeriodStaffDetails(id);
-                console.log('API RESPONSE (Staff Change):', res);
                 const responseData = res?.data || res;
 
                 // 1. Find main record
@@ -197,7 +196,6 @@ export default function PeriodStaffUpdate({
                 // Load master lists then populate selections and grid
                 if (staffId && yearId) {
                     const master = await handleStaffChange(staffId, yearId);
-                    console.log('MASTER DATA:', master);
 
                     if (subDetails && Array.isArray(subDetails)) {
                         replace(
@@ -345,7 +343,6 @@ export default function PeriodStaffUpdate({
         if (effectiveYearId && staffId) {
             try {
                 const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
-                console.log('API RESPONSE (Staff Change):', res);
                 if (res && (res.success || res.success === undefined)) {
                     const classes =
                         extractList(res, 'classlist').length > 0

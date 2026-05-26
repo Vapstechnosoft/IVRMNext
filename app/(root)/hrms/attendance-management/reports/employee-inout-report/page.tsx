@@ -7,8 +7,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeInOutReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, FileSpreadsheet, Save, X } from 'lucide-react';
-import { useMemo, use, useState } from 'react';
+import { FileSpreadsheet } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import AddEmployeeInOutReportForm from './_components/add-from';
 import type { InOutRow } from './_components/columns';
 import { getEmployeeInOutReportColumns } from './_components/columns';
@@ -47,7 +47,6 @@ function FormSections({ setLiveTimeFilter }: { setLiveTimeFilter: (v: string | u
                     size='md'
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='relative'>
-
                         <AddEmployeeInOutReportForm onSuccess={closeAddForm} onTimeFilterChange={setLiveTimeFilter} />
                     </div>
                 </CollapsibleSection>
@@ -69,11 +68,10 @@ function EmployeeInOutReportPageContent({
     liveTimeFilter?: string;
     setLiveTimeFilter: (v: string | undefined) => void;
 }) {
-    console.log("final response", response);
     const transformedResponse = useMemo(() => {
         if (!response?.data?.report_data) return { data: [], columnnames: [], success: response?.success, message: response?.message };
 
-        let reportData = Array.isArray(response.data.report_data) ? response.data.report_data : [];
+        const reportData = Array.isArray(response.data.report_data) ? response.data.report_data : [];
         const columnnames = Array.isArray(response.data.columnnames) ? response.data.columnnames : [];
 
         // Instant filtering logic based on the dropdown
@@ -165,7 +163,6 @@ function EmployeeInOutReportPageContent({
     }, [response, liveTimeFilter]);
 
     const tableProps = useDataTableProps(transformedResponse);
-    console.log("tableProps", tableProps);
     const dynamicColumns = useMemo(() => getEmployeeInOutReportColumns(transformedResponse.columnnames), [transformedResponse.columnnames]);
 
     const formatDate = (dateString: string) => {
@@ -173,7 +170,7 @@ function EmployeeInOutReportPageContent({
         try {
             return format(new Date(dateString), 'dd-MM-yyyy');
         } catch (e) {
-            console.error("Error formatting date:", e);
+            console.error('Error formatting date:', e);
             return dateString; // Return original if invalid
         }
     };
@@ -212,7 +209,7 @@ function EmployeeInOutReportPageContent({
                         exportRow[headerName] = `In: ${val.in || '--'}, Out: ${val.out || '--'}`;
                     }
                 } else if (key === 'date' && val) {
-                    exportRow['Date'] = format(new Date(val), 'dd-MM-yyyy');
+                    exportRow.Date = format(new Date(val), 'dd-MM-yyyy');
                 } else {
                     exportRow[headerName] = val ?? '';
                 }
@@ -235,17 +232,21 @@ function EmployeeInOutReportPageContent({
                     {transformedResponse.data.length > 0 && (
                         <div className='mt-8 space-y-4 rounded-lg bg-white p-6 shadow'>
                             <div className='flex items-center justify-between border-b pb-4'>
-                                <h2 className='font-semibold text-lg text-gray-800'>Report Results</h2>
+                                <h2 className='font-semibold text-gray-800 text-lg'>Report Results</h2>
                                 <div className='flex gap-2'>
-                                    <Button variant='outline' size='sm' onClick={handleExportToExcel} className='bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-all duration-200'>
+                                    <Button
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={handleExportToExcel}
+                                        className='bg-green-50 text-green-700 transition-all duration-200 hover:bg-green-100 hover:text-green-800'>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Export Excel
                                     </Button>
                                 </div>
                             </div>
 
-                            <div className="rounded-md  shadow-sm">
-                                <div className="bg-gray-200 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                            <div className='rounded-md shadow-sm'>
+                                <div className='mb-4 bg-gray-200 px-4 py-2 text-center font-bold text-black text-sm tracking-wide shadow-inner'>
                                     Employee In Out Report from {formatDate(response?.fromDate)} to {formatDate(response?.toDate)}
                                 </div>
                                 <GenericDataTable

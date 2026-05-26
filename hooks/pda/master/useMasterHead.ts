@@ -19,7 +19,7 @@ export const useMasterHead = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const usePDADropdownData = (searchParams?: any) => {
+export const usePDADropdownData = (_searchParams?: any) => {
     const queryClient = useQueryClient();
 
     return {
@@ -35,4 +35,3 @@ export const usePDADropdownData = (searchParams?: any) => {
         }
     };
 };
-

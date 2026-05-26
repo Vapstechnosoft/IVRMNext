@@ -18,7 +18,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { printCumulativeSalaryReport } from './_components/print-utils';
 
-
 // Static Month List (copied from Exam Module reference)
 const MONTH_LIST = [
     { id: 1, name: 'January' },
@@ -68,10 +67,10 @@ function CumulativeSalaryReportContent() {
         setReportData(null);
     };
 
-    const componentRef = useRef<HTMLDivElement>(null);
+    const _componentRef = useRef<HTMLDivElement>(null);
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
-    const watchedDesignation = watch('designation');
+    const _watchedDesignation = watch('designation');
 
     // Queries
     const { data: yearsData } = useLeaveYearDropdown();
@@ -151,20 +150,15 @@ function CumulativeSalaryReportContent() {
     const { mutate: generateReport, isPending } = useCumulativeSalaryReport();
 
     const onSubmit = (data: FilterFormValues) => {
-        console.log('onSubmit', data);
         if (!data.year || !data.month || data.designation.length === 0) {
             toast.error('Please select Year, Month and at least one Designation');
             return;
         }
 
-        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
-        
-        const yearString = data.year; 
-        const monthName = data.month;
+        const _selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
 
-        console.log('yearString', yearString);
-        console.log('monthName', monthName);
-        console.log("data.designation", data.designation)
+        const yearString = data.year;
+        const monthName = data.month;
         generateReport(
             {
                 hreS_Year: yearString,
@@ -174,7 +168,6 @@ function CumulativeSalaryReportContent() {
             },
             {
                 onSuccess: (res) => {
-                    console.log('API Response:', res);
                     if (res.success && res.data.length > 0) {
                         setReportData(res.data);
                         toast.success('Report generated successfully');
@@ -283,38 +276,44 @@ function CumulativeSalaryReportContent() {
         const earningGroup =
             earningColumns.length > 0
                 ? [
-                    {
-                        id: 'earnings_group',
-                        header: () => (
-                            <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
-                                Earnings
-                            </div>
-                        ),
-                        columns: earningColumns
-                    }
-                ]
+                      {
+                          id: 'earnings_group',
+                          header: () => (
+                              <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
+                                  Earnings
+                              </div>
+                          ),
+                          columns: earningColumns
+                      }
+                  ]
                 : [];
 
         const deductionGroup =
             deductionColumns.length > 0
                 ? [
-                    {
-                        id: 'deductions_group',
-                        header: () => (
-                            <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
-                                Deductions
-                            </div>
-                        ),
-                        columns: deductionColumns
-                    }
-                ]
+                      {
+                          id: 'deductions_group',
+                          header: () => (
+                              <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
+                                  Deductions
+                              </div>
+                          ),
+                          columns: deductionColumns
+                      }
+                  ]
                 : [];
 
-        return [...baseColumns, ...summaryColumns.slice(0, 1), ...earningGroup, ...summaryColumns.slice(1, 2), ...deductionGroup, ...summaryColumns.slice(2)];
+        return [
+            ...baseColumns,
+            ...summaryColumns.slice(0, 1),
+            ...earningGroup,
+            ...summaryColumns.slice(1, 2),
+            ...deductionGroup,
+            ...summaryColumns.slice(2)
+        ];
     }, [reportData]);
 
     const processedGridData = useMemo(() => {
-        console.log('Processing grid data:', reportData);
         return reportData || [];
     }, [reportData]);
 
@@ -457,11 +456,11 @@ function CumulativeSalaryReportContent() {
                             variant='outline'
                             onClick={handleCancel}
                             disabled={isPending}
-                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            className='w-32 rounded-xl border-orange-500 text-orange-600 transition-all hover:bg-orange-50'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
+                        <Button type='submit' disabled={isPending} className='w-32 rounded-xl transition-all'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

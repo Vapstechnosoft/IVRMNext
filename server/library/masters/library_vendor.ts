@@ -13,7 +13,7 @@ export async function getMasterVendorList(searchParams?: ApiSearchparams) {
 
 export async function addOrUpdateMasterVendor(data: any) {
     try {
-        const session = await auth();
+        const _session = await auth();
         const payload = {
             LMV_Id: data.lmV_Id || data.LMV_Id || 0,
             LMV_VendorName: data.lmV_VendorName || data.LMV_VendorName || '',

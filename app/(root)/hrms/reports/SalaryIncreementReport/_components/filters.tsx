@@ -7,7 +7,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, RotateCcw, Loader2, Printer, FileSpreadsheet } from 'lucide-react';
+import { FileText, Loader2, RotateCcw } from 'lucide-react';
 
 export interface SalaryIncrementFilters {
     type: 'Individual' | 'All';
@@ -58,48 +58,48 @@ export function SalaryIncrementFilters({
     onReport,
     onCancel,
     onPrint,
-    onExport,
+    onExport
 }: SalaryIncrementFiltersProps) {
     return (
         <CollapsibleSection
-            title="Salary Increment Report"
+            title='Salary Increment Report'
             description='Detailed report of employee salary increments and head-wise changes.'
-            defaultOpen={true}
-        >
-            <Card className="shadow-md">
-                <CardContent className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            defaultOpen={true}>
+            <Card className='shadow-md'>
+                <CardContent className='space-y-6 p-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Employee Type Selection */}
-                        <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Selection Type</Label>
+                        <div className='space-y-4 rounded-xl border bg-muted/20 p-4'>
+                            <Label className='font-bold text-muted-foreground text-sm uppercase tracking-wider'>Selection Type</Label>
                             <RadioGroup
                                 value={filters.type}
-                                onValueChange={(value: 'Individual' | 'All') =>
-                                    onFilterChange({ ...filters, type: value })
-                                }
-                                className="flex gap-8"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="All" id="type-all" />
-                                    <Label htmlFor="type-all" className="cursor-pointer font-medium">All Employees</Label>
+                                onValueChange={(value: 'Individual' | 'All') => onFilterChange({ ...filters, type: value })}
+                                className='flex gap-8'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='All' id='type-all' />
+                                    <Label htmlFor='type-all' className='cursor-pointer font-medium'>
+                                        All Employees
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="Individual" id="type-individual" />
-                                    <Label htmlFor="type-individual" className="cursor-pointer font-medium">Individual</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Individual' id='type-individual' />
+                                    <Label htmlFor='type-individual' className='cursor-pointer font-medium'>
+                                        Individual
+                                    </Label>
                                 </div>
                             </RadioGroup>
 
                             {filters.type === 'Individual' && (
-                                <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    <Label className="text-xs font-semibold">Select Employee <span className="text-destructive">*</span></Label>
+                                <div className='fade-in slide-in-from-bottom-2 animate-in space-y-2 pt-2 duration-300'>
+                                    <Label className='font-semibold text-xs'>
+                                        Select Employee <span className='text-destructive'>*</span>
+                                    </Label>
                                     <Select
                                         value={filters.hrmE_Id}
                                         onValueChange={(value) => onFilterChange({ ...filters, hrmE_Id: value })}
-                                        disabled={isLoadingEmployees}
-
-                                    >
+                                        disabled={isLoadingEmployees}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={isLoadingEmployees ? "Loading employees..." : "Choose an employee"} />
+                                            <SelectValue placeholder={isLoadingEmployees ? 'Loading employees...' : 'Choose an employee'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {employees.map((emp) => (
@@ -109,42 +109,48 @@ export function SalaryIncrementFilters({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {errors?.hrmE_Id && <p className="text-[11px] font-medium text-destructive animate-in fade-in slide-in-from-top-1">{errors.hrmE_Id}</p>}
+                                    {errors?.hrmE_Id && (
+                                        <p className='fade-in slide-in-from-top-1 animate-in font-medium text-[11px] text-destructive'>
+                                            {errors.hrmE_Id}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         {/* Report Option Selection */}
-                        <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
-                            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Report Range</Label>
+                        <div className='space-y-4 rounded-xl border bg-muted/20 p-4'>
+                            <Label className='font-bold text-muted-foreground text-sm uppercase tracking-wider'>Report Range</Label>
                             <RadioGroup
                                 value={filters.option}
-                                onValueChange={(value: 'MONTHWISE' | 'DATEWISE') =>
-                                    onFilterChange({ ...filters, option: value })
-                                }
-                                className="flex gap-8"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="MONTHWISE" id="opt-month" />
-                                    <Label htmlFor="opt-month" className="cursor-pointer font-medium">Month-Wise</Label>
+                                onValueChange={(value: 'MONTHWISE' | 'DATEWISE') => onFilterChange({ ...filters, option: value })}
+                                className='flex gap-8'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='MONTHWISE' id='opt-month' />
+                                    <Label htmlFor='opt-month' className='cursor-pointer font-medium'>
+                                        Month-Wise
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="DATEWISE" id="opt-date" />
-                                    <Label htmlFor="opt-date" className="cursor-pointer font-medium">Date-Wise</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='DATEWISE' id='opt-date' />
+                                    <Label htmlFor='opt-date' className='cursor-pointer font-medium'>
+                                        Date-Wise
+                                    </Label>
                                 </div>
                             </RadioGroup>
 
-                            <div className="pt-2">
+                            <div className='pt-2'>
                                 {filters.option === 'MONTHWISE' ? (
-                                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold">Month <span className="text-destructive">*</span></Label>
+                                    <div className='fade-in slide-in-from-bottom-2 grid animate-in grid-cols-2 gap-4 duration-300'>
+                                        <div className='space-y-2'>
+                                            <Label className='font-semibold text-xs'>
+                                                Month <span className='text-destructive'>*</span>
+                                            </Label>
                                             <Select
                                                 value={filters.monthid}
-                                                onValueChange={(value) => onFilterChange({ ...filters, monthid: value })}
-                                            >
+                                                onValueChange={(value) => onFilterChange({ ...filters, monthid: value })}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Month" />
+                                                    <SelectValue placeholder='Select Month' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {months.map((m) => (
@@ -154,17 +160,26 @@ export function SalaryIncrementFilters({
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors?.monthid && <p className="text-[11px] font-medium text-destructive animate-in fade-in slide-in-from-top-1">{errors.monthid}</p>}
+                                            {errors?.monthid && (
+                                                <p className='fade-in slide-in-from-top-1 animate-in font-medium text-[11px] text-destructive'>
+                                                    {errors.monthid}
+                                                </p>
+                                            )}
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold">Year <span className="text-destructive">*</span></Label>
+                                        <div className='space-y-2'>
+                                            <Label className='font-semibold text-xs'>
+                                                Year <span className='text-destructive'>*</span>
+                                            </Label>
                                             <Select
                                                 value={filters.yearid}
                                                 onValueChange={(value) => onFilterChange({ ...filters, yearid: value })}
-                                                disabled={isLoadingYears || years.length === 0}
-                                            >
+                                                disabled={isLoadingYears || years.length === 0}>
                                                 <SelectTrigger>
-                                                    {isLoadingYears ? <SelectValue placeholder="Loading years..."  /> : <SelectValue placeholder="Select Year" />}
+                                                    {isLoadingYears ? (
+                                                        <SelectValue placeholder='Loading years...' />
+                                                    ) : (
+                                                        <SelectValue placeholder='Select Year' />
+                                                    )}
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {years?.map((y) => (
@@ -174,26 +189,42 @@ export function SalaryIncrementFilters({
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {errors?.yearid && <p className="text-[11px] font-medium text-destructive animate-in fade-in slide-in-from-top-1">{errors.yearid}</p>}
+                                            {errors?.yearid && (
+                                                <p className='fade-in slide-in-from-top-1 animate-in font-medium text-[11px] text-destructive'>
+                                                    {errors.yearid}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold">From Date <span className="text-destructive">*</span></Label>
+                                    <div className='fade-in slide-in-from-bottom-2 grid animate-in grid-cols-2 gap-4 duration-300'>
+                                        <div className='space-y-2'>
+                                            <Label className='font-semibold text-xs'>
+                                                From Date <span className='text-destructive'>*</span>
+                                            </Label>
                                             <DatePicker
                                                 date={filters.fromdate}
                                                 setDate={(date) => onFilterChange({ ...filters, fromdate: date })}
                                             />
-                                            {errors?.fromdate && <p className="text-[11px] font-medium text-destructive animate-in fade-in slide-in-from-top-1">{errors.fromdate}</p>}
+                                            {errors?.fromdate && (
+                                                <p className='fade-in slide-in-from-top-1 animate-in font-medium text-[11px] text-destructive'>
+                                                    {errors.fromdate}
+                                                </p>
+                                            )}
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold">To Date <span className="text-destructive">*</span></Label>
+                                        <div className='space-y-2'>
+                                            <Label className='font-semibold text-xs'>
+                                                To Date <span className='text-destructive'>*</span>
+                                            </Label>
                                             <DatePicker
                                                 date={filters.todate}
                                                 setDate={(date) => onFilterChange({ ...filters, todate: date })}
                                             />
-                                            {errors?.todate && <p className="text-[11px] font-medium text-destructive animate-in fade-in slide-in-from-top-1">{errors.todate}</p>}
+                                            {errors?.todate && (
+                                                <p className='fade-in slide-in-from-top-1 animate-in font-medium text-[11px] text-destructive'>
+                                                    {errors.todate}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -201,22 +232,20 @@ export function SalaryIncrementFilters({
                         </div>
                     </div>
 
-                    <div className="flex  justify-center gap-4 pt-6 border-t">
+                    <div className='flex justify-center gap-4 border-t pt-6'>
                         <Button
                             onClick={onReport}
                             disabled={isGenerating || (filters.type === 'Individual' && !filters.hrmE_Id)}
-                            variant="default"
-                            className="min-w-[140px] shadow-lg transition-all hover:scale-105"
-                        >
-                            {isGenerating ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <FileText className="mr-2 h-4 w-4" />
-                            )}
-                            {isGenerating ? "Processing..." : "View Report"}
+                            variant='default'
+                            className='min-w-[140px] shadow-lg transition-all hover:scale-105'>
+                            {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
+                            {isGenerating ? 'Processing...' : 'View Report'}
                         </Button>
-                        <Button variant="outline" onClick={onCancel} className="min-w-[140px] hover:bg-destructive/10 hover:text-destructive">
-                            <RotateCcw className="mr-2 h-4 w-4" />
+                        <Button
+                            variant='outline'
+                            onClick={onCancel}
+                            className='min-w-[140px] hover:bg-destructive/10 hover:text-destructive'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
                             Reset Filters
                         </Button>
                     </div>
@@ -225,4 +254,3 @@ export function SalaryIncrementFilters({
         </CollapsibleSection>
     );
 }
-

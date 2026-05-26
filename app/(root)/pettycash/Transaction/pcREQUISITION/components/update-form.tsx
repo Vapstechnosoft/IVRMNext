@@ -5,16 +5,16 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PcRequisitionFormValues, pcRequisitionSchema } from '@/schemas/pettycash/transaction/pcREQUISITION';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Save, Trash2, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { Controller, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
 import { useDepartmentName, useEmployeeName, useParticularGetData } from '@/hooks/pettycash/transaction/pcREQUISITION';
-import { IDepartmentName, IEmployeeName } from '@/types/pettycash/transaction/pcREQUISITION';
+import { type PcRequisitionFormValues, pcRequisitionSchema } from '@/schemas/pettycash/transaction/pcREQUISITION';
 import { saveRequisition } from '@/server/pettycash/transaction/pcREQUISITION';
+import type { IDepartmentName, IEmployeeName } from '@/types/pettycash/transaction/pcREQUISITION';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Save, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface AddPcRequisitionFormProps {
     onSuccess?: () => void;
@@ -25,12 +25,7 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const { data: session } = useSession();
-    const mi_id =
-        (session as any)?.mi_id ||
-        (session as any)?.mi_Id ||
-        (session as any)?.user?.mi_Id ||
-        (session as any)?.user?.mi_id ||
-        0;
+    const mi_id = (session as any)?.mi_id || (session as any)?.mi_Id || (session as any)?.user?.mi_Id || (session as any)?.user?.mi_id || 0;
 
     const {
         register,
@@ -77,21 +72,20 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
     const { data: departmentRes, isLoading: isLoadingDept } = useDepartmentName({ id: mi_id, enabled: true });
 
     // Fetch Employees based on selected department
-    const { data: employeeRes, isLoading: isLoadingEmp } = useEmployeeName({ id: Number(watchedDepartmentId), enabled: !!watchedDepartmentId });
+    const { data: employeeRes, isLoading: isLoadingEmp } = useEmployeeName({
+        id: Number(watchedDepartmentId),
+        enabled: !!watchedDepartmentId
+    });
 
     const { data: particularRes, isLoading: isLoadingParticular } = useParticularGetData({ id: mi_id, enabled: true });
 
-    const particulars = Array.isArray(particularRes)
-        ? particularRes
-        : particularRes?.data ?? particularRes?.data?.$values ?? [];
+    const particulars = Array.isArray(particularRes) ? particularRes : (particularRes?.data ?? particularRes?.data?.$values ?? []);
     // Safely extract arrays handling both direct array and nested API Response structures
     const departments: IDepartmentName[] = Array.isArray(departmentRes)
         ? departmentRes
-        : departmentRes?.data ?? departmentRes?.data?.$values ?? [];
+        : (departmentRes?.data ?? departmentRes?.data?.$values ?? []);
 
-    const employees: IEmployeeName[] = Array.isArray(employeeRes)
-        ? employeeRes
-        : employeeRes?.data ?? employeeRes?.data?.$values ?? [];
+    const employees: IEmployeeName[] = Array.isArray(employeeRes) ? employeeRes : (employeeRes?.data ?? employeeRes?.data?.$values ?? []);
 
     const totalAmount = detailsWatcher?.reduce((sum, item) => sum + (Number(item.pcreqtndE_Amount) || 0), 0) || 0;
 
@@ -106,8 +100,6 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                 requisitionDocuments: data.requisitionDocuments
             };
 
-            console.log("Payload:", payload);
-
             const response = await saveRequisition(payload);
 
             if (response?.success) {
@@ -118,7 +110,7 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                 toast.error(response.message);
             }
         } catch (error: any) {
-            console.error("Save Error:", error);
+            console.error('Save Error:', error);
             toast.error(error.message);
         }
     };
@@ -131,23 +123,20 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                     handleSubmit(onSubmit)(e);
                 }}
                 className='space-y-8'>
-
                 {/* Section 1: PARTICULARS REQUISITION */}
                 <div className='rounded-md border'>
-                    <div className='bg-primary/5 border-b p-3 font-semibold text-primary uppercase text-sm'>
-                        Particulars Requisition
-                    </div>
-                    <div className='p-4 space-y-6'>
+                    <div className='border-b bg-primary/5 p-3 font-semibold text-primary text-sm uppercase'>Particulars Requisition</div>
+                    <div className='space-y-6 p-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='space-y-1.5'>
-                                <Label htmlFor='departmentname'>Department Name <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor='departmentname'>
+                                    Department Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='departmentname'
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange}
-                                            value={field.value || ''}
-                                            disabled={isLoadingDept}>
+                                        <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoadingDept}>
                                             <SelectTrigger className={hasSubmitted && errors.departmentname ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder={isLoadingDept ? 'Loading...' : 'Select Department'} />
                                             </SelectTrigger>
@@ -165,7 +154,9 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                             </div>
 
                             <div className='space-y-1.5'>
-                                <Label htmlFor='pcreqtN_Date'>Date <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor='pcreqtN_Date'>
+                                    Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='pcreqtN_Date'
@@ -181,12 +172,15 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                             </div>
 
                             <div className='space-y-1.5'>
-                                <Label htmlFor='employeename'>Employee Name <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor='employeename'>
+                                    Employee Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
                                     name='employeename'
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange}
+                                        <Select
+                                            onValueChange={field.onChange}
                                             value={field.value || ''}
                                             disabled={isLoadingEmp || !watchedDepartmentId}>
                                             <SelectTrigger className={hasSubmitted && errors.employeename ? 'border-red-500' : ''}>
@@ -206,7 +200,9 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                             </div>
 
                             <div className='space-y-1.5'>
-                                <Label htmlFor='pcreqtN_Purpose'>Purpose <span className='text-red-500'>*</span></Label>
+                                <Label htmlFor='pcreqtN_Purpose'>
+                                    Purpose <span className='text-red-500'>*</span>
+                                </Label>
                                 <Input
                                     id='pcreqtN_Purpose'
                                     placeholder='Enter purpose'
@@ -218,37 +214,39 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                         </div>
 
                         {/* Particulars Grid */}
-                        <div className="overflow-x-auto border rounded-md">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-purple-700 text-white">
+                        <div className='overflow-x-auto rounded-md border'>
+                            <table className='w-full text-left text-sm'>
+                                <thead className='bg-purple-700 text-white'>
                                     <tr>
-                                        <th className="p-3 text-center border-r w-16">SLNO</th>
-                                        <th className="p-3 text-center border-r min-w-[200px]">Particulars</th>
-                                        <th className="p-3 text-center border-r w-40">Amount</th>
-                                        <th className="p-3 text-center border-r">Remark</th>
-                                        <th className="p-3 text-center w-20">Action</th>
+                                        <th className='w-16 border-r p-3 text-center'>SLNO</th>
+                                        <th className='min-w-[200px] border-r p-3 text-center'>Particulars</th>
+                                        <th className='w-40 border-r p-3 text-center'>Amount</th>
+                                        <th className='border-r p-3 text-center'>Remark</th>
+                                        <th className='w-20 p-3 text-center'>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {detailFields.map((field, index) => (
-                                        <tr key={field.id} className="border-b bg-white">
-                                            <td className="p-3 text-center border-r">{index + 1}</td>
-                                            <td className="p-3 border-r">
+                                        <tr key={field.id} className='border-b bg-white'>
+                                            <td className='border-r p-3 text-center'>{index + 1}</td>
+                                            <td className='border-r p-3'>
                                                 <Controller
                                                     control={control}
                                                     name={`requisitionDetails.${index}.pcmparT_Id`}
                                                     render={({ field }) => (
-                                                        <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoadingParticular} >
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ''}
+                                                            disabled={isLoadingParticular}>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder={isLoadingParticular ? "Loading..." : "Select Particular"} />
+                                                                <SelectValue
+                                                                    placeholder={isLoadingParticular ? 'Loading...' : 'Select Particular'}
+                                                                />
                                                             </SelectTrigger>
 
                                                             <SelectContent>
                                                                 {particulars.map((item: any) => (
-                                                                    <SelectItem
-                                                                        key={item.pcmparT_Id}
-                                                                        value={item.pcmparT_Id.toString()}
-                                                                    >
+                                                                    <SelectItem key={item.pcmparT_Id} value={item.pcmparT_Id.toString()}>
                                                                         {item.pcmparT_ParticularName}
                                                                     </SelectItem>
                                                                 ))}
@@ -257,35 +255,35 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                                                     )}
                                                 />
                                             </td>
-                                            <td className="p-3 border-r">
+                                            <td className='border-r p-3'>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     {...register(`requisitionDetails.${index}.pcreqtndE_Amount`, { valueAsNumber: true })}
                                                 />
                                             </td>
-                                            <td className="p-3 border-r">
-                                                <Input
-                                                    {...register(`requisitionDetails.${index}.pcreqtndE_Remarks`)}
-                                                />
+                                            <td className='border-r p-3'>
+                                                <Input {...register(`requisitionDetails.${index}.pcreqtndE_Remarks`)} />
                                             </td>
-                                            <td className="p-3 text-center">
+                                            <td className='p-3 text-center'>
                                                 {index === detailFields.length - 1 ? (
                                                     <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-primary hover:text-primary hover:bg-primary/10 font-bold"
-                                                        onClick={() => appendDetail({ pcmparT_Id: '', pcreqtndE_Amount: 0, pcreqtndE_Remarks: '' })}>
-                                                        <Plus className="h-5 w-5" />
+                                                        type='button'
+                                                        variant='ghost'
+                                                        size='icon'
+                                                        className='font-bold text-primary hover:bg-primary/10 hover:text-primary'
+                                                        onClick={() =>
+                                                            appendDetail({ pcmparT_Id: '', pcreqtndE_Amount: 0, pcreqtndE_Remarks: '' })
+                                                        }>
+                                                        <Plus className='h-5 w-5' />
                                                     </Button>
                                                 ) : (
                                                     <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        type='button'
+                                                        variant='ghost'
+                                                        size='icon'
+                                                        className='text-destructive hover:bg-destructive/10 hover:text-destructive'
                                                         onClick={() => removeDetail(index)}>
-                                                        <Trash2 className="h-5 w-5" />
+                                                        <Trash2 className='h-5 w-5' />
                                                     </Button>
                                                 )}
                                             </td>
@@ -294,87 +292,89 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                                 </tbody>
                             </table>
                         </div>
-                        <div className="flex items-center gap-4 text-sm font-semibold">
+                        <div className='flex items-center gap-4 font-semibold text-sm'>
                             <span>Total Amount:</span>
-                            <Input readOnly className="w-40 bg-gray-50 max-w-[150px]" value={totalAmount} />
+                            <Input readOnly className='w-40 max-w-[150px] bg-gray-50' value={totalAmount} />
                         </div>
                     </div>
                 </div>
 
                 {/* Section 2: ADD DOCUMENTS */}
                 <div className='rounded-md border'>
-                    <div className='bg-primary/5 border-b p-3 font-semibold text-primary uppercase text-sm'>
-                        Add Documents
-                    </div>
+                    <div className='border-b bg-primary/5 p-3 font-semibold text-primary text-sm uppercase'>Add Documents</div>
                     <div className='p-4'>
-                        <div className="overflow-x-auto border rounded-md">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-purple-700 text-white">
+                        <div className='overflow-x-auto rounded-md border'>
+                            <table className='w-full text-left text-sm'>
+                                <thead className='bg-purple-700 text-white'>
                                     <tr>
-                                        <th className="p-3 text-center border-r w-16">SL.NO.</th>
-                                        <th className="p-3 text-center border-r min-w-[200px]">File Name</th>
-                                        <th className="p-3 text-center border-r min-w-[200px]">File</th>
-                                        <th className="p-3 text-center border-r w-24">View</th>
-                                        <th className="p-3 text-center w-28">Action</th>
+                                        <th className='w-16 border-r p-3 text-center'>SL.NO.</th>
+                                        <th className='min-w-[200px] border-r p-3 text-center'>File Name</th>
+                                        <th className='min-w-[200px] border-r p-3 text-center'>File</th>
+                                        <th className='w-24 border-r p-3 text-center'>View</th>
+                                        <th className='w-28 p-3 text-center'>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {documentFields.length === 0 && (
-                                        <tr className="border-b bg-white">
-                                            <td colSpan={5} className="p-3 text-center italic text-muted-foreground text-xs py-8">
+                                        <tr className='border-b bg-white'>
+                                            <td colSpan={5} className='p-3 py-8 text-center text-muted-foreground text-xs italic'>
                                                 No documents added. Click + to add one.
                                             </td>
                                         </tr>
                                     )}
                                     {documentFields.map((field, index) => (
-                                        <tr key={field.id} className="border-b bg-white">
-                                            <td className="p-3 text-center border-r">{index + 1}</td>
-                                            <td className="p-3 border-r">
-                                                <Input
-                                                    {...register(`requisitionDocuments.${index}.pcreqtndO_FileName`)}
+                                        <tr key={field.id} className='border-b bg-white'>
+                                            <td className='border-r p-3 text-center'>{index + 1}</td>
+                                            <td className='border-r p-3'>
+                                                <Input {...register(`requisitionDocuments.${index}.pcreqtndO_FileName`)} />
+                                            </td>
+                                            <td className='flex items-center justify-center border-r p-3'>
+                                                <Button size='sm' type='button' className='bg-[#f46a2a] text-white hover:bg-[#d65719]'>
+                                                    Upload Document
+                                                </Button>
+                                                {/* Hidden input to mimic form structure since we don't have exact file upload hook context here */}
+                                                <input
+                                                    type='hidden'
+                                                    {...register(`requisitionDocuments.${index}.pcreqtndO_FilePath`)}
+                                                    value='dummy_path.jpg'
                                                 />
                                             </td>
-                                            <td className="p-3 border-r flex items-center justify-center">
-                                                <Button size="sm" type="button" className="bg-[#f46a2a] hover:bg-[#d65719] text-white">Upload Document</Button>
-                                                {/* Hidden input to mimic form structure since we don't have exact file upload hook context here */}
-                                                <input type="hidden" {...register(`requisitionDocuments.${index}.pcreqtndO_FilePath`)} value="dummy_path.jpg" />
-                                            </td>
-                                            <td className="p-3 border-r text-center">
-                                                {/* Logic for view */}
-                                            </td>
-                                            <td className="p-3 text-center">
-                                                <div className="flex items-center justify-center gap-1">
+                                            <td className='border-r p-3 text-center'>{/* Logic for view */}</td>
+                                            <td className='p-3 text-center'>
+                                                <div className='flex items-center justify-center gap-1'>
                                                     {index === documentFields.length - 1 && (
                                                         <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8 font-bold"
-                                                            onClick={() => appendDocument({ pcreqtndO_FileName: '', pcreqtndO_FilePath: '' })}>
-                                                            <Plus className="h-5 w-5" />
+                                                            type='button'
+                                                            variant='ghost'
+                                                            size='icon'
+                                                            className='h-8 w-8 font-bold text-primary hover:bg-primary/10 hover:text-primary'
+                                                            onClick={() =>
+                                                                appendDocument({ pcreqtndO_FileName: '', pcreqtndO_FilePath: '' })
+                                                            }>
+                                                            <Plus className='h-5 w-5' />
                                                         </Button>
                                                     )}
                                                     <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-primary hover:text-primary hover:bg-primary/10 h-8 w-8 font-bold"
+                                                        type='button'
+                                                        variant='ghost'
+                                                        size='icon'
+                                                        className='h-8 w-8 font-bold text-primary hover:bg-primary/10 hover:text-primary'
                                                         onClick={() => removeDocument(index)}>
-                                                        <span className="text-xl leading-none">-</span>
+                                                        <span className='text-xl leading-none'>-</span>
                                                     </Button>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {documentFields.length === 0 && (
-                                        <tr className="bg-white">
-                                            <td colSpan={5} className="p-2 text-center">
+                                        <tr className='bg-white'>
+                                            <td colSpan={5} className='p-2 text-center'>
                                                 <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
                                                     onClick={() => appendDocument({ pcreqtndO_FileName: '', pcreqtndO_FilePath: '' })}>
-                                                    <Plus className="mr-2 h-4 w-4" /> Add Row
+                                                    <Plus className='mr-2 h-4 w-4' /> Add Row
                                                 </Button>
                                             </td>
                                         </tr>
@@ -389,9 +389,9 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-full sm:w-32 bg-[#f46a2a] hover:bg-[#d65719] text-white transition-all duration-200 hover:scale-105 sm:order-1'>
+                        className='order-1 w-full bg-[#f46a2a] text-white transition-all duration-200 hover:scale-105 hover:bg-[#d65719] sm:order-1 sm:w-32'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 font-bold h-4 w-4' />
+                            <Save className='mr-2 h-4 w-4 font-bold' />
                             {isSubmitting ? 'Saving...' : 'SAVE'}
                         </div>
                     </Button>
@@ -403,9 +403,9 @@ export default function AddPcRequisitionForm({ onSuccess, className = '' }: AddP
                             setHasSubmitted(false);
                         }}
                         disabled={isSubmitting}
-                        className='order-2 w-full sm:w-32 bg-white hover:bg-gray-100 text-black border border-gray-300 transition-all duration-200 hover:scale-105 sm:order-2'>
-                        <div className='flex items-center justify-center font'>
-                            <span className="mr-2 h-4 w-4 text-center leading-[14px]"></span> CANCEL
+                        className='order-2 w-full border border-gray-300 bg-white text-black transition-all duration-200 hover:scale-105 hover:bg-gray-100 sm:order-2 sm:w-32'>
+                        <div className='font flex items-center justify-center'>
+                            <span className='mr-2 h-4 w-4 text-center leading-[14px]' /> CANCEL
                         </div>
                     </Button>
                 </div>

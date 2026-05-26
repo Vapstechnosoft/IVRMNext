@@ -1,10 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, FileEdit, Trash2, CreditCard } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,6 +10,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
+import { CreditCard, FileEdit, MoreHorizontal, Trash2 } from 'lucide-react';
 
 export const bbhsStudentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
@@ -73,7 +73,7 @@ export const bbhsStudentApplicationColumns: ColumnDef<IPreadmissionStudentApplic
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => console.log('Edit', app)}>
+                        <DropdownMenuItem onClick={() => }>
                             <FileEdit className="mr-2 h-4 w-4" />
                             Edit Application
                         </DropdownMenuItem>

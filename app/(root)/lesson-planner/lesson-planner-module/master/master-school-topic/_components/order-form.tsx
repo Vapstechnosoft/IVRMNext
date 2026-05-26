@@ -100,7 +100,7 @@ export default function OrderMasterSchoolTopicForm({ isOpen, onClose, masterYear
                         ASMCL_Id: Number(selectedClass)
                     });
                     setTopics((res?.data?.getsubjecttopicdetails || res?.data || []) as IMasterSchoolTopic[]);
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch topics');
                 } finally {
                     setIsLoading(false);
@@ -142,7 +142,7 @@ export default function OrderMasterSchoolTopicForm({ isOpen, onClose, masterYear
             } else {
                 toast.error('Failed to update order');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Something went wrong');
         } finally {
             setIsSaving(false);

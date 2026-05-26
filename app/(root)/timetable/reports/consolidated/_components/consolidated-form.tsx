@@ -66,7 +66,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
     } = form;
 
     const watchedType = watch('type');
-    const watchedAcademicYear = watch('asmaY_Id');
+    const _watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
 
     // Filter classes based on selected category from the initial classlists

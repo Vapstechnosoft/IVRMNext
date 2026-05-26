@@ -54,7 +54,7 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         if (Array.isArray(res)) return res;
         if (res.data && Array.isArray(res.data)) return res.data;
         if (res[fallbackKey] && Array.isArray(res[fallbackKey])) return res[fallbackKey];
-        if (res.data && res.data[fallbackKey] && Array.isArray(res.data[fallbackKey])) return res.data[fallbackKey];
+        if (res.data?.[fallbackKey] && Array.isArray(res.data[fallbackKey])) return res.data[fallbackKey];
 
         // Nuclear fallback: find the first array property
         for (const key in res) {
@@ -68,15 +68,9 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         return [];
     };
 
-    useEffect(() => {
-        console.log('Deviation State - Classes:', classes);
-    }, [classes]);
-    useEffect(() => {
-        console.log('Deviation State - Sections:', sections);
-    }, [sections]);
-    useEffect(() => {
-        console.log('Deviation State - Employees:', employees);
-    }, [employees]);
+    useEffect(() => {}, [classes]);
+    useEffect(() => {}, [sections]);
+    useEffect(() => {}, [employees]);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -99,11 +93,8 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log('Deviation: Fetching classes for year:', yearId);
                 const res: any = await onChangeYear(Number(yearId));
-                console.log('Deviation onChangeYear Response:', res);
                 const classes = extractArray(res, 'masterclass');
-                console.log('Deviation Extracted classes:', classes);
                 if (classes.length > 0) setClasses(classes);
             } catch (error) {
                 console.error('Deviation: Error in handleYearChange:', error);
@@ -123,11 +114,8 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
 
         startTransition(async () => {
             try {
-                console.log('Deviation: Fetching sections for:', { yearId, classId });
                 const res: any = await onChangeClass(Number(yearId), Number(classId));
-                console.log('Deviation onChangeClass Response:', res);
                 const sections = extractArray(res, 'mastersection');
-                console.log('Deviation Extracted sections:', sections);
                 if (sections.length > 0) setSections(sections);
             } catch (error) {
                 console.error('Deviation: Error in handleClassChange:', error);
@@ -147,24 +135,20 @@ export default function ReportFilter({ masterYear, onSubmit, onCancel, isLoading
         startTransition(async () => {
             try {
                 const params = { yearId: Number(yearId), classId: Number(classId), sectionId: Number(sectionId) };
-                console.log('Deviation: Fetching employees with params:', params);
                 const res: any = await onChangeSection(params.yearId, params.classId, params.sectionId);
-                console.log('Deviation RAW Response Keys:', Object.keys(res || {}));
 
                 let extracted: any[] = [];
                 if (res && Array.isArray(res.data)) {
                     extracted = res.data;
                 } else if (Array.isArray(res)) {
                     extracted = res;
-                } else if (res && res.data && Array.isArray(res.data.data)) {
+                } else if (res?.data && Array.isArray(res.data.data)) {
                     extracted = res.data.data;
-                } else if (res && res.employeedetails && Array.isArray(res.employeedetails)) {
+                } else if (res?.employeedetails && Array.isArray(res.employeedetails)) {
                     extracted = res.employeedetails;
                 } else {
                     extracted = extractArray(res, 'employeedetails');
                 }
-
-                console.log('Deviation Final Extracted:', extracted);
                 setEmployees(extracted);
 
                 if (extracted.length === 0) {

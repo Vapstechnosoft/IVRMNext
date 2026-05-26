@@ -57,7 +57,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
     const { openDeleteForm, openEditForm } = useFormContext<IMasterClassYearlyList>();
 
     const handleDelete = useCallback((data: IMasterClassYearlyList) => openDeleteForm(data), [openDeleteForm]);
-    const handleEdit = useCallback((data: IMasterClassYearlyList) => openEditForm(data), [openEditForm]);
+    const _handleEdit = useCallback((data: IMasterClassYearlyList) => openEditForm(data), [openEditForm]);
 
     return (
         <ActionButtons

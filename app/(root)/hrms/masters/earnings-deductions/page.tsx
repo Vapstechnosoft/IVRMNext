@@ -142,7 +142,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<IMasterEarningsDeductionsList>();
-    console.log("selectedRow", selectedRow);
     return (
         <>
             {/* Add Form */}

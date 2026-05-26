@@ -44,8 +44,8 @@ export const MasterInstitutionColumns: ColumnDef<IMasterInstitution>[] = [
                 rowData={row.original}
                 buttons={{ edit: true, toggle: true, delete: false }}
                 toggleConditionKey='mI_ActiveFlag'
-                onEdit={(data) => console.log('Edit', data)}
-                onToggle={(data, checked) => console.log('Toggle', data, checked)}
+                onEdit={(_data) => }
+                onToggle={(_data, _checked) => }
             />
         )
     }

@@ -3,13 +3,9 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useMasterCasteCategoryDropdown,
-    useMasterReligionDropdown,
-    useReligionCategoryMapping
-} from '@/hooks/hrms/useMasters';
+import { useMasterCasteCategoryDropdown, useMasterReligionDropdown, useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
-import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
+import type { IReligionDropdown } from '@/types/hrms/hrms-config/employee';
 import type { IMasterReligionCategoryMappingList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -37,9 +33,7 @@ export default function UpdateReligionCategoryMappingForm({
     // Religion dropdown
     const { data: religionDropdownResponse } = useMasterReligionDropdown();
     const religionDropdown = useMemo(() => {
-        const data = Array.isArray(religionDropdownResponse)
-            ? religionDropdownResponse
-            : (religionDropdownResponse as any)?.data || [];
+        const data = Array.isArray(religionDropdownResponse) ? religionDropdownResponse : (religionDropdownResponse as any)?.data || [];
         return data.map((item: any) => ({
             key: item.ivrmmR_Id,
             value: item.ivrmmR_Name
@@ -99,7 +93,6 @@ export default function UpdateReligionCategoryMappingForm({
                 ivrmmR_Id: data.IVRMMR_Id,
                 imcC_Ids: currentCategoryIds.join(',') // Comma-separated string of IDs
             };
-            console.log('🟠 [RELIGION CATEGORY MAPPING] Request payload:', JSON.stringify(payload, null, 2));
             saveMapping(payload, {
                 onSuccess: (response) => {
                     if (response?.success) {

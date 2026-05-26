@@ -3,9 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFeeAcademicYearReport, useFeeclassYearReport, useFeeSectionYearReport, useFeeStudentsYearReport, useFeeTaxReport } from '@/hooks/fees/useReports';
+import {
+    useFeeAcademicYearReport,
+    useFeeSectionYearReport,
+    useFeeStudentsYearReport,
+    useFeeTaxReport,
+    useFeeclassYearReport
+} from '@/hooks/fees/useReports';
 import { feeIncomeTaxReportSchema } from '@/schemas/fees/reports';
-import { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
+import type { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileText, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -22,19 +28,9 @@ interface FeeIncomeTaxFormProps {
 
 export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeIncomeTaxFormProps) {
     const [resetKey, setResetKey] = useState(0);
-    const {
-        data: academicYears,
-        isLoading: isAcademicYearsLoading,
-        error: academicYearsError
-    } = useFeeAcademicYearReport({} as any);
-    console.log("academicYears.data:", academicYears?.data);
+    const { data: academicYears, isLoading: isAcademicYearsLoading, error: academicYearsError } = useFeeAcademicYearReport({} as any);
 
-    const {
-        data: classes,
-        isLoading: isClassesLoading,
-        error: classesError
-    } = useFeeclassYearReport({} as any);
-    console.log("class.data:", classes?.data);
+    const { data: classes, isLoading: isClassesLoading, error: classesError } = useFeeclassYearReport({} as any);
 
     const {
         control,
@@ -66,7 +62,6 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
         asmaY_Id: selectedYear,
         asmcL_Id: selectedClass
     });
-    console.log("section.data:", sections?.data);
 
     const {
         data: students,
@@ -105,7 +100,6 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
             } else {
                 toast.error(response?.message || 'No records found for the selected criteria');
             }
-
         } catch (error: any) {
             console.error(error);
             toast.error(error?.message);
@@ -118,7 +112,7 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
             asmS_Id: undefined,
             amst_Id: undefined
         });
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
         if (onReset) {
             onReset();
         }
@@ -136,17 +130,19 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
                         name='asmaY_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                value={field.value ? String(field.value) : ""}
-                                onValueChange={(value) => field.onChange(Number(value))}>
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(value) => field.onChange(Number(value))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {isAcademicYearsLoading ? (
-                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
                                     ) : academicYearsError ? (
-                                        <SelectItem value='error' disabled>Error loading years</SelectItem>
+                                        <SelectItem value='error' disabled>
+                                            Error loading years
+                                        </SelectItem>
                                     ) : (
                                         academicYears?.data?.map((year: any) => (
                                             <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
@@ -170,17 +166,19 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value ? String(field.value) : ""}>
+                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value ? String(field.value) : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {isClassesLoading ? (
-                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
                                     ) : classesError ? (
-                                        <SelectItem value='error' disabled>Error loading classes</SelectItem>
+                                        <SelectItem value='error' disabled>
+                                            Error loading classes
+                                        </SelectItem>
                                     ) : (
                                         classes?.data?.map((cls: any) => (
                                             <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
@@ -206,16 +204,20 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value ? String(field.value) : ""}
+                                value={field.value ? String(field.value) : ''}
                                 disabled={!selectedYear || !selectedClass}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {isSectionsLoading ? (
-                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
                                     ) : sectionsError ? (
-                                        <SelectItem value='error' disabled>Error loading sections</SelectItem>
+                                        <SelectItem value='error' disabled>
+                                            Error loading sections
+                                        </SelectItem>
                                     ) : (
                                         sections?.data?.map((sec: any) => (
                                             <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
@@ -241,16 +243,20 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
                         render={({ field }) => (
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
-                                value={field.value ? String(field.value) : ""}
+                                value={field.value ? String(field.value) : ''}
                                 disabled={!selectedSection}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Student' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {isStudentsLoading ? (
-                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
                                     ) : studentsError ? (
-                                        <SelectItem value='error' disabled>Error loading students</SelectItem>
+                                        <SelectItem value='error' disabled>
+                                            Error loading students
+                                        </SelectItem>
                                     ) : (
                                         students?.data?.map((stud: any) => (
                                             <SelectItem key={stud.amst_Id} value={stud.amst_Id.toString()}>
@@ -275,11 +281,7 @@ export default function FeeIncomeTaxForm({ onReportGenerated, onReset }: FeeInco
                     <FileText className='mr-2 h-4 w-4' />
                     Get Report
                 </Button>
-                <Button
-                    type='button'
-                    variant='outline'
-                    onClick={handleReset}
-                    className='w-40 transition-all duration-200 hover:scale-105'>
+                <Button type='button' variant='outline' onClick={handleReset} className='w-40 transition-all duration-200 hover:scale-105'>
                     <RotateCcw className='mr-2 h-4 w-4' />
                     Reset
                 </Button>

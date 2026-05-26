@@ -136,8 +136,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
         refetch: fetchStudents
     } = useStudentdowndatathirdpartytransaction(Number(watchAcademicYearId || 0));
 
-    console.log('studentdata', studentdata);
-
     useEffect(() => {
         if (watchAcademicYearId && studentType === 'student') {
             fetchStudents(); // API CALL
@@ -207,8 +205,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode
             };
-
-            console.log('FINAL PAYLOAD:', JSON.stringify(payload));
 
             const response = await saveorUpdateThirdPartyTrasaction(payload);
 
@@ -324,7 +320,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                                     Loading students...
                                                 </SelectItem>
                                             ) : studentdata ? (
-                                                studentdata.data?.map((std, index) => (
+                                                studentdata.data?.map((std, _index) => (
                                                     <SelectItem
                                                         key={std.amsT_Id}
                                                         // key={`${std.amsT_Id ?? 'no-id'}-${index}`}

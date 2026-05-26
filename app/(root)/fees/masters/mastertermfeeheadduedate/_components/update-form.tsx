@@ -78,25 +78,12 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
     }
 
     // ✅ DEBUG: Log the selectedRow when it changes
-    useEffect(() => {
-        console.log('selectedRow changed:', rowData);
-        console.log('Dropdown status:', {
-            academicYear: academicYear?.data?.length,
-            terms: terms?.data?.length,
-            masterHeads: masterHeads?.data?.length
-        });
-    }, [rowData, academicYear?.data?.length, terms?.data?.length, masterHeads?.data?.length]);
+    useEffect(() => {}, [rowData, academicYear?.data?.length, terms?.data?.length, masterHeads?.data?.length]);
 
     // ✅ Initialize form when selectedRow changes
     useEffect(() => {
         // Only proceed if we have rowData and dropdowns are loaded
         if (rowData && academicYear?.data?.length && terms?.data?.length && masterHeads?.data?.length) {
-            console.log('Setting form values from rowData:', {
-                asmay_Id: rowData.asmay_Id,
-                fmt_id: rowData.fmT_Id,
-                fmh_id: rowData.fmH_Id
-            });
-
             // Use setTimeout to ensure React Hook Form has time to initialize
             setTimeout(() => {
                 reset(
@@ -114,8 +101,6 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                 setSelectedAcademicYear(rowData.asmay_Id);
                 setSelectedTerm(rowData.fmT_Id);
                 setSelectedHead(rowData.fmH_Id);
-
-                console.log('Form values after reset:', getValues());
             }, 0);
         } else if (!rowData) {
             // Clear form if no rowData (add mode)
@@ -135,12 +120,10 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
     useEffect(() => {
         async function fetchGrid() {
             if (selectedAcademicYear && selectedTerm && selectedHead) {
-                console.log('Fetching grid for:', { selectedAcademicYear, selectedTerm, selectedHead });
                 setLoadingGrid(true);
                 const toastId = toast.loading('Fetching due date data...');
                 try {
                     const res = await getFeeTermHeadDueDateGridList(selectedAcademicYear, selectedTerm, selectedHead);
-                    console.log('Grid response:', res);
 
                     if (res?.success && Array.isArray(res.data)) {
                         // Format dates for input fields
@@ -227,8 +210,6 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                 FMTFHDD_DueDate: item.fmtfhdD_DueDate || null
             }))
         };
-
-        console.log('Submitting payload:', JSON.stringify(payload));
 
         const response = await addOrUpdateFeeTermHeadDueDate(payload);
         if (response.success) {

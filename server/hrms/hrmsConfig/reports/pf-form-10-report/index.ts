@@ -19,11 +19,9 @@ export async function getPFForm10ReportOnload(MI_Id = 30): Promise<ApiResponse<P
     const requestBody: PFForm10ReportOnloadRequest = {
         MI_Id
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm10ReportOnloadResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -168,11 +166,9 @@ export async function filterPFForm10EmployeeData(request: PFForm10ReportFilterRe
     const requestBody: PFForm10ReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm10ReportFilterResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,
@@ -211,11 +207,9 @@ export async function searchPFForm10Report(request: PFForm10ReportSearchRequest)
         HRES_Month: request.HRES_Month || '',
         HRES_Year: request.HRES_Year || ''
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<PFForm10ReportSearchResponse>('hrms', url, requestBody);
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
             success: false,

@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { format } from 'date-fns';
 
 interface ReportListProps {
     data: any;
@@ -16,11 +16,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const printRef = useRef<HTMLDivElement>(null);
     const { reportFormat, accyear, examname } = params ?? {};
 
-    const {
-        datareport: mainList = [],
-        subarray: subList = [],
-        institute = []
-    } = data ?? {};
+    const { datareport: mainList = [], subarray: subList = [], institute = [] } = data ?? {};
 
     // Get logo path from institute data
     const imgname = institute.length > 0 ? institute[0].mI_Logo : '';
@@ -48,7 +44,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     // ── Common Table Component ──────────────────────────────────────────────
     const SubjectsTable = ({ subjects }: { subjects: any[] }) => (
-        <table className='w-full border-collapse border border-black mt-4'>
+        <table className='mt-4 w-full border-collapse border border-black'>
             <thead>
                 <tr style={{ fontSize: '20px' }}>
                     <th className='border border-black p-1 text-center'>Sl No</th>
@@ -56,7 +52,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     <th className='border border-black p-1 text-center'>Date</th>
                     <th className='border border-black p-1 text-center'>Start Time</th>
                     <th className='border border-black p-1 text-center'>End Time</th>
-                    <th className='border border-black p-1 text-center' colSpan={2}>Invigilator's Signature</th>
+                    <th className='border border-black p-1 text-center' colSpan={2}>
+                        Invigilator's Signature
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -69,7 +67,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         </td>
                         <td className='border border-black p-1 text-center'>{exm.ettS_StartTime}</td>
                         <td className='border border-black p-1 text-center'>{exm.ettS_EndTime}</td>
-                        <td className='border border-black p-1' colSpan={2}></td>
+                        <td className='border border-black p-1' colSpan={2} />
                     </tr>
                 ))}
             </tbody>
@@ -80,19 +78,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     const renderFormat1 = (user: any) => {
         const studentSubjects = getStudentSubjects(user.amsT_Id);
         return (
-            <section className='vikasahallticket mb-8 p-4 bg-white' style={{ fontFamily: 'serif' }}>
+            <section className='vikasahallticket mb-8 bg-white p-4' style={{ fontFamily: 'serif' }}>
                 <div className='border border-black p-4'>
                     <div className='flex flex-col items-center text-center'>
-                        <div className='w-4/5 mx-auto mb-2'>
+                        <div className='mx-auto mb-2 w-4/5'>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src="https://kusumadata.blob.core.windows.net/files/30/ISM_Attachments/f4e85c38-b6ef-42c7-a533-1e12d9627dc4.jpg"
-                                alt="School Logo"
-                                className='max-w-full h-auto mx-auto'
+                                src='https://kusumadata.blob.core.windows.net/files/30/ISM_Attachments/f4e85c38-b6ef-42c7-a533-1e12d9627dc4.jpg'
+                                alt='School Logo'
+                                className='mx-auto h-auto max-w-full'
                             />
                         </div>
                         <h4 className='m-0 font-bold text-xl uppercase'>KIDDIE FEAT</h4>
-                        <h4 className='m-0 font-bold text-lg uppercase'>{examname} - {accyear}</h4>
+                        <h4 className='m-0 font-bold text-lg uppercase'>
+                            {examname} - {accyear}
+                        </h4>
                         <h4 className='m-0 font-bold text-lg uppercase underline'>ADMISSION TICKET</h4>
                     </div>
 
@@ -108,7 +108,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         <div className='flex items-center gap-4 text-[20px]'>
                             <span className='w-[180px] font-bold'>Roll No.</span>
-                            <div className='border border-black h-8 w-64 px-2 flex items-center'>
+                            <div className='flex h-8 w-64 items-center border border-black px-2'>
                                 {user.amaY_Rollno || user.ehT_HallTicketNo}
                             </div>
                         </div>
@@ -117,7 +117,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <tbody>
                                 <tr>
                                     <td className='w-[180px] font-bold text-[20px]'>Class/Section</td>
-                                    <td className='text-[20px]'>: {user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}</td>
+                                    <td className='text-[20px]'>
+                                        : {user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -126,20 +128,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                 <SubjectsTable subjects={studentSubjects} />
 
-                <div className='text-center italic mt-4'>
+                <div className='mt-4 text-center italic'>
                     <p className='text-[20px]'>NOTE : * You must carry this to the examination hall without fail.</p>
                 </div>
 
-                <div className='mt-12 flex justify-between items-end px-4 text-[20px]'>
+                <div className='mt-12 flex items-end justify-between px-4 text-[20px]'>
                     <div className='text-center'>
-                        <div className='h-12'></div>
+                        <div className='h-12' />
                         <p className='m-0 font-bold'>Class Teacher Signature</p>
                     </div>
                     <div className='text-center'>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src="https://kusumadata.blob.core.windows.net/files/30/managersign/800a9050-a613-4855-bffc-ede724855879.jpg"
-                            alt="HM Sign"
+                            src='https://kusumadata.blob.core.windows.net/files/30/managersign/800a9050-a613-4855-bffc-ede724855879.jpg'
+                            alt='HM Sign'
                             style={{ width: '130px', mixBlendMode: 'multiply' }}
                         />
                         <p className='m-0 font-bold'>Head Master</p>
@@ -154,25 +156,25 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const studentSubjects = getStudentSubjects(user.amsT_Id);
         const isICSE = user.asmcL_ClassName?.trim().includes('ICSE');
         const logoUrl = isICSE
-            ? "https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/b29bdbac-8853-42cb-9eae-8a12fdf36515.jpg"
+            ? 'https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/b29bdbac-8853-42cb-9eae-8a12fdf36515.jpg'
             : imgname;
 
         return (
-            <section className='vikasahallticket mb-8 p-4 bg-white' style={{ fontFamily: 'serif' }}>
+            <section className='vikasahallticket mb-8 bg-white p-4' style={{ fontFamily: 'serif' }}>
                 <div className='border border-black p-4'>
                     <div className='relative flex flex-col items-center text-center'>
-                        <div className='w-3/5 mx-auto mb-2'>
+                        <div className='mx-auto mb-2 w-3/5'>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={logoUrl} alt="Logo" className='max-w-full h-auto mx-auto' />
+                            <img src={logoUrl} alt='Logo' className='mx-auto h-auto max-w-full' />
                         </div>
                         {user.amsT_Photoname && (
-                            <div className='absolute right-0 top-0 border border-black p-1'>
+                            <div className='absolute top-0 right-0 border border-black p-1'>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={user.amsT_Photoname} alt="Student" className='w-24 h-24 object-cover' />
+                                <img src={user.amsT_Photoname} alt='Student' className='h-24 w-24 object-cover' />
                             </div>
                         )}
-                        <h2 className='m-0 font-bold text-2xl uppercase mt-2'>ADMISSION TICKET</h2>
-                        <hr className='w-full border-black mt-1' />
+                        <h2 className='m-0 mt-2 font-bold text-2xl uppercase'>ADMISSION TICKET</h2>
+                        <hr className='mt-1 w-full border-black' />
                     </div>
 
                     <div className='mt-4 space-y-4'>
@@ -187,12 +189,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         <div className='grid grid-cols-2 gap-4 text-[20px]'>
                             <div className='flex items-center gap-2'>
-                                <span className='font-bold w-[180px]'>Roll No.</span>
+                                <span className='w-[180px] font-bold'>Roll No.</span>
                                 <span>: &nbsp;&nbsp;{user.amaY_Rollno || user.ehT_HallTicketNo}</span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <span className='font-bold'>Exam</span>
-                                <span>: &nbsp;&nbsp;{examname} - {accyear}</span>
+                                <span>
+                                    : &nbsp;&nbsp;{examname} - {accyear}
+                                </span>
                             </div>
                         </div>
 
@@ -200,7 +204,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <tbody>
                                 <tr>
                                     <td className='w-[180px] font-bold'>Class/Section</td>
-                                    <td>: &nbsp;&nbsp;{user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}</td>
+                                    <td>
+                                        : &nbsp;&nbsp;{user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -209,23 +215,24 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                 <SubjectsTable subjects={studentSubjects} />
 
-                <div className='text-center italic mt-4'>
+                <div className='mt-4 text-center italic'>
                     <p className='text-[20px]'>NOTE : * You must carry this to the examination hall without fail.</p>
                 </div>
 
-                <div className='mt-12 flex justify-between items-end px-4 text-[20px]'>
+                <div className='mt-12 flex items-end justify-between px-4 text-[20px]'>
                     <div className='text-center'>
-                        <div className='h-12'></div>
+                        <div className='h-12' />
                         <p className='m-0 font-bold'>Class Teacher Signature</p>
                     </div>
                     <div className='text-center'>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={isICSE
-                                ? "https://kusumadata.blob.core.windows.net/files/30/ISM_Attachments/5037b793-d15c-4b00-a202-9fcd1bd39af8.jpg"
-                                : "https://kusumadata.blob.core.windows.net/files/30/managersign/a73ec17c-6899-486b-a692-796aa2d69fd6.jpg"
+                            src={
+                                isICSE
+                                    ? 'https://kusumadata.blob.core.windows.net/files/30/ISM_Attachments/5037b793-d15c-4b00-a202-9fcd1bd39af8.jpg'
+                                    : 'https://kusumadata.blob.core.windows.net/files/30/managersign/a73ec17c-6899-486b-a692-796aa2d69fd6.jpg'
                             }
-                            alt="Sign"
+                            alt='Sign'
                             style={{ width: '130px', transform: isICSE ? 'none' : 'rotate(23deg)' }}
                         />
                         <p className='m-0 font-bold'>{isICSE ? 'Principal' : 'Head Master'}</p>
@@ -241,21 +248,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const isICSE = user.asmcL_ClassName?.trim().includes('ICSE');
 
         return (
-            <section className='vikasahallticket mb-8 p-4 bg-white' style={{ fontFamily: 'serif' }}>
+            <section className='vikasahallticket mb-8 bg-white p-4' style={{ fontFamily: 'serif' }}>
                 <div className='border border-black p-4'>
                     <div className='relative flex flex-col items-center text-center'>
-                        <div className='w-3/5 mx-auto mb-2'>
+                        <div className='mx-auto mb-2 w-3/5'>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={imgname} alt="Logo" className='max-w-full h-auto mx-auto' />
+                            <img src={imgname} alt='Logo' className='mx-auto h-auto max-w-full' />
                         </div>
                         {user.amsT_Photoname && (
-                            <div className='absolute right-0 top-0 border border-black p-1'>
+                            <div className='absolute top-0 right-0 border border-black p-1'>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={user.amsT_Photoname} alt="Student" className='w-24 h-24 object-cover' />
+                                <img src={user.amsT_Photoname} alt='Student' className='h-24 w-24 object-cover' />
                             </div>
                         )}
-                        <h2 className='m-0 font-bold text-2xl uppercase mt-2'>ADMISSION TICKET</h2>
-                        <hr className='w-full border-black mt-1' />
+                        <h2 className='m-0 mt-2 font-bold text-2xl uppercase'>ADMISSION TICKET</h2>
+                        <hr className='mt-1 w-full border-black' />
                     </div>
 
                     <div className='mt-4 space-y-4'>
@@ -270,12 +277,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         <div className='grid grid-cols-2 gap-4 text-[20px]'>
                             <div className='flex items-center gap-2'>
-                                <span className='font-bold w-[180px]'>Roll No.</span>
+                                <span className='w-[180px] font-bold'>Roll No.</span>
                                 <span>: &nbsp;&nbsp;{user.amaY_Rollno || user.ehT_HallTicketNo}</span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <span className='font-bold'>Exam</span>
-                                <span>: &nbsp;&nbsp;{examname} - {accyear}</span>
+                                <span>
+                                    : &nbsp;&nbsp;{examname} - {accyear}
+                                </span>
                             </div>
                         </div>
 
@@ -283,7 +292,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <tbody>
                                 <tr>
                                     <td className='w-[180px] font-bold'>Class/Section</td>
-                                    <td>: &nbsp;&nbsp;{user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}</td>
+                                    <td>
+                                        : &nbsp;&nbsp;{user.asmcL_ClassName} &nbsp;&nbsp; {user.asmC_SectionName}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -292,20 +303,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                 <SubjectsTable subjects={studentSubjects} />
 
-                <div className='text-center italic mt-4'>
+                <div className='mt-4 text-center italic'>
                     <p className='text-[20px]'>NOTE : * You must carry this to the examination hall without fail.</p>
                 </div>
 
-                <div className='mt-12 flex justify-between items-end px-4 text-[20px]'>
+                <div className='mt-12 flex items-end justify-between px-4 text-[20px]'>
                     <div className='text-center'>
-                        <div className='h-12'></div>
+                        <div className='h-12' />
                         <p className='m-0 font-bold'>Class Teacher Signature</p>
                     </div>
                     <div className='text-center'>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src="https://kusumadata.blob.core.windows.net/files/30/managersign/a73ec17c-6899-486b-a692-796aa2d69fd6.jpg"
-                            alt="Sign"
+                            src='https://kusumadata.blob.core.windows.net/files/30/managersign/a73ec17c-6899-486b-a692-796aa2d69fd6.jpg'
+                            alt='Sign'
                             style={{ width: '130px', transform: 'rotate(23deg)' }}
                         />
                         <p className='m-0 font-bold'>{isICSE ? 'Principal' : 'Head Master'}</p>
@@ -327,7 +338,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 </div>
             </div>
 
-            <CardContent className='p-6 overflow-auto'>
+            <CardContent className='overflow-auto p-6'>
                 <div ref={printRef} className='print-container bg-white p-4'>
                     {mainList.map((user: any, index: number) => (
                         <div key={index} className={index > 0 ? 'mt-8' : ''}>

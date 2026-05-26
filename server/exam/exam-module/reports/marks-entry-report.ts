@@ -26,19 +26,19 @@ export async function getDetails() {
     };
 }
 
-export async function getClasses(yearId: any) {
+export async function getClasses(_yearId: any) {
     return {
         ctlist: CLASSES
     };
 }
 
-export async function getSections(classId: any) {
+export async function getSections(_classId: any) {
     return {
         seclist: SECTIONS
     };
 }
 
-export async function getExams(sectionId: any) {
+export async function getExams(_sectionId: any) {
     return {
         examlist: EXAMS
     };

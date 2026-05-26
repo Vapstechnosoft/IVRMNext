@@ -1,15 +1,15 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getMappedEventDetails } from '@/server/coe/masters/masterevent';
 import type { MappedEventCoe } from '@/types/coe/master-coe';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Briefcase, Eye, FileImage, FileVideo, GraduationCap, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useCallback } from 'react';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ListViewDialog } from './list-view-dialog';
-import { getMappedEventDetails } from '@/server/coe/masters/masterevent';
 
 export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
     {
@@ -27,25 +27,23 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
     {
         accessorKey: 'coemE_EventName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Event Name' />,
-        cell: ({ row }) => <div>{row.getValue('coemE_EventName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('coemE_EventName')}</div>
     },
     {
         accessorKey: 'images',
         header: 'Images',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Images List"
-                type="image"
+                title='Images List'
+                type='image'
                 data={row.original.images_listCoe || []}
                 fetchData={async () => {
-                    console.log("row original", row.original.coeE_Id);
                     const res = await getMappedEventDetails(row.original.coeE_Id);
-                    console.log("res image list", res);
                     return (res.data.edit_images_list as any[]) || [];
                 }}
                 trigger={
@@ -54,15 +52,15 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         accessorKey: 'videos',
         header: 'Videos',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Videos List"
-                type="video"
+                title='Videos List'
+                type='video'
                 data={row.original.videos_list || []}
                 fetchData={async () => {
                     const res = await getMappedEventDetails(row.original.coeE_Id);
@@ -74,15 +72,15 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         accessorKey: 'classes',
         header: 'Classes',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Classes List"
-                type="class"
+                title='Classes List'
+                type='class'
                 data={row.original.stu_class_list || []}
                 fetchData={async () => {
                     const res = await getMappedEventDetails(row.original.coeE_Id);
@@ -94,15 +92,15 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         accessorKey: 'employees',
         header: 'Employees',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Employees List"
-                type="employee"
+                title='Employees List'
+                type='employee'
                 data={row.original.emp_type_list || []}
                 fetchData={async () => {
                     const res = await getMappedEventDetails(row.original.coeE_Id);
@@ -114,15 +112,15 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         accessorKey: 'others',
         header: 'Others',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Others List"
-                type="other"
+                title='Others List'
+                type='other'
                 data={row.original.others_list || []}
                 fetchData={async () => {
                     const res = await getMappedEventDetails(row.original.coeE_Id);
@@ -134,15 +132,15 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         accessorKey: 'alumni',
         header: 'Alumni',
         cell: ({ row }) => (
             <ListViewDialog
-                title="Alumni List"
-                type="alumni"
+                title='Alumni List'
+                type='alumni'
                 data={row.original.alumni_list || []}
                 fetchData={async () => {
                     const res = await getMappedEventDetails(row.original.coeE_Id);
@@ -155,7 +153,7 @@ export const mappingColumns: ColumnDef<MappedEventCoe>[] = [
                     </Button>
                 }
             />
-        ),
+        )
     },
     {
         id: 'actions',
@@ -183,7 +181,7 @@ function ActionButtonsCell({ rowData }: { rowData: MappedEventCoe }) {
         [openToggleForm]
     );
 
-    const handleDelete = useCallback(
+    const _handleDelete = useCallback(
         (data: MappedEventCoe) => {
             openDeleteForm(data);
         },
@@ -192,7 +190,11 @@ function ActionButtonsCell({ rowData }: { rowData: MappedEventCoe }) {
     const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
     return (
         <div className='flex justify-center gap-2'>
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapped Event Details'>
+            <button
+                type='button'
+                onClick={handleView}
+                className='rounded-md p-2 transition hover:bg-muted'
+                title='View Mapped Event Details'>
                 <Eye className='h-4 w-4 text-blue-600' />
             </button>
             <ActionButtons
@@ -203,10 +205,5 @@ function ActionButtonsCell({ rowData }: { rowData: MappedEventCoe }) {
                 toggleConditionKey='coeE_ActiveFlag'
             />
         </div>
-
     );
-
-
 }
-
-

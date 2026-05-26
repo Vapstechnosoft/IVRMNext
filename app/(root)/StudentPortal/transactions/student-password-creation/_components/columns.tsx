@@ -5,7 +5,7 @@ import type { ICredentialStudent } from '@/types/alumni/student-password-creatio
 import type { ColumnDef } from '@tanstack/react-table';
 
 export const getStudentPasswordCreationColumns = (
-    onResetPassword: (student: ICredentialStudent) => void
+    _onResetPassword: (student: ICredentialStudent) => void
 ): ColumnDef<ICredentialStudent>[] => [
     {
         id: 'select',

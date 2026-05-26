@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import TransferCertificateApproval from './_components/transfer-certificate-approval';
 import TransferCertificateForm from './_components/transfer-certificate-form';
 import TransferCertificateList from './_components/transfer-certificate-list';
-import TransferCertificateApproval from './_components/transfer-certificate-approval';
 import {
-    getTransferCertificateDetails,
-    deactivateTransferCertificate,
     approveTransferCertificate,
+    deactivateTransferCertificate,
+    getTransferCertificateDetails,
     rejectTransferCertificate
 } from './actions';
-import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
 
 export default function OnlineTransferCertificatePage() {
     const { data: session, status } = useSession();
@@ -28,14 +28,14 @@ export default function OnlineTransferCertificatePage() {
         setIsLoading(true);
         try {
             const result = await getTransferCertificateDetails({});
-            if (result && result.transferCertificateData) {
+            if (result?.transferCertificateData) {
                 setData(result.transferCertificateData as any[]);
             } else {
                 setData([]);
             }
         } catch (error) {
-            console.error("Failed to load data", error);
-            toast.error("Failed to load transfer certificates");
+            console.error('Failed to load data', error);
+            toast.error('Failed to load transfer certificates');
         } finally {
             setIsLoading(false);
         }
@@ -61,81 +61,80 @@ export default function OnlineTransferCertificatePage() {
     };
 
     // Student Actions
-    const handleEdit = (id: number) => {
-        console.log("Edit", id);
-        toast.info("Edit functionality not yet fully implemented");
+    const handleEdit = (_id: number) => {
+        toast.info('Edit functionality not yet fully implemented');
     };
 
     const handleDeactivate = async (id: number) => {
-        if (confirm("Are you sure you want to delete/deactivate this application?")) {
+        if (confirm('Are you sure you want to delete/deactivate this application?')) {
             try {
                 const result = await deactivateTransferCertificate({ ASTC_Id: id });
                 if (result && result.returnval === true) {
-                    toast.success("Application deactivated successfully");
+                    toast.success('Application deactivated successfully');
                     loadData();
                 } else {
-                    toast.error(result?.message || "Failed to deactivate");
+                    toast.error(result?.message || 'Failed to deactivate');
                 }
-            } catch (error) {
-                toast.error("An unexpected error occurred");
+            } catch (_error) {
+                toast.error('An unexpected error occurred');
             }
         }
     };
 
     // Admin Actions
     const handleApprove = async (id: number) => {
-        if (confirm("Are you sure you want to approve this application?")) {
+        if (confirm('Are you sure you want to approve this application?')) {
             try {
                 const result = await approveTransferCertificate({ ASTC_Id: id });
                 if (result && result.returnval === true) {
-                    toast.success("Approved successfully");
+                    toast.success('Approved successfully');
                     loadData();
                 } else {
-                    toast.error(result?.message || "Failed to approve");
+                    toast.error(result?.message || 'Failed to approve');
                 }
-            } catch (error) {
-                toast.error("An unexpected error occurred");
+            } catch (_error) {
+                toast.error('An unexpected error occurred');
             }
         }
     };
 
     const handleReject = async (id: number) => {
-        if (confirm("Are you sure you want to reject this application?")) {
+        if (confirm('Are you sure you want to reject this application?')) {
             try {
                 const result = await rejectTransferCertificate({ ASTC_Id: id });
                 if (result && result.returnval === true) {
-                    toast.success("Rejected successfully");
+                    toast.success('Rejected successfully');
                     loadData();
                 } else {
-                    toast.error(result?.message || "Failed to reject");
+                    toast.error(result?.message || 'Failed to reject');
                 }
-            } catch (error) {
-                toast.error("An unexpected error occurred");
+            } catch (_error) {
+                toast.error('An unexpected error occurred');
             }
         }
     };
 
     if (status === 'loading' || isLoading) {
-        return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+        return (
+            <div className='flex h-screen items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin' />
+            </div>
+        );
     }
 
     if (isAdmin) {
         return (
-            <div className="space-y-6">
+            <div className='space-y-6'>
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Transfer Certificate Approvals</h2>
-                    <p className="text-muted-foreground">Manage student TC requests.</p>
+                    <h2 className='font-bold text-3xl tracking-tight'>Transfer Certificate Approvals</h2>
+                    <p className='text-muted-foreground'>Manage student TC requests.</p>
                 </div>
                 <Card>
                     <CardHeader>
                         <CardTitle>Pending Requests</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <TransferCertificateApproval
-                            data={data}
-                            onApprove={handleApprove}
-                            onReject={handleReject}
-                        />
+                        <TransferCertificateApproval data={data} onApprove={handleApprove} onReject={handleReject} />
                     </CardContent>
                 </Card>
             </div>
@@ -144,15 +143,15 @@ export default function OnlineTransferCertificatePage() {
 
     // Student View
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className='space-y-6'>
+            <div className='flex items-center justify-between'>
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Online Transfer Certificate</h2>
-                    <p className="text-muted-foreground">Manage your transfer certificate applications.</p>
+                    <h2 className='font-bold text-3xl tracking-tight'>Online Transfer Certificate</h2>
+                    <p className='text-muted-foreground'>Manage your transfer certificate applications.</p>
                 </div>
                 {view === 'list' && (
                     <Button onClick={handleApplyClick}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className='mr-2 h-4 w-4' />
                         Apply for TC
                     </Button>
                 )}
@@ -164,16 +163,9 @@ export default function OnlineTransferCertificatePage() {
                 </CardHeader>
                 <CardContent>
                     {view === 'list' ? (
-                        <TransferCertificateList
-                            data={data}
-                            onEdit={handleEdit}
-                            onDeactivate={handleDeactivate}
-                        />
+                        <TransferCertificateList data={data} onEdit={handleEdit} onDeactivate={handleDeactivate} />
                     ) : (
-                        <TransferCertificateForm
-                            onClose={handleFormClose}
-                            onSuccess={handleFormSuccess}
-                        />
+                        <TransferCertificateForm onClose={handleFormClose} onSuccess={handleFormSuccess} />
                     )}
                 </CardContent>
             </Card>

@@ -18,8 +18,6 @@ export default function MasterBifurcationConstraintsPage(props: { searchParams: 
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useBifurcationConstraints(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<IBifurcationConstraintList>>
             <MasterBifurcationConstraintsPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

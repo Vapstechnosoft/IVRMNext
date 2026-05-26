@@ -102,7 +102,8 @@ export default function UpdateDepartmentForm({ onSuccess, className = '', select
                                     placeholder='Enter order'
                                     value={field.value ?? undefined}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
+                                        const numValue =
+                                            value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

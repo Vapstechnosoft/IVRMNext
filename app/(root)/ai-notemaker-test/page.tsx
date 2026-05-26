@@ -23,7 +23,7 @@ export default function AINotemaker() {
     const [generateNotes, setGenerateNotes] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
-    const [errorLog, setErrorLog] = useState<string | null>(null);
+    const [_errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     // Handlers

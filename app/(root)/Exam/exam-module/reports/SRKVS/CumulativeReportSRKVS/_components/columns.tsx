@@ -53,7 +53,7 @@ export default function CumulativeReportGridView({
         }
 
         const applicableSubjects = subjects.filter((s) => s.eyceS_AplResultFlg);
-        const nonApplicableSubjects = subjects.filter((s) => !s.eyceS_AplResultFlg);
+        const _nonApplicableSubjects = subjects.filter((s) => !s.eyceS_AplResultFlg);
 
         // Title rows
         const titleRows = [

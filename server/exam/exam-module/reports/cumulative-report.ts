@@ -53,32 +53,27 @@ export async function getExamReportCard(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-
-
 export async function getExamsStjames(data: any) {
-    const url = `/JSHSExamReportsFacade/get_exam_groups`;
+    const url = '/JSHSExamReportsFacade/get_exam_groups';
     return await api.post<any>('exam', url, data);
 }
 
 export async function getStJamesExamReport(data: any) {
-    const url = `/JSHSExamReportsFacade/st_james_exam_report`;
+    const url = '/JSHSExamReportsFacade/st_james_exam_report';
     return await api.post<any>('exam', url, data);
 }
 
 export async function getStJamesNurseryReport(data: any) {
-    const url = `/JSHSExamReportsFacade/get_stjames_nur_report`;
+    const url = '/JSHSExamReportsFacade/get_stjames_nur_report';
     return await api.post<any>('exam', url, data);
 }
 
 export async function getStJamesTransitionReport(data: any) {
-    const url = `/JSHSExamReportsFacade/st_james_nur_report`;
+    const url = '/JSHSExamReportsFacade/st_james_nur_report';
     return await api.post<any>('exam', url, data);
 }
 
 export async function getStJamesConsolidatedPointsReport(data: any) {
-    const url = `/JSHSExamReportsFacade/stjames_exam_consolidated_report`;
+    const url = '/JSHSExamReportsFacade/stjames_exam_consolidated_report';
     return await api.post<any>('exam', url, data);
-
-
-
 }

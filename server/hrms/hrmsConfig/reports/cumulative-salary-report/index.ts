@@ -168,19 +168,8 @@ export async function searchCumulativeSalaryReport(
         groupTypeIdList: requestBody.groupTypeIdList && requestBody.groupTypeIdList.length > 0 ? requestBody.groupTypeIdList : [],
         LogInUserId: requestBody.LogInUserId || 0
     };
-    console.log('🔵 [CUMULATIVE SALARY] Server action - searchCumulativeSalaryReport called', {
-        url,
-        request,
-        timestamp: new Date().toISOString()
-    });
     try {
         const response = await api.post<CumulativeSalaryReportSearchResponse>('hrms', url, request);
-        console.log('🔵 [CUMULATIVE SALARY] Server action - API response received', {
-            hasResponse: !!response,
-            responseType: typeof response,
-            hasSuccess: response && typeof response === 'object' && 'success' in response,
-            timestamp: new Date().toISOString()
-        });
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {

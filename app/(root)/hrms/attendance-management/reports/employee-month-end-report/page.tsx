@@ -1,19 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider } from '@/components/ui/form/form-provider';
-import { Printer, Image as ImageIcon } from 'lucide-react';
-import AddEmployeeMonthReportForm from './_components/add-form';
-import type { EmployeeMonthReportRow } from './_components/columns';
-import { employeeMonthReportColumns } from './_components/columns';
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getMasterInstitution } from '@/server/hrms/master-dropdown';
+import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { format } from 'date-fns';
+import { Printer } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
-import { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
+import AddEmployeeMonthReportForm from './_components/add-form';
 
 export default function EmployeeMonthReportPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -23,7 +19,7 @@ export default function EmployeeMonthReportPage() {
 
     const handleReset = () => {
         setReportData(null);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
 
     const handlePrint = () => {
@@ -133,10 +129,9 @@ export default function EmployeeMonthReportPage() {
                 const institution_res = await getMasterInstitution();
                 const { data: institution_data } = institution_res;
                 setInstitution(institution_data);
-                console.log("institution_data", institution_data)
             } catch (error) {
-                console.error("Error fetching institution:", error);
-                toast.error("Failed to fetch the institution");
+                console.error('Error fetching institution:', error);
+                toast.error('Failed to fetch the institution');
             }
         };
 
@@ -147,21 +142,22 @@ export default function EmployeeMonthReportPage() {
         setReportData(data);
     };
 
-
-    const chartData = reportData ? [
-        {
-            name: 'Employee Join Count',
-            count: reportData.total_staff_joined_in_month || 0,
-        },
-        {
-            name: 'SMS Count',
-            count: reportData.sms_sent || 0,
-        },
-        {
-            name: 'EMAIL Count',
-            count: reportData.email_sent || 0,
-        }
-    ] : [];
+    const chartData = reportData
+        ? [
+              {
+                  name: 'Employee Join Count',
+                  count: reportData.total_staff_joined_in_month || 0
+              },
+              {
+                  name: 'SMS Count',
+                  count: reportData.sms_sent || 0
+              },
+              {
+                  name: 'EMAIL Count',
+                  count: reportData.email_sent || 0
+              }
+          ]
+        : [];
 
     return (
         <div className='container min-h-screen space-y-6 p-4 print:p-0'>
@@ -171,163 +167,141 @@ export default function EmployeeMonthReportPage() {
                 description='Select year and month to load data'
                 defaultOpen={true}
                 variant='outline'
-                className='bg-white shadow-md border-primary/10'
-            >
-                <AddEmployeeMonthReportForm
-                    key={resetKey}
-                    onSuccess={handleSuccess}
-                    onReset={handleReset}
-                />
+                className='border-primary/10 bg-white shadow-md'>
+                <AddEmployeeMonthReportForm key={resetKey} onSuccess={handleSuccess} onReset={handleReset} />
             </CollapsibleSection>
 
             {reportData && (
-                <>
-                    <CollapsibleSection
-                        title='Employee MonthEnd Report Result'
-                        defaultOpen={true}
-                        variant='default'
-                        className='animate-in fade-in duration-500 bg-white p-4 sm:p-8 shadow-sm print:hidden'
-                    >
-                        <div className='space-y-6' id="report-content">
-                            {/* Print Button - Top Right */}
-                            <div className="print:hidden flex justify-end w-full">
-                                <div className="w-fit">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handlePrint}
-                                        className="gap-2 shadow-sm border-primary/20 hover:bg-primary hover:text-white transition-all duration-300"
-                                    >
-                                        <Printer className="h-4 w-4" />
-                                        Print Report
-                                    </Button>
+                <CollapsibleSection
+                    title='Employee MonthEnd Report Result'
+                    defaultOpen={true}
+                    variant='default'
+                    className='fade-in animate-in bg-white p-4 shadow-sm duration-500 sm:p-8 print:hidden'>
+                    <div className='space-y-6' id='report-content'>
+                        {/* Print Button - Top Right */}
+                        <div className='flex w-full justify-end print:hidden'>
+                            <div className='w-fit'>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={handlePrint}
+                                    className='gap-2 border-primary/20 shadow-sm transition-all duration-300 hover:bg-primary hover:text-white'>
+                                    <Printer className='h-4 w-4' />
+                                    Print Report
+                                </Button>
+                            </div>
+                        </div>
+                        {/* Institution Header */}
+                        <div className='flex flex-col items-center space-y-2 border-blue-900 border-b-2 pb-4 text-center'>
+                            <div className='flex w-full items-center justify-between'>
+                                <div className=' flex items-center justify-center overflow-hidden rounded border bg-white shadow-sm'>
+                                    {institution?.mI_Logo && (
+                                        <img
+                                            src={institution?.mI_Logo}
+                                            alt='Institution Logo'
+                                            className='max-h-full max-w-full object-contain'
+                                        />
+                                    )}
                                 </div>
                             </div>
-                            {/* Institution Header */}
-                            <div className='flex flex-col items-center text-center space-y-2 border-b-2 border-blue-900 pb-4'>
-                                <div className='flex w-full items-center justify-between'>
-                                    <div className=' flex items-center justify-center border rounded overflow-hidden bg-white shadow-sm'>
-                                        {institution?.mI_Logo && (
-                                            <img
-                                                src={institution?.mI_Logo}
-                                                alt="Institution Logo"
-                                                className='max-h-full max-w-full object-contain'
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
 
-                            {/* Title Section */}
-                            <div className='text-center space-y-2 pt-4'>
-                                <h2 className='text-xl font-bold text-blue-800 tracking-wide uppercase'>
-                                    FRONT OFFICE MONTH END REPORT
-                                </h2>
-                                <h3 className='text-md font-semibold text-gray-700 uppercase'>
-                                    {reportData.meta?.monthName} MONTH REPORT
-                                </h3>
-                            </div>
+                        {/* Title Section */}
+                        <div className='space-y-2 pt-4 text-center'>
+                            <h2 className='font-bold text-blue-800 text-xl uppercase tracking-wide'>FRONT OFFICE MONTH END REPORT</h2>
+                            <h3 className='font-semibold text-gray-700 text-md uppercase'>{reportData.meta?.monthName} MONTH REPORT</h3>
+                        </div>
 
-                            {/* Report Metadata Table */}
-                            <div className='border rounded-sm overflow-hidden'>
-                                <table className='w-full text-sm border-collapse'>
-                                    <tbody className='divide-y'>
-                                        <tr className='divide-x'>
-                                            <td className='bg-gray-50 p-2 font-bold w-1/4 text-center'>Name</td>
-                                            <td className='p-2 w-1/4 text-center'>{reportData.meta?.ieName || 'N/A'}</td>
-                                            <td className='bg-gray-50 p-2 font-bold w-1/4 text-center'>Date</td>
-                                            <td className='p-2 w-1/4 text-center'>{format(new Date(), 'MMM dd, yyyy')}</td>
+                        {/* Report Metadata Table */}
+                        <div className='overflow-hidden rounded-sm border'>
+                            <table className='w-full border-collapse text-sm'>
+                                <tbody className='divide-y'>
+                                    <tr className='divide-x'>
+                                        <td className='w-1/4 bg-gray-50 p-2 text-center font-bold'>Name</td>
+                                        <td className='w-1/4 p-2 text-center'>{reportData.meta?.ieName || 'N/A'}</td>
+                                        <td className='w-1/4 bg-gray-50 p-2 text-center font-bold'>Date</td>
+                                        <td className='w-1/4 p-2 text-center'>{format(new Date(), 'MMM dd, yyyy')}</td>
+                                    </tr>
+                                    <tr className='divide-x'>
+                                        <td className='bg-gray-50 p-2 text-center font-bold'>Designation</td>
+                                        <td className='p-2 text-center'>Implementation Engineer</td>
+                                        <td className='bg-gray-50 p-2 text-center font-bold'>Academic Year</td>
+                                        <td className='p-2 text-center'>{reportData.meta?.academicYear || 'N/A'}</td>
+                                    </tr>
+                                    <tr className='divide-x'>
+                                        <td className='bg-gray-50 p-2 text-center font-bold'>Module</td>
+                                        <td className='p-2 text-center' colSpan={3}>
+                                            Front Office
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Summary Counts Table */}
+                        <div className='pt-6'>
+                            <div className='overflow-x-auto rounded-sm border'>
+                                <table className='w-full border-collapse text-sm'>
+                                    <thead>
+                                        <tr className='bg-gray-500 text-center font-bold text-white'>
+                                            <td className='w-16 border border-white p-2'>SL.NO</td>
+                                            <td className='border border-white p-2'>No.of Employee Joined</td>
+                                            <td className='border border-white p-2'>SMS Count</td>
+                                            <td className='border border-white p-2'>Email Count</td>
                                         </tr>
-                                        <tr className='divide-x'>
-                                            <td className='bg-gray-50 p-2 font-bold text-center'>Designation</td>
-                                            <td className='p-2 text-center'>Implementation Engineer</td>
-                                            <td className='bg-gray-50 p-2 font-bold text-center'>Academic Year</td>
-                                            <td className='p-2 text-center'>{reportData.meta?.academicYear || 'N/A'}</td>
-                                        </tr>
-                                        <tr className='divide-x'>
-                                            <td className='bg-gray-50 p-2 font-bold text-center'>Module</td>
-                                            <td className='p-2 text-center' colSpan={3}>Front Office</td>
+                                    </thead>
+                                    <tbody className='text-center'>
+                                        <tr className='hover:bg-gray-50'>
+                                            <td className='border p-2'>1</td>
+                                            <td className='border p-2'>{reportData.total_staff_joined_in_month || 0}</td>
+                                            <td className='border p-2'>{reportData.sms_sent || 0}</td>
+                                            <td className='border p-2'>{reportData.email_sent || 0}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
 
-                            {/* Summary Counts Table */}
-                            <div className='pt-6'>
-                                <div className='overflow-x-auto border rounded-sm'>
-                                    <table className='w-full text-sm border-collapse'>
-                                        <thead>
-                                            <tr className='bg-gray-500 text-white text-center font-bold'>
-                                                <td className='p-2 border border-white w-16'>SL.NO</td>
-                                                <td className='p-2 border border-white'>No.of Employee Joined</td>
-                                                <td className='p-2 border border-white'>SMS Count</td>
-                                                <td className='p-2 border border-white'>Email Count</td>
-                                            </tr>
-                                        </thead>
-                                        <tbody className='text-center'>
-                                            <tr className='hover:bg-gray-50'>
-                                                <td className='p-2 border'>1</td>
-                                                <td className='p-2 border'>{reportData.total_staff_joined_in_month || 0}</td>
-                                                <td className='p-2 border'>{reportData.sms_sent || 0}</td>
-                                                <td className='p-2 border'>{reportData.email_sent || 0}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                        {/* Chart Section */}
+                        <div className='space-y-4 pt-8'>
+                            <h3 className='font-bold text-[#334466] text-lg uppercase'>FRONT OFFICE MONTH END REPORT</h3>
+                            <div ref={chartRef} className='h-[400px] w-full border-b pb-4'>
+                                <ResponsiveContainer width='100%' height='100%'>
+                                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                                        <CartesianGrid vertical={false} stroke='#ccc' />
+                                        <XAxis dataKey='name' axisLine={true} tickLine={true} tick={{ fontSize: 12, fill: '#666' }} />
+                                        <YAxis axisLine={true} tickLine={true} />
+                                        <Tooltip cursor={{ fill: '#f5f5f5' }} />
+                                        <Legend
+                                            verticalAlign='bottom'
+                                            align='center'
+                                            iconType='square'
+                                            formatter={(value) => <span style={{ color: '#333' }}>{value}</span>}
+                                        />
+                                        <Bar name='Count' dataKey='count' fill='#ffd700' barSize={40} />
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
+                        </div>
 
-                            {/* Chart Section */}
-                            <div className='pt-8 space-y-4'>
-                                <h3 className='text-lg font-bold text-[#334466] uppercase'>
-                                    FRONT OFFICE MONTH END REPORT
-                                </h3>
-                                <div ref={chartRef} className='h-[400px] w-full border-b pb-4'>
-                                    <ResponsiveContainer width='100%' height='100%'>
-                                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                                            <CartesianGrid vertical={false} stroke="#ccc" />
-                                            <XAxis
-                                                dataKey="name"
-                                                axisLine={true}
-                                                tickLine={true}
-                                                tick={{ fontSize: 12, fill: '#666' }}
-                                            />
-                                            <YAxis axisLine={true} tickLine={true} />
-                                            <Tooltip cursor={{ fill: '#f5f5f5' }} />
-                                            <Legend
-                                                verticalAlign="bottom"
-                                                align="center"
-                                                iconType="square"
-                                                formatter={(value) => <span style={{ color: '#333' }}>{value}</span>}
-                                            />
-                                            <Bar
-                                                name="Count"
-                                                dataKey="count"
-                                                fill="#ffd700"
-                                                barSize={40}
-                                            />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                        {/* Signature Footer */}
+                        <div className='grid grid-cols-2 gap-y-10 pt-12 font-medium text-sm'>
+                            <div className='flex flex-col space-y-1'>
+                                <span>Implementation Engineer:___________________</span>
                             </div>
-
-                            {/* Signature Footer */}
-                            <div className='pt-12 grid grid-cols-2 gap-y-10 text-sm font-medium'>
-                                <div className='flex flex-col space-y-1'>
-                                    <span>Implementation Engineer:___________________</span>
-                                </div>
-                                <div className='flex flex-col space-y-1 text-right'>
-                                    <span>Nodal Officer:___________________</span>
-                                </div>
-                                <div className='flex flex-col space-y-1 pt-4'>
-                                    <span>End User:___________________</span>
-                                </div>
-                                <div className='flex flex-col space-y-1 text-right pt-4'>
-                                    <span>Seal:___________________</span>
-                                </div>
+                            <div className='flex flex-col space-y-1 text-right'>
+                                <span>Nodal Officer:___________________</span>
                             </div>
+                            <div className='flex flex-col space-y-1 pt-4'>
+                                <span>End User:___________________</span>
+                            </div>
+                            <div className='flex flex-col space-y-1 pt-4 text-right'>
+                                <span>Seal:___________________</span>
+                            </div>
+                        </div>
 
-                            {/* Detailed Staff List Section */}
-                            {/* <div className='pt-12 print:mt-10'>
+                        {/* Detailed Staff List Section */}
+                        {/* <div className='pt-12 print:mt-10'>
                             <CollapsibleSection
                                 title='Detailed Joinee Staff List'
                                 defaultOpen={false}
@@ -346,10 +320,8 @@ export default function EmployeeMonthReportPage() {
                                 />
                             </CollapsibleSection>
                         </div> */}
-
-                        </div>
-                    </CollapsibleSection>
-                </>
+                    </div>
+                </CollapsibleSection>
             )}
         </div>
     );

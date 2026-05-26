@@ -29,7 +29,7 @@ const formSchema = z.object({
 export default function SchoolStaffPeriodTransactionPage() {
     const [initialData, setInitialData] = useState<{ masteryear: any[]; employeedetails: any[] }>({ masteryear: [], employeedetails: [] });
     const [gridData, setGridData] = useState<ISchoolStaffPeriodTransactionGridItem[] | null>(null);
-    const [isPending, startTransition] = useTransition();
+    const [_isPending, startTransition] = useTransition();
 
     const methods = useForm({
         resolver: zodResolver(formSchema)
@@ -151,11 +151,7 @@ export default function SchoolStaffPeriodTransactionPage() {
             </div>
 
             <FormProvider {...methods}>
-                <SearchForm
-                    masterYear={initialData.masteryear}
-                    employees={initialData.employeedetails}
-                    onSearch={handleSearch}
-                />
+                <SearchForm masterYear={initialData.masteryear} employees={initialData.employeedetails} onSearch={handleSearch} />
             </FormProvider>
 
             {gridData && (

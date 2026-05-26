@@ -61,7 +61,7 @@ function FeeTransactionContent({
     academicYearData: any;
 }) {
     const { openAddForm } = useFormContext<Ifeetransaction>();
-    const tableProps = useDataTableProps(response);
+    const _tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>

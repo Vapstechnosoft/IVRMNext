@@ -2,7 +2,11 @@ import { createStringOnlySchema, createStringSchema } from '@/schemas/validation
 import { z } from 'zod';
 
 const phoneSchema = z.object({
-    mopN_PhoneNo: z.string().min(10, 'Phone number must be 10 digits').max(10, 'Phone number must be 10 digits').regex(/^\d+$/, 'Only numbers allowed'),
+    mopN_PhoneNo: z
+        .string()
+        .min(10, 'Phone number must be 10 digits')
+        .max(10, 'Phone number must be 10 digits')
+        .regex(/^\d+$/, 'Only numbers allowed'),
     moP_Flag: z.string().min(1, 'Select Phone type')
 });
 

@@ -1,13 +1,7 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse } from '@/lib/apiService';
-import type {
-    MasterLeaveGetRequest,
-    MasterLeaveGetResponse,
-    MasterLeaveGetResponseData,
-    MasterLeaveSaveRequest,
-    MasterLeaveListItem
-} from '@/types/hrms/leave-management/master-leave';
+import { type ApiResponse, api } from '@/lib/apiService';
+import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest } from '@/types/hrms/leave-management/master-leave';
 /**
  * Get master leave dropdown options (leave types, etc.)
  * This is a helper function that calls GetLeave with HRML_Id=0 to get dropdown data
@@ -63,10 +57,8 @@ export async function getMasterLeaveDropdowns(request: { MI_Id?: number }): Prom
  */
 export async function getMasterLeaveForEdit(HRML_Id: number): Promise<ApiResponse<MasterLeaveListItem>> {
     const url = `/api/MasterLeave/get_master_leave_by_id/${HRML_Id}`;
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -121,15 +113,11 @@ export async function getMasterLeave(
     if (searchParams?.HRML_Id) params.append('HRML_Id', String(searchParams.HRML_Id));
 
     const url = `/api/MasterLeave/get_master_leave_details?${params.toString()}`;
-
-    console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-        console.log('🔵 [SERVER] GET Response:', JSON.stringify(response, null, 2));
 
         // Handle the case where the response itself is the array
         if (Array.isArray(response)) {
-            console.log('🔵 [SERVER] GET Response is an array');
             return { success: true, message: 'Fetched successfully', data: response };
         }
 
@@ -147,7 +135,7 @@ export async function getMasterLeave(
 
         // If returned data exists even if success is not explicitly true
         // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                if (response && response.data) {
+        if (response && response.data) {
             return {
                 success: true,
                 message: response.message || 'Data fetched',
@@ -203,12 +191,8 @@ export async function saveMasterLeave(data: MasterLeaveSaveRequest): Promise<Api
         updatedDate: currentDate
     };
 
-    console.log('🟠 [SERVER] POST Request URL:', url);
-    console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<any>('hmslms', url, requestBody);
-        console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         let res = response as any;
 
@@ -250,10 +234,8 @@ export async function saveMasterLeave(data: MasterLeaveSaveRequest): Promise<Api
  */
 export async function toggleMasterLeave(HRML_Id: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterLeave/toggle_master_leave/${HRML_Id}`;
-    console.log('🟡 [SERVER] PUT Request URL:', url);
     try {
         const response = await api.put<any>('hmslms', url, {});
-        console.log('🟡 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         let res = response as any;
 
@@ -288,11 +270,8 @@ export async function toggleMasterLeave(HRML_Id: number): Promise<ApiResponse<an
  */
 export async function updateMasterLeaveOrder(orders: Array<{ id: number; order: number }>): Promise<ApiResponse<any>> {
     const url = '/api/MasterLeave/update_master_leave_order';
-    console.log('🟡 [SERVER] PUT Request URL:', url);
-    console.log('🟡 [SERVER] Request Body:', JSON.stringify(orders, null, 2));
     try {
         const response = await api.put<any>('hmslms', url, orders);
-        console.log('🟡 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         let res = response as any;
 
@@ -326,11 +305,9 @@ export async function updateMasterLeaveOrder(orders: Array<{ id: number; order: 
  */
 export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterLeave/delete_master_leave_by_id/${HRML_Id}`;
-    console.log(`🔴 [SERVER] DELETE Request URL: ${url}`);
 
     try {
         const response = await api.delete<any>('hmslms', url);
-        console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
 
         let res = response as any;
 
@@ -356,7 +333,6 @@ export async function deleteMasterLeave(HRML_Id: number): Promise<ApiResponse<an
             message: message,
             data: res.data || null
         };
-
     } catch (error: any) {
         console.error('🔴 [SERVER] Error:', error);
 

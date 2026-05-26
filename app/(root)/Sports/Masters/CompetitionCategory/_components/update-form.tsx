@@ -2,20 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useMasterCompetitionCategoryDetails } from '@/hooks/sports/useMasterCompetitionCategory';
 import { saveMasterCompetitionCategory } from '@/server/sports/masters/competition-category';
-import { masterCompetitionCategorySchema, type IMasterCompetitionCategory } from '@/types/sports/masters/competition-category';
+import { type IMasterCompetitionCategory, masterCompetitionCategorySchema } from '@/types/sports/masters/competition-category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMasterCompetitionCategories, useMasterCompetitionCategoryDetails } from '@/hooks/sports/useMasterCompetitionCategory';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
@@ -125,7 +118,7 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
             } else {
                 toast.error(result.message || 'Failed to update record');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An unexpected error occurred');
         }
     };
@@ -139,25 +132,25 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
 
     if (isEditDataLoading) {
         return (
-            <div className="flex h-40 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2">Loading record details...</span>
+            <div className='flex h-40 items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <span className='ml-2'>Loading record details...</span>
             </div>
         );
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-4 pt-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FormField
                         control={form.control}
-                        name="spccmcC_CompitionCategory"
+                        name='spccmcC_CompitionCategory'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Competition Category</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter Competition Category" {...field} />
+                                    <Input placeholder='Enter Competition Category' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -165,12 +158,12 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
                     />
                     <FormField
                         control={form.control}
-                        name="spccmcC_CCDesc"
+                        name='spccmcC_CCDesc'
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Enter Description" {...field} />
+                                    <Textarea placeholder='Enter Description' {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -219,7 +212,7 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
                 </div>
 
                 {isAgeFlagChecked && (
-                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                    <div className='space-y-4 rounded-lg border bg-muted/50 p-4'>
                         <h3 className='font-medium text-primary'>Age Configuration</h3>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <FormField
@@ -361,7 +354,7 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
                 )}
 
                 {isWeightFlagChecked && (
-                    <div className='rounded-lg border bg-muted/50 p-4 space-y-4'>
+                    <div className='space-y-4 rounded-lg border bg-muted/50 p-4'>
                         <h3 className='font-medium text-primary'>Weight Configuration</h3>
                         <FormField
                             control={form.control}
@@ -389,21 +382,27 @@ export default function UpdateMasterCompetitionCategoryForm({ selectedRow, onSuc
                     </div>
                 )}
 
-                <div className='flex justify-end gap-3 pt-4 border-t'>
-                    <Button type='submit' className='min-w-[120px] shadow-md transition-all active:scale-95' disabled={form.formState.isSubmitting}>
+                <div className='flex justify-end gap-3 border-t pt-4'>
+                    <Button
+                        type='submit'
+                        className='min-w-[120px] shadow-md transition-all active:scale-95'
+                        disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                 Updating...
                             </>
                         ) : (
                             'Update Category'
                         )}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={() => {
-                        form.reset();
-                        onSuccess();
-                    }}>
+                    <Button
+                        type='button'
+                        variant='destructive'
+                        onClick={() => {
+                            form.reset();
+                            onSuccess();
+                        }}>
                         Cancel
                     </Button>
                 </div>

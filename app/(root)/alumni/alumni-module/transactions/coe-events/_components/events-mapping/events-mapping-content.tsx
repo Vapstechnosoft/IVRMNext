@@ -45,7 +45,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
             const res = await getCOEMappingDetails();
             const data = (res as any).data || res;
             setMappingData(data.event_mapping_list || data.mapped_eventlist || []);
-        } catch (error) {
+        } catch (_error) {
             console.error('Failed to fetch mapping details');
         } finally {
             setLoadingMappings(false);
@@ -70,7 +70,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
             const res = await getViewRecords(coeeId);
             const details = res?.data || res || {};
             setViewData(details);
-        } catch (error) {
+        } catch (_error) {
             console.warn('getViewRecords failed, trying fallback to getPageDetailsMap');
             try {
                 // Fallback to legacy endpoint if the new one fails (e.g. backend circular ref)

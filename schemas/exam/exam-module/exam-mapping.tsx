@@ -337,7 +337,7 @@ export const ExamTermAndExamMappingSchema = {
     })
 };
 
-const isoDateString = z.string().refine(
+const _isoDateString = z.string().refine(
     (s) => {
         // allow empty? YES — require proper ISO-like string only if present
         if (!s || s.trim() === '') return true;

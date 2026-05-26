@@ -33,8 +33,8 @@ interface EventsMapTabProps {
 
 export default function EventsMapTab({ initialData }: EventsMapTabProps) {
     const [mappingData, setMappingData] = useState<any[]>([]);
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [loadingMappings, setLoadingMappings] = useState(false);
+    const [_editingId, setEditingId] = useState<number | null>(null);
+    const [_loadingMappings, setLoadingMappings] = useState(false);
     const [viewDetails, setViewDetails] = useState<any[]>([]);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -46,7 +46,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             // Handle nested response structure
             const data = (res as any).data || res;
             setMappingData(data.event_mapping_list || data.mapped_eventlist || []);
-        } catch (error) {
+        } catch (_error) {
             console.error('Failed to fetch mapping details');
         } finally {
             setLoadingMappings(false);
@@ -98,7 +98,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
     });
 
     const watchEvent = form.watch('COEME_Id');
-    const watchYear = form.watch('ASMAY_Id');
+    const _watchYear = form.watch('ASMAY_Id');
 
     useEffect(() => {
         if (watchEvent) {
@@ -110,10 +110,10 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
         try {
             const res = await getEventDetails(id);
             if (res && (res as any).master_event_list && (res as any).master_event_list.length > 0) {
-                const details = (res as any).master_event_list[0];
+                const _details = (res as any).master_event_list[0];
                 // Update form or preview state with fetched event details (e.g. description, message templates)
             }
-        } catch (error) {
+        } catch (_error) {
             console.error('Failed to fetch event details');
         }
     };
@@ -138,7 +138,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             } else {
                 toast.error(res.message || 'Failed to save mapping');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred');
         }
     };
@@ -156,7 +156,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             const url = res.success && res.data ? res.data : '';
             appendImage({ COEEI_Images: url });
             toast.success('File uploaded successfully');
-        } catch (error) {
+        } catch (_error) {
             toast.error('Upload failed');
         }
     };
@@ -205,7 +205,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             // Support both naming conventions for the details list
             const details = (res as any).event_mapping_list || (res as any).view_records || (res as any).grid_details || [];
             setViewDetails(details);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to fetch record details');
         } finally {
             setIsLoadingDetails(false);
@@ -221,7 +221,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             } else {
                 toast.error(res.message || 'Failed to deactivate event');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to deactivate event');
         }
     };
@@ -253,7 +253,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             } else {
                 toast.error('Failed to fetch mapping details');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while fetching details');
         }
     };
@@ -267,7 +267,7 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
             } else {
                 toast.error(res.message || 'Failed to update status');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         }
     };

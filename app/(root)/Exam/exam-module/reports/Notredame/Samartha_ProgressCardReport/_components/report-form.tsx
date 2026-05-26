@@ -6,12 +6,12 @@ import { CollapsibleContent } from '@/components/ui/collapsible';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getSamarthaProgressCardReport } from '@/server/exam/exam-module/reports/SamarthaProgressCardReport';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getSamarthaProgressCardReport } from '@/server/exam/exam-module/reports/SamarthaProgressCardReport';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -22,7 +22,7 @@ const formSchema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one Student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one Student')
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -69,10 +69,12 @@ export default function SamarthaProgressCardReportForm({
             toast.error(academicError.message || 'Error loading academic years');
             setAcademicYears([]);
         } else if (academicData?.data) {
-            setAcademicYears(academicData.data.map((i: any) => ({
-                asmaY_Id: i.asmaY_Id ?? 0,
-                asmaY_Year: i.asmaY_Year ?? ''
-            })));
+            setAcademicYears(
+                academicData.data.map((i: any) => ({
+                    asmaY_Id: i.asmaY_Id ?? 0,
+                    asmaY_Year: i.asmaY_Year ?? ''
+                }))
+            );
         }
     }, [academicData, academicError]);
 
@@ -121,19 +123,18 @@ export default function SamarthaProgressCardReportForm({
         (async () => {
             try {
                 setLoadingStudents(true);
-                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
-                    selectedYear,
-                    selectedClass,
-                    selectedSection
-                );
+                const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
                 const rawList = res?.data;
                 const list = Array.isArray(rawList) ? rawList : [];
-                setStudents(list.map((s: any) => ({
-                    amsT_Id: s.amsT_Id ?? s.AMST_Id,
-                    studentname: s.studentName ||
-                        s.studentname ||
-                        `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                })));
+                setStudents(
+                    list.map((s: any) => ({
+                        amsT_Id: s.amsT_Id ?? s.AMST_Id,
+                        studentname:
+                            s.studentName ||
+                            s.studentname ||
+                            `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    }))
+                );
                 setValue('studentList', []);
             } catch {
                 toast.error('Failed to load students');
@@ -143,9 +144,7 @@ export default function SamarthaProgressCardReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    const filteredStudents = students.filter(s =>
-        s.studentname.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStudents = students.filter((s) => s.studentname.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const allSelected = students.length > 0 && selectedStudentsList?.length === students.length;
 
@@ -154,96 +153,149 @@ export default function SamarthaProgressCardReportForm({
             const response = await getSamarthaProgressCardReport(data);
 
             // ── Build hardcoded fallback so report always displays ──
-            const selectedStudentObjs = students.filter(s =>
-                data.studentList.some(sl => sl.amsT_Id === s.amsT_Id)
-            );
+            const selectedStudentObjs = students.filter((s) => data.studentList.some((sl) => sl.amsT_Id === s.amsT_Id));
 
             const MOCK_SUBJECTS = [
                 { ISMS_Id: 1, ISMS_SubjectName: 'English', EMPS_AppToResultFlg: true },
-                { ISMS_Id: 2, ISMS_SubjectName: 'Hindi',   EMPS_AppToResultFlg: true },
-                { ISMS_Id: 3, ISMS_SubjectName: 'Maths',   EMPS_AppToResultFlg: true },
-                { ISMS_Id: 4, ISMS_SubjectName: 'Science',  EMPS_AppToResultFlg: true },
+                { ISMS_Id: 2, ISMS_SubjectName: 'Hindi', EMPS_AppToResultFlg: true },
+                { ISMS_Id: 3, ISMS_SubjectName: 'Maths', EMPS_AppToResultFlg: true },
+                { ISMS_Id: 4, ISMS_SubjectName: 'Science', EMPS_AppToResultFlg: true },
                 { ISMS_Id: 5, ISMS_SubjectName: 'Social Science', EMPS_AppToResultFlg: true },
-                { ISMS_Id: 6, ISMS_SubjectName: 'Computer', EMPS_AppToResultFlg: false },
+                { ISMS_Id: 6, ISMS_SubjectName: 'Computer', EMPS_AppToResultFlg: false }
             ];
             const MOCK_GROUPS = [
                 { empG_GroupName: 'Half Yearly', empG_DistplayName: 'FA-1', empsG_GroupName: 'FA-1', empsG_MarksValue: 10 },
                 { empG_GroupName: 'Half Yearly', empG_DistplayName: 'SA-1', empsG_GroupName: 'SA-1', empsG_MarksValue: 30 },
-                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I',  empsG_GroupName: 'Term I',  empsG_MarksValue: 100 },
-                { empG_GroupName: 'Anual Exam',  empG_DistplayName: 'FA-2', empsG_GroupName: 'FA-2', empsG_MarksValue: 10 },
-                { empG_GroupName: 'Anual Exam',  empG_DistplayName: 'SA-2', empsG_GroupName: 'SA-2', empsG_MarksValue: 30 },
-                { empG_GroupName: 'Anual Exam',  empG_DistplayName: 'Term II', empsG_GroupName: 'Term II', empsG_MarksValue: 100 },
+                { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I', empsG_GroupName: 'Term I', empsG_MarksValue: 100 },
+                { empG_GroupName: 'Anual Exam', empG_DistplayName: 'FA-2', empsG_GroupName: 'FA-2', empsG_MarksValue: 10 },
+                { empG_GroupName: 'Anual Exam', empG_DistplayName: 'SA-2', empsG_GroupName: 'SA-2', empsG_MarksValue: 30 },
+                { empG_GroupName: 'Anual Exam', empG_DistplayName: 'Term II', empsG_GroupName: 'Term II', empsG_MarksValue: 100 }
             ];
             const MOCK_TERMS = [
                 { ecT_Id: 1, ecT_TermName: 'Term I' },
-                { ecT_Id: 2, ecT_TermName: 'Term II' },
+                { ecT_Id: 2, ecT_TermName: 'Term II' }
             ];
 
             const buildMockMarks = (amstId: number) => {
                 const marks: any[] = [];
-                MOCK_SUBJECTS.forEach(sub => {
+                MOCK_SUBJECTS.forEach((sub) => {
                     const fa1 = Math.floor(Math.random() * 3) + 7;
                     const sa1 = Math.floor(Math.random() * 8) + 22;
                     const fa2 = Math.floor(Math.random() * 3) + 7;
                     const sa2 = Math.floor(Math.random() * 8) + 22;
-                    const t1  = fa1 + sa1;
-                    const t2  = fa2 + sa2;
+                    const t1 = fa1 + sa1;
+                    const t2 = fa2 + sa2;
                     marks.push(
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'FA-1',    ObtainedMarks: fa1, ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'SA-1',    ObtainedMarks: sa1, ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Term I',  ObtainedMarks: t1,  ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 11 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'FA-2',    ObtainedMarks: fa2, ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'SA-2',    ObtainedMarks: sa2, ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 0 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Term II', ObtainedMarks: t2,  ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 12 },
-                        { AMST_Id: amstId, ISMS_Id: sub.ISMS_Id, EMPSG_DisplayName: 'Average', ObtainedMarks: Math.round((t1+t2)/2), ObtainedGrade: 'A', PassFailFlag: 'P', Flag: 0 },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'FA-1',
+                            ObtainedMarks: fa1,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'SA-1',
+                            ObtainedMarks: sa1,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Term I',
+                            ObtainedMarks: t1,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 11
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'FA-2',
+                            ObtainedMarks: fa2,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'SA-2',
+                            ObtainedMarks: sa2,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Term II',
+                            ObtainedMarks: t2,
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 12
+                        },
+                        {
+                            AMST_Id: amstId,
+                            ISMS_Id: sub.ISMS_Id,
+                            EMPSG_DisplayName: 'Average',
+                            ObtainedMarks: Math.round((t1 + t2) / 2),
+                            ObtainedGrade: 'A',
+                            PassFailFlag: 'P',
+                            Flag: 0
+                        }
                     );
                 });
                 const totalMarks = MOCK_SUBJECTS.length * 80;
-                const percent    = Math.floor(Math.random() * 10) + 80;
+                const percent = Math.floor(Math.random() * 10) + 80;
                 marks.push({ AMST_Id: amstId, ISMS_Id: 0, EMPSG_DisplayName: 'Total', ObtainedMarks: totalMarks, Flag: 900004 });
-                marks.push({ AMST_Id: amstId, ISMS_Id: 0, EMPSG_DisplayName: 'Percent', ObtainedMarks: percent,   Flag: 900005 });
+                marks.push({ AMST_Id: amstId, ISMS_Id: 0, EMPSG_DisplayName: 'Percent', ObtainedMarks: percent, Flag: 900005 });
                 return marks;
             };
 
             const mockStudentDetails = selectedStudentObjs.map((s, i) => ({
-                AMST_Id:     s.amsT_Id,
+                AMST_Id: s.amsT_Id,
                 studentname: s.studentname,
-                classname:   classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
-                sectionname: sections.find(sec => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
-                rollno:      String(i + 1).padStart(2, '0'),
-                fathername:  'Parent Name',
-                dob:         '01/01/2010',
-                AMST_Photoname: '',
+                classname: classes.find((c) => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
+                sectionname: sections.find((sec) => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
+                rollno: String(i + 1).padStart(2, '0'),
+                fathername: 'Parent Name',
+                dob: '01/01/2010',
+                AMST_Photoname: ''
             }));
 
-            const mockAllMarks = selectedStudentObjs.flatMap(s => buildMockMarks(s.amsT_Id));
-            const mockSubjectList = selectedStudentObjs.flatMap(s =>
-                MOCK_SUBJECTS.map(sub => ({ ...sub, AMST_Id: s.amsT_Id }))
-            );
-            const mockActivities = selectedStudentObjs.flatMap(s => ([
+            const mockAllMarks = selectedStudentObjs.flatMap((s) => buildMockMarks(s.amsT_Id));
+            const mockSubjectList = selectedStudentObjs.flatMap((s) => MOCK_SUBJECTS.map((sub) => ({ ...sub, AMST_Id: s.amsT_Id })));
+            const mockActivities = selectedStudentObjs.flatMap((s) => [
                 { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Drawing & Craft', ECACT_Id: 1, ECT_Id: 1, EMGD_Name: 'A' },
                 { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Drawing & Craft', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: 'A+' },
-                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Sports',          ECACT_Id: 1, ECT_Id: 1, EMGD_Name: 'B' },
-                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Sports',          ECACT_Id: 1, ECT_Id: 2, EMGD_Name: 'A' },
-            ]));
-            const mockAttendance = selectedStudentObjs.map(s => ({ AMST_Id: s.amsT_Id, TotalSchoolDays: 220 }));
-            const mockPresent    = selectedStudentObjs.map(s => ({ AMST_Id: s.amsT_Id, TotalPresentDays: Math.floor(Math.random() * 20) + 200 }));
+                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Sports', ECACT_Id: 1, ECT_Id: 1, EMGD_Name: 'B' },
+                { AMST_Id: s.amsT_Id, ECACTA_SkillArea: 'Sports', ECACT_Id: 1, ECT_Id: 2, EMGD_Name: 'A' }
+            ]);
+            const mockAttendance = selectedStudentObjs.map((s) => ({ AMST_Id: s.amsT_Id, TotalSchoolDays: 220 }));
+            const mockPresent = selectedStudentObjs.map((s) => ({
+                AMST_Id: s.amsT_Id,
+                TotalPresentDays: Math.floor(Math.random() * 20) + 200
+            }));
 
             const mockData = {
-                getstudentdetails:              mockStudentDetails,
-                getstudentwisesubjectlist:      mockSubjectList,
-                getstudentmarksdetails:         mockAllMarks,
-                getgroupdetails:                MOCK_GROUPS,
-                gettermdetails:                 MOCK_TERMS,
+                getstudentdetails: mockStudentDetails,
+                getstudentwisesubjectlist: mockSubjectList,
+                getstudentmarksdetails: mockAllMarks,
+                getgroupdetails: MOCK_GROUPS,
+                gettermdetails: MOCK_TERMS,
                 getstudentwiseactiviteslistterm: mockActivities,
-                getpromotionremarksdetails:     [],
-                work_attendence:                mockAttendance,
-                present_attendence:             mockPresent,
+                getpromotionremarksdetails: [],
+                work_attendence: mockAttendance,
+                present_attendence: mockPresent
             };
 
-            const finalData = (response?.success && response.data?.getstudentdetails?.length > 0)
-                ? response.data
-                : mockData;
+            const finalData = response?.success && response.data?.getstudentdetails?.length > 0 ? response.data : mockData;
 
             if (onSuccess) onSuccess(finalData);
             toast.success('Report generated successfully');
@@ -273,10 +325,11 @@ export default function SamarthaProgressCardReportForm({
                                                 <Select
                                                     key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}
-                                                >
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
+                                                        <SelectValue
+                                                            placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYears.map((y) => (
@@ -305,8 +358,7 @@ export default function SamarthaProgressCardReportForm({
                                                 <Select
                                                     key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}
-                                                >
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                                     </SelectTrigger>
@@ -337,8 +389,7 @@ export default function SamarthaProgressCardReportForm({
                                                 <Select
                                                     key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
-                                                    value={field.value ? String(field.value) : ''}
-                                                >
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                                                     </SelectTrigger>
@@ -364,11 +415,9 @@ export default function SamarthaProgressCardReportForm({
                                         <Checkbox
                                             checked={allSelected}
                                             onCheckedChange={(checked) => {
-                                                setValue(
-                                                    'studentList',
-                                                    checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [],
-                                                    { shouldValidate: true }
-                                                );
+                                                setValue('studentList', checked ? students.map((s) => ({ amsT_Id: s.amsT_Id })) : [], {
+                                                    shouldValidate: true
+                                                });
                                             }}
                                         />
                                         Students <span className='text-red-500'>*</span>
@@ -391,13 +440,18 @@ export default function SamarthaProgressCardReportForm({
                                                             <span className='text-muted-foreground text-sm'>Loading students...</span>
                                                         ) : students.length === 0 ? (
                                                             <span className='text-muted-foreground text-sm'>
-                                                                {selectedSection ? 'No students found' : 'Select a section to load students'}
+                                                                {selectedSection
+                                                                    ? 'No students found'
+                                                                    : 'Select a section to load students'}
                                                             </span>
                                                         ) : filteredStudents.length === 0 ? (
-                                                            <span className='text-muted-foreground text-sm'>No students match your search</span>
+                                                            <span className='text-muted-foreground text-sm'>
+                                                                No students match your search
+                                                            </span>
                                                         ) : (
                                                             filteredStudents.map((s) => {
-                                                                const isChecked = field.value?.some((v) => v.amsT_Id === s.amsT_Id) || false;
+                                                                const isChecked =
+                                                                    field.value?.some((v) => v.amsT_Id === s.amsT_Id) || false;
                                                                 return (
                                                                     <div key={s.amsT_Id} className='flex items-center gap-2'>
                                                                         <Checkbox
@@ -405,13 +459,22 @@ export default function SamarthaProgressCardReportForm({
                                                                             checked={isChecked}
                                                                             onCheckedChange={(checked) => {
                                                                                 if (checked) {
-                                                                                    field.onChange([...(field.value || []), { amsT_Id: s.amsT_Id }]);
+                                                                                    field.onChange([
+                                                                                        ...(field.value || []),
+                                                                                        { amsT_Id: s.amsT_Id }
+                                                                                    ]);
                                                                                 } else {
-                                                                                    field.onChange((field.value || []).filter((v) => v.amsT_Id !== s.amsT_Id));
+                                                                                    field.onChange(
+                                                                                        (field.value || []).filter(
+                                                                                            (v) => v.amsT_Id !== s.amsT_Id
+                                                                                        )
+                                                                                    );
                                                                                 }
                                                                             }}
                                                                         />
-                                                                        <Label htmlFor={`stu-${s.amsT_Id}`} className='cursor-pointer text-sm font-medium'>
+                                                                        <Label
+                                                                            htmlFor={`stu-${s.amsT_Id}`}
+                                                                            className='cursor-pointer font-medium text-sm'>
                                                                             {s.studentname}
                                                                         </Label>
                                                                     </div>
@@ -435,16 +498,18 @@ export default function SamarthaProgressCardReportForm({
                                 type='submit'
                                 isLoading={isSubmitting}
                                 disabled={isSubmitting || !selectedStudentsList?.length}
-                                className='min-w-[140px]'
-                            >
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
-                                onClick={() => { reset(); setStudents([]); setSearchTerm(''); }}
-                                className='min-w-[100px]'
-                            >
+                                onClick={() => {
+                                    reset();
+                                    setStudents([]);
+                                    setSearchTerm('');
+                                }}
+                                className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

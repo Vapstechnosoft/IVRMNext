@@ -1,8 +1,8 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getStJamesTransitionReport } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/report';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,7 +24,6 @@ export default function StJamesI_IIIReportPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const response = await getStJamesTransitionReport(payload);
-            console.log("response", response);
 
             if (response?.data && response.data.getstudentdetails?.length > 0) {
                 const {

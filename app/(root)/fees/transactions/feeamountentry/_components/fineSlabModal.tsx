@@ -622,21 +622,10 @@ export default function FineSlabModal({
     // Fetch fine slabs when modal opens
     // Update the useEffect
     useEffect(() => {
-        console.log('FineSlabModal useEffect triggered', {
-            isOpen,
-            headId,
-            installmentId,
-            mode,
-            existingRegularSlabsCount: existingRegularSlabs.length,
-            existingEcsSlabsCount: existingEcsSlabs.length
-        });
-
         if (isOpen && headId && installmentId) {
             if (mode === 'view' || (existingRegularSlabs.length === 0 && existingEcsSlabs.length === 0)) {
-                console.log('Calling fetchSavedFineSlabs()');
                 fetchSavedFineSlabs();
             } else {
-                console.log('Calling fetchFineSlabs()');
                 fetchFineSlabs();
             }
         }
@@ -664,15 +653,6 @@ export default function FineSlabModal({
     const fetchSavedFineSlabs = async () => {
         setLoading(true);
         try {
-            console.log('Fetching saved fine slabs with params:', {
-                feeGroupId,
-                categoryId,
-                selectionType,
-                academicYearId,
-                headId,
-                installmentId
-            });
-
             const payload = {
                 FMG_Id: feeGroupId,
                 FMCC_Id: categoryId,
@@ -680,24 +660,15 @@ export default function FineSlabModal({
                 ASMAY_Id: academicYearId
             };
 
-            console.log('Payload being sent:', payload);
-
             const response = await getSavedFineSlabs(payload);
 
-            console.log('Raw API Response:', response);
-
             const responseData = response?.data;
-
-            console.log('Response data:', responseData);
 
             // Initialize arrays
             const savedRegularSlabs: FineSlab[] = [];
             const savedEcsSlabs: FineSlab[] = [];
 
             if (responseData?.fineslabdetails && Array.isArray(responseData.fineslabdetails)) {
-                console.log('Processing fineslabdetails...');
-                console.log('All fineslabdetails:', responseData.fineslabdetails);
-
                 // Filter for current head and installment
                 responseData.fineslabdetails.forEach((item: any) => {
                     const itemHeadId = Number(item.fmH_Id);
@@ -705,18 +676,7 @@ export default function FineSlabModal({
                     const currentHeadId = Number(headId);
                     const currentInstallmentId = Number(installmentId);
 
-                    console.log('Checking item:', {
-                        itemHeadId,
-                        currentHeadId,
-                        itemInstallmentId,
-                        currentInstallmentId,
-                        ecsFlag: item.fmfS_ECSFlag,
-                        match: itemHeadId === currentHeadId && itemInstallmentId === currentInstallmentId
-                    });
-
                     if (itemHeadId === currentHeadId && itemInstallmentId === currentInstallmentId) {
-                        console.log('✅ Found matching item:', item);
-
                         savedRegularSlabs.push({
                             fmfS_Id: Number(item.fmfS_Id),
                             fmfS_FineType: item.fmfS_FineType || '',
@@ -735,9 +695,6 @@ export default function FineSlabModal({
             }
 
             if (responseData?.fineslabdetailsecs && Array.isArray(responseData.fineslabdetailsecs)) {
-                console.log('Processing fineslabdetailsecs...');
-                console.log('All fineslabdetailsecs:', responseData.fineslabdetailsecs);
-
                 responseData.fineslabdetailsecs.forEach((item: any) => {
                     const itemHeadId = Number(item.fmH_Id);
                     const itemInstallmentId = Number(item.ftI_Id);
@@ -745,8 +702,6 @@ export default function FineSlabModal({
                     const currentInstallmentId = Number(installmentId);
 
                     if (itemHeadId === currentHeadId && itemInstallmentId === currentInstallmentId) {
-                        console.log('✅ Found matching ECS item:', item);
-
                         savedEcsSlabs.push({
                             fmfS_Id: Number(item.fmfS_Id),
                             fmfS_FineType: item.fmfS_FineType || '',
@@ -764,31 +719,23 @@ export default function FineSlabModal({
                 });
             }
 
-            console.log(' FINAL - Regular slabs:', savedRegularSlabs);
-            console.log(' FINAL - ECS slabs:', savedEcsSlabs);
-
             // Set the slabs data
             setRegularSlabs(savedRegularSlabs);
             setEcsSlabs(savedEcsSlabs);
 
             const hasRegularData = savedRegularSlabs.length > 0;
             const hasEcsData = savedEcsSlabs.length > 0;
-
-            console.log('🔘 Setting showRegularSlab to:', hasRegularData);
             setShowRegularSlab(hasRegularData);
 
             if (selectionType === 'stfoth') {
                 setShowEcsSlab(false);
             } else {
-                console.log('🔘 Setting showEcsSlab to:', hasEcsData);
                 setShowEcsSlab(hasEcsData);
             }
 
             // Auto-select all saved slabs
             const regularIds = savedRegularSlabs.map((s) => s.fmfS_Id);
             const ecsIds = savedEcsSlabs.map((s) => s.fmfS_Id);
-            console.log('Setting selectedRegular:', regularIds);
-            console.log('Setting selectedEcs:', ecsIds);
             setSelectedRegular(regularIds);
             setSelectedEcs(ecsIds);
         } catch (error) {

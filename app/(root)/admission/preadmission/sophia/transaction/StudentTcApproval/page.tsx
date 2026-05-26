@@ -1,28 +1,19 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CheckCircle, Loader2, RotateCcw, Search, XCircle, Info, Hash, BookOpen, User } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { BookOpen, CheckCircle, Info, Loader2, RotateCcw, Search, User } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
 
 import {
     useSophiaStudentTCApprovalDetails,
@@ -36,7 +27,7 @@ export default function StudentTcApprovalPage() {
 
     const { data: initialData, isLoading: isInitialLoading } = useSophiaStudentTCApprovalLoadData();
     const { data: detailsData, isLoading: isDetailsLoading, refetch: refetchDetails } = useSophiaStudentTCApprovalDetails(asmayId);
-    
+
     const saveMutation = useSophiaStudentTCApprovalSave();
     const updateIDsMutation = useSophiaStudentTCApprovalUpdateIDs();
 
@@ -60,17 +51,24 @@ export default function StudentTcApprovalPage() {
 
     useEffect(() => {
         if (detailsData) {
-            const list = detailsData?.studentList || detailsData?.data?.studentList || detailsData?.studenttcdetails || detailsData?.data?.studenttcdetails || [];
+            const list =
+                detailsData?.studentList ||
+                detailsData?.data?.studentList ||
+                detailsData?.studenttcdetails ||
+                detailsData?.data?.studenttcdetails ||
+                [];
             const uId = detailsData?.user_id || detailsData?.data?.user_id || '';
             setUserId(String(uId));
-            
+
             if (Array.isArray(list)) {
-                setStudentList(list.map(s => ({
-                    ...s,
-                    selected: false,
-                    ASTCA_Status: '',
-                    ASTCA_Remarks: ''
-                })));
+                setStudentList(
+                    list.map((s) => ({
+                        ...s,
+                        selected: false,
+                        ASTCA_Status: '',
+                        ASTCA_Remarks: ''
+                    }))
+                );
             }
         }
     }, [detailsData]);
@@ -79,16 +77,17 @@ export default function StudentTcApprovalPage() {
     const filteredList = useMemo(() => {
         if (!searchQuery) return studentList;
         const q = searchQuery.toLowerCase();
-        return studentList.filter(s =>
-            (s.StudentName || '').toLowerCase().includes(q) ||
-            (s.AMST_AdmNo || '').toLowerCase().includes(q) ||
-            (s.FatherName || '').toLowerCase().includes(q)
+        return studentList.filter(
+            (s) =>
+                (s.StudentName || '').toLowerCase().includes(q) ||
+                (s.AMST_AdmNo || '').toLowerCase().includes(q) ||
+                (s.FatherName || '').toLowerCase().includes(q)
         );
     }, [studentList, searchQuery]);
 
     /* -------------------- Handlers -------------------- */
     const toggleSelectAll = (checked: boolean) => {
-        setStudentList(prev => prev.map(s => ({ ...s, selected: checked })));
+        setStudentList((prev) => prev.map((s) => ({ ...s, selected: checked })));
     };
 
     const onStudentSelect = (idx: number, checked: boolean) => {
@@ -110,13 +109,15 @@ export default function StudentTcApprovalPage() {
     const handleUpdateID = async (idx: number, field: string, value: string) => {
         const student = studentList[idx];
         const val = field === 'AMST_APAARId' ? Number(value) : value;
-        
+
         const payload = {
-            studentdata: [{
-                amsT_Id: student.AMST_Id,
-                amsT_PENNo: field === 'AMST_PENNo' ? value : student.AMST_PENNo,
-                amsT_BPLCardNo: field === 'AMST_BPLCardNo' ? value : student.AMST_BPLCardNo
-            }]
+            studentdata: [
+                {
+                    amsT_Id: student.AMST_Id,
+                    amsT_PENNo: field === 'AMST_PENNo' ? value : student.AMST_PENNo,
+                    amsT_BPLCardNo: field === 'AMST_BPLCardNo' ? value : student.AMST_BPLCardNo
+                }
+            ]
         };
 
         try {
@@ -126,19 +127,19 @@ export default function StudentTcApprovalPage() {
             newList[idx][field] = val;
             setStudentList(newList);
             toast.success('ID updated successfully');
-        } catch (e) {
+        } catch (_e) {
             toast.error('Failed to update ID');
         }
     };
 
     const handleApprove = async () => {
-        const selected = studentList.filter(s => s.selected);
+        const selected = studentList.filter((s) => s.selected);
         if (selected.length === 0) {
             toast.error('Please Select At Least One Check Box!');
             return;
         }
 
-        const invalid = selected.some(s => !s.ASTCA_Status || !s.ASTCA_Remarks?.trim());
+        const invalid = selected.some((s) => !s.ASTCA_Status || !s.ASTCA_Remarks?.trim());
         if (invalid) {
             toast.error('Status and Remarks are required for all selected students');
             return;
@@ -146,7 +147,7 @@ export default function StudentTcApprovalPage() {
 
         try {
             const payload = {
-                selectedTCDATAlist: selected.map(s => ({
+                selectedTCDATAlist: selected.map((s) => ({
                     asca_Id: s.ASCA_Id,
                     astca_Status: s.ASTCA_Status,
                     astca_Remarks: s.ASTCA_Remarks
@@ -159,7 +160,7 @@ export default function StudentTcApprovalPage() {
             } else {
                 toast.error(res?.message || 'Failed to approve TC');
             }
-        } catch (e) {
+        } catch (_e) {
             toast.error('Approval failed');
         }
     };
@@ -171,49 +172,48 @@ export default function StudentTcApprovalPage() {
 
     /* -------------------- UI -------------------- */
     return (
-        <div className='min-h-screen p-4 space-y-6'>
+        <div className='min-h-screen space-y-6 p-4'>
             <CollapsibleSection
                 title='Student TC Approval'
                 description='Manage and approve student transfer certificate requests'
                 defaultOpen={true}
                 variant='outline'
                 className='shadow-lg'>
-
-                <div className='bg-white p-6 space-y-6'>
+                <div className='space-y-6 bg-white p-6'>
                     {/* Filters Section Removed as per request */}
 
                     {isDetailsLoading ? (
-                        <div className='flex flex-col items-center justify-center py-20 space-y-4'>
+                        <div className='flex flex-col items-center justify-center space-y-4 py-20'>
                             <Loader2 className='h-10 w-10 animate-spin text-indigo-500' />
-                            <p className='text-muted-foreground animate-pulse'>Loading pending approvals...</p>
+                            <p className='animate-pulse text-muted-foreground'>Loading pending approvals...</p>
                         </div>
                     ) : studentList.length > 0 ? (
                         <div className='space-y-6'>
                             <div className='flex flex-wrap items-center justify-between gap-4'>
                                 <div className='flex items-center gap-2'>
-                                    <Badge variant='outline' className='px-4 py-1 text-indigo-700 border-indigo-200 bg-indigo-50'>
+                                    <Badge variant='outline' className='border-indigo-200 bg-indigo-50 px-4 py-1 text-indigo-700'>
                                         {studentList.length} Pending Requests
                                     </Badge>
                                 </div>
                                 <div className='relative w-72'>
-                                    <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                                    <Search className='absolute top-2.5 left-3 h-4 w-4 text-muted-foreground' />
                                     <Input
                                         placeholder='Search by name, adm no...'
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className='h-10 pl-10 bg-gray-50/50 focus:bg-white transition-colors'
+                                        className='h-10 bg-gray-50/50 pl-10 transition-colors focus:bg-white'
                                     />
                                 </div>
                             </div>
 
-                            <div className='rounded-2xl border bg-white shadow-xl overflow-hidden'>
+                            <div className='overflow-hidden rounded-2xl border bg-white shadow-xl'>
                                 <Table>
                                     <TableHeader className='bg-indigo-900'>
-                                        <TableRow className='hover:bg-indigo-900 border-none'>
+                                        <TableRow className='border-none hover:bg-indigo-900'>
                                             <TableHead className='w-[60px] text-center text-white'>SL.NO</TableHead>
                                             <TableHead className='w-[50px]'>
                                                 <Checkbox
-                                                    checked={studentList.length > 0 && studentList.every(s => s.selected)}
+                                                    checked={studentList.length > 0 && studentList.every((s) => s.selected)}
                                                     onCheckedChange={(checked) => toggleSelectAll(checked as boolean)}
                                                     className='border-white data-[state=checked]:bg-white data-[state=checked]:text-indigo-900'
                                                 />
@@ -225,7 +225,9 @@ export default function StudentTcApprovalPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {filteredList.map((s, idx) => (
-                                            <TableRow key={idx} className={`${s.selected ? 'bg-indigo-50/50' : 'hover:bg-gray-50/50'} border-b transition-colors`}>
+                                            <TableRow
+                                                key={idx}
+                                                className={`${s.selected ? 'bg-indigo-50/50' : 'hover:bg-gray-50/50'} border-b transition-colors`}>
                                                 <TableCell className='text-center font-bold text-gray-400'>{idx + 1}</TableCell>
                                                 <TableCell>
                                                     <Checkbox
@@ -234,10 +236,10 @@ export default function StudentTcApprovalPage() {
                                                     />
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex flex-col space-y-3 py-2">
+                                                    <div className='flex flex-col space-y-3 py-2'>
                                                         <Card className='border-indigo-100 bg-white/50 shadow-sm'>
-                                                            <CardContent className='p-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs'>
-                                                                <div className='col-span-2 text-sm font-bold text-indigo-900 flex items-center gap-2 mb-1'>
+                                                            <CardContent className='grid grid-cols-2 gap-x-4 gap-y-2 p-4 text-xs'>
+                                                                <div className='col-span-2 mb-1 flex items-center gap-2 font-bold text-indigo-900 text-sm'>
                                                                     <User className='h-3 w-3' /> {s.StudentName}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
@@ -247,10 +249,14 @@ export default function StudentTcApprovalPage() {
                                                                     <span className='font-bold text-gray-700'>TC No:</span> {s.ASTC_TCNO}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
-                                                                    <span className='font-bold text-gray-700'>Class:</span> {s.ASMCL_ClassName} ({s.ASMC_SectionName})
+                                                                    <span className='font-bold text-gray-700'>Class:</span>{' '}
+                                                                    {s.ASMCL_ClassName} ({s.ASMC_SectionName})
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
-                                                                    <span className='font-bold text-gray-700'>TC Date:</span> {s.ASTC_TCApplicationDate ? format(new Date(s.ASTC_TCApplicationDate), 'dd/MM/yyyy') : ''}
+                                                                    <span className='font-bold text-gray-700'>TC Date:</span>{' '}
+                                                                    {s.ASTC_TCApplicationDate
+                                                                        ? format(new Date(s.ASTC_TCApplicationDate), 'dd/MM/yyyy')
+                                                                        : ''}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
                                                                     <span className='font-bold text-gray-700'>Father:</span> {s.FatherName}
@@ -259,13 +265,16 @@ export default function StudentTcApprovalPage() {
                                                                     <span className='font-bold text-gray-700'>Mother:</span> {s.MotherName}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
-                                                                    <span className='font-bold text-gray-700'>DOB:</span> {s.AMST_DOB ? format(new Date(s.AMST_DOB), 'dd/MM/yyyy') : ''}
+                                                                    <span className='font-bold text-gray-700'>DOB:</span>{' '}
+                                                                    {s.AMST_DOB ? format(new Date(s.AMST_DOB), 'dd/MM/yyyy') : ''}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
-                                                                    <span className='font-bold text-gray-700'>Caste:</span> {s.IMC_CasteName}
+                                                                    <span className='font-bold text-gray-700'>Caste:</span>{' '}
+                                                                    {s.IMC_CasteName}
                                                                 </div>
                                                                 <div className='flex items-center gap-2 text-gray-500'>
-                                                                    <span className='font-bold text-gray-700'>Language/Religion:</span> {s.IVRMMR_Name}
+                                                                    <span className='font-bold text-gray-700'>Language/Religion:</span>{' '}
+                                                                    {s.IVRMMR_Name}
                                                                 </div>
                                                             </CardContent>
                                                         </Card>
@@ -273,44 +282,61 @@ export default function StudentTcApprovalPage() {
                                                         {/* Role Based Information */}
                                                         <div className='space-y-2'>
                                                             {(userId === '46102' || userId === '46105') && (
-                                                                <Badge variant='destructive' className='w-full justify-start py-2 text-[11px] font-bold'>
+                                                                <Badge
+                                                                    variant='destructive'
+                                                                    className='w-full justify-start py-2 font-bold text-[11px]'>
                                                                     <Info className='mr-2 h-3 w-3' /> Fee Due Amount: ₹{s.Fee_Due_Amnt}
                                                                 </Badge>
                                                             )}
-                                                            
+
                                                             {(userId === '46039' || userId === '45986' || userId === '46105') && (
-                                                                <Badge variant='outline' className='w-full justify-start py-2 text-[11px] font-bold text-orange-600 border-orange-200 bg-orange-50'>
-                                                                    <BookOpen className='mr-2 h-3 w-3' /> Library Books Pending: {s.Library_Due_Amnt}
+                                                                <Badge
+                                                                    variant='outline'
+                                                                    className='w-full justify-start border-orange-200 bg-orange-50 py-2 font-bold text-[11px] text-orange-600'>
+                                                                    <BookOpen className='mr-2 h-3 w-3' /> Library Books Pending:{' '}
+                                                                    {s.Library_Due_Amnt}
                                                                 </Badge>
                                                             )}
 
                                                             {userId === '46100' && (
-                                                                <div className='p-4 rounded-xl border bg-gray-50 space-y-3'>
+                                                                <div className='space-y-3 rounded-xl border bg-gray-50 p-4'>
                                                                     <div className='flex items-center gap-3'>
-                                                                        <span className='text-[10px] font-bold text-indigo-900 uppercase w-28'>Apar Number:</span>
+                                                                        <span className='w-28 font-bold text-[10px] text-indigo-900 uppercase'>
+                                                                            Apar Number:
+                                                                        </span>
                                                                         <Input
                                                                             value={s.AMST_APAARId || ''}
                                                                             disabled={!s.selected}
-                                                                            onBlur={(e) => handleUpdateID(idx, 'AMST_APAARId', e.target.value)}
-                                                                            className='h-7 text-xs bg-white border-dashed'
+                                                                            onBlur={(e) =>
+                                                                                handleUpdateID(idx, 'AMST_APAARId', e.target.value)
+                                                                            }
+                                                                            className='h-7 border-dashed bg-white text-xs'
                                                                         />
                                                                     </div>
                                                                     <div className='flex items-center gap-3'>
-                                                                        <span className='text-[10px] font-bold text-indigo-900 uppercase w-28'>PEN Number:</span>
+                                                                        <span className='w-28 font-bold text-[10px] text-indigo-900 uppercase'>
+                                                                            PEN Number:
+                                                                        </span>
                                                                         <Input
                                                                             value={s.AMST_PENNo || ''}
                                                                             disabled={!s.selected}
-                                                                            onBlur={(e) => handleUpdateID(idx, 'AMST_PENNo', e.target.value)}
-                                                                            className='h-7 text-xs bg-white border-dashed'
+                                                                            onBlur={(e) =>
+                                                                                handleUpdateID(idx, 'AMST_PENNo', e.target.value)
+                                                                            }
+                                                                            className='h-7 border-dashed bg-white text-xs'
                                                                         />
                                                                     </div>
                                                                     <div className='flex items-center gap-3'>
-                                                                        <span className='text-[10px] font-bold text-indigo-900 uppercase w-28'>STS Number:</span>
+                                                                        <span className='w-28 font-bold text-[10px] text-indigo-900 uppercase'>
+                                                                            STS Number:
+                                                                        </span>
                                                                         <Input
                                                                             value={s.AMST_BPLCardNo || ''}
                                                                             disabled={!s.selected}
-                                                                            onBlur={(e) => handleUpdateID(idx, 'AMST_BPLCardNo', e.target.value)}
-                                                                            className='h-7 text-xs bg-white border-dashed'
+                                                                            onBlur={(e) =>
+                                                                                handleUpdateID(idx, 'AMST_BPLCardNo', e.target.value)
+                                                                            }
+                                                                            className='h-7 border-dashed bg-white text-xs'
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -318,9 +344,12 @@ export default function StudentTcApprovalPage() {
                                                         </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className='align-top pt-8'>
+                                                <TableCell className='pt-8 align-top'>
                                                     <div className='space-y-1'>
-                                                        <Select value={s.ASTCA_Status} onValueChange={(v) => onFieldChange(idx, 'ASTCA_Status', v)} disabled={!s.selected}>
+                                                        <Select
+                                                            value={s.ASTCA_Status}
+                                                            onValueChange={(v) => onFieldChange(idx, 'ASTCA_Status', v)}
+                                                            disabled={!s.selected}>
                                                             <SelectTrigger className='h-10 text-xs shadow-sm'>
                                                                 <SelectValue placeholder='-- Select --' />
                                                             </SelectTrigger>
@@ -328,19 +357,23 @@ export default function StudentTcApprovalPage() {
                                                                 <SelectItem value='Approved'>Approved</SelectItem>
                                                             </SelectContent>
                                                         </Select>
-                                                        {!s.ASTCA_Status && s.selected && <p className='text-[10px] text-red-500 font-medium px-1'>Status required</p>}
+                                                        {!s.ASTCA_Status && s.selected && (
+                                                            <p className='px-1 font-medium text-[10px] text-red-500'>Status required</p>
+                                                        )}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className='align-top pt-8'>
+                                                <TableCell className='pt-8 align-top'>
                                                     <div className='space-y-1'>
                                                         <Textarea
                                                             value={s.ASTCA_Remarks}
                                                             onChange={(e) => onFieldChange(idx, 'ASTCA_Remarks', e.target.value)}
                                                             disabled={!s.selected}
                                                             placeholder='Enter remarks...'
-                                                            className='min-h-[120px] text-xs shadow-sm bg-white'
+                                                            className='min-h-[120px] bg-white text-xs shadow-sm'
                                                         />
-                                                        {!s.ASTCA_Remarks && s.selected && <p className='text-[10px] text-red-500 font-medium px-1'>Remarks required</p>}
+                                                        {!s.ASTCA_Remarks && s.selected && (
+                                                            <p className='px-1 font-medium text-[10px] text-red-500'>Remarks required</p>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -350,23 +383,35 @@ export default function StudentTcApprovalPage() {
                             </div>
 
                             <div className='flex justify-center gap-4 pt-8'>
-                                <Button size='lg' onClick={handleApprove} disabled={saveMutation.isPending} className='min-w-[180px] bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl rounded-full uppercase tracking-widest transition-all'>
-                                    {saveMutation.isPending ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <CheckCircle className='mr-2 h-5 w-5' />}
+                                <Button
+                                    size='lg'
+                                    onClick={handleApprove}
+                                    disabled={saveMutation.isPending}
+                                    className='min-w-[180px] rounded-full bg-indigo-600 text-white uppercase tracking-widest shadow-xl transition-all hover:bg-indigo-700'>
+                                    {saveMutation.isPending ? (
+                                        <Loader2 className='mr-2 h-5 w-5 animate-spin' />
+                                    ) : (
+                                        <CheckCircle className='mr-2 h-5 w-5' />
+                                    )}
                                     Approve
                                 </Button>
-                                <Button size='lg' variant='outline' onClick={handleCancel} className='min-w-[180px] border-red-200 text-red-600 hover:bg-red-50 shadow-sm rounded-full uppercase tracking-widest'>
+                                <Button
+                                    size='lg'
+                                    variant='outline'
+                                    onClick={handleCancel}
+                                    className='min-w-[180px] rounded-full border-red-200 text-red-600 uppercase tracking-widest shadow-sm hover:bg-red-50'>
                                     <RotateCcw className='mr-2 h-5 w-5' />
                                     Cancel
                                 </Button>
                             </div>
                         </div>
                     ) : (
-                        <div className='flex flex-col items-center justify-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed'>
-                            <div className='bg-white p-6 rounded-full shadow-lg mb-6'>
+                        <div className='flex flex-col items-center justify-center rounded-3xl border-2 border-dashed bg-gray-50 py-20'>
+                            <div className='mb-6 rounded-full bg-white p-6 shadow-lg'>
                                 <Info className='h-12 w-12 text-indigo-400' />
                             </div>
-                            <h3 className='text-xl font-bold text-gray-800'>No Pending Approvals</h3>
-                            <p className='text-gray-500 mt-2'>There are currently no student TC requests waiting for approval.</p>
+                            <h3 className='font-bold text-gray-800 text-xl'>No Pending Approvals</h3>
+                            <p className='mt-2 text-gray-500'>There are currently no student TC requests waiting for approval.</p>
                             <Button variant='outline' onClick={() => refetchDetails()} className='mt-8 rounded-full px-8'>
                                 <RotateCcw className='mr-2 h-4 w-4' /> Refresh Data
                             </Button>

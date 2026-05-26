@@ -7,6 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassColumns } from './_components/columns';
@@ -14,7 +15,6 @@ import ReorderClassForm from './_components/reorder-form';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
 import ViewDetailsDialog from './_components/view-details-dialog';
-import { useRouter } from 'next/navigation';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -73,7 +73,7 @@ function MasterClassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end gap-2 mb-2'>
+                    <div className='mb-2 flex justify-end gap-2'>
                         <ViewDetailsDialog />
                         <ReorderClassForm />
                     </div>

@@ -18,17 +18,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterDriverPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterDriver(searchParams);
-    console.log('response', response);
     return (
         <FormProvider<IMasterDriver>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterDriverPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterDriverPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

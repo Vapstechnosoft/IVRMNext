@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { usePageMapping } from './mapping-context';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
-import { useQueryState, parseAsInteger } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useState } from 'react';
+import { usePageMapping } from './mapping-context';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 export default function AvailableGrid() {
@@ -42,14 +42,16 @@ export default function AvailableGrid() {
         }
     }, [page, pageSize, selectedModuleId]);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleToggle = (page: IPageMappingData) => {
         addToCart([page]);
     };
 
     const isChecked = (id: number) => {
-        return cartPages.some(p => p.ivrmP_Id === id);
+        return cartPages.some((p) => p.ivrmP_Id === id);
     };
 
     const columns = useMemo<ColumnDef<IPageMappingData>[]>(
@@ -61,11 +63,11 @@ export default function AvailableGrid() {
                     const { pagination } = table.getState();
                     return pagination.pageIndex * pagination.pageSize + row.index + 1;
                 },
-                enableSorting: false,
+                enableSorting: false
             },
             {
                 accessorKey: 'ivrmP_PageName',
-                header: 'Page Name',
+                header: 'Page Name'
             },
             {
                 id: 'actions',
@@ -73,16 +75,12 @@ export default function AvailableGrid() {
                 cell: ({ row }) => {
                     const checked = isChecked(row.original.ivrmP_Id);
                     return (
-                        <div className="flex justify-center">
-                            <Checkbox
-                                checked={checked}
-                                onCheckedChange={() => handleToggle(row.original)}
-                                aria-label="Select row"
-                            />
+                        <div className='flex justify-center'>
+                            <Checkbox checked={checked} onCheckedChange={() => handleToggle(row.original)} aria-label='Select row' />
                         </div>
                     );
                 },
-                enableSorting: false,
+                enableSorting: false
             }
         ],
         [cartPages]
@@ -91,19 +89,13 @@ export default function AvailableGrid() {
     if (!selectedModuleId) return null;
 
     return (
-        <div className="border rounded-md shadow-sm bg-white h-full flex flex-col">
-            <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-semibold text-lg">Master Pages</h3>
+        <div className='flex h-full flex-col rounded-md border bg-white shadow-sm'>
+            <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
+                <h3 className='font-semibold text-lg'>Master Pages</h3>
             </div>
 
-            <div className="flex-1 overflow-auto p-2">
-                <GenericDataTable
-                    data={data}
-                    columns={columns}
-                    isLoading={isLoading}
-                    isPaginationRequired={true}
-                    totalItems={totalItems}
-                />
+            <div className='flex-1 overflow-auto p-2'>
+                <GenericDataTable data={data} columns={columns} isLoading={isLoading} isPaginationRequired={true} totalItems={totalItems} />
             </div>
         </div>
     );

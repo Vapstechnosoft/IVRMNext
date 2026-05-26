@@ -37,7 +37,6 @@ export async function middleware(request: NextRequest) {
         if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/success/')) {
             const transactionId = pathname.split('/').pop();
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-            console.log('baseUrl Success POST Middleware', baseUrl);
 
             const redirectUrl = `${baseUrl}/api/payment/callback/success?transaction_id=${transactionId}`;
             const response = NextResponse.redirect(redirectUrl, { status: 307 });
@@ -51,7 +50,6 @@ export async function middleware(request: NextRequest) {
         if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/failure/')) {
             const transactionId = pathname.split('/').pop();
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-            console.log('baseUrl Failure POST Middleware', baseUrl);
 
             const redirectUrl = `${baseUrl}/api/payment/callback/failure?transaction_id=${transactionId}`;
             const response = NextResponse.redirect(redirectUrl, { status: 307 });

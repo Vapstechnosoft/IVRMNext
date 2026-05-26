@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { InboxTab } from './inbox-tab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getInitialInteractions, loadFeedbackQuestions } from '@/server/staff-portal/interactions';
+import type { IFeedbackOption, IFeedbackQuestion, IInteractionsInitialData } from '@/types/staff-portal/interactions';
+import { useCallback, useEffect, useState } from 'react';
 import { ComposeTab } from './compose-tab';
 import { FeedbackModal } from './feedback-modal';
-import { loadFeedbackQuestions, getInitialInteractions } from '@/server/staff-portal/interactions';
-import type { IInteractionsInitialData, IFeedbackQuestion, IFeedbackOption } from '@/types/staff-portal/interactions';
+import { InboxTab } from './inbox-tab';
 
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Loader2, Inbox, Users, User, Send } from 'lucide-react';
 
 interface InteractionContainerProps {
     initialData: IInteractionsInitialData;
@@ -24,7 +24,7 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     const [isLoading, setIsLoading] = useState(false);
 
     const roleFlg = interactionsData.roletype?.[0]?.ivrmrT_Role || 'Student';
-    const isStudent = roleFlg === 'Student' || roleFlg === 'Staff'; // In StudentPortal, we usually want student logic even for testing staff
+    const _isStudent = roleFlg === 'Student' || roleFlg === 'Staff'; // In StudentPortal, we usually want student logic even for testing staff
 
     // Refresh inbox data
     const refreshData = useCallback(async () => {
@@ -48,7 +48,7 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
             try {
                 const response = await loadFeedbackQuestions('Interaction');
                 if (response.success && response.data && response.data.feedbackquestion?.length > 0) {
-                    const mappedQuestions = response.data.feedbackquestion.map(q => ({
+                    const mappedQuestions = response.data.feedbackquestion.map((q) => ({
                         ...q,
                         feedbackoptiondata: (response.data as any).feedbackoption.filter((o: any) => o.fmqE_Id === q.fmqE_Id)
                     }));
@@ -71,57 +71,50 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
     };
 
     return (
-        <Card className="overflow-hidden border shadow-sm rounded-none bg-white min-h-[600px]">
-            <div className="bg-[#1e40af] px-4 py-2.5 flex items-center justify-between border-b border-white/10">
-                <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 bg-white/40 rounded-full animate-pulse" />
-                    <h2 className="text-white text-[11px] font-black tracking-[0.2em] uppercase">Interactions</h2>
+        <Card className='min-h-[600px] overflow-hidden rounded-none border bg-white shadow-sm'>
+            <div className='flex items-center justify-between border-white/10 border-b bg-[#1e40af] px-4 py-2.5'>
+                <div className='flex items-center gap-2'>
+                    <div className='h-3 w-3 animate-pulse rounded-full bg-white/40' />
+                    <h2 className='font-black text-[11px] text-white uppercase tracking-[0.2em]'>Interactions</h2>
                 </div>
-                <div className="flex gap-1">
-                    <div className="h-1 w-4 bg-white/20 rounded-full" />
-                    <div className="h-1 w-8 bg-white/40 rounded-full" />
+                <div className='flex gap-1'>
+                    <div className='h-1 w-4 rounded-full bg-white/20' />
+                    <div className='h-1 w-8 rounded-full bg-white/40' />
                 </div>
             </div>
-            <CardContent className="p-0">
-                <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                    <div className="bg-[#f8fafc] border-b">
-                        <TabsList className="h-10 w-full justify-start gap-0 bg-transparent p-0 rounded-none">
+            <CardContent className='p-0'>
+                <Tabs value={activeTab} onValueChange={onTabChange} className='w-full'>
+                    <div className='border-b bg-[#f8fafc]'>
+                        <TabsList className='h-10 w-full justify-start gap-0 rounded-none bg-transparent p-0'>
                             <TabsTrigger
-                                value="inbox"
-                                className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500 transition-all"
-                            >
+                                value='inbox'
+                                className='h-10 rounded-none border-r px-8 font-black text-[11px] text-slate-500 uppercase tracking-tight transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white'>
                                 Inbox
                             </TabsTrigger>
 
                             <TabsTrigger
-                                value="individual"
-                                className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500 transition-all"
-                            >
+                                value='individual'
+                                className='h-10 rounded-none border-r px-8 font-black text-[11px] text-slate-500 uppercase tracking-tight transition-all data-[state=active]:bg-[#1e40af] data-[state=active]:text-white'>
                                 Compose
                             </TabsTrigger>
                         </TabsList>
                     </div>
 
-                    <div className="p-4 relative min-h-[500px]">
+                    <div className='relative min-h-[500px] p-4'>
                         {isLoading && (
-                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px]">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <div className='absolute inset-0 z-50 flex items-center justify-center bg-background/20 backdrop-blur-[1px]'>
+                                <Loader2 className='h-8 w-8 animate-spin text-primary' />
                             </div>
                         )}
 
-                        <TabsContent value="inbox" className="mt-0 outline-none">
-                            <InboxTab
-                                data={interactionsData}
-                                onRefresh={refreshData}
-                                roleFlg={roleFlg}
-                            />
+                        <TabsContent value='inbox' className='mt-0 outline-none'>
+                            <InboxTab data={interactionsData} onRefresh={refreshData} roleFlg={roleFlg} />
                         </TabsContent>
 
-
-                        <TabsContent value="individual" className="mt-0 outline-none">
+                        <TabsContent value='individual' className='mt-0 outline-none'>
                             <ComposeTab
                                 data={interactionsData}
-                                mode="Individual"
+                                mode='Individual'
                                 onCancel={() => setActiveTab('inbox')}
                                 onSuccess={() => {
                                     setActiveTab('inbox');

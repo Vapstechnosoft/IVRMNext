@@ -30,13 +30,10 @@ export async function getEmployeeLateInEarlyOutReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
         response = await api.post<EmployeeLateInEarlyOutReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-        console.log('🔵 [SERVER] Raw Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.log('🔵 ========== END SERVER ONLOAD (ERROR) ==========');
         // Return error response
         return {
             success: false,
@@ -52,52 +49,10 @@ export async function getEmployeeLateInEarlyOutReportOnload(
             }
         };
     }
-    // Detailed response structure analysis
-    console.log('📊 [SERVER] Response Structure Analysis:', {
-        hasResponse: !!response,
-        responseType: typeof response,
-        isArray: Array.isArray(response),
-        isObject: typeof response === 'object' && response !== null,
-        responseKeys: response && typeof response === 'object' ? Object.keys(response) : 'N/A',
-        hasSuccess: response && typeof response === 'object' ? 'success' in response : false,
-        success: response?.success,
-        hasMessage: response && typeof response === 'object' ? 'message' in response : false,
-        message: response?.message,
-        hasData: response && typeof response === 'object' ? 'data' in response : false,
-        dataType: typeof response?.data,
-        dataKeys: response?.data && typeof response.data === 'object' ? Object.keys(response.data) : [],
-        hasTypes: response?.data && typeof response.data === 'object' ? 'types' in response.data : false,
-        typesType: typeof response?.data?.types,
-        typesIsArray: Array.isArray(response?.data?.types),
-        typesLength: Array.isArray(response?.data?.types) ? response.data.types.length : 0,
-        hasEmployees: response?.data && typeof response.data === 'object' ? 'employees' in response.data : false,
-        employeesType: typeof response?.data?.employees,
-        employeesIsArray: Array.isArray(response?.data?.employees),
-        employeesLength: Array.isArray(response?.data?.employees) ? response.data.employees.length : 0,
-        hasMonths: response?.data && typeof response.data === 'object' ? 'months' in response.data : false,
-        monthsType: typeof response?.data?.months,
-        monthsIsArray: Array.isArray(response?.data?.months),
-        monthsLength: Array.isArray(response?.data?.months) ? response.data.months.length : 0,
-        hasYears: response?.data && typeof response.data === 'object' ? 'years' in response.data : false,
-        yearsType: typeof response?.data?.years,
-        yearsIsArray: Array.isArray(response?.data?.years),
-        yearsLength: Array.isArray(response?.data?.years) ? response.data.years.length : 0
-    });
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...], employees: [...], months: [...], years: [...] }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        console.log('🔵 [SERVER] Extracting responseData:', {
-            hasResponseData: !!responseData,
-            responseDataType: typeof responseData,
-            responseDataKeys: responseData && typeof responseData === 'object' ? Object.keys(responseData) : [],
-            typesCount: Array.isArray(responseData?.types) ? responseData.types.length : 0,
-            employeesCount: Array.isArray(responseData?.employees) ? responseData.employees.length : 0,
-            monthsCount: Array.isArray(responseData?.months) ? responseData.months.length : 0,
-            yearsCount: Array.isArray(responseData?.years) ? responseData.years.length : 0,
-            firstType: responseData?.types?.[0],
-            firstEmployee: responseData?.employees?.[0]
-        });
         if (responseData) {
             const result = {
                 success: response.success,
@@ -112,8 +67,6 @@ export async function getEmployeeLateInEarlyOutReportOnload(
             return result;
         }
     }
-    // Return empty data if response structure is unexpected
-    console.log('🔵 [SERVER] Response was:', JSON.stringify(response, null, 2));
     return {
         success: false,
         message: 'Failed to load data',
@@ -152,7 +105,7 @@ export async function getEmployeeLateInEarlyOutReportList(
     }
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
-    const url = '/api/EmployeeLateInEarlyOutReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
+    const _url = '/api/EmployeeLateInEarlyOutReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,

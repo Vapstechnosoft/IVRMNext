@@ -1,16 +1,25 @@
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getEventsSponsorMapping, saveEventsSponsorMapping, deactivateEventsSponsorMapping } from '@/server/sports/transactions/events-sponsor';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+    deactivateEventsSponsorMapping,
+    getEventsSponsorMapping,
+    saveEventsSponsorMapping
+} from '@/server/sports/transactions/events-sponsor';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 
-export const useEventsSponsor = (searchParams?: any) => {
+export const useEventsSponsor = (_searchParams?: any) => {
     const queryClient = useQueryClient();
 
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
+    const [order] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsStringLiteral(['asc', 'desc'] as const)
+            .withOptions({ shallow: false })
+            .withDefault('asc')
+    );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const params = {
@@ -18,7 +27,7 @@ export const useEventsSponsor = (searchParams?: any) => {
         page_size: pageSize,
         sort_column: sortBy,
         sort_direction: order,
-        search_query: searchQuery,
+        search_query: searchQuery
     };
 
     const loadData = useQuery({
@@ -36,11 +45,11 @@ export const useEventsSponsor = (searchParams?: any) => {
                 toast.error(response.message || 'Failed to save');
             }
             queryClient.invalidateQueries({ queryKey: ['events-sponsor-details'] });
-        },
+        }
     });
 
     const deactivateMutation = useMutation({
-        mutationFn: (data: { spccesP_Id: number, spccesP_ActiveFlag: boolean }) => deactivateEventsSponsorMapping(data),
+        mutationFn: (data: { spccesP_Id: number; spccesP_ActiveFlag: boolean }) => deactivateEventsSponsorMapping(data),
         onSuccess: (response: any) => {
             if (response.success ?? true) {
                 toast.success(response.message || 'Status updated successfully');
@@ -48,7 +57,7 @@ export const useEventsSponsor = (searchParams?: any) => {
                 toast.error(response.message || 'Failed to update status');
             }
             queryClient.invalidateQueries({ queryKey: ['events-sponsor-details'] });
-        },
+        }
     });
 
     return {

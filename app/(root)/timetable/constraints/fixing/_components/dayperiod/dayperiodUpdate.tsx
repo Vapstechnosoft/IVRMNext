@@ -2,22 +2,22 @@
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingDayPeriodSchema, fixingDayPeriodSchema } from '@/schemas/timetable/constraints/fixing';
 import {
     getFixingClassDropdown,
+    getFixingDayPeriodDetails,
     getSectionDropdownByClassCategory,
     getStaffByFixing,
     getSubjectByFixing,
-    saveFixingDayPeriod,
-    getFixingDayPeriodDetails
+    saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
 import { extractList, filterData } from './utils';
 
 interface DayPeriodUpdateProps {
@@ -30,7 +30,15 @@ interface DayPeriodUpdateProps {
     onCancel: () => void;
 }
 
-export default function DayPeriodUpdate({ academicList, categoryList, dayList, periodList, selectedRow, onSuccess, onCancel }: DayPeriodUpdateProps) {
+export default function DayPeriodUpdate({
+    academicList,
+    categoryList,
+    dayList,
+    periodList,
+    selectedRow,
+    onSuccess,
+    onCancel
+}: DayPeriodUpdateProps) {
     const [classList, setClassList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [staffList, setStaffList] = useState<any[]>([]);
@@ -52,7 +60,13 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        reset
+    } = form;
     const watchedYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
     const watchedClass = watch('asmcL_Id');
@@ -87,7 +101,13 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
 
     const fetchSubjects = async (yearId: number, categoryId: number, classId: number, sectionId: number, staffId: number) => {
         try {
-            const res = await getSubjectByFixing({ ASMAY_Id: yearId, TTMC_Id: categoryId, ASMCL_Id: classId, ASMS_Id: sectionId, HRME_Id: staffId });
+            const res = await getSubjectByFixing({
+                ASMAY_Id: yearId,
+                TTMC_Id: categoryId,
+                ASMCL_Id: classId,
+                ASMS_Id: sectionId,
+                HRME_Id: staffId
+            });
             const list = extractList(res, 'subjectlist');
             setSubjectList(filterData(list || [], 'ismS_SubjectName'));
         } catch (error) {
@@ -102,7 +122,12 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
                 const id = d?.ttfdP_Id || d?.ttfdsU_Id || d?.ttfpS_Id || d?.ttfpH_Id || d?.ttfD_Id || d?.TTFDP_Id;
                 if (id) {
                     const res = await getFixingDayPeriodDetails(id);
-                    const editData = res?.data?.fix_day_period_edit || res?.fix_day_period_edit || (Array.isArray(res?.data) ? res.data : undefined) || res?.data?.data || res?.data;
+                    const editData =
+                        res?.data?.fix_day_period_edit ||
+                        res?.fix_day_period_edit ||
+                        (Array.isArray(res?.data) ? res.data : undefined) ||
+                        res?.data?.data ||
+                        res?.data;
 
                     if (editData && Array.isArray(editData) && editData.length > 0) {
                         d = editData[0];
@@ -128,13 +153,28 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
                     if (normalizedData.asmaY_Id && normalizedData.ttmC_Id) {
                         await fetchClasses(normalizedData.asmaY_Id, normalizedData.ttmC_Id);
                         if (normalizedData.asmcL_Id) {
-                            const secRes = await getSectionDropdownByClassCategory(normalizedData.asmaY_Id, normalizedData.asmcL_Id, normalizedData.ttmC_Id);
+                            const secRes = await getSectionDropdownByClassCategory(
+                                normalizedData.asmaY_Id,
+                                normalizedData.asmcL_Id,
+                                normalizedData.ttmC_Id
+                            );
                             const sections = extractList(secRes, 'get_period_section1');
                             setSectionList(sections || []);
                             if (normalizedData.asmS_Id) {
-                                await fetchStaff(normalizedData.asmaY_Id, normalizedData.ttmC_Id, normalizedData.asmcL_Id, normalizedData.asmS_Id);
+                                await fetchStaff(
+                                    normalizedData.asmaY_Id,
+                                    normalizedData.ttmC_Id,
+                                    normalizedData.asmcL_Id,
+                                    normalizedData.asmS_Id
+                                );
                                 if (normalizedData.hrmE_Id) {
-                                    await fetchSubjects(normalizedData.asmaY_Id, normalizedData.ttmC_Id, normalizedData.asmcL_Id, normalizedData.asmS_Id, normalizedData.hrmE_Id);
+                                    await fetchSubjects(
+                                        normalizedData.asmaY_Id,
+                                        normalizedData.ttmC_Id,
+                                        normalizedData.asmcL_Id,
+                                        normalizedData.asmS_Id,
+                                        normalizedData.hrmE_Id
+                                    );
                                 }
                             }
                         }
@@ -246,95 +286,241 @@ export default function DayPeriodUpdate({ academicList, categoryList, dayList, p
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 bg-white p-4 shadow-sm'>
-                <FormField control={form.control} name='ttfdP_Id' render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />} />
+                <FormField
+                    control={form.control}
+                    name='ttfdP_Id'
+                    render={({ field }) => <Input type='hidden' {...field} value={field.value || 0} />}
+                />
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                    <FormField control={form.control} name='asmaY_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleAcademicYearChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{academicList?.map((item: any) => (<SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>{item.asmaY_Year}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='asmaY_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleAcademicYearChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {academicList?.map((item: any) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='ttmC_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Category <span className='text-red-500'>*</span></FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleCategoryChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{categoryList?.map((item: any) => (<SelectItem key={item.ttmC_Id} value={item.ttmC_Id?.toString()}>{item.ttmC_CategoryName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ttmC_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>
+                                    Category <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleCategoryChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categoryList?.map((item: any) => (
+                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id?.toString()}>
+                                                {item.ttmC_CategoryName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='asmcL_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Class</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder={isClassLoading ? 'Loading...' : 'Select'} /></SelectTrigger></FormControl>
-                                <SelectContent>{classList?.map((item: any) => (<SelectItem key={item.asmcL_Id} value={item.asmcL_Id?.toString()}>{item.asmcL_ClassName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='asmcL_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Class</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleClassChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={isClassLoading ? 'Loading...' : 'Select'} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {classList?.map((item: any) => (
+                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id?.toString()}>
+                                                {item.asmcL_ClassName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='asmS_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Section</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{sectionList?.map((item: any) => (<SelectItem key={item.asmS_Id || item.asmC_Id} value={(item.asmS_Id || item.asmC_Id)?.toString()}>{item.asmS_SectionName || item.asmC_SectionName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='asmS_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Section</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleSectionChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {sectionList?.map((item: any) => (
+                                            <SelectItem
+                                                key={item.asmS_Id || item.asmC_Id}
+                                                value={(item.asmS_Id || item.asmC_Id)?.toString()}>
+                                                {item.asmS_SectionName || item.asmC_SectionName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='hrmE_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Staff</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{staffList?.map((item: any) => (<SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString()}>{item.staffName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='hrmE_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Staff</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleStaffChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {staffList?.map((item: any) => (
+                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id?.toString()}>
+                                                {item.staffName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='ismS_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Subject</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{subjectList?.map((item: any) => (<SelectItem key={item.ismS_Id} value={item.ismS_Id?.toString()}>{item.ismS_SubjectName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ismS_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Subject</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {subjectList?.map((item: any) => (
+                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id?.toString()}>
+                                                {item.ismS_SubjectName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='ttmD_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Day</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{dayList?.map((item: any) => (<SelectItem key={item.ttmD_Id} value={item.ttmD_Id?.toString()}>{item.ttmD_DayName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ttmD_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Day</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {dayList?.map((item: any) => (
+                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id?.toString()}>
+                                                {item.ttmD_DayName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                    <FormField control={form.control} name='ttmP_Id' render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Period</FormLabel>
-                            <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
-                                <SelectContent>{periodList?.map((item: any) => (<SelectItem key={item.ttmP_Id} value={item.ttmP_Id?.toString()}>{item.ttmP_PeriodName}</SelectItem>))}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name='ttmP_Id'
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Period</FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {periodList?.map((item: any) => (
+                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id?.toString()}>
+                                                {item.ttmP_PeriodName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
                 <div className='flex justify-center gap-4 pt-4'>

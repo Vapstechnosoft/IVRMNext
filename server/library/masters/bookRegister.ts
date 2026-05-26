@@ -1,11 +1,9 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { bookRegisterSchema } from '@/schemas/library/bookRegister';
+import { ensureArray } from '@/lib/utils';
 import type { ApiSearchparams } from '@/types';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
-import type { IBookRegisterList } from '@/types/library/transactions/transactions';
-import { ensureArray } from '@/lib/utils';
 
 const BASE_URL = 'BookRegister/';
 
@@ -29,7 +27,7 @@ export async function saveBookRegister(data: BookRegisterPayload) {
 
         const response = await api.post<any>('library', `${BASE_URL}Savedata`, payload);
         return response;
-    } catch (error) {
+    } catch (_error) {
         return { success: false, message: 'Failed to save record' };
     }
 }
@@ -39,9 +37,9 @@ export async function deactivateBookRegister(data: { LMBANO_Id?: number; LMB_Id?
         const payload = {
             LMBANO_Id: Number(data.LMBANO_Id || (data as any).lmbanO_Id || data.LMB_Id)
         };
-        const response = await api.post<any>('library', `/BookRegister/deactiveY`, payload);
+        const response = await api.post<any>('library', '/BookRegister/deactiveY', payload);
         return response;
-    } catch (error) {
+    } catch (_error) {
         return { success: false, message: 'Failed to toggle status' };
     }
 }
@@ -51,7 +49,7 @@ export async function getLanguageDropdown() {
         const url = 'BookRegister/language-dropdown';
         const response = await api.get<any>('library', url);
         return response?.data || response;
-    } catch (error) {
+    } catch (_error) {
         return [];
     }
 }
@@ -84,7 +82,7 @@ export async function getInitialData() {
             deptlist: ensureArray(departmentResponse),
             langlist: Array.isArray(languageResponse) ? languageResponse : ensureArray(languageResponse)
         };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, message: 'Failed to fetch initial data' };
     }
 }

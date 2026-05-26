@@ -1,5 +1,4 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -16,9 +15,9 @@ import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
 
 export default function EmployeeLoanPage() {
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [page, _setPage] = useState(1);
+    const [pageSize, _setPageSize] = useState(10);
+    const [searchQuery, _setSearchQuery] = useState('');
 
     // Fetch Masters (Dropdowns, Config)
     const {
@@ -53,12 +52,7 @@ export default function EmployeeLoanPage() {
 
     return (
         <FormProvider<EmployeeLoanItem>>
-            <EmployeeLoanPageContent
-                mastersData={mastersData}
-                gridData={gridData}
-                isLoading={isLoading}
-                refetch={refetchAll}
-            />
+            <EmployeeLoanPageContent mastersData={mastersData} gridData={gridData} isLoading={isLoading} refetch={refetchAll} />
         </FormProvider>
     );
 }

@@ -63,11 +63,11 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     const [selectedStaff, setSelectedStaff] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
-    const [loadingTerm, setLoadingTerm] = useState(false);
+    const [loadingTerm, _setLoadingTerm] = useState(false);
     const [feeHeads, setFeeHeads] = useState<IFeeTermDetails[]>([]);
-    const [masternarration, setMasternarration] = useState<MasterNarration[]>([]);
+    const [_masternarration, _setMasternarration] = useState<MasterNarration[]>([]);
     const [masterModeofPaymentList, setMasterModeofPaymentList] = useState<MasterModeofPayment[]>([]);
-    const [loadingFeeHead, setLoadingFeeHead] = useState(false);
+    const [_loadingFeeHead, _setLoadingFeeHead] = useState(false);
     const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
     const [currentCharges, setCurrentCharges] = useState<{
         [key: number]: string;
@@ -93,17 +93,17 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     const [rebateAmount, setRebateAmount] = useState<{
         [key: number]: string;
     }>({});
-    const [TotalCurrentFee, setTotalCurrentFee] = useState<number>();
-    const [ConcessionAmount, setConcessionAmount] = useState<number>();
-    const [TotalConcession, setTotalConcession] = useState<number>();
+    const [_TotalCurrentFee, setTotalCurrentFee] = useState<number>();
+    const [_ConcessionAmount, setConcessionAmount] = useState<number>();
+    const [TotalConcession, _setTotalConcession] = useState<number>();
     const [totalPayable, settotalPayable] = useState<number>();
     const [overAllOutStanding, setoverAllOutStanding] = useState<number>();
-    const [TotalWaivedOff, setTotalWaivedOff] = useState<number>();
-    const [Totalfine, setTotalFine] = useState<number>();
+    const [TotalWaivedOff, _setTotalWaivedOff] = useState<number>();
+    const [Totalfine, _setTotalFine] = useState<number>();
     const [TotalPaying, setTotalPaying] = useState<number>(0);
-    const [fineAmount, setFineAmount] = useState<number>();
+    const [_fineAmount, setFineAmount] = useState<number>();
     // const [totalAmount, settotalAmount] = useState<number>(0);
-    const [TotalOutStanding, setTotalOutStanding] = useState<number>();
+    const [_TotalOutStanding, setTotalOutStanding] = useState<number>();
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
     }>({});
@@ -113,20 +113,20 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     }>({});
     const [filterType, setFilterType] = useState('Staff');
     const [payType, setPayType] = useState<string>('');
-    const [modeType, setModeType] = useState<string>('Single');
+    const [modeType, _setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
-    const [left, setLeft] = useState(false);
-    const [deactive, setDeative] = useState(false);
-    const [classs, setClass] = useState(false);
-    const [section, setSection] = useState(false);
+    const [_left, setLeft] = useState(false);
+    const [_deactive, setDeative] = useState(false);
+    const [_classs, setClass] = useState(false);
+    const [_section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
-    const [amountforTerm, setAmountforTerm] = useState('');
+    const [_amountforTerm, setAmountforTerm] = useState('');
     const [selectAll, setSelectAll] = useState(false);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
-    const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
+    const [_selectedNarration, setSelectedNarration] = useState<number | null>(null);
     const [narrationRemark, setNarrationRemark] = useState('');
     const [masterBanks, setMasterBanks] = useState<masterBankList[]>([]);
     const [isLoadingmasterBanks, setIsLoadingMasterBanks] = useState(false);
@@ -379,7 +379,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         setMasterModeofPaymentList(paymentDataArray);
     }, []);
 
-    const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
+    const _selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
 
@@ -645,7 +645,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                     fsS_WaivedAmount: fee.fsS_WaivedAmount
                 }));
 
-            const payload = {
+            const _payload = {
                 fyP_Chq_Bounce: '',
                 fyP_Id: 0,
                 asmaY_Id: selectedAsmayId?.toString(),

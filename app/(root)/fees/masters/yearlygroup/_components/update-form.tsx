@@ -51,8 +51,6 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [isInitializing, setIsInitializing] = useState(false);
 
-    console.log('selectedRow', selectedRow);
-
     // // Add this at the top of UpdateYearlyGroupForm
     // const componentKey = useRef(selectedRow.fyG_Id);
 

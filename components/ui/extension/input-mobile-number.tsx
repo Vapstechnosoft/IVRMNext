@@ -41,7 +41,7 @@ function MobileNumberInput({
                 {label}
                 {required && (
                     <StandardTooltip content={requiredTooltip || `${label} is mandatory. Please fill it.`}>
-                        <span className='ml-1 text-red-500 font-bold hover:scale-110 transition-transform'>*</span>
+                        <span className='ml-1 font-bold text-red-500 transition-transform hover:scale-110'>*</span>
                     </StandardTooltip>
                 )}
                 {optional && <span className='text-muted-foreground'>(optional)</span>}

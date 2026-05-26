@@ -1,11 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-    getInvTGRNLoadData,
-    saveInvTGRNDetails,
-    deleteInvTGRN,
-    toggleInvTGRNActive
-} from '@/server/inventory/transactions/inv-t-grn';
+import { deleteInvTGRN, getInvTGRNLoadData, saveInvTGRNDetails, toggleInvTGRNActive } from '@/server/inventory/transactions/inv-t-grn';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const INV_T_GRN_QUERY_KEY = 'INV_T_GRN';
@@ -16,7 +11,6 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
     const query = useQuery({
         queryKey: [INV_T_GRN_QUERY_KEY, searchParams],
         queryFn: async () => {
-            console.log('useInvTGRN: Fetching data with params:', searchParams);
             const data = await getInvTGRNLoadData(searchParams);
             return data;
         },
@@ -35,7 +29,7 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
         },
         onError: () => {
             toast.error('An error occurred while saving');
-        },
+        }
     });
 
     const deleteMutation = useMutation({
@@ -47,7 +41,7 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
             } else {
                 toast.error(response.message || 'Failed to delete record');
             }
-        },
+        }
     });
 
     const toggleActiveMutation = useMutation({
@@ -59,13 +53,13 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
             } else {
                 toast.error(response.message || 'Failed to update status');
             }
-        },
+        }
     });
 
     return {
         ...query,
         saveMutation,
         deleteMutation,
-        toggleActiveMutation,
+        toggleActiveMutation
     };
 }

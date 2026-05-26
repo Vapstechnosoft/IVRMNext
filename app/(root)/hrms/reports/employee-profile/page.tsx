@@ -166,7 +166,7 @@ export default function EmployeeProfileReportPage() {
         mode: 'onChange'
     });
 
-    const onSearch = async (data: EmployeeProfileReportFields) => {
+    const onSearch = async (_data: EmployeeProfileReportFields) => {
         if (!showEmployeeDropdown) {
             setIsSearching(true);
             try {

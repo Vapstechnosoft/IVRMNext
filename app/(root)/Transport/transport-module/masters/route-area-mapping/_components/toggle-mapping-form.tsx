@@ -22,7 +22,6 @@ export default function ToggleMappingForm({
     const handleConfirm = async () => {
         try {
             setIsLoading(true);
-            console.log('Row Data:', rowData);
             const response = await activeDeactiveRouteArea(rowData.traR_Id);
             if (response.success) {
                 toast.success(response.message);
@@ -43,7 +42,11 @@ export default function ToggleMappingForm({
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.trmR_RouteName} - {rowData.trmA_AreaName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        <strong>
+                            {rowData.trmR_RouteName} - {rowData.trmA_AreaName}
+                        </strong>
+                        ?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

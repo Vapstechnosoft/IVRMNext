@@ -23,8 +23,6 @@ export default function StaffAbbreviationPage(props: { searchParams: SearchParam
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useStaffAbbreviation(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<IStaffAbbreviationList>>
             <StaffAbbreviationContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />

@@ -85,7 +85,6 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         isLoading: masterHeadNameLoading,
         refetch: refetchHeadNames
     } = useHeadsByGroupAndAcademicYear(Number(academicYear), Number(group));
-    console.log('masterHeadName', masterHeadName);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [roleOptions, setRoleOptions] = useState<DropdownOption[]>([]);
@@ -370,8 +369,6 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))
             };
-
-            console.log('Submitting payload:', JSON.stringify(payload));
 
             const res = await addOrUpdateFeePrivilege(payload);
             if (res) {

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import BBIIReportForm from './_components/add-form';
-import BBIIReportView from './_components/report-view';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
-import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import BBIIReportForm from './_components/add-form';
+import BBIIReportView from './_components/report-view';
 
 export default function BBIIReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -25,10 +25,8 @@ export default function BBIIReportPage() {
     const handleFormSuccess = async (payload: any) => {
         try {
             setIsLoading(true);
-            console.log(payload, "pay");
             const res = await getExamReportCard(payload);
-            console.log("response", res);
-            if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
                 const flatRows: any[] = res.data;
 
                 // Extract extra lists from response
@@ -83,7 +81,7 @@ export default function BBIIReportPage() {
                             eyceS_AplResultFlg: row.eyceS_AplResultFlg,
                             emgR_Id: row.emgR_Id,
                             EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg,
-                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg,
+                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg
                         });
                     }
                 });
@@ -117,10 +115,10 @@ export default function BBIIReportPage() {
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <Card className="shadow-lg border-t-4 border-t-primary">
+        <div className='container mx-auto space-y-8 p-4'>
+            <Card className='border-t-4 border-t-primary shadow-lg'>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center">Progress Card Report (BBII)</CardTitle>
+                    <CardTitle className='text-center font-bold text-2xl'>Progress Card Report (BBII)</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <BBIIReportForm onSuccess={handleFormSuccess} onReset={handleReset} />
@@ -128,13 +126,13 @@ export default function BBIIReportPage() {
             </Card>
 
             {isLoading && (
-                <div className="flex justify-center p-12">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className='flex justify-center p-12'>
+                    <Loader2 className='h-12 w-12 animate-spin text-primary' />
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BBIIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}

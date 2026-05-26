@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { FieldValues, FormProvider, useForm, type SubmitHandler, type UseFormProps } from 'react-hook-form';
+import { type FieldValues, FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type z } from 'zod';
+import type { z } from 'zod';
 
 interface GenericFormProps<TData extends FieldValues, TSchema extends z.ZodType<any>> {
     schema: TSchema;

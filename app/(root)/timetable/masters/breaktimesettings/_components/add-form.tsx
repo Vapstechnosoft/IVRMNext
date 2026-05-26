@@ -39,7 +39,7 @@ interface AddBreakTimeSettingsFormProps {
 
 export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: AddBreakTimeSettingsFormProps) {
     const { data: response, refetchAll } = useBreakTimeSettingDetails();
-    const [classList, setClassList] = useState<any[]>([]);
+    const [_classList, _setClassList] = useState<any[]>([]);
     const [periodsBefore, setPeriodsBefore] = useState<{ key: number; label: string }[]>([]);
     const [periodsAfter, setPeriodsAfter] = useState<{ key: number; label: string }[]>([]);
     const [maxPeriods, setMaxPeriods] = useState<number>(0);
@@ -53,16 +53,16 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     const [afterPeriodSearch, setAfterPeriodSearch] = useState('');
 
     // Initial load of dropdowns from response
-    const dayList: IMasterDayList[] = (response as any)?.daysDrpDwn || [];
+    const _dayList: IMasterDayList[] = (response as any)?.daysDrpDwn || [];
 
     const [classSearch, setClassSearch] = useState('');
     const [daySearch, setDaySearch] = useState('');
-    const [classloading, setClassloading] = useState(false);
+    const [_classloading, _setClassloading] = useState(false);
 
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
-    const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
-    const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[] | null>(null);
+    const [_selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
+    const [_overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[] | null>(null);
 
     const [classdata, setClassdata] = useState<ClassDropDownDataTT[]>([]);
 
@@ -122,8 +122,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                     setIsLoadingClasses(true);
                     const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
 
-                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
-
                     if (res?.success && Array.isArray(res.data)) {
                         setClassdata(res.data);
                     } else {
@@ -151,8 +149,8 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     }, [academicyear, category]); // Add dependencies here
 
     // Watch before and after periods from form
-    const watchedBeforePeriods = watch('arraybeforeperiodsList') || [];
-    const watchedAfterPeriodsList = watch('arrayafterperiodsList') || [];
+    const _watchedBeforePeriods = watch('arraybeforeperiodsList') || [];
+    const _watchedAfterPeriodsList = watch('arrayafterperiodsList') || [];
 
     // Fetch max periods when classes are selected
     useEffect(() => {
@@ -163,7 +161,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                     const classidscount = classIds.length;
 
                     const res = await getMaximumPeriodsCount(0, classidscount);
-                    console.log('getMaximumPeriodsCount response:', res);
                     if (res.success) {
                         setMaxPeriods(res.data);
                     } else {
@@ -745,7 +742,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                                 : 'border-gray-300 hover:border-primary/40'
                                         )}>
                                         {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                            day_ids.length ? (
+                                        day_ids.length ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />

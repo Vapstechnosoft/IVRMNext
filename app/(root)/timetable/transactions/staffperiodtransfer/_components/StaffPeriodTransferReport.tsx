@@ -3,16 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useStaffTransferSectionsByClass,
-    useStaffPeriodDetails,
-    useStaffPeriodTransferMasters
-} from '@/hooks/timetable/useTransactions';
+import { useStaffPeriodDetails, useStaffPeriodTransferMasters, useStaffTransferSectionsByClass } from '@/hooks/timetable/useTransactions';
 import { cn } from '@/lib/utils';
 import { type StaffPeriodTransferValues, staffPeriodTransferSchema } from '@/schemas/timetable/transactions';
 import { saveStaffPeriodTransfer } from '@/server/timetable/transactions/staffperiodtransfer';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckSquare, List, Loader2, Send, Trash2 } from 'lucide-react';
+import { List, Loader2, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -28,7 +24,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
     const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
     const [targetStaffId, setTargetStaffId] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [_isDeleting, _setIsDeleting] = useState(false);
 
     const {
         control,
@@ -121,10 +117,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='asmcL_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                key={field.value || 'empty-class'}
-                                value={field.value}
-                                onValueChange={field.onChange}>
+                            <Select key={field.value || 'empty-class'} value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Classes --' />
                                 </SelectTrigger>
@@ -150,10 +143,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='asms_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                key={field.value || 'empty-section'}
-                                value={field.value}
-                                onValueChange={field.onChange}>
+                            <Select key={field.value || 'empty-section'} value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Sections --' />
                                 </SelectTrigger>
@@ -189,10 +179,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                         name='ismS_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                key={field.value || 'empty-subject'}
-                                value={field.value}
-                                onValueChange={field.onChange}>
+                            <Select key={field.value || 'empty-subject'} value={field.value} onValueChange={field.onChange}>
                                 <SelectTrigger className='h-10'>
                                     <SelectValue placeholder='-- All Subjects --' />
                                 </SelectTrigger>
@@ -221,7 +208,7 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
                     <div className='flex items-center'>
                         <List className='mr-2 h-4 w-4' />
-                         Select All
+                        Select All
                     </div>
                 </Button>
             </div>
@@ -358,5 +345,3 @@ export default function StaffPeriodTransferReport({ data }: StaffPeriodTransferR
         </div>
     );
 }
-
-

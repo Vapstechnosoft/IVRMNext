@@ -16,8 +16,7 @@ export default function DeputationAssignmentTable({ data, masters }: DeputationA
 
     if (!data || !data.absentStaffTimeTable || data.absentStaffTimeTable.length === 0) return null;
 
-    const onFinalSubmit = (formData: any) => {
-        console.log('Finalizing Deputations:', formData);
+    const onFinalSubmit = (_formData: any) => {
         // Call final save API here if needed
     };
 

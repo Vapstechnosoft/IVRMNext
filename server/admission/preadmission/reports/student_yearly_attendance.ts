@@ -87,7 +87,14 @@ export async function getAdmissionRegister(ASMAY_Id: number, AttendanceType: num
     return await api.post<any[]>('admission', url, payload);
 }
 
-export async function GetDateOfBirth(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, AMC_Id: number, searchParams?: ApiSearchparams) {
+export async function GetDateOfBirth(
+    ASMAY_Id: number,
+    ASMCL_Id: number,
+    ASMS_Id: number,
+    AMST_Id: number,
+    AMC_Id: number,
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
     const url = `/DOBcertificate/GetAdmDobCertificate?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&AMC_Id=${AMC_Id}&${urlParams}`;
 

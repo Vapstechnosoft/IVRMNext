@@ -5,13 +5,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentHouseMapping } from '@/hooks/sports/useStudentHouseMapping';
-import { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
+import type { StudentHouseMappingDTO } from '@/types/sports/masters/student-house-mapping';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddForm from './_components/add-form';
 import { columns } from './_components/columns';
-import UpdateForm from './_components/update-form';
 import ToggleForm from './_components/toggle-form';
+import UpdateForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,11 @@ export default function StudentHouseMappingPage(props: { searchParams: SearchPar
 
     return (
         <FormProvider<StudentHouseMappingDTO>>
-            <StudentHouseMappingContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <StudentHouseMappingContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -73,7 +73,7 @@ function StudentHouseMappingContent({
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title="Student House Mapping List"
+                    title='Student House Mapping List'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -157,13 +157,7 @@ function StudentHouseMappingContent({
                 )}
 
                 {/* Toggle Form */}
-                {isToggleFormOpen && selectedRow && (
-                    <ToggleForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
-                )}
+                {isToggleFormOpen && selectedRow && <ToggleForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />}
             </div>
         </div>
     );

@@ -104,15 +104,6 @@ export default function AddMasterSchoolTopicForm({
         }
     });
 
-    console.log('[AddMasterSchoolTopicForm] Render State:', {
-        masterYearCount: masterYear?.length,
-        classesCount: classes?.length,
-        subjectsCount: subjects?.length,
-        masterUnitCount: masterUnit?.length,
-        hasInitialData: !!initialData,
-        formValues: form.getValues()
-    });
-
     const {
         register,
         handleSubmit,

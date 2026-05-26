@@ -8,7 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterAreaDropDown } from '@/hooks/transport/transportmodule/usemasters';
 import { useRouteLocationMapping } from '@/hooks/transport/transportmodule/usetransaction';
 import { routeLocationMappingSchema } from '@/schemas/transport/transaction';
-import { getLocationsByRoute, getRoutesByArea, saveRouteLocationMapping } from '@/server/transport/transport-module/transaction/route-location-mapping';
+import {
+    getLocationsByRoute,
+    getRoutesByArea,
+    saveRouteLocationMapping
+} from '@/server/transport/transport-module/transaction/route-location-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -25,7 +29,6 @@ interface AddFormProps {
 }
 
 export default function AddForm({ areas = [], onClose, className = '' }: AddFormProps) {
-
     const { data: areaData, isLoading: areaLoading, error: areaError } = useMasterAreaDropDown();
 
     const { refetchAll } = useRouteLocationMapping();
@@ -34,8 +37,6 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
     const [locationOptions, setLocationOptions] = useState<any[]>([]);
     const [routesLoading, setRoutesLoading] = useState(false);
     const [locationsLoading, setLocationsLoading] = useState(false);
-
-
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(routeLocationMappingSchema.addOrUpdate),
@@ -61,9 +62,7 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
     const selectedRouteId = watch('trmR_Id');
     const selectedLocationIds = watch('selectedLocationIds');
 
-
-
-    const handleReset = () => {
+    const _handleReset = () => {
         reset();
         setRouteOptions([]);
         setLocationOptions([]);
@@ -76,16 +75,15 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                 setRoutesLoading(true);
                 try {
                     const res = await getRoutesByArea(selectedAreaId);
-                    console.log("routes", res);
 
-                    if (res && res.data) {
+                    if (res?.data) {
                         setRouteOptions(res.data);
                     } else {
                         setRouteOptions([]);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch routes", error);
-                    toast.error("Failed to fetch routes");
+                    console.error('Failed to fetch routes', error);
+                    toast.error('Failed to fetch routes');
                 } finally {
                     setRoutesLoading(false);
                 }
@@ -110,15 +108,15 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                 try {
                     const res = await getLocationsByRoute(selectedRouteId);
 
-                    if (res && res.data) {
+                    if (res?.data) {
                         setLocationOptions(res.data);
                     } else {
                         setLocationOptions([]);
-                        toast.info("All Locations Is Mapped For This Route");
+                        toast.info('All Locations Is Mapped For This Route');
                     }
                 } catch (error) {
-                    console.error("Failed to fetch locations", error);
-                    toast.error("Failed to fetch locations");
+                    console.error('Failed to fetch locations', error);
+                    toast.error('Failed to fetch locations');
                 } finally {
                     setLocationsLoading(false);
                 }
@@ -133,14 +131,15 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
         }
     }, [selectedRouteId, setValue]);
 
-
-    const filteredLocations = locationOptions?.filter((loc: any) =>
-        loc?.trmL_LocationName?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+    const filteredLocations =
+        locationOptions?.filter((loc: any) => loc?.trmL_LocationName?.toLowerCase().includes(searchTerm.toLowerCase())) || [];
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setValue('selectedLocationIds', filteredLocations.map((l: any) => l.trmL_Id));
+            setValue(
+                'selectedLocationIds',
+                filteredLocations.map((l: any) => l.trmL_Id)
+            );
         } else {
             setValue('selectedLocationIds', []);
         }
@@ -149,7 +148,10 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
     const handleLocationToggle = (locationId: number) => {
         const current = selectedLocationIds || [];
         if (current.includes(locationId)) {
-            setValue('selectedLocationIds', current.filter((id) => id !== locationId));
+            setValue(
+                'selectedLocationIds',
+                current.filter((id) => id !== locationId)
+            );
         } else {
             setValue('selectedLocationIds', [...current, locationId]);
         }
@@ -157,8 +159,8 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const selectedLocationObjects = data.selectedLocationIds.map(id => {
-                const loc = locationOptions.find(l => l.trmL_Id === id);
+            const selectedLocationObjects = data.selectedLocationIds.map((id) => {
+                const loc = locationOptions.find((l) => l.trmL_Id === id);
                 return {
                     TRML_Id: id,
                     locationname: loc?.trmL_LocationName || ''
@@ -170,7 +172,6 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                 TRMRL_Id: 0,
                 selectedlocations: selectedLocationObjects
             };
-            console.log("save payload", payload)
             const response = await saveRouteLocationMapping(payload);
 
             if (response.success) {
@@ -189,12 +190,8 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
     return (
         <div className={className}>
             <FormProvider {...methods}>
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className='space-y-6'
-                    noValidate>
-
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Area Selection */}
                         <Controller
                             control={control}
@@ -259,7 +256,7 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                         <Label>
                             Location/Boarding Point <span className='text-red-500'>*</span>
                         </Label>
-                        <div className='border rounded-md p-2 h-60 flex flex-col gap-2'>
+                        <div className='flex h-60 flex-col gap-2 rounded-md border p-2'>
                             <Input
                                 placeholder='Search Location...'
                                 value={searchTerm}
@@ -268,24 +265,26 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                                 disabled={!selectedRouteId || selectedRouteId === 0}
                             />
 
-                            <div className='flex flex-col overflow-y-auto h-full px-1'>
+                            <div className='flex h-full flex-col overflow-y-auto px-1'>
                                 {locationsLoading ? (
-                                    <div className="text-center py-4 text-muted-foreground">Loading Locations...</div>
+                                    <div className='py-4 text-center text-muted-foreground'>Loading Locations...</div>
                                 ) : locationOptions.length === 0 ? (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                        {!selectedRouteId ? "Select a route to view locations" : "No locations available"}
+                                    <div className='py-4 text-center text-muted-foreground'>
+                                        {!selectedRouteId ? 'Select a route to view locations' : 'No locations available'}
                                     </div>
                                 ) : (
                                     <>
-                                        <div className='flex items-center space-x-2 pb-2 border-b mb-2 sticky top-0 bg-white z-10'>
+                                        <div className='sticky top-0 z-10 mb-2 flex items-center space-x-2 border-b bg-white pb-2'>
                                             <Checkbox
-                                                checked={filteredLocations.length > 0 && selectedLocationIds.length === filteredLocations.length}
+                                                checked={
+                                                    filteredLocations.length > 0 && selectedLocationIds.length === filteredLocations.length
+                                                }
                                                 onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                                             />
-                                            <label className='text-sm font-medium'>Select All</label>
+                                            <label className='font-medium text-sm'>Select All</label>
                                         </div>
 
-                                        <div className="space-y-2">
+                                        <div className='space-y-2'>
                                             <Controller
                                                 control={control}
                                                 name='selectedLocationIds'
@@ -297,12 +296,13 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                                                                     checked={selectedLocationIds.includes(loc.trmL_Id)}
                                                                     onCheckedChange={() => handleLocationToggle(loc.trmL_Id)}
                                                                 />
-                                                                <label className='text-sm cursor-pointer' onClick={() => handleLocationToggle(loc.trmL_Id)}>
+                                                                <label
+                                                                    className='cursor-pointer text-sm'
+                                                                    onClick={() => handleLocationToggle(loc.trmL_Id)}>
                                                                     {loc.trmL_LocationName}
                                                                 </label>
                                                             </div>
                                                         ))}
-
                                                     </>
                                                 )}
                                             />
@@ -311,9 +311,7 @@ export default function AddForm({ areas = [], onClose, className = '' }: AddForm
                                 )}
                             </div>
                         </div>
-                        {errors.selectedLocationIds && (
-                            <FormError>{errors.selectedLocationIds.message}</FormError>
-                        )}
+                        {errors.selectedLocationIds && <FormError>{errors.selectedLocationIds.message}</FormError>}
                     </div>
 
                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

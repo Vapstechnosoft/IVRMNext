@@ -1,8 +1,8 @@
 'use server';
 
-import { api, getSearchParamsUrl } from "@/lib/apiService";
-import { ApiSearchparams } from "@/types";
-import { IPcRequisition } from "@/types/pettycash/transaction/pcREQUISITION";
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { IPcRequisition } from '@/types/pettycash/transaction/pcREQUISITION';
 
 export async function getPcRequisitionGrid(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
@@ -14,8 +14,8 @@ export async function getPcRequisitionGrid(searchParams?: ApiSearchparams) {
     return res;
 }
 
-export async function GetDepartmentName(data: any) {
-    const url = `/PC_RequisitionFacade/GetDepartments`;
+export async function GetDepartmentName(_data: any) {
+    const url = '/PC_RequisitionFacade/GetDepartments';
     return await api.get<any>('pettycashandassettracking', url);
 }
 // GET/api/PC_RequisitionFacade/GetDepartments
@@ -33,20 +33,19 @@ export async function toggleRequisitionStatus(id: number) {
 
 //save
 export async function saveRequisition(data: any) {
-    const url = `/PC_RequisitionFacade/save_or_update_requisition_async`;
-    console.log("data", data);
+    const url = '/PC_RequisitionFacade/save_or_update_requisition_async';
     return await api.post<any>('pettycashandassettracking', url, data);
 }
 
 //Particular drop down
 export async function GetParticularData(data: any) {
-    const url = `/PC_RequisitionFacade/GetParticulars`;
+    const url = '/PC_RequisitionFacade/GetParticulars';
     return await api.get<any>('pettycashandassettracking', url, data);
 }
 
 //Edit button data
 export async function GetEditButtonData(data: any) {
-    const url = `/PC_RequisitionFacade/GetParticulars`;
+    const url = '/PC_RequisitionFacade/GetParticulars';
     return await api.get<any>('pettycashandassettracking', url, data);
 }
 
@@ -65,6 +64,6 @@ export async function getDocumentViewData(PCREQTN_Id: number) {
 
 //upload file button
 export async function uploadDocument(data: any) {
-    const url = `/document_upload/UploadDocument`;
+    const url = '/document_upload/UploadDocument';
     return await api.post<any>('pettycashandassettracking', url, data);
-}   
+}

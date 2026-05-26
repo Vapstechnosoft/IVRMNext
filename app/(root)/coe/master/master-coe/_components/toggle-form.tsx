@@ -5,7 +5,6 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { useMasterCoeInitialData } from '@/hooks/coe/usemMaster';
 import { toggleMappedEvent } from '@/server/coe/masters/masterevent';
 
-
 import type { MappedEventCoe } from '@/types/coe/master-coe';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -23,7 +22,6 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
     const handleConfirm = async () => {
         try {
             setIsLoading(true);
-            console.log("toggle Data:", rowData);
 
             const response = await toggleMappedEvent(rowData.coemE_Id, rowData.coeE_Id);
 
@@ -46,8 +44,8 @@ export default function ToggleForm({ rowData, onClose }: ToggleFormProps) {
             <div className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the mapped event for <strong>{rowData.coee_MailSubject}</strong>?
-
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} the mapped event for{' '}
+                        <strong>{rowData.coee_MailSubject}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>

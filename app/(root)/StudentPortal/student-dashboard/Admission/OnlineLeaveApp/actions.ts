@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { LeaveApplyPayload, LeaveLoadData, OnlineLeaveApp_DTO } from './types';
+import type { LeaveApplyPayload, LeaveLoadData, OnlineLeaveApp_DTO } from './types';
 
 const CONTROLLER = 'OnlineLeaveApp';
 
@@ -11,7 +11,6 @@ export async function getLeaveLoadData(): Promise<LeaveLoadData> {
 
         // Debug logs
         if (response.data) {
-            console.log("DEBUG: Raw API Data:", JSON.stringify(response.data).substring(0, 500));
         }
 
         const data = response.data;
@@ -28,7 +27,7 @@ export async function getLeaveLoadData(): Promise<LeaveLoadData> {
             allstuddata = data?.student_leave_list || [];
         }
 
-        const roletype = data?.roletype || data?.roleType || data?.RoleType || "";
+        const roletype = data?.roletype || data?.roleType || data?.RoleType || '';
         const pendingleave = data?.pendingleave || [];
         const yearlist = data?.yearlist || [];
 
@@ -46,10 +45,10 @@ export async function getLeaveLoadData(): Promise<LeaveLoadData> {
             asmaY_Id: asmaY_Id
         };
     } catch (error) {
-        console.error("Error fetching Leave load data:", error);
+        console.error('Error fetching Leave load data:', error);
         // Return empty structure to prevent crash
         return {
-            roletype: "",
+            roletype: '',
             studentdetails: [],
             allstuddata: [],
             pendingleave: [],
@@ -76,10 +75,10 @@ export async function applyLeave(data: LeaveApplyPayload) {
 
         const response = await api.post<OnlineLeaveApp_DTO>('portal', `/${CONTROLLER}/get-leave-apply-details`, payload);
         return {
-            returnval: response.data?.returnval ?? false,
+            returnval: response.data?.returnval ?? false
         };
     } catch (error) {
-        console.error("Error applying Leave:", error);
+        console.error('Error applying Leave:', error);
         return {
             returnval: false
         };
@@ -96,7 +95,7 @@ export async function cancelLeave(leaveId: number) {
             returnval: response.data?.returnval ?? false
         };
     } catch (error) {
-        console.error("Error cancelling Leave:", error);
+        console.error('Error cancelling Leave:', error);
         return {
             returnval: false
         };
@@ -113,7 +112,7 @@ export async function deactiveLeave(leaveId: number) {
             returnval: response.data?.returnval ?? false
         };
     } catch (error) {
-        console.error("Error deactivating Leave:", error);
+        console.error('Error deactivating Leave:', error);
         return {
             returnval: false
         };

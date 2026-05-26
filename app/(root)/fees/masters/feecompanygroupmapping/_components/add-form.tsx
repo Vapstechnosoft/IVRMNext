@@ -45,8 +45,6 @@ export default function AddFeeCompanyGroupMappingForm({ onSuccess, companyname =
         error: mastercompanysError,
         refetchAll: refetchMasterCompanys
     } = feeCompanyFeeGroupMappingCompanyDropdown();
-
-    console.log('mastergroups', mastergroups);
     const {
         control,
         handleSubmit,
@@ -128,8 +126,7 @@ export default function AddFeeCompanyGroupMappingForm({ onSuccess, companyname =
                 }))
             };
 
-            const js = JSON.stringify(payload);
-            console.log('Payload JSON:', js);
+            const _js = JSON.stringify(payload);
 
             const response = await addOrUpdateCompanyFeeGroupMapping(payload);
 
@@ -146,7 +143,7 @@ export default function AddFeeCompanyGroupMappingForm({ onSuccess, companyname =
         }
     };
 
-    const handleHeadSelection = (selectedValues: string[]) => {
+    const _handleHeadSelection = (selectedValues: string[]) => {
         setSelectedGroupItems(
             selectedValues.map((value) => ({
                 fmG_Id: value.toString() // Store only the fmG_Id as a string

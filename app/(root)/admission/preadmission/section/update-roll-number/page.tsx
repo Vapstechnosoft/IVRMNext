@@ -95,10 +95,12 @@ export default function MasterUpdateRollNumberPage(props: {
 
     useEffect(() => {
         if (UpdateStudentRolesData?.data && Array.isArray(UpdateStudentRolesData.data)) {
-            const studentsWithNewRollNo = UpdateStudentRolesData.data.map((student: Student) => ({
-                ...student,
-                new_roll_no: student.roll_no || student.amaY_RollNo
-            })).sort((a: Student, b: Student) => (a.roll_no || a.amaY_RollNo) - (b.roll_no || b.amaY_RollNo));
+            const studentsWithNewRollNo = UpdateStudentRolesData.data
+                .map((student: Student) => ({
+                    ...student,
+                    new_roll_no: student.roll_no || student.amaY_RollNo
+                }))
+                .sort((a: Student, b: Student) => (a.roll_no || a.amaY_RollNo) - (b.roll_no || b.amaY_RollNo));
             setStudents(studentsWithNewRollNo);
             setShowTable(true);
         }
@@ -431,10 +433,18 @@ export default function MasterUpdateRollNumberPage(props: {
                                                                         />
                                                                     </td>
                                                                     <td className='p-3 font-medium text-sm'>{student.student_name}</td>
-                                                                    <td className='p-3 text-sm'>{student.class_name || student.asmcL_ClassName}</td>
-                                                                    <td className='p-3 text-sm'>{student.section_name || student.asmC_SectionName}</td>
-                                                                    <td className='p-3 text-sm'>{student.admission_no || student.amsT_AdmNo}</td>
-                                                                    <td className='p-3 text-sm'>{student.roll_no || student.amaY_RollNo}</td>
+                                                                    <td className='p-3 text-sm'>
+                                                                        {student.class_name || student.asmcL_ClassName}
+                                                                    </td>
+                                                                    <td className='p-3 text-sm'>
+                                                                        {student.section_name || student.asmC_SectionName}
+                                                                    </td>
+                                                                    <td className='p-3 text-sm'>
+                                                                        {student.admission_no || student.amsT_AdmNo}
+                                                                    </td>
+                                                                    <td className='p-3 text-sm'>
+                                                                        {student.roll_no || student.amaY_RollNo}
+                                                                    </td>
                                                                     <td className='p-3'>
                                                                         <Input
                                                                             type='number'

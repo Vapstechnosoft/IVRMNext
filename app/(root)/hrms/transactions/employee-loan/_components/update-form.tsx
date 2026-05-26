@@ -7,9 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
-import { getEmployeeLoanById } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
+import { getEmployeeLoanById } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import type { EmployeeLoanItem, EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
@@ -75,12 +75,10 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         const fetchLoanDetails = async () => {
             if (selectedRow) {
                 try {
-                    console.log('Fetching details for Loan ID:', selectedRow.HREL_Id);
                     const response = await getEmployeeLoanById(selectedRow.HREL_Id);
 
                     if (isMounted && response.success && response.data) {
                         const loan = response.data;
-                        console.log('Fetched Loan Details:', loan);
                         reset({
                             employeeId: loan.HRME_Id || 0,
                             loanTypeId: loan.HRMLN_Id || 0,

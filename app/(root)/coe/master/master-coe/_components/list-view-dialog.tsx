@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileImage, FileVideo, Users, Eye, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import { FileImage, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface ListViewDialogProps {
@@ -22,7 +21,6 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
     const [isOpen, setIsOpen] = useState(false);
     const [hasFetched, setHasFetched] = useState(false);
 
-
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
     const handleOpenChange = async (open: boolean) => {
@@ -37,7 +35,7 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                 setData(result || []);
                 setHasFetched(true);
             } catch (error) {
-                console.error("Failed to fetch data:", error);
+                console.error('Failed to fetch data:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -49,14 +47,14 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
     const renderContent = () => {
         if (isLoading) {
             return (
-                <div className="flex justify-center p-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <div className='flex justify-center p-8'>
+                    <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
                 </div>
             );
         }
 
         if (!hasData) {
-            return <div className="p-4 text-center text-muted-foreground">No records found.</div>;
+            return <div className='p-4 text-center text-muted-foreground'>No records found.</div>;
         }
 
         switch (type) {
@@ -65,23 +63,19 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     const paramsUrl = selectedItem;
                     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(paramsUrl);
                     return (
-                        <div className="flex flex-col h-full gap-4">
-                            <Button variant="outline" size="sm" onClick={() => setSelectedItem(null)} className="self-start">
+                        <div className='flex h-full flex-col gap-4'>
+                            <Button variant='outline' size='sm' onClick={() => setSelectedItem(null)} className='self-start'>
                                 Back to List
                             </Button>
-                            <div className="flex-1 overflow-hidden rounded-md border bg-muted flex items-center justify-center p-2 h-[60vh]">
+                            <div className='flex h-[60vh] flex-1 items-center justify-center overflow-hidden rounded-md border bg-muted p-2'>
                                 {isImage ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img
-                                        src={paramsUrl}
-                                        alt="Selected"
-                                        className="h-full w-full object-contain"
-                                    />
+                                    <img src={paramsUrl} alt='Selected' className='h-full w-full object-contain' />
                                 ) : (
                                     <iframe
                                         src={`https://docs.google.com/viewer?url=${encodeURIComponent(paramsUrl)}&embedded=true`}
-                                        className="h-full w-full border-0"
-                                        title="Document Viewer"
+                                        className='h-full w-full border-0'
+                                        title='Document Viewer'
                                     />
                                 )}
                             </div>
@@ -90,7 +84,7 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                 }
 
                 return (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4'>
                         {data.map((item, index) => {
                             const paramsUrl = item.coeeI_Images || item.COEEI_Images;
                             // Try to extract a meaningful name from the URL, or fallback to Attachment N
@@ -99,13 +93,12 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                             return (
                                 <div
                                     key={index}
-                                    className="cursor-pointer group flex flex-col items-center gap-2 p-4 rounded-md border hover:bg-muted/50 transition-colors"
-                                    onClick={() => setSelectedItem(paramsUrl)}
-                                >
-                                    <div className="h-12 w-12 flex items-center justify-center rounded-full bg-muted group-hover:bg-background transition-colors">
-                                        <FileImage className="h-6 w-6 text-blue-600" />
+                                    className='group flex cursor-pointer flex-col items-center gap-2 rounded-md border p-4 transition-colors hover:bg-muted/50'
+                                    onClick={() => setSelectedItem(paramsUrl)}>
+                                    <div className='flex h-12 w-12 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-background'>
+                                        <FileImage className='h-6 w-6 text-blue-600' />
                                     </div>
-                                    <span className="text-sm font-medium text-center break-all line-clamp-2" title={fileName}>
+                                    <span className='line-clamp-2 break-all text-center font-medium text-sm' title={fileName}>
                                         {fileName}
                                     </span>
                                 </div>
@@ -115,11 +108,11 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                 );
             case 'video':
                 return (
-                    <div className="flex flex-col gap-4">
+                    <div className='flex flex-col gap-4'>
                         {data.map((item, index) => (
-                            <div key={index} className="aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                            <div key={index} className='aspect-video w-full overflow-hidden rounded-md border bg-muted'>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <video controls className="h-full w-full">
+                                <video controls className='h-full w-full'>
                                     <source src={item.COEEV_Videos} />
                                     Your browser does not support the video tag.
                                 </video>
@@ -188,9 +181,7 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                 );
             case 'alumni':
                 // Placeholder as no specific list structure is defined in the types yet
-                return (
-                    <div className="p-4 text-center text-muted-foreground">List data not available.</div>
-                );
+                return <div className='p-4 text-center text-muted-foreground'>List data not available.</div>;
             default:
                 return null;
         }
@@ -199,13 +190,11 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent className="max-h-[80vh] w-full max-w-2xl flex flex-col">
+            <DialogContent className='flex max-h-[80vh] w-full max-w-2xl flex-col'>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="flex-1 pr-4">
-                    {renderContent()}
-                </ScrollArea>
+                <ScrollArea className='flex-1 pr-4'>{renderContent()}</ScrollArea>
             </DialogContent>
         </Dialog>
     );

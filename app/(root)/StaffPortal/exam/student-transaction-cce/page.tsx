@@ -1,18 +1,17 @@
-
 'use client';
 
-import React, { useState } from 'react';
 import { useStudentTransactionCCE } from '@/hooks/staff-portal/useStudentTransactionCCE';
-import StudentTransactionFilter from './_components/student-transaction-filter';
-import StudentTransactionList from './_components/student-transaction-list';
-import { toast } from 'sonner';
 import type {
-    IStudentTransactionSearchRequest,
-    IStudentTransactionSearchResponse,
     IStudentInfo,
-    IStudentTransactionSaveRequest
+    IStudentTransactionSaveRequest,
+    IStudentTransactionSearchRequest,
+    IStudentTransactionSearchResponse
 } from '@/types/staff-portal/student-transaction-cce';
 import { GraduationCap, List } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import StudentTransactionFilter from './_components/student-transaction-filter';
+import StudentTransactionList from './_components/student-transaction-list';
 
 export default function StudentTransactionCCEPage() {
     const {
@@ -37,12 +36,12 @@ export default function StudentTransactionCCEPage() {
                 if (res.data?.studentList && res.data.studentList.length > 0) {
                     setSearchData(res.data);
                 } else {
-                    toast.error("No student records found for the selected criteria");
+                    toast.error('No student records found for the selected criteria');
                     setSearchData(null);
                 }
             },
             onError: (err) => {
-                toast.error("Error fetching student list: " + err);
+                toast.error(`Error fetching student list: ${err}`);
             }
         });
     };
@@ -51,20 +50,20 @@ export default function StudentTransactionCCEPage() {
         if (!lastParams) return;
 
         const SelectedStudentScore = students
-            .filter(s => s.checked)
-            .map(s => ({
+            .filter((s) => s.checked)
+            .map((s) => ({
                 AMST_Id: s.amsT_Id,
-                ECSACTT_Score: s.ECSACTT_Score || "",
-                ECSA_Id: lastParams.Skills === 'Skills' ? (s.areaName || lastParams.ECSA_Id) : undefined,
-                ECACTA_Id: lastParams.Skills === 'Activities' ? (s.areaName || lastParams.ECACTA_Id) : undefined,
-                areaName: lastParams.Skills === 'Skills' ? (s.areaName || lastParams.ECSA_Id) : (s.areaName || lastParams.ECACTA_Id),
+                ECSACTT_Score: s.ECSACTT_Score || '',
+                ECSA_Id: lastParams.Skills === 'Skills' ? s.areaName || lastParams.ECSA_Id : undefined,
+                ECACTA_Id: lastParams.Skills === 'Activities' ? s.areaName || lastParams.ECACTA_Id : undefined,
+                areaName: lastParams.Skills === 'Skills' ? s.areaName || lastParams.ECSA_Id : s.areaName || lastParams.ECACTA_Id,
                 EMGR_Id: s.emgR_Id,
                 ECST_Id: s.ECST_Id,
                 ECSACTT_Id: s.ECSACTT_Id
             }));
 
         if (SelectedStudentScore.length === 0) {
-            toast.warning("Please select at least one student to save.");
+            toast.warning('Please select at least one student to save.');
             return;
         }
 
@@ -77,27 +76,27 @@ export default function StudentTransactionCCEPage() {
         save.mutate(payload, {
             onSuccess: (res) => {
                 if (res.data?.returnVal === 'saved') {
-                    toast.success(verifyFlag === 'V' ? "Records Verified Successfully" : "Records Saved Successfully");
+                    toast.success(verifyFlag === 'V' ? 'Records Verified Successfully' : 'Records Saved Successfully');
                     handleSearch(lastParams);
                 } else {
-                    toast.error(res.data?.returnVal || "Failed to save record");
+                    toast.error(res.data?.returnVal || 'Failed to save record');
                 }
             },
             onError: (err) => {
-                toast.error("An error occurred: " + err);
+                toast.error(`An error occurred: ${err}`);
             }
         });
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-8 min-h-screen pb-12">
-            <div className="flex items-center gap-3 border-b pb-4 border-primary/10">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                    <GraduationCap className="h-6 w-6 text-primary" />
+        <div className='container mx-auto min-h-screen space-y-8 p-4 pb-12'>
+            <div className='flex items-center gap-3 border-primary/10 border-b pb-4'>
+                <div className='rounded-lg bg-primary/10 p-2'>
+                    <GraduationCap className='h-6 w-6 text-primary' />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-primary">Student Transaction CCE</h1>
-                    <p className="text-sm text-muted-foreground">Manage student skills and activities assessments</p>
+                    <h1 className='font-bold text-2xl text-primary tracking-tight'>Student Transaction CCE</h1>
+                    <p className='text-muted-foreground text-sm'>Manage student skills and activities assessments</p>
                 </div>
             </div>
 
@@ -133,25 +132,21 @@ export default function StudentTransactionCCEPage() {
             />
 
             {searchData && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center justify-between px-1">
-                        <h2 className="text-lg font-semibold text-primary/80">Student List & Grades</h2>
+                <div className='fade-in slide-in-from-bottom-4 animate-in space-y-4 duration-500'>
+                    <div className='flex items-center justify-between px-1'>
+                        <h2 className='font-semibold text-lg text-primary/80'>Student List & Grades</h2>
                     </div>
-                    <StudentTransactionList
-                        data={searchData}
-                        onSave={handleSave}
-                        onCancel={() => setSearchData(null)}
-                    />
+                    <StudentTransactionList data={searchData} onSave={handleSave} onCancel={() => setSearchData(null)} />
                 </div>
             )}
 
             {!searchData && !search.isPending && (
-                <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border-2 border-dashed rounded-2xl bg-muted/5 border-primary/10 mx-auto max-w-2xl">
-                    <div className="bg-muted/10 p-4 rounded-full mb-4">
-                        <List className="h-10 w-10 opacity-20" />
+                <div className='mx-auto flex max-w-2xl flex-col items-center justify-center rounded-2xl border-2 border-primary/10 border-dashed bg-muted/5 py-24 text-muted-foreground'>
+                    <div className='mb-4 rounded-full bg-muted/10 p-4'>
+                        <List className='h-10 w-10 opacity-20' />
                     </div>
-                    <p className="text-xl font-medium text-foreground/70">No criteria selected</p>
-                    <p className="text-sm">Please select a year, class, section, and assessment details to load the student list.</p>
+                    <p className='font-medium text-foreground/70 text-xl'>No criteria selected</p>
+                    <p className='text-sm'>Please select a year, class, section, and assessment details to load the student list.</p>
                 </div>
             )}
         </div>

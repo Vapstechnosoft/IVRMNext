@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
@@ -202,9 +202,9 @@ function SelectedFeeGroupsCell({
     );
 }
 
-function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string | null, rowData: IMasterGroupWiseAutoReciptList }) {
+function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string | null; rowData: IMasterGroupWiseAutoReciptList }) {
     const [open, setOpen] = useState(false);
-    
+
     let safeHtml = templateHtml ?? '';
 
     // Handle encoded HTML just in case
@@ -223,7 +223,9 @@ function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string 
 
     const isFullHtmlDocument = safeHtml.toLowerCase().includes('<html') && safeHtml.toLowerCase().includes('<body');
 
-    const iframeContent = isFullHtmlDocument ? safeHtml : `
+    const iframeContent = isFullHtmlDocument
+        ? safeHtml
+        : `
         <!DOCTYPE html>
         <html>
             <head>
@@ -264,8 +266,8 @@ function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string 
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className='flex flex-col h-[85vh] max-h-[90vh] max-w-5xl overflow-hidden p-0'>
-                    <DialogHeader className='shrink-0 flex items-center justify-between border-b p-4'>
+                <DialogContent className='flex h-[85vh] max-h-[90vh] max-w-5xl flex-col overflow-hidden p-0'>
+                    <DialogHeader className='flex shrink-0 items-center justify-between border-b p-4'>
                         <DialogTitle>Receipt Template Preview</DialogTitle>
                         <DialogClose asChild>
                             <Button
@@ -277,16 +279,16 @@ function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string 
                         </DialogClose>
                     </DialogHeader>
 
-                    <div className='flex-1 w-full bg-white overflow-hidden'>
-                        <iframe 
-                            title='Template Preview' 
-                            className='h-full w-full border-0' 
-                            sandbox='allow-same-origin allow-scripts' 
-                            srcDoc={iframeContent} 
+                    <div className='w-full flex-1 overflow-hidden bg-white'>
+                        <iframe
+                            title='Template Preview'
+                            className='h-full w-full border-0'
+                            sandbox='allow-same-origin allow-scripts'
+                            srcDoc={iframeContent}
                         />
                     </div>
-                    
-                    <DialogFooter className='shrink-0 border-t bg-gray-50 px-6 py-4 flex items-center justify-end gap-2'>
+
+                    <DialogFooter className='flex shrink-0 items-center justify-end gap-2 border-t bg-gray-50 px-6 py-4'>
                         <DialogClose asChild>
                             <Button variant='destructive' className='w-24'>
                                 Cancel

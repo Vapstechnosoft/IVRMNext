@@ -176,7 +176,7 @@ export default function FeeDefaulterReport() {
     const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | 'fmH_FeeName' | 'totalBalance' | 'asmcL_ClassName' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [sectionLoading, setSectionLoading] = useState(false);
+    const [_sectionLoading, setSectionLoading] = useState(false);
 
     const { data: mastersettingList } = usemastersettinglist();
     const term_group = mastersettingList?.data?.[0]?.fmC_GroupOrTermFlg;
@@ -302,10 +302,10 @@ export default function FeeDefaulterReport() {
         whatsapp: false
     });
 
-    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [_showEmailModal, setShowEmailModal] = useState(false);
     const [emailTemplate, setEmailTemplate] = useState('');
-    const [emailSubject, setEmailSubject] = useState('');
-    const [emailContent, setEmailContent] = useState('');
+    const [_emailSubject, _setEmailSubject] = useState('');
+    const [_emailContent, _setEmailContent] = useState('');
     const [showemailContent, setshowEmailContent] = useState(false);
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [showSMSModal, setShowSMSModal] = useState(false);
@@ -393,7 +393,7 @@ export default function FeeDefaulterReport() {
         setShowEmailModal(false);
     };
 
-    const calculateTotals = () => {
+    const _calculateTotals = () => {
         const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.amsT_Id));
 
         return {
@@ -863,8 +863,6 @@ export default function FeeDefaulterReport() {
                 };
             }
 
-            console.log('Payload for Fee Defaulter Report:', JSON.stringify(payload));
-
             const reportArray = await getfeedefaluerreport(payload);
             const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
             const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;
@@ -1164,8 +1162,6 @@ export default function FeeDefaulterReport() {
                     ...(studentClassArray || [])
                 ];
                 setReportData(combinedData);
-                console.log('combinedData', combinedData);
-                console.log('setReportData', reportData);
                 setShowReport(true);
             } else {
                 setReportData([]);
@@ -1184,7 +1180,7 @@ export default function FeeDefaulterReport() {
     const isAcademicYearSelected = watch('academicYearId');
     const isClassSectionEnabled = filters.includeClassSection;
     const showDateSection = filters.viewMode === 'date';
-    const showBalancecheckbox = filters.userType === 'Student' && filters.breakdown === 'Student/Staff Wise';
+    const _showBalancecheckbox = filters.userType === 'Student' && filters.breakdown === 'Student/Staff Wise';
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>

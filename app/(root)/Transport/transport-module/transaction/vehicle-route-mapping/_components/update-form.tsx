@@ -62,8 +62,6 @@ export default function UpdateForm({ onClose, selectedRow: row }: UpdateFormProp
 
     useEffect(() => {
         if (row && !isDataLoading) {
-            console.log('UpdateForm Row Data:', row);
-
             let flagValue = row.trmS_Flag;
             // Normalize flag value if backend sends variations
             if (flagValue === 'Pick Up' || flagValue === 'Pickup') flagValue = 'PickUp';

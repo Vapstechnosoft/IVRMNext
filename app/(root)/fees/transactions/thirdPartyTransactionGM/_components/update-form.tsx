@@ -27,7 +27,10 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { ThirdPartyTrasactionfeeReceiptNoflg_GM, saveorUpdateThirdPartyTrasaction_GM } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
+import {
+    ThirdPartyTrasactionfeeReceiptNoflg_GM,
+    saveorUpdateThirdPartyTrasaction_GM
+} from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -41,7 +44,7 @@ interface UpdateThirdPartyFormProps {
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
     const { refetchAll } = useFeeThirdPartyGM();
 
-    const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
+    const [_selectedPaymentMode, _setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
     const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
     const {
@@ -111,8 +114,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         refetchEditData()
             .then(() => {
                 const editeddata = editDataResponse?.data?.[0];
-
-                console.log('Edited Data:', editeddata);
                 if (editeddata) {
                     const matchedBank = bankdata?.data?.find((b) => b.fmbanK_BankName === editeddata.fyP_Bank_Name);
                     reset({
@@ -172,8 +173,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 fyP_Id: row.fyP_Id
             };
 
-            const payloaddata = JSON.stringify(payload);
-            console.log('Payload to be sent:', payloaddata);
+            const _payloaddata = JSON.stringify(payload);
 
             const response = await saveorUpdateThirdPartyTrasaction_GM(payload);
 
@@ -261,7 +261,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             <Select
                                 disabled={!watchAcademicYearId}
                                 value={
-                                    (studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')) ?? -1) !== -1
+                                    (studentdata?.data?.findIndex(
+                                        (s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')
+                                    ) ?? -1) !== -1
                                         ? `std-${studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId'))}`
                                         : ''
                                 }

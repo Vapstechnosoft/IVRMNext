@@ -18,7 +18,7 @@ interface ReceiptPageProps {
 export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
-    const [receiptData, setReceiptData] = useState<any>(null);
+    const [_receiptData, _setReceiptData] = useState<any>(null);
 
     const [studentdetails, setstudentdetails] = useState<any>(null);
 
@@ -35,14 +35,10 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                     Number(rowData.amst_Id),
                     Number(rowData.voucherNo)
                 );
-                const js = JSON.stringify(raw);
-                console.log('Receipt Raw Data:', js);
+                const _js = JSON.stringify(raw);
 
                 const feeRefundedDetails = raw?.data?.feerefunded_details || [];
                 const studentDetails = raw?.data?.student_details || [];
-
-                console.log('Refund Details:', feeRefundedDetails);
-                console.log('Student Details:', studentDetails);
 
                 //setReceiptData(response);
                 setstudentdetails(studentDetails);
@@ -211,7 +207,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
     const admisiionno = s?.amsT_AdmNo || '';
     const classname = s?.asmcL_ClassName || '';
     const sectionname = s?.asmC_SectionName || '';
-    const rollno = s?.amsT_RollNo || '';
+    const _rollno = s?.amsT_RollNo || '';
     const asmaY_Year = s?.asmaY_Year || '';
     const father = s?.amsT_FatherName || '';
     const Mother = s?.amsT_MotherName || '';

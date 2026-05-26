@@ -1,7 +1,5 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-
 export interface AttendanceLoadData {
     attyearlist: {
         asmaY_Id: number;
@@ -55,7 +53,7 @@ const MOCK_ATTENDANCE_DATA = [
     }
 ];
 
-export async function getAttendanceLoadData(data: any): Promise<AttendanceLoadData> {
+export async function getAttendanceLoadData(_data: any): Promise<AttendanceLoadData> {
     // Assumption: The backend API path follows the pattern /api/[Controller]/[Action]
     // or /api/StudentPortal/[Controller]/[Action]
     // Based on legacy code: "AttendanceDetails/getloaddata"
@@ -68,11 +66,7 @@ export async function getAttendanceLoadData(data: any): Promise<AttendanceLoadDa
     };
 }
 
-export async function getAttendanceData(data: { ASMAY_Id: number }): Promise<AttendanceData> {
-    // const url = `/AttendanceDetails/getAttdata`;
-    // return await api.post<any>('default', url, data);
-
-    console.log('Fetching Attendance data (mock) for year:', data.ASMAY_Id);
+export async function getAttendanceData(_data: { ASMAY_Id: number }): Promise<AttendanceData> {
     return {
         attList: MOCK_ATTENDANCE_DATA
     };

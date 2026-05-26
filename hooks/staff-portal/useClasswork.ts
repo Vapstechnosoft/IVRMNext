@@ -1,38 +1,37 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    getInitialData,
+    deactivateClassWork,
+    editClassWork,
     getClasses,
+    getInitialData,
     getSections,
     getSubjects,
     saveClassWork,
-    editClassWork,
-    deactivateClassWork,
     viewClassWork
 } from '@/server/staff-portal/classwork';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { IClassWorkSave } from '@/types/staff-portal/classwork';
 
 export const useClassWork = () => {
     const queryClient = useQueryClient();
 
     const initialDataQuery = useQuery({
         queryKey: ['classwork-initial'],
-        queryFn: () => getInitialData(1), // passing default id=1 as per legacy
+        queryFn: () => getInitialData(1) // passing default id=1 as per legacy
     });
 
     const getClassesMutation = useMutation({
         mutationFn: getClasses,
-        onError: (error) => toast.error('Failed to load classes'),
+        onError: (_error) => toast.error('Failed to load classes')
     });
 
     const getSectionsMutation = useMutation({
         mutationFn: getSections,
-        onError: (error) => toast.error('Failed to load sections'),
+        onError: (_error) => toast.error('Failed to load sections')
     });
 
     const getSubjectsMutation = useMutation({
         mutationFn: getSubjects,
-        onError: (error) => toast.error('Failed to load subjects'),
+        onError: (_error) => toast.error('Failed to load subjects')
     });
 
     const saveClassWorkMutation = useMutation({
@@ -47,12 +46,12 @@ export const useClassWork = () => {
                 toast.error('Failed to save classwork');
             }
         },
-        onError: (error) => toast.error('Failed to save classwork'),
+        onError: (_error) => toast.error('Failed to save classwork')
     });
 
     const editClassWorkMutation = useMutation({
         mutationFn: editClassWork,
-        onError: (error) => toast.error('Failed to load classwork details'),
+        onError: (_error) => toast.error('Failed to load classwork details')
     });
 
     const deactivateClassWorkMutation = useMutation({
@@ -65,12 +64,12 @@ export const useClassWork = () => {
                 toast.error('Failed to update status');
             }
         },
-        onError: (error) => toast.error('Failed to update status'),
+        onError: (_error) => toast.error('Failed to update status')
     });
 
     const viewClassWorkMutation = useMutation({
         mutationFn: viewClassWork,
-        onError: (error) => toast.error('Failed to load attachments'),
+        onError: (_error) => toast.error('Failed to load attachments')
     });
 
     return {
@@ -83,6 +82,6 @@ export const useClassWork = () => {
         saveClassWork: saveClassWorkMutation,
         editClassWork: editClassWorkMutation,
         deactivateClassWork: deactivateClassWorkMutation,
-        viewClassWork: viewClassWorkMutation,
+        viewClassWork: viewClassWorkMutation
     };
 };

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import BCOEDIReportForm from './_components/add-form';
 import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import BCOEDIReportForm from './_components/add-form';
 
-import { Loader2 } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Loader2 } from 'lucide-react';
 import BCOEDIReportView from './_components/report-view';
 
 export default function BCOEDIReportPage() {
@@ -27,9 +27,8 @@ export default function BCOEDIReportPage() {
             setIsLoading(true);
             setIsReportVisible(false);
             const res = await getExamReportCard(payload);
-            console.log("response", res);
 
-            if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
                 const flatRows: any[] = res.data;
 
                 // Group by student
@@ -105,23 +104,20 @@ export default function BCOEDIReportPage() {
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
-            <CollapsibleSection title="BCOEDI Report Criteria" defaultOpen>
-                <BCOEDIReportForm
-                    onSuccess={handleFormSuccess}
-                    onReset={() => window.location.reload()}
-                />
+        <div className='flex flex-col gap-6 p-4'>
+            <CollapsibleSection title='BCOEDI Report Criteria' defaultOpen>
+                <BCOEDIReportForm onSuccess={handleFormSuccess} onReset={() => window.location.reload()} />
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex flex-col items-center justify-center p-12 gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Generating BCOEDI Reports...</p>
+                <div className='flex flex-col items-center justify-center gap-4 p-12'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating BCOEDI Reports...</p>
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BCOEDIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}

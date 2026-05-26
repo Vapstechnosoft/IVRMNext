@@ -3,22 +3,22 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { homeWorkSchema, type IHomeWork } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { fetchSections, fetchSubjects, saveHomeWork, editHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
+import { type IHomeWork, homeWorkSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
 import { uploadDocument } from '@/server/fees/trasactions/waived_off';
+import { editHomeWork, fetchSections, fetchSubjects, saveHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO } from 'date-fns';
-import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 
 interface UpdateHomeWorkFormProps {
     onSuccess: () => void;
@@ -35,21 +35,32 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [showUrlSection, setShowUrlSection] = useState(false);
-    const [isViewing, setIsViewing] = useState(false);
-    const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const [_isViewing, _setIsViewing] = useState(false);
+    const [_viewingImage, _setViewingImage] = useState<string | null>(null);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<IHomeWorkForm>({
         resolver: zodResolver(homeWorkSchema.addOrUpdate),
         defaultValues: {
             ...selectedRow,
-            ihW_Date: selectedRow.ihW_Date ? (typeof selectedRow.ihW_Date === 'string' ? parseISO(selectedRow.ihW_Date) : selectedRow.ihW_Date) : new Date(),
+            ihW_Date: selectedRow.ihW_Date
+                ? typeof selectedRow.ihW_Date === 'string'
+                    ? parseISO(selectedRow.ihW_Date)
+                    : selectedRow.ihW_Date
+                : new Date(),
             ihW_FilePath_Array: [],
             ihW_Attachment_Array: []
         }
     });
 
-    const { control, handleSubmit, formState: { isSubmitting }, setValue, reset, getValues } = methods;
+    const {
+        control,
+        handleSubmit,
+        formState: { isSubmitting },
+        setValue,
+        reset,
+        getValues
+    } = methods;
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSections = useWatch({ control, name: 'hm_section_list' });
@@ -79,33 +90,53 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
             const loadFullRecord = async () => {
                 const response: any = await editHomeWork(selectedRow.IHW_Id, selectedRow.ASMAY_Id);
                 const editData = response?.data || response;
-                
-                if (editData && editData.editlist && editData.editlist.length > 0) {
+
+                if (editData?.editlist && editData.editlist.length > 0) {
                     const record = editData.editlist[0];
                     const attachments = editData.imgdata || editData.attachementlist || [];
                     const editSections = editData.editlist_section || [];
-                    
+
                     if (editData.sectionlist) {
                         setSections(editData.sectionlist);
                     }
 
-                    const files = attachments.filter((a: any) => {
-                        const filePath = a.ihwatT_Attachment || a.ihW_FilePath || '';
-                        const ext = filePath.split('.').pop()?.toLowerCase();
-                        return ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'mp4', 'wmv'].includes(ext || '');
-                    }).map((a: any) => ({
-                        ihW_FilePath: a.ihwatT_Attachment || a.ihW_FilePath,
-                        fileName: a.ihwatT_FileName || a.fileName
-                    }));
+                    const files = attachments
+                        .filter((a: any) => {
+                            const filePath = a.ihwatT_Attachment || a.ihW_FilePath || '';
+                            const ext = filePath.split('.').pop()?.toLowerCase();
+                            return ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'mp4', 'wmv'].includes(
+                                ext || ''
+                            );
+                        })
+                        .map((a: any) => ({
+                            ihW_FilePath: a.ihwatT_Attachment || a.ihW_FilePath,
+                            fileName: a.ihwatT_FileName || a.fileName
+                        }));
 
-                    const urls = attachments.filter((a: any) => {
-                        const filePath = a.ihwatT_Attachment || a.ihW_FilePath || '';
-                        const ext = filePath.split('.').pop()?.toLowerCase();
-                        return !['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'mp3', 'mp4', 'wmv'].includes(ext || '');
-                    }).map((a: any) => ({
-                        ihW_FilePath: a.ihwatT_Attachment || a.ihW_FilePath,
-                        fileName: a.ihwatT_FileName || a.fileName
-                    }));
+                    const urls = attachments
+                        .filter((a: any) => {
+                            const filePath = a.ihwatT_Attachment || a.ihW_FilePath || '';
+                            const ext = filePath.split('.').pop()?.toLowerCase();
+                            return ![
+                                'jpg',
+                                'jpeg',
+                                'png',
+                                'pdf',
+                                'doc',
+                                'docx',
+                                'xls',
+                                'xlsx',
+                                'ppt',
+                                'pptx',
+                                'mp3',
+                                'mp4',
+                                'wmv'
+                            ].includes(ext || '');
+                        })
+                        .map((a: any) => ({
+                            ihW_FilePath: a.ihwatT_Attachment || a.ihW_FilePath,
+                            fileName: a.ihwatT_FileName || a.fileName
+                        }));
 
                     if (urls.length > 0) setShowUrlSection(true);
 
@@ -209,7 +240,7 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
             } else {
                 toast.error(result.message || 'Failed to update');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while saving');
         }
     };
@@ -222,12 +253,18 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                     name='asmaY_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {yearList.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -241,12 +278,18 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                     name='asmcL_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {classList.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -278,12 +321,18 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                     name='ismS_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Subject <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Subject <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Subject' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Subject' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {subjects.map((sub: any) => (
-                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>{sub.ismS_SubjectName}</SelectItem>
+                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
+                                            {sub.ismS_SubjectName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -297,7 +346,9 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                     name='ihW_Topic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Topic <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} value={field.value ?? ''} placeholder='Enter Topic' maxLength={50} />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -309,10 +360,14 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                     name='ihW_Date'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>H.W Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                H.W Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
@@ -336,7 +391,7 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                 />
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <Controller
                     control={control}
                     name='ihW_AssignmentNo'
@@ -369,7 +424,9 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                                     <td className='border p-2'>
                                         <div className='flex justify-center'>
                                             <input
-                                                ref={(el) => { fileInputRefs.current[index] = el; }}
+                                                ref={(el) => {
+                                                    fileInputRefs.current[index] = el;
+                                                }}
                                                 type='file'
                                                 className='hidden'
                                                 onChange={(e) => handleFileUpload(e, index)}
@@ -383,7 +440,11 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                                                 disabled={item.isUploading}
                                             >
                                                 {/* @ts-ignore */}
-                                                {item.isUploading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Upload className='mr-2 h-4 w-4' />}
+                                                {item.isUploading ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Upload className='mr-2 h-4 w-4' />
+                                                )}
                                                 Choose File
                                             </Button>
                                         </div>
@@ -396,16 +457,36 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                                             type='button'
                                             variant='ghost'
                                             size='sm'
-                                            onClick={() => { const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`); if (val) window.open(val, '_blank'); }}
-                                            disabled={!item.ihW_FilePath}
-                                        >
+                                            onClick={() => {
+                                                const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`);
+                                                if (val) window.open(val, '_blank');
+                                            }}
+                                            disabled={!item.ihW_FilePath}>
                                             <Eye className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <div className='flex justify-center gap-1'>
-                                            {fileFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeFile(index)}><Minus className='h-4 w-4' /></Button>}
-                                            {index === fileFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8' onClick={() => appendFile({ ihW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
+                                            {fileFields.length > 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='destructive'
+                                                    className='h-8 w-8'
+                                                    onClick={() => removeFile(index)}>
+                                                    <Minus className='h-4 w-4' />
+                                                </Button>
+                                            )}
+                                            {index === fileFields.length - 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='outline'
+                                                    className='h-8 w-8'
+                                                    onClick={() => appendFile({ ihW_FilePath: '', fileName: '' })}>
+                                                    <Plus className='h-4 w-4' />
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -441,16 +522,46 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
                                             <Controller
                                                 control={control}
                                                 name={`ihW_Attachment_Array.${index}.ihW_FilePath`}
-                                                render={({ field }) => <Input {...field} value={field.value ?? ''} placeholder='Enter URL' className='h-9' />}
+                                                render={({ field }) => (
+                                                    <Input {...field} value={field.value ?? ''} placeholder='Enter URL' className='h-9' />
+                                                )}
                                             />
                                         </td>
                                         <td className='border p-2 text-center'>
-                                            <Button type='button' variant='ghost' size='sm' onClick={() => { const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`); if (val) window.open(val, '_blank'); }} disabled={!item.ihW_FilePath}><Eye className='h-4 w-4 text-blue-600' /></Button>
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='sm'
+                                                onClick={() => {
+                                                    const val = getValues(`ihW_Attachment_Array.${index}.ihW_FilePath`);
+                                                    if (val) window.open(val, '_blank');
+                                                }}
+                                                disabled={!item.ihW_FilePath}>
+                                                <Eye className='h-4 w-4 text-blue-600' />
+                                            </Button>
                                         </td>
                                         <td className='border p-2 text-center'>
                                             <div className='flex justify-center gap-1'>
-                                                {index === urlFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8' onClick={() => appendUrl({ ihW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
-                                                {urlFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeUrl(index)}><Minus className='h-4 w-4' /></Button>}
+                                                {index === urlFields.length - 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='outline'
+                                                        className='h-8 w-8'
+                                                        onClick={() => appendUrl({ ihW_FilePath: '', fileName: '' })}>
+                                                        <Plus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
+                                                {urlFields.length > 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='destructive'
+                                                        className='h-8 w-8'
+                                                        onClick={() => removeUrl(index)}>
+                                                        <Minus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -463,7 +574,13 @@ export default function UpdateHomeWorkForm({ onSuccess, yearList, classList, sel
 
             <div className='flex justify-center pt-4'>
                 <Button type='submit' className='bg-blue-600 hover:bg-blue-700' size='lg' isLoading={isSubmitting}>
-                    {isSubmitting ? 'Updating...' : <><Save className='h-4 w-4 mr-2' /> Update Record</>}
+                    {isSubmitting ? (
+                        'Updating...'
+                    ) : (
+                        <>
+                            <Save className='mr-2 h-4 w-4' /> Update Record
+                        </>
+                    )}
                 </Button>
             </div>
         </form>

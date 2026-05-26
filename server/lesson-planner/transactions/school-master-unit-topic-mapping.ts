@@ -12,12 +12,12 @@ export async function getInitialDetails(searchParams?: ApiSearchparams) {
 
 // Fetch topics based on Unit ID
 export async function getTopics(lpmu_id: number) {
-    return await api.post<any>(baseUrl, `/SchoolMasterUnit/Gettopicnames`, { LPMU_Id: lpmu_id });
+    return await api.post<any>(baseUrl, '/SchoolMasterUnit/Gettopicnames', { LPMU_Id: lpmu_id });
 }
 
 // Save mapping
 export async function saveMapping(data: any) {
-    return await api.post<any>(baseUrl, `/SchoolMasterUnit/savemappingdetails`, data);
+    return await api.post<any>(baseUrl, '/SchoolMasterUnit/savemappingdetails', data);
 }
 
 // Deactivate/Activate mapping

@@ -507,7 +507,7 @@ export default function feeReceiptimportCommon() {
                 }
 
                 // If all else fails, try to create a date from the string with time component
-                const dateWithTime = new Date(dateString + 'T00:00:00');
+                const dateWithTime = new Date(`${dateString}T00:00:00`);
                 if (!Number.isNaN(dateWithTime.getTime())) {
                     const year = dateWithTime.getFullYear();
                     const month = String(dateWithTime.getMonth() + 1).padStart(2, '0');
@@ -535,8 +535,6 @@ export default function feeReceiptimportCommon() {
                 asmaY_Id: selectedAsmayId,
                 feeReceiptimportCommon: feeReceiptimport
             };
-
-            console.log('payload', JSON.stringify(payload));
 
             const response = await savefeeReceiptimportCommon(payload);
 

@@ -6,7 +6,6 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getPageDetailsMap, saveEventsMapData } from '@/server/alumni/master-coe';
 import { uploadDocument } from '@/server/document_upload';
@@ -163,7 +162,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             }))
                         });
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch mapping details');
                 }
             };
@@ -193,7 +192,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
             } else {
                 toast.error(res.message || 'Failed to save mapping');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred');
         }
     };
@@ -231,7 +230,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 toast.error('Upload failed: Invalid response format');
                 console.error('Upload response format unknown:', res);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Upload failed');
         }
     };
@@ -334,7 +333,10 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         <FormItem>
                             <FormLabel>Email Template</FormLabel>
                             <FormControl>
-                                <Input disabled value={selectedEvent?.coemE_MailHTMLTemplate || selectedEvent?.COEME_MailHTMLTemplate || ''} />
+                                <Input
+                                    disabled
+                                    value={selectedEvent?.coemE_MailHTMLTemplate || selectedEvent?.COEME_MailHTMLTemplate || ''}
+                                />
                             </FormControl>
                         </FormItem>
                     </div>
@@ -430,11 +432,21 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                     <FormLabel className='w-32'>Email:</FormLabel>
                                     <div className='flex items-center space-x-4 rounded-md border px-4 py-2'>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === true} onChange={() => field.onChange(true)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === true}
+                                                onChange={() => field.onChange(true)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>Yes</span>
                                         </label>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === false} onChange={() => field.onChange(false)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === false}
+                                                onChange={() => field.onChange(false)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>No</span>
                                         </label>
                                     </div>
@@ -449,11 +461,21 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                     <FormLabel className='w-32'>SMS:</FormLabel>
                                     <div className='flex items-center space-x-4 rounded-md border px-4 py-2'>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === true} onChange={() => field.onChange(true)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === true}
+                                                onChange={() => field.onChange(true)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>Yes</span>
                                         </label>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === false} onChange={() => field.onChange(false)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === false}
+                                                onChange={() => field.onChange(false)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>No</span>
                                         </label>
                                     </div>
@@ -464,7 +486,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 </CollapsibleSection>
 
                 <CollapsibleSection title='Repeat & Notification' defaultOpen={true}>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-2'>
+                    <div className='grid grid-cols-1 gap-6 pt-2 md:grid-cols-2'>
                         <FormField
                             control={form.control}
                             name='COEE_RepeatFlag'
@@ -473,11 +495,21 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                     <FormLabel className='w-32'>Repeat Schedule:</FormLabel>
                                     <div className='flex items-center space-x-4 rounded-md border px-4 py-2'>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === true} onChange={() => field.onChange(true)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === true}
+                                                onChange={() => field.onChange(true)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>Yes</span>
                                         </label>
                                         <label className='flex items-center space-x-2'>
-                                            <input type='radio' checked={field.value === false} onChange={() => field.onChange(false)} className='h-4 w-4 text-primary' />
+                                            <input
+                                                type='radio'
+                                                checked={field.value === false}
+                                                onChange={() => field.onChange(false)}
+                                                className='h-4 w-4 text-primary'
+                                            />
                                             <span className='text-sm'>No</span>
                                         </label>
                                     </div>
@@ -569,8 +601,10 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                     <div className='mt-6 grid grid-cols-1 gap-6'>
                         {form.watch('COEE_StudentFlag') && (
                             <div className='flex items-start space-x-4'>
-                                <FormLabel className='w-32 pt-2'>Class: <span className='text-destructive'>*</span></FormLabel>
-                                <div className='h-48 flex-1 overflow-y-auto rounded-md border p-4 bg-background'>
+                                <FormLabel className='w-32 pt-2'>
+                                    Class: <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <div className='h-48 flex-1 overflow-y-auto rounded-md border bg-background p-4'>
                                     <FormField
                                         control={form.control}
                                         name='stu_class_list'
@@ -581,7 +615,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
                                             const handleSelectAll = (checked: boolean) => {
                                                 if (checked) {
-                                                    field.onChange(classOptions.map((c: any) => ({ ASMCL_Id: Number(c.asmcL_Id || c.ASMCL_Id) })));
+                                                    field.onChange(
+                                                        classOptions.map((c: any) => ({ ASMCL_Id: Number(c.asmcL_Id || c.ASMCL_Id) }))
+                                                    );
                                                 } else {
                                                     field.onChange([]);
                                                 }
@@ -591,15 +627,23 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 if (checked) {
                                                     field.onChange([...(field.value || []), { ASMCL_Id: id }]);
                                                 } else {
-                                                    field.onChange((field.value || []).filter((v: any) => Number(v.ASMCL_Id || v.asmcL_Id) !== id));
+                                                    field.onChange(
+                                                        (field.value || []).filter((v: any) => Number(v.ASMCL_Id || v.asmcL_Id) !== id)
+                                                    );
                                                 }
                                             };
 
                                             return (
                                                 <div className='space-y-3'>
                                                     <div className='flex items-center space-x-2 border-b pb-2'>
-                                                        <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} id='select-all-classes' />
-                                                        <label htmlFor='select-all-classes' className='text-sm font-medium leading-none cursor-pointer'>
+                                                        <Checkbox
+                                                            checked={isAllSelected}
+                                                            onCheckedChange={handleSelectAll}
+                                                            id='select-all-classes'
+                                                        />
+                                                        <label
+                                                            htmlFor='select-all-classes'
+                                                            className='cursor-pointer font-medium text-sm leading-none'>
                                                             All
                                                         </label>
                                                     </div>
@@ -612,7 +656,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                                     onCheckedChange={(checked) => handleSelect(!!checked, id)}
                                                                     id={`class-${id}`}
                                                                 />
-                                                                <label htmlFor={`class-${id}`} className='text-sm leading-none cursor-pointer'>
+                                                                <label
+                                                                    htmlFor={`class-${id}`}
+                                                                    className='cursor-pointer text-sm leading-none'>
                                                                     {c.asmcL_ClassName || c.ASMCL_ClassName}
                                                                 </label>
                                                             </div>
@@ -628,8 +674,10 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
                         {form.watch('COEE_EmployeeFlag') && (
                             <div className='flex items-start space-x-4 pt-2'>
-                                <FormLabel className='w-32 pt-2'>Staff: <span className='text-destructive'>*</span></FormLabel>
-                                <div className='h-48 flex-1 overflow-y-auto rounded-md border p-4 bg-background'>
+                                <FormLabel className='w-32 pt-2'>
+                                    Staff: <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <div className='h-48 flex-1 overflow-y-auto rounded-md border bg-background p-4'>
                                     <FormField
                                         control={form.control}
                                         name='emp_type_list'
@@ -640,7 +688,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
                                             const handleSelectAll = (checked: boolean) => {
                                                 if (checked) {
-                                                    field.onChange(deptOptions.map((d: any) => ({ HRMD_Id: Number(d.hrmD_Id || d.HRMD_Id) })));
+                                                    field.onChange(
+                                                        deptOptions.map((d: any) => ({ HRMD_Id: Number(d.hrmD_Id || d.HRMD_Id) }))
+                                                    );
                                                 } else {
                                                     field.onChange([]);
                                                 }
@@ -650,15 +700,23 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 if (checked) {
                                                     field.onChange([...(field.value || []), { HRMD_Id: id }]);
                                                 } else {
-                                                    field.onChange((field.value || []).filter((v: any) => Number(v.HRMD_Id || v.hrmD_Id) !== id));
+                                                    field.onChange(
+                                                        (field.value || []).filter((v: any) => Number(v.HRMD_Id || v.hrmD_Id) !== id)
+                                                    );
                                                 }
                                             };
 
                                             return (
                                                 <div className='space-y-3'>
                                                     <div className='flex items-center space-x-2 border-b pb-2'>
-                                                        <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} id='select-all-depts' />
-                                                        <label htmlFor='select-all-depts' className='text-sm font-medium leading-none cursor-pointer'>
+                                                        <Checkbox
+                                                            checked={isAllSelected}
+                                                            onCheckedChange={handleSelectAll}
+                                                            id='select-all-depts'
+                                                        />
+                                                        <label
+                                                            htmlFor='select-all-depts'
+                                                            className='cursor-pointer font-medium text-sm leading-none'>
                                                             All
                                                         </label>
                                                     </div>
@@ -671,7 +729,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                                     onCheckedChange={(checked) => handleSelect(!!checked, id)}
                                                                     id={`dept-${id}`}
                                                                 />
-                                                                <label htmlFor={`dept-${id}`} className='text-sm leading-none cursor-pointer'>
+                                                                <label
+                                                                    htmlFor={`dept-${id}`}
+                                                                    className='cursor-pointer text-sm leading-none'>
                                                                     {d.hrmD_DepartmentName || d.HRMD_DepartmentName}
                                                                 </label>
                                                             </div>
@@ -704,7 +764,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                     </FormControl>
                                                     <SelectContent>
                                                         {years.map((y: any) => (
-                                                            <SelectItem key={y.asmaY_Id || y.ASMAY_Id} value={(y.asmaY_Id || y.ASMAY_Id).toString()}>
+                                                            <SelectItem
+                                                                key={y.asmaY_Id || y.ASMAY_Id}
+                                                                value={(y.asmaY_Id || y.ASMAY_Id).toString()}>
                                                                 {y.asmaY_Year || y.ASMAY_Year}
                                                             </SelectItem>
                                                         ))}
@@ -740,7 +802,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             const nameInput = document.getElementById('temp_other_name') as HTMLInputElement;
                                             const mobileInput = document.getElementById('temp_other_mobile') as HTMLInputElement;
                                             const emailInput = document.getElementById('temp_other_email') as HTMLInputElement;
-                                            
+
                                             if (nameInput.value && mobileInput.value && emailInput.value) {
                                                 appendOther({
                                                     COEEO_Name: nameInput.value,
@@ -757,15 +819,21 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                         <Plus className='mr-2 h-4 w-4' /> Add
                                     </Button>
                                 </div>
-                                
+
                                 {otherFields.length > 0 && (
                                     <div className='mt-4 space-y-2'>
                                         {otherFields.map((field, idx) => (
-                                            <div key={field.id} className='flex items-center justify-between rounded border bg-background p-2 text-sm'>
+                                            <div
+                                                key={field.id}
+                                                className='flex items-center justify-between rounded border bg-background p-2 text-sm'>
                                                 <div className='grid flex-1 grid-cols-3 gap-4 px-2'>
                                                     <span className='font-medium'>{form.watch(`others_list.${idx}.COEEO_Name`)}</span>
-                                                    <span className='text-muted-foreground'>{form.watch(`others_list.${idx}.COEEO_MobileNo`)}</span>
-                                                    <span className='text-muted-foreground'>{form.watch(`others_list.${idx}.COEEO_Emailid`)}</span>
+                                                    <span className='text-muted-foreground'>
+                                                        {form.watch(`others_list.${idx}.COEEO_MobileNo`)}
+                                                    </span>
+                                                    <span className='text-muted-foreground'>
+                                                        {form.watch(`others_list.${idx}.COEEO_Emailid`)}
+                                                    </span>
                                                 </div>
                                                 <Button type='button' variant='ghost' size='icon' onClick={() => removeOther(idx)}>
                                                     <Trash2 className='h-4 w-4 text-destructive' />
@@ -838,7 +906,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
                     <div className='mt-8 space-y-4 border-t pt-6'>
                         <div className='flex items-center justify-between'>
-                            <FormLabel className='text-base font-semibold'>Other Document URLs</FormLabel>
+                            <FormLabel className='font-semibold text-base'>Other Document URLs</FormLabel>
                             <Button type='button' size='sm' variant='outline' onClick={() => appendUrl({ IHW_FilePath: '' })}>
                                 <Plus className='mr-2 h-4 w-4' /> Add URL
                             </Button>

@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 // Consolidated Report
-export const getConsolidatedReportDetails = async (data: any) => {
+export const getConsolidatedReportDetails = async (_data: any) => {
     return await api.get<any>('timetable', '/TTConsolidatedFacade/getalldetails');
 };
 

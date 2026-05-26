@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getSophiaMultiTCDetails() {
-    const url = `/BBKVCustomReport/getdetails`;
+    const url = '/BBKVCustomReport/getdetails';
     return await api.get<any>('admission', url);
 }
 

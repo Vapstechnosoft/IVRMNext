@@ -13,14 +13,13 @@ export async function getSuppliers(searchParams?: ApiSearchparams) {
     return await api.getArray<any>('inventory', `/INV_T_GRNFacade/loadsuppliers?${urlParams}`);
 }
 
-
 export async function getInvVendorPaymentGRNDetails(invmS_Id: number, invmgrN_Id?: number) {
     const url = `/INV_VendorPaymentFacade/getGRNdetail?INVMS_Id=${invmS_Id}&INVMGRN_Id=${invmgrN_Id || 0}`;
     return await api.get<any>('inventory', url);
 }
 
 export async function saveInvVendorPayment(data: any) {
-    const url = `/INV_VendorPaymentFacade/saveVendorPayment`;
+    const url = '/INV_VendorPaymentFacade/saveVendorPayment';
     return await api.post<any>('inventory', url, data);
 }
 
@@ -35,23 +34,24 @@ export async function getInvVendorPaymentModelDetails(invspT_Id: number) {
 }
 
 export async function getInvGRNItemDetails(invmgrN_Id: number) {
-    const url = `/INV_T_GRNFacade/get_GRNitemDetails`;
+    const url = '/INV_T_GRNFacade/get_GRNitemDetails';
     return await api.post<any>('inventory', url, { INVMGRN_Id: invmgrN_Id });
 }
 
 export async function loadVendorPayments(searchParams?: ApiSearchparams) {
-    const defaultSearchColumns = "INVMS_SupplierName,INVSPT_ModeOfPayment,INVSPT_PaymentReference,INVSPT_ChequeDDNo,INVSPT_BankName,INVSPT_Remarks";
-    
+    const defaultSearchColumns =
+        'INVMS_SupplierName,INVSPT_ModeOfPayment,INVSPT_PaymentReference,INVSPT_ChequeDDNo,INVSPT_BankName,INVSPT_Remarks';
+
     // Map sort_column to uppercase as expected by the backend facade
     const params = { ...searchParams };
     if (params.sort_column) {
         params.sort_column = params.sort_column.toUpperCase();
     }
-    
+
     const cols = params.search_columns || defaultSearchColumns;
     const urlParams = getSearchParamsUrl(params ?? {}, cols);
     const url = `/INV_VendorPaymentFacade/loadVendorPayments?${urlParams}`;
-    
+
     try {
         const response = await api.get<any>('inventory', url);
         if (response && response.success === false && response.message && response.message.toLowerCase().includes('record')) {

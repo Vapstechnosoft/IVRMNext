@@ -36,26 +36,10 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
     const { refetchAll } = useMasterFeeInstallmentDueDateList();
 
     // Debug the selected row
-    useEffect(() => {
-        console.log('=== SELECTED ROW FOR EDITING ===');
-        console.log('Full selectedRow:', JSON.stringify(selectedRow, null, 2));
-        console.log('Selected row properties:', {
-            ftidD_Id: selectedRow?.ftidD_Id,
-            ftI_Id: selectedRow?.ftI_Id,
-            fmI_Id: selectedRow?.fmI_Id,
-            asmaY_Id: selectedRow?.asmaY_Id,
-            ftI_Name: selectedRow?.ftI_Name,
-            dates: {
-                from: selectedRow?.ftidD_FromDate,
-                to: selectedRow?.ftidD_ToDate,
-                applicable: selectedRow?.ftidD_ApplicableDate,
-                due: selectedRow?.ftidD_DueDate
-            }
-        });
-    }, [selectedRow]);
+    useEffect(() => {}, [selectedRow]);
 
     const [filteredMasterInstallmentDueData, setFilteredMasterInstallmentDueData] = useState<IMasterFeesInstallmentDueDateList[]>([]);
-    const [masterInstallmentDueDataLoading, setMasterInstallmentDueDataLoading] = useState(false);
+    const [masterInstallmentDueDataLoading, _setMasterInstallmentDueDataLoading] = useState(false);
     const { data: academicYearData, isLoading: loadingAcademic } = useAcademicYearDropdown();
     const { data: installmentData, isLoading: loadingInstallment } = useMasterFeeInstallmentDropDown();
 
@@ -94,8 +78,6 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
             setFilteredMasterInstallmentDueData([]);
             return;
         }
-
-        console.log('Creating editing row from selectedRow...');
 
         // Create the row for editing with ALL required properties
         const editingRow: IMasterFeesInstallmentDueDateList = {
@@ -141,8 +123,6 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
 
             yrid: selectedRow.asmaY_Id || 0
         };
-
-        console.log('Created editing row:', editingRow);
         setFilteredMasterInstallmentDueData([editingRow]);
     };
     useEffect(() => {
@@ -200,7 +180,7 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
         }
     }
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         try {
             if (filteredMasterInstallmentDueData.length === 0) {
                 toast.error('No data to save');
@@ -222,8 +202,6 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
                     }
                 ]
             };
-
-            console.log('Update Payload:', JSON.stringify(payload, null, 2));
 
             const response = await saveInstallmentDueDate(payload);
 

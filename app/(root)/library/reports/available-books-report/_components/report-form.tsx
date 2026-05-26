@@ -1,16 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { InputText } from '@/components/ui/extension/input-text';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAvailableBooksReportInitialData } from '@/hooks/library/reports/useAvailableBooksReport';
 //import { IAvailableBooksReportRequest } from '@/types/library/reports/available-books-report';
 import type { IAvailableBooksReportRequest } from '@/types/library/reports/available-books-report';
-import { DatePicker } from '@/components/ui/date-picker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
@@ -69,7 +67,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         }
     });
 
-    const watchStatusCount = watch('statuscount');
+    const _watchStatusCount = watch('statuscount');
 
     const onSubmit = (data: ReportFormValues) => {
         const payload: IAvailableBooksReportRequest = {
@@ -78,8 +76,8 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
             Type2: data.Type2,
             LMD_Id: data.LMD_Id || 0,
             statuscount: data.statuscount,
-            Fromdate: data.statuscount && data.IssueFromDate ? data.IssueFromDate.toISOString().split('T')[0] : "2024-01-01",
-            ToDate: data.statuscount && data.IssueToDate ? data.IssueToDate.toISOString().split('T')[0] : "2025-12-31",
+            Fromdate: data.statuscount && data.IssueFromDate ? data.IssueFromDate.toISOString().split('T')[0] : '2024-01-01',
+            ToDate: data.statuscount && data.IssueToDate ? data.IssueToDate.toISOString().split('T')[0] : '2025-12-31',
             subjectsthomos: false,
             stthomosSubject: []
         };
@@ -87,10 +85,10 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-6xl space-y-8 p-8 bg-white rounded-lg shadow-sm border'>
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-6xl space-y-8 rounded-lg border bg-white p-8 shadow-sm'>
             {/* Library Name Row */}
             <div className='flex justify-center pb-4'>
-                <div className='flex items-center gap-8 w-full max-w-3xl'>
+                <div className='flex w-full max-w-3xl items-center gap-8'>
                     <Label className='min-w-[180px] text-right font-medium text-sm'>
                         Library Name:<span className='text-red-500'>*</span>
                     </Label>
@@ -114,20 +112,20 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 </Select>
                             )}
                         />
-                        {errors.LMAL_Id && <p className='text-xs text-destructive mt-1'>{errors.LMAL_Id.message}</p>}
+                        {errors.LMAL_Id && <p className='mt-1 text-destructive text-xs'>{errors.LMAL_Id.message}</p>}
                     </div>
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6'>
+            <div className='grid grid-cols-1 gap-x-12 gap-y-6 md:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-6'>
                     {/* Book Type Section */}
                     <div className='space-y-2'>
                         <div className='flex justify-center'>
-                             <Label className='font-bold text-[#3b82f6] text-sm'>BOOK TYPE :-</Label>
+                            <Label className='font-bold text-[#3b82f6] text-sm'>BOOK TYPE :-</Label>
                         </div>
-                        <div className='border rounded-md p-4 bg-gray-50/30'>
+                        <div className='rounded-md border bg-gray-50/30 p-4'>
                             <Controller
                                 control={control}
                                 name='Type'
@@ -135,31 +133,42 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     <RadioGroup
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        className='grid grid-cols-3 gap-y-4 gap-x-2'
-                                    >
+                                        className='grid grid-cols-3 gap-x-2 gap-y-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='ALL' id='bt_all' />
-                                            <Label htmlFor='bt_all' className='text-[10px] font-normal cursor-pointer'>ALL</Label>
+                                            <Label htmlFor='bt_all' className='cursor-pointer font-normal text-[10px]'>
+                                                ALL
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Issue' id='bt_issue' />
-                                            <Label htmlFor='bt_issue' className='text-[10px] font-normal cursor-pointer'>Issue</Label>
+                                            <Label htmlFor='bt_issue' className='cursor-pointer font-normal text-[10px]'>
+                                                Issue
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Issuable' id='bt_issuable' />
-                                            <Label htmlFor='bt_issuable' className='text-[10px] font-normal cursor-pointer'>Issuable</Label>
+                                            <Label htmlFor='bt_issuable' className='cursor-pointer font-normal text-[10px]'>
+                                                Issuable
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Reference' id='bt_ref' />
-                                            <Label htmlFor='bt_ref' className='text-[10px] font-normal cursor-pointer'>Not Issuable</Label>
+                                            <Label htmlFor='bt_ref' className='cursor-pointer font-normal text-[10px]'>
+                                                Not Issuable
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='ReferenceonlyIssuable' id='bt_r_iss' />
-                                            <Label htmlFor='bt_r_iss' className='text-[10px] font-normal cursor-pointer'>Reference only Issuable</Label>
+                                            <Label htmlFor='bt_r_iss' className='cursor-pointer font-normal text-[10px]'>
+                                                Reference only Issuable
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='ReferenceonlyNon-Issuable' id='bt_r_niss' />
-                                            <Label htmlFor='bt_r_niss' className='text-[10px] font-normal cursor-pointer'>Reference only Non-Issuable</Label>
+                                            <Label htmlFor='bt_r_niss' className='cursor-pointer font-normal text-[10px]'>
+                                                Reference only Non-Issuable
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 )}
@@ -172,27 +181,29 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                         <div className='flex justify-center'>
                             <Label className='font-bold text-[#3b82f6] text-sm'>SOURCE TYPE :-</Label>
                         </div>
-                        <div className='border rounded-md p-4 bg-gray-50/30'>
+                        <div className='rounded-md border bg-gray-50/30 p-4'>
                             <Controller
                                 control={control}
                                 name='Type2'
                                 render={({ field }) => (
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        className='flex justify-around'
-                                    >
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex justify-around'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='ALL' id='st_all' />
-                                            <Label htmlFor='st_all' className='text-[10px] font-normal cursor-pointer'>ALL</Label>
+                                            <Label htmlFor='st_all' className='cursor-pointer font-normal text-[10px]'>
+                                                ALL
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Purchased' id='st_pur' />
-                                            <Label htmlFor='st_pur' className='text-[10px] font-normal cursor-pointer'>Purchased</Label>
+                                            <Label htmlFor='st_pur' className='cursor-pointer font-normal text-[10px]'>
+                                                Purchased
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Donated' id='st_don' />
-                                            <Label htmlFor='st_don' className='text-[10px] font-normal cursor-pointer'>Donated</Label>
+                                            <Label htmlFor='st_don' className='cursor-pointer font-normal text-[10px]'>
+                                                Donated
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 )}
@@ -202,10 +213,10 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                 </div>
 
                 {/* Right Column */}
-                <div className='space-y-8 flex flex-col justify-start'>
+                <div className='flex flex-col justify-start space-y-8'>
                     {/* Department */}
-                    <div className='flex items-center gap-4 mt-6'>
-                        <Label className='min-w-[100px] font-medium text-right text-sm'>
+                    <div className='mt-6 flex items-center gap-4'>
+                        <Label className='min-w-[100px] text-right font-medium text-sm'>
                             Department:<span className='text-red-500'>*</span>
                         </Label>
                         <div className='flex-1'>
@@ -229,7 +240,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     </Select>
                                 )}
                             />
-                            {errors.LMD_Id && <p className='text-xs text-destructive mt-1'>{errors.LMD_Id.message}</p>}
+                            {errors.LMD_Id && <p className='mt-1 text-destructive text-xs'>{errors.LMD_Id.message}</p>}
                         </div>
                     </div>
 
@@ -239,20 +250,16 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                             <Controller
                                 control={control}
                                 name='statuscount'
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='statuscount'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='statuscount' checked={field.value} onCheckedChange={field.onChange} />}
                             />
-                            <Label htmlFor='statuscount' className='cursor-pointer font-medium text-xs'>Entry Date</Label>
+                            <Label htmlFor='statuscount' className='cursor-pointer font-medium text-xs'>
+                                Entry Date
+                            </Label>
                         </div>
 
                         <div className='flex items-center gap-4'>
-                            <Label className='min-w-[100px] font-medium text-right text-xs'>Entry Date</Label>
-                            <div className='flex-1 flex items-center gap-2'>
+                            <Label className='min-w-[100px] text-right font-medium text-xs'>Entry Date</Label>
+                            <div className='flex flex-1 items-center gap-2'>
                                 <div className='flex-1'>
                                     <Controller
                                         control={control}
@@ -267,7 +274,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                         )}
                                     />
                                 </div>
-                                <span className='text-[10px] font-bold'>AND</span>
+                                <span className='font-bold text-[10px]'>AND</span>
                                 <div className='flex-1'>
                                     <Controller
                                         control={control}
@@ -284,7 +291,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 </div>
                             </div>
                         </div>
-                        {errors.IssueFromDate && <p className='text-xs text-destructive text-center'>{errors.IssueFromDate.message}</p>}
+                        {errors.IssueFromDate && <p className='text-center text-destructive text-xs'>{errors.IssueFromDate.message}</p>}
                     </div>
                 </div>
             </div>
@@ -293,18 +300,16 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
             <div className='flex items-center justify-center gap-4 pt-8'>
                 <Button
                     type='submit'
-                    className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#4251b1] hover:bg-[#35418e] shadow-sm rounded-sm'
-                    disabled={isLoading}
-                >
+                    className='h-8 min-w-[100px] rounded-sm bg-[#4251b1] px-4 py-1 text-xs shadow-sm hover:bg-[#35418e]'
+                    disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    className='h-8 min-w-[100px] rounded-sm bg-[#ff5a30] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => reset()}
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>

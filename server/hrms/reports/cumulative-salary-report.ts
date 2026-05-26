@@ -6,7 +6,7 @@ export interface CumulativeSalaryReportRequest {
     hreS_Year: string;
     hreS_Month: string;
     hrmdeS_IdList: number[];
-    hrmdeS_Ids: string
+    hrmdeS_Ids: string;
 }
 
 export async function getCumulativeSalaryReport(data: CumulativeSalaryReportRequest) {
@@ -45,7 +45,7 @@ export async function getGroupTypes() {
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
@@ -59,7 +59,7 @@ export async function getDepartmentsByGroupType(groupTypeIds: string) {
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
@@ -72,7 +72,7 @@ export async function getDesignationsByGroupAndDept(groupTypeIds: string, deptId
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
@@ -85,16 +85,14 @@ export async function getEmployeesByDeptAndDesignation(deptIds: string, desigIds
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }
 
 // API call for Getting employees based on GroupType, Department and Designation IDs
 
-export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[],
-    deptIds: number[],
-    desigIds: number[]) {
+export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[], deptIds: number[], desigIds: number[]) {
     const requestBody = {
         hrmgT_IdList: groupTypeIds,
         hrmD_IdList: deptIds,
@@ -107,7 +105,7 @@ export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: nu
             return { success: true, data: response.data };
         }
         return { success: false, data: [] };
-    } catch (error) {
+    } catch (_error) {
         return { success: false, data: [] };
     }
 }

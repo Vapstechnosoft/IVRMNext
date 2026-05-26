@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
+import { deactivateMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterMessCategoryForm from './_components/add-form';
-import { masterMessCategoryColumns, IMasterMessCategory } from './_components/columns';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
-import { deactivateMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
+import AddMasterMessCategoryForm from './_components/add-form';
+import { type IMasterMessCategory, masterMessCategoryColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,7 @@ export default function MasterMessCategoryPage(props: { searchParams: SearchPara
 
     return (
         <FormProvider<IMasterMessCategory>>
-            <PageContent
-                categoryList={categoryList}
-                isLoading={isLoading}
-                refetch={refetch}
-            />
+            <PageContent categoryList={categoryList} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -109,7 +105,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterMessCategoryForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <AddMasterMessCategoryForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -135,7 +136,10 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                             </Button>
                             <AddMasterMessCategoryForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -143,17 +147,17 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
             )}
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterMessCategoryForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterMessCategoryForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterMessCategoryForm({ rowData, onClose, onSuccess }: { rowData: IMasterMessCategory, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterMessCategoryForm({
+    rowData,
+    onClose,
+    onSuccess
+}: { rowData: IMasterMessCategory; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deactivateMessCategory(rowData.hlmmC_Id);
@@ -163,7 +167,7 @@ function ToggleMasterMessCategoryForm({ rowData, onClose, onSuccess }: { rowData
             } else {
                 toast.error(result.message);
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to update status');
         } finally {
             onClose();

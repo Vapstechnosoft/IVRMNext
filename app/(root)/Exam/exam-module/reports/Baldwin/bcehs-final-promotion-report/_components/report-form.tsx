@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getBCEHSFinalPromotionReport,
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/Baldwin/bcehs-final-promotion-report';
 import { getStudentsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +48,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingSection, setLoadingSection] = useState(false);
+    const [loadingSection, _setLoadingSection] = useState(false);
 
     const methods = useForm<BCEHSFormValues>({
         resolver: zodResolver(bcehsSchema),
@@ -145,7 +145,10 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
 
     const handleSelectAll = (checked: boolean) => {
         if (checked && students.length) {
-            setValue('selectedStudents', students.map(s => String(s.amsT_Id)));
+            setValue(
+                'selectedStudents',
+                students.map((s) => String(s.amsT_Id))
+            );
             setAllSelected(true);
         } else {
             setValue('selectedStudents', []);
@@ -161,13 +164,11 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
             // Working: formData.workingDays,
             // Workingtwo: formData.presentDays,
             // dontshowrank: formData.dontShowRank,
-            Temp_AmstIds: formData.selectedStudents.map(id => ({ amsT_Id: Number(id) }))
+            Temp_AmstIds: formData.selectedStudents.map((id) => ({ amsT_Id: Number(id) }))
         };
-        console.log('getBCEHSFinalPromotionReport payload', payload);
 
         try {
             const response = await getBCEHSFinalPromotionReport(payload);
-            console.log('response', response);
             const yearName = academicYears.find((y: any) => String(y.asmaY_Id) === formData.ASMAY_Id)?.asmaY_Year || '';
             const className = classes.find((c: any) => String(c.asmcL_Id) === formData.ASMCL_Id)?.asmcL_ClassName || '';
             const sectionName = sections.find((s: any) => String(s.asmS_Id) === formData.ASMS_Id)?.asmC_SectionName || '';
@@ -195,33 +196,41 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     };
 
     return (
-        <div className="mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md">
-            <div className="mb-4 flex items-center justify-between border-b pb-2">
-                <h3 className="font-semibold text-gray-800 text-lg">Report Filters</h3>
+        <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
+            <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                <h3 className='font-semibold text-gray-800 text-lg'>Report Filters</h3>
             </div>
 
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* ── Left Column ───────────────────────────────── */}
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Academic Year <span className="text-red-500">*</span></Label>
+                        <div className='space-y-4'>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYearLoading ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : (
                                                         academicYears.map((y: any) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                {y.asmaY_Year}
+                                                            </SelectItem>
                                                         ))
-                                                    }
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -230,23 +239,31 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Class <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMCL_Id"
+                                    name='ASMCL_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Class" />
+                                                    <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingClasses ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                                    {loadingClasses ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : (
                                                         classes.map((c: any) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
+                                                            </SelectItem>
                                                         ))
-                                                    }
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -255,23 +272,31 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Section <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMS_Id"
+                                    name='ASMS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Section" />
+                                                    <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingSections ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                                    {loadingSections ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : (
                                                         sections.map((s: any) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                {s.asmC_SectionName}
+                                                            </SelectItem>
                                                         ))
-                                                    }
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -280,62 +305,54 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                            <div className='grid grid-cols-2 gap-4'>
+                                <div className='space-y-2'>
                                     <Label>Working Days</Label>
                                     <Controller
                                         control={control}
-                                        name="workingDays"
-                                        render={({ field }) => (
-                                            <Input {...field} placeholder="Working Days" />
-                                        )}
+                                        name='workingDays'
+                                        render={({ field }) => <Input {...field} placeholder='Working Days' />}
                                     />
                                 </div>
-                                <div className="space-y-2">
+                                <div className='space-y-2'>
                                     <Label>Present Days</Label>
                                     <Controller
                                         control={control}
-                                        name="presentDays"
-                                        render={({ field }) => (
-                                            <Input {...field} placeholder="Present Days" />
-                                        )}
+                                        name='presentDays'
+                                        render={({ field }) => <Input {...field} placeholder='Present Days' />}
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2 pt-2">
+                            <div className='flex items-center space-x-2 pt-2'>
                                 <Controller
                                     control={control}
-                                    name="dontShowRank"
+                                    name='dontShowRank'
                                     render={({ field }) => (
-                                        <Checkbox
-                                            id="dontShowRank"
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
+                                        <Checkbox id='dontShowRank' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor="dontShowRank" className="cursor-pointer">Don't Show Rank</Label>
+                                <Label htmlFor='dontShowRank' className='cursor-pointer'>
+                                    Don't Show Rank
+                                </Label>
                             </div>
                         </div>
 
                         {/* ── Right Column: Multi-select ────────────────── */}
-                        <div className="space-y-4">
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        checked={allSelected}
-                                        onCheckedChange={handleSelectAll}
-                                        id="selectAll"
-                                    />
-                                    <Label htmlFor="selectAll" className="font-medium">Student <span className="text-red-500">*</span></Label>
+                        <div className='space-y-4'>
+                            <div className='flex flex-col gap-2'>
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox checked={allSelected} onCheckedChange={handleSelectAll} id='selectAll' />
+                                    <Label htmlFor='selectAll' className='font-medium'>
+                                        Student <span className='text-red-500'>*</span>
+                                    </Label>
                                 </div>
 
                                 <Controller
                                     control={control}
-                                    name="selectedStudents"
+                                    name='selectedStudents'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex-1">
+                                        <div className='flex-1'>
                                             <CustomMultiSelectBox
                                                 options={students.map((s) => ({
                                                     label: `${s.studentName} / ${s.amsT_AdmNo}`,
@@ -346,8 +363,8 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                                                     setAllSelected(vals.length === students.length && students.length > 0);
                                                 }}
                                                 value={field.value}
-                                                placeholder={loadingSection ? "Loading students..." : "Select Students"}
-                                                height="250px"
+                                                placeholder={loadingSection ? 'Loading students...' : 'Select Students'}
+                                                height='250px'
                                                 isSearchRequired
                                                 error={fieldState.error?.message}
                                             />
@@ -358,17 +375,12 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                         </div>
                     </div>
 
-                    <div className="mt-8 flex justify-center gap-4 border-t pt-6">
-                        <Button type="submit" disabled={isSubmitting} className="min-w-[100px]">
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
+                        <Button type='submit' disabled={isSubmitting} className='min-w-[100px]'>
+                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                            className="min-w-[100px]">
+                        <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting} className='min-w-[100px]'>
                             Cancel
                         </Button>
                     </div>

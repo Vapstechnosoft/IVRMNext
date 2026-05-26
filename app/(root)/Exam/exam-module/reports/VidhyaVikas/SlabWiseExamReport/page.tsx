@@ -1,11 +1,11 @@
 'use client';
 
+import type { SlabWiseExamReportValues } from '@/schemas/exam/exam-module/reports/vidhya-vikas/slab-wise-exam-report.schema';
+import { getSlabReport } from '@/server/exam/exam-module/reports/slab-wise-exam-report';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import SlabWiseExamReportForm from './_components/add-form';
 import ReportTable from './_components/report-table';
-import { type SlabWiseExamReportValues } from '@/schemas/exam/exam-module/reports/vidhya-vikas/slab-wise-exam-report.schema';
-import { getSlabReport } from '@/server/exam/exam-module/reports/slab-wise-exam-report';
 
 export default function SlabWiseExamReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -63,7 +63,7 @@ export default function SlabWiseExamReportPage() {
                 });
             } else {
                 // Provide dummy data if real data is empty or request fails
-                toast.info("No real data found, showing dummy data for preview");
+                toast.info('No real data found, showing dummy data for preview');
                 setReportData(getDummyData(values));
                 setLastConfig({
                     type: values.reporttype,
@@ -71,8 +71,8 @@ export default function SlabWiseExamReportPage() {
                     to: values.tomarks
                 });
             }
-        } catch (error) {
-            toast.info("An error occurred. Showing dummy data for preview");
+        } catch (_error) {
+            toast.info('An error occurred. Showing dummy data for preview');
             setReportData(getDummyData(values));
             setLastConfig({
                 type: values.reporttype,
@@ -85,7 +85,7 @@ export default function SlabWiseExamReportPage() {
     const handlePrint = () => {
         const printContent = document.getElementById('slab-report-container');
         if (!printContent) {
-            toast.error("Nothing to print! Please generate the report first.");
+            toast.error('Nothing to print! Please generate the report first.');
             return;
         }
 
@@ -120,21 +120,16 @@ export default function SlabWiseExamReportPage() {
     };
 
     return (
-        <div className="container mx-auto py-8">
-            <div className="mb-8">
-                <h1 className="font-extrabold text-3xl tracking-tight">Slab Wise Exam Report</h1>
-                <p className="mt-2 text-muted-foreground">Generate and view slab-wise marks and percentage reports.</p>
+        <div className='container mx-auto py-8'>
+            <div className='mb-8'>
+                <h1 className='font-extrabold text-3xl tracking-tight'>Slab Wise Exam Report</h1>
+                <p className='mt-2 text-muted-foreground'>Generate and view slab-wise marks and percentage reports.</p>
             </div>
 
             <SlabWiseExamReportForm onSuccess={handleFetchReport} onPrint={handlePrint} />
 
             {reportData.length > 0 && lastConfig && (
-                <ReportTable
-                    data={reportData}
-                    reportType={lastConfig.type}
-                    fromRange={lastConfig.from}
-                    toRange={lastConfig.to}
-                />
+                <ReportTable data={reportData} reportType={lastConfig.type} fromRange={lastConfig.from} toRange={lastConfig.to} />
             )}
         </div>
     );

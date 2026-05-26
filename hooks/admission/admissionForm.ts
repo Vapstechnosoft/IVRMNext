@@ -1,8 +1,8 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getAllAdmissionLists, getStudentAdmissionFormById, getAdmissionFormDetails } from '@/server/admission/admission-form/admission';
+import { getAdmissionFormDetails, getAllAdmissionLists, getStudentAdmissionFormById } from '@/server/admission/admission-form/admission';
 
-import { IadmissionFormDetails } from '@/types/admission/admission';
-import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
+import type { IadmissionFormDetails } from '@/types/admission/admission';
+import { type UseQueryResult, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ApiSearchparams } from '@/types';
 
@@ -61,7 +61,7 @@ export const useAdmissionFormDetails = (): UseQueryResult<IadmissionFormDetails>
     } as any;
 };
 
-import { onchangeclassApi, onchangestreamApi, getCasteByCasteCategoryApi } from '@/server/admission/admission-form/admission';
+import { getCasteByCasteCategoryApi, onchangeclassApi, onchangestreamApi } from '@/server/admission/admission-form/admission';
 
 export const useOnChangeClass = (classId: number, asmayId: number) => {
     return useQuery({

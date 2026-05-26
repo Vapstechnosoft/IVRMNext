@@ -36,7 +36,6 @@ export default function StaffReplacementGrid({ onFetch }: StaffReplacementGridPr
     /* -------------------- MASTER DATA -------------------- */
     // Using the hook for staff data
     const { data: staffData, isLoading: staffLoading } = useStaffDropDown();
-    console.log('Staff Dropdown', JSON.stringify(staffData));
 
     /* -------------------- HANDLERS -------------------- */
     const onSubmit = (data: FormValues) => {
@@ -110,4 +109,3 @@ export default function StaffReplacementGrid({ onFetch }: StaffReplacementGridPr
         </div>
     );
 }
-

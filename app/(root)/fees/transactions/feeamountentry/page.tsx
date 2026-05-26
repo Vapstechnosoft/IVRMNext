@@ -17,8 +17,6 @@ export default function MasterFeeAmountEntryPage(props: { searchParams: SearchPa
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useFeeAmountEntry(searchParams);
 
-    console.log(response);
-
     return (
         <FormProvider<IFeeAmountEntryList>>
             <MasterFeeAmountEntryPageContent response={response} isLoading={isLoading} error={error} />

@@ -12,9 +12,9 @@ import {
 import { getStjamesConsolidatedReport } from '@/server/exam/exam-module/reports/stjames-consolidated-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
 interface ReportFormProps {
@@ -86,22 +86,23 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 mI_Id: (session?.user as any)?.mi_id || (session?.user as any)?.mI_Id || 0,
                 asmaY_Id: Number(data.asmaY_Id),
                 asmcL_Id: Number(data.asmcL_Id),
-                asmS_Id: Number(data.asmS_Id),
+                asmS_Id: Number(data.asmS_Id)
             };
-            console.log("payload>>>>", payload);
             const response = await getStjamesConsolidatedReport(payload);
-            console.log("response>>>>", response);
             if (response?.success && response.data) {
                 const asmaY_Year = academicYears.find((y: any) => String(y.asmaY_Id) === String(data.asmaY_Id))?.asmaY_Year || '';
                 const asmcL_ClassName = classes.find((c: any) => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || '';
                 const asmC_SectionName = sections.find((s: any) => String(s.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || '';
 
-                onReportGenerated({
-                    ...response.data,
-                    asmaY_Year,
-                    asmcL_ClassName,
-                    asmC_SectionName
-                }, data);
+                onReportGenerated(
+                    {
+                        ...response.data,
+                        asmaY_Year,
+                        asmcL_ClassName,
+                        asmC_SectionName
+                    },
+                    data
+                );
                 toast.success('Report generated successfully');
             } else {
                 toast.error(response?.message || 'No data found for the selected criteria');
@@ -116,7 +117,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         reset({
             asmaY_Id: 0 as any,
             asmcL_Id: 0 as any,
-            asmS_Id: 0 as any,
+            asmS_Id: 0 as any
         });
         setClasses([]);
         setSections([]);
@@ -183,7 +184,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                 name='asmcL_Id'
                                 render={({ field, fieldState }) => (
                                     <>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                        <Select
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value ? String(field.value) : ''}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
@@ -221,7 +224,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                 name='asmS_Id'
                                 render={({ field, fieldState }) => (
                                     <>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
+                                        <Select
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value ? String(field.value) : ''}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
@@ -250,8 +255,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                         </div>
 
                         {/* Empty cell for layout */}
-                        <div className="hidden md:block"></div>
-
+                        <div className='hidden md:block' />
                     </div>
 
                     <div className='mt-8 flex justify-center gap-4 border-t pt-6'>

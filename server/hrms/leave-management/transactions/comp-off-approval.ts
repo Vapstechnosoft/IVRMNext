@@ -1,6 +1,6 @@
 'use server';
-import { createLocalCrud } from '@/lib/localdb';
 import type { CompOffApproval } from '@/app/(root)/hrms/leave-management/transaction/comp-off-approval/_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
 export async function getCompOffApproval() {
     const db = createLocalCrud<CompOffApproval>('compOffApproval');
     const data = db.list();
@@ -14,8 +14,8 @@ export async function updateCompOffApprovalStatus(id: number, hrStatus: string, 
     const db = createLocalCrud<CompOffApproval>('compOffApproval');
     const item = db.findById(id);
     if (item) {
-        db.update(id, { 
-            ...item, 
+        db.update(id, {
+            ...item,
             hrStatus: hrStatus as 'Pending' | 'Approved' | 'Rejected',
             approverRemarks: approverRemarks || item.approverRemarks
         });

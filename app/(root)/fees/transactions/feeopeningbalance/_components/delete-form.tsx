@@ -42,7 +42,7 @@ export default function DeleteOpeningBalanceForm({ rowData, onClose, onSuccess, 
     const onSubmit = async () => {
         try {
             const id = rowData.fmoB_Id || rowData.fmC_Id;
-            const isPDA = !!rowData.fmoB_Id; // fmoB_Id = PDA, fmC_Id = Fee
+            const _isPDA = !!rowData.fmoB_Id; // fmoB_Id = PDA, fmC_Id = Fee
 
             // const response = await deleteOpeningBalance(isPDA ? 'PDA' : 'Fee', id);
 

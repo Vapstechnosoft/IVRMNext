@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
 import { Button } from '@/components/ui/button';
-import { Minus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Save, X } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface PrivilegeGridProps {
     data: PageDTO[];
@@ -18,7 +18,7 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
     const [data, setData] = useState<PageDTO[]>(initialData);
     const [isOpen, setIsOpen] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, _setItemsPerPage] = useState(5);
 
     // Global toggle states
     const [addAll, setAddAll] = useState(false);
@@ -45,14 +45,14 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
 
     // Toggle All Logic
     const toggleAllColumn = (key: keyof PageDTO, checked: boolean) => {
-        const newData = data.map(item => ({ ...item, [key]: checked }));
+        const newData = data.map((item) => ({ ...item, [key]: checked }));
         setData(newData);
         onUpdate(newData);
     };
 
     // Toggle Individual Logic
     const toggleRow = (id: number, key: keyof PageDTO, checked: boolean) => {
-        const newData = data.map(item => item.ivrmP_Id === id ? { ...item, [key]: checked } : item);
+        const newData = data.map((item) => (item.ivrmP_Id === id ? { ...item, [key]: checked } : item));
         setData(newData);
         onUpdate(newData);
     };
@@ -63,14 +63,14 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
     const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
 
     return (
-        <div className="box box-primary mt-4 border rounded-md shadow-sm">
-            <div className="box-header with-border p-3 border-b flex justify-between items-center bg-gray-50">
-                <h3 className="box-title text-lg font-medium">SELECTED INSTITUTE ROLE</h3>
-                <div className="box-tools pull-right">
+        <div className='box box-primary mt-4 rounded-md border shadow-sm'>
+            <div className='box-header with-border flex items-center justify-between border-b bg-gray-50 p-3'>
+                <h3 className='box-title font-medium text-lg'>SELECTED INSTITUTE ROLE</h3>
+                <div className='box-tools pull-right'>
                     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                         <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="btn-box-tool">
-                                <Minus className="h-4 w-4" />
+                            <Button variant='ghost' size='sm' className='btn-box-tool'>
+                                <Minus className='h-4 w-4' />
                             </Button>
                         </CollapsibleTrigger>
                     </Collapsible>
@@ -79,13 +79,17 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
 
             <Collapsible open={isOpen}>
                 <CollapsibleContent>
-                    <div className="box-body p-4">
-                        <div className="overflow-x-auto">
-                            <table className="table w-full text-sm text-center table-hover table-bordered border-collapse">
-                                <thead className="bg-gray-100 font-bold">
+                    <div className='box-body p-4'>
+                        <div className='overflow-x-auto'>
+                            <table className='table-hover table-bordered table w-full border-collapse text-center text-sm'>
+                                <thead className='bg-gray-100 font-bold'>
                                     <tr>
-                                        <th className="p-2 border">SL.NO</th>
-                                        <th className="p-2 border cursor-pointer text-blue-600" onClick={() => handleSort('ivrmmP_PageName')}>Page Name</th>
+                                        <th className='border p-2'>SL.NO</th>
+                                        <th
+                                            className='cursor-pointer border p-2 text-blue-600'
+                                            onClick={() => handleSort('ivrmmP_PageName')}>
+                                            Page Name
+                                        </th>
                                         {/* Dynamic Headers with "Select All" logic */}
                                         {[
                                             { key: 'ivrmrP_AddFlag', label: 'Add', state: addAll, setState: setAddAll },
@@ -93,18 +97,22 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
                                             { key: 'ivrmrP_UpdateFlag', label: 'Update', state: updateAll, setState: setUpdateAll },
                                             { key: 'ivrmrP_ProcessFlag', label: 'Process', state: processAll, setState: setProcessAll },
                                             { key: 'ivrmrP_ReportFlag', label: 'Report', state: reportAll, setState: setReportAll },
-                                            { key: 'ivrmrP_SearchFlag', label: 'Search', state: searchAll, setState: setSearchAll },
+                                            { key: 'ivrmrP_SearchFlag', label: 'Search', state: searchAll, setState: setSearchAll }
                                         ].map((col) => (
-                                            <th key={col.key} className="p-2 border">
-                                                <div className="flex flex-col items-center">
-                                                    <span className="cursor-pointer text-blue-600" onClick={() => handleSort(col.key as keyof PageDTO)}>{col.label}</span>
+                                            <th key={col.key} className='border p-2'>
+                                                <div className='flex flex-col items-center'>
+                                                    <span
+                                                        className='cursor-pointer text-blue-600'
+                                                        onClick={() => handleSort(col.key as keyof PageDTO)}>
+                                                        {col.label}
+                                                    </span>
                                                     <Checkbox
                                                         checked={col.state}
                                                         onCheckedChange={(c) => {
                                                             col.setState(c as boolean);
                                                             toggleAllColumn(col.key as keyof PageDTO, c as boolean);
                                                         }}
-                                                        className="mt-1"
+                                                        className='mt-1'
                                                     />
                                                 </div>
                                             </th>
@@ -114,47 +122,88 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
                                 <tbody>
                                     {paginatedData.map((item, index) => (
                                         <tr key={item.ivrmP_Id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                            <td className="p-2 border">{startIndex + index + 1}</td>
-                                            <td className="p-2 border text-left">{item.ivrmmP_PageName}</td>
-                                            {['ivrmrP_AddFlag', 'ivrmrP_DeleteFlag', 'ivrmrP_UpdateFlag', 'ivrmrP_ProcessFlag', 'ivrmrP_ReportFlag', 'ivrmrP_SearchFlag'].map((flagKey) => (
-                                                <td key={flagKey} className="p-2 border">
+                                            <td className='border p-2'>{startIndex + index + 1}</td>
+                                            <td className='border p-2 text-left'>{item.ivrmmP_PageName}</td>
+                                            {[
+                                                'ivrmrP_AddFlag',
+                                                'ivrmrP_DeleteFlag',
+                                                'ivrmrP_UpdateFlag',
+                                                'ivrmrP_ProcessFlag',
+                                                'ivrmrP_ReportFlag',
+                                                'ivrmrP_SearchFlag'
+                                            ].map((flagKey) => (
+                                                <td key={flagKey} className='border p-2'>
                                                     <Checkbox
                                                         checked={!!item[flagKey as keyof PageDTO]}
-                                                        onCheckedChange={(c) => toggleRow(item.ivrmP_Id, flagKey as keyof PageDTO, c as boolean)}
+                                                        onCheckedChange={(c) =>
+                                                            toggleRow(item.ivrmP_Id, flagKey as keyof PageDTO, c as boolean)
+                                                        }
                                                     />
                                                 </td>
                                             ))}
                                         </tr>
                                     ))}
                                     {paginatedData.length === 0 && (
-                                        <tr><td colSpan={8} className="text-center p-4">No Data Selected</td></tr>
+                                        <tr>
+                                            <td colSpan={8} className='p-4 text-center'>
+                                                No Data Selected
+                                            </td>
+                                        </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex justify-between items-center mt-4 mb-4">
-                            <div className="text-sm text-muted-foreground">
+                        <div className='mt-4 mb-4 flex items-center justify-between'>
+                            <div className='text-muted-foreground text-sm'>
                                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, data.length)} of {data.length} entries
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
+                            <div className='flex items-center space-x-2'>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='h-8 w-8'
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={currentPage === 1}>
+                                    <ChevronsLeft className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='h-8 w-8'
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}>
+                                    <ChevronLeft className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='h-8 w-8'
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}>
+                                    <ChevronRight className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    variant='outline'
+                                    size='icon'
+                                    className='h-8 w-8'
+                                    onClick={() => setCurrentPage(totalPages)}
+                                    disabled={currentPage === totalPages}>
+                                    <ChevronsRight className='h-4 w-4' />
+                                </Button>
                             </div>
                         </div>
 
-                        <hr className="my-4" />
+                        <hr className='my-4' />
 
                         {/* Actions */}
-                        <div className="flex justify-center gap-4">
-                            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => onSave(data)}>
-                                <Save className="mr-2 h-4 w-4" /> Save
+                        <div className='flex justify-center gap-4'>
+                            <Button className='bg-blue-600 text-white hover:bg-blue-700' onClick={() => onSave(data)}>
+                                <Save className='mr-2 h-4 w-4' /> Save
                             </Button>
-                            <Button variant="destructive" onClick={onCancel}>
-                                <X className="mr-2 h-4 w-4" /> Cancel
+                            <Button variant='destructive' onClick={onCancel}>
+                                <X className='mr-2 h-4 w-4' /> Cancel
                             </Button>
                         </div>
                     </div>

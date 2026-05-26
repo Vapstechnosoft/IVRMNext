@@ -1,6 +1,4 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type { StudentGatePassInitialData } from '@/types/visitors-management/transactions';
 
@@ -34,17 +32,16 @@ export async function getStudentGatePassData(): Promise<ApiResponse<StudentGateP
             }
         ]
     };
-    
+
     return {
         success: true,
         message: 'Data fetched successfully',
-        data: mockData,
+        data: mockData
     };
 }
 
-export async function saveStudentGatePass(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Student Gate Pass:', data);
-    await new Promise(resolve => setTimeout(resolve, 800));
+export async function saveStudentGatePass(_data: any): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return {
         success: true,
         message: 'Gate Pass Generated Successfully!!!',
@@ -52,8 +49,8 @@ export async function saveStudentGatePass(data: any): Promise<ApiResponse<any>> 
     };
 }
 
-export async function deactivateStudentGatePass(gphS_Id: number): Promise<ApiResponse<any>> {
-    await new Promise(resolve => setTimeout(resolve, 800));
+export async function deactivateStudentGatePass(_gphS_Id: number): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return {
         success: true,
         message: 'Status Changed Successfully!!!',
@@ -62,7 +59,7 @@ export async function deactivateStudentGatePass(gphS_Id: number): Promise<ApiRes
 }
 
 // Reuse methods if needed for classes, sections, students
-export async function getGatePassClasses(asmaY_Id: number): Promise<ApiResponse<any>> {
+export async function getGatePassClasses(_asmaY_Id: number): Promise<ApiResponse<any>> {
     return {
         success: true,
         message: 'Classes fetched',
@@ -75,7 +72,7 @@ export async function getGatePassClasses(asmaY_Id: number): Promise<ApiResponse<
     };
 }
 
-export async function getGatePassSections(asmaY_Id: number, asmcL_Id: number): Promise<ApiResponse<any>> {
+export async function getGatePassSections(_asmaY_Id: number, _asmcL_Id: number): Promise<ApiResponse<any>> {
     return {
         success: true,
         message: 'Sections fetched',
@@ -88,7 +85,7 @@ export async function getGatePassSections(asmaY_Id: number, asmcL_Id: number): P
     };
 }
 
-export async function getGatePassStudents(asmaY_Id: number, asmcL_Id: number, asmS_Id: number): Promise<ApiResponse<any>> {
+export async function getGatePassStudents(_asmaY_Id: number, _asmcL_Id: number, _asmS_Id: number): Promise<ApiResponse<any>> {
     return {
         success: true,
         message: 'Students fetched',

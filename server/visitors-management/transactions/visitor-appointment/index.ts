@@ -1,6 +1,4 @@
 'use server';
-
-import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type { VisitorAppointmentInitialData } from '@/types/visitors-management/transactions';
 
@@ -10,7 +8,7 @@ export async function getVisitorAppointmentData(): Promise<ApiResponse<VisitorAp
         emplist: [
             { hrmE_Id: 1, hrmE_EmployeeFirstName: 'Staff A' },
             { hrmE_Id: 2, hrmE_EmployeeFirstName: 'Staff B' },
-            { hrmE_Id: 3, hrmE_EmployeeFirstName: 'Principal' },
+            { hrmE_Id: 3, hrmE_EmployeeFirstName: 'Principal' }
         ],
         getdata: [
             {
@@ -44,16 +42,15 @@ export async function getVisitorAppointmentData(): Promise<ApiResponse<VisitorAp
             }
         ]
     };
-     return {
+    return {
         success: true,
         message: 'Data fetched successfully',
-        data: mockData,
+        data: mockData
     };
 }
 
-export async function saveVisitorAppointment(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Appt:', data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+export async function saveVisitorAppointment(_data: any): Promise<ApiResponse<any>> {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,
         message: 'Appointment Saved Successfully',

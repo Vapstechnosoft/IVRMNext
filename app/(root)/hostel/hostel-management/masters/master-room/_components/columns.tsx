@@ -3,13 +3,13 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import type { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { ViewFacilitiesModal } from './view-modals';
-import { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 
-const columnHelper = createColumnHelper<IRoomDisplay>();
+const _columnHelper = createColumnHelper<IRoomDisplay>();
 
 export const masterRoomColumns: ColumnDef<IRoomDisplay, any>[] = [
     {
@@ -38,12 +38,12 @@ export const masterRoomColumns: ColumnDef<IRoomDisplay, any>[] = [
     {
         accessorKey: 'hrmrM_SharingFlg',
         header: ({ column }) => <ColumnHeader column={column} title='Sharing' />,
-        cell: (info) => info.getValue() ? 'Yes' : 'No'
+        cell: (info) => (info.getValue() ? 'Yes' : 'No')
     },
     {
         accessorKey: 'hrmrM_ACFlg',
         header: ({ column }) => <ColumnHeader column={column} title='Room Type' />,
-        cell: (info) => info.getValue() ? 'AC' : 'Non-AC'
+        cell: (info) => (info.getValue() ? 'AC' : 'Non-AC')
     },
     {
         accessorKey: 'hrmrM_RoomNo',
@@ -71,19 +71,12 @@ function ViewFacilitiesCell({ rowData }: { rowData: IRoomDisplay }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Facility
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Facility
             </button>
-            {isOpen && (
-                <ViewFacilitiesModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    room={rowData}
-                />
-            )}
+            {isOpen && <ViewFacilitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} room={rowData} />}
         </>
     );
 }

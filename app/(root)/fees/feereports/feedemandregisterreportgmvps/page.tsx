@@ -50,7 +50,7 @@ export default function FeeDemandRegisterReportGMVPS() {
         }
     });
 
-    const [submitClicked, setSubmitClicked] = useState(false);
+    const [_submitClicked, setSubmitClicked] = useState(false);
 
     const report = useWatch({ control, name: 'report' });
     const reportdate = useWatch({ control, name: 'reportdate' });
@@ -68,22 +68,22 @@ export default function FeeDemandRegisterReportGMVPS() {
     const asmayId = watch('asmaY_Id');
     const amscL_Id = watch('asmcL_Id');
     const asms_Id = watch('asms_Id');
-    const asmt_Id = watch('asmt_Id');
+    const _asmt_Id = watch('asmt_Id');
     const [refreshAY, setRefreshAY] = useState(0);
-    const [tableSumRow, setTableSumRow] = useState<any>(null);
+    const [tableSumRow, _setTableSumRow] = useState<any>(null);
 
-    const [reporttype, setReportType] = useState('');
+    const [_reporttype, setReportType] = useState('');
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
-    const [groupManualLoading, setGroupManualLoading] = useState(false);
+    const [_groupManualLoading, _setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
     const [section, setSection] = useState<any[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
     const [studentid, setstudentids] = useState<any>([]);
     const [studentLoading, setstudentsloading] = useState(false);
-    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [selectedAsmayId, _setSelectedAsmayId] = useState<number | null>(null);
     const [filters, setFilters] = useState({
         customGroupIds: [] as number[],
         feeGroupIds: [] as number[],
@@ -232,7 +232,7 @@ export default function FeeDemandRegisterReportGMVPS() {
     const [loading, setLoading] = useState(false);
     const [tableColumns, setTableColumns] = useState<string[]>([]);
     const [tableRows, setTableRows] = useState<any[]>([]);
-    const [showTable, setShowTable] = useState(false);
+    const [_showTable, setShowTable] = useState(false);
 
     const handlePrint = () => {
         //  printTable(tableColumns, tableRows, tableSumRow);
@@ -280,7 +280,6 @@ export default function FeeDemandRegisterReportGMVPS() {
                 asmS_Id: data.asms_Id,
                 amsT_Id: data.asmt_Id
             };
-            console.log('payload', payload);
             const response = await getFeeDemandRegisterGMVPS(payload);
 
             const rawData: any = response?.data;

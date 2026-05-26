@@ -7,8 +7,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useEmployeeLateInEarlyOutReport } from '@/hooks/hrms/attendance-management/useReports';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, X } from 'lucide-react';
-import { useMemo, use } from 'react';
+import { FileSpreadsheet } from 'lucide-react';
+import { use, useMemo } from 'react';
 import AddEmployeeLateInEarlyOutReportForm from './_components/add-from';
 import type { LIEORow } from './_components/columns';
 import { getEmployeeLateInEarlyOutReportColumns } from './_components/columns';
@@ -23,12 +23,7 @@ export default function EmployeeLateInEarlyOutReportPage(props: {
 
     return (
         <FormProvider<LIEORow>>
-            <EmployeeLateInEarlyOutReportPageContent 
-                response={response} 
-                isLoading={isLoading} 
-                error={error} 
-                searchParams={searchParams} 
-            />
+            <EmployeeLateInEarlyOutReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
         </FormProvider>
     );
 }
@@ -77,7 +72,7 @@ function EmployeeLateInEarlyOutReportPageContent({
         reportData.forEach((row: any) => {
             const empId = row.hrmE_Id;
             const dateStr = row.punchdate?.split('T')[0];
-            
+
             if (dateStr) {
                 dateSet.add(dateStr);
             }
@@ -128,8 +123,8 @@ function EmployeeLateInEarlyOutReportPageContent({
     }, [response]);
 
     const tableProps = useDataTableProps(transformedResponse);
-    const dynamicColumns = useMemo(() => 
-        getEmployeeLateInEarlyOutReportColumns(transformedResponse.columnnames, transformedResponse.mode),
+    const dynamicColumns = useMemo(
+        () => getEmployeeLateInEarlyOutReportColumns(transformedResponse.columnnames, transformedResponse.mode),
         [transformedResponse.columnnames, transformedResponse.mode]
     );
 
@@ -137,7 +132,7 @@ function EmployeeLateInEarlyOutReportPageContent({
         if (!dateString) return '';
         try {
             return format(new Date(dateString), 'dd-MM-yyyy');
-        } catch (e) {
+        } catch (_e) {
             return dateString;
         }
     };
@@ -153,14 +148,14 @@ function EmployeeLateInEarlyOutReportPageContent({
             const exportRow: any = {
                 'Sl.No': index + 1,
                 'Employee Name': row.ename,
-                'Code': row.ecode,
-                'Designation': row.desgname
+                Code: row.ecode,
+                Designation: row.desgname
             };
 
-            columnnames.forEach(dateStr => {
+            columnnames.forEach((dateStr) => {
                 const val = row[dateStr];
                 const header = format(new Date(dateStr), 'dd-MMM EEE');
-                
+
                 if (mode === 'Late In Early Out' && typeof val === 'object') {
                     exportRow[header] = `In: ${val.in}, Out: ${val.out}`;
                 } else {
@@ -174,9 +169,7 @@ function EmployeeLateInEarlyOutReportPageContent({
         exportToExcel(exportData, `Employee_${(mode || 'LIEO').replace(/\s+/g, '_')}_Report`);
     };
 
-    const headerTitle = transformedResponse.mode 
-        ? `Employee ${transformedResponse.mode} Report` 
-        : 'Employee Late In/Early Out Report';
+    const headerTitle = transformedResponse.mode ? `Employee ${transformedResponse.mode} Report` : 'Employee Late In/Early Out Report';
 
     return (
         <div className='min-h-screen'>
@@ -188,21 +181,21 @@ function EmployeeLateInEarlyOutReportPageContent({
                 {transformedResponse.data.length > 0 && (
                     <div className='mt-8 space-y-4 rounded-lg bg-white p-6 shadow'>
                         <div className='flex items-center justify-between border-b pb-4'>
-                            <h2 className='font-semibold text-lg text-gray-800'>Report Results</h2>
+                            <h2 className='font-semibold text-gray-800 text-lg'>Report Results</h2>
                             <div className='flex gap-2'>
                                 <Button
                                     variant='outline'
                                     size='sm'
                                     onClick={handleExportToExcel}
-                                    className='bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 transition-all duration-200'>
+                                    className='bg-green-50 text-green-700 transition-all duration-200 hover:bg-green-100 hover:text-green-800'>
                                     <FileSpreadsheet className='mr-2 h-4 w-4' />
                                     Export Excel
                                 </Button>
                             </div>
                         </div>
 
-                        <div className="rounded-md shadow-sm ">
-                            <div className="bg-gray-400 py-2 px-4 mb-4 text-center text-black font-bold text-sm tracking-wide shadow-inner">
+                        <div className='rounded-md shadow-sm '>
+                            <div className='mb-4 bg-gray-400 px-4 py-2 text-center font-bold text-black text-sm tracking-wide shadow-inner'>
                                 {headerTitle} from {formatDate(transformedResponse.fromDate)} to {formatDate(transformedResponse.toDate)}
                             </div>
                             <GenericDataTable<LIEORow>

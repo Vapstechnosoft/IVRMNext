@@ -32,7 +32,7 @@ export default function InboxList({ messages, userHrmeId, onRefresh }: InboxList
             } else {
                 toast.error(res.message || 'Failed to delete');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('An error occurred while deleting');
         } finally {
             setIsDeleting(null);

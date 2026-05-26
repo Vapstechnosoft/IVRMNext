@@ -19,8 +19,8 @@ import DeleteFeeConcessionForm from './_components/delete-form';
 
 export default function FeeConcessionPage() {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
+    const _router = useRouter();
+    const _pathname = usePathname();
 
     const [MI_ID] = useState<number>(30);
     const [selectedAsmaY_Id, setSelectedAsmaY_Id] = useState<number | null>(null);
@@ -56,8 +56,8 @@ export default function FeeConcessionPage() {
         error
     } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
 
-    const tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
-    const totalRecords = response?.total ?? 0;
+    const _tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
+    const _totalRecords = response?.total ?? 0;
 
     const handleAcademicYearChange = (value: string) => {
         const newAsmaY_Id = Number.parseInt(value, 10);

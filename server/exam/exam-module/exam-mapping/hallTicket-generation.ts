@@ -32,11 +32,11 @@ export async function getHallTicketStudentList(params: {
 
 // 3) (OPTIONAL) Publish Hall Tickets (If Later Needed)
 export async function updateHallTicketPublishStatus(data: any) {
-    const url = `/hall_ticket_generation/publish_student_hall_ticket`;
+    const url = '/hall_ticket_generation/publish_student_hall_ticket';
     return await api.post('exam', url, data);
 }
 
 export async function GenerateHalltickets(data: any) {
-    const url = `/hall_ticket_generation/generate_hall_ticket`;
+    const url = '/hall_ticket_generation/generate_hall_ticket';
     return await api.post('exam', url, data);
 }

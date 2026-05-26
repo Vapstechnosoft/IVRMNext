@@ -29,7 +29,6 @@ export default function UpdateMasterSchoolUnitForm({
             setIsLoading(true);
             try {
                 const res: any = await editSchoolMasterUnit(selectedRow.lpmU_Id);
-                console.log('Edit API Response:', res);
 
                 if (res.success && res.data) {
                     const editArray = Array.isArray(res.data)

@@ -45,7 +45,7 @@ export default function ToggleMasterDivisionForm({ rowData, onClose, onSuccess }
 
             const response = await deactivateMasterDivision(payload);
 
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Division ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();

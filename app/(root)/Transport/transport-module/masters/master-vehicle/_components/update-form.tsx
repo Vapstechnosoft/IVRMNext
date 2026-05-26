@@ -112,7 +112,6 @@ export default function UpdateVehicleForm({
                 TRMV_ManufacturedDate: values.TRMV_ManufacturedDate ? values.TRMV_ManufacturedDate.toISOString() : undefined,
                 TRMV_RegFCUpToDate: values.TRMV_RegFCUpToDate ? values.TRMV_RegFCUpToDate.toISOString() : undefined
             };
-            console.log('payloaddddddddddd', payload);
             const response = await saveMasterVehicle(payload);
 
             if (response.message === 'Update') {

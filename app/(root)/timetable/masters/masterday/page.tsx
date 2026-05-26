@@ -26,8 +26,6 @@ export default function MasterDayPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterDay(searchParams);
 
-    console.log('response', response);
-
     return (
         <FormProvider<IMasterDayList>>
             <MasterDayPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
@@ -61,19 +59,16 @@ function MasterDayPageContent({
             setOrderModalOpen(true);
             const response = await getMasterDaySetOrderDetails();
 
-            console.log('response in handleSetOrder', response);
-
             if (response.success && response.data) {
                 const masterdaydata: IMasterDaySetOrderList[] = Array.isArray(response.data) ? response.data : [];
 
-                const mappedData = masterdaydata.map((d, index) => ({
+                const mappedData = masterdaydata.map((d, _index) => ({
                     ...d,
                     id: d.ttmD_Id,
                     ttmD_DayName: d.ttmD_DayName,
                     ttmD_DayCode: d.ttmD_DayCode,
                     ttmD_Id: d.ttmD_Id
                 }));
-                console.log('mappedData in handleSetOrder', mappedData);
                 setOrderData(mappedData);
                 setIsOrderloading(false);
             } else {
@@ -114,10 +109,8 @@ function MasterDayPageContent({
                 ordeidss: updatedOrderData
             };
 
-            const jsdata = JSON.stringify(payload);
-            console.log('payload in handleOrderSave', jsdata);
-            const jsondata = JSON.stringify(payload);
-            console.log('payload in handleOrderSave', jsondata);
+            const _jsdata = JSON.stringify(payload);
+            const _jsondata = JSON.stringify(payload);
 
             const response = await saveSetOrderMasterDay(payload);
 
@@ -129,7 +122,7 @@ function MasterDayPageContent({
             } else {
                 toast.error(response.message);
             }
-        } catch (error: any) {
+        } catch (_error: any) {
             //toast.error(error.message);
         } finally {
             setIsOrderSaving(false);

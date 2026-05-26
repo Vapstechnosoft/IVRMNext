@@ -12,8 +12,6 @@ import {
     deleteIdSchema
 } from '../../../validationSchemas';
 
-
-
 export const studentApplicationFormSchema = {
     // Reuse the same schema for add
     add: z.object({
@@ -46,9 +44,12 @@ export const studentApplicationFormSchema = {
         pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
-        SubCaste_Id: z.union([z.string(), z.number()]).optional().transform((val) => (val === '' ? undefined : val)),
+        SubCaste_Id: z
+            .union([z.string(), z.number()])
+            .optional()
+            .transform((val) => (val === '' ? undefined : val)),
         pasR_Sex: createStringSchema('Gender', 1, 50),
-        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((date) => {
+        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((_date) => {
             // This will be validated in the form's custom validation
             return true;
         }),
@@ -75,7 +76,10 @@ export const studentApplicationFormSchema = {
         reference_ids: z.array(z.string()).optional(),
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
 
-        PASR_BloodGroup: z.union([z.string(), z.number(), z.nan()]).optional().transform((val) => (val === '' || Number.isNaN(val) ? undefined : String(val))),
+        PASR_BloodGroup: z
+            .union([z.string(), z.number(), z.nan()])
+            .optional()
+            .transform((val) => (val === '' || Number.isNaN(val) ? undefined : String(val))),
         // Residential Address
         pasR_ConStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
         pasR_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
@@ -128,7 +132,6 @@ export const studentApplicationFormSchema = {
         PASR_MotherReligion: z.number().int({ message: 'Religion is required' }),
         PASR_MotherCaste: z.number().int({ message: 'Caste is required' }),
         motherSubCaste_Id: createStringOnlyOptionalSchema('Sub Caste', 1, 100).optional(),
-
 
         pasR_MotherPanno: createAlphanumericSchemaPanCard('Mother PAN Number', true),
         pasR_MotherDesignation: createStringOnlyOptionalSchema('Mother Designation', 1, 100),

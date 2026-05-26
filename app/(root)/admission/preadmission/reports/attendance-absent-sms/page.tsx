@@ -10,24 +10,28 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { CalendarYear } from '@/components/ui/calendar_year';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useAttendanceAbsentSmsReport, useAttendanceAbsentInitialDetails, useAttendanceAbsentCommunication } from '@/hooks/admission/preadmission/useReports';
+import {
+    useAttendanceAbsentCommunication,
+    useAttendanceAbsentInitialDetails,
+    useAttendanceAbsentSmsReport
+} from '@/hooks/admission/preadmission/useReports';
 import { cn } from '@/lib/utils';
 import { getExcelAttendanceAbsentSmsReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { absentStudentColumns, attendanceSummaryColumns } from './_components/columns';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 
 // helper to compare local dates
-const isSameLocalDate = (a: Date, b: Date) =>
+const _isSameLocalDate = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 // Local schema for this form
@@ -80,7 +84,11 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
     // Hooks
     const { data: academicYears, isLoading: ayLoading } = useAcademicYearDropdown();
     const { data: initialDetails } = useAttendanceAbsentInitialDetails();
-    const { data: response, refetch, isLoading: reportLoading } = useAttendanceAbsentSmsReport(
+    const {
+        data: response,
+        refetch,
+        isLoading: reportLoading
+    } = useAttendanceAbsentSmsReport(
         asmaY_Id,
         from_date,
         frequency === 'once' ? 'once' : 'twice',
@@ -210,8 +218,8 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -267,7 +275,9 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                         {/* Academic Year */}
                         <div className='flex flex-col gap-1.5'>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='asmaY_Id'
                                 control={control}
@@ -278,7 +288,9 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                                         </SelectTrigger>
                                         <SelectContent>
                                             {ayLoading ? (
-                                                <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                <SelectItem value='0' disabled>
+                                                    Loading...
+                                                </SelectItem>
                                             ) : (
                                                 academicYears?.data?.map((y) => (
                                                     <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
@@ -325,7 +337,9 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                             control={control}
                             render={({ field }) => (
                                 <div className='flex flex-col gap-1.5'>
-                                    <Label>Date <span className='text-red-500'>*</span></Label>
+                                    <Label>
+                                        Date <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Popover
                                         open={openPopover === 'From_Date'}
                                         onOpenChange={(open) => setOpenPopover(open ? 'From_Date' : null)}>
@@ -363,16 +377,35 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                         <Button type='submit' disabled={isSubmitting} isLoading={isLoading || isSubmitting} className='w-fit'>
                             <Save className='mr-2 h-4 w-4' /> Report
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => { reset(); setSelectedRows([]); }} className='w-fit'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                                setSelectedRows([]);
+                            }}
+                            className='w-fit'>
                             Reset
                         </Button>
-                        <Button type='button' onClick={() => handleCommunicationTrigger('SMS')} disabled={studentAttendanceList.length === 0} className='w-fit bg-blue-600 hover:bg-blue-700'>
+                        <Button
+                            type='button'
+                            onClick={() => handleCommunicationTrigger('SMS')}
+                            disabled={studentAttendanceList.length === 0}
+                            className='w-fit bg-blue-600 hover:bg-blue-700'>
                             <MessageSquare className='mr-2 h-4 w-4' /> Send SMS
                         </Button>
-                        <Button type='button' onClick={() => handleCommunicationTrigger('EMAIL')} disabled={studentAttendanceList.length === 0} className='w-fit bg-green-600 hover:bg-green-700'>
+                        <Button
+                            type='button'
+                            onClick={() => handleCommunicationTrigger('EMAIL')}
+                            disabled={studentAttendanceList.length === 0}
+                            className='w-fit bg-green-600 hover:bg-green-700'>
                             <Mail className='mr-2 h-4 w-4' /> Send Email
                         </Button>
-                        <Button type='button' onClick={() => handleCommunicationTrigger('NOTICE')} disabled={studentAttendanceList.length === 0} className='w-fit bg-orange-600 hover:bg-orange-700'>
+                        <Button
+                            type='button'
+                            onClick={() => handleCommunicationTrigger('NOTICE')}
+                            disabled={studentAttendanceList.length === 0}
+                            className='w-fit bg-orange-600 hover:bg-orange-700'>
                             <Bell className='mr-2 h-4 w-4' /> Send Notice
                         </Button>
                         <Button type='button' variant='outline' onClick={downloadExcel} className='w-fit'>
@@ -428,11 +461,17 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                                 </div>
                             )}
                         </RadioGroup>
-                        <p className='text-sm text-yellow-600'>OTP will be sent to the authorized {otpType === 'M' ? 'Mobile Number' : 'Email ID'}.</p>
+                        <p className='text-sm text-yellow-600'>
+                            OTP will be sent to the authorized {otpType === 'M' ? 'Mobile Number' : 'Email ID'}.
+                        </p>
                     </div>
                     <DialogFooter>
-                        <Button variant='outline' onClick={() => setIsOtpSelectionOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSendOtp} isLoading={sendOtp.isPending}>Send OTP</Button>
+                        <Button variant='outline' onClick={() => setIsOtpSelectionOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSendOtp} isLoading={sendOtp.isPending}>
+                            Send OTP
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -444,7 +483,7 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                         <DialogTitle>Verification Details - {communicationType}</DialogTitle>
                     </DialogHeader>
                     <div className='max-h-60 overflow-y-auto border p-2'>
-                        <table className='w-full text-sm border-collapse'>
+                        <table className='w-full border-collapse text-sm'>
                             <thead>
                                 <tr className='border-b'>
                                     <th className='p-2 text-left'>Sl. No.</th>
@@ -469,19 +508,28 @@ export default function OverallDailyAttendanceAbsentPage(props: { searchParams: 
                             <Label>Enter OTP</Label>
                             <div className='flex gap-2'>
                                 <Input value={otpValue} onChange={(e) => setOtpValue(e.target.value)} placeholder='Enter OTP' />
-                                <Button onClick={handleVerifyOtp} isLoading={verifyOtp.isPending}>Verify</Button>
-                                <Button variant='ghost' size='sm' onClick={handleSendOtp} disabled={sendOtp.isPending}>Resend</Button>
+                                <Button onClick={handleVerifyOtp} isLoading={verifyOtp.isPending}>
+                                    Verify
+                                </Button>
+                                <Button variant='ghost' size='sm' onClick={handleSendOtp} disabled={sendOtp.isPending}>
+                                    Resend
+                                </Button>
                             </div>
                         </div>
                     ) : (
-                        <div className='mt-4 p-3 bg-green-50 text-green-700 rounded-md'>
+                        <div className='mt-4 rounded-md bg-green-50 p-3 text-green-700'>
                             Verification completed. Ready to send {communicationType.toLowerCase()}.
                         </div>
                     )}
 
                     <DialogFooter className='mt-6'>
-                        <Button variant='outline' onClick={() => setIsVerificationOpen(false)}>Close</Button>
-                        <Button onClick={handleFinalAction} disabled={!isOtpVerified && (emailOtpEnabled || mobileOtpEnabled)} className='bg-primary'>
+                        <Button variant='outline' onClick={() => setIsVerificationOpen(false)}>
+                            Close
+                        </Button>
+                        <Button
+                            onClick={handleFinalAction}
+                            disabled={!isOtpVerified && (emailOtpEnabled || mobileOtpEnabled)}
+                            className='bg-primary'>
                             SEND
                         </Button>
                     </DialogFooter>

@@ -45,9 +45,8 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
             setFetchingFilterData(true);
             try {
                 const res = await getDetailsByType('City');
-                if (res && res.success) {
+                if (res?.success) {
                     const data = res.data || res;
-                    console.log('City Response Data:', data);
                     const list = data.citylist || data.searchResult || data.retObject || (Array.isArray(data) ? data : []) || [];
                     setCityOptions(
                         list
@@ -57,7 +56,7 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                             .filter((c: any) => c.almsT_ConCity)
                     );
                 }
-            } catch (e) {
+            } catch (_e) {
                 toast.error('Failed to fetch cities');
             } finally {
                 setFetchingFilterData(false);
@@ -66,9 +65,8 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
             setFetchingFilterData(true);
             try {
                 const res = await getDetailsByType('Occupation');
-                if (res && res.success) {
+                if (res?.success) {
                     const data = res.data || res;
-                    console.log('Occupation Response Data:', data);
                     const list = data.occupationlist || data.searchResult || data.retObject || (Array.isArray(data) ? data : []) || [];
                     setOccupationOptions(
                         list
@@ -78,7 +76,7 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                             .filter((o: any) => o.designation)
                     );
                 }
-            } catch (e) {
+            } catch (_e) {
                 toast.error('Failed to fetch occupations');
             } finally {
                 setFetchingFilterData(false);
@@ -111,7 +109,6 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                 setLoadingStates(true);
                 try {
                     const response = await getStates(selectedCountries.map((id) => ({ IVRMMC_Id: id })));
-                    console.log('States Response:', response);
                     if (response.success && response.data) {
                         let data = [];
                         if (Array.isArray(response.data)) {
@@ -121,7 +118,7 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                         }
                         setStates(data);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch states');
                 } finally {
                     setLoadingStates(false);
@@ -140,7 +137,6 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                 setLoadingDistricts(true);
                 try {
                     const response = await getDistricts(selectedStates.map((id) => ({ IVRMMS_Id: id })));
-                    console.log('Districts Response:', response);
                     if (response.success && response.data) {
                         let data = [];
                         if (Array.isArray(response.data)) {
@@ -150,7 +146,7 @@ export function AlumniReportFilterForm({ initialData, onSubmit, onReset, loading
                         }
                         setDistricts(data);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to fetch districts');
                 } finally {
                     setLoadingDistricts(false);

@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -23,11 +23,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
-import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
 import type { ApiSearchparams } from '@/types';
-import * as XLSX from 'xlsx';
+import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
 import { useReactToPrint } from 'react-to-print';
-import { attendanceColumns, getAttendanceColumns } from './_components/columns';
+import * as XLSX from 'xlsx';
+import { getAttendanceColumns } from './_components/columns';
 import { StudentAttendancePrint } from './_components/student-attendance-print';
 
 /* ---------------- Schema ---------------- */
@@ -65,7 +65,7 @@ const parseAttendanceList = (list: any[]) => {
             }
         }
         const newItem = { ...item };
-        
+
         let attended = 0;
         let held = 0;
         let hasAttendanceDetails = false;
@@ -89,13 +89,13 @@ const parseAttendanceList = (list: any[]) => {
         });
 
         if (hasAttendanceDetails) {
-            if (newItem.ASA_ClassHeld === 'Not Available' || isNaN(Number(newItem.ASA_ClassHeld))) {
+            if (newItem.ASA_ClassHeld === 'Not Available' || Number.isNaN(Number(newItem.ASA_ClassHeld))) {
                 newItem.ASA_ClassHeld = held;
             }
-            if (newItem.ASA_Class_Attended === 'Not Available' || isNaN(Number(newItem.ASA_Class_Attended))) {
+            if (newItem.ASA_Class_Attended === 'Not Available' || Number.isNaN(Number(newItem.ASA_Class_Attended))) {
                 newItem.ASA_Class_Attended = attended;
             }
-            if (newItem.Percentage === 'Not Available' || isNaN(Number(newItem.Percentage))) {
+            if (newItem.Percentage === 'Not Available' || Number.isNaN(Number(newItem.Percentage))) {
                 newItem.Percentage = held > 0 ? (attended / held) * 100 : 0;
             }
         }
@@ -116,7 +116,6 @@ export default function StudyCertificateReportPage(props: {
     const pathname = usePathname();
 
     const {
-
         control,
         handleSubmit,
         reset,
@@ -216,7 +215,10 @@ export default function StudyCertificateReportPage(props: {
         };
     }, [studentsAttendance]);
 
-    const columns = useMemo(() => getAttendanceColumns(!!monthDateWise, (parsedStudentsAttendance as any)?.data?.monthList), [monthDateWise, parsedStudentsAttendance]);
+    const columns = useMemo(
+        () => getAttendanceColumns(!!monthDateWise, (parsedStudentsAttendance as any)?.data?.monthList),
+        [monthDateWise, parsedStudentsAttendance]
+    );
 
     const [allReportData, setAllReportData] = useState<any>(null);
     const [isPrinting, setIsPrinting] = useState(false);
@@ -325,7 +327,7 @@ export default function StudyCertificateReportPage(props: {
 
     /* ---------------- Submit ---------------- */
 
-    const onSubmit = async (data: FormFields) => {
+    const onSubmit = async (_data: FormFields) => {
         try {
             const res = await refetch();
             const reportData = res.data as any;
@@ -401,14 +403,15 @@ export default function StudyCertificateReportPage(props: {
 
             let rawData = getListData(allDataResponse);
             const excelMonthList = getMonthList(allDataResponse);
-            const excelDays = excelMonthList.length > 0 ? excelMonthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
+            const excelDays =
+                excelMonthList.length > 0 ? excelMonthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
 
             // Fallback to currently displayed data if fetch failed or returned nothing
             if (rawData.length === 0 && studentsReportData) {
                 rawData = getListData(studentsReportData);
             }
 
-            let allData = parseAttendanceList(rawData);
+            const allData = parseAttendanceList(rawData);
 
             if (!allData || allData.length === 0) {
                 toast.dismiss('excel-download');
@@ -431,7 +434,7 @@ export default function StudyCertificateReportPage(props: {
             ];
 
             // Define table headers based on attendanceColumns
-            let tableHeaders = ['Sl.No', 'Student Name', 'Admission No', 'Roll No'];
+            const tableHeaders = ['Sl.No', 'Student Name', 'Admission No', 'Roll No'];
             if (monthDateWise) {
                 for (const day of excelDays) {
                     tableHeaders.push(String(day));
@@ -441,12 +444,7 @@ export default function StudyCertificateReportPage(props: {
 
             // Prepare table data
             const tableData = allData.map((row: any) => {
-                const baseData = [
-                    row.RowNo,
-                    row.name,
-                    row.AMST_AdmNo,
-                    row.AMAY_RollNo
-                ];
+                const baseData = [row.RowNo, row.name, row.AMST_AdmNo, row.AMAY_RollNo];
 
                 if (monthDateWise) {
                     for (const day of excelDays) {
@@ -454,25 +452,13 @@ export default function StudyCertificateReportPage(props: {
                     }
                 }
 
-                baseData.push(
-                    row.ASA_ClassHeld,
-                    row.ASA_Class_Attended,
-                    `${Number(row.Percentage || 0).toFixed(2)}%`
-                );
+                baseData.push(row.ASA_ClassHeld, row.ASA_Class_Attended, `${Number(row.Percentage || 0).toFixed(2)}%`);
 
                 return baseData;
             });
 
             // Add Total Records row
-            const totalRecordsRow = [
-                'TOTAL RECORDS',
-                '',
-                '',
-                '',
-                '',
-                '',
-                allData.length
-            ];
+            const totalRecordsRow = ['TOTAL RECORDS', '', '', '', '', '', allData.length];
 
             // Create worksheet
             const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData, [], totalRecordsRow]);
@@ -680,18 +666,18 @@ export default function StudyCertificateReportPage(props: {
                                         />
                                     )}
                                     <div>
-                                        <h1 className='text-2xl font-bold uppercase'>
+                                        <h1 className='font-bold text-2xl uppercase'>
                                             {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Name}
                                         </h1>
-                                        <p className='text-sm text-muted-foreground'>
+                                        <p className='text-muted-foreground text-sm'>
                                             {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address1}
                                             {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
                                                 `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
                                             {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
                                                 `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
                                         </p>
-                                        <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
-                                        <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
+                                        <h2 className='mt-2 font-bold text-lg tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
+                                        <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 font-semibold text-sm'>
                                             {academicYearId && (
                                                 <span>
                                                     Academic Year:{' '}
@@ -714,8 +700,9 @@ export default function StudyCertificateReportPage(props: {
                             </div>
                         )}
 
-                        <style dangerouslySetInnerHTML={{
-                            __html: `
+                        <style
+                            dangerouslySetInnerHTML={{
+                                __html: `
                             .attendance-table thead th {
                                 background-color: #337ab7 !important;
                                 color: white !important;
@@ -730,13 +717,17 @@ export default function StudyCertificateReportPage(props: {
                                 padding: 4px !important;
                             }
                             `
-                        }} />
+                            }}
+                        />
 
                         {/* Report Header Info */}
                         <div className='mb-2 flex flex-col gap-2'>
                             <div className='flex items-center justify-between'>
-                                <div className='flex items-center gap-2 text-sm font-bold'>
-                                    Total Grid Records : <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-xs text-white'>{(parsedStudentsAttendance as any)?.total || 0}</span>
+                                <div className='flex items-center gap-2 font-bold text-sm'>
+                                    Total Grid Records :{' '}
+                                    <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-white text-xs'>
+                                        {(parsedStudentsAttendance as any)?.total || 0}
+                                    </span>
                                 </div>
                                 <div className='flex items-center gap-0'>
                                     <div className='relative'>
@@ -747,13 +738,13 @@ export default function StudyCertificateReportPage(props: {
                                             value={searchValue}
                                             onChange={(e) => setSearchValue(e.target.value)}
                                         />
-                                        <div className='absolute right-0 top-0 flex h-8 w-8 items-center justify-center border border-l-0 border-gray-300 bg-gray-50'>
+                                        <div className='absolute top-0 right-0 flex h-8 w-8 items-center justify-center border border-gray-300 border-l-0 bg-gray-50'>
                                             <Search className='h-4 w-4 text-gray-500' />
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className='text-[11px] font-bold uppercase'>
+                            <div className='font-bold text-[11px] uppercase'>
                                 Note : P - Present , A - Absent , HO - Holiday , NE - Not Entered
                             </div>
                         </div>
@@ -803,7 +794,7 @@ function RadioField({ name, control, options, disabled }: any) {
                     value={String(field.value)}
                     onValueChange={(v) => {
                         const num = Number(v);
-                        field.onChange(isNaN(num) || v.trim() === '' ? v : num);
+                        field.onChange(Number.isNaN(num) || v.trim() === '' ? v : num);
                     }}
                     disabled={disabled}
                     className={`flex justify-center gap-4 rounded border p-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
@@ -812,7 +803,7 @@ function RadioField({ name, control, options, disabled }: any) {
                         return (
                             <div key={String(opt.value)} className='flex items-center gap-2'>
                                 <RadioGroupItem id={id} value={String(opt.value)} />
-                                <Label htmlFor={id} className='font-normal cursor-pointer text-sm'>
+                                <Label htmlFor={id} className='cursor-pointer font-normal text-sm'>
                                     {opt.label}
                                 </Label>
                             </div>

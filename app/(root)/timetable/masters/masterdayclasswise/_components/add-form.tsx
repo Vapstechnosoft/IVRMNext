@@ -32,7 +32,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
     const [classSearch, setClassSearch] = useState('');
     const [daySearch, setDaySearch] = useState('');
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
-    const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
+    const [_selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
     const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[]>([]);
 
     const {
@@ -85,8 +85,6 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                 try {
                     setIsLoadingClasses(true);
                     const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
-
-                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
 
                     if (res?.success && Array.isArray(res.data)) {
                         setOverrideClassData(res.data);
@@ -294,9 +292,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className={cn(
-                                    !field.value ? "text-gray-400" : "text-black"
-                                )}>
+                                <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -336,9 +332,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                     field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
-                                <SelectTrigger className={cn(
-                                    !field.value ? "text-gray-400" : "text-black"
-                                )}>
+                                <SelectTrigger className={cn(!field.value ? 'text-gray-400' : 'text-black')}>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -457,7 +451,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                                         : 'border-gray-300 hover:border-primary/40'
                                 )}>
                                 {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                    day_ids.length > 0 ? (
+                                day_ids.length > 0 ? (
                                     <CheckSquare className='h-4 w-4 text-primary' />
                                 ) : (
                                     <Square className='h-4 w-4 text-gray-400' />

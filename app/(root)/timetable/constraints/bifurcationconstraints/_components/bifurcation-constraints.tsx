@@ -32,7 +32,7 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
     const data = gridData || initialData;
 
     // tableProps handles pagination object if provided by API, else defaults.
-    const tableProps = useDataTableProps(data);
+    const _tableProps = useDataTableProps(data);
 
     return (
         <div className='min-h-screen'>
@@ -87,7 +87,7 @@ function FormSections({ initialData, refetchAll }: { initialData: any; refetchAl
         editFormRef
     } = useFormContext<IBifurcationConstraintList>();
 
-    const handleSuccess = () => {
+    const _handleSuccess = () => {
         closeAddForm();
         closeEditForm();
         // Trigger refetch using the hook

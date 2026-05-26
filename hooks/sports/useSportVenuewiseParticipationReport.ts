@@ -1,16 +1,21 @@
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getInitialData, getDetails, getSections, getReportData } from '@/server/sports/transactions/sport-venuewise-participation-report';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getDetails, getInitialData, getReportData, getSections } from '@/server/sports/transactions/sport-venuewise-participation-report';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 
-export const useSportVenuewiseParticipationReport = (searchParams?: any) => {
+export const useSportVenuewiseParticipationReport = (_searchParams?: any) => {
     const queryClient = useQueryClient();
 
-    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(tableSearchVariables.sort_direction, parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc'));
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [_page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [_pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [_sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [_order] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsStringLiteral(['asc', 'desc'] as const)
+            .withOptions({ shallow: false })
+            .withDefault('asc')
+    );
+    const [_searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const loadData = useQuery({
         queryKey: ['venuewise-participation-report-initial'],

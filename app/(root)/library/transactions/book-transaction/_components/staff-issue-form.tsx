@@ -58,7 +58,7 @@ export function StaffIssueForm({ bookType, bookCategory }: StaffIssueFormProps) 
 
     const issueBookMutation = useIssueBook();
 
-    const handleAddBook = (book: any) => {
+    const _handleAddBook = (book: any) => {
         if (selectedBooks.find((b) => b.lmbanO_Id === book.lmbanO_Id)) {
             toast.error('Book already added');
             return;

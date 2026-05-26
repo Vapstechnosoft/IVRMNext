@@ -80,7 +80,9 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
     },
     {
         accessorKey: 'asmaY_Pre_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />
+        ),
         cell: ({ row }) => (
             <div className='text-center'>{getStatusBadge((row.getValue('asmaY_Pre_ActiveFlag') as number) === 1 ? 'yes' : 'no')}</div>
         ),

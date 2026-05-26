@@ -1,11 +1,6 @@
 import { format } from 'date-fns';
 
-export const printPFForm5 = (
-    reportData: any,
-    institution: any,
-    reportMonth: string,
-    reportYear: string
-) => {
+export const printPFForm5 = (reportData: any, institution: any, reportMonth: string, reportYear: string) => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
@@ -14,12 +9,14 @@ export const printPFForm5 = (
 
     const dataList = reportData?.alldata || reportData?.pfreportdetails || [];
 
-    const tableRows = dataList.map((record: any, index: number) => {
-        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
-        const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
-        const pfDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
+    const tableRows = dataList
+        .map((record: any, index: number) => {
+            const empName =
+                `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
+            const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
+            const pfDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
 
-        return `
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td class="text-left">${record.hrmE_PFAccNo || ''}</td>
@@ -30,7 +27,8 @@ export const printPFForm5 = (
                 <td class="text-center">${pfDate}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
     const codeNo = reportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || reportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || '';
     const address = `${reportData?.currentInstuteAddress || institution?.mI_Address1}, ${institution?.ivrmmcT_Name || ''} - ${institution?.mI_Pincode || ''}.`;
@@ -190,4 +188,4 @@ export const printPFForm5 = (
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

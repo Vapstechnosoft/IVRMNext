@@ -1,18 +1,17 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { ITimeTableClassDropDownData } from '@/types/timetable/masters/masters';
-import { SectionDropDownDataTT } from '@/types/timetable/TTreports';
+import type { SectionDropDownDataTT } from '@/types/timetable/TTreports';
+import type { ITimeTableClassDropDownData } from '@/types/timetable/masters/masters';
 
 // Subject Wise TimeTable Report
-export const getSubjectWiseDetails = async (data: any) => {
+export const getSubjectWiseDetails = async (_data: any) => {
     return await api.get<any>('timetable', 'Subjectwise/getdetails');
 };
 
 export const getSubjectWiseReport = async (data: any) => {
     return await api.post<any>('timetable', 'SubjectwiseFacade/SubjectfWiseTTreport', data);
 };
-
 
 export async function getuseTimeTableClassDropdownData() {
     const url = '/TimeTableCommon/GetClassData';

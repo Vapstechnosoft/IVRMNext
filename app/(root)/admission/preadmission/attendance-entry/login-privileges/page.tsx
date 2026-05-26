@@ -51,20 +51,20 @@ function LoginPrivilegePageContent() {
         try {
             if (initialData) {
                 const rawData = (initialData as any)?.data || initialData;
-                
+
                 // Extract grid data
                 let data: any[] = [];
                 let total = 0;
-                
+
                 const candidate = rawData.loginPrivileges || rawData.loginPData;
                 if (Array.isArray(candidate)) {
                     data = candidate;
                 } else if (Array.isArray(rawData)) {
                     data = rawData;
                 }
-                
+
                 total = rawData.total || rawData.count || data.length;
-                
+
                 setTableData(data);
                 setTotalItems(total);
                 // Grid will only show when onSearchSuccess is called
@@ -219,10 +219,10 @@ function PrivilegeForm({
             if (selectedRow) {
                 if (selectedRow.asmaY_Id) setSelectedYearId(String(selectedRow.asmaY_Id));
                 if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
-                
+
                 const entryType = (selectedRow as any).asalU_EntryTypeFlag || 2;
                 setRole(String(entryType));
-                
+
                 try {
                     const response: any = await fetchEditData({
                         asalU_Id: selectedRow.asalU_Id,
@@ -236,18 +236,14 @@ function PrivilegeForm({
                         const eId = result.asalU_EntryTypeFlag || (selectedRow as any).asalU_EntryTypeFlag || 2;
                         const yId = result.asmaY_Id || selectedRow.asmaY_Id;
                         const sId = result.hrmE_Id || selectedRow.hrmE_Id || (result as any).ivrmuL_Id;
-                        
+
                         setRole(String(eId));
                         if (yId) setSelectedYearId(String(yId));
                         if (sId) setSelectedStaffId(String(sId));
 
                         // Populate available lists first to ensure mapping section has data
                         // Using explicit values if available, otherwise undefined to trigger fallback in handleSearch
-                        await handleSearch(
-                            yId ? String(yId) : undefined,
-                            String(eId),
-                            sId ? String(sId) : undefined
-                        );
+                        await handleSearch(yId ? String(yId) : undefined, String(eId), sId ? String(sId) : undefined);
 
                         if (String(eId) === '1') {
                             // Populate Type 1 temp list
@@ -271,7 +267,7 @@ function PrivilegeForm({
                         }
                         setShowMapping(true);
                     }
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to load edit details');
                 }
             }
@@ -292,7 +288,7 @@ function PrivilegeForm({
         const yIdNum = Number(yId);
         const sIdNum = Number(sId);
 
-        if (isNaN(yIdNum) || isNaN(sIdNum)) {
+        if (Number.isNaN(yIdNum) || Number.isNaN(sIdNum)) {
             toast.error('Invalid selection');
             return;
         }
@@ -305,23 +301,29 @@ function PrivilegeForm({
             });
 
             if (result) {
-                const rawClassList = result.classSectionList || result.data?.classSectionList || result.classsectionList || result.data?.classsectionList || [];
+                const rawClassList =
+                    result.classSectionList ||
+                    result.data?.classSectionList ||
+                    result.classsectionList ||
+                    result.data?.classsectionList ||
+                    [];
                 const csList = rawClassList.map((item: any) => ({
                     ...item,
                     id: `${item.asmcL_Id}-${item.asmC_Id}`,
                     label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
                 }));
                 setMappingClassSections(csList);
-                
+
                 const subList = result.subjectList || result.data?.subjectList || [];
                 setMappingSubjects(subList);
 
-                const privileges = result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
+                const privileges =
+                    result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
                 const total = result.total || result.data?.count || privileges.length;
                 onSearchSuccess(privileges, total);
                 setShowMapping(true);
             }
-        } catch (e) {
+        } catch (_e) {
             toast.error('Failed to fetch data');
         }
     };
@@ -462,7 +464,6 @@ function PrivilegeForm({
         }
     };
 
-
     return (
         <div className='space-y-4'>
             {/* Top Config Section */}
@@ -489,7 +490,12 @@ function PrivilegeForm({
                                     setMappingSubjects([]);
 
                                     // Only fetch if Year and Staff are selected and valid
-                                    if (selectedYearId && selectedStaffId && !isNaN(Number(selectedYearId)) && !isNaN(Number(selectedStaffId))) {
+                                    if (
+                                        selectedYearId &&
+                                        selectedStaffId &&
+                                        !Number.isNaN(Number(selectedYearId)) &&
+                                        !Number.isNaN(Number(selectedStaffId))
+                                    ) {
                                         handleSearch(selectedYearId, val, selectedStaffId);
                                     }
                                 }}
@@ -519,8 +525,8 @@ function PrivilegeForm({
                     <div className='mx-auto max-w-xl space-y-4'>
                         {/* Academic Year */}
                         <div className='flex items-center'>
-                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
-                                Academic Year:<span className='text-destructive ml-1'>*</span>
+                            <Label className='w-1/3 pr-4 text-right font-medium text-sm'>
+                                Academic Year:<span className='ml-1 text-destructive'>*</span>
                             </Label>
                             <div className='w-2/3'>
                                 <Select
@@ -550,12 +556,12 @@ function PrivilegeForm({
 
                         {/* User/Staff */}
                         <div className='flex items-center'>
-                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
-                                User/ Staff:<span className='text-destructive ml-1'>*</span>
+                            <Label className='w-1/3 pr-4 text-right font-medium text-sm'>
+                                User/ Staff:<span className='ml-1 text-destructive'>*</span>
                             </Label>
                             <div className='w-2/3'>
-                                <Select 
-                                    value={selectedStaffId} 
+                                <Select
+                                    value={selectedStaffId}
                                     onValueChange={(val) => {
                                         setSelectedStaffId(val);
                                         // Auto-search if year is also selected
@@ -685,7 +691,9 @@ function PrivilegeForm({
                                                         <td className='p-2'>
                                                             <div className='flex flex-wrap gap-1'>
                                                                 {t.subs.map((s: any) => (
-                                                                    <span key={s.ISMS_Id} className='rounded bg-muted px-1.5 py-0.5 text-[10px]'>
+                                                                    <span
+                                                                        key={s.ISMS_Id}
+                                                                        className='rounded bg-muted px-1.5 py-0.5 text-[10px]'>
                                                                         {s.ISMS_SubjectName}
                                                                     </span>
                                                                 ))}
@@ -713,9 +721,9 @@ function PrivilegeForm({
                         {(role === '2' || role === '3') && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
-                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>
-                                        Class-Section<span className='text-red-400 ml-1'>*</span>
+                                <div className='overflow-hidden rounded-md border border-border bg-white shadow-sm'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-sm text-white'>
+                                        Class-Section<span className='ml-1 text-red-400'>*</span>
                                     </div>
                                     <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
@@ -743,8 +751,8 @@ function PrivilegeForm({
                                 </div>
 
                                 {/* Selected Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
-                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>Class-Section</div>
+                                <div className='overflow-hidden rounded-md border border-border bg-white shadow-sm'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-sm text-white'>Class-Section</div>
                                     <ScrollArea className='h-[300px] p-2'>
                                         {classSectionList
                                             .filter((x) => selectedClassSections.includes(x.id))
@@ -772,15 +780,8 @@ function PrivilegeForm({
 
                         {/* Bottom Actions */}
                         <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
-                            <Button
-                                className='w-36 bg-primary text-white hover:bg-primary/90'
-                                onClick={handleSave}
-                                disabled={isSubmitting}>
-                                {isSubmitting ? (
-                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                ) : (
-                                    <i className='fa fa-floppy-o mr-2' />
-                                )}
+                            <Button className='w-36 bg-primary text-white hover:bg-primary/90' onClick={handleSave} disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <i className='fa fa-floppy-o mr-2' />}
                                 SAVE
                             </Button>
                             <Button variant='destructive' className='w-36' onClick={handleClear} disabled={isSubmitting}>

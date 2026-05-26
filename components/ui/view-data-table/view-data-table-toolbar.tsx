@@ -153,7 +153,7 @@ export function DataTableToolbar<TData>({
             setSearchColumns(allSearchableColumns.join(','));
         }
     };
-    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(showSearchColumns);
+    const [isSearchColumnModalOpen, _setIsSearchColumnModalOpen] = useState(showSearchColumns);
 
     return (
         <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>

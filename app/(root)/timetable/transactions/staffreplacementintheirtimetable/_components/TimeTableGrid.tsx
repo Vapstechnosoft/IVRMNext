@@ -26,7 +26,6 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
     const { data: reportData, isLoading: isReportLoading } = useStaffReplacementInTheirTimetableReport({ hrmE_Id });
     // console.log('Report Data', JSON.stringify(reportData));
     const { mutate: getPossible, data: possibleData, isPending: isPossibleLoading } = useStaffReplacementInTheirTimetablePossiblePeriods();
-    console.log('Possible Data', JSON.stringify(possibleData));
 
     const { mutate: saveReplacement, isPending: isSaving } = useSaveStaffReplacementInTheirTimetable();
 
@@ -398,4 +397,3 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         </div>
     );
 }
-

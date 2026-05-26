@@ -45,7 +45,7 @@ export default function ToggleMasterSponsorForm({ rowData, onClose, onSuccess }:
 
             const response = await deactivateMasterSponsor(payload);
 
-            if (response?.success || response?.returnval == true || (response?.message && response?.message !== 'activationFailed')) {
+            if (response?.success || response?.returnval === true || (response?.message && response?.message !== 'activationFailed')) {
                 toast.success(response.message || `Sponsor ${isActive ? 'deactivated' : 'activated'} successfully`);
                 onSuccess();
                 reset();
