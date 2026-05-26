@@ -392,6 +392,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/active-deactive-students',
                                             title: 'Active Deactive Students',
                                             description: 'Active Deactive Students'
+                                        },
+                                        {
+                                            id: 28,
+                                            name: 'Master Activity',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/masteractivities',
+                                            title: 'Master Activity',
+                                            description: 'Master Activity'
                                         }
                                     ]
                                 },
@@ -756,6 +764,14 @@ export async function getUserAccessibleModules() {
                                     name: 'New Shared Host',
                                     icon: 'Settings',
                                     pages: [
+                                        {
+                                            id: 78,
+                                            name: 'Master Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/masters/ttcategory',
+                                            title: 'Master Category',
+                                            description: 'Master Category'
+                                        },
                                         {
                                             id: 12,
                                             name: 'Overall Daily Attendance Report',
@@ -1201,37 +1217,6 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 16,
-                                    name: 'St. Thomas Church School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Total Strength',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/STCS/total-strength',
-                                            title: 'Total Strength',
-                                            description: 'Total Strength'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'St. Thomas TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                            title: 'St. Thomas TC Custom Report',
-                                            description: 'St. Thomas TC Custom Report'
-                                        }
-                                    ]
-                                },
 
                                 {
                                     id: 17,
@@ -1391,36 +1376,68 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // {
-                                //     id: 25,
-                                //     name: 'Local ShareHost',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 77,
-                                //             name: 'SVP Class Wise Student Details',
-                                //             icon: 'Settings',
-                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                //             title: 'SVP Class Wise Student Details',
-                                //             description: 'SVP Class Wise Student Details'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 26,
-                                //     name: 'Old ShareHost',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 78,
-                                //             name: 'Admission Procedure',
-                                //             icon: 'Settings',
-                                //             url: '/admission/oldsharehost/reports/admission-procedure',
-                                //             title: 'Admission Procedure',
-                                //             description: 'Admission Procedure'
-                                //         }
-                                //     ]
-                                // }
+                                {
+                                    id: 25,
+                                    name: 'Local ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 77,
+                                            name: 'SVP Class Wise Student Details',
+                                            icon: 'Settings',
+                                            url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                            title: 'SVP Class Wise Student Details',
+                                            description: 'SVP Class Wise Student Details'
+                                        },
+                                        {
+                                            id: 71,
+                                            name: 'SamarthaBonafideCertificate',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                            title: 'Samartha Bonafide Certificate',
+                                            description: 'Samartha Bonafide Certificate'
+                                        },
+                                        {
+                                            id: 72,
+                                            name: 'SamarthaTC',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/SamarthaTC',
+                                            title: 'SamarthaTC',
+                                            description: 'SamarthaTC'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'OverAllViewReportt',
+                                            icon: 'Settings',
+                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                            title: 'OverAllViewReportt',
+                                            description: 'OverAllViewReportt'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 26,
+                                    name: 'Old ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 78,
+                                            name: 'Admission Procedure',
+                                            icon: 'Settings',
+                                            url: '/admission/oldsharehost/reports/admission-procedure',
+                                            title: 'Admission Procedure',
+                                            description: 'Admission Procedure'
+                                        },
+                                        {
+                                            id: 74,
+                                            name: 'SRKVS Student Address Book',
+                                            icon: 'Settings',
+                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                            title: 'SRKVSStudentAddressBook',
+                                            description: 'SRKVSStudentAddressBook'
+                                        }
+                                    ]
+                                }
                             ]
                         }
                     ]
@@ -2198,6 +2215,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/collegefeetransaction',
                                             title: 'College Fee Transaction',
                                             description: 'College Fee Transaction'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Fee Third Party Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feethirdpartyreport',
+                                            title: 'Fee Third Party Report',
+                                            description: 'Fee Third Party Report'
                                         }
                                     ]
                                 }
@@ -4491,23 +4516,23 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        }
-                                        //         {
-                                        //             id: 3,
-                                        //             name: 'Candidate Interview List',
-                                        //             icon: 'List',
-                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                        //             title: 'Candidate Interview List',
-                                        //             description: 'View All Candidate Interviews'
-                                        //         },
-                                        //         {
-                                        //             id: 4,
-                                        //             name: 'Interviewer Feedback',
-                                        //             icon: 'MessageSquare',
-                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Candidate Interview List',
+                                            icon: 'List',
+                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                            title: 'Candidate Interview List',
+                                            description: 'View All Candidate Interviews'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
+                                        },
                                         //         {
                                         //             id: 5,
                                         //             name: 'Job List',
@@ -5917,14 +5942,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Gatepass Report',
                                             description: 'View Student Gatepass Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Student Attendance Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/student-attendance-report',
-                                            title: 'Student Attendance Report',
-                                            description: 'View Student Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Student Attendance Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/hostel/hostel-management/reports/student-attendance-report',
+                                        //     title: 'Student Attendance Report',
+                                        //     description: 'View Student Attendance Report'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Food Conveyance Report',
@@ -7206,6 +7231,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/reports/inv-r-vendor-payment',
                                             title: 'Vendor Payment Report',
                                             description: 'Generate Vendor Payment Reports'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'GRN Report Hollycross',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-grn-hollycross',
+                                            title: 'GRN Report Hollycross',
+                                            description: 'Generate GRN Report Hollycross'
                                         }
                                     ]
                                 }
@@ -8395,6 +8428,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+                //PDA commented here    
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -8540,6 +8574,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
                                             title: 'Mess Attendance Entry',
                                             description: 'Daily Student Attendance'
+                                        },
+                                        {
+                                            id: 8003,
+                                            name: 'Written Test Schedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/written-test-schedule',
+                                            title: 'Written Test Schedule',
+                                            description: 'Written Test Schedule'
                                         }
                                     ]
                                 },

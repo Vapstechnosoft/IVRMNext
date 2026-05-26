@@ -13,6 +13,7 @@ import { masterClassColumns } from './_components/columns';
 import ReorderClassForm from './_components/reorder-form';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
+import ViewDetailsDialog from './_components/view-details-dialog';
 import { useRouter } from 'next/navigation';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -72,7 +73,8 @@ function MasterClassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end'>
+                    <div className='flex justify-end gap-2 mb-2'>
+                        <ViewDetailsDialog />
                         <ReorderClassForm />
                     </div>
                     <GenericDataTable<IMasterClassList>

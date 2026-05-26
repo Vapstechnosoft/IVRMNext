@@ -160,13 +160,16 @@ function StudentCountReportPageContent({
                 }
 
                 // Map data for clean excel output
-                const excelData = records.map((row: any, index: number) => ({
-                    'SL.NO': index + 1,
-                    'STUDENT NAME': row.user_name || 'N/A',
-                    'EMAIL-ID': row.email || 'N/A',
-                    'MOBILE NUMBER': row.phone_number || 'N/A',
-                    'REG DATE': row.entry_date ? new Date(row.entry_date).toLocaleDateString('en-GB') : 'N/A'
-                }));
+                const excelData = records.map((row: any, index: number) => {
+                    const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
+                    return {
+                        'SL.NO': index + 1,
+                        'STUDENT NAME': fullName || 'N/A',
+                        'EMAIL-ID': row.EmailID || 'N/A',
+                        'MOBILE NUMBER': row.Mobileno || 'N/A',
+                        'REG DATE': row.RegDate ? new Date(row.RegDate).toLocaleDateString('en-GB') : 'N/A'
+                    };
+                });
 
                 const worksheet = XLSX.utils.json_to_sheet(excelData);
                 const workbook = XLSX.utils.book_new();

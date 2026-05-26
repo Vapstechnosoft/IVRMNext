@@ -10,9 +10,9 @@ export const invRSalesSchema = z.object({
     enddate: z.date().optional(),
 
     // Filters
-    singleStudentId: z.number().optional(),
-    singleStaffId: z.number().optional(),
-    singleCustomerId: z.number().optional(),
+    singleStudentId: z.coerce.number().optional(),
+    singleStaffId: z.coerce.number().optional(),
+    singleCustomerId: z.coerce.number().optional(),
 
     // Arrays
     salesArray: z.array(z.any()).optional(),

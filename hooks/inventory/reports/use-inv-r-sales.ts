@@ -6,7 +6,8 @@ import {
     getInvRSalesClassData,
     getInvRSalesStudentList,
     getInvRSalesReport,
-    getInvRSalesItemLoadData
+    getInvRSalesItemLoadData,
+    getInvRSalesStaffLoadData
 } from '@/server/inventory/reports/inv-r-sales';
 import { toast } from 'sonner';
 import { IInvRSalesPayload } from '@/types/inventory/reports/inv-r-sales';
@@ -26,10 +27,18 @@ export const useInvRSalesItemLoadData = (optionflag: string) => {
     });
 };
 
-export const useInvRSalesDetails = (optionflag: string | undefined) => {
+export const useInvRSalesStaffLoadData = (enabled: boolean) => {
     return useQuery({
-        queryKey: ['invRSalesDetails', optionflag],
-        queryFn: () => getInvRSalesDetails(optionflag!),
+        queryKey: ['invRSalesStaffLoadData'],
+        queryFn: getInvRSalesStaffLoadData,
+        enabled,
+    });
+};
+
+export const useInvRSalesDetails = (optionflag: string | undefined, typeflag?: string) => {
+    return useQuery({
+        queryKey: ['invRSalesDetails', optionflag, typeflag],
+        queryFn: () => getInvRSalesDetails(optionflag!, typeflag),
         enabled: !!optionflag,
     });
 };
