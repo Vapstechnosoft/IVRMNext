@@ -23,29 +23,30 @@ export interface IAlumniSearchDetailsResponse {
 }
 
 export interface IAlumniSearchResultItem {
-    almst_id: number;
-    amsT_FirstName: string;
-    amsT_DOB: string;
-    amsT_MobileNo: string;
-    amsT_emailId: string;
-    ASMAY_Id_Join: string;
-    ASMAY_Id_Left: string;
-    ALMST_MembershipId: string;
-    ALMMC_MembershipCategory: string;
-    IVRMMD_Name: string;
-    amsT_BloodGroup: string;
-    ALSPR_Designation: string;
-    IVRMMS_Name: string;
-    ALMST_ConCity: string;
-    ALMST_FullAddess: string;
-    ALMST_PerPincode: string;
-    ASMAY_Id_NEW_Left?: string; // For Address Book view
+    almst_id?: number;
+    amsT_FirstName?: string;
+    amsT_DOB?: string;
+    amsT_MobileNo?: string;
+    amsT_emailId?: string;
+    ASMAY_Id_Join?: string;
+    ASMAY_Id_Left?: string;
+    ALMST_MembershipId?: string;
+    ALMMC_MembershipCategory?: string;
+    IVRMMD_Name?: string;
+    amsT_BloodGroup?: string;
+    ALSPR_Designation?: string;
+    IVRMMS_Name?: string;
+    ALMST_ConCity?: string;
+    ALMST_FullAddess?: string;
+    ALMST_PerPincode?: string;
+    ASMAY_Id_NEW_Left?: string; 
     Leftclass?: string;
     ASMCL_Id_Join?: number;
     ALMST_District?: string;
     // Lowercase mappings from new API response
     studentname?: string;
     amst_admno?: string;
+    amst_registrationno?: string;
     amst_mobileno?: number | string;
     amst_emailid?: string;
     amst_dob?: string;
@@ -53,9 +54,13 @@ export interface IAlumniSearchResultItem {
     amst_bloodgroup?: string;
     student_id?: number;
     asmay_year?: string;
+    mothername?: string;
+    fathername?: string;
+    amst_sex?: string;
+    amst_date?: string;
 }
 
-export interface IAlumniSearchResponse {
+export type IAlumniSearchResponse = {
     searchResult: IAlumniSearchResultItem[];
     count: number;
-}
+} | IAlumniSearchResultItem[];

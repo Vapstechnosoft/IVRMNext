@@ -40,7 +40,7 @@ import {
     fetchClassWorkStudentList
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BarChart3, CheckCircle2, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
+import { BarChart3, Calendar, Check, CheckCircle2, Copy, FileText, Plus, Sparkles, Trophy, Upload, Wand2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import CountUp from 'react-countup';
 import { toast } from 'sonner';
@@ -52,6 +52,7 @@ export default function OnlineMcqQuizPage() {
     const [file, setFile] = useState<File | null>(null);
     const [questionCount, setQuestionCount] = useState('5');
     const [difficulty, setDifficulty] = useState('Medium');
+    const [topic, setTopic] = useState('');
 
     // Workflow Modes: 'dashboard' | 'create' | 'preview' | 'publish'
     const [viewMode, setViewMode] = useState<'dashboard' | 'create' | 'preview' | 'publish'>('dashboard');
@@ -111,6 +112,7 @@ export default function OnlineMcqQuizPage() {
         formData.append('file', file);
         formData.append('questionCount', questionCount);
         formData.append('difficulty', difficulty);
+        formData.append('topic', topic);
 
         try {
             const response = await fetch('/api/exam/generate-quiz', {
@@ -139,6 +141,7 @@ export default function OnlineMcqQuizPage() {
 
     const [isSaving, setIsSaving] = useState(false);
     const [finalLink, setFinalLink] = useState('');
+    const [isLinkCopied, setIsLinkCopied] = useState(false);
     const [publishedQuizzes, setPublishedQuizzes] = useState<any[]>([]);
     const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [_isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
@@ -519,7 +522,7 @@ export default function OnlineMcqQuizPage() {
                 
                 setStudentsList(students);
                 // Default select all
-                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id));
+                setSelectedStudentIds(students.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id || s.id));
             } catch (err) {
                 console.error("fetchStudents error:", err);
                 toast.error('Failed to load students');
@@ -533,7 +536,7 @@ export default function OnlineMcqQuizPage() {
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedStudentIds(studentsList.map((s: any) => s.amst_Id || s.amsT_Id));
+            setSelectedStudentIds(studentsList.map((s: any) => s.amst_Id || s.amsT_Id || s.AMST_Id || s.id));
         } else {
             setSelectedStudentIds([]);
         }
@@ -567,6 +570,8 @@ export default function OnlineMcqQuizPage() {
                     title: quizData?.title || 'AI Assessment',
                     questions: quizData?.questions,
                     duration: publishConfig.duration,
+                    activeFrom: publishConfig.activeFrom,
+                    activeTo: publishConfig.activeTo,
                     difficulty: difficulty,
                     studentIds: selectedStudentIds,
                     academicYearId: Number(publishConfig.academicYearId),
@@ -586,7 +591,10 @@ export default function OnlineMcqQuizPage() {
                 section: publishConfig.targetSection,
                 link: data.exam_link,
                 questionsCount: quizData?.questions.length,
-                studentCount: selectedStudentIds.length
+                studentCount: selectedStudentIds.length,
+                activeFrom: publishConfig.activeFrom,
+                activeTo: publishConfig.activeTo,
+                duration: publishConfig.duration
             };
 
             const updatedList = [newQuiz, ...publishedQuizzes];
@@ -905,6 +913,16 @@ export default function OnlineMcqQuizPage() {
                                         </div>
                                     </div>
 
+                                    <div className="space-y-4">
+                                        <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Topic</Label>
+                                        <Input 
+                                            placeholder="e.g. Photosynthesis, World War II, Calculus..." 
+                                            value={topic} 
+                                            onChange={(e) => setTopic(e.target.value)} 
+                                            className='h-16 rounded-2xl border-none bg-slate-50 font-black' 
+                                        />
+                                    </div>
+
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Question Count</Label>
@@ -1015,9 +1033,6 @@ export default function OnlineMcqQuizPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Class</Label>
                                             <Select
@@ -1039,6 +1054,9 @@ export default function OnlineMcqQuizPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className="space-y-4">
                                             <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Section</Label>
                                             <Select
@@ -1059,6 +1077,44 @@ export default function OnlineMcqQuizPage() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest after:ml-0.5 after:text-red-500 after:content-['*']">Duration (Minutes)</Label>
+                                            <Input
+                                                type="number"
+                                                value={publishConfig.duration}
+                                                onChange={(e) => setPublishConfig({ ...publishConfig, duration: e.target.value })}
+                                                className='h-16 rounded-2xl border-none bg-slate-50 font-black'
+                                                placeholder="e.g. 30"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest">Available From</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="datetime-local"
+                                                    value={publishConfig.activeFrom}
+                                                    onChange={(e) => setPublishConfig({ ...publishConfig, activeFrom: e.target.value })}
+                                                    className='h-16 rounded-2xl border-none bg-slate-50 pl-12 font-black'
+                                                />
+                                                <Calendar className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <Label className="ml-1 font-black text-slate-400 text-sm uppercase tracking-widest">Available Until</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="datetime-local"
+                                                    value={publishConfig.activeTo}
+                                                    onChange={(e) => setPublishConfig({ ...publishConfig, activeTo: e.target.value })}
+                                                    className='h-16 rounded-2xl border-none bg-slate-50 pl-12 font-black'
+                                                />
+                                                <Calendar className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1093,9 +1149,10 @@ export default function OnlineMcqQuizPage() {
                                             ) : (
                                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                                     {studentsList.map((student) => {
-                                                        const sId = student.amst_Id || student.amsT_Id;
-                                                        const sName = student.amst_FirstName || student.amsT_FirstName || student.studentName || 'Unknown Student';
-                                                        const sAdmNo = student.amst_AdmNo || student.amsT_AdmNo || student.admissionNo || '';
+                                                        // Resilient property extraction for student details
+                                                        const sId = student.amst_Id || student.amsT_Id || student.AMST_Id || student.id;
+                                                        const sName = student.studentName || student.studentname || student.amsT_FirstName || student.AMST_FirstName || student.amst_FirstName || student.amst_firstname || 'Unknown Student';
+                                                        const sAdmNo = student.amst_AdmNo || student.amsT_AdmNo || student.AMST_AdmNo || student.admissionNo || student.admNo || '';
 
                                                         return (
                                                             <div
@@ -1136,6 +1193,75 @@ export default function OnlineMcqQuizPage() {
                                     </div>
                                 </CardContent>
                             </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Success Link Modal */}
+                <AnimatePresence>
+                    {finalLink && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className='fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md'
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                className='w-full max-w-lg overflow-hidden rounded-[3rem] bg-white shadow-2xl'
+                            >
+                                <div className='bg-emerald-500 p-10 text-center text-white'>
+                                    <div className='mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md'>
+                                        <CheckCircle2 className='h-10 w-10' />
+                                    </div>
+                                    <h2 className='font-black text-3xl'>Assessment Live!</h2>
+                                    <p className='mt-2 font-medium opacity-90'>The quiz has been successfully published.</p>
+                                </div>
+                                <div className='space-y-8 p-10'>
+                                    <div className='space-y-4'>
+                                        <Label className='ml-1 font-black text-slate-400 text-xs uppercase tracking-widest'>Student Access Link</Label>
+                                        <div className='group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-slate-50 p-2'>
+                                            <div className='flex-1 truncate px-4 font-bold text-slate-600 text-sm'>
+                                                {finalLink}
+                                            </div>
+                                            <Button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(finalLink);
+                                                    setIsLinkCopied(true);
+                                                    toast.success('Link copied to clipboard!');
+                                                    setTimeout(() => setIsLinkCopied(false), 2000);
+                                                }}
+                                                className={cn(
+                                                    'h-12 w-12 rounded-xl transition-all duration-300',
+                                                    isLinkCopied ? 'bg-emerald-500' : 'bg-slate-900 hover:bg-slate-800'
+                                                )}
+                                            >
+                                                {isLinkCopied ? <Check className='h-5 w-5 text-white' /> : <Copy className='h-5 w-5 text-white' />}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className='flex gap-4'>
+                                        <Button
+                                            variant="outline"
+                                            className='h-16 flex-1 rounded-2xl border-2 border-slate-100 font-black uppercase tracking-wider hover:bg-slate-50'
+                                            onClick={() => setFinalLink('')}
+                                        >
+                                            Configure More
+                                        </Button>
+                                        <Button
+                                            className='h-16 flex-1 rounded-2xl bg-slate-900 font-black text-white uppercase tracking-wider hover:bg-slate-800'
+                                            onClick={() => {
+                                                setFinalLink('');
+                                                setViewMode('dashboard');
+                                            }}
+                                        >
+                                            Go to Dashboard
+                                        </Button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>

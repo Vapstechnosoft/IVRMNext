@@ -79,7 +79,7 @@ export const getColumns = (typeflag: string, optionflag?: string, page: number =
             },
         ];
     } else if (typeflag === 'Overall') {
-        if (optionflag === 'Item_1') {
+        if (optionflag === 'Item_1' || optionflag === 'Item') {
             return [
                 {
                     accessorKey: "rowNumber",

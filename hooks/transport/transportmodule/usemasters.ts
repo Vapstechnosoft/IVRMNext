@@ -20,7 +20,7 @@ export const useMasterArea = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_AREA, searchParams ?? {}],
             queryFn: async () => getMasterArea(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -38,7 +38,7 @@ export const useMasterDriver = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_DRIVER, searchParams ?? {}],
             queryFn: async () => getMasterDriver(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -55,7 +55,7 @@ export const useMasterFuelType = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_FUEL_TYPE, searchParams ?? {}],
             queryFn: async () => getMasterFuelType(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -72,7 +72,7 @@ export const useMasterLocation = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_LOCATION, searchParams ?? {}],
             queryFn: async () => getMasterLocation(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -90,7 +90,7 @@ export const useMasterRoute = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_ROUTE, searchParams ?? {}],
             queryFn: async () => getMasterRoute(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -105,9 +105,9 @@ export const useMasterRouteDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.MASTER_ROUTE_DROPDOWN, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.MASTER_ROUTE_DROPDOWN],
             queryFn: async () => routeDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -123,9 +123,9 @@ export const useMasterAreaDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.MASTER_AREA_DROPDOWN_LIST, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.MASTER_AREA_DROPDOWN_LIST],
             queryFn: async () => areaDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -143,7 +143,7 @@ export const useMasterRouteArea = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_ROUTE_AREA, searchParams ?? {}],
             queryFn: async () => getMasterRouteArea(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -161,7 +161,7 @@ export const useMasterServiceStation = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_SERVICE_STATION, searchParams ?? {}],
             queryFn: async () => getMasterServiceStation(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -179,7 +179,7 @@ export const useMasterSession = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_SESSION, searchParams ?? {}],
             queryFn: async () => getMasterSession(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -197,7 +197,7 @@ export const useMasterVehicleType = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.MASTER_VEHICLE_TYPE, searchParams ?? {}],
             queryFn: async () => getMasterVehicleType(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -215,7 +215,7 @@ export const useExpirySettings = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.EXPIRY_SETTINGS, searchParams ?? {}],
             queryFn: async () => getExpirySettings(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -233,7 +233,7 @@ export const useMasterRouteSchedule = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: ['MASTER_ROUTE_SCHEDULE', searchParams ?? {}],
             queryFn: async () => getMasterRouteSchedule(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -250,7 +250,7 @@ export const useMasterVehicle = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.VECHILE_GRID_LIST, searchParams ?? {}],
             queryFn: async () => getMasterVehicle(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {

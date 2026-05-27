@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
                 title: body.title || "AI Quiz",
                 created_by: "Teacher_User", // Fallback, could be pulled from session
                 duration: parseInt(body.duration) || 30,
+                active_from: body.activeFrom,
+                active_to: body.activeTo,
                 student_ids: body.studentIds || [],
                 academic_year_id: body.academicYearId,
                 class_id: body.classId,

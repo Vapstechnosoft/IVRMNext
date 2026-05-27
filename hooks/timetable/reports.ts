@@ -7,7 +7,8 @@ import {
     getstaffwiseWorkingHoursStaffDD
 } from '@/server/timetable/reports/stafWiseWrokingHours';
 import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
-import { getuseTimeTableClassDropdownData } from '@/server/timetable/reports/subjectwisett';
+import { getStaffReplacementClassSectionReport } from '@/server/timetable/reports/staff-replacement-class-section';
+import { getuseTimeTableClassDropdownData, getuseTimeTableSectionDropdownData } from '@/server/timetable/reports/subjectwisett';
 
 import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -168,6 +169,25 @@ export const useTimeTableClassDropdown = (searchParams?: ApiSearchparams) => {
 };
 
 
+export const useTimeTableSectionDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_SECTIONDROPDOWN, searchParams ?? {}],
+            queryFn: async () => getuseTimeTableSectionDropdownData(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN]
+            });
+        }
+    };
+};
+
+
 // export const staffwiseWorkingHoursStaffData = (searchParams?: ApiSearchparams) => {
 //     const queryClient = useQueryClient();
 
@@ -221,4 +241,47 @@ export const staffwiseWorkingHoursReportDetails = () => {
     return useMutation({
         mutationFn: (data: any) => getstaffwiseWorkingHoursReport(data)
     });
+};
+
+// export const useStaffReplacementClassSectionReportDetails = () => {
+//     return useMutation({
+//         mutationFn: (data: any) => getStaffReplacementClassSectionReport(data)
+//     });
+// };
+
+
+// export const useStaffReplacementClassSectionReportDetails = () => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_CLASS_SECTION_REPORT],
+//             queryFn: async () => getStaffReplacementClassSectionReport(),
+//             staleTime: 0
+//         }),
+
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_CLASS_SECTION_REPORT]
+//             });
+//         }
+//     };
+// };
+
+export const useStaffReplacementClassSectionReportDetails = (payload: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_CLASS_SECTION_REPORT, payload],
+            queryFn: async () => getStaffReplacementClassSectionReport(payload),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.STAFF_REPLACEMENT_CLASS_SECTION_REPORT]
+            });
+        }
+    };
 };

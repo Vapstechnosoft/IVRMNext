@@ -23,6 +23,7 @@ export const roomTransferSchema = z.object({
     HLHSTRSC_NewRoomFee: z.number().min(0, "Room fee must be positive"),
     HLHSTRSC_EntireRoomReqdFlg: z.number().optional(),
     HLHSTRSC_VacateRemarks: z.string().optional(),
+    HLHSTRSC_AllotmentRemarks: z.string().optional(),
     // Display only fields (for form context)
     currentHostel: z.string().optional(),
     currentRoom: z.string().optional(),

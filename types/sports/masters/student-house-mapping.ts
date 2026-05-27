@@ -3,6 +3,7 @@ export interface StudentHouseMappingDTO {
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
+    amsT_Id?: number;
     spccmH_Id: number;
     spccsH_Date: Date;
     spccsH_Remarks?: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { getCalcuttaPromotionReportI_V } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
+import { getCalcuttaPromotionReportI_IX } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report-ix';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import CalcuttaPromotionReportItoIXForm from './_components/report-form';
@@ -14,8 +14,8 @@ export default function CalcuttaPromotionReportItoIXPage() {
 
     const handleFormSubmit = async (payload: any, dates: any) => {
         try {
-            const res = await getCalcuttaPromotionReportI_V(payload);
-            setReportData({ ...res });
+            const res = await getCalcuttaPromotionReportI_IX(payload);
+            setReportData(res);
             setDateInfo(dates);
             toast.success('Report generated successfully');
         } catch (error: any) {

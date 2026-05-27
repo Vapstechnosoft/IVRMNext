@@ -5,7 +5,8 @@ import {
     getInvRSalesDetails,
     getInvRSalesClassData,
     getInvRSalesStudentList,
-    getInvRSalesReport
+    getInvRSalesReport,
+    getInvRSalesItemLoadData
 } from '@/server/inventory/reports/inv-r-sales';
 import { toast } from 'sonner';
 import { IInvRSalesPayload } from '@/types/inventory/reports/inv-r-sales';
@@ -14,6 +15,14 @@ export const useInvRSalesLoadData = () => {
     return useQuery({
         queryKey: ['invRSalesLoadData'],
         queryFn: getInvRSalesLoadData,
+    });
+};
+
+export const useInvRSalesItemLoadData = (optionflag: string) => {
+    return useQuery({
+        queryKey: ['invRSalesItemLoadData', optionflag],
+        queryFn: () => getInvRSalesItemLoadData(optionflag),
+        enabled: !!optionflag,
     });
 };
 
@@ -28,7 +37,7 @@ export const useInvRSalesDetails = (optionflag: string | undefined) => {
 export const useInvRSalesClassData = (individualflag: string | undefined) => {
     return useQuery({
         queryKey: ['invRSalesClassData', individualflag],
-        queryFn: () => getInvRSalesClassData(),
+        queryFn: () => getInvRSalesClassData(individualflag!),
         enabled: !!individualflag && (individualflag === 'C' || individualflag === 'CS'),
     });
 };
@@ -44,19 +53,23 @@ export const useInvRSalesSectionList = (asmcL_Id: string | undefined, individual
 export const useInvRSalesStudentList = (
     asmcL_Id: string | undefined,
     asmS_Id: string | undefined,
-    individualflag: string | undefined
+    individualflag: string | undefined,
+    optionflag: string | undefined
 ) => {
     return useQuery({
-        queryKey: ['invRSalesStudentList', asmcL_Id, asmS_Id, individualflag],
+        queryKey: ['invRSalesStudentList', asmcL_Id, asmS_Id, individualflag, optionflag],
         queryFn: () => {
             const payload = {
-                ASMCL_Id: Number(asmcL_Id),
+                ASMCL_Id: asmcL_Id ? Number(asmcL_Id) : 0,
                 ASMS_Id: asmS_Id ? Number(asmS_Id) : 0,
-                type: 'C' // Always 'C' for student list, even when section is selected
+                type: 'C'
             };
             return getInvRSalesStudentList(payload);
         },
-        enabled: !!asmcL_Id && (individualflag === 'C' || (individualflag === 'CS' && !!asmS_Id)),
+        enabled: optionflag === 'Student' && (
+            (individualflag === 'C' && !!asmcL_Id) || 
+            (individualflag === 'CS' && !!asmcL_Id && !!asmS_Id)
+        ),
     });
 };
 

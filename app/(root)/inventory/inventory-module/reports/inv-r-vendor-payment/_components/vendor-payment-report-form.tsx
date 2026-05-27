@@ -186,7 +186,7 @@ export default function VendorPaymentReportForm({ onReportGenerated, isLoading =
                     </Button>
                     <Button
                         type="button"
-                        variant="destructive"
+                        variant="outline"
                         onClick={() => {
                             form.reset({
                                 report_type: "Overall",

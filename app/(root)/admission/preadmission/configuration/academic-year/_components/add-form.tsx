@@ -81,12 +81,43 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
         name: 'asmaY_RegularFeeFDate'
     });
 
-    // Auto-generate asmaY_Year like "2024-2025"
+    // Auto-generate asmaY_Year like "2024-2025" and populate dates
     useEffect(() => {
-        if (academicFromYear && academicToYear) {
+        if (
+            academicFromYear &&
+            academicFromYear.length === 4 &&
+            !Number.isNaN(Number(academicFromYear)) &&
+            academicToYear &&
+            academicToYear.length === 4 &&
+            !Number.isNaN(Number(academicToYear))
+        ) {
+            const fromYear = Number(academicFromYear);
+            const toYear = Number(academicToYear);
+
             setValue('asmaY_Year', `${academicFromYear}-${academicToYear}`, {
                 shouldValidate: true
             });
+
+            // Populate Start Date (June 1st of From Year)
+            const startDate = new Date(fromYear, 5, 1); // June is index 5
+            setValue('asmaY_From_Date', startDate.toISOString(), { shouldValidate: true });
+
+            // Populate End Date (May 31st of To Year)
+            const endDate = new Date(toYear, 4, 31); // May is index 4
+            setValue('asmaY_To_Date', endDate.toISOString(), { shouldValidate: true });
+
+            // Populate Pre Admission Start Date (January 1st of From Year)
+            const preAdmStartDate = new Date(fromYear, 0, 1); // January is index 0
+            setValue('asmaY_PreAdm_F_Date', preAdmStartDate.toISOString(), { shouldValidate: true });
+
+            // Populate Pre Admission End Date (May 31st of To Year)
+            setValue('asmaY_PreAdm_T_Date', endDate.toISOString(), { shouldValidate: true });
+
+            // Populate Cut-off Date (June 1st of From Year)
+            setValue('asmaY_Cut_Of_Date', startDate.toISOString(), { shouldValidate: true });
+
+            // Populate Academic Year Code with From Year if empty
+            setValue('asmaY_AcademicYearCode', academicFromYear, { shouldValidate: true });
         } else {
             setValue('asmaY_Year', '');
         }
@@ -204,7 +235,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                 placeholder='e.g., 2024'
                                 {...register('asmaY_AcademicYearCode', {
                                     onChange: (e) => {
-                                        e.target.value = e.target.value.replace(/\D/g, '');
+                                        e.target.value = e.target.value.replace(/[^a-zA-Z0-9-]/g, '');
                                     }
                                 })}
                                 error={errors.asmaY_AcademicYearCode?.message}
@@ -266,7 +297,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 10, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -308,8 +344,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : undefined}
-                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
+                                                    fromDate={
+                                                        academicFromDate
+                                                            ? addDays(new Date(academicFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 10, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -356,7 +402,14 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicFromDate
+                                                            ? new Date(academicFromDate)
+                                                            : academicToYear
+                                                              ? new Date(Number(academicToYear), 11, 31)
+                                                              : new Date(new Date().getFullYear() + 10, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -400,8 +453,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : undefined}
-                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
+                                                    fromDate={
+                                                        preAdmFromDate
+                                                            ? addDays(new Date(preAdmFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 10, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -482,7 +545,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 10, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -856,9 +924,9 @@ export function TimeSpinnerField({
     onChange: (val: string) => void;
     error?: string;
 }) {
-    const hoursRef = useRef<HTMLDivElement>(null);
-    const minutesRef = useRef<HTMLDivElement>(null);
-    const ampmRef = useRef<HTMLDivElement>(null);
+    const hoursRef = useRef<HTMLInputElement>(null);
+    const minutesRef = useRef<HTMLInputElement>(null);
+    const ampmRef = useRef<HTMLSelectElement>(null);
 
     // Parse "HH:mm" (24h) → h (1-12), mm, ampm
     function parse(v: string) {
@@ -870,13 +938,31 @@ export function TimeSpinnerField({
         return { h, m, ampm };
     }
 
-    function emit(h: number, m: number, ampm: string) {
-        let h24 = h % 12;
-        if (ampm === 'PM') h24 += 12;
-        onChange(`${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    const { h, m, ampm } = parse(value);
+
+    const [localH, setLocalH] = useState(String(h).padStart(2, '0'));
+    const [localM, setLocalM] = useState(String(m).padStart(2, '0'));
+
+    function emit(newH: number, newM: number, newAmpm: string) {
+        let h24 = newH % 12;
+        if (newAmpm === 'PM') h24 += 12;
+        onChange(`${String(h24).padStart(2, '0')}:${String(newM).padStart(2, '0')}`);
+        setLocalH(String(newH).padStart(2, '0'));
+        setLocalM(String(newM).padStart(2, '0'));
     }
 
-    const { h, m, ampm } = parse(value);
+    // Sync from prop when not active typing
+    useEffect(() => {
+        if (document.activeElement !== hoursRef.current) {
+            setLocalH(String(h).padStart(2, '0'));
+        }
+    }, [h]);
+
+    useEffect(() => {
+        if (document.activeElement !== minutesRef.current) {
+            setLocalM(String(m).padStart(2, '0'));
+        }
+    }, [m]);
 
     useEffect(() => {
         const handleHoursWheel = (e: WheelEvent) => {
@@ -922,41 +1008,80 @@ export function TimeSpinnerField({
             <Label>{label}</Label>
             <div className='flex items-center gap-2'>
                 {/* Hours */}
-                <div ref={hoursRef} className='flex flex-col items-center'>
+                <div className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(h).padStart(2, '0')}
-                    </div>
+                    <input
+                        ref={hoursRef}
+                        type='text'
+                        maxLength={2}
+                        value={localH}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 2);
+                            setLocalH(val);
+                        }}
+                        onBlur={() => {
+                            let num = Number(localH);
+                            if (Number.isNaN(num) || num < 1 || num > 12) {
+                                num = h;
+                            }
+                            emit(num, m, ampm);
+                        }}
+                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    />
                     <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
-                <span className='text-lg font-bold leading-none'>:</span>
+                <span className='font-bold text-lg leading-none'>:</span>
 
                 {/* Minutes */}
-                <div ref={minutesRef} className='flex flex-col items-center'>
+                <div className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(m).padStart(2, '0')}
-                    </div>
+                    <input
+                        ref={minutesRef}
+                        type='text'
+                        maxLength={2}
+                        value={localM}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 2);
+                            setLocalM(val);
+                        }}
+                        onBlur={() => {
+                            let num = Number(localM);
+                            if (Number.isNaN(num) || num < 0 || num > 59) {
+                                num = m;
+                            }
+                            emit(h, num, ampm);
+                        }}
+                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                    />
                     <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
-                {/* AM / PM toggle */}
-                <div ref={ampmRef} className='flex flex-col items-center'>
+                {/* AM / PM select dropdown */}
+                <div className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {ampm}
-                    </div>
+                    <select
+                        ref={ampmRef}
+                        value={ampm}
+                        onChange={(e) => emit(h, m, e.target.value)}
+                        className='flex h-9 w-14 cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
+                        <option value='AM' className='bg-background text-foreground'>
+                            AM
+                        </option>
+                        <option value='PM' className='bg-background text-foreground'>
+                            PM
+                        </option>
+                    </select>
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>

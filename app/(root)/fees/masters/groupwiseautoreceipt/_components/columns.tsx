@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
@@ -9,6 +9,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 import { Eye } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { PrintReceiptButton } from './receipt-print-action';
 
 export const masterGroupWiseAutoReciptColumns: ColumnDef<IMasterGroupWiseAutoReciptList>[] = [
     {
@@ -67,7 +68,7 @@ export const masterGroupWiseAutoReciptColumns: ColumnDef<IMasterGroupWiseAutoRec
 
         cell: ({ row }) => (
             <div className='flex w-full items-center justify-start'>
-                <TemplatePreviewCell templateHtml={row.original.fgaR_Template_Name} />
+                <TemplatePreviewCell templateHtml={row.original.fgaR_Template_Name} rowData={row.original} />
             </div>
         ),
 
@@ -201,9 +202,59 @@ function SelectedFeeGroupsCell({
     );
 }
 
-function TemplatePreviewCell({ templateHtml }: { templateHtml?: string | null }) {
+function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string | null, rowData: IMasterGroupWiseAutoReciptList }) {
     const [open, setOpen] = useState(false);
-    const safeHtml = templateHtml ?? '';
+
+    let safeHtml = templateHtml ?? '';
+
+    // Handle encoded HTML just in case
+    if (safeHtml.includes('&lt;') && safeHtml.includes('&gt;')) {
+        safeHtml = safeHtml.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    }
+
+    // Attempt to bind data by replacing common placeholders with actual rowData values
+    if (safeHtml) {
+        safeHtml = safeHtml.replace(/\[Prefix\]/gi, rowData.fgaR_PrefixName || '');
+        safeHtml = safeHtml.replace(/\[Suffix\]/gi, rowData.fgaR_SuffixName || '');
+        safeHtml = safeHtml.replace(/\[StartingNo\]/gi, rowData.fgaR_Starting_No?.toString() || '');
+        safeHtml = safeHtml.replace(/\[GroupName\]/gi, rowData.fgaR_Name || '');
+        safeHtml = safeHtml.replace(/\[AcademicYear\]/gi, rowData.academicyear || '');
+    }
+
+    // Emulate Angular's $compile with an empty scope by removing all unbound {{variable}} placeholders
+    if (safeHtml) {
+        safeHtml = safeHtml.replace(/\{\{.*?\}\}/g, '');
+    }
+
+    const isFullHtmlDocument = safeHtml.toLowerCase().includes('<html') && safeHtml.toLowerCase().includes('<body');
+
+    const iframeContent = isFullHtmlDocument ? safeHtml : `
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                <style>
+                    body { padding: 20px; font-family: Arial, sans-serif; background-color: #fff; }
+                    /* Add standard table styling in case it's missing from the template */
+                    table { width: 100%; border-collapse: collapse; }
+                    /* Force Bootstrap modals to be visible in the preview */
+                    .modal { display: block !important; position: static !important; opacity: 1 !important; z-index: auto !important; background: transparent !important; }
+                    .modal-dialog { width: 100% !important; max-width: 800px !important; margin: 0 auto !important; transform: none !important; }
+                    .modal-content { border: none !important; box-shadow: none !important; }
+                    .modal-content { border: none !important; box-shadow: none !important; }
+                    .modal-backdrop { display: none !important; }
+                    /* Hide legacy angular buttons */
+                    .modal-footer { display: none !important; }
+                </style>
+            </head>
+            <body>
+                ${safeHtml}
+            </body>
+        </html>
+    `;
 
     return (
         <>
@@ -218,8 +269,8 @@ function TemplatePreviewCell({ templateHtml }: { templateHtml?: string | null })
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className='max-h-[90vh] max-w-[95vw] overflow-hidden p-0'>
-                    <DialogHeader className='flex items-center justify-between border-b p-4'>
+                <DialogContent className='flex flex-col h-[85vh] max-h-[90vh] max-w-5xl overflow-hidden p-0'>
+                    <DialogHeader className='shrink-0 flex items-center justify-between border-b p-4'>
                         <DialogTitle>Receipt Template Preview</DialogTitle>
                         <DialogClose asChild>
                             <Button
@@ -231,23 +282,23 @@ function TemplatePreviewCell({ templateHtml }: { templateHtml?: string | null })
                         </DialogClose>
                     </DialogHeader>
 
-                    {/* <div
-                        className='h-[calc(90vh-80px)] w-full overflow-auto bg-white p-6'
-                        style={{
-                            zoom: 0.9,
-                            fontFamily: 'Arial, sans-serif'
-                        }}>
-
-                             {parse(safeHtml)}
-
-
-                       <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
-
-                    </div> */}
-
-                    <div className='h-[calc(90vh-80px)] w-full bg-white'>
-                        <iframe title='Template Preview' className='h-full w-full border-0' sandbox='' srcDoc={safeHtml} />
+                    <div className='flex-1 w-full bg-white overflow-hidden'>
+                        <iframe 
+                            title='Template Preview' 
+                            className='h-full w-full border-0' 
+                            sandbox='allow-same-origin allow-scripts' 
+                            srcDoc={iframeContent} 
+                        />
                     </div>
+
+                    <DialogFooter className='shrink-0 border-t bg-gray-50 px-6 py-4 flex items-center justify-end gap-2'>
+                        <DialogClose asChild>
+                            <Button variant='destructive' className='w-24'>
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <PrintReceiptButton htmlContent={safeHtml} />
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>

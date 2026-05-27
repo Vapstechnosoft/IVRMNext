@@ -186,6 +186,7 @@ export default function CumulativeReportPage() {
                         {/* Screen View */}
                         <CumulativeReportGridView
                             reportData={reportData}
+                            institution={institution}
                             subjects={subjects}
                             headerInfo={headerInfo}
                             columnFlags={columnFlags}

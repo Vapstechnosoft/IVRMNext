@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { UserCog } from 'lucide-react';
+import { Loader2, UserCog } from 'lucide-react';
 import type { CategoryDTO, ModuleDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 import { useFormContext } from 'react-hook-form';
 
@@ -18,6 +18,7 @@ interface UserDetailsProps {
     onSelectAllModules: () => void;
     isUserNameDisabled?: boolean;
     onChangeUsernameToggle?: () => void;
+    isStaffDataLoading?: boolean;
 }
 
 export default function UserDetails({
@@ -28,7 +29,8 @@ export default function UserDetails({
     onSelectAllCategories,
     onSelectAllModules,
     isUserNameDisabled = false,
-    onChangeUsernameToggle
+    onChangeUsernameToggle,
+    isStaffDataLoading = false
 }: UserDetailsProps) {
     const { register, watch } = useFormContext();
     const filterData = watch('filterData');
@@ -49,14 +51,17 @@ export default function UserDetails({
             <div className={`space-y-6 ${filterData === 'Multiple' ? 'opacity-40 pointer-events-none grayscale' : ''}`}>
                 <div className='space-y-2'>
                     <Label className='font-semibold text-sm'>User Name:</Label>
-                    <div className='flex gap-2'>
-                        <Input
-                            {...register('userName')}
-                            className='bg-gray-50 uppercase'
-                            placeholder={filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'USERNAME'}
-                            readOnly={isUserNameDisabled}
-                            disabled={filterData === 'Multiple'}
-                        />
+                    <div className='flex gap-2 items-center'>
+                            <Input
+                                {...register('userName')}
+                                className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
+                                placeholder={filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'USERNAME'}
+                                readOnly={isUserNameDisabled}
+                                disabled={filterData === 'Multiple'}
+                            />
+                            {isStaffDataLoading && (
+                                <Loader2 className='h-6 w-6 animate-spin text-primary' />
+                            )}
                         <Button
                             type='button'
                             variant="secondary"
@@ -84,7 +89,7 @@ export default function UserDetails({
             {/* Selection Lists */}
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                 {/* Categories */}
-                <div className='space-y-2'>
+                {/* <div className='space-y-2'>
                     <Label className='flex items-center justify-between font-semibold text-sm'>
                         Select Category:
                         <span onClick={onSelectAllCategories} className='cursor-pointer text-[10px] text-primary hover:underline'>
@@ -107,7 +112,7 @@ export default function UserDetails({
                             ))}
                         </ScrollArea>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Modules */}
                 <div className='space-y-2'>
@@ -119,6 +124,9 @@ export default function UserDetails({
                     </Label>
                     <div className='rounded-md border bg-gray-50 p-2'>
                         <ScrollArea className='h-40'>
+                            {modules.length === 0 && (
+                                <p className='text-center text-gray-500'>Please Select Staff to view modules.</p>
+                            )}
                             {modules.map((mod) => (
                                 <div
                                     key={mod.ivrmM_Id}

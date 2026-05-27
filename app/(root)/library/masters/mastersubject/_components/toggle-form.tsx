@@ -18,9 +18,10 @@ type FormFields = {
 interface ToggleMasterSubjectFormProps {
     rowData: IMasterSubjectList;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMasterSubjectFormProps) {
+export default function ToggleMasterSubjectForm({ rowData, onClose, onSuccess }: ToggleMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
     const isActive = rowData.lmS_ActiveFlg;
 
@@ -31,6 +32,9 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.delete),
+        defaultValues: {
+            lmS_Id: rowData.lmS_Id?.toString()
+        },
         mode: 'onChange'
     });
 
@@ -46,6 +50,7 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
+                if (onSuccess) onSuccess();
                 closeDialog();
             } else {
                 toast.error(response.message || 'Failed to update status');
@@ -59,9 +64,7 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
         <AdaptiveDialog title='Toggle Master Library Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    {/* Register as number so zod validation receives a number (not a string) */}
-                    {/* <input type='hidden' {...register('lmaL_Id', { valueAsNumber: true })} value={rowData.lmaL_Id as any} /> */}
-                    <input type='hidden' {...register('lmS_Id')} />
+                    <input type='hidden' {...register('lmS_Id')} value={rowData.lmS_Id?.toString()} />
 
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmS_SubjectName}</strong>?
