@@ -5,7 +5,6 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TimePicker } from '@/components/ui/time-picker/time-picker';
 import {
     useAcademicYearPeriodDistrubution,
     useCategtoryPeriodDistrubution,
@@ -24,6 +23,7 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { SpinnerTimePicker } from '../../breaktimesettings/_components/SpinnerTimePicker';
 
 type FormFields = z.infer<typeof periodTimeSettingSchema.save>;
 
@@ -363,7 +363,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                     <Controller
                         control={control}
                         name='startTime'
-                        render={({ field }) => <TimePicker date={field.value} setDate={field.onChange} />}
+                        render={({ field }) => <SpinnerTimePicker value={field.value} onChange={field.onChange} />}
                     />
                     {errors.startTime && <span className='text-red-500 text-sm'>{errors.startTime.message}</span>}
                 </div>
@@ -375,7 +375,7 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                     <Controller
                         control={control}
                         name='endTime'
-                        render={({ field }) => <TimePicker date={field.value} setDate={field.onChange} />}
+                        render={({ field }) => <SpinnerTimePicker value={field.value} onChange={field.onChange} />}
                     />
                     {errors.endTime && <span className='text-red-500 text-sm'>{errors.endTime.message}</span>}
                 </div>
