@@ -1,5 +1,4 @@
 import { Chatbot } from '@/components/chatbot/chatbot';
-import { FloatingSchoolBot } from '@/components/chatbot/floating-school-bot';
 import { StudentChatbot } from '@/components/chatbot/student-chatbot';
 import Providers from '@/components/layout/providers';
 import { auth } from '@/lib/auth';
@@ -49,7 +48,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                         <>
                             <Chatbot />
                             <StudentChatbot />
-                            <FloatingSchoolBot />
+                            {/* <FloatingSchoolBot /> */}
                         </>
                     )}
                     <Toaster
