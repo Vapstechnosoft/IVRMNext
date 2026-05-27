@@ -107,13 +107,13 @@ export const useacademicyerdropdowndatafee = (searchParams?: ApiSearchparams) =>
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1, searchParams ?? {}],
             queryFn: async () => getAcademicYearDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES]
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1]
             });
         }
     };
@@ -311,18 +311,18 @@ export const useFeeThirdParty = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useGroupdropdowndatathirdpartytransaction = (searchParams?: ApiSearchparams) => {
+export const useGroupdropdowndatathirdpartytransaction = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1],
             queryFn: async () => getThirdPartyTrasactionGroupDropDown(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN]
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1]
             });
         }
     };
@@ -647,13 +647,13 @@ export const useFeeRefundableList = (asmay_Id: number, searchParams?: ApiSearchp
     };
 };
 
-export const useFeeConcessionClassDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+export const useFeeConcessionClassDropdowndata = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
-            queryFn: async () => getConcessionClassesDropdownData(mi_id),
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionClassesDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
