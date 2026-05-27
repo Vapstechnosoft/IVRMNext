@@ -561,8 +561,7 @@ export function useEmployeeById(id: number | null) {
                 possibleWrappers.forEach(wrapper => {
                     if ((data as any)[wrapper]) {
                         const wKeys = Object.keys((data as any)[wrapper]);
-                        const wQualKeys = wKeys.filter(k => k.toLowerCase().includes('qual'));
-                        if (wQualKeys.length > 0) 
+                        // if (wQualKeys.length > 0) 
                     }
                 });
             }

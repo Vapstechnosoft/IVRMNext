@@ -635,7 +635,6 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
 
     // Map qualification details
     // console.log('🔍 [HELPER] Root apiData keys:', apiData ? Object.keys(apiData) : 'null');
-    if (apiData?.data) 
 
     let qualificationData: any[] = [];
 
@@ -1107,7 +1106,6 @@ function findDataRoot(obj: any, visited = new WeakSet(), targetId?: number): any
     const idKey = Object.keys(obj).find((k) => k.toLowerCase() === 'hrme_id');
     if (idKey) {
         foundId = obj[idKey];
-        if (foundId) 
     }
 
     if (foundId !== undefined && foundId !== null) {

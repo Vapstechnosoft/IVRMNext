@@ -524,7 +524,7 @@ export default function EventsStudentSRKVSForm({ onSuccess }: EventsStudentSRKVS
                 </div>
 
                 <div className='mt-8 flex justify-center space-x-4'>
-                    <Button type="button" disabled={saveData.isPending} onClick={form.handleSubmit(onSubmit, (_errors) => )}>
+                    <Button type="button" disabled={saveData.isPending} onClick={form.handleSubmit(onSubmit)}>
                         {saveData.isPending ? 'Saving...' : 'Save'}
                     </Button>
                     <Button type="button" variant="destructive" onClick={() => onSuccess()}>Cancel</Button>

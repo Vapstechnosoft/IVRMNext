@@ -73,7 +73,7 @@ export const bbhsStudentApplicationColumns: ColumnDef<IPreadmissionStudentApplic
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => }>
+                        <DropdownMenuItem onClick={() => {}}>
                             <FileEdit className="mr-2 h-4 w-4" />
                             Edit Application
                         </DropdownMenuItem>

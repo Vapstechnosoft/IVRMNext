@@ -242,7 +242,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             });
 
             const formData = new FormData();
-            formData.forEach((_v, _k) => );
+            // formData.forEach((_v, _k) => );
             formData.append('file', file);
             formData.append('FileName', file.name);
             formData.append('ContentType', file.type);

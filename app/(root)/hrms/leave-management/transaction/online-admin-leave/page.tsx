@@ -336,7 +336,7 @@ export default function OnlineAdminLeavePage() {
 
     // Grid 2 Columns (History)
     const historyColumns = useMemo(() => getOnlineAdminLeaveColumns({
-        onView: (_row) => ,
+        onView: (_row) => {},
         onDelete: (_id) => {
             if (confirm('Are you sure you want to delete this leave application?')) {
             }

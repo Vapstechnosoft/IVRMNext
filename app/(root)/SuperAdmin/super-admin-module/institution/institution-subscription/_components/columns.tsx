@@ -65,14 +65,14 @@ export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>
                     rowData={row.original}
                     buttons={{ edit: true, toggle: true, delete: false }}
                     toggleConditionKey='misV_ActiveFlag'
-                    onEdit={(_data) => }
-                    onToggle={(_data, _checked) => }
+                    onEdit={(_data) => {}}
+                    onToggle={(_data, _checked) => {}}
                 />
                 {row.original.misV_ActiveFlag && row.original.misV_ApprovalFlag !== 'P' && (
                     <Button
                         variant='ghost'
                         size='icon'
-                        onClick={() => }
+                        onClick={() => {}}
                         title='Renewal Request'
                         className='text-green-600 hover:bg-green-50 hover:text-green-700'
                     >
