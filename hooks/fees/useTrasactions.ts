@@ -136,12 +136,12 @@ export const useopeningacademicyerdropdowndatafee = (searchParams?: ApiSearchpar
     };
 };
 
-export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
+export const useopeningClassdropdowndatafee = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN],
             queryFn: async () => {
                 try {
                     const response = await getOpeningClassDropdownData();

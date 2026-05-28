@@ -153,7 +153,7 @@ export const FEES_QUERY_KEYS = {
     FEE_MASTER_TERMS: 'feemasterterms',
     FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
-    TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
+    TERM_DROP_DOWN_DATA_DROPDOWN: 'TERM_DROP_DOWN_DATA_DROPDOWN',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
@@ -668,5 +668,4 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
     TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list',
     CANDIDATE_DROPDOWN: 'candidate_dropdown'
-   
-}
+};

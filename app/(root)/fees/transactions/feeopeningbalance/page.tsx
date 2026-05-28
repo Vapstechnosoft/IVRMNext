@@ -230,7 +230,7 @@ function FormSections({ refetch, activeTab }: { refetch: () => void; activeTab: 
                             <AddFeeOpeningBalanceForm
                                 onSuccess={() => {
                                     closeAddForm();
-                                    refetch();
+                                    // refetch();
                                 }}
                             />
                         </div>
