@@ -188,6 +188,7 @@ export default function AddMasterFloorForm({
                                         onChange={(vals) => field.onChange(vals)}
                                         error={errors.selectedFacilityIds?.message}
                                         isSearchRequired
+                                        isRequired
                                     />
                                 )}
                             />

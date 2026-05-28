@@ -23,25 +23,34 @@ interface TogglePDAMasterHeadFormProps {
 
 export default function TogglePDAMasterHeadForm({ rowData, onClose, onSuccess }: TogglePDAMasterHeadFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const handleToggle = async () => {
         setIsSubmitting(true);
+
         try {
             const response = await togglePDAMasterHead(rowData);
-            if (response.returnval === true) {
-                toast.success(`Record ${rowData.pdamH_ActiveFlag ? 'Deactivated' : 'Activated'} Successfully`);
+
+            if (response.returnval === true || (response as any).success === true) {
+
+                const statusMessage = rowData.pdamH_ActiveFlag
+                    ? 'Deactivated Successfully'
+                    : 'Activated Successfully';
+
+                toast.success(statusMessage);
+
                 onSuccess();
-            } else {
+            }
+            else {
                 toast.error(response.message || 'Failed to update record status');
             }
-        } catch (error: any) {
+        }
+        catch (error: any) {
             console.error('Toggle error:', error);
             toast.error(error.message || 'Error updating record status');
-        } finally {
+        }
+        finally {
             setIsSubmitting(false);
         }
     };
-
     return (
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>

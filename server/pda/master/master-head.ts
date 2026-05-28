@@ -5,18 +5,22 @@ import type { ApiSearchparams } from '@/types';
 import type { IPDAMasterHeadResponse, IPDAMasterHead } from '@/types/pda/master/master-head';
 
 export async function getPDAMasterHeadDetails(searchParams?: ApiSearchparams) {
-    // Assuming pageid is 2 as per angular code
-    const pageId = 2;
-    const url = `PDAMasterHead/getalldetails/${pageId}`;
+    const url = '/PDAMasterHeadFacade/getpagedetails';
     return await api.get<IPDAMasterHeadResponse>('pettycashandassettracking', url);
 }
 
+export async function getPDAFeeHeadsDropdown() {
+    const url = '/PDAMasterHeadFacade/getdetails';
+    return await api.get<any>('pettycashandassettracking', url);
+}
+
 export async function savePDAMasterHead(data: any) {
-    const url = 'PDAMasterHead/savedetails';
+    const url = '/PDAMasterHeadFacade/savedetails';
     return await api.post<IPDAMasterHeadResponse>('pettycashandassettracking', url, data);
 }
 
 export async function togglePDAMasterHead(data: IPDAMasterHead) {
-    const url = 'PDAMasterHead/deactivate';
-    return await api.post<IPDAMasterHeadResponse>('pettycashandassettracking', url, data);
+    // Use PUT as specified by the user
+    const url = `/PDAMasterHeadFacade/MasterHeadToggle/${data.pdamH_Id}`;
+    return await api.put<IPDAMasterHeadResponse>('pettycashandassettracking', url, data);
 }

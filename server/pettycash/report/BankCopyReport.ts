@@ -9,8 +9,8 @@ export async function getBankCopyReportInitialData() {
 }
 
 export async function getBankCopyReport(data: IBankCopyReportParams) {
-    const url = '/BankCopyReportVVVS/get_report';
-    return await api.post<IBankCopyReportResponse>('pettycashandassettracking', url, data);
+    const url = `/Expenses/get_bank_copy_report/${data.IVRM_Month_Id}/${data.ASMAY_Year}`;
+    return await api.get<IBankCopyReportResponse>('pettycashandassettracking', url);
 }
 
 export async function getBankCopyReportDetails(data: any) {

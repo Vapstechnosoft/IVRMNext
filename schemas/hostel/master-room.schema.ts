@@ -18,7 +18,7 @@ export const masterRoomSchema = z.object({
     hrmrM_RoomForStaffFlg: z.boolean().default(false),
     hrmrM_RoomForGuestFlg: z.boolean().default(false),
     // For UI handling of multi-select values (array of string IDs)
-    selectedFacilityIds: z.array(z.string()).min(1, 'Select at least one facility'),
+    selectedFacilityIds: z.array(z.string()).optional(),
     facilities: z.array(z.object({ hlmftY_Id: z.string(), hlmftY_FacilityName: z.string() })).optional()
 });
 

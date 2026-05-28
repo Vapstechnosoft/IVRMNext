@@ -16,10 +16,7 @@ interface ManualPeriodInsertionReportProps {
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const DEFAULT_DAY_IDS: Record<string, number> = {
-    'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7,
-    'MONDAY': 1, 'TUESDAY': 2, 'WEDNESDAY': 3, 'THURSDAY': 4, 'FRIDAY': 5, 'SATURDAY': 6, 'SUNDAY': 7
-};
+
 const PERIODS = [
     'Period 1',
     'Period 2',
@@ -41,6 +38,8 @@ interface CellData {
     subjectName?: string;
 }
 
+const EMPTY_OBJ = {};
+
 export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsertionReportProps) {
     const { data: masters } = useManualPeriodMasters();
     const { data: reportData, isLoading } = useManualPeriodInsertionReport(data);
@@ -53,39 +52,48 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
     const [selectedForAssignment, setSelectedForAssignment] = useState<Record<string, boolean>>({});
     const [tempSelection, setTempSelection] = useState<CellData>({ hrmE_Id: '', ismS_Id: '' });
 
-    // Always show all standard days so user can assign to any day
-    const gridDays = DAYS;
+    // Extract the nested data object if the API wraps it in { success: true, data: { ... } }
+    const actualReportData = reportData?.data || reportData || EMPTY_OBJ;
 
-    const gridPeriods = reportData?.periodslst?.length
-        ? reportData.periodslst.map((p: any) => p.ttmP_PeriodName || p.periodName || p.ttcP_PeriodName)
+    // Always show all standard days so user can assign to any day
+    const gridDays = actualReportData?.gridweeks?.length 
+        ? actualReportData.gridweeks.map((d: any) => d.ttmD_DayName || d.dayName)
+        : DAYS;
+
+    // Use periods from API or fallback
+    const gridPeriods = actualReportData?.periodslst?.length
+        ? actualReportData.periodslst.map((p: any) => p.ttmP_PeriodName || p.periodName || p.ttcP_PeriodName)
         : PERIODS;
 
     useEffect(() => {
-        if (reportData?.time_Table && Array.isArray(reportData.time_Table)) {
+        if (actualReportData?.time_Table && Array.isArray(actualReportData.time_Table)) {
             const newCellData: Record<string, CellData> = {};
-            reportData.time_Table.forEach((item: any) => {
+            actualReportData.time_Table.forEach((item: any) => {
                 const day = item.ttmd_DayName || item.ttmD_DayName || item.dayName;
                 const period = item.ttcP_PeriodName || item.ttmP_PeriodName || item.periodName;
                 if (day && period) {
-                    const key = `${day.toLowerCase()}-${period.toLowerCase()}`;
+                    const key = `${String(day).toLowerCase().trim()}-${String(period).toLowerCase().trim()}`;
+                    const ismsIdVal = item.ismS_Id || item.isms_Id || item.isms_id || item.ISMS_Id;
+                    const hrmeIdVal = item.hrmE_Id || item.hrme_Id || item.hrme_id || item.HRME_Id;
+                    
                     newCellData[key] = {
-                        hrmE_Id: item.hrmE_Id?.toString() || '',
-                        ismS_Id: item.ismS_Id?.toString() || '',
-                        staffName: item.staffName || masters?.staff?.find(s => s.hrmE_Id === item.hrmE_Id)?.staffName,
-                        subjectName: item.subjectName || masters?.subjects?.find(s => s.ismS_Id === item.ismS_Id)?.ismS_SubjectName
+                        hrmE_Id: hrmeIdVal?.toString() || '',
+                        ismS_Id: ismsIdVal?.toString() || '',
+                        staffName: item.staffName || item.hrmE_EmployeeFirstName || masters?.staff?.find(s => s.hrmE_Id === hrmeIdVal)?.staffName || '',
+                        subjectName: item.ismS_SubjectName || item.subjectName || item.ismS_SubjectName || masters?.subjects?.find(s => s.ismS_Id === ismsIdVal)?.ismS_SubjectName || ''
                     };
                 }
             });
             setCellData(newCellData);
         } else {
-            setCellData({});
+            setCellData(prev => Object.keys(prev).length === 0 ? prev : {});
         }
-    }, [reportData, masters]);
+    }, [actualReportData, masters]);
 
     const toggleSelection = (day: string, period: string) => {
         if (period.includes('Break')) return;
 
-        const key = `${day.toLowerCase()}-${period.toLowerCase()}`;
+        const key = `${String(day).toLowerCase().trim()}-${String(period).toLowerCase().trim()}`;
         setSelectedForAssignment((prev) => ({
             ...prev,
             [key]: !prev[key]
@@ -99,16 +107,27 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         const payloadTimeTable: any[] = [];
 
         selectedKeys.forEach((key) => {
-            const [dayName, periodName] = key.split('-');
-            const dayObj = reportData?.gridweeks?.find((d: any) =>
-                (d.ttmD_DayName?.toLowerCase() || d.dayName?.toLowerCase()) === dayName
-            );
-            const periodObj = reportData?.periodslst?.find(
-                (p: any) => (p.ttmP_PeriodName?.toLowerCase() || p.periodName?.toLowerCase() || p.ttcP_PeriodName?.toLowerCase()) === periodName
+            const separatorIndex = key.indexOf('-');
+
+            const dayName = key.substring(0, separatorIndex).trim();
+            const periodName = key.substring(separatorIndex + 1).trim();
+
+            const dayObj = actualReportData?.gridweeks?.find(
+                (d: any) =>
+                    (d.ttmD_DayName || d.ttmd_DayName || d.TTMD_DayName || d.dayName)
+                        ?.toLowerCase()
+                        .trim() === dayName
             );
 
-            const ttmD_Id = dayObj ? (dayObj.ttmD_Id || dayObj.dayid) : DEFAULT_DAY_IDS[dayName.toUpperCase()];
-            const ttmP_Id = periodObj ? (periodObj.ttmP_Id || periodObj.pedid) : null;
+            const periodObj = actualReportData?.periodslst?.find(
+                (p: any) =>
+                    (p.ttmP_PeriodName || p.ttcP_PeriodName || p.TTMP_PeriodName || p.periodName)
+                        ?.toLowerCase()
+                        .trim() === periodName
+            );
+
+            const ttmD_Id = dayObj?.ttmD_Id || dayObj?.TTMD_Id || dayObj?.ttmd_id || dayObj?.ttmd_Id || dayObj?.dayid || null;
+            const ttmP_Id = periodObj?.ttmP_Id || periodObj?.TTMP_Id || periodObj?.ttmp_id || periodObj?.ttmp_Id || periodObj?.pedid || null;
 
             if (ttmD_Id && ttmP_Id) {
                 payloadTimeTable.push({
@@ -119,6 +138,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         });
 
         if (payloadTimeTable.length === 0) {
+            alert('Could not map selected periods to their IDs. Please check if periods are loaded correctly.');
             toast.error('Invalid selection', { description: 'Could not map selected periods to their IDs.' });
             return;
         }
@@ -136,6 +156,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         };
 
         console.log('Sending payload:', finalPayload);
+        alert("PAYLOAD GENERATED ON CLICK:\n\n" + JSON.stringify(finalPayload, null, 2));
 
         saveTimetable(finalPayload, {
             onSuccess: (res: any) => {
@@ -216,7 +237,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                                 </TableCell>
                                 {gridPeriods.map((period: string, index: number) => {
                                     const isBreak = period.includes('Break');
-                                    const key = `${day.toLowerCase()}-${period.toLowerCase()}`;
+                                    const key = `${String(day).toLowerCase().trim()}-${String(period).toLowerCase().trim()}`;
                                     const cellDataVal = cellData[key];
                                     const isAssigned = !!cellDataVal && (cellDataVal.hrmE_Id || cellDataVal.ismS_Id);
                                     const isSelected = !!selectedForAssignment[key];

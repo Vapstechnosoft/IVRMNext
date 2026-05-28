@@ -59,6 +59,11 @@ export interface IInvRGRNReportData {
     invtgrN_BatchNo?: string;
     invtgrn_batchno?: string; // from API
 
+    // HollyCross Specific
+    invtgrN_Naration?: string;
+    invtgrn_naration?: string;
+    OverallQty?: number;
+
     // Overall fields
     invmI_ItemCode?: string;
     invmi_itemcode?: string; // from API

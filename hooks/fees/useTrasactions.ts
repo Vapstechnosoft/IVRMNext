@@ -75,12 +75,12 @@ import {
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import {
     getAcademicThirdPartyTrasaction_GM,
-    geteditThirdpartytrasaction_GM,
-    getThirdPartyTrasaction_GM,
     getThirdPartyTrasactionBankDropDown_GM,
     getThirdPartyTrasactionGroupDropDown_GM,
     getThirdPartyTrasactionHeadDropDown_GM,
-    getThirdPartyTrasactionStudentDropDown_GM
+    getThirdPartyTrasactionStudentDropDown_GM,
+    getThirdPartyTrasaction_GM,
+    geteditThirdpartytrasaction_GM
 } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
@@ -142,8 +142,18 @@ export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) =
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getOpeningClassDropdownData(),
-            staleTime: 0
+            queryFn: async () => {
+                try {
+                    const response = await getOpeningClassDropdownData();
+                    console.log('Class dropdown API response:', response);
+                    return response;
+                } catch (error) {
+                    console.error('Class dropdown API error:', error);
+                    throw error;
+                }
+            },
+            staleTime: 0,
+            retry: 1 // Add retry to see if it helps
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1381,7 +1391,6 @@ export const useacademicyerdropdowndatafee_GM = (searchParams?: ApiSearchparams)
         }
     };
 };
-
 
 export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, fyp_id: number, options?: { enabled?: boolean }) => {
     const queryClient = useQueryClient();
