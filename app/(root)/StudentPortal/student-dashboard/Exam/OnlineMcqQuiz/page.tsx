@@ -22,7 +22,7 @@ import {
     Trophy,
     X
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
@@ -76,6 +76,56 @@ export default function StudentOnlineMcqQuizPage() {
     const [isFetchingAnalysis, setIsFetchingAnalysis] = useState(false);
     const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
+    const parsedAnalysis = useMemo(() => {
+        if (!detailedAnalysis) return null;
+
+        let strong = Array.isArray(detailedAnalysis.strong_topics) ? [...detailedAnalysis.strong_topics] : [];
+        let weak = Array.isArray(detailedAnalysis.weak_topics) ? [...detailedAnalysis.weak_topics] : [];
+
+        // Deduplicate "General" or other overlapping topics
+        const avgScore = Number(detailedAnalysis.average_score) || 0;
+        
+        // Normalize topic strings (trim, handle 'General')
+        strong = strong.map(t => t === 'General' ? 'Core Concepts' : t);
+        weak = weak.map(t => t === 'General' ? 'Advanced Topics' : t);
+
+        // Remove duplicates between the two lists
+        strong = strong.filter(t => !weak.includes(t));
+        
+        // If both are empty or if we ended up with nothing, provide friendly defaults
+        if (strong.length === 0 && weak.length === 0) {
+            if (avgScore >= 60) {
+                strong = ['Fundamental Knowledge', 'Active Recall'];
+                weak = ['Time Management'];
+            } else {
+                strong = ['Initial Understanding'];
+                weak = ['Core Concepts', 'Revision Retakes'];
+            }
+        }
+
+        // Generate punchy recommendations based on score
+        let recommendationTitle = "Recommended Focus";
+        let recommendationText = "";
+        
+        if (avgScore >= 80) {
+            recommendationTitle = "Mastery Achieved!";
+            recommendationText = "Keep up the excellent work! Sustain your progress with periodic retakes of key assessments.";
+        } else if (avgScore >= 60) {
+            recommendationTitle = "Solid Foundations";
+            recommendationText = "Review minor weak spots to push your average score above 80% on the next attempt.";
+        } else {
+            recommendationTitle = "Foundational Concept Review";
+            recommendationText = "Focus on revising fundamental chapter resources before taking another assessment.";
+        }
+
+        return {
+            strong,
+            weak,
+            recommendationTitle,
+            recommendationText
+        };
+    }, [detailedAnalysis]);
+
     // Initial Fetch
     useEffect(() => {
         const loadDashboard = async () => {
@@ -85,13 +135,12 @@ export default function StudentOnlineMcqQuizPage() {
                 const saved = localStorage.getItem('ai_published_quizzes');
                 const quizzes = saved ? JSON.parse(saved) : [];
 
-                // Filter by availability window (Only show if current time is within [activeFrom, activeTo])
+                // Filter by availability window (Show active quizzes and those that have already started, even if expired)
                 const now = new Date();
                 const filteredQuizzes = quizzes.filter((quiz: any) => {
-                    if (!quiz.activeFrom || !quiz.activeTo) return true; // Show if no window specified
+                    if (!quiz.activeFrom) return true; // Show if no start time specified
                     const from = new Date(quiz.activeFrom);
-                    const to = new Date(quiz.activeTo);
-                    return now >= from && now <= to;
+                    return now >= from; // Show if the quiz start time has been reached or passed
                 });
 
                 setAvailableQuizzes(filteredQuizzes);
@@ -304,12 +353,13 @@ export default function StudentOnlineMcqQuizPage() {
                                                 completedQuizIds.some(
                                                     (val) => String(val) === String(quiz.id) || String(val) === String(quiz.title)
                                                 );
+                                            const isExpired = quiz.activeTo && new Date() > new Date(quiz.activeTo);
 
                                             return (
                                                 <Card
                                                     key={i}
                                                     className='group hover:-translate-y-2 overflow-hidden rounded-[2.5rem] border-none bg-white shadow-xl transition-all duration-300'>
-                                                    <div className={cn('h-2 w-full', isAnswered ? 'bg-emerald-500' : 'bg-indigo-500')} />
+                                                    <div className={cn('h-2 w-full', isAnswered ? 'bg-emerald-500' : isExpired ? 'bg-rose-500' : 'bg-indigo-500')} />
                                                     <CardContent className='space-y-6 p-8'>
                                                         <div className='space-y-2'>
                                                             <div className='flex items-center justify-between'>
@@ -318,11 +368,15 @@ export default function StudentOnlineMcqQuizPage() {
                                                                     className='rounded-full border-none bg-slate-50 px-3 py-1 font-black text-[10px] text-slate-400 uppercase'>
                                                                     {quiz.duration} Mins
                                                                 </Badge>
-                                                                {isAnswered && (
+                                                                {isAnswered ? (
                                                                     <Badge className='rounded-full border-none bg-emerald-100 px-3 py-1 font-black text-[10px] text-emerald-700 uppercase'>
                                                                         Completed
                                                                     </Badge>
-                                                                )}
+                                                                ) : isExpired ? (
+                                                                    <Badge className='rounded-full border-none bg-rose-100 px-3 py-1 font-black text-[10px] text-rose-700 uppercase'>
+                                                                        Expired
+                                                                    </Badge>
+                                                                ) : null}
                                                             </div>
                                                             <h4 className='font-black text-slate-900 text-xl leading-tight transition-colors group-hover:text-indigo-600'>
                                                                 {quiz.title}
@@ -359,6 +413,18 @@ export default function StudentOnlineMcqQuizPage() {
                                                                     className='h-14 w-full rounded-2xl border-2 border-emerald-500 font-black text-emerald-600 text-xs uppercase tracking-widest transition-all hover:bg-emerald-50'>
                                                                     View Results
                                                                     <BarChart3 className='ml-2 h-4 w-4' />
+                                                                </Button>
+                                                            </div>
+                                                        ) : isExpired ? (
+                                                            <div className='space-y-3'>
+                                                                <div className='flex items-center justify-center gap-2 rounded-xl bg-rose-50 p-3 font-black text-rose-600 text-xs uppercase tracking-widest'>
+                                                                    <X className='h-4 w-4' />
+                                                                    Quiz Expired
+                                                                </div>
+                                                                <Button
+                                                                    disabled
+                                                                    className='h-14 w-full rounded-2xl bg-slate-200 font-black text-slate-400 text-xs uppercase tracking-widest cursor-not-allowed'>
+                                                                    Cannot Attend
                                                                 </Button>
                                                             </div>
                                                         ) : (
@@ -665,8 +731,8 @@ export default function StudentOnlineMcqQuizPage() {
                                                 Strong Proficiency
                                             </h4>
                                             <div className='flex flex-wrap gap-2'>
-                                                {detailedAnalysis?.strong_topics?.length > 0 ? (
-                                                    detailedAnalysis.strong_topics.map((topic: string, i: number) => (
+                                                {parsedAnalysis?.strong?.length > 0 ? (
+                                                    parsedAnalysis.strong.map((topic: string, i: number) => (
                                                         <Badge
                                                             key={i}
                                                             className='rounded-xl border-none bg-emerald-100 px-4 py-2 font-bold text-emerald-700'>
@@ -687,8 +753,8 @@ export default function StudentOnlineMcqQuizPage() {
                                                 Improvement Areas
                                             </h4>
                                             <div className='flex flex-wrap gap-2'>
-                                                {detailedAnalysis?.weak_topics?.length > 0 ? (
-                                                    detailedAnalysis.weak_topics.map((topic: string, i: number) => (
+                                                {parsedAnalysis?.weak?.length > 0 ? (
+                                                    parsedAnalysis.weak.map((topic: string, i: number) => (
                                                         <Badge
                                                             key={i}
                                                             className='rounded-xl border-none bg-rose-100 px-4 py-2 font-bold text-rose-700'>
@@ -711,15 +777,10 @@ export default function StudentOnlineMcqQuizPage() {
                                             </div>
                                             <div>
                                                 <p className='mb-1 font-black text-slate-800 text-xs uppercase tracking-widest'>
-                                                    AI Recommendation
+                                                    AI Recommendation • {parsedAnalysis?.recommendationTitle}
                                                 </p>
                                                 <p className='font-medium text-slate-500 text-sm leading-relaxed'>
-                                                    Based on your performance, we recommend focusing on{' '}
-                                                    <span className='font-bold text-indigo-600'>
-                                                        {detailedAnalysis?.weak_topics?.[0] || 'general revision'}
-                                                    </span>
-                                                    . Your proficiency in {detailedAnalysis?.strong_topics?.[0] || 'core concepts'} is
-                                                    excellent.
+                                                    {parsedAnalysis?.recommendationText}
                                                 </p>
                                             </div>
                                         </div>
