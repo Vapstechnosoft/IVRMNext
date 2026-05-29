@@ -3,13 +3,21 @@ import type { IMasterInstitution, Institution } from '@/types/exam/exam-module/r
 import { FileSpreadsheet, Printer } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+import * as XLSX from 'xlsx';
+
 interface VidyaniketanReportViewProps {
     data: any[];
     institution: IMasterInstitution | Institution | null;
 }
 
 const VidyaniketanReportView = ({ data, institution }: VidyaniketanReportViewProps) => {
-    const handleExport = () => {};
+    const handleExport = () => {
+        const table = document.getElementById('printable-area');
+        if (table) {
+            const wb = XLSX.utils.table_to_book(table);
+            XLSX.writeFile(wb, 'Vidyaniketan_Progress_Card_Report.xlsx');
+        }
+    };
     const handlePrint = () => {
         window.print();
     };
