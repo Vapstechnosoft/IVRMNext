@@ -1,19 +1,16 @@
 'use client';
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Printer, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
 
 interface ReportGridProps {
-    data: any[];
+    response: any;
+    isLoading?: boolean;
+    error?: any;
 }
 
 // Column header labels for print & excel
@@ -85,10 +82,66 @@ function buildPrintHtml(data: any[]): string {
     `;
 }
 
-export const ReportGrid = ({ data }: ReportGridProps) => {
+export const VenueWiseReportColumns: ColumnDef<any>[] = [
+    {
+        accessorKey: 'id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' className='pl-4' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-4'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'spccmH_HouseName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='House Name' />
+    },
+    {
+        accessorKey: 'spccmeV_EventVenue',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Venue' />
+    },
+    {
+        accessorKey: 'amsT_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />
+    },
+    {
+        accessorKey: 'amsT_AdmNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No.' />
+    },
+    {
+        accessorKey: 'asmcL_ClassName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />
+    },
+    {
+        accessorKey: 'asmC_SectionName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />
+    },
+    {
+        accessorKey: 'spccmE_EventName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event' />
+    },
+    {
+        accessorKey: 'spccmscC_SportsCCName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sports Name' />
+    },
+    {
+        accessorKey: 'spccE_StartDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Event Date' />,
+        cell: ({ row }) => formatDate(row.original.spccE_StartDate)
+    }
+];
+
+
+export const ReportGrid = ({ response, isLoading, error }: ReportGridProps) => {
+
+    const tableProps = useDataTableProps(response);
 
     const handlePrint = () => {
-        const html = buildPrintHtml(data);
+        const dataToPrint = response?.data || [];
+        const html = buildPrintHtml(dataToPrint);
 
         const printWindow = window.open('', '_blank', 'width=1200,height=800');
         if (!printWindow) return;
@@ -106,7 +159,8 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
     };
 
     const exportToExcel = () => {
-        const excelData = data.map((row, index) => ({
+        const dataToExport = response?.data || [];
+        const excelData = dataToExport.map((row: any, index: number) => ({
             'SL. No.': index + 1,
             'House Name': row.spccmH_HouseName || '-',
             'Venue': row.spccmeV_EventVenue || '-',
@@ -124,8 +178,10 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
         XLSX.writeFile(workbook, "VenueWiseParticipationReport.xlsx");
     };
 
-    if (!data || data.length === 0) {
-        return null;
+    if (!response || !response.data || response.data.length === 0) {
+        if (!isLoading) {
+             return null;
+        }
     }
 
     return (
@@ -133,52 +189,34 @@ export const ReportGrid = ({ data }: ReportGridProps) => {
             <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
                 <div className="flex items-center gap-4">
                     <div className="text-sm font-medium">
-                        Total Records: <span className="rounded bg-primary/10 px-3 py-1 font-bold text-primary">{data.length}</span>
+                        Total Records: <span className="rounded bg-primary/10 px-3 py-1 font-bold text-primary">{response?.total || 0}</span>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handlePrint} className="border-2 hover:bg-primary/5">
+                        <Button variant="outline" size="sm" onClick={handlePrint} className="border-2 hover:bg-primary/5" disabled={isLoading || !response?.data?.length}>
                             <Printer className="h-4 w-4 mr-2 text-primary" /> Print
                         </Button>
-                        <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5">
+                        <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5" disabled={isLoading || !response?.data?.length}>
                             <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 bg-white rounded-lg border shadow-sm">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="text-center">SL. No.</TableHead>
-                            <TableHead className="text-center">House Name</TableHead>
-                            <TableHead className="text-center">Venue</TableHead>
-                            <TableHead className="text-center">Student Name</TableHead>
-                            <TableHead className="text-center">Adm. No.</TableHead>
-                            <TableHead className="text-center">Class</TableHead>
-                            <TableHead className="text-center">Section</TableHead>
-                            <TableHead className="text-center">Event</TableHead>
-                            <TableHead className="text-center">Sports Name</TableHead>
-                            <TableHead className="text-center">Event Date</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.map((row, index) => (
-                            <TableRow key={index}>
-                                <TableCell className="text-center">{index + 1}</TableCell>
-                                <TableCell className="text-center">{row.spccmH_HouseName || '-'}</TableCell>
-                                <TableCell className="text-center">{row.spccmeV_EventVenue || '-'}</TableCell>
-                                <TableCell className="text-center">{row.amsT_Name || '-'}</TableCell>
-                                <TableCell className="text-center">{row.amsT_AdmNo || '-'}</TableCell>
-                                <TableCell className="text-center">{row.asmcL_ClassName || '-'}</TableCell>
-                                <TableCell className="text-center">{row.asmC_SectionName || '-'}</TableCell>
-                                <TableCell className="text-center">{row.spccmE_EventName || '-'}</TableCell>
-                                <TableCell className="text-center">{row.spccmscC_SportsCCName || '-'}</TableCell>
-                                <TableCell className="text-center">{formatDate(row.spccE_StartDate)}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+            <div className="bg-white rounded-lg border shadow-sm">
+                 <GenericDataTable<any>
+                    {...tableProps}
+                    columns={VenueWiseReportColumns}
+                    isLoading={isLoading || false}
+                    error={error}
+                    manualPagination={true}
+                    manualSorting={true}
+                    manualFiltering={true}
+                    showSearchColumns={true}
+                    loadingMessage='Loading report...'
+                    noDataTitle='No Records Found'
+                    noDataDescription='Adjust your filters to see more results'
+                    errorTitle='Error Loading Report'
+                />
             </div>
         </div>
     );

@@ -96,18 +96,16 @@ export const useVenueWiseParticipationReport = () => {
         try {
             setLoading(true);
             const response = await getReportData(payload);
-            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                return response.data;
-            } else if (response.success) {
-                return response.data || [];
+            if (response.success && response.data) {
+                return response; // Return the full response for GenericDataTable
             } else {
                 setError(response.message || 'Failed to generate report');
-                return [];
+                return null;
             }
         } catch (err) {
             console.error('Error generating report:', err);
             setError('An error occurred while generating report');
-            return [];
+            return null;
         } finally {
             setLoading(false);
         }
