@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileImage, FileVideo, Users, Eye, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
 
 interface ListViewDialogProps {
@@ -21,7 +20,6 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [hasFetched, setHasFetched] = useState(false);
-
 
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
@@ -93,7 +91,6 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {data.map((item, index) => {
                             const paramsUrl = item.coeeI_Images || item.COEEI_Images;
-                            // Try to extract a meaningful name from the URL, or fallback to Attachment N
                             const fileName = paramsUrl.split('/').pop()?.split('?')[0] || `Attachment ${index + 1}`;
 
                             return (
@@ -118,9 +115,8 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     <div className="flex flex-col gap-4">
                         {data.map((item, index) => (
                             <div key={index} className="aspect-video w-full overflow-hidden rounded-md border bg-muted">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <video controls className="h-full w-full">
-                                    <source src={item.COEEV_Videos} />
+                                    <source src={item.coeeV_Videos || item.COEEV_Videos || item.COEEV_VideoURL} />
                                     Your browser does not support the video tag.
                                 </video>
                             </div>
@@ -132,15 +128,15 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Sl. No</TableHead>
-                                <TableHead>Class Name</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Sl. No</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Class Name</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.map((item, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{item.asmcL_ClassName}</TableCell>
+                                    <TableCell className='text-center'>{index + 1}</TableCell>
+                                    <TableCell className='text-center'>{item.asmcL_ClassName || item.ASMCL_ClassName}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -151,15 +147,15 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Sl. No</TableHead>
-                                <TableHead>Department ID</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Sl. No</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Employee Group Type</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.map((item, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{item.hrmD_Id}</TableCell>
+                                    <TableCell className='text-center'>{index + 1}</TableCell>
+                                    <TableCell className='text-center'>{item.hrmgT_EmployeeGroupType || item.HRMGT_EmployeeGroupType || item.hrmD_DepartmentName || item.HRMD_DepartmentName || item.hrmD_Id}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -170,26 +166,40 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Mobile</TableHead>
-                                <TableHead>Email</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Name</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Mobile</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Email</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.map((item, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{item.coeeO_Name}</TableCell>
-                                    <TableCell>{item.coeeO_MobileNo}</TableCell>
-                                    <TableCell>{item.coeeO_Emailid}</TableCell>
+                                    <TableCell className='text-center'>{item.coeeO_Name || item.COEEO_Name}</TableCell>
+                                    <TableCell className='text-center'>{item.coeeO_MobileNo || item.COEEO_MobileNo}</TableCell>
+                                    <TableCell className='text-center'>{item.coeeO_Emailid || item.COEEO_Emailid}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 );
             case 'alumni':
-                // Placeholder as no specific list structure is defined in the types yet
                 return (
-                    <div className="p-4 text-center text-muted-foreground">List data not available.</div>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className='text-center uppercase font-bold'>Sl. No</TableHead>
+                                <TableHead className='text-center uppercase font-bold'>Alumni Name</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.map((item, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className='text-center'>{index + 1}</TableCell>
+                                    <TableCell className='text-center'>{item.alumni_name || item.ALUMNI_NAME || 'Linked'}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 );
             default:
                 return null;

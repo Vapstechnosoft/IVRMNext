@@ -204,7 +204,7 @@ function SelectedFeeGroupsCell({
 
 function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string | null, rowData: IMasterGroupWiseAutoReciptList }) {
     const [open, setOpen] = useState(false);
-    
+
     let safeHtml = templateHtml ?? '';
 
     // Handle encoded HTML just in case
@@ -219,6 +219,11 @@ function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string 
         safeHtml = safeHtml.replace(/\[StartingNo\]/gi, rowData.fgaR_Starting_No?.toString() || '');
         safeHtml = safeHtml.replace(/\[GroupName\]/gi, rowData.fgaR_Name || '');
         safeHtml = safeHtml.replace(/\[AcademicYear\]/gi, rowData.academicyear || '');
+    }
+
+    // Emulate Angular's $compile with an empty scope by removing all unbound {{variable}} placeholders
+    if (safeHtml) {
+        safeHtml = safeHtml.replace(/\{\{.*?\}\}/g, '');
     }
 
     const isFullHtmlDocument = safeHtml.toLowerCase().includes('<html') && safeHtml.toLowerCase().includes('<body');
@@ -285,7 +290,7 @@ function TemplatePreviewCell({ templateHtml, rowData }: { templateHtml?: string 
                             srcDoc={iframeContent} 
                         />
                     </div>
-                    
+
                     <DialogFooter className='shrink-0 border-t bg-gray-50 px-6 py-4 flex items-center justify-end gap-2'>
                         <DialogClose asChild>
                             <Button variant='destructive' className='w-24'>
