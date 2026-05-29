@@ -18,7 +18,7 @@ export const useRouteLocationMapping = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.ROUTE_LOCATION_MAPPING, searchParams ?? {}],
             queryFn: async () => getRouteLocationMapping(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -36,7 +36,7 @@ export const useVehicleDriverMapping = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.VEHICLE_DRIVER_MAPPING, searchParams ?? {}],
             queryFn: async () => getVehicleDriverMapping(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -51,9 +51,9 @@ export const useVehicleDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.VEHICLE_DROPDOWN, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.VEHICLE_DROPDOWN],
             queryFn: async () => vehicleDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -68,9 +68,9 @@ export const useDriverDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.DRIVER_DROPDOWN, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.DRIVER_DROPDOWN],
             queryFn: async () => driverDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -86,9 +86,9 @@ export const useSessionDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.SESSION_DROPDOWN, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.SESSION_DROPDOWN],
             queryFn: async () => sessionDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -106,7 +106,7 @@ export const useVehicleRouteMapping = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [TRANSPORT_QUERY_KEYS.VEHICLE_ROUTE_MAPPING, searchParams ?? {}],
             queryFn: async () => getVehicleRouteMapping(searchParams),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {
@@ -121,9 +121,9 @@ export const useRouteDropDown = (searchParams?: ApiSearchparams) => {
 
     return {
         ...useQuery({
-            queryKey: [TRANSPORT_QUERY_KEYS.ROUTE_DROPDOWN, searchParams ?? {}],
+            queryKey: [TRANSPORT_QUERY_KEYS.ROUTE_DROPDOWN],
             queryFn: async () => routeDropDown(),
-            staleTime: 300
+            staleTime: 300000
         }),
 
         refetchAll: () => {

@@ -243,30 +243,32 @@ export const examLoginPrivilegesReportSchema = z
         employeeChecked: z.boolean().default(false),
         selectAllEmployees: z.boolean().default(false)
     })
-    .refine(
-        (data) => {
-            if (data.type === 'individual') {
-                return !!data.ASMCL_Id && !!data.ASMS_Id;
+    .superRefine((data, ctx) => {
+        if (data.type === 'individual') {
+            if (!data.ASMCL_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Class is required for Individual report',
+                    path: ['ASMCL_Id']
+                });
             }
-            return true;
-        },
-        {
-            message: 'Class and Section are required for Individual report',
-            path: ['ASMCL_Id']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.employeeChecked && !data.HRME_Id) {
-                return false;
+            if (!data.ASMS_Id) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Section is required for Individual report',
+                    path: ['ASMS_Id']
+                });
             }
-            return true;
-        },
-        {
-            message: 'Employee is required when checked',
-            path: ['HRME_Id']
         }
-    );
+
+        if (data.employeeChecked && !data.HRME_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Employee is required when checked',
+                path: ['HRME_Id']
+            });
+        }
+    });
 
 export type ExamLoginPrivilegesSchema = z.infer<typeof examLoginPrivilegesReportSchema>;
 
@@ -958,3 +960,14 @@ export const baldwinReportSchema = z.object({
 });
 
 export type BaldwinReportSchema = z.infer<typeof baldwinReportSchema>;
+
+export const finalPromReportChinmayI_IXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    OverAlltotal: z.boolean().default(false),
+    OverAlClass: z.boolean().default(false),
+    ECTEX_NotApplToTotalFlg: z.boolean().default(false),
+    reopen_date: z.string().min(1, 'Reopen Date is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});

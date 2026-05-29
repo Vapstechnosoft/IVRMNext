@@ -63,6 +63,8 @@ export interface IInvRSalesReportData {
     // Keys from response (lowercase)
     invmsl_SalesNo?: string;
     invmsl_SalesDate?: string;
+    invmsl_salesno?: string;
+    invmsl_salesdate?: string;
 
     // New API Fields
     item_Name?: string;
@@ -78,6 +80,7 @@ export interface IInvRSalesReportData {
     // Keys from User Response (Overall + Item)
     invmi_Id?: number;
     invmi_ItemName?: string;
+    invmi_itemname?: string;
     memberId?: number;
     memberName?: string;
     invtsl_SalesQty?: number;
@@ -85,6 +88,11 @@ export interface IInvRSalesReportData {
     invtsl_DiscountAmt?: number;
     invtsl_TaxAmt?: number;
     invtsl_Amount?: number;
+    invtsl_salesqty?: number;
+    invtsl_salesprice?: number;
+    invtsl_discountamt?: number;
+    invtsl_taxamt?: number;
+    invtsl_amount?: number;
 }
 
 export interface IInvRSalesPayload {

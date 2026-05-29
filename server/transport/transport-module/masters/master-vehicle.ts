@@ -17,16 +17,18 @@ export async function activeDeactiveVehicle(id: number) {
 }
 
 export async function saveMasterVehicle(data: any) {
-    const url = '/MasterVehicle/savedata';
+    const url = '/master_vehicle/savedata';
     return await api.post<any>('transport', url, data);
 }
 
 export async function checkVehicleDuplicate(data: any) {
-    const url = '/MasterVehicle/validaevehicleno/';
+    const url = '/master_vehicle/validaevehicleno/';
     return await api.post<any>('transport', url, data);
 }
 
 export async function uploadVehicleFile(formData: FormData) {
-    const url = '/MasterVehicle/uploadUserFile'; // Assumed endpoint, adjusted to typical pattern
+    const url = '/master_vehicle/uploadUserFile'; // Assumed endpoint, adjusted to typical pattern
     return await api.postMultipart<any>('transport', url, formData);
 }
+
+

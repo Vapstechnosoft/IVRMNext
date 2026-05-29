@@ -155,7 +155,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
             )} */}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterSubjectForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterSubjectForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={handleSuccess} />
+            )}
 
             {/* Edit Form */}
 

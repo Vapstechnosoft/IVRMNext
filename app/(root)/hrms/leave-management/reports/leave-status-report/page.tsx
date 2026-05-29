@@ -12,7 +12,7 @@ import {
     useLeaveStatusReport,
     useReportDepartments,
     useReportDesignations,
-    useReportEmployeesByDeptAndDesignation,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
     useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { Download, Loader2, Printer, Search } from 'lucide-react';
@@ -67,9 +67,9 @@ function LeaveStatusReportContent() {
     const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
     const { data: leavesData } = useMasterLeaveDropdown();
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
-    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
-    const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
+    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: employeesData, isLoading: employeesLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
     console.log('employeesData', employeesData);
     // Transforms
     const leavesDataTransformed = useMemo(() => {
@@ -110,7 +110,7 @@ function LeaveStatusReportContent() {
     }, [designationsData]);
 
     const employeesDataTransformed = useMemo(() => {
-        const list = employeesData?.data || employeesData;
+        const list = employeesData?.data?.employeeNames || employeesData;
         if (!list || !Array.isArray(list)) return [];
 
         return list
@@ -129,8 +129,8 @@ function LeaveStatusReportContent() {
 
                 return {
                     id: Number(id),
-                    employeeCode,
-                    employeeName
+                    employeeName: emp.employeeFullName || 'Unknown Employee',
+                    employeeCode: emp.hrmE_EmployeeCode || id.toString()
                 };
             })
             .filter(Boolean);
@@ -243,9 +243,14 @@ function LeaveStatusReportContent() {
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Group Types'
+                                        placeholder={groupTypesLoading ? 'Loading Group Types...' : 'Select Group Types'}
+                                        className={`${groupTypesLoading
+                                                ? "pointer-events-none opacity-50"
+                                                : ""
+                                            }`}
                                     />
                                 )}
+
                             />
                         </div>
 
@@ -265,7 +270,11 @@ function LeaveStatusReportContent() {
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Departments'
+                                        placeholder={departmentsLoading ? 'Loading Departments...' : 'Select Departments'}
+                                        className={`${departmentsLoading
+                                                ? "pointer-events-none opacity-50"
+                                                : ""
+                                            }`}
                                     />
                                 )}
                             />
@@ -287,7 +296,11 @@ function LeaveStatusReportContent() {
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Designations'
+                                        placeholder={designationsLoading ? 'Loading Designations...' : 'Select Designations'}
+                                        className={`${designationsLoading
+                                                ? "pointer-events-none opacity-50"
+                                                : ""
+                                            }`}
                                     />
                                 )}
                             />
@@ -309,7 +322,11 @@ function LeaveStatusReportContent() {
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Employees'
+                                        placeholder={employeesLoading ? 'Loading Employees...' : 'Select Employees'}
+                                        className={`${employeesLoading
+                                                ? "pointer-events-none opacity-50"
+                                                : ""
+                                            }`}
                                     />
                                 )}
                             />

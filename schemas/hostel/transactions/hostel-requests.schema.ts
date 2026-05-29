@@ -16,6 +16,7 @@ export const studentRequestSchema = z.object({
     HLHSREQ_SingleRoomFlg: z.boolean().default(false),
     HLHSREQ_VegMessFlg: z.boolean().default(false),
     HLHSREQ_NonVegMessFlg: z.boolean().default(false),
+    preferredPartner: z.boolean().default(false),
     HLHSREQ_Remarks: z.string().optional(),
 });
 

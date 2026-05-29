@@ -2,68 +2,46 @@
 
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
-import { 
-    Select, 
-    SelectContent, 
-    SelectItem, 
-    SelectTrigger, 
-    SelectValue 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, RotateCcw, FileBarChart } from 'lucide-react';
-import { getPDASummaryReportSections } from '@/server/pda/report/pda-summary-report';
+import {
+    usePDAAcademicYear,
+    usePDAClass,
+    usePDASection
+} from '@/hooks/pda/usePDACommon';
 import { toast } from 'sonner';
 
 interface PDASummaryReportFormProps {
-    academicYears: { asmaY_Id: number; asmaY_Year: string }[];
-    classes: { asmcL_Id: number; asmcL_ClassName: string }[];
     onSubmit: (data: any) => void;
     onReset: () => void;
 }
 
 export default function PDASummaryReportForm({
-    academicYears,
-    classes,
     onSubmit,
     onReset
 }: PDASummaryReportFormProps) {
     const [selectedAsmayId, setSelectedAsmayId] = useState<string>('');
     const [selectedAsmcLId, setSelectedAsmcLId] = useState<string>('');
     const [selectedAmscId, setSelectedAmscId] = useState<string>('');
-    
-    const [sections, setSections] = useState<{ amsC_Id: number; asmc_sectionname: string }[]>([]);
-    const [loadingSections, setLoadingSections] = useState(false);
 
-    useEffect(() => {
-        const fetchSections = async () => {
-            if (selectedAsmayId && selectedAsmcLId) {
-                setLoadingSections(true);
-                try {
-                    const response = await getPDASummaryReportSections({
-                        ASMAY_Id: Number(selectedAsmayId),
-                        ASMCL_Id: Number(selectedAsmcLId)
-                    });
-                    if (response.success && response.data?.fillsection?.$values) {
-                        setSections(response.data.fillsection.$values);
-                    } else {
-                        setSections([]);
-                    }
-                } catch (error) {
-                    console.error('Error fetching sections:', error);
-                    setSections([]);
-                } finally {
-                    setLoadingSections(false);
-                }
-            } else {
-                setSections([]);
-            }
-        };
-        fetchSections();
-    }, [selectedAsmayId, selectedAsmcLId]);
+    const { data: yearsRes } = usePDAAcademicYear();
+    const { data: classesRes } = usePDAClass(Number(selectedAsmayId));
+    const { data: sectionsRes, isLoading: loadingSections } = usePDASection(Number(selectedAsmayId), Number(selectedAsmcLId));
+
+    const academicYearsList = (Array.isArray(yearsRes?.data) ? yearsRes?.data : yearsRes?.data?.data) || yearsRes?.data?.fillyear?.$values || [];
+    const classesList = (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
+    const sectionsList = (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!selectedAsmayId || !selectedAsmcLId || !selectedAmscId) {
             toast.error('Please select Year, Class and Section');
             return;
@@ -90,7 +68,7 @@ export default function PDASummaryReportForm({
                             <SelectValue placeholder="Select Year" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100">
-                            {academicYears.map((year) => (
+                            {academicYearsList.map((year: any) => (
                                 <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
                             ))}
                         </SelectContent>
@@ -104,7 +82,7 @@ export default function PDASummaryReportForm({
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100">
-                            {classes.map((cls) => (
+                            {classesList.map((cls: any) => (
                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
                             ))}
                         </SelectContent>
@@ -113,8 +91,8 @@ export default function PDASummaryReportForm({
 
                 <div className="space-y-2">
                     <Label className="text-sm font-semibold text-gray-700">Section <span className="text-red-500">*</span></Label>
-                    <Select 
-                        value={selectedAmscId} 
+                    <Select
+                        value={selectedAmscId}
                         onValueChange={setSelectedAmscId}
                         disabled={loadingSections || !selectedAsmcLId}
                     >
@@ -123,8 +101,8 @@ export default function PDASummaryReportForm({
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100">
                             <SelectItem value="0">--All--</SelectItem>
-                            {sections.map((section) => (
-                                <SelectItem key={section.amsC_Id} value={section.amsC_Id.toString()}>{section.asmc_sectionname}</SelectItem>
+                            {sectionsList.map((section: any) => (
+                                <SelectItem key={section.asmS_Id} value={section.asmS_Id.toString()}>{section.asmC_SectionName}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -132,18 +110,19 @@ export default function PDASummaryReportForm({
             </div>
 
             <div className="flex justify-center gap-4">
-                <Button 
-                    type="submit" 
-                    className="h-12 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                <Button
+                    type="submit"
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white w-32 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
                 >
-                    <Search className="mr-2 h-5 w-5" />
-                    Generate Summary
+                    <Search className="mr-2 h-4 w-4" />
+                    Report
                 </Button>
-                <Button 
-                    type="button" 
-                    variant="outline" 
+
+                <Button
+                    type="button"
+                    variant="outline"
                     onClick={onReset}
-                    className="h-12 px-10 rounded-xl border-gray-200 hover:bg-gray-50 transition-all hover:scale-105 active:scale-95"
+                    className="w-32 h-10 rounded-md font-bold shadow-md border-gray-200 hover:bg-gray-50 hover:scale-105 active:scale-95"
                 >
                     <RotateCcw className="mr-2 h-5 w-5 text-gray-500" />
                     Reset

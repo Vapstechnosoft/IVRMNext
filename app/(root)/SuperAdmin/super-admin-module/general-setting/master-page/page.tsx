@@ -8,7 +8,7 @@ import { getMasterPages } from '@/server/super-admin/super-admin-module/general-
 import type { IMasterPage } from '@/types/super-admin/super-admin-module/general-setting/master-page';
 import { Plus, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import AddMasterPageForm from './_components/add-form';
 import { columns } from './_components/columns';
@@ -38,13 +38,28 @@ function MasterPageContent() {
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false }).withDefault(10)
     );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortBy] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
         setIsLoading(true);
         const searchParams = {
             page: page,
-            page_size: pageSize
+            page_size: pageSize,
+            search_query: searchQuery,
+            sort_column: sortBy,
+            sort_direction: sortDirection
         };
 
         try {
@@ -58,7 +73,7 @@ function MasterPageContent() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, pageSize]);
+    }, [page, pageSize, searchQuery, sortBy, sortDirection]);
 
     useEffect(() => {
         fetchData();

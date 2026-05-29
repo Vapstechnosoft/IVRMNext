@@ -103,6 +103,7 @@ export default function AddMasterDriverForm({ onSuccess, onClose, className = ''
                             required
                             id='trmD_DLNo'
                             className='uppercase'
+                            maxLength={16}
                             {...register('trmD_DLNo')}
                             error={errors.trmD_DLNo?.message}
                         />
@@ -141,6 +142,11 @@ export default function AddMasterDriverForm({ onSuccess, onClose, className = ''
                             className='uppercase'
                             id='trmD_LicenseType'
                             {...register('trmD_LicenseType')}
+                            onKeyDown={(e) => {
+                                if (!/^[a-zA-Z0-9\s]*$/.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault();
+                                }
+                            }}
                             error={errors.trmD_LicenseType?.message}
                         />
                         <div className='group flex flex-col gap-1.5'>
@@ -171,15 +177,19 @@ export default function AddMasterDriverForm({ onSuccess, onClose, className = ''
                             error={errors.trmD_RTOName?.message}
                         />
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='trmD_MTExpiryDate'>
-                                Medical Test Expiring Date
-                            </Label>
+                            <Label htmlFor='trmD_MTExpiryDate'>Medical Test Expiring Date</Label>
                             <Controller
                                 name='trmD_MTExpiryDate'
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
-                                        date={field.value ? (typeof field.value === 'string' ? new Date(field.value) : field.value) : undefined}
+                                        date={
+                                            field.value
+                                                ? typeof field.value === 'string'
+                                                    ? new Date(field.value)
+                                                    : field.value
+                                                : undefined
+                                        }
                                         setDate={field.onChange}
                                     />
                                 )}

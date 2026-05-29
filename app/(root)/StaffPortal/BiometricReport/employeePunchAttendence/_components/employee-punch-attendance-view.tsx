@@ -18,6 +18,9 @@ interface EmployeePunchAttendanceViewProps {
 export const EmployeePunchAttendanceView = ({
     data,
 }: EmployeePunchAttendanceViewProps) => {
+    const formateTime = (time: string) => {
+        return time.slice(0, 5)
+    };
     return (
         <div className='w-full p-4 mt-6 bg-white rounded-lg shadow-sm border'>
             <div className='flex items-center justify-between mb-4'>
@@ -43,10 +46,10 @@ export const EmployeePunchAttendanceView = ({
                                     <TableCell>
                                         {row.punchdate ? format(new Date(row.punchdate), 'dd-MM-yyyy') : ''}
                                     </TableCell>
-                                    <TableCell>{row.punchINtime}</TableCell>
-                                    <TableCell>{row.punchOUTtime}</TableCell>
-                                    <TableCell>{row.lateby}</TableCell>
-                                    <TableCell>{row.earlyby}</TableCell>
+                                    <TableCell>{row.punchINtime ? formateTime(row.punchINtime) : '-'}</TableCell>
+                                    <TableCell>{row.punchOUTtime ? formateTime(row.punchOUTtime) : '-'}</TableCell>
+                                    <TableCell>{row.lateby ? formateTime(row.lateby) : '-'}</TableCell>
+                                    <TableCell>{row.earlyby ? formateTime(row.earlyby) : '-'}</TableCell>
                                 </TableRow>
                             ))
                         ) : (

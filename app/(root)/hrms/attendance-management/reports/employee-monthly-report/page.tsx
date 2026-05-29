@@ -8,7 +8,7 @@ import { useEmployeeMonthlyReport } from '@/hooks/hrms/attendance-management/use
 import { exportToExcel } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { FileSpreadsheet, Printer, X } from 'lucide-react';
-import { useState, useMemo, use } from 'react';
+import { useState, useMemo, use, useRef, useEffect } from 'react';
 import AddEmployeeMonthlyReportForm from './_components/add-from';
 import type { MonthlyRow } from './_components/columns';
 import {
@@ -26,16 +26,23 @@ export default function EmployeeMonthlyReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEmployeeMonthlyReport(searchParams);
+    const [currentSearchParams, setCurrentSearchParams] = useState<Record<string, string | string[] | undefined>>(searchParams);
+    const { data: response, isLoading, error } = useEmployeeMonthlyReport(currentSearchParams);
 
     return (
         <FormProvider<MonthlyRow>>
-            <EmployeeMonthlyReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
+            <EmployeeMonthlyReportPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                searchParams={currentSearchParams}
+                onSearchParamsChange={setCurrentSearchParams}
+            />
         </FormProvider>
     );
 }
 
-function FormSections({ searchParams }: { searchParams?: any }) {
+function FormSections({ searchParams, onSearchParamsChange }: { searchParams?: any; onSearchParamsChange?: (params: Record<string, string | string[] | undefined>) => void }) {
     const { closeAddForm, addFormRef } = useFormContext<MonthlyRow>();
 
     return (
@@ -47,7 +54,11 @@ function FormSections({ searchParams }: { searchParams?: any }) {
                 variant='outline'
                 size='md'
                 className='slide-in-from-top-4 animate-in shadow-lg duration-300 mt-10'>
-                <AddEmployeeMonthlyReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+                <AddEmployeeMonthlyReportForm
+                    onSuccess={closeAddForm}
+                    searchParams={searchParams}
+                    onSearchParamsChange={onSearchParamsChange}
+                />
             </CollapsibleSection>
         </div>
     );
@@ -57,14 +68,17 @@ function EmployeeMonthlyReportPageContent({
     response,
     isLoading,
     error,
-    searchParams
+    searchParams,
+    onSearchParamsChange
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     searchParams?: any;
+    onSearchParamsChange?: (params: Record<string, string | string[] | undefined>) => void;
 }) {
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
+    const tableRef = useRef<HTMLDivElement>(null);
 
     const reportOptions = useMemo(() => {
         const opt = searchParams?.reportOptions || response?.reportOptions;
@@ -129,6 +143,7 @@ function EmployeeMonthlyReportPageContent({
         return employees;
     }, [response?.data, isFormatOne]);
 
+    console.log('Processed Data:', processedData);
     // Columns Generation
     const columns = useMemo(() => {
         const rawData = Array.isArray(response?.data) 
@@ -205,7 +220,42 @@ function EmployeeMonthlyReportPageContent({
     };
 
     const handlePrint = () => {
-        if (selectedRows.length === 0) return;
+        const rowsToPrint = selectedRows.length > 0 ? selectedRows : processedData;
+
+        const visibleColumns = columns.filter((col: any) => col.accessorKey && col.accessorKey !== 'slNo');
+
+        const headerTitles = visibleColumns.map((col: any) => {
+            if (col.accessorKey === 'ecode') return 'Emp. Code';
+            if (col.accessorKey === 'ename') return 'Employee Name';
+            if (col.accessorKey === 'designation') return 'Designation';
+            if (col.accessorKey === 'hrme_doj') return 'DOJ';
+            if (col.accessorKey === 'hwkdays') return 'Working Days';
+            if (col.accessorKey === 'tpdays') return 'Present Days';
+            if (col.accessorKey?.startsWith('attendance_')) {
+                const date = col.accessorKey.replace('attendance_', '');
+                return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+            if (col.accessorKey?.startsWith('emp_')) return col.accessorKey;
+            return col.accessorKey || '';
+        });
+
+        const formatCellValue = (row: any, accessorKey: string) => {
+            const value = row[accessorKey];
+            if (accessorKey === 'hrme_doj') {
+                return value ? format(parseISO(value), 'dd-MM-yyyy') : '';
+            }
+            if (accessorKey?.startsWith('attendance_') || accessorKey?.startsWith('emp_')) {
+                const normalizedValue = value != null ? String(value).trim() : '';
+                if (normalizedValue === '1') return 'P';
+                if (normalizedValue === '0') return 'A';
+                if (normalizedValue === '2') return 'H';
+                if (normalizedValue === '3') return 'AL';
+                if (normalizedValue === '4') return 'OD';
+                if (normalizedValue === '5') return 'HD';
+                return normalizedValue;
+            }
+            return value ?? '';
+        };
 
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
@@ -219,7 +269,7 @@ function EmployeeMonthlyReportPageContent({
                     table { width: 100%; border-collapse: collapse; font-size: 10px; }
                     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
                     th { background: #f4f4f4; }
-                    .badge { display: inline-block; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+                    td { white-space: nowrap; }
                 </style>
             </head>
             <body>
@@ -228,20 +278,14 @@ function EmployeeMonthlyReportPageContent({
                     <thead>
                         <tr>
                             <th>Sl.No</th>
-                            ${columns.filter((c: any) => c.accessorKey && c.accessorKey !== 'slNo').map((c: any) => `<th>${c.accessorKey}</th>`).join('')}
+                            ${headerTitles.map((title) => `<th>${title}</th>`).join('')}
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedRows.map((row, idx) => `
+                        ${rowsToPrint.map((row: any, idx: number) => `
                             <tr>
                                 <td>${idx + 1}</td>
-                                ${columns.filter((c: any) => c.accessorKey && c.accessorKey !== 'slNo').map((c: any) => {
-            const val = row[c.accessorKey];
-            if (c.accessorKey.startsWith('attendance_') || c.accessorKey.startsWith('emp_')) {
-                return `<td>${val === '1' ? 'P' : val === '0' ? 'A' : val === '2' ? 'H' : val || ''}</td>`;
-            }
-            return `<td>${val ?? ''}</td>`;
-        }).join('')}
+                                ${visibleColumns.map((col: any) => `<td>${formatCellValue(row, col.accessorKey)}</td>`).join('')}
                             </tr>
                         `).join('')}
                     </tbody>
@@ -255,19 +299,27 @@ function EmployeeMonthlyReportPageContent({
         printWindow.print();
     };
 
+    useEffect(() => {
+        if (processedData?.length > 0 && tableRef.current) {
+            setTimeout(() => {
+                tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }, [processedData?.length]);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <FormSections searchParams={searchParams} />
+                <FormSections searchParams={searchParams} onSearchParamsChange={onSearchParamsChange} />
 
                 {processedData?.length > 0 && (
-
-                    <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                        {selectedRows.length > 0 && (
+                    <div ref={tableRef}>
+                    <CollapsibleSection  defaultOpen={true} variant='default' size='lg' className='shadow-lg' >
+                        { (
                             <div className='flex items-center gap-2 rounded-lg p-4 shadow-sm'>
-                                <span className='font-medium text-gray-700 text-sm '>
+                                {/* <span className='font-medium text-gray-700 text-sm '>
                                     {selectedRows.length} row{selectedRows.length > 1 ? 's' : ''} selected
-                                </span>
+                                </span> */}
                                 <div className='ml-auto flex items-center gap-2'>
                                     <Button variant='outline' size='sm' onClick={handleExportToExcel} className='border-green-500 text-green-700 hover:bg-green-50'>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' /> Excel
@@ -285,13 +337,16 @@ function EmployeeMonthlyReportPageContent({
                             isLoading={isLoading}
                             error={error}
                             showViewOptions={false}
-                            isPaginationRequired={true}
+                            isPaginationRequired={false}
+                            maxHeight='400px'
+                            scrollable
                             onRowSelectionChange={handleRowSelectionChange}
                             loadingMessage='Loading Employee Monthly Reports...'
                             noDataTitle='No Employee Monthly Reports Found'
                         />
 
                     </CollapsibleSection>
+                    </div>
                 )}
             </div>
         </div>

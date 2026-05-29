@@ -248,3 +248,10 @@ export interface IAcademicYearDataDetails {
     asmaY_Order: number;
     is_Active: boolean;
 }
+
+export interface IFeeStudentAcademicYear {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+}

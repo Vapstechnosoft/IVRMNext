@@ -72,6 +72,16 @@ export const bookRegisterSchema = {
             )
             .min(1, 'At least one accession number is required'),
 
+        attachementList: z
+            .array(
+                z.object({
+                    lmbA_Id: z.number().optional(),
+                    lmbA_FileName: z.string().optional(),
+                    lmbA_FilePath: z.string().min(1, 'File Path is required')
+                })
+            )
+            .optional(),
+
         mB_ActiveFlag: z.boolean().optional(),
         lmB_StudentPhoto: z.string().optional()
     }),

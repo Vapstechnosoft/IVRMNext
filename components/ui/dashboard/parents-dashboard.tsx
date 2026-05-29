@@ -42,8 +42,8 @@ export default function ParentsDashboard() {
                         typeof data?.data === 'string'
                             ? data.data
                             : Array.isArray(data?.data)
-                              ? ((data.data[0] as unknown as string) ?? null)
-                              : null;
+                                ? ((data.data[0] as unknown as string) ?? null)
+                                : null;
                     setPdfBase64(base64);
                 },
                 onError: (error) => {
@@ -224,7 +224,7 @@ export default function ParentsDashboard() {
                                                 onClick={() => handleViewAdmissionForm(application.pasr_id)}
                                                 className='w-fit bg-primary font-semibold text-white hover:bg-primary/90'>
                                                 <Eye className='h-4 w-4' />
-                                                View Admission Form
+                                                View Application Form
                                             </Button>
                                             {application.is_fee_applicable === 1 && (
                                                 <Button

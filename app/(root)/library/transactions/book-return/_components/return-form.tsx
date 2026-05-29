@@ -199,13 +199,13 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
             LBTR_FineCollected: data.fineCollected
         };
 
-        //     returnBookMutation.mutate(payload, {
-        //         onSuccess: () => {
-        //             reset();
-        //             onSuccess();
-        //         }
-        //     });
-        // };
+        returnBookMutation.mutate(payload, {
+            onSuccess: () => {
+                reset();
+                onSuccess();
+            }
+        });
+    };
 
         const handleRenewal = () => {
             const data = watch();
@@ -711,5 +711,4 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                 />
             </form>
         );
-    };
 };

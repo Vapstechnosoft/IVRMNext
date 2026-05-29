@@ -34,7 +34,7 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTimeSlabSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onSubmit',
         defaultValues: {
             lfsE_Id: 0,
             lfsE_UserType: '',
@@ -77,7 +77,17 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lfsE_Id: 0,
+            lfsE_UserType: '',
+            lfsE_SlabTypeFlg: '',
+            lfsE_PerDayFlg: 0,
+            lfsE_FromDay: 0,
+            lfsE_ToDay: 0,
+            lfsE_Amount: 0
+        });
+    };
 
     return (
         <div className={className}>
@@ -145,20 +155,31 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
                         {errors.lfsE_SlabTypeFlg && <p className='text-destructive text-sm'>{errors.lfsE_SlabTypeFlg.message}</p>}
                     </div>
 
-                    <div className='flex items-center space-x-2 pt-8'>
-                        <Controller
-                            control={control}
-                            name='lfsE_PerDayFlg'
-                            render={({ field }) => (
-                                <Checkbox
-                                    id='perDay'
-                                    checked={field.value === 1}
-                                    onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
-                                />
-                            )}
-                        />
-                        <Label htmlFor='perDay' className='font-normal'>Per Day</Label>
-                    </div>
+                   <div className='flex items-center space-x-4 pt-8'>
+    <Label className='font-normal whitespace-nowrap'>
+        Fine Type :
+    </Label>
+
+    <div className='flex items-center space-x-2'>
+        <Controller
+            control={control}
+            name='lfsE_PerDayFlg'
+            render={({ field }) => (
+                <Checkbox
+                    id='perDay'
+                    checked={field.value === 1}
+                    onCheckedChange={(checked) =>
+                        field.onChange(checked ? 1 : 0)
+                    }
+                />
+            )}
+        />
+
+        <Label htmlFor='perDay' className='font-normal'>
+            Per Day
+        </Label>
+    </div>
+</div>
 
                     <InputText
                         label='From Day'
@@ -193,23 +214,22 @@ export default function AddMasterTimeSlabForm({ onloaddata, onSuccess, className
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

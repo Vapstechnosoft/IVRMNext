@@ -1,6 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 
@@ -12,8 +13,17 @@ export async function getMasterVendorList(searchParams?: ApiSearchparams) {
 
 export async function addOrUpdateMasterVendor(data: any) {
     try {
-        const url = '/MasterVendor/add-or-update/';
-        return await api.post<any>('library', url, data);
+        const session = await auth();
+        const payload = {
+            LMV_Id: data.lmV_Id || data.LMV_Id || 0,
+            LMV_VendorName: data.lmV_VendorName || data.LMV_VendorName || '',
+            LMV_Address: data.lmV_Address || data.LMV_Address || '',
+            LMV_EMailId: data.lmV_EMailId || data.LMV_EMailId || '',
+            LMV_PhoneNo: data.lmV_PhoneNo || data.LMV_PhoneNo || '',
+            LMV_MobileNo: data.lmV_MobileNo || data.LMV_MobileNo || ''
+        };
+        const url = '/MasterAccessoriesFacade/add-or-update';
+        return await api.post<any>('library', url, payload);
     } catch (error: any) {
         return { success: false, message: error?.message || 'An error occurred during save' };
     }

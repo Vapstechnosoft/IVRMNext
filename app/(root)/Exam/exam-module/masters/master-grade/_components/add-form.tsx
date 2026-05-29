@@ -16,7 +16,7 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSuccess?: () => void; className?: string }) {
+export default function AddMasterGradeForm({ onSuccess, refetchGrid, className = '' }: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {
@@ -32,7 +32,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         defaultValues: {
             emgR_Id: 0,
             emgR_GradeName: '',
-            emgR_MarksPerFlag: 'm',
+            emgR_MarksPerFlag: 'M',
             emgR_ActiveFlag: true,
             grade_list: [
                 {
@@ -126,6 +126,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                 reset();
                 setIsDetailsOpen(false);
                 onSuccess?.();
+                refetchGrid?.();
             } else {
                 toast.error(response.message);
             }
@@ -161,11 +162,11 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                         render={({ field }) => (
                             <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='m' id='marks' />
+                                    <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='p' id='percentage' />
+                                    <RadioGroupItem value='P' id='percentage' />
                                     <Label htmlFor='percentage'>Percentage</Label>
                                 </div>
                             </RadioGroup>
