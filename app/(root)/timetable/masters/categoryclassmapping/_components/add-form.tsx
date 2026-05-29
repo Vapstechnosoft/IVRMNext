@@ -228,7 +228,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
                                             key={field.value?.toString() || 'empty'}
                                             onValueChange={(value) => field.onChange(value ? Number(value) : '')}
                                             value={field.value?.toString() || undefined}>
-                                            <SelectTrigger className='w-full text-gray-500'>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
 
@@ -270,7 +270,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
                                             key={field.value?.toString() || 'empty'}
                                             onValueChange={(value) => field.onChange(value ? Number(value) : '')}
                                             value={field.value?.toString() || undefined}>
-                                            <SelectTrigger className='w-full text-gray-500'>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
 

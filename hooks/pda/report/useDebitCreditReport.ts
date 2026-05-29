@@ -1,11 +1,12 @@
 import { PDA_QUERY_KEYS } from '@/constants/pda-query-keys';
-import { 
-    getPDAReportLoadData, 
-    getPDASectionsSRS, 
-    getPDAStudentsSRS, 
-    generatePDADebitCreditReportSRS 
+import { getSectionDetails, getStudentDetails } from '@/server/pda/pda-common';
+import {
+    getPDAReportLoadData,
+    getPDASectionsSRS,
+    getPDAStudentsSRS,
+    generatePDADebitCreditReportSRS
 } from '@/server/pda/report/debit-credit-report';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const usePDAReportLoadData = () => {
     return useQuery({
@@ -14,16 +15,38 @@ export const usePDAReportLoadData = () => {
     });
 };
 
-export const usePDASectionsSRS = () => {
-    return useMutation({
-        mutationFn: getPDASectionsSRS
-    });
+export const usePDASectionsSRS = (asmayId?: number, asmclId?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PDA_QUERY_KEYS.SECTION_DETAILS, asmayId, asmclId],
+            queryFn: async () => getSectionDetails(asmayId, asmclId),
+            staleTime: 0,
+            enabled: !!asmayId && !!asmclId
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PDA_QUERY_KEYS.MASTER_HEAD]
+            })
+    };
 };
 
-export const usePDAStudentsSRS = () => {
-    return useMutation({
-        mutationFn: getPDAStudentsSRS
-    });
+export const usePDAStudentsSRS = (asmayId?: number, asmclId?: number, asmsId?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PDA_QUERY_KEYS.STUDENT_DETAILS, asmayId, asmclId, asmsId],
+            queryFn: async () => getStudentDetails(asmayId, asmclId, asmsId),
+            staleTime: 0,
+            enabled: !!asmayId && !!asmclId && !!asmsId
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PDA_QUERY_KEYS.MASTER_HEAD]
+            })
+    };
 };
 
 export const useGeneratePDAReportSRS = () => {

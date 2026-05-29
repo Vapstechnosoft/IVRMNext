@@ -4,9 +4,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { useBankCopyReportMutation, useBankCopyReportDetailsMutation } from '@/hooks/pettycash/report/useBankCopyReport';
 import { summaryColumns, detailColumns } from './_components/columns';
 import BankCopyReportForm, { BankCopyFormValues } from './_components/report-form';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useState, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import { useState } from 'react';
 import { IBankCopyReportSummary, IBankCopyReportDetail } from '@/types/pettycash/report/BankCopyReport';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,8 +24,6 @@ export default function BankCopyReportPage() {
 
     const reportMutation = useBankCopyReportMutation();
     const detailMutation = useBankCopyReportDetailsMutation();
-    const printRef = useRef<HTMLDivElement>(null);
-    const detailPrintRef = useRef<HTMLDivElement>(null);
 
     const handleSearch = async (values: BankCopyFormValues) => {
         setIsSearching(true);
@@ -41,8 +37,17 @@ export default function BankCopyReportPage() {
 
             const response = await reportMutation.mutateAsync(payload);
             const reportData = response?.data || (response as any);
-            const data = reportData?.bankreport || reportData?.$values || [];
-            setSummaryData(data);
+            const data = Array.isArray(reportData) ? reportData : (reportData?.bankreport || reportData?.$values || []);
+
+            const mappedData = data.map((item: any) => ({
+                Month: item.month || item.Month,
+                TotalDebit: item.totalDebit || item.TotalDebit,
+                TotalCredit: item.totalCredit || item.TotalCredit,
+                IVRM_Month_Id: item.ivrm_Month_Id || item.IVRM_Month_Id || Number(values.IVRM_Month_Id),
+                ASMAY_Year: item.asmay_Year || item.ASMAY_Year || values.ASMAY_Year
+            }));
+
+            setSummaryData(mappedData);
             setHasSearched(true);
         } catch (error) {
             console.error("Search Error:", error);
@@ -65,8 +70,17 @@ export default function BankCopyReportPage() {
 
             const response = await detailMutation.mutateAsync(payload);
             const reportData = response?.data || (response as any);
-            const data = reportData?.getdebitcreditdetails || reportData?.$values || [];
-            setDetailData(data);
+            const data = Array.isArray(reportData) ? reportData : (reportData?.getdebitcreditdetails || reportData?.$values || []);
+
+            const mappedDetailData = data.map((item: any) => ({
+                PaymentDate: item.paymentDate || item.PaymentDate,
+                Particular: item.particular || item.Particular,
+                Voucher: item.voucher || item.Voucher,
+                TotalDebit: item.totalDebit || item.TotalDebit,
+                TotalCredit: item.totalCredit || item.TotalCredit
+            }));
+
+            setDetailData(mappedDetailData);
             setIsDetailOpen(true);
         } catch (error) {
             console.error("Detail Fetch Error:", error);
@@ -74,13 +88,146 @@ export default function BankCopyReportPage() {
         }
     };
 
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-    });
+    const handlePrint = () => {
+        if (!summaryData || summaryData.length === 0) return;
+        const totalDebit = summaryData.reduce((acc, curr) => acc + (Number(curr.TotalDebit) || 0), 0);
+        const totalCredit = summaryData.reduce((acc, curr) => acc + (Number(curr.TotalCredit) || 0), 0);
 
-    const handleDetailPrint = useReactToPrint({
-        contentRef: detailPrintRef,
-    });
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        const tableRows = summaryData.map((item, idx) => `
+            <tr>
+                <td style="text-align: center;">${idx + 1}</td>
+                <td style="text-align: center;">${item.Month}</td>
+                <td style="text-align: right;">${(Number(item.TotalDebit) || 0).toFixed(2)}</td>
+                <td style="text-align: right;">${(Number(item.TotalCredit) || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Summary Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+                    th, td { border: 2px solid #333; padding: 8px; font-size: 14px; }
+                    th { background: #f8fafc; text-align: center; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 18px; font-weight: bold; border: 2px solid #000; display: inline-block; padding: 8px 32px; text-transform: uppercase; margin: 0;">
+                        Bank Credit And Debit Report Summary
+                    </h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SL.NO</th>
+                            <th>MONTH</th>
+                            <th>DEBIT</th>
+                            <th>CREDIT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f1f5f9; font-weight: bold;">
+                            <td colspan="2" style="text-align: right;">TOTAL</td>
+                            <td style="text-align: right;">₹ ${totalDebit.toFixed(2)}</td>
+                            <td style="text-align: right;">₹ ${totalCredit.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div style="margin-top: 100px; display: flex; justify-content: space-between; padding: 0 50px;">
+                    <div style="text-align: center; border-top: 2px solid #000; padding-top: 8px; font-weight: bold;">Verified By</div>
+                    <div style="text-align: center; border-top: 2px solid #000; padding-top: 8px; font-weight: bold;">Authorized Signature</div>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 250);
+    };
+
+    const handleDetailPrint = () => {
+        if (!detailData || detailData.length === 0) return;
+        const totalDebit = detailData.reduce((acc, curr) => acc + (Number(curr.TotalDebit) || 0), 0);
+        const totalCredit = detailData.reduce((acc, curr) => acc + (Number(curr.TotalCredit) || 0), 0);
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        const tableRows = detailData.map((item, idx) => `
+            <tr>
+                <td style="text-align: center;">${idx + 1}</td>
+                <td style="text-align: center;">${new Date(item.PaymentDate).toLocaleDateString('en-GB')}</td>
+                <td style="text-align: left; text-transform: uppercase;">${item.Particular}</td>
+                <td style="text-align: center;">${item.Voucher}</td>
+                <td style="text-align: right;">${(Number(item.TotalDebit) || 0).toFixed(2)}</td>
+                <td style="text-align: right;">${(Number(item.TotalCredit) || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Detail Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+                    th, td { border: 2px solid #333; padding: 8px; font-size: 14px; }
+                    th { background: #f8fafc; text-align: center; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+                    <h1 style="font-size: 24px; font-weight: bold; text-transform: uppercase; margin: 0 0 5px 0;">Vidya Vikasa Vidya Samsthe(R)</h1>
+                    <h2 style="font-size: 20px; font-weight: 600; text-transform: uppercase; margin: 0 0 5px 0;">Vidya Vikasa English School</h2>
+                    <p style="font-size: 16px; margin: 0;">Basaveshwar Talkies Road - ${currentParams?.ASMAY_Year || ''}</p>
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 18px; font-weight: bold; border: 2px solid #000; display: inline-block; padding: 8px 32px; text-transform: uppercase; margin: 0;">
+                        Bank Credit And Debit Report (${selectedMonth}, ${currentParams?.ASMAY_Year})
+                    </h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SL.NO</th>
+                            <th>DATE</th>
+                            <th>PARTICULAR</th>
+                            <th>VOUCHER</th>
+                            <th>DEBIT</th>
+                            <th>CREDIT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f1f5f9; font-weight: bold;">
+                            <td colspan="4" style="text-align: right;">TOTAL</td>
+                            <td style="text-align: right;">₹ ${totalDebit.toFixed(2)}</td>
+                            <td style="text-align: right;">₹ ${totalCredit.toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div style="margin-top: 100px; display: flex; justify-content: space-between; padding: 0 50px;">
+                    <div style="text-align: center; border-top: 2px solid #000; padding-top: 8px; font-weight: bold;">Verified By</div>
+                    <div style="text-align: center; border-top: 2px solid #000; padding-top: 8px; font-weight: bold;">Authorized Signature</div>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => printWindow.print(), 250);
+    };
 
     const handleExport = () => {
         if (summaryData.length === 0) return;
@@ -144,13 +291,7 @@ export default function BankCopyReportPage() {
 
     return (
         <div className="container mx-auto p-4 space-y-8 bg-gray-50/50 min-h-screen">
-            <div className="flex flex-col space-y-1">
-                <div className="flex items-center gap-2">
-                    <Landmark className="h-6 w-6 text-indigo-600" />
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Bank Credit And Debit Report</h1>
-                </div>
-                <p className="text-sm text-muted-foreground ml-8">Monitor monthly bank transactions and detailed credit/debit histories.</p>
-            </div>
+
 
             <BankCopyReportForm
                 onSearch={handleSearch}
@@ -265,109 +406,6 @@ export default function BankCopyReportPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Hidden Print Section for Summary */}
-            <div className='hidden'>
-                <div ref={printRef} className='p-12 space-y-8 bg-white text-black'>
-                    <div className='text-center border-b-2 border-slate-900 pb-6'>
-                        <h1 className='text-3xl font-bold uppercase tracking-tight'>Vidya Vikasa Vidya Samsthe(R)</h1>
-                        <h2 className='text-2xl font-semibold uppercase mt-1'>Vidya Vikasa English School</h2>
-                        <p className='text-lg font-medium mt-2'>Basaveshwar Talkies Road - {currentParams?.ASMAY_Year || ''}</p>
-                    </div>
-
-                    <div className='text-center'>
-                        <h3 className='text-xl font-bold border-2 border-black inline-block px-8 py-2 uppercase'>
-                            Bank Credit And Debit Report Summary
-                        </h3>
-                    </div>
-
-                    <table className='w-full border-collapse border-2 border-slate-900 mt-6'>
-                        <thead>
-                            <tr className='bg-slate-50'>
-                                <th className='border-2 border-slate-900 p-3 text-center font-bold'>SL.NO</th>
-                                <th className='border-2 border-slate-900 p-3 text-center font-bold'>MONTH</th>
-                                <th className='border-2 border-slate-900 p-3 text-center font-bold'>DEBIT</th>
-                                <th className='border-2 border-slate-900 p-3 text-center font-bold'>CREDIT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {summaryData.map((item, idx) => (
-                                <tr key={idx}>
-                                    <td className='border-2 border-slate-900 p-3 text-center'>{idx + 1}</td>
-                                    <td className='border-2 border-slate-900 p-3 text-center font-medium'>{item.Month}</td>
-                                    <td className='border-2 border-slate-900 p-3 text-right font-medium'>{(Number(item.TotalDebit) || 0).toFixed(2)}</td>
-                                    <td className='border-2 border-slate-900 p-3 text-right font-medium'>{(Number(item.TotalCredit) || 0).toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                        <tfoot>
-                            <tr className='bg-slate-100 font-bold'>
-                                <td colSpan={2} className='border-2 border-slate-900 p-3 text-right text-lg'>TOTAL</td>
-                                <td className='border-2 border-slate-900 p-3 text-right text-lg'>₹ {totalDebit.toFixed(2)}</td>
-                                <td className='border-2 border-slate-900 p-3 text-right text-lg'>₹ {totalCredit.toFixed(2)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <div className='mt-24 grid grid-cols-2 gap-20 pt-10'>
-                        <div className='text-center border-t-2 border-black pt-2 font-bold'>Verified By</div>
-                        <div className='text-center border-t-2 border-black pt-2 font-bold'>Authorized Signature</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Hidden Print Section for Details */}
-            <div className='hidden'>
-                <div ref={detailPrintRef} className='p-12 space-y-8 bg-white text-black'>
-                    <div className='text-center border-b-2 border-slate-900 pb-6'>
-                        <h1 className='text-3xl font-bold uppercase tracking-tight'>Vidya Vikasa Vidya Samsthe(R)</h1>
-                        <h2 className='text-2xl font-semibold uppercase mt-1'>Vidya Vikasa English School</h2>
-                        <p className='text-lg font-medium mt-2'>Basaveshwar Talkies Road - {currentParams?.ASMAY_Year || ''}</p>
-                    </div>
-
-                    <div className='text-center'>
-                        <h3 className='text-xl font-bold border-2 border-black inline-block px-8 py-2 uppercase'>
-                            Bank Credit And Debit Report ({selectedMonth}, {currentParams?.ASMAY_Year})
-                        </h3>
-                    </div>
-
-                    <table className='w-full border-collapse border-2 border-slate-900 mt-6'>
-                        <thead>
-                            <tr className='bg-slate-50'>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>SL.NO</th>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>DATE</th>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>PARTICULAR</th>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>VOUCHER</th>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>DEBIT</th>
-                                <th className='border-2 border-slate-900 p-2 text-center font-bold text-sm'>CREDIT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {detailData.map((item, idx) => (
-                                <tr key={idx}>
-                                    <td className='border-2 border-slate-900 p-2 text-center text-xs'>{idx + 1}</td>
-                                    <td className='border-2 border-slate-900 p-2 text-center text-xs'>{new Date(item.PaymentDate).toLocaleDateString('en-GB')}</td>
-                                    <td className='border-2 border-slate-900 p-2 text-left text-xs uppercase'>{item.Particular}</td>
-                                    <td className='border-2 border-slate-900 p-2 text-center text-xs'>{item.Voucher}</td>
-                                    <td className='border-2 border-slate-900 p-2 text-right text-xs font-medium'>{(Number(item.TotalDebit) || 0).toFixed(2)}</td>
-                                    <td className='border-2 border-slate-900 p-2 text-right text-xs font-medium'>{(Number(item.TotalCredit) || 0).toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                        <tfoot>
-                            <tr className='bg-slate-100 font-bold'>
-                                <td colSpan={4} className='border-2 border-slate-900 p-3 text-right font-bold'>TOTAL</td>
-                                <td className='border-2 border-slate-900 p-3 text-right font-bold'>₹ {detailData.reduce((acc, curr) => acc + (Number(curr.TotalDebit) || 0), 0).toFixed(2)}</td>
-                                <td className='border-2 border-slate-900 p-3 text-right font-bold'>₹ {detailData.reduce((acc, curr) => acc + (Number(curr.TotalCredit) || 0), 0).toFixed(2)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <div className='mt-24 grid grid-cols-2 gap-20 pt-10'>
-                        <div className='text-center border-t-2 border-black pt-2 font-bold'>Verified By</div>
-                        <div className='text-center border-t-2 border-black pt-2 font-bold'>Authorized Signature</div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }

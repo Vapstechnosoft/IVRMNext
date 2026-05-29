@@ -5,13 +5,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect } from 'react';
+import { use, useEffect, useMemo } from 'react';
 import AddInterviewerFeedbackForm from './_components/add-form';
 import { interviewerFeedbackColumns } from './_components/columns';
-import { useGetInterviewerFeedbackGridData } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+import { useGetCandidateInterviewListVMS, useGetInterviewerFeedbackGridData } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 export default function InterviewerFeedbackPage() {
     
-    const {data:response,refetch:refetchAll, isLoading:isLoading} = useGetInterviewerFeedbackGridData();
+    const { data: response, isLoading, error, refetchAll } = useGetCandidateInterviewListVMS();
     console.log("response",response);
     return (
         <FormProvider<any>>
@@ -28,13 +28,18 @@ function InterviewerFeedbackPageContent({
     isLoading: boolean;
     refetch: () => void;
 }) {
+
+    const gridData = useMemo(() => response?.data?.vmsCandidateInterviewList || response?.vmsCandidateInterviewList || [], [response]);
+    const candidateList = useMemo(() => response?.data?.candidateDetailsList || response?.candidateDetailsList || [], [response]);
+    const interviewerList = useMemo(() => response?.data?.interviewerList || response?.interviewerList || [], [response]);
+
     const { openAddForm } = useFormContext();
-    const tableProps = useDataTableProps(response);
+    const tableProps = useDataTableProps(gridData);
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                {/* <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -42,7 +47,7 @@ function InterviewerFeedbackPageContent({
                         <Plus className='h-4 w-4' />
                         Add Interviewer Feedback
                     </Button>
-                </div>
+                </div> */}
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -62,17 +67,29 @@ function InterviewerFeedbackPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms - Below Table */}
-                <FormSections refetch={refetch} />
+                <FormSections refetch={refetch} candidateList={candidateList} interviewerList={interviewerList} />
             </div>
         </div>
     );
 }
 function FormSections({
-    refetch
+    refetch,
+    candidateList,
+    interviewerList
 }: {
     refetch: () => void;
+    candidateList: any[];
+    interviewerList: any[];
 }) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
+    const {
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef
+    } = useFormContext();
+
     return (
         <>
             {/* Add Form */}
@@ -100,6 +117,41 @@ function FormSections({
                                     refetch();
                                 }}
                                 onCancel={closeAddForm}
+                                candidateList={candidateList}
+                                interviewerList={interviewerList}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Interviewer Feedback'
+                        description='Modify the details of the interviewer feedback below'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddInterviewerFeedbackForm
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }}
+                                onCancel={closeEditForm}
+                                candidateList={candidateList}
+                                interviewerList={interviewerList}
                             />
                         </div>
                     </CollapsibleSection>

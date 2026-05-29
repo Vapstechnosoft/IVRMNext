@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { Search, RotateCcw, FileText, Loader2 } from 'lucide-react';
+import { Search, RotateCcw, FileText, Loader2, Printer } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+import { AdmissionProcedurePrint } from './_components/admission-procedure-print';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
@@ -23,6 +25,13 @@ import AdmissionProcedureModal from './_components/admission-procedure-modal';
 import AdmissionFormModal from './_components/admission-form-modal';
 
 export default function AdmissionProcedureReportPage() {
+    // Refs & Print Hook
+    const printRef = useRef<HTMLDivElement>(null);
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: 'Admission_Procedure_Report'
+    });
+
     // Hooks
     const { data: initialData, isLoading: isInitialLoading } = useAdmissionProcedureInitialDetails();
     const classMutation = useAdmissionProcedureClass();
@@ -75,8 +84,12 @@ export default function AdmissionProcedureReportPage() {
                 AMC_Id: Number(categoryId),
             });
 
-            if (res?.data?.admissionprocedure && res.data.admissionprocedure.length > 0) {
-                setStudents(res.data.admissionprocedure);
+            const studentList = Array.isArray(res?.data)
+                ? res.data
+                : (res?.data as any)?.admissionprocedure || [];
+
+            if (studentList && studentList.length > 0) {
+                setStudents(studentList);
             } else {
                 setStudents([]);
                 toast.error('No records found');
@@ -143,10 +156,10 @@ export default function AdmissionProcedureReportPage() {
                                 <RadioGroupItem value="1" id="type-all" />
                                 <Label htmlFor="type-all" className="font-bold cursor-pointer">ALL</Label>
                             </div>
-                            <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
+                            {/* <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
                                 <RadioGroupItem value="2" id="type-ind" disabled />
                                 <Label htmlFor="type-ind" className="font-bold cursor-pointer">INDIVIDUAL</Label>
-                            </div>
+                            </div> */}
                         </RadioGroup>
                     </div>
 
@@ -161,7 +174,7 @@ export default function AdmissionProcedureReportPage() {
                                     <SelectValue placeholder="Select Year" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {initialData?.data?.yearDropdown?.map((item: any) => (
+                                    {initialData?.data?.academicList?.map((item: any) => (
                                         <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                             {item.asmaY_Year}
                                         </SelectItem>
@@ -170,7 +183,7 @@ export default function AdmissionProcedureReportPage() {
                             </Select>
                         </div>
 
-                        {initialData?.data?.categoryflag && (
+                        {/* {initialData?.data?.category_list && initialData?.data?.category_list.length > 0 && (
                             <div className="space-y-2">
                                 <Label className="text-sm font-bold">Category:</Label>
                                 <Select
@@ -182,7 +195,7 @@ export default function AdmissionProcedureReportPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="0">All</SelectItem>
-                                        {initialData?.data?.categoryDropdown?.map((item: any) => (
+                                        {initialData?.data?.category_list?.map((item: any) => (
                                             <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
                                                 {item.amC_Name}
                                             </SelectItem>
@@ -190,7 +203,7 @@ export default function AdmissionProcedureReportPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
+                        )} */}
                     </div>
 
                     <div className="flex justify-center gap-4 pt-4">
@@ -216,7 +229,17 @@ export default function AdmissionProcedureReportPage() {
 
             {students.length > 0 && (
                 <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-                    <h3 className="text-lg font-bold uppercase text-indigo-700">Admission Procedure Report</h3>
+                    <div className="flex justify-between items-center border-b pb-2">
+                        <h3 className="text-lg font-bold uppercase text-indigo-700">Admission Procedure Report</h3>
+                        <Button
+                            onClick={() => handlePrint()}
+                            variant="outline"
+                            className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200 shadow-sm font-bold"
+                        >
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Report
+                        </Button>
+                    </div>
                     <GenericDataTable
                         data={students}
                         columns={columns}
@@ -239,6 +262,45 @@ export default function AdmissionProcedureReportPage() {
                 data={selectedStudentData}
                 logo={initialData?.data?.photopathname || ''}
             />
+
+            {/* Printable Area */}
+            <div className="admission-print-area">
+                <AdmissionProcedurePrint
+                    ref={printRef}
+                    data={students}
+                    logo={initialData?.data?.photopathname || ''}
+                    academicYear={
+                        initialData?.data?.academicList?.find(
+                            (item: any) => item.asmaY_Id.toString() === academicYearId
+                        )?.asmaY_Year || ''
+                    }
+                />
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                .admission-print-area {
+                    display: none;
+                }
+                @media print {
+                    body {
+                        visibility: hidden !important;
+                    }
+                    .admission-print-area,
+                    .admission-print-area * {
+                        visibility: visible !important;
+                    }
+                    .admission-print-area {
+                        display: block !important;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        z-index: 99999 !important;
+                        background: white !important;
+                    }
+                }
+            `}} />
         </div>
     );
 }

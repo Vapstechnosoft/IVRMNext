@@ -13,42 +13,31 @@ import type {
 } from '@/types/pda/report/pda-expenditure-import';
 import PDAExpenditureImportForm from '@/app/(root)/pda/report/pda-expenditure-import/_components/PDAExpenditureImportForm';
 import PDAExpenditureImportGrid from '@/app/(root)/pda/report/pda-expenditure-import/_components/PDAExpenditureImportGrid';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save, RotateCcw } from 'lucide-react';
+import { usePDAAcademicYear } from '@/hooks/pda/usePDACommon';
 
 export default function PDAExpenditureImportPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [loadData, setLoadData] = useState<IPDAExpenditureImportLoadData | null>(null);
-    const [importedData, setImportedData] = useState<IPDAExpenditureImportRow[]>([]);
+    const [importedData, setImportedData] = useState<IPDAExpenditureImportRow[]>([]); 0
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [trnType, setTrnType] = useState<'Debit' | 'Credit'>('Debit');
     const [totalAmount, setTotalAmount] = useState(0);
 
-    useEffect(() => {
-        const fetchLoadData = async () => {
-            try {
-                const response = await getPDAExpenditureImportLoadData();
-                if (response.success && response.data) {
-                    setLoadData(response.data);
-                    // Set default year if available
-                    const defaultYear = response.data.academicyearlist?.find((y: any) => y.Selected);
-                    if (defaultYear) {
-                        setSelectedAsmayId(defaultYear.asmaY_Id);
-                    } else if (response.data.academicyearlist?.length > 0) {
-                        setSelectedAsmayId(response.data.academicyearlist[0].asmaY_Id);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching load data:', error);
-                toast.error('Failed to load initial data');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { data: yearsRes, isLoading: loadingYears } = usePDAAcademicYear();
 
-        fetchLoadData();
-    }, []);
+    const getArray = (data: any): any[] => {
+        if (!data) return [];
+        if (Array.isArray(data)) return data;
+        if (data.$values && Array.isArray(data.$values)) return data.$values;
+        return [];
+    };
+
+    const academicYearsList = getArray(yearsRes?.data?.data || yearsRes?.data?.fillyear || yearsRes?.data);
+
+
 
     const handleImport = async (data: IPDAExpenditureImportRow[]) => {
         try {
@@ -129,13 +118,14 @@ export default function PDAExpenditureImportPage() {
         window.location.reload();
     };
 
-    if (loading) {
+    if (loadingYears) {
         return (
             <div className="flex h-[400px] items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
+
 
     return (
         <div className="container space-y-8 p-6 animate-in fade-in duration-500">
@@ -150,13 +140,42 @@ export default function PDAExpenditureImportPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                     <PDAExpenditureImportForm
-                        academicYears={loadData?.academicyearlist || []}
+                        academicYears={academicYearsList}
                         selectedAsmayId={selectedAsmayId}
                         setSelectedAsmayId={setSelectedAsmayId}
                         trnType={trnType}
                         setTrnType={setTrnType}
                         onImport={handleImport}
                     />
+
+                    <div className="flex justify-center gap-4 pt-6 mt-6">
+                        <Button
+                            onClick={handleSave}
+                            disabled={saving || importedData.length === 0}
+                            className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white w-40 h-10 rounded-md font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {saving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Records
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={handleCancel}
+                            disabled={saving}
+                            variant="outline"
+                            className="w-32 h-10 rounded-md font-bold shadow-md border-gray-200 hover:bg-gray-50 hover:scale-105 active:scale-95 disabled:opacity-50"
+                        >
+                            <RotateCcw className="mr-2 h-4 w-4 text-gray-500" />
+                            Cancel
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -173,30 +192,6 @@ export default function PDAExpenditureImportPage() {
                             <PDAExpenditureImportGrid data={importedData} />
                         </CardContent>
                     </Card>
-
-                    <div className="flex justify-center gap-4 py-4">
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary/90 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
-                        >
-                            {saving ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                'Save Records'
-                            )}
-                        </button>
-                        <button
-                            onClick={handleCancel}
-                            disabled={saving}
-                            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-8 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:scale-105 active:scale-95 disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
-                    </div>
                 </div>
             )}
         </div>

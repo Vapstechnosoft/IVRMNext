@@ -260,10 +260,10 @@ export default function ClassTeacherReportPage(props: {
                                 </SelectContent>
                             </Select>
                         </div>
-
+                        {/* <span className='text-red-500'>*</span> */}
                         <div className='space-y-2'>
                             <Label htmlFor='category' className='font-medium text-gray-900 text-sm'>
-                                Category <span className='text-red-500'>*</span>
+                                Category
                             </Label>
 
                             <Select

@@ -20,17 +20,66 @@ export async function POST(req: NextRequest) {
             return Response.json({ error: 'No audio file provided' }, { status: 400 });
         }
 
-        // Use the received file buffer directly
+        console.log('[Header Voice] Forwarding audio to external STT API: https://stt-mobile.onrender.com/transcribe');
+
+        // --- PRIMARY: CALL EXTERNAL RENDER STT API ---
+        try {
+            const apiFormData = new FormData();
+            apiFormData.append('audio', file);
+
+            const externalRes = await fetch('https://stt-mobile.onrender.com/transcribe', {
+                method: 'POST',
+                body: apiFormData,
+            });
+
+            if (externalRes.ok) {
+                const resData = await externalRes.json();
+                console.log('[Header Voice] External STT response:', resData);
+
+                // Extremely robust parsing for common transcription API return formats
+                let transcribedText = '';
+                if (resData) {
+                    if (typeof resData === 'string') {
+                        transcribedText = resData;
+                    } else {
+                        transcribedText = 
+                            resData.text || 
+                            resData.transcript || 
+                            resData.transcription || 
+                            resData.transcribedText || 
+                            resData.data?.text || 
+                            resData.data?.transcript || 
+                            resData.data?.transcription || 
+                            '';
+                    }
+                }
+
+                if (transcribedText?.trim()) {
+                    console.log('[Header Voice] Successfully transcribed via external API:', transcribedText);
+                    return Response.json({
+                        success: true,
+                        text: transcribedText.trim(),
+                        provider: 'external'
+                    });
+                }
+            } else {
+                console.warn(`[Header Voice] External API failed with status ${externalRes.status}. Falling back to local processor.`);
+            }
+        } catch (apiError: any) {
+            console.error('[Header Voice] Failed calling external STT API:', apiError);
+            // Safe fallback to local python processing below
+        }
+
+        // --- FALLBACK: LOCAL PYTHON SPEECH PROCESSOR ---
+        console.log('[Header Voice] Executing local Python speech processor fallback...');
         const buffer = Buffer.from(await file.arrayBuffer());
         tempFilePath = path.join(os.tmpdir(), `header_voice_${Date.now()}.wav`);
         await fs.writeFile(tempFilePath, buffer);
 
-        // Execute the Python script
         const scriptPath = path.join(process.cwd(), 'server', 'voice_processor.py');
-        console.log('[Header Voice] Executing Python script:', scriptPath);
 
         try {
-            const { stdout, stderr } = await execAsync(`python "${scriptPath}" "${tempFilePath}"`);
+            const { stdout } = await execAsync(`python "${scriptPath}" "${tempFilePath}"`);
 
             const match = stdout.match(/RESULTJSON:(.*?):ENDJSON/);
             if (!match) {
@@ -51,7 +100,8 @@ export async function POST(req: NextRequest) {
                 success: true,
                 text: result.text,
                 original: result.original_text,
-                language: result.detected_lang
+                language: result.detected_lang,
+                provider: 'local'
             });
 
         } catch (execError: any) {

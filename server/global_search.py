@@ -3,7 +3,6 @@ import json
 import pandas as pd
 from sqlalchemy import create_engine
 import urllib.parse
-from googletrans import Translator
 
 # --- CONFIGURATION ---
 DB_SERVER = r"ARUN_SHARMA\SQLEXPRESS01"
@@ -52,15 +51,6 @@ def get_db_engine():
         return create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
     except Exception as e:
         return None
-
-# --- TRANSLATION ---
-def translate_query(query_text):
-    try:
-        translator = Translator()
-        translation = translator.translate(query_text, dest='en')
-        return translation.text
-    except:
-        return query_text
 
 # --- SMART SEARCH ---
 def perform_search(query):
@@ -146,8 +136,6 @@ if __name__ == "__main__":
         sys.exit(0)
         
     raw_input = sys.argv[1]
-    translated = translate_query(raw_input)
-    
-    data_results = perform_search(translated)
+    data_results = perform_search(raw_input)
     
     print(json.dumps({"results": data_results}, default=str))

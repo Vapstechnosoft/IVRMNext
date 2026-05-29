@@ -1,6 +1,6 @@
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getMasterCompetitionCategories } from '@/server/sports/masters/competition-category';
+import { getMasterCompetitionCategories, getMasterCompetitionCategoryDetails } from '@/server/sports/masters/competition-category';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterCompetitionCategory = (searchParams?: any) => {
@@ -34,4 +34,17 @@ export const useMasterCompetitionCategory = (searchParams?: any) => {
             });
         }
     };
+};
+
+export const useMasterCompetitionCategories = (searchParams?: any) => {
+    return useMasterCompetitionCategory(searchParams);
+};
+
+export const useMasterCompetitionCategoryDetails = (id: number) => {
+    return useQuery({
+        queryKey: ['master-competition-category-details', id],
+        queryFn: () => getMasterCompetitionCategoryDetails(id),
+        enabled: !!id,
+        staleTime: 0
+    });
 };

@@ -1,18 +1,21 @@
 'use client';
-import { Button } from '@/components/ui/button';
+
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, Trash2 } from 'lucide-react';
+
 export interface CandidateInterviewListItem {
-    id: number;
-    candidateName: string;
-    interviewDate: string;
-    interviewTime: string;
-    interviewRound: string;
-    interviewerName: string;
-    interviewVenue: string;
-    status: string;
+    hrcisC_Id: number;
+    hrcD_Id: number;
+    hrcD_FullName: string;
+    hrcisC_InterviewRounds: string;
+    hrcisC_InterviewDate: string;
+    hrcisC_Status: string;
+    hrcisC_ActiveFlg: boolean;
 }
+
 export const candidateInterviewListColumns: ColumnDef<CandidateInterviewListItem>[] = [
     {
         id: 'serialNumber',
@@ -21,52 +24,74 @@ export const candidateInterviewListColumns: ColumnDef<CandidateInterviewListItem
         enableSorting: false
     },
     {
-        accessorKey: 'candidateName',
+        accessorKey: 'hrcD_FullName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('candidateName')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrcD_FullName')}</div>
     },
     {
-        accessorKey: 'interviewDate',
+        accessorKey: 'hrcisC_InterviewDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('interviewDate')).toLocaleDateString()}</div>
+        cell: ({ row }) => {
+            const dateStr = row.getValue('hrcisC_InterviewDate') as string;
+            if (!dateStr) return <div>-</div>;
+
+            // If the date is already in DD-MM-YYYY format, render it directly
+            if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr.trim())) {
+                return <div>{dateStr}</div>;
+            }
+
+            // Otherwise, attempt standard parsing and format as DD-MM-YYYY
+            try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    return <div>{`${day}-${month}-${year}`}</div>;
+                }
+            } catch (_) {}
+
+            return <div>{dateStr}</div>;
+        }
     },
     {
-        accessorKey: 'interviewTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Time' />,
-        cell: ({ row }) => <div>{row.getValue('interviewTime')}</div>
-    },
-    {
-        accessorKey: 'interviewRound',
+        accessorKey: 'hrcisC_InterviewRounds',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Round' />,
-        cell: ({ row }) => <div>{row.getValue('interviewRound')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrcisC_InterviewRounds')}</div>
     },
     {
-        accessorKey: 'interviewerName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Interviewer' />,
-        cell: ({ row }) => <div>{row.getValue('interviewerName')}</div>
-    },
-    {
-        accessorKey: 'interviewVenue',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Venue' />,
-        cell: ({ row }) => <div>{row.getValue('interviewVenue')}</div>
-    },
-    {
-        accessorKey: 'status',
+        accessorKey: 'hrcisC_Status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div>{row.getValue('status')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrcisC_Status')}</div>
     },
+    // {
+    //     accessorKey: 'hrcisC_ActiveFlg',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
+    //     cell: ({ row }) => (
+    //         <div className='flex justify-center'>
+    //             {getStatusBadge(row.original.hrcisC_ActiveFlg ? 'active' : 'inactive')}
+    //         </div>
+    //     )
+    // },
     {
         id: 'actions',
-        header: 'Actions',
-        cell: () => (
-            <div className='flex items-center gap-2'>
-                <Button variant='ghost' size='sm' className='text-blue-600 hover:text-blue-800'>
-                    <Eye className='h-4 w-4' />
-                </Button>
-                <Button variant='ghost' size='sm' className='text-red-600 hover:text-red-800'>
-                    <Trash2 className='h-4 w-4' />
-                </Button>
-            </div>
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: CandidateInterviewListItem }) {
+    const { openEditForm, openToggleForm } = useFormContext<CandidateInterviewListItem>();
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={openEditForm}
+            onToggle={openToggleForm}
+            toggleConditionKey='hrcisC_ActiveFlg'
+        />
+    );
+}

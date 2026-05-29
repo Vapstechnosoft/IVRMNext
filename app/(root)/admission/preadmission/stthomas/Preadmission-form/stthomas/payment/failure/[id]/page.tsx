@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 export default function PaymentFailurePage() {
     const params = useParams();
     const [isProcessing, setIsProcessing] = useState(true);
-    const [apiCallStatus, setApiCallStatus] = useState<'pending' | 'success' | 'error'>('pending');
+    const [_apiCallStatus, setApiCallStatus] = useState<'pending' | 'success' | 'error'>('pending');
     const [failureReason, setFailureReason] = useState('');
     const [transactionId, setTransactionId] = useState('');
     const [isClient, setIsClient] = useState(false);
@@ -26,11 +26,7 @@ export default function PaymentFailurePage() {
         const searchParams = new URLSearchParams(window.location.search);
         const wasProcessed = searchParams.get('processed') === 'true';
 
-        console.log('🔵 CLIENT: Already processed:', wasProcessed);
-
         if (wasProcessed) {
-            // Payment was already processed by the callback route
-            console.log('✅ CLIENT: Payment failure already processed, showing result');
             setApiCallStatus('success');
             setIsProcessing(false);
 
@@ -58,7 +54,6 @@ export default function PaymentFailurePage() {
                 if (!params?.id) return;
 
                 const txnId = Array.isArray(params.id) ? params.id[0] : params.id;
-                console.log('🔵 CLIENT: Processing failed payment for:', txnId);
 
                 setTransactionId(txnId);
                 setFailureReason('Payment was not completed');
@@ -67,15 +62,12 @@ export default function PaymentFailurePage() {
 
                 if (isCancelled) return;
 
-                console.log('🔵 CLIENT: Payment failure response received:', response);
-
                 if (!response) {
                     console.error('🔴 CLIENT: Response is undefined or null');
                     throw new Error('No response received from server');
                 }
 
                 if (response.success) {
-                    console.log('✅ CLIENT: Payment failure recorded!');
                     setApiCallStatus('success');
 
                     setTimeout(() => {
@@ -107,13 +99,13 @@ export default function PaymentFailurePage() {
         };
     }, [isClient, params?.id]);
 
-    const handleRetry = () => {
+    const _handleRetry = () => {
         if (typeof window !== 'undefined') {
             window.location.href = '/admission/preadmission/transactions/application-form';
         }
     };
 
-    const handleGoBack = () => {
+    const _handleGoBack = () => {
         if (typeof window !== 'undefined') {
             window.location.href = '/admission/preadmission/transactions/application-form';
         }
