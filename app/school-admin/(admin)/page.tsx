@@ -41,7 +41,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { GetChairmanDashBoardFeesdata, getDashboardCounts } from '@/server/dashboards/chairman-dashboard';
+import { GetChairmanDashBoardFeesdata, getDashboardCounts, GetTeacherCount } from '@/server/dashboards/chairman-dashboard';
 
 // --- Data & Constants ---
 
@@ -146,6 +146,7 @@ const SectionHeader = ({ title, showViewAll = true }: { title: string, showViewA
 export default function AdminDashboardPage() {
     const [dashboardData, setDashboardData] = useState<any>(null);
     const [feeDetailsData, setFeeDetailsData] = useState<any[]>([]);
+    const [teachers, setTeachers] = useState<any>(null);
     const [totalFeeCollected, setTotalFeeCollected] = useState<number>(0);
 
     React.useEffect(() => {
@@ -154,7 +155,12 @@ export default function AdminDashboardPage() {
             try {
                 const response = await getDashboardCounts();
                 const feesResponse = await GetChairmanDashBoardFeesdata(231);
-                console.log('preadmission data raw response', response);
+                const {data:teacherResponse} = await GetTeacherCount();
+                // console.log('preadmission data raw response', response);
+                console.log('teacherResponse', teacherResponse);
+                const teacherData = Array.isArray(teacherResponse) ? teacherResponse[0] : teacherResponse;
+                const totalTeachers = (teacherData?.activeEmp?.length || 0);
+                setTeachers(totalTeachers);
 
                 // If the response has a data property (nested wrapper), use it, otherwise use the response itself
                 const finalData = response?.data ? response.data : response;
@@ -190,7 +196,7 @@ export default function AdminDashboardPage() {
     const statsData: StatItem[] = [
         { title: 'Applications', value: dashboardData?.applicationsCount ?? 0, icon: FileText, gradient: 'from-blue-600 to-indigo-600', badgeIcon: Briefcase, url: '/admission/preadmission/reports/admission-register' },
         { title: 'Students', value: dashboardData?.studentCount ?? 0, icon: Users, gradient: 'from-orange-500 to-amber-600', badgeIcon: UserCircle, url: '/admission/preadmission/reports/class-wise-student-details' },
-        { title: 'Teachers', value: '208', icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
+        { title: 'Teachers', value: teachers ?? 0, icon: GraduationCap, gradient: 'from-teal-500 to-emerald-600', badgeIcon: Building2, url: '/hrms/employee' },
         { title: 'Fee Collection', value: `₹${totalFeeCollected.toLocaleString('en-IN')}`, icon: Wallet, gradient: 'from-purple-600 to-violet-600', badgeIcon: CreditCard, url: '/fees/feereports/feeconsolidatedreport' },
     ];
 
