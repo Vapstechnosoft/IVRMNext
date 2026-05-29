@@ -79,7 +79,7 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-2'>
                             <Label htmlFor='hlmftY_FacilityDesc'>
-                                Description <span className='ml-1 text-red-500'>*</span>
+                                Description
                             </Label>
                             <textarea
                                 id='hlmftY_FacilityDesc'

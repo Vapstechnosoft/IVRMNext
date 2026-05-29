@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterDriver } from '@/hooks/transport/transportmodule/usemasters';
 import { masterDriverSchema } from '@/schemas/transport/masters';
 import { saveMasterDriver } from '@/server/transport/transport-module/masters/driver';
@@ -25,12 +25,7 @@ interface UpdateMasterDriverFormProps {
     selectedRow: IMasterDriver;
 }
 
-export default function UpdateMasterDriverForm({
-    onSuccess,
-    onClose,
-    className = '',
-    selectedRow: row
-}: UpdateMasterDriverFormProps) {
+export default function UpdateMasterDriverForm({ onSuccess, onClose, className = '', selectedRow: row }: UpdateMasterDriverFormProps) {
     const { refetchAll } = useMasterDriver();
 
     const {
@@ -152,6 +147,7 @@ export default function UpdateMasterDriverForm({
                             required
                             id='trmD_DLNo'
                             className='uppercase'
+                            maxLength={16}
                             {...register('trmD_DLNo')}
                             error={errors.trmD_DLNo?.message}
                         />
@@ -190,6 +186,11 @@ export default function UpdateMasterDriverForm({
                             className='uppercase'
                             id='trmD_LicenseType'
                             {...register('trmD_LicenseType')}
+                            onKeyDown={(e) => {
+                                if (!/^[a-zA-Z0-9\s]*$/.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault();
+                                }
+                            }}
                             error={errors.trmD_LicenseType?.message}
                         />
                         <div className='group flex flex-col gap-1.5'>
@@ -220,15 +221,19 @@ export default function UpdateMasterDriverForm({
                             error={errors.trmD_RTOName?.message}
                         />
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='trmD_MTExpiryDate'>
-                                Medical Test Expiring Date
-                            </Label>
+                            <Label htmlFor='trmD_MTExpiryDate'>Medical Test Expiring Date</Label>
                             <Controller
                                 name='trmD_MTExpiryDate'
                                 control={control}
                                 render={({ field }) => (
                                     <DatePicker
-                                        date={field.value ? (typeof field.value === 'string' ? new Date(field.value) : field.value) : undefined}
+                                        date={
+                                            field.value
+                                                ? typeof field.value === 'string'
+                                                    ? new Date(field.value)
+                                                    : field.value
+                                                : undefined
+                                        }
                                         setDate={field.onChange}
                                     />
                                 )}

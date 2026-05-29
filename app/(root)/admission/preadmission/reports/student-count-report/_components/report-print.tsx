@@ -90,17 +90,20 @@ export default function StudentCountReportPrint({
                 </thead>
                 <tbody>
 
-                    {data.map((row, index) => (
-                        <tr key={index} className="break-inside-avoid">
-                            <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>{index + 1}</td>
-                            <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.user_name || 'N/A'}</td>
-                            <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.email || 'N/A'}</td>
-                            <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.phone_number || 'N/A'}</td>
-                            <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>
-                                {formatDate(row.entry_date)}
-                            </td>
-                        </tr>
-                    ))}
+                    {data.map((row, index) => {
+                        const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
+                        return (
+                            <tr key={index} className="break-inside-avoid">
+                                <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>{index + 1}</td>
+                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{fullName || 'N/A'}</td>
+                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.EmailID || 'N/A'}</td>
+                                <td className="border border-black p-1" style={{ border: '1px solid black' }}>{row.Mobileno || 'N/A'}</td>
+                                <td className="border border-black p-1 text-center" style={{ border: '1px solid black' }}>
+                                    {formatDate(row.RegDate)}
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
 

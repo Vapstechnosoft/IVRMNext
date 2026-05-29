@@ -23,31 +23,37 @@ export const getStudentCountReportColumns = (): ColumnDef<IMasterStudentCountRep
             enableHiding: false
         },
         {
-            accessorKey: 'user_name',
+            accessorKey: 'FirstName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
-            cell: ({ row }) => <div>{row.getValue('user_name')}</div>,
+            cell: ({ row }) => {
+                const firstName = row.original?.FirstName || '';
+                const middleName = row.original?.MiddleName || '';
+                const lastName = row.original?.LastName || '';
+                const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+                return <div>{fullName || 'N/A'}</div>;
+            },
             enableSorting: true,
             enableHiding: true
         },
         {
-            accessorKey: 'email',
+            accessorKey: 'EmailID',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Email-Id' className='font-bold text-black' />,
-            cell: ({ row }) => <div>{row.getValue('email')}</div>,
+            cell: ({ row }) => <div>{row.getValue('EmailID') || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
         },
         {
-            accessorKey: 'phone_number',
+            accessorKey: 'Mobileno',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' className='font-bold text-black' />,
-            cell: ({ row }) => <div>{row.getValue('phone_number')}</div>,
+            cell: ({ row }) => <div>{row.getValue('Mobileno') || 'N/A'}</div>,
             enableSorting: true,
             enableHiding: true
         },
         {
-            accessorKey: 'entry_date',
+            accessorKey: 'RegDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Date' className='font-bold text-black' />,
             cell: ({ row }) => {
-                const date = row.getValue('entry_date') as string;
+                const date = row.getValue('RegDate') as string;
                 return <div>{date ? formatDate(date) : 'N/A'}</div>;
             },
             enableSorting: true,

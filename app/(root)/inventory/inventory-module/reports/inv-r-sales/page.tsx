@@ -30,9 +30,9 @@ interface ReportTotals {
 
 const calculateReportTotals = (data: any[]): ReportTotals => {
     return data.reduce((acc: ReportTotals, curr: any) => {
-        const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? 0;
-        const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? 0;
-        const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? 0;
+        const amount = curr.total_Amount ?? curr.invtsL_Amount ?? curr.saleAmount ?? curr.invtsl_Amount ?? curr.invtsl_amount ?? 0;
+        const tax = curr.tax_Amt ?? curr.invtsL_TaxAmt ?? curr.saleTax ?? curr.invtsl_TaxAmt ?? curr.invtsl_taxamt ?? 0;
+        const discount = curr.discount_Amt ?? curr.invtsL_DiscountAmt ?? curr.saleDiscount ?? curr.invtsl_DiscountAmt ?? curr.invtsl_discountamt ?? 0;
 
         return {
             amount: acc.amount + Number(amount),
@@ -65,8 +65,8 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
 
         const p: any = {
             ...payload,
-            startdate: payload.startdate ? format(payload.startdate, 'yyyy-MM-dd') : "",
-            enddate: payload.enddate ? format(payload.enddate, 'yyyy-MM-dd') : "",
+            startdate: payload.startdate ? format(payload.startdate, 'dd/MM/yyyy') : "",
+            enddate: payload.enddate ? format(payload.enddate, 'dd/MM/yyyy') : "",
             selectionflag: payload.individualflag,
         };
 
@@ -210,37 +210,37 @@ export default function InvRSalesPage(props: { searchParams: Promise<any> }) {
                     "SL.No": index + 1
                 };
 
-                const saleDate = row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate;
+                const saleDate = row.sales_Date || row.invmsL_SalesDate || row.invmsl_SalesDate || row.invmsl_salesdate;
 
                 if (typeflag === 'All') {
-                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
-                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
+                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
+                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
                     base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
                 } else if (typeflag === 'Detailed') {
-                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || '';
+                    base["Sale No"] = row.invmsL_SalesNo || row.invmsl_SalesNo || row.Invmsl_SalesNo || row.invmsl_salesno || '';
                     base["Sale Date"] = saleDate ? saleDate.split('T')[0] : '';
-                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
+                    base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
 
                     if (['Student', 'Staff', 'Customer', 'Saleno'].includes(optionflag || '')) {
                         base["Name"] = row.membername || row.memberName || '';
                     }
                 } else if (typeflag === 'Overall') {
                     if (optionflag === 'Item') {
-                        base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || '';
+                        base["Item"] = row.item_Name || row.invmI_ItemName || row.invmi_ItemName || row.invmi_itemname || '';
                     } else if (['Student', 'Staff', 'Customer'].includes(optionflag || '')) {
                         base["Name"] = row.membername || row.memberName || '';
                     }
                 }
 
-                base["Quantity"] = Number(row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? 0).toFixed(2);
-                base["Price"] = Number(row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? 0).toFixed(2);
-                base["Amount"] = Number(row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? 0).toFixed(2);
+                base["Quantity"] = Number(row.sales_Qty ?? row.invtsL_SalesQty ?? row.saleQty ?? row.invtsl_SalesQty ?? row.invtsl_salesqty ?? 0).toFixed(2);
+                base["Price"] = Number(row.sales_Price ?? row.invtsL_SalesPrice ?? row.salePrice ?? row.invtsl_SalesPrice ?? row.invtsl_salesprice ?? 0).toFixed(2);
+                base["Amount"] = Number(row.total_Amount ?? row.invtsL_Amount ?? row.saleAmount ?? row.invtsl_Amount ?? row.invtsl_amount ?? 0).toFixed(2);
 
                 if (showTax) {
-                    base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? 0).toFixed(2);
+                    base["Tax"] = Number(row.tax_Amt ?? row.invtsL_TaxAmt ?? row.saleTax ?? row.invtsl_TaxAmt ?? row.invtsl_taxamt ?? 0).toFixed(2);
                 }
                 if (showDiscount) {
-                    base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? 0).toFixed(2);
+                    base["Discount"] = Number(row.discount_Amt ?? row.invtsL_DiscountAmt ?? row.saleDiscount ?? row.invtsl_DiscountAmt ?? row.invtsl_discountamt ?? 0).toFixed(2);
                 }
 
                 return base;

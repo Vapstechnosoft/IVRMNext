@@ -1,8 +1,8 @@
-import { api, ApiResponse } from "@/lib/apiService";
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export const server = {
     getInitialData: async (orgId: number, instId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/getdpforreg`, { Organization: orgId, Institute: instId });
+        return api.post('preadmission', '/student_application_form/getdpforreg', { Organization: orgId, Institute: instId });
     },
 
     getCaste: async (IMCC_Id: number): Promise<ApiResponse<any>> => {
@@ -10,11 +10,11 @@ export const server = {
     },
 
     onClassChange: async (ASMCL_Id: number, ASMAY_Id: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/classchange`, { ASMCL_Id: ASMCL_Id, ASMAY_Id: ASMAY_Id });
+        return api.post('preadmission', '/student_application_form/classchange', { ASMCL_Id: ASMCL_Id, ASMAY_Id: ASMAY_Id });
     },
 
     onClassChangeMaxMinAge: async (payload: { ASMAY_Id: number; ASMCL_Id: number }): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/classchangemaxminage`, payload);
+        return api.post('preadmission', '/student_application_form/classchangemaxminage', payload);
     },
 
     getStreams: async (ASMCL_Id: number): Promise<ApiResponse<any>> => {
@@ -22,7 +22,11 @@ export const server = {
     },
 
     getSubjects: async (ASMAY_Id: number, ASMCL_Id: number, ASMST_Id: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/GetSubjectsofinstitute?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`, {});
+        return api.post(
+            'preadmission',
+            `/student_application_form/GetSubjectsofinstitute?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`,
+            {}
+        );
     },
 
     getStates: async (IVRMMC_Id: number): Promise<ApiResponse<any>> => {
@@ -46,7 +50,7 @@ export const server = {
     },
 
     getEditHealthData: async (id: number): Promise<ApiResponse<any>> => {
-        return api.get('preadmission', '/student_application_form/getEdithelthData', { params: { id } });
+        return api.get('preadmission', '/student_application_form/getEdithelthData', { params: { PASHD_Id: id } });
     },
 
     getStatesSubCasteFather: async (IMC_ID: number): Promise<ApiResponse<any>> => {
@@ -54,7 +58,11 @@ export const server = {
     },
 
     getApplicationHtml: async (ASMAY_Id: number, ASMCL_Id: number, ASMST_Id: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/getapplicationhtml?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`, {});
+        return api.post(
+            'preadmission',
+            `/student_application_form/getapplicationhtml?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMST_Id=${ASMST_Id}`,
+            {}
+        );
     },
 
     getProspectusDetails: async (PASP_Id: number): Promise<ApiResponse<any>> => {
@@ -82,7 +90,7 @@ export const server = {
     },
 
     getStudentData: async (): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/getstudata`, {});
+        return api.post('preadmission', '/student_application_form/getstudata', {});
     },
 
     getCountOfStudents: async (ASMAY_Id: number): Promise<ApiResponse<any>> => {
@@ -90,15 +98,16 @@ export const server = {
     },
 
     payNow: async (payload: any): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/paynow`, payload);
+        return api.post('preadmission', '/student_application_form/paynow', payload);
     },
 
     getCountry: async (): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/country`, {});
+        return api.post('preadmission', '/student_application_form/country', {});
     },
 
-    saveHealthCertificateDetail: async (PASHD_Id: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/savehealthcertificatedetail?PASHD_Id=${PASHD_Id}`, {});
+    saveHealthCertificateDetail: async (payload: any): Promise<ApiResponse<any>> => {
+        const pashdId = payload.PASHD_Id || payload.pashD_Id || 0;
+        return api.post('preadmission', `/student_application_form/savehealthcertificatedetail?PASHD_Id=${pashdId}`, payload);
     },
 
     classOverUnderAge: async (payload: any): Promise<ApiResponse<any>> => {
@@ -106,14 +115,10 @@ export const server = {
     },
 
     saveRegistration: async (payload: any): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/SavePreadmissiomRegistrartionDetails`, payload);
+        return api.post('preadmission', '/student_application_form/SavePreadmissiomRegistrartionDetails', payload);
     },
 
     getStudentPrintData: async (payload: any): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/getstudentprintData`, payload);
-    },
-
-    onClassChangeMaxMinAge: async (payload: { ASMAY_Id: number; ASMCL_Id: number }): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', `/student_application_form/classchangemaxminage`, payload);
+        return api.post('preadmission', '/student_application_form/getstudentprintData', payload);
     }
 };

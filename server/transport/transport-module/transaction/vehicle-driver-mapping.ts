@@ -10,28 +10,26 @@ export async function getVehicleDriverMapping(searchParams?: ApiSearchparams) {
     return res;
 }
 
-
 export async function vehicleDropDown() {
     const url = '/vehical_driver_mapping/vehicle_drop_down';
-    const res = await api.getArray<any>('transport', url);
-    console.log("vehicle dropdown apiii", res);
+    const res = await api.get<any>('transport', url);
+    console.log('vehicle dropdown apiii', res);
     return res;
 }
 
 export async function driverDropDown() {
     const url = '/vehical_driver_mapping/driver_drop_down';
-    const res = await api.getArray<any>('transport', url);
+    const res = await api.get<any>('transport', url);
+    console.log('driver dropdown apiii', res);
     return res;
 }
 
 export async function sessionDropDown() {
     const url = '/vehical_driver_mapping/session_drop_down';
-    const res = await api.getArray<any>('transport', url);
-    console.log("session dropdown api res", res);
+    const res = await api.get<any>('transport', url);
+    console.log('session dropdown api res', res);
     return res;
 }
-
-
 
 export async function saveVehicleDriverMapping(data: any) {
     const url = '/vehical_driver_mapping/add_or_update_vehicle-driver';

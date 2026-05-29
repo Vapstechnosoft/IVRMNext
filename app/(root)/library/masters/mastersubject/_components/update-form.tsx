@@ -47,9 +47,9 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 lmS_Id: row.lmS_Id,
                 lmS_ParentId: row.lmS_ParentId,
                 ismS_SubjectName: row.lmS_SubjectName,
-                lmS_Level: row.lmS_Level,
-                lmS_SubjectNo: row.lmS_SubjectNo,
-                lmS_ClassNo: row.lmS_ClassNo,
+                lmS_Level: row.lmS_Level?.toString(),
+                lmS_SubjectNo: row.lmS_SubjectNo?.toString(),
+                lmS_ClassNo: row.lmS_ClassNo?.toString(),
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             });
         }
@@ -154,7 +154,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Level :'
-                            required
                             placeholder='Enter Level'
                             {...register('lmS_Level')}
                             error={errors.lmS_Level?.message}

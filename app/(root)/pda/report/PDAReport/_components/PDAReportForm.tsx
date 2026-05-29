@@ -28,21 +28,19 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { 
-    getPDAReportSections, 
-    getPDAReportStudents 
-} from '@/server/pda/report/pda-report';
+    usePDAAcademicYear, 
+    usePDAClass, 
+    usePDASection, 
+    usePDAStudent 
+} from '@/hooks/pda/usePDACommon';
 import { toast } from 'sonner';
 
 interface PDAReportFormProps {
-    academicYears: { asmaY_Id: number; asmaY_Year: string }[];
-    classes: { asmcL_Id: number; asmcL_ClassName: string }[];
     onSubmit: (data: any) => void;
     onReset: () => void;
 }
 
 export default function PDAReportForm({
-    academicYears,
-    classes,
     onSubmit,
     onReset
 }: PDAReportFormProps) {
@@ -51,9 +49,6 @@ export default function PDAReportForm({
     const [selectedAsmcLId, setSelectedAsmcLId] = useState<string>('');
     const [selectedAmscId, setSelectedAmscId] = useState<string>('');
     const [selectedAmstId, setSelectedAmstId] = useState<string>('');
-    
-    const [sections, setSections] = useState<{ amsC_Id: number; asmc_sectionname: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_Id: number; amsT_FirstName: string; amsT_AdmNo: string }[]>([]);
     
     const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
     const [toDate, setToDate] = useState<Date | undefined>(undefined);
@@ -64,63 +59,16 @@ export default function PDAReportForm({
         format1: false
     });
 
-    const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const { data: yearsRes } = usePDAAcademicYear();
+    const { data: classesRes } = usePDAClass(Number(selectedAsmayId));
+    const { data: sectionsRes, isLoading: loadingSections } = usePDASection(Number(selectedAsmayId), Number(selectedAsmcLId));
+    const { data: studentsRes, isLoading: loadingStudents } = usePDAStudent(Number(selectedAsmayId), Number(selectedAsmcLId), Number(selectedAmscId));
 
-    useEffect(() => {
-        const fetchSections = async () => {
-            if (selectedAsmayId && selectedAsmcLId) {
-                setLoadingSections(true);
-                try {
-                    const response = await getPDAReportSections({
-                        ASMAY_Id: Number(selectedAsmayId),
-                        ASMCL_Id: Number(selectedAsmcLId)
-                    });
-                    if (response.success && response.data?.fillsection?.$values) {
-                        setSections(response.data.fillsection.$values);
-                    } else {
-                        setSections([]);
-                    }
-                } catch (error) {
-                    console.error('Error fetching sections:', error);
-                    setSections([]);
-                } finally {
-                    setLoadingSections(false);
-                }
-            } else {
-                setSections([]);
-            }
-        };
-        fetchSections();
-    }, [selectedAsmayId, selectedAsmcLId]);
+    const academicYearsList = (Array.isArray(yearsRes?.data) ? yearsRes?.data : yearsRes?.data?.data) || yearsRes?.data?.fillyear?.$values || [];
+    const classesList = (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
+    const sectionsList = (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
+    const studentsList = (Array.isArray(studentsRes?.data) ? studentsRes?.data : studentsRes?.data?.data) || studentsRes?.data?.fillstudent?.$values || [];
 
-    useEffect(() => {
-        const fetchStudents = async () => {
-            if (selectedAsmayId && selectedAsmcLId && selectedAmscId && type === 'Ind') {
-                setLoadingStudents(true);
-                try {
-                    const response = await getPDAReportStudents({
-                        ASMAY_Id: Number(selectedAsmayId),
-                        ASMCL_Id: Number(selectedAsmcLId),
-                        AMSC_Id: Number(selectedAmscId)
-                    });
-                    if (response.success && response.data?.fillstudent?.$values) {
-                        setStudents(response.data.fillstudent.$values);
-                    } else {
-                        setStudents([]);
-                    }
-                } catch (error) {
-                    console.error('Error fetching students:', error);
-                    setStudents([]);
-                } finally {
-                    setLoadingStudents(false);
-                }
-            } else {
-                setStudents([]);
-            }
-        };
-        fetchStudents();
-    }, [selectedAsmayId, selectedAsmcLId, selectedAmscId, type]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -176,7 +124,7 @@ export default function PDAReportForm({
                             <SelectValue placeholder="Select Year" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100 shadow-2xl">
-                            {academicYears.map((year) => (
+                            {academicYearsList.map((year: any) => (
                                 <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
                             ))}
                         </SelectContent>
@@ -190,7 +138,7 @@ export default function PDAReportForm({
                             <SelectValue placeholder="Select Class" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100">
-                            {classes.map((cls) => (
+                            {classesList.map((cls: any) => (
                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
                             ))}
                         </SelectContent>
@@ -208,8 +156,10 @@ export default function PDAReportForm({
                             <SelectValue placeholder={loadingSections ? 'Loading...' : 'Select Section'} />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-gray-100">
-                            {sections.map((section) => (
-                                <SelectItem key={section.amsC_Id} value={section.amsC_Id.toString()}>{section.asmc_sectionname}</SelectItem>
+                            {sectionsList.map((s: any) => (
+                                <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>
+                                    {s.asmC_SectionName}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -227,9 +177,9 @@ export default function PDAReportForm({
                                 <SelectValue placeholder={loadingStudents ? 'Loading students...' : 'Search or select student...'} />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-gray-100">
-                                {students.map((student) => (
-                                    <SelectItem key={student.amsT_Id} value={student.amsT_Id.toString()}>
-                                        {student.amsT_AdmNo} :: {student.amsT_FirstName}
+                                {studentsList.map((s: any) => (
+                                    <SelectItem key={s.amsT_Id} value={s.amsT_Id.toString()}>
+                                        {s.amsT_FirstName} {s.amsT_MiddleName || ''} {s.amsT_LastName || ''}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -323,7 +273,7 @@ export default function PDAReportForm({
             <div className="flex justify-center gap-4">
                 <Button 
                     type="submit" 
-                    className="h-12 px-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white w-32 h-10 rounded-md font-bold shadow-md transition-all active:scale-95"
                 >
                     <FileText className="mr-2 h-5 w-5" />
                     Report
@@ -332,7 +282,7 @@ export default function PDAReportForm({
                     type="button" 
                     variant="outline" 
                     onClick={onReset}
-                    className="h-12 px-10 rounded-xl border-gray-200 hover:bg-gray-50 transition-all hover:scale-105 active:scale-95"
+                    className="w-32 h-10 rounded-md font-bold shadow-md border-gray-200 hover:bg-gray-50 hover:scale-105 active:scale-95"
                 >
                     <RotateCcw className="mr-2 h-5 w-5 text-gray-500" />
                     Cancel

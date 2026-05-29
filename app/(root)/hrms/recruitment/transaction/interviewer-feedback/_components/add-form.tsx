@@ -13,42 +13,51 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useGetCandidateAndInterviewers,
   useSaveInterviewerFeedback,
+  useGetCandidateInterviewByIdVMS,
 } from "@/hooks/hrms/recruitment/transactions/useTransactions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, X } from "lucide-react";
+import { Save, X, Loader2 } from "lucide-react";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { any, z } from "zod";
+import { useState, useEffect } from "react";
+import { useFormContext } from "@/components/ui/form/form-provider";
+
 const interviewerFeedbackSchema = z.object({
   candidateId: z.string().min(1, "Candidate is required"),
   interviewStatus: z.string().min(1, "Interview is required"),
   interviewerId: z.string().min(1, "Interviewer is required"),
-  rating: z.string().min(1, "Rating is required"),
   feedback: z.string().min(1, "Feedback is required"),
   status: z.string().min(1, "status is required"),
-  interviewDate: z.string().min(1, "Date of Birth is required"),
+  interviewDate: z.string().min(1, "Interview Date is required"),
 });
 type FormFields = z.infer<typeof interviewerFeedbackSchema>;
 
 const statusOptions = [
   { value: "1", label: "Completed" },
   { value: "2", label: "InProgress" },
+  { value: "3", label: "Upcoming" }
 ];
 interface AddInterviewerFeedbackFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   className?: string;
+  candidateList?: any[];
+  interviewerList?: any[];
 }
 export default function AddInterviewerFeedbackForm({
   onSuccess,
   onCancel,
   className = "",
+  candidateList,
+  interviewerList,
 }: AddInterviewerFeedbackFormProps) {
   const {
     control,
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
     resolver: zodResolver(interviewerFeedbackSchema),
@@ -57,16 +66,140 @@ export default function AddInterviewerFeedbackForm({
 
   const { mutateAsync: saveInterviewerFeedback, isPending: isSaving } =
     useSaveInterviewerFeedback();
+  const getRecordMutation = useGetCandidateInterviewByIdVMS();
+  const { selectedRow, isEditFormOpen } = useFormContext();
+  const isEditMode = isEditFormOpen && !!selectedRow;
+
+  // const { data: response, isLoading: isLoadingData } =
+  //   useGetCandidateAndInterviewers();
+
+  // const candidates = response?.data?.candidates || [];
+  // const interviewers = response?.data?.interviewers || [];
+
+  // console.log("candiadates", candidateList)
+  // console.log("interviewer", interviewerList)
+
+  const [feedbackId, setFeedbackId] = useState<number>(0);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [candStatusId, setCandStatusId] = useState<number>(0);
+
+  useEffect(() => {
+    if (isEditFormOpen && selectedRow) {
+      const id = selectedRow.hrcisC_Id || selectedRow.HRCISC_Id;
+      console.log("selected row",selectedRow)
+      if (id) {
+        setIsLoadingDetails(true);
+        getRecordMutation.mutate(id, {
+          onSuccess: (res) => {
+            const resData = res?.data || res;
+            if (resData) {
+              const editVal = resData.vmsEditValue?.[0];
+              const completed = resData.completedintvw?.[0];
+              // console.log("editVal",editVal)
+              // console.log("completed",completed)
+              setFeedbackId(editVal?.hrcmG_Id || editVal?.HRCIMG_Id || 0)
+              setCandStatusId(editVal?.hrciS_Id || editVal?.HRciS_Id || 0)
+
+              if (editVal) {
+                const candidateIdVal = editVal.hrcD_Id ?? editVal.HRCD_Id ?? "";
+                setValue("candidateId", candidateIdVal.toString());
+
+                const interviewerIdVal = editVal.hrcisC_Interviewer || 0;
+                const foundInterviewer = interviewerList?.find((i: any) =>
+                  i.id == interviewerIdVal ||
+                  i.hrmE_Id == interviewerIdVal ||
+                  i.HRME_Id == interviewerIdVal
+                );
+                const finalInterviewerId = foundInterviewer
+                  ? (foundInterviewer.id || foundInterviewer.hrmE_Id || foundInterviewer.HRME_Id)
+                  : interviewerIdVal;
+                setValue("interviewerId", finalInterviewerId?.toString());
+
+                // Set feedback if present
+                if (completed) {
+                  setValue("feedback", completed.hrciS_InterviewFeedBack || "");
+                  setValue("status", completed.hrciS_CandidateStatus || "");
+
+                  // Map date
+                  if (completed.hrciS_Datetime) {
+                    try {
+                      setValue("interviewDate", new Date(completed.hrciS_Datetime).toISOString());
+                    } catch (_) {
+                      setValue("interviewDate", completed.hrciS_Datetime);
+                    }
+                  } else if (editVal.hrcisC_InterviewDateTime) {
+                    try {
+                      setValue("interviewDate", new Date(editVal.hrcisC_InterviewDateTime).toISOString());
+                    } catch (_) {
+                      setValue("interviewDate", editVal.hrcisC_InterviewDateTime);
+                    }
+                  }
+
+                  // Map interview status
+                  const statusText = editVal.hrcisC_Status || "";
+                  if (statusText === "Complete" || statusText === "Completed") {
+                    setValue("interviewStatus", "1");
+                  } else if (statusText === "InProgress") {
+                    setValue("interviewStatus", "2");
+                  } else {
+                    setValue("interviewStatus", "3");
+                  }
+                } else {
+                  
+                  setValue("feedback", "");
+                  setValue("status", "");
+                  if (editVal.hrcisC_InterviewDateTime) {
+                    try {
+                      setValue("interviewDate", new Date(editVal.hrcisC_InterviewDateTime).toISOString());
+                    } catch (_) {
+                      setValue("interviewDate", editVal.hrcisC_InterviewDateTime);
+                    }
+                  }
+
+                  const statusText = editVal.hrcisC_Status || "";
+
+                  if (statusText === "Complete" || statusText === "Completed") {
+                    setValue("interviewStatus", "1");
+                  } else if (statusText === "InProgress") {
+                    setValue("interviewStatus", "2");
+                  } else {
+                    setValue("interviewStatus", "3");
+                  }
+                }
+
+              }
+            }
+            setIsLoadingDetails(false);
+          },
+          onError: () => {
+            setIsLoadingDetails(false);
+          }
+        });
+      }
+    } else if (!isEditFormOpen) {
+      reset({
+        candidateId: "",
+        interviewStatus: "",
+        interviewerId: "",
+        feedback: "",
+        status: "",
+        interviewDate: "",
+      });
+      setFeedbackId(0);
+    }
+  }, [isEditFormOpen, selectedRow, reset, setValue]);
+
+
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     const InterviewStatus = statusOptions.find(
       (sta: any) => sta.value === data.interviewStatus,
     );
     try {
       const payload = {
-        hrciS_Id: Number(data.interviewerId),
+        hrciS_Id: isEditMode ? (candStatusId) : 0,
 
         // Interview Status Id
-        hrcisC_Id: Number(data.interviewStatus),
+        hrcisC_Id: isEditMode ? (selectedRow?.hrcisC_Id || 0) : Number(data.interviewStatus),
 
         // Candidate Id
         hrcD_Id: Number(data.candidateId),
@@ -78,35 +211,39 @@ export default function AddInterviewerFeedbackForm({
         hrciS_CandidateStatus: data.status,
 
         // Interview Status Text
-        hrcisC_Status: InterviewStatus?.label,
+        hrcisC_Status: isEditMode ? (InterviewStatus?.label || "Complete") : InterviewStatus?.label,
 
         // Interview Date
         hrciS_Datetime: data.interviewDate,
 
         // Interviewer Id / Group Id
-        hrcmG_Id: Number(data.interviewerId),
+        hrcmG_Id: feedbackId || 0,
       };
 
       console.log("Payload:", payload);
 
       const response = await saveInterviewerFeedback(payload);
-      console.log("Response:", response);
+      // console.log("Response:", response);
 
-      toast.success("Interviewer feedback added successfully");
+      toast.success(isEditMode ? "Interviewer feedback updated successfully" : "Interviewer feedback added successfully");
 
       reset();
 
       onSuccess?.();
     } catch (error: any) {
-      toast.error(error.message || "Failed to add interviewer feedback");
+      toast.error(error.message || "Failed to save interviewer feedback");
     }
   };
 
-  const { data: response, isLoading: isLoadingData } =
-    useGetCandidateAndInterviewers();
 
-  const candidates = response?.data?.candidates || [];
-  const interviewers = response?.data?.interviewers || [];
+  if (isLoadingDetails) {
+    return (
+      <div className="flex h-48 items-center justify-center gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="text-muted-foreground">Loading interview details...</span>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -126,20 +263,19 @@ export default function AddInterviewerFeedbackForm({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={isLoadingData}
                 >
                   <SelectTrigger>
                     <SelectValue
                       placeholder={
-                        isLoadingData ? "Loading..." : "Select Candidate"
+                        "Select Candidate"
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {candidates?.map((candidate: any, index: number) => (
+                    {candidateList?.map((candidate: any, index: number) => (
                       <SelectItem
-                        key={`candidate-${candidate.hrcD_Id}-${index}`}
-                        value={candidate.hrcD_Id?.toString()}
+                        key={`candidate-${candidate.hrcD_Id || candidate.HRCD_Id}-${index}`}
+                        value={(candidate.hrcD_Id || candidate.HRCD_Id)?.toString()}
                       >
                         {candidate.hrcD_FullName}
                       </SelectItem>
@@ -192,26 +328,26 @@ export default function AddInterviewerFeedbackForm({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={isLoadingData}
+                  
                 >
                   <SelectTrigger>
                     <SelectValue
                       placeholder={
-                        isLoadingData ? "Loading..." : "Select Interviewer"
+                         "Select Interviewer"
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {interviewers?.map((interviewer: any, index: number) => (
+                    {interviewerList?.map((interviewer: any, index: number) => (
                       <SelectItem
-                        key={`${interviewer?.id}-${interviewer?.hrmE_Id}-${index}`}
+                        key={`interviewer-${interviewer?.id || interviewer?.hrmE_Id || interviewer?.HRME_Id}-${index}`}
                         value={
                           (
-                            interviewer?.hrmE_Id || interviewer?.id
-                          )?.toString() || ""
+                            interviewer?.id || interviewer?.hrmE_Id || interviewer?.HRME_Id
+                          )?.toString()
                         }
                       >
-                        {interviewer.employee_fullName}
+                        {interviewer?.hrmE_EmployeeFirstName} {interviewer?.hrmE_EmployeeLastName} {interviewer?.hrmE_EmployeeMiddleName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -222,7 +358,7 @@ export default function AddInterviewerFeedbackForm({
               <FormError>{errors.interviewerId.message}</FormError>
             )}
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block font-medium text-sm">
               Rating <span className="text-red-500">*</span>
             </label>
@@ -244,7 +380,7 @@ export default function AddInterviewerFeedbackForm({
               )}
             />
             {errors.rating && <FormError>{errors.rating.message}</FormError>}
-          </div>
+          </div> */}
 
           {/* Status */}
           <div className="space-y-2">
@@ -289,7 +425,7 @@ export default function AddInterviewerFeedbackForm({
                   setDate={(date) =>
                     field.onChange(date ? date.toISOString() : "")
                   }
-                  disabled={{ after: new Date() }}
+                  // disabled={{ after: new Date() }}
                   placeholder="Select Interview Date"
                 />
               )}

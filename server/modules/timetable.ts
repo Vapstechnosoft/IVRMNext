@@ -193,7 +193,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 3,
                             name: 'Manual Period Insertion',
                             icon: 'Clock',
-                            url: '/timetable/transactions/manual-Period-insersion',
+                            url: '/timetable/transactions/manualperiodinsertion',
                             title: 'Manual Period Insertion',
                             description: 'ABSENT STAFF ALLOTMENT DETAILS'
                         },
@@ -201,7 +201,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 4,
                             name: 'Staff Period Transfer',
                             icon: 'Clock',
-                            url: '/timetable/transactions/staff-Periods-Transfer',
+                            url: '/timetable/transactions/staffperiodtransfer',
                             title: 'Staff Period Transfer',
                             description: 'Transfer Staff Periods Between Classes and Sections'
                         },
@@ -209,7 +209,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 5,
                             name: 'Staff Replacement Existing To New',
                             icon: 'Clock',
-                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                            url: '/timetable/transactions/staffreplacementexistingtonew',
                             title: 'Staff Replacement Existing To New',
                             description: 'Replacing staff Existing To New'
                         },
@@ -217,7 +217,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 6,
                             name: 'Staff Replacement In Their TimeTable',
                             icon: 'Clock',
-                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                            url: '/timetable/transactions/staffreplacementintheirtimetable',
                             title: 'Staff Replacement In Their TimeTable',
                             description: 'Staff Replacement In Their TimeTable'
                         },
@@ -225,7 +225,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 7,
                             name: 'Staff Replacement In Unallocated Period',
                             icon: 'Clock',
-                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                            url: '/timetable/transactions/staffreplacementinunallocatedperiod',
                             title: 'Staff Replacement In Unallocated Period',
                             description: 'Staff Replacement In Unallocated Period'
                         },
@@ -233,7 +233,7 @@ export const timetableModule: IUserAccessibleModules = {
                             id: 8,
                             name: 'Time Table Generation',
                             icon: 'Clock',
-                            url: '/timetable/transactions/time-table-generation',
+                            url: '/timetable/transactions/timetablegeneration',
                             title: 'Time Table Generation',
                             description: 'Time Table Generation'
                         }

@@ -3,7 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -23,6 +24,7 @@ import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdo
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
 import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
+import type { ApiSearchparams } from '@/types';
 import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
 import { attendanceColumns, getAttendanceColumns } from './_components/columns';
@@ -49,10 +51,72 @@ const schema = z.object({
 
 type FormFields = z.infer<typeof schema>;
 
+/* ---------------- Helper ---------------- */
+
+const parseAttendanceList = (list: any[]) => {
+    if (!Array.isArray(list)) return [];
+    return list.map((item: any) => {
+        let parsedConcession: any = {};
+        if (item.FMCC_ConcessionName) {
+            try {
+                parsedConcession = JSON.parse(item.FMCC_ConcessionName);
+            } catch (e) {
+                console.error('Error parsing FMCC_ConcessionName JSON:', e);
+            }
+        }
+        const newItem = { ...item };
+        
+        let attended = 0;
+        let held = 0;
+        let hasAttendanceDetails = false;
+
+        Object.keys(parsedConcession).forEach((dayKey) => {
+            const val = parsedConcession[dayKey];
+            newItem[`_${dayKey}`] = val;
+            newItem[dayKey] = val;
+
+            if (val === 'P') {
+                attended++;
+                held++;
+                hasAttendanceDetails = true;
+            } else if (val === 'A') {
+                held++;
+                hasAttendanceDetails = true;
+            } else if (val === 'L') {
+                held++;
+                hasAttendanceDetails = true;
+            }
+        });
+
+        if (hasAttendanceDetails) {
+            if (newItem.ASA_ClassHeld === 'Not Available' || isNaN(Number(newItem.ASA_ClassHeld))) {
+                newItem.ASA_ClassHeld = held;
+            }
+            if (newItem.ASA_Class_Attended === 'Not Available' || isNaN(Number(newItem.ASA_Class_Attended))) {
+                newItem.ASA_Class_Attended = attended;
+            }
+            if (newItem.Percentage === 'Not Available' || isNaN(Number(newItem.Percentage))) {
+                newItem.Percentage = held > 0 ? (attended / held) * 100 : 0;
+            }
+        }
+
+        return newItem;
+    });
+};
+
 /* ---------------- Component ---------------- */
 
-export default function StudyCertificateReportPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudyCertificateReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = (React as any).use(props.searchParams);
+    const router = useRouter();
+    const pathname = usePathname();
+
     const {
+
         control,
         handleSubmit,
         reset,
@@ -83,6 +147,36 @@ export default function StudyCertificateReportPage() {
     const dailyDate = useWatch({ control, name: 'dailyDate' });
     const selectionMode = useWatch({ control, name: 'selectionMode' });
 
+    const [searchValue, setSearchValue] = useState(String(searchParams?.search_query || ''));
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            const currentQuery = String(searchParams?.search_query || '');
+            if (searchValue !== currentQuery) {
+                const params = new URLSearchParams(window.location.search);
+                if (searchValue) {
+                    params.set('search_query', searchValue);
+                    params.set('page', '1');
+                } else {
+                    params.delete('search_query');
+                }
+                router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [searchValue, searchParams?.search_query, pathname, router]);
+
+    const apiSearchParams: ApiSearchparams | undefined = searchParams
+        ? {
+              page: Number(searchParams.page) || 1,
+              page_size: Number(searchParams.page_size) || 10,
+              sort_column: String(searchParams.sort_column || ''),
+              sort_direction: String(searchParams.sort_direction || 'asc'),
+              search_query: String(searchParams.search_query || ''),
+              search_columns: String(searchParams.search_columns || '')
+          }
+        : undefined;
+
     const { data: academicYears } = useAcademicYearDropdown();
     const { data: classes } = useMasterClassDropdown();
     const { data: sections } = useMasterSectionDropdown();
@@ -106,19 +200,31 @@ export default function StudyCertificateReportPage() {
         dailyDate,
         selectionMode,
         studentStatus,
-        undefined,
+        apiSearchParams,
         showGrid
     );
 
-    const columns = useMemo(() => getAttendanceColumns(!!monthDateWise, (studentsAttendance as any)?.data?.monthList), [monthDateWise, studentsAttendance]);
+    const parsedStudentsAttendance = useMemo(() => {
+        if (!studentsAttendance) return null;
+        const list = (studentsAttendance as any)?.data?.studentAttendanceList;
+        return {
+            ...studentsAttendance,
+            data: {
+                ...(studentsAttendance as any).data,
+                studentAttendanceList: list ? parseAttendanceList(list) : []
+            }
+        };
+    }, [studentsAttendance]);
+
+    const columns = useMemo(() => getAttendanceColumns(!!monthDateWise, (parsedStudentsAttendance as any)?.data?.monthList), [monthDateWise, parsedStudentsAttendance]);
 
     const [allReportData, setAllReportData] = useState<any>(null);
     const [isPrinting, setIsPrinting] = useState(false);
 
     const tableProps = useDataTableProps({
-        ...studentsAttendance,
-        data: (studentsAttendance as any)?.data?.studentAttendanceList ?? [],
-        totalItems: (studentsAttendance as any)?.total ?? 0
+        ...parsedStudentsAttendance,
+        data: (parsedStudentsAttendance as any)?.data?.studentAttendanceList ?? [],
+        totalItems: (parsedStudentsAttendance as any)?.total ?? 0
     });
 
     const printRef = useRef<HTMLDivElement>(null);
@@ -155,7 +261,14 @@ export default function StudyCertificateReportPage() {
             );
 
             if (allData) {
-                setAllReportData(allData);
+                const parsedAllData = {
+                    ...allData,
+                    data: {
+                        ...(allData as any).data,
+                        studentAttendanceList: parseAttendanceList((allData as any)?.data?.studentAttendanceList)
+                    }
+                };
+                setAllReportData(parsedAllData);
                 toast.success('Ready to print', { id: 'print-all' });
                 // Small delay to ensure state update and re-render
                 setTimeout(() => {
@@ -241,7 +354,7 @@ export default function StudyCertificateReportPage() {
 
             toast.loading('Preparing Excel export...', { id: 'excel-download' });
 
-            const studentsReportData: any = studentsAttendance;
+            const studentsReportData: any = parsedStudentsAttendance;
             const totalRecordsCount = studentsReportData?.total || studentsReportData?.data?.total || 0;
 
             const allDataResponse = await getStudentAttendanceReport(
@@ -286,14 +399,16 @@ export default function StudyCertificateReportPage() {
                 return [];
             };
 
-            let allData = getListData(allDataResponse);
+            let rawData = getListData(allDataResponse);
             const excelMonthList = getMonthList(allDataResponse);
             const excelDays = excelMonthList.length > 0 ? excelMonthList.map((m: any) => m.day) : Array.from({ length: 31 }, (_, i) => i + 1);
 
             // Fallback to currently displayed data if fetch failed or returned nothing
-            if (allData.length === 0 && studentsReportData) {
-                allData = getListData(studentsReportData);
+            if (rawData.length === 0 && studentsReportData) {
+                rawData = getListData(studentsReportData);
             }
+
+            let allData = parseAttendanceList(rawData);
 
             if (!allData || allData.length === 0) {
                 toast.dismiss('excel-download');
@@ -537,7 +652,7 @@ export default function StudyCertificateReportPage() {
                             onClick={handlePrintAll}
                             variant='outline'
                             className='w-fit'
-                            disabled={isPrinting || !((studentsAttendance as any)?.data?.studentAttendanceList?.length > 0)}>
+                            disabled={isPrinting || !((parsedStudentsAttendance as any)?.data?.studentAttendanceList?.length > 0)}>
                             <Printer className='mr-2 h-4 w-4' />
                             {isPrinting ? 'Preparing...' : 'Print'}
                         </Button>
@@ -554,26 +669,26 @@ export default function StudyCertificateReportPage() {
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         {/* Institution Header */}
-                        {(studentsAttendance as any)?.data?.institutionDetails?.[0] && (
+                        {(parsedStudentsAttendance as any)?.data?.institutionDetails?.[0] && (
                             <div className='mb-6 border-b pb-6 text-center'>
                                 <div className='flex flex-col items-center gap-4'>
-                                    {(studentsAttendance as any).data.institutionDetails[0].mI_Logo && (
+                                    {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Logo && (
                                         <img
-                                            src={(studentsAttendance as any).data.institutionDetails[0].mI_Logo}
+                                            src={(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Logo}
                                             alt='Logo'
                                             className='h-24 w-auto object-contain'
                                         />
                                     )}
                                     <div>
                                         <h1 className='text-2xl font-bold uppercase'>
-                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Name}
+                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Name}
                                         </h1>
                                         <p className='text-sm text-muted-foreground'>
-                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address1}
-                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
-                                                `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
-                                            {(studentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
-                                                `, ${(studentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
+                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address1}
+                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
+                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
+                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
+                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
                                         </p>
                                         <h2 className='mt-2 text-lg font-bold tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
                                         <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-semibold'>
@@ -621,7 +736,7 @@ export default function StudyCertificateReportPage() {
                         <div className='mb-2 flex flex-col gap-2'>
                             <div className='flex items-center justify-between'>
                                 <div className='flex items-center gap-2 text-sm font-bold'>
-                                    Total Grid Records : <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-xs text-white'>{(studentsAttendance as any)?.total || 0}</span>
+                                    Total Grid Records : <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-xs text-white'>{(parsedStudentsAttendance as any)?.total || 0}</span>
                                 </div>
                                 <div className='flex items-center gap-0'>
                                     <div className='relative'>
@@ -629,6 +744,8 @@ export default function StudyCertificateReportPage() {
                                             type='text'
                                             placeholder='search here...'
                                             className='h-8 w-64 border border-gray-300 px-2 text-xs focus:outline-none'
+                                            value={searchValue}
+                                            onChange={(e) => setSearchValue(e.target.value)}
                                         />
                                         <div className='absolute right-0 top-0 flex h-8 w-8 items-center justify-center border border-l-0 border-gray-300 bg-gray-50'>
                                             <Search className='h-4 w-4 text-gray-500' />
@@ -659,7 +776,7 @@ export default function StudyCertificateReportPage() {
                         <div className='hidden'>
                             <StudentAttendancePrint
                                 ref={printRef}
-                                data={allReportData || studentsAttendance}
+                                data={allReportData || parsedStudentsAttendance}
                                 academicYear={academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year || ''}
                                 className={classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName || ''}
                                 sectionName={sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName || ''}

@@ -18,13 +18,13 @@ export default function Baldwin_Final_P_Report_BBHS_Page() {
         setReportData(null);
         setReportParams(null);
     };
-
+    console.log('reportData', reportData)
     return (
         <div className='flex flex-col gap-6 p-4'>
-            <ReportForm 
-                title='Baldwin Final Promotion Report BBHS' 
-                onReportGenerated={handleReportGenerated} 
-                onReset={handleReset} 
+            <ReportForm
+                title='Baldwin Final Promotion Report BBHS'
+                onReportGenerated={handleReportGenerated}
+                onReset={handleReset}
                 apiAction={getBBHSFinalPromotionReportBBHS}
             />
             {reportData && (

@@ -192,22 +192,14 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Level'
                             placeholder='Enter Level'
-                            {...register('lmS_Level', {
-                                pattern: {
-                                    value: /^\d{1,30}$/,
-                                    message: 'Only numbers allowed'
-                                }
-                            })}
+                            {...register('lmS_Level')}
+                            error={errors.lmS_Level?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
                             label='Subject No :'
                             placeholder='Enter subject no'
-                            {...register('lmS_SubjectNo', {
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('lmS_SubjectNo')}
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

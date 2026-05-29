@@ -157,13 +157,13 @@ export default function AdmissionReportPage(props: {
         isLoading,
         error,
         refetch: refetchReport
-    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload, searchParams);
+    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload);
 
     useEffect(() => {
         if (showReport && requestPayload && refetchReport) {
             refetchReport();
         }
-    }, [requestPayload, showReport, searchParams]);
+    }, [requestPayload, showReport]);
 
     const filteredClasses = useMemo(() => {
         return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
