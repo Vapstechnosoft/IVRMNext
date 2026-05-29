@@ -88,10 +88,10 @@ export default function AddFeeOpeningBalanceForm({
     const isPDA = activefee === 'PDA';
 
     const [changedRefundableType, setChangedRefundableType] = useState<string>('');
-
+    const { data: classData, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
     // Data Hooks
     const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
-    const { data: classData, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
+
     const { data: sectionData, isLoading: loadingSections } = useopeningSectiondropdowndatafee(
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
