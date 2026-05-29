@@ -133,7 +133,7 @@ export default function SelectionForm({
             )}
 
             {/* Trust */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
                 <Label className="text-sm font-semibold">Select Trust Name:</Label>
                 <Controller
                     control={control}
@@ -153,7 +153,7 @@ export default function SelectionForm({
                         </Select>
                     )}
                 />
-            </div>
+            </div> */}
 
             {/* Institution */}
             <div className={`space-y-2 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>

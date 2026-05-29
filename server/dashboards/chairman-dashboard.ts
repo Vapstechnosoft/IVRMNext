@@ -22,3 +22,13 @@ export async function  GetChairmanDashBoardFeesdata(ASMAY_ID:number){
         return { success: false, data: [] };
     }
 }
+
+export async function GetTeacherCount(){
+    try {
+        const url = '/api/MasterDropDown/get_today_employee_punch_counts';
+        return await api.get('hmslms', url);
+    } catch(err) {
+        console.error('GetTeacherCount Error', err);
+        return { success: false, data: [] };
+    }
+}

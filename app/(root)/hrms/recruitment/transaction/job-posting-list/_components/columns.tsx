@@ -3,17 +3,19 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Trash2 } from 'lucide-react';
+
 export interface JobPostingListItem {
-    id: number;
-    jobTitle: string;
-    department: string;
-    position: string;
-    location: string;
-    status: string;
-    postedDate: string;
-    expiryDate: string;
+    hrmrf_Id: number;
+    hrmrf_MRFNO: string;
+    hrmP_Position: string;
+    hrmD_DepartmentName: string;
+    hrmrf_JobLocation: string;
+    hrmrf_NoofPosition: number;
+    hrmrf_Skills: string;
+    hrmrf_ActiveFlg?: boolean;
 }
-export const jobPostingListColumns: ColumnDef<JobPostingListItem>[] = [
+
+export const jobPostingListColumns: ColumnDef<any>[] = [
     {
         id: 'serialNumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -21,39 +23,48 @@ export const jobPostingListColumns: ColumnDef<JobPostingListItem>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'jobTitle',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Job Title' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('jobTitle')}</div>
+        accessorKey: 'hrmrf_MRFNO',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='MRF No.' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmrf_MRFNO') || '-'}</div>
     },
     {
-        accessorKey: 'department',
+        accessorKey: 'hrmD_DepartmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('department')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmD_DepartmentName') || '-'}</div>
     },
     {
-        accessorKey: 'position',
+        accessorKey: 'hrmP_Position',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Position' />,
-        cell: ({ row }) => <div>{row.getValue('position')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmP_Position') || '-'}</div>
     },
     {
-        accessorKey: 'location',
+        accessorKey: 'hrmrf_JobLocation',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location' />,
-        cell: ({ row }) => <div>{row.getValue('location')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmrf_JobLocation') || '-'}</div>
     },
     {
-        accessorKey: 'status',
+        accessorKey: 'hrmrf_NoofPosition',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Positions' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrmrf_NoofPosition') ?? 0}</div>
+    },
+    {
+        accessorKey: 'hrmrf_Skills',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Skills' />,
+        cell: ({ row }) => <div className='truncate max-w-[200px]'>{row.getValue('hrmrf_Skills') || '-'}</div>
+    },
+    {
+        accessorKey: 'hrmrf_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div>{row.getValue('status')}</div>
-    },
-    {
-        accessorKey: 'postedDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Posted Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('postedDate')).toLocaleDateString()}</div>
-    },
-    {
-        accessorKey: 'expiryDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Expiry Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('expiryDate')).toLocaleDateString()}</div>
+        cell: ({ row }) => {
+            const active = row.getValue('hrmrf_ActiveFlg');
+            return (
+                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                    active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                    {active ? 'Active' : 'Inactive'}
+                </span>
+            );
+        }
     },
     {
         id: 'actions',

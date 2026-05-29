@@ -4439,6 +4439,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/EmployeeSalarySlipStMary',
                                             title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id:39,
+                                            name: 'Employee Salary Statement',
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/cumulative-salary-report',
+                                            title: 'Employee Salary Statement',
+                                            description: 'Employee Salary Statement'
                                         }
                                     ]
                                 }
@@ -4533,22 +4541,30 @@ export async function getUserAccessibleModules() {
                                             title: 'Interviewer Feedback',
                                             description: 'Manage Interviewer Feedback'
                                         },
-                                        //         {
-                                        //             id: 5,
-                                        //             name: 'Job List',
-                                        //             icon: 'Briefcase',
-                                        //             url: '/hrms/recruitment/transaction/job-list',
-                                        //             title: 'Job List',
-                                        //             description: 'View All Jobs'
-                                        //         },
-                                        //         {
-                                        //             id: 6,
-                                        //             name: 'Job Posting List',
-                                        //             icon: 'FileText',
-                                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                        //             title: 'Job Posting List',
-                                        //             description: 'View All Job Postings'
-                                        //         }
+                                        {
+                                            id: 5,
+                                            name: 'Job List',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/recruitment/transaction/job-list',
+                                            title: 'Job List',
+                                            description: 'View All Jobs'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Job Posting List',
+                                            icon: 'FileText',
+                                            url: '/hrms/recruitment/transaction/job-posting-list',
+                                            title: 'Job Posting List',
+                                            description: 'View All Job Postings'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'VMS Job',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/recruitment/transaction/VMSJobList',
+                                        //     title: 'VMS Job',
+                                        //     description: 'View All VMS Job'
+                                        // }
                                     ]
                                 }
                                 // {
@@ -6111,58 +6127,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                // {
-                //     id: 25,
-                //     name: 'COE',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Calendar of Events',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Event',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/masterevent',
-                //                             title: 'Master Event',
-                //                             description: 'Manage Master Event Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Report',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'COE Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coereport',
-                //                             title: 'COE Report',
-                //                             description: 'Manage COE Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'COE Month End Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coemonthendreport',
-                //                             title: 'COE Month End Report',
-                //                             description: 'Manage COE Month End Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
 
                 {
                     id: 26,
@@ -6963,17 +6927,9 @@ export async function getUserAccessibleModules() {
                                             id: 1,
                                             name: 'Master Event',
                                             icon: 'Settings',
-                                            url: '/coe/master/masterevent',
+                                            url: '/coe/master/master-coe',
                                             title: 'Master Event',
                                             description: 'Manage Master Event Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Mapping',
-                                            icon: 'Settings',
-                                            url: '/coe/master/master-coe',
-                                            title: 'Mapping',
-                                            description: 'Manage Mapping Details'
                                         }
                                     ]
                                 },

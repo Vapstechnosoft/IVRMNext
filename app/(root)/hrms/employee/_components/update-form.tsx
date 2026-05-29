@@ -1950,6 +1950,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                 <Button
                                                     type='button'
                                                     disabled={isSubmittingAny || isDisabled}
+                                                    onClick={() => _goToStep(step.id)}
                                                     className={cn(
                                                         'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
                                                         currentStep === step.id
@@ -1966,13 +1967,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         </span>
                                                     )}
                                                 </Button>
-                                                <p
-                                                    className={cn(
-                                                        'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
-                                                        currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
-                                                    )}>
-                                                    {step.name}
-                                                </p>
+                                                <button
+                                                    type='button'
+                                                    disabled={isSubmittingAny || isDisabled}
+                                                    onClick={() => _goToStep(step.id)}
+                                                    className='mt-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'>
+                                                    <p
+                                                        className={cn(
+                                                            'text-nowrap text-center font-medium text-xs transition-colors',
+                                                            currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
+                                                        )}>
+                                                        {step.name}
+                                                    </p>
+                                                </button>
                                             </div>
                                             {index < steps.length - 1 && (
                                                 <div
@@ -2000,6 +2007,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                 <button
                                                     type='button'
                                                     disabled={isSubmittingAny || isDisabled}
+                                                    onClick={() => _goToStep(step.id)}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
                                                         currentStep === step.id
@@ -2025,7 +2033,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     />
                                                 )}
                                             </div>
-                                            <div className='ml-4 flex-1'>
+                                            <button
+                                                type='button'
+                                                disabled={isSubmittingAny || isDisabled}
+                                                onClick={() => _goToStep(step.id)}
+                                                className='ml-4 flex-1 text-left focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'>
                                                 <p
                                                     className={cn(
                                                         'font-medium text-sm transition-colors',
@@ -2034,7 +2046,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     {step.name}
                                                 </p>
                                                 <p className='text-gray-400 text-xs'>{step.description}</p>
-                                            </div>
+                                            </button>
                                         </div>
                                     );
                                 })}
