@@ -1,32 +1,191 @@
 'use client';
 
-import { ISRKVSReportData } from '@/types/sports/reports/srkvs-sports-report';
+import { ISRKVSReportData, ISRKVSReportItem } from '@/types/sports/reports/srkvs-sports-report';
 import { Button } from '@/components/ui/button';
-import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import { Printer, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import React from 'react';
 
 interface ReportGridProps {
     data: ISRKVSReportData[];
     type: string;
 }
 
-export const ReportGrid = ({ data, type }: ReportGridProps) => {
-    const componentRef = useRef<HTMLDivElement>(null);
+// ── Print HTML builders ─────────────────────────────────────────────
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: `Sports_Report_${type}`,
-        pageStyle: `
-          @page { size: portrait; margin: 20mm; }
-          @media print {
-            body { -webkit-print-color-adjust: exact; }
-            table { border-collapse: collapse !important; width: 100% !important; }
-            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; }
-          }
-        `
+const thStyle = 'border:1px solid #000;padding:8px 10px;background:#f3f4f6;text-align:center;font-weight:bold;';
+const tdStyle = 'border:1px solid #000;padding:6px 10px;text-align:center;';
+const tdLeftStyle = 'border:1px solid #000;padding:6px 10px;text-align:left;';
+const groupHeaderStyle = 'border:1px solid #000;padding:8px 10px;background:#e5e7eb;text-align:left;font-weight:bold;';
+
+function wrapHtml(title: string, tableHtml: string): string {
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8"/>
+            <title>${title}</title>
+            <style>
+                * { box-sizing: border-box; }
+                body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; background: #fff; color: #000; }
+                h2 { text-align: center; text-transform: uppercase; text-decoration: underline; margin-bottom: 16px; font-size: 16px; }
+                h4 { text-align: center; margin: 12px 0 8px 0; font-size: 14px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                .page-break { page-break-before: always; }
+                .results { margin-top: 8px; font-size: 12px; }
+                .results b { font-weight: bold; }
+                @media print {
+                    body { margin: 10mm; }
+                    @page { size: A4 portrait; margin: 10mm; }
+                    .page-break { page-break-before: always; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>${title}</h2>
+            ${tableHtml}
+        </body>
+        </html>
+    `;
+}
+
+function buildRecordPrintHtml(data: ISRKVSReportData[]): string {
+    const headerCells = ['#', 'Category', 'Events', 'Timings', 'Year', 'Name']
+        .map(h => `<th style="${thStyle}">${h}</th>`).join('');
+
+    let rows = '';
+    data.forEach((group) => {
+        rows += `<tr><th colspan="6" style="${groupHeaderStyle}">${group.SPCCMCC_CompitionCategory || ''}</th></tr>`;
+        (group.RecordDetails || []).forEach((record: any, idx: number) => {
+            rows += `<tr>
+                <td style="${tdStyle}">${idx + 1}</td>
+                <td style="${tdStyle}">${record.SPCCMCC_CompitionCategory || ''}</td>
+                <td style="${tdLeftStyle}">${record.SPCCMSCCG_SportsCCGroupName || ''}</td>
+                <td style="${tdStyle}">${record.SPCCESTR_Value ?? ''} ${record.SPCCMUOM_UOMName ?? ''}</td>
+                <td style="${tdStyle}">${record.ASMAY_Year || ''}</td>
+                <td style="${tdLeftStyle}">${record.AMST_FirstName || ''}</td>
+            </tr>`;
+        });
     });
+
+    return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function buildStartFinishPrintHtml(data: ISRKVSReportData[], type: string): string {
+    let html = '';
+    data.forEach((group, groupIdx) => {
+        if (groupIdx > 0) html += '<div class="page-break"></div>';
+        html += `<h4>${group.SPCCMCC_CompitionCategory || ''} : ${group.SPCCMSCCG_SportsCCGroupName || ''}</h4>`;
+        html += `<table>
+            <thead>
+                <tr>
+                    <th rowspan="2" style="${thStyle}">Lane No</th>
+                    <th rowspan="2" style="${thStyle}">Roll No</th>
+                    <th rowspan="2" style="${thStyle}">Name</th>
+                    <th colspan="3" style="${thStyle}">Attempts</th>
+                    ${type === 'Finish' ? `<th rowspan="2" style="${thStyle}">Rank</th>` : ''}
+                </tr>
+                <tr>
+                    <th style="${thStyle}">I</th>
+                    <th style="${thStyle}">II</th>
+                    <th style="${thStyle}">III</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        (group.RecordDetails || []).forEach((record: any, recIdx: number) => {
+            html += `<tr>
+                <td style="${tdStyle}">${recIdx + 1}</td>
+                <td style="${tdStyle}">${record.AMAY_RollNo ?? ''}</td>
+                <td style="${tdLeftStyle}">${record.AMST_FirstName || ''}</td>
+                <td style="${tdStyle}">${record['I'] ?? ''}</td>
+                <td style="${tdStyle}">${record['II'] ?? ''}</td>
+                <td style="${tdStyle}">${record['III'] ?? ''}</td>
+                ${type === 'Finish' ? `<td style="${tdStyle}">${record.SPCCESTR_Rank ?? ''}</td>` : ''}
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+
+        if (type === 'Finish') {
+            const ranked = (group.RecordDetails || []).filter((r: any) => r.SPCCESTR_Rank);
+            if (ranked.length > 0) {
+                html += '<div class="results"><b>RESULTS:</b><br/>';
+                ranked.forEach((r: any) => {
+                    if (r.SPCCESTR_Rank === '1') html += `I PLACE: ${r.AMST_FirstName || ''}<br/>`;
+                    if (r.SPCCESTR_Rank === '2') html += `II PLACE: ${r.AMST_FirstName || ''}<br/>`;
+                    if (r.SPCCESTR_Rank === '3') html += `III PLACE: ${r.AMST_FirstName || ''}<br/>`;
+                });
+                html += '</div>';
+            }
+        }
+    });
+    return html;
+}
+
+function buildConsolidatedPrintHtml(data: ISRKVSReportData[], type: string): string {
+    const isConsolidated = type === 'Consolidated';
+    const headers = ['Place', 'Adm No', 'Name', 'Class', 'Section'];
+    if (isConsolidated) headers.push('Time/Distance');
+
+    const headerCells = headers.map(h => `<th style="${thStyle}">${h}</th>`).join('');
+
+    let rows = '';
+    data.forEach((group) => {
+        const colSpan = isConsolidated ? 6 : 5;
+        rows += `<tr><th colspan="${colSpan}" style="${groupHeaderStyle}">${group.SPCCMSCCG_SportsCCGroupName || group.SPCCMCC_CompitionCategory || ''}</th></tr>`;
+        (group.RecordDetails || []).forEach((record: any, recIdx: number) => {
+            const place = type === 'Selection' ? String(recIdx + 1) : (record.SPCCESTR_Rank || '');
+            rows += `<tr>
+                <td style="${tdStyle}">${place}</td>
+                <td style="${tdStyle}">${record.AMST_AdmNo || ''}</td>
+                <td style="${tdLeftStyle}">${record.AMST_FirstName || ''}</td>
+                <td style="${tdStyle}">${record.ASMCL_ClassName || ''}</td>
+                <td style="${tdStyle}">${record.ASMC_SectionName || ''}</td>
+                ${isConsolidated ? `<td style="${tdStyle}">${record.SPCCESTR_Value ?? ''} ${record.SPCCMUOM_UOMName ?? ''}</td>` : ''}
+            </tr>`;
+        });
+    });
+
+    return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function buildPrintHtml(data: ISRKVSReportData[], type: string): string {
+    let tableHtml = '';
+
+    if (type === 'Record') {
+        tableHtml = buildRecordPrintHtml(data);
+    } else if (type === 'Start' || type === 'Finish') {
+        tableHtml = buildStartFinishPrintHtml(data, type);
+    } else {
+        // Consolidated, Indoor, Outdoor, Team, Externals, Selection
+        tableHtml = buildConsolidatedPrintHtml(data, type);
+    }
+
+    return wrapHtml(`Sports Report - ${type}`, tableHtml);
+}
+
+// ── Component ───────────────────────────────────────────────────────
+
+export const ReportGrid = ({ data, type }: ReportGridProps) => {
+
+    const handlePrint = () => {
+        if (!data || data.length === 0) return;
+        const html = buildPrintHtml(data, type);
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        // Wait for content to render before printing
+        printWindow.onload = () => {
+            printWindow.focus();
+            printWindow.print();
+        };
+    };
 
     const exportToExcel = () => {
         if (!data || data.length === 0) return;
@@ -88,7 +247,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
 
-        // Generate Blob and trigger browser download (matching class-teacher-report pattern)
+        // Generate Blob and trigger browser download
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const blob = new Blob([excelBuffer], {
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -111,16 +270,23 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end gap-2">
-                <Button onClick={() => handlePrint()} variant="outline" size="sm" className="border-2">
-                    <Printer className="h-4 w-4 mr-2" /> Print
-                </Button>
-                <Button onClick={exportToExcel} variant="outline" size="sm" className="border-2">
-                    <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
-                </Button>
+            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
+                <div className="flex items-center gap-4">
+                    <div className="text-sm font-medium">
+                        Total Groups: <span className="rounded bg-primary/10 px-3 py-1 font-bold text-primary">{data.length}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handlePrint} className="border-2 hover:bg-primary/5">
+                            <Printer className="h-4 w-4 mr-2 text-primary" /> Print
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5">
+                            <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
+                        </Button>
+                    </div>
+                </div>
             </div>
 
-            <div ref={componentRef} className="border p-4 bg-white rounded-md shadow-sm">
+            <div className="border p-4 bg-white rounded-md shadow-sm">
                 <div className="text-center mb-4">
                     <h3 className="text-xl font-bold">Sports Report - {type}</h3>
                 </div>
@@ -138,24 +304,24 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                         </thead>
                         <tbody>
                             {data.map((group, groupIdx) => (
-                                <片 key={groupIdx}>
+                                <React.Fragment key={groupIdx}>
                                     <tr className="bg-gray-50">
                                         <th colSpan={5} className="border border-gray-300 p-2 text-left">
                                             {group.SPCCMCC_CompitionCategory}
                                         </th>
                                     </tr>
-                                    {group.RecordDetails.map((record, recIdx) => (
+                                    {group.RecordDetails.map((record: any, recIdx: number) => (
                                         <tr key={recIdx}>
                                             <td className="border border-gray-300 p-2 text-center">{recIdx + 1}</td>
                                             <td className="border border-gray-300 p-2">{record.SPCCMSCCG_SportsCCGroupName}</td>
                                             <td className="border border-gray-300 p-2">
                                                 {record.SPCCESTR_Value} {record.SPCCMUOM_UOMName}
                                             </td>
-                                            <td className="border border-gray-300 p-2">{record.ASMAY_Year || '2023'}</td>
+                                            <td className="border border-gray-300 p-2">{record.ASMAY_Year || ''}</td>
                                             <td className="border border-gray-300 p-2">{record.AMST_FirstName}</td>
                                         </tr>
                                     ))}
-                                </片>
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
@@ -164,7 +330,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                 {(type === 'Start' || type === 'Finish') && (
                     <div className="space-y-6">
                         {data.map((group, groupIdx) => (
-                            <div key={groupIdx} className="border p-2 mb-4 page-break-inside-avoid">
+                            <div key={groupIdx} className="border p-2 mb-4">
                                 <h4 className="font-bold text-center border-b pb-2 mb-2">
                                     {group.SPCCMCC_CompitionCategory} : {group.SPCCMSCCG_SportsCCGroupName}
                                 </h4>
@@ -174,6 +340,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                                             <th rowSpan={2} className="border border-gray-300 p-2">Lane No</th>
                                             <th rowSpan={2} className="border border-gray-300 p-2">Roll/Name</th>
                                             <th colSpan={3} className="border border-gray-300 p-2">Attempts</th>
+                                            {type === 'Finish' && <th rowSpan={2} className="border border-gray-300 p-2">Rank</th>}
                                         </tr>
                                         <tr>
                                             <th className="border border-gray-300 p-2">I</th>
@@ -182,7 +349,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {group.RecordDetails.map((record, recIdx) => (
+                                        {group.RecordDetails.map((record: any, recIdx: number) => (
                                             <tr key={recIdx}>
                                                 <td className="border border-gray-300 p-2 text-center">{recIdx + 1}</td>
                                                 <td className="border border-gray-300 p-2">
@@ -191,6 +358,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                                                 <td className="border border-gray-300 p-2">{record['I']}</td>
                                                 <td className="border border-gray-300 p-2">{record['II']}</td>
                                                 <td className="border border-gray-300 p-2">{record['III']}</td>
+                                                {type === 'Finish' && <td className="border border-gray-300 p-2">{record.SPCCESTR_Rank}</td>}
                                             </tr>
                                         ))}
                                     </tbody>
@@ -198,7 +366,7 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                                 {type === 'Finish' && (
                                     <div className="mt-4">
                                         <h5 className="font-bold">RESULTS:</h5>
-                                        {group.RecordDetails.filter(r => r.SPCCESTR_Rank).map((r, i) => (
+                                        {group.RecordDetails.filter((r: any) => r.SPCCESTR_Rank).map((r: any, i: number) => (
                                             <div key={i}>
                                                 {r.SPCCESTR_Rank === '1' && <span>I PLACE: {r.AMST_FirstName}</span>}
                                                 {r.SPCCESTR_Rank === '2' && <span>II PLACE: {r.AMST_FirstName}</span>}
@@ -224,13 +392,13 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                         </thead>
                         <tbody>
                             {data.map((group, groupIdx) => (
-                                <片 key={groupIdx}>
+                                <React.Fragment key={groupIdx}>
                                     <tr className="bg-gray-50">
                                         <th colSpan={type === 'Consolidated' ? 4 : 3} className="border border-gray-300 p-2 text-left">
                                             {group.SPCCMSCCG_SportsCCGroupName}
                                         </th>
                                     </tr>
-                                    {group.RecordDetails.map((record, recIdx) => (
+                                    {group.RecordDetails.map((record: any, recIdx: number) => (
                                         <tr key={recIdx}>
                                             <td className="border border-gray-300 p-2 text-center">
                                                 {type === 'Selection' ? recIdx + 1 : (record.SPCCESTR_Rank ? `${record.SPCCESTR_Rank}` : '')}
@@ -248,15 +416,12 @@ export const ReportGrid = ({ data, type }: ReportGridProps) => {
                                             )}
                                         </tr>
                                     ))}
-                                </片>
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
                 )}
-
             </div>
         </div>
     );
 };
-// Helper fragment replacement for map keys since React.Fragment is not imported
-const 片 = ({ children }: { children: React.ReactNode }) => <>{children}</>;

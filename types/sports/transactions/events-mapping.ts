@@ -59,4 +59,18 @@ export const eventMappingSchema = z.object({
     SPCCE_Remarks: z.string().optional().nullable(),
     SPCCE_SponsorFlag: z.boolean().optional(),
     sponsorData: z.array(z.any()).optional()
-});
+}).refine(
+    (data) => {
+        if (!data.SPCCE_StartDate || !data.SPCCE_EndDate) return true;
+        // Compare dates (setting time to zero to safely compare just the dates)
+        const start = new Date(data.SPCCE_StartDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(data.SPCCE_EndDate);
+        end.setHours(0, 0, 0, 0);
+        return end >= start;
+    },
+    {
+        message: 'End Date cannot be less than Start Date',
+        path: ['SPCCE_EndDate']
+    }
+);

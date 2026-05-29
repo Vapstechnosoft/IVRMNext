@@ -1,6 +1,18 @@
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { getEventsStudentSRKVSList, saveEventsStudentSRKVS, deactivateEventsStudentSRKVS, getEventsStudentSRKVSDetails } from '@/server/sports/events-student-srkvs';
+import { 
+    getEventsStudentSRKVSList, 
+    saveEventsStudentSRKVS, 
+    deactivateEventsStudentSRKVS, 
+    getEventsStudentSRKVSDetails,
+    getEventsStudentSRKVSDropdowns,
+    getClassHouse,
+    getSectionList,
+    getSportsName,
+    getSubSubEvents,
+    getStudents,
+    updateStudentSRKVSDetails
+} from '@/server/sports/events-student-srkvs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -27,7 +39,33 @@ export const useEventsStudentSRKVS = (searchParams?: any) => {
         staleTime: 0
     });
 
-    const save = useMutation({
+    const dropdowns = useQuery({
+        queryKey: ['events-student-srkvs-dropdowns'],
+        queryFn: () => getEventsStudentSRKVSDropdowns(),
+        staleTime: 1000 * 60 * 5
+    });
+
+    const fetchClassHouse = useMutation({
+        mutationFn: (asmaY_Id: number) => getClassHouse(asmaY_Id)
+    });
+
+    const fetchSectionList = useMutation({
+        mutationFn: (data: { ASMAY_Id: number, classListArray: any[] }) => getSectionList(data)
+    });
+
+    const fetchSportsName = useMutation({
+        mutationFn: (spccmsccG_Id: number) => getSportsName(spccmsccG_Id)
+    });
+
+    const fetchSubSubEvents = useMutation({
+        mutationFn: (data: { subEventId: number, groupId: number }) => getSubSubEvents(data.subEventId, data.groupId)
+    });
+
+    const fetchStudentsMutation = useMutation({
+        mutationFn: (payload: any) => getStudents(payload)
+    });
+
+    const saveData = useMutation({
         mutationFn: (data: any) => saveEventsStudentSRKVS(data),
         onSuccess: (response: any) => {
             if (response.success ?? true) {
@@ -55,11 +93,30 @@ export const useEventsStudentSRKVS = (searchParams?: any) => {
         mutationFn: (id: number) => getEventsStudentSRKVSDetails(id)
     });
 
+    const updateStudentDetails = useMutation({
+        mutationFn: (data: any[]) => updateStudentSRKVSDetails(data),
+        onSuccess: (response: any) => {
+            if (response.success ?? true) {
+                toast.success(response.message || 'Details updated successfully');
+            } else {
+                toast.error(response.message || 'Failed to update details');
+            }
+            queryClient.invalidateQueries({ queryKey: ['events-student-srkvs-details'] });
+        },
+    });
+
     return {
         loadData,
-        save,
+        saveData,
         deactivateData,
         fetchViewDetails,
+        updateStudentDetails,
+        dropdowns,
+        fetchClassHouse,
+        fetchSectionList,
+        fetchSportsName,
+        fetchSubSubEvents,
+        fetchStudents: fetchStudentsMutation,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: ['events-student-srkvs-details']

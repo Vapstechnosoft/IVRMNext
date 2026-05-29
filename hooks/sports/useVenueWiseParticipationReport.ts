@@ -96,8 +96,10 @@ export const useVenueWiseParticipationReport = () => {
         try {
             setLoading(true);
             const response = await getReportData(payload);
-            if (response.success) {
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                 return response.data;
+            } else if (response.success) {
+                return response.data || [];
             } else {
                 setError(response.message || 'Failed to generate report');
                 return [];
