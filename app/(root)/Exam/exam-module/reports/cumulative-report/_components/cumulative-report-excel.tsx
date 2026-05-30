@@ -17,6 +17,12 @@ interface CumulativeReportExcelProps {
         classrank: boolean;
         sectionrank: boolean;
         attendancedispaly: boolean;
+        applicable: boolean;
+        nonapplicable: boolean;
+        readmit: boolean;
+        grdaeDisply: boolean;
+        marksdisplay: boolean;
+        gradecolm: boolean;
     };
 }
 
@@ -24,8 +30,8 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
     const exportToExcel = () => {
         if (!reportData.length) return;
 
-        const applicableSubjects = subjects.filter((s) => s.eyceS_AplResultFlg);
-        const nonApplicableSubjects = subjects.filter((s) => !s.eyceS_AplResultFlg);
+        const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg) : [];
+        const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => !s.eyceS_AplResultFlg) : [];
 
         // Title rows
         const titleRows = [
@@ -61,12 +67,14 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             subHeaderRow.push('');
         }
 
+        const showBothSubj = columnFlags.marksdisplay && columnFlags.grdaeDisply;
+
         // Add subjects to headers
         applicableSubjects.forEach((subj) => {
             const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
+            if (isEVS || !showBothSubj) {
                 mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
+                subHeaderRow.push(columnFlags.marksdisplay ? 'Marks' : 'Grade');
             } else {
                 mainHeaderRow.push(subj.ismS_SubjectName || '');
                 mainHeaderRow.push('');
@@ -76,15 +84,36 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
         });
 
         // Total columns
-        mainHeaderRow.push('Total', 'Obtained', '%', 'Grade');
-        subHeaderRow.push('Max', 'Marks', '', '');
+        mainHeaderRow.push('Total', 'Obtained');
+        subHeaderRow.push('Max', 'Marks');
+
+        if (columnFlags.readmit) {
+            mainHeaderRow.push('%');
+            subHeaderRow.push('');
+        }
+        if (columnFlags.gradecolm) {
+            mainHeaderRow.push('Grade');
+            subHeaderRow.push('');
+        }
+        if (columnFlags.sectionrank) {
+            mainHeaderRow.push('Section Rank');
+            subHeaderRow.push('');
+        }
+        if (columnFlags.classrank) {
+            mainHeaderRow.push('Class Rank');
+            subHeaderRow.push('');
+        }
+        if (!columnFlags.attendancedispaly) {
+            mainHeaderRow.push('Class Held', 'Attendance');
+            subHeaderRow.push('', '');
+        }
 
         // Non-applicable subjects
         nonApplicableSubjects.forEach((subj) => {
             const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (isEVS) {
+            if (isEVS || !showBothSubj) {
                 mainHeaderRow.push(subj.ismS_SubjectName || '');
-                subHeaderRow.push('Marks & Grade');
+                subHeaderRow.push(columnFlags.marksdisplay ? 'Marks' : 'Grade');
             } else {
                 mainHeaderRow.push(subj.ismS_SubjectName || '');
                 mainHeaderRow.push('');
@@ -111,24 +140,46 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    if (isEVS || !showBothSubj) {
+                        row.push('AB');
+                    } else {
+                        row.push('AB', 'AB');
+                    }
+                } else if (isEVS || !showBothSubj) {
+                    if (columnFlags.marksdisplay && columnFlags.grdaeDisply) {
+                        row.push(marks != null && grade != null ? `${marks} | ${grade}` : (marks ?? grade ?? ''));
+                    } else if (columnFlags.marksdisplay) {
+                        row.push(marks ?? '');
+                    } else {
+                        row.push(grade ?? '');
+                    }
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
                 }
             });
 
-            // Total Marks
+            // Total columns
             row.push(
                 isAbsent ? '' : (student.estmP_TotalMaxMarks ?? ''),
-                isAbsent ? '' : (student.estmP_TotalObtMarks ?? ''),
-                isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`,
-                isAbsent ? '' : (student.estmP_TotalGrade ?? '')
+                isAbsent ? '' : (student.estmP_TotalObtMarks ?? '')
             );
+
+            if (columnFlags.readmit) {
+                row.push(isAbsent || student.estmP_Percentage == null ? '' : `${Number(student.estmP_Percentage).toFixed(2)}%`);
+            }
+            if (columnFlags.gradecolm) {
+                row.push(isAbsent ? '' : (student.estmP_TotalGrade ?? ''));
+            }
+            if (columnFlags.sectionrank) {
+                row.push(isAbsent ? '' : (student.estmP_SectionRank ?? ''));
+            }
+            if (columnFlags.classrank) {
+                row.push(isAbsent ? '' : (student.estmP_ClassRank ?? ''));
+            }
+            if (!columnFlags.attendancedispaly) {
+                row.push(student.classheld ?? '', student.classatt ?? '');
+            }
 
             // Non-applicable subjects
             nonApplicableSubjects.forEach((subj) => {
@@ -139,11 +190,19 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    isEVS ? row.push('AB') : row.push('AB', 'AB');
-                } else if (isEVS && marks != null && grade != null) {
-                    row.push(`${marks} | ${grade}`);
-                } else if (isEVS) {
-                    row.push(marks ?? grade ?? '');
+                    if (isEVS || !showBothSubj) {
+                        row.push('AB');
+                    } else {
+                        row.push('AB', 'AB');
+                    }
+                } else if (isEVS || !showBothSubj) {
+                    if (columnFlags.marksdisplay && columnFlags.grdaeDisply) {
+                        row.push(marks != null && grade != null ? `${marks} | ${grade}` : (marks ?? grade ?? ''));
+                    } else if (columnFlags.marksdisplay) {
+                        row.push(marks ?? '');
+                    } else {
+                        row.push(grade ?? '');
+                    }
                 } else {
                     row.push(marks ?? '');
                     row.push(grade ?? '');
@@ -177,12 +236,12 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             });
         }
 
-        // Merge subject names (non-EVS) over Marks/Grade columns
+        // Merge subject names over Marks/Grade columns
         let currentCol = baseColumnsCount;
 
         [...applicableSubjects, ...nonApplicableSubjects].forEach((subj) => {
             const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            if (!isEVS) {
+            if (!isEVS && showBothSubj) {
                 ws['!merges']!.push({
                     s: { r: titleRows.length, c: currentCol },
                     e: { r: titleRows.length, c: currentCol + 1 }
@@ -226,7 +285,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                     }
                 };
 
-                // Make headers bold and background light gray
+                // Make headers bold and background light green
                 if (isMainHeader || isSubHeader) {
                     ws[cellAddress].s.fill = {
                         patternType: 'solid',

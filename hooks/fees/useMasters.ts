@@ -550,13 +550,13 @@ export const TERM_DROPDOWN_DATA = () => {
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA],
+            queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA_DROPDOWN],
             queryFn: async () => gettermsdropdown(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA]
+                queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA_DROPDOWN]
             });
         }
     };

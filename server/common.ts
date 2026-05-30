@@ -4439,6 +4439,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/EmployeeSalarySlipStMary',
                                             title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id:39,
+                                            name: 'Employee Salary Statement',
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/cumulative-salary-report',
+                                            title: 'Employee Salary Statement',
+                                            description: 'Employee Salary Statement'
                                         }
                                     ]
                                 }
@@ -4533,22 +4541,30 @@ export async function getUserAccessibleModules() {
                                             title: 'Interviewer Feedback',
                                             description: 'Manage Interviewer Feedback'
                                         },
-                                        //         {
-                                        //             id: 5,
-                                        //             name: 'Job List',
-                                        //             icon: 'Briefcase',
-                                        //             url: '/hrms/recruitment/transaction/job-list',
-                                        //             title: 'Job List',
-                                        //             description: 'View All Jobs'
-                                        //         },
-                                        //         {
-                                        //             id: 6,
-                                        //             name: 'Job Posting List',
-                                        //             icon: 'FileText',
-                                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                        //             title: 'Job Posting List',
-                                        //             description: 'View All Job Postings'
-                                        //         }
+                                        {
+                                            id: 5,
+                                            name: 'Job List',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/recruitment/transaction/job-list',
+                                            title: 'Job List',
+                                            description: 'View All Jobs'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Job Posting List',
+                                            icon: 'FileText',
+                                            url: '/hrms/recruitment/transaction/job-posting-list',
+                                            title: 'Job Posting List',
+                                            description: 'View All Job Postings'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'VMS Job',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/recruitment/transaction/VMSJobList',
+                                        //     title: 'VMS Job',
+                                        //     description: 'View All VMS Job'
+                                        // }
                                     ]
                                 }
                                 // {

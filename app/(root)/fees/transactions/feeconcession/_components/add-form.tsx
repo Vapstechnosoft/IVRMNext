@@ -92,15 +92,17 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const termIds: string[] = watch('termIds') || [];
     const admissionNo = watch('admissionNo');
 
+    const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata();
+    console.log('classes', classes);
+    const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
+    console.log('academicYears', academicYears);
     const { data: configSetData } = useFeeConcessionConfigSet(Number(academicYearId || 0));
     const configSettings = configSetData?.data?.[0];
     const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg;
     const enableStaffTrans = configSettings?.fmC_EableStaffTrans === 1;
     const enableOtherStudentTrans = configSettings?.fmC_EableOtherStudentTrans === 1;
-
-    const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
     const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(String(groupOrTermFlg), Number(academicYearId || 0));
-    const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
+
     const { data: categories, isLoading: loadingCategories } = useFeeConcessionCategoryDropdowndata(MI_ID);
     const { data: feeConcessionCategories, isLoading: loadingfeeConcessionCategories } =
         useFeeConcessionCategoryFeeConcessionDropdowndata();
@@ -729,7 +731,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                                                 <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {classes?.data?.map((cls: any) => (
+                                                {classes?.map((cls: any) => (
                                                     <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
                                                         {cls.asmcL_ClassName}
                                                     </SelectItem>
