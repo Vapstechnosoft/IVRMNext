@@ -99,6 +99,7 @@ function MasterStudentFeeGroupMapping({
                         noDataTitle='No Student Fee Group Mapping Found'
                         noDataDescription='Get started by creating your first Student Fee Group Mapping'
                         errorTitle='Error Loading Student Fee Group Mapping'
+                        manualPagination={true}
                     />
                 </CollapsibleSection>
 
