@@ -886,16 +886,16 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                 </div>
             </div>
             {/* Action Buttons */}
-            <div className='flex justify-end gap-3 pt-4'>
-                <Button variant='outline' type='button'>
+            <div className='flex justify-center items-center gap-3 pt-4 w-full'>
+                {/* <Button variant='outline' type='button'>
                     PREVIOUS
+                </Button> */}
+                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
+                    {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
                 </Button>
-                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? 'SAVING...' : 'SUBMIT'}
-                </Button>
-                <Button variant='outline' type='button'>
+                {/* <Button variant='outline' type='button'>
                     CLEAR
-                </Button>
+                </Button> */}
             </div>
         </div>
     );

@@ -25,12 +25,13 @@ interface FeeTermsHeadFormProps {
 export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '' }: FeeTermsHeadFormProps) {
     const { refetchAll } = useMasterTermsHeadDueDate();
 
-    // Fetch hooks
+    // Fetch const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
+
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+    const { data: terms, isLoading: termsLoading, error: termsError } = TERM_DROPDOWN_DATA();
+    console.log('terms', terms);
 
-    const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
-
-    const { data: masterHeads, isLoading: masterHeadsLoading, error: headerror, refetchAll: refetchMasterHeads } = MASTER_HEADS_DROPDOWN();
+    const { data: masterHeads, isLoading: masterHeadsLoading, error: headerror } = MASTER_HEADS_DROPDOWN();
 
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
@@ -48,17 +49,11 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
         mode: 'onChange'
     });
 
-    // ✅ useEffect to auto-fetch dropdown data
-    useEffect(() => {
-        refetchterms();
-        refetchMasterHeads();
-    }, [refetchterms, refetchMasterHeads]);
-
     function OnReset() {
         reset();
-        refetchAll();
-        refetchterms();
-        refetchMasterHeads();
+        //refetchAll();
+        //refetchterms();
+        //refetchMasterHeads();
         setGridData([]);
     }
     useEffect(() => {

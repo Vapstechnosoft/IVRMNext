@@ -61,11 +61,7 @@ export default function ClassTeacherReportPage(props: {
         data: (response?.data as any)?.searchstudentDetails || []
     });
 
-    useEffect(() => {
-        if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
-        }
-    }, [academicYearOptions, academicYearId]);
+
 
     const handleFilterChange = (filterType: string, value: number) => {
         if (filterType === 'academic_year') {
@@ -125,17 +121,7 @@ export default function ClassTeacherReportPage(props: {
     };
 
     const handleReset = () => {
-        if (academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
-        } else {
-            setAcademicYearId(0);
-        }
-        setAmcId(0);
-        setReportType('class_teacher');
-        setSelectedStudents([]);
-        setShowReport(false);
-        tableRef.current?.resetSelection();
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
@@ -238,7 +224,7 @@ export default function ClassTeacherReportPage(props: {
                                 onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
                                 value={academicYearId !== 0 ? academicYearId?.toString() : undefined}>
                                 <SelectTrigger id='academic-year' className='w-full'>
-                                    <SelectValue placeholder='--Select Year--' />
+                                    <SelectValue placeholder='--Select Academic Year--' />
                                 </SelectTrigger>
 
                                 <SelectContent>

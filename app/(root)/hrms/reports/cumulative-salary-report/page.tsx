@@ -73,7 +73,7 @@ function CumulativeSalaryReportContent() {
     const _watchedDesignation = watch('designation');
 
     // Queries
-    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: yearsData, isPending: isLoadingYears } = useLeaveYearDropdown();
 
     const handlePrint = () => {
         if (!reportData) {
@@ -139,13 +139,13 @@ function CumulativeSalaryReportContent() {
 
         exportToExcel('CumulativeSalaryReport', JSON.stringify(safeColumns), JSON.stringify(processedContent));
     };
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = watchedGroupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = watchedDepartment?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { mutate: generateReport, isPending } = useCumulativeSalaryReport();
 
@@ -319,9 +319,9 @@ function CumulativeSalaryReportContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='font-bold text-2xl tracking-tight'>Cumulative Salary Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -335,9 +335,9 @@ function CumulativeSalaryReportContent() {
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Year' />
+                                            <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {yearsData?.data?.map((y: any) => (
@@ -394,7 +394,8 @@ function CumulativeSalaryReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Group Types'
+                                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
+                                        disabled={isLoadingGroupTypes}
                                     />
                                 )}
                             />
@@ -418,7 +419,8 @@ function CumulativeSalaryReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Departments'
+                                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
+                                        disabled={isLoadingDepartments}
                                     />
                                 )}
                             />
@@ -442,7 +444,8 @@ function CumulativeSalaryReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Designations'
+                                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
+                                        disabled={isLoadingDesignations}
                                         maxHeight={200}
                                     />
                                 )}

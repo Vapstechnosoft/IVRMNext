@@ -27,11 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import {
-    ThirdPartyTrasactionfeeReceiptNoflg,
-    get_Receipt_number,
-    saveorUpdateThirdPartyTrasaction
-} from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { get_Receipt_number, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 
 type FormFields = z.infer<typeof thirdPartyTransactionSchema.addOrUpdate>;
 
@@ -84,25 +80,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     const studentType = watch('studentType');
     const watchAcademicYearId = watch('academicYearId');
 
-    useEffect(() => {
-        const fetchReceiptFlag = async () => {
-            try {
-                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+    // useEffect(() => {
+    //     const fetchReceiptFlag = async () => {
+    //         try {
+    //             const res = await ThirdPartyTrasactionfeeReceiptNoflg();
 
-                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
-                if (res?.data?.length) {
-                    //setReceiptnoflgdata(res.data);
-                    setReceiptnoflgdata(true);
-                } else {
-                    setReceiptnoflgdata(false);
-                }
-            } catch (error) {
-                console.error('Error fetching receipt flag', error);
-            }
-        };
+    //             // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
+    //             if (res?.data?.length) {
+    //                 //setReceiptnoflgdata(res.data);
+    //                 setReceiptnoflgdata(true);
+    //             } else {
+    //                 setReceiptnoflgdata(false);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching receipt flag', error);
+    //         }
+    //     };
 
-        fetchReceiptFlag();
-    }, []);
+    //     fetchReceiptFlag();
+    // }, []);
 
     const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee();
 

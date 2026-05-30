@@ -548,6 +548,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     return true;
                                 }
                             })}
+                            onInput={(e) => {
+                                const target = e.currentTarget;
+                                let val = target.value;
+                                val = val.replace(/[^0-9.]/g, '');
+                                const parts = val.split('.');
+                                if (parts.length > 2) {
+                                    val = parts[0] + '.' + parts.slice(1).join('');
+                                }
+                                target.value = val;
+                            }}
                         />
                     </div>
                     <div className='group flex items-center gap-2'>
