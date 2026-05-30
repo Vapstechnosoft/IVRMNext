@@ -115,7 +115,7 @@ function EmployeeDetailsReportContent() {
         formatType: "Format1",
         headers: HEADER_LIST.map((h) => h.id), // Default Select All
         dateCriteria: "DOB",
-        fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Start of current month
+        fromDate: new Date(), // Start of current month
         toDate: new Date(),
         working: true,
         left: true,
@@ -503,11 +503,11 @@ function EmployeeDetailsReportContent() {
 
   return (
     <div className="container min-h-screen space-y-4 p-2">
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <h2 className="font-bold text-2xl tracking-tight">
           Employee Details Report
         </h2>
-      </div>
+      </div> */}
 
       <CollapsibleSection
         title="Configuration"
