@@ -8,12 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type BaldwinReportSchema, baldwinReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
-    getBaldwinReportDetails,
-    getBBHSFinalPromotionReportBBHS,
-    getPromotionReportStdIX2021,
-    getPromotionReportIX
-} from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
-import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
@@ -45,7 +39,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
     // Loading States
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [_loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<BaldwinReportSchema>({
         resolver: zodResolver(baldwinReportSchema),
@@ -77,7 +71,6 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
             try {
                 setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(Number(watchYear));
-                console.log("class", data);
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
@@ -123,17 +116,17 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                        (
-                            s
-                        ): s is {
-                            amsT_AdmNo: number;
-                            amsT_Id: number;
-                            studentName?: string;
-                            amsT_FirstName?: string;
-                            amsT_MiddleName?: string;
-                            amsT_LastName?: string;
-                        } => !!s?.amsT_Id
-                    )
+                          (
+                              s
+                          ): s is {
+                              amsT_AdmNo: number;
+                              amsT_Id: number;
+                              studentName?: string;
+                              amsT_FirstName?: string;
+                              amsT_MiddleName?: string;
+                              amsT_LastName?: string;
+                          } => !!s?.amsT_Id
+                      )
                     : [];
 
                 const mappedStudents = valid.map((s) => ({
@@ -174,30 +167,13 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
 
     const onSubmit = async (values: BaldwinReportSchema) => {
         try {
-            const selectedStudentDetails = students.filter(s =>
-                values.selectedStudents.includes(String(s.amsT_Id))
-            );
-            const selected_academicYear = academicYears.find((ay: any) => ay.asmaY_Id === Number(values.ASMAY_Id))?.asmaY_Year;
-            const selected_class = classes.find((c: any) => c.asmcL_Id === Number(values.ASMCL_Id))?.asmcL_ClassName;
-            const selected_section = sections.find((s: any) => s.asmS_Id === Number(values.ASMS_Id))?.asmC_SectionName;
+            const selectedStudentDetails = students.filter((s) => values.selectedStudents.includes(String(s.amsT_Id)));
 
-            console.log('values', values);
-            console.log('selectedStudentDetails', selectedStudentDetails);
-            console.log('selected_academicYear', selected_academicYear);
-            console.log('selected_class', selected_class);
-            console.log('selected_section', selected_section);
             const [result, institutionRes] = await Promise.all([
-                apiAction({ ...values, studentDetails: selectedStudentDetails, selected_academicYear, selected_class, selected_section }),
+                apiAction({ ...values, studentDetails: selectedStudentDetails }),
                 getMasterInstitution()
             ]);
-            console.log("institutionRes", institutionRes?.data);
-            
-            if (result && result.success === false) {
-                toast.error(result.message || 'Failed to generate report');
-                return;
-            }
-            
-            onReportGenerated({ ...result, selected_academicYear, selected_class, selected_section, institution: institutionRes?.data }, values);
+            onReportGenerated({ ...result, institution: institutionRes?.data }, values);
         } catch (error) {
             console.error('Error generating report:', error);
             toast.error('Failed to generate report');
@@ -249,7 +225,9 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYearLoading ? (
-                                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
                                                     ) : (
                                                         academicYears.map((y: any) => (
                                                             <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -280,7 +258,9 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {loadingClasses ? (
-                                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
                                                     ) : (
                                                         classes.map((c) => (
                                                             <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -311,7 +291,9 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {loadingSections ? (
-                                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
                                                     ) : (
                                                         sections.map((s) => (
                                                             <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
@@ -334,7 +316,11 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                     render={({ field }) => (
                                         <div className='space-y-2'>
                                             <Label>Working Days</Label>
-                                            <input {...field} className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20' placeholder='Working Days' />
+                                            <input
+                                                {...field}
+                                                className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20'
+                                                placeholder='Working Days'
+                                            />
                                         </div>
                                     )}
                                 />
@@ -344,7 +330,11 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                     render={({ field }) => (
                                         <div className='space-y-2'>
                                             <Label>Present Days</Label>
-                                            <input {...field} className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20' placeholder='Present Days' />
+                                            <input
+                                                {...field}
+                                                className='flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20'
+                                                placeholder='Present Days'
+                                            />
                                         </div>
                                     )}
                                 />
@@ -359,7 +349,9 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                             <Checkbox id='dontShowRank' checked={field.value} onCheckedChange={field.onChange} />
                                         )}
                                     />
-                                    <Label htmlFor='dontShowRank' className='cursor-pointer font-normal'>Don't Show Rank</Label>
+                                    <Label htmlFor='dontShowRank' className='cursor-pointer font-normal'>
+                                        Don't Show Rank
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <Controller
@@ -369,7 +361,9 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                             <Checkbox id='printLogo' checked={field.value} onCheckedChange={field.onChange} />
                                         )}
                                     />
-                                    <Label htmlFor='printLogo' className='cursor-pointer font-normal'>Print Logo</Label>
+                                    <Label htmlFor='printLogo' className='cursor-pointer font-normal'>
+                                        Print Logo
+                                    </Label>
                                 </div>
                             </div>
                         </div>
@@ -404,13 +398,13 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                             />
                                         )}
                                     />
-                                    <div className='flex items-center gap-2 mt-2'>
+                                    <div className='mt-2 flex items-center gap-2'>
                                         <Controller
                                             name='includeLeftStudents'
                                             control={control}
                                             render={({ field }) => (
                                                 <Checkbox
-                                                    id="includeLeftStudents"
+                                                    id='includeLeftStudents'
                                                     checked={field.value}
                                                     onCheckedChange={(checked) => {
                                                         field.onChange(checked);
@@ -419,7 +413,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                                                 />
                                             )}
                                         />
-                                        <Label htmlFor="includeLeftStudents" className='font-medium cursor-pointer'>
+                                        <Label htmlFor='includeLeftStudents' className='cursor-pointer font-medium'>
                                             Include Left Students
                                         </Label>
                                     </div>
@@ -432,13 +426,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                         <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
                             {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
                         </Button>
-                        <Button
-                            type='button'
-                            variant='destructive'
-                            onClick={handleClear}
-                            disabled={isSubmitting}
-                            className='min-w-[120px]'
-                        >
+                        <Button type='button' variant='destructive' onClick={handleClear} disabled={isSubmitting} className='min-w-[120px]'>
                             Cancel
                         </Button>
                     </div>

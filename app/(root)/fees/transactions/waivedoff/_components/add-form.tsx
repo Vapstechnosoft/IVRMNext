@@ -58,13 +58,13 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
     const { refetchAll } = useFeeTransactionWaivedOffGrid();
 
-    const [_academicYear, setAcademicYear] = useState<number | null>(null);
-    const [_classWise, setclassWise] = useState<number | null>(null);
-    const [_sectionWise, setsectionWise] = useState<number | null>(null);
-    const [_studentWise, setstudentWise] = useState<number | null>(null);
-    const [_remarks, setRemarks] = useState<string>('');
-    const [_grouplist, setgrouplist] = useState<string[]>([]);
-    const [_selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [academicYear, setAcademicYear] = useState<number | null>(null);
+    const [classWise, setclassWise] = useState<number | null>(null);
+    const [sectionWise, setsectionWise] = useState<number | null>(null);
+    const [studentWise, setstudentWise] = useState<number | null>(null);
+    const [remarks, setRemarks] = useState<string>('');
+    const [grouplist, setgrouplist] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [refundableType, setRefundableType] = useState<string>('Refundable');
     const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
     const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
@@ -83,7 +83,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const [selectedHead, setSelectedHead] = useState<feeTransactionWaivedOffHead[]>([]);
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
     const [tableProps, setTableProps] = useState<any>(null);
-    const [_headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
+    const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
     const [dateopen, setDateOpen] = useState(false);
@@ -172,6 +172,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
                 groupIds: selectedGroups
             });
+
+            console.log('res', res);
             setHeadList(res.data ?? []);
             setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
@@ -242,7 +244,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             });
 
             const formData = new FormData();
-            // formData.forEach((_v, _k) => );
+            formData.forEach((v, k) => console.log(k, v));
             formData.append('file', file);
             formData.append('FileName', file.name);
             formData.append('ContentType', file.type);

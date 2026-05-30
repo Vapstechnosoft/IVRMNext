@@ -3,55 +3,37 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { useLeaveBalanceByEmployeeId, useSaveAdminEmployeeLeaveApplication } from '@/hooks/hrms/leave-management/useOnlineAdminLeave';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useSaveAdminEmployeeLeaveApplication } from '@/hooks/hrms/leave-management/useOnlineAdminLeave';
 import { cn } from '@/lib/utils';
+import { saveLeaveRequestDocument } from '@/server/hrms/leave-management/transaction/online-leave-application';
+import type { OnlineAdminLeaveApplication } from '@/types/hrms/leave-management/online-admin-leave';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format, differenceInDays } from 'date-fns';
-import {
-    CalendarIcon,
-    Clock,
-    Info,
-    FileText,
-    ArrowRight,
-} from 'lucide-react';
+import { format } from 'date-fns';
+import { ArrowRight, CalendarIcon, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
-import type { OnlineAdminLeaveApplication } from '@/types/hrms/leave-management/online-admin-leave';
-import { saveLeaveRequestDocument } from '@/server/hrms/leave-management/transaction/online-leave-application';
+import { z } from 'zod';
 
-const formSchema = z.object({
-    hrmE_Id: z.coerce.number().min(1, 'Employee is required'),
-    hrmL_Id: z.coerce.number().min(1, 'Leave type is required'),
-    fromDate: z.date({ required_error: 'From date is required' }),
-    toDate: z.date({ required_error: 'To date is required' }),
-    totalDays: z.coerce.number().min(0.5, 'Total days must be at least 0.5'),
-    leaveReason: z.string().min(1, 'Reason is required'),
-    reportingDate: z.date({ required_error: 'Reporting date is required' }),
-    supportingDocument: z.string().optional(),
-    contactNoOnLeave: z.string().regex(/^\d{10}$/, 'Must be exactly 10 digits')
-}).refine((data) => data.toDate >= data.fromDate, {
-    message: "To Date cannot be before From Date",
-    path: ["toDate"]
-});
+const formSchema = z
+    .object({
+        hrmE_Id: z.coerce.number().min(1, 'Employee is required'),
+        hrmL_Id: z.coerce.number().min(1, 'Leave type is required'),
+        fromDate: z.date({ required_error: 'From date is required' }),
+        toDate: z.date({ required_error: 'To date is required' }),
+        totalDays: z.coerce.number().min(0.5, 'Total days must be at least 0.5'),
+        leaveReason: z.string().min(1, 'Reason is required'),
+        reportingDate: z.date({ required_error: 'Reporting date is required' }),
+        supportingDocument: z.string().optional(),
+        contactNoOnLeave: z.string().regex(/^\d{10}$/, 'Must be exactly 10 digits')
+    })
+    .refine((data) => data.toDate >= data.fromDate, {
+        message: 'To Date cannot be before From Date',
+        path: ['toDate']
+    });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -95,7 +77,6 @@ export default function ApplyLeaveForm({
         }
     });
     const [previewFile, setPreviewFile] = useState<any>(null);
-    const [isReportingDateOpen, setIsReportingDateOpen] = useState(false);
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const hrmL_Id = form.watch('hrmL_Id');
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -147,7 +128,6 @@ export default function ApplyLeaveForm({
     }, [editingRow, form, selectedEmployeeId]);
 
     function onSubmit(values: FormValues) {
-        console.log("values", values);
         saveLeave(
             {
                 HRME_Id: values.hrmE_Id,
@@ -214,7 +194,6 @@ export default function ApplyLeaveForm({
                 // The swagger UI specifically expects the key 'leave_document'
                 formData.append('leave_document', file);
                 const response = await saveLeaveRequestDocument(hrmeId, formData);
-                console.log("Upload API response:", response);
 
                 if (response.success && response.data) {
                     form.setValue('supportingDocument', response.data);
@@ -229,7 +208,6 @@ export default function ApplyLeaveForm({
                 setIsUploading(false);
             }
         }
-
     };
 
     const handleViewFile = () => {
@@ -240,22 +218,26 @@ export default function ApplyLeaveForm({
     };
 
     return (
-        <div className='p-6 pt-0 space-y-8 animate-in slide-in-from-top-2 duration-300'>
+        <div className='slide-in-from-top-2 animate-in space-y-8 p-6 pt-0 duration-300'>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-
                     {/* Middle Row: Details */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6'>
+                    <div className='grid grid-cols-1 gap-x-12 gap-y-6 md:grid-cols-2'>
                         <FormField
                             control={form.control}
                             name='leaveReason'
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className='flex items-center gap-2 mb-1'>
-                                        <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider'>Reasons for Leave: <span className='text-red-500'>*</span></FormLabel>
+                                    <div className='mb-1 flex items-center gap-2'>
+                                        <FormLabel className='font-black text-[10px] text-slate-500 uppercase tracking-wider'>
+                                            Reasons for Leave: <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                     </div>
                                     <FormControl>
-                                        <Input className='h-11 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm' {...field} />
+                                        <Input
+                                            className='h-11 rounded-xl border-sky-100 bg-white shadow-sm focus:ring-sky-100'
+                                            {...field}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -267,13 +249,15 @@ export default function ApplyLeaveForm({
                             name='contactNoOnLeave'
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className='flex items-center gap-1 mb-1'>
-                                        <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider'>Contact Number While on Leave: <span className='text-red-500'>*</span></FormLabel>
+                                    <div className='mb-1 flex items-center gap-1'>
+                                        <FormLabel className='font-black text-[10px] text-slate-500 uppercase tracking-wider'>
+                                            Contact Number While on Leave: <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                     </div>
                                     <FormControl>
                                         <Input
-                                            className='h-11 border-sky-100 focus:ring-sky-100 rounded-xl bg-white shadow-sm'
-                                            type="text"
+                                            className='h-11 rounded-xl border-sky-100 bg-white shadow-sm focus:ring-sky-100'
+                                            type='text'
                                             maxLength={10}
                                             {...field}
                                             onChange={(e) => {
@@ -292,27 +276,25 @@ export default function ApplyLeaveForm({
                             name='reportingDate'
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1 block'>Date Reporting Back</FormLabel>
-                                    <Popover open={isReportingDateOpen} onOpenChange={setIsReportingDateOpen}>
+                                    <FormLabel className='mb-1 block font-black text-[10px] text-slate-500 uppercase tracking-wider'>
+                                        Date Reporting Back
+                                    </FormLabel>
+                                    <Popover>
                                         <PopoverTrigger asChild>
                                             <FormControl>
-                                                <Button variant='outline' className={cn('w-full h-11 text-left font-normal border-slate-200 rounded-xl bg-white', !field.value && 'text-muted-foreground')}>
+                                                <Button
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'h-11 w-full rounded-xl border-slate-200 bg-white text-left font-normal',
+                                                        !field.value && 'text-muted-foreground'
+                                                    )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4 text-slate-400' />
                                                     {field.value ? format(field.value, 'dd-MM-yyyy') : '01-03-2025'}
                                                 </Button>
                                             </FormControl>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
-                                                mode='single'
-                                                selected={field.value}
-                                                onSelect={(date) => {
-                                                    field.onChange(date);
-                                                    setIsReportingDateOpen(false);
-                                                }}
-                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                                initialFocus
-                                            />
+                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     <FormMessage />
@@ -321,12 +303,14 @@ export default function ApplyLeaveForm({
                         />
 
                         <FormItem>
-                            <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1 block'>Supporting Document</FormLabel>
+                            <FormLabel className='mb-1 block font-black text-[10px] text-slate-500 uppercase tracking-wider'>
+                                Supporting Document
+                            </FormLabel>
                             <FormControl>
                                 <div className='relative w-full'>
                                     <Input
                                         type='file'
-                                        className='absolute inset-0 opacity-0 cursor-pointer z-10'
+                                        className='absolute inset-0 z-10 cursor-pointer opacity-0'
                                         onChange={handleFileUrl}
                                         disabled={isUploading}
                                     />
@@ -334,47 +318,38 @@ export default function ApplyLeaveForm({
                                         type='button'
                                         variant='outline'
                                         disabled={isUploading}
-                                        className='w-full h-11 bg-amber-400 hover:bg-amber-700 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px] cursor-pointer'
-                                    >
+                                        className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-amber-400 font-bold text-[10px] text-slate-900 uppercase shadow-sm hover:bg-amber-700'>
                                         <FileText className='h-4 w-4' /> {isUploading ? 'Uploading...' : 'Choose File'}
                                     </Button>
-                                    <div className='flex items-center gap-2 mt-2'>
+                                    <div className='mt-2 flex items-center gap-2'>
                                         {uploadedFileName && (
-                                            <span className='text-[10px] text-slate-400 italic truncate w-full' title={uploadedFileName}>
+                                            <span className='w-full truncate text-[10px] text-slate-400 italic' title={uploadedFileName}>
                                                 {uploadedFileName}
                                             </span>
                                         )}
-                                        {
-                                            uploadedFileName && (
-                                                <div className='text-[12px] font-semibold pr-2 cursor-pointer hover:text-orange-500' onClick={handleViewFile}>
-                                                    View
-                                                </div>
-                                            )
-                                        }
-
+                                        {uploadedFileName && (
+                                            <div
+                                                className='cursor-pointer pr-2 font-semibold text-[12px] hover:text-orange-500'
+                                                onClick={handleViewFile}>
+                                                View
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </FormControl>
                             {previewFile && (
-                                <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-
+                                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
                                     {/* Popup Box */}
-                                    <div className="relative bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full">
-
+                                    <div className='relative w-full max-w-3xl rounded-lg bg-white p-4 shadow-lg'>
                                         {/* Close Button */}
                                         <button
                                             onClick={() => setPreviewFile(null)}
-                                            className="absolute top-2 right-2 text-white bg-red-500 px-3 py-1 rounded"
-                                        >
+                                            className='absolute top-2 right-2 rounded bg-red-500 px-3 py-1 text-white'>
                                             ✕
                                         </button>
 
                                         {/* Image */}
-                                        <img
-                                            src={previewFile}
-                                            alt="Preview"
-                                            className="w-full max-h-[70vh] object-contain rounded"
-                                        />
+                                        <img src={previewFile} alt='Preview' className='max-h-[70vh] w-full rounded object-contain' />
                                     </div>
                                 </div>
                             )}
@@ -382,36 +357,32 @@ export default function ApplyLeaveForm({
                     </div>
 
                     {/* Bottom Actions Cluster */}
-                    <div className='pt-8 flex flex-col items-center gap-6'>
+                    <div className='flex flex-col items-center gap-6 pt-8'>
                         <div className='flex items-center gap-4'>
                             <Button
                                 type='submit'
                                 disabled={combinedBalanceData?.length === 0 || isPending || !selectedEmployeeId}
-                                className='bg-orange-500 hover:bg-orange-600 text-white font-black h-12 px-16 rounded-full shadow-xl shadow-orange-200 flex items-center gap-3 uppercase text-sm transition-all active:scale-95'
-                            >
+                                className='flex h-12 items-center gap-3 rounded-full bg-orange-500 px-16 font-black text-sm text-white uppercase shadow-orange-200 shadow-xl transition-all hover:bg-orange-600 active:scale-95'>
                                 APPLY LEAVE NOW <ArrowRight className='h-5 w-5' />
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
-                                className='text-slate-400 font-bold h-12 px-10 rounded-full border-slate-200 flex items-center gap-2 uppercase text-xs transition-all hover:bg-slate-50 hover:text-slate-600'
+                                className='flex h-12 items-center gap-2 rounded-full border-slate-200 px-10 font-bold text-slate-400 text-xs uppercase transition-all hover:bg-slate-50 hover:text-slate-600'
                                 onClick={() => {
                                     form.reset();
                                     onCancel?.();
-                                }}
-                            >
+                                }}>
                                 <span className='text-xl leading-none'>×</span> CANCEL
                             </Button>
                         </div>
-                        {
-                            combinedBalanceData?.length === 0 && !isLoadingBalance && (
-                                <Badge variant='destructive' className='w-auto py-1 px-2 text-xs'>
-                                    No leave balance available for the selected leave type.
-                                </Badge>
-                            )
-                        }
+                        {combinedBalanceData?.length === 0 && !isLoadingBalance && (
+                            <Badge variant='destructive' className='w-auto px-2 py-1 text-xs'>
+                                No leave balance available for the selected leave type.
+                            </Badge>
+                        )}
 
-                        <p className='text-[10px] text-slate-400 font-medium tracking-widest uppercase opacity-60'>
+                        <p className='font-medium text-[10px] text-slate-400 uppercase tracking-widest opacity-60'>
                             This will directly update the employee's leave records as an administrator action.
                         </p>
                     </div>

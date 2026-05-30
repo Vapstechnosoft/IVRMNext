@@ -1,24 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toast } from 'sonner';
-import { Loader2, FileText, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import {
-    getMultipleExamProgressReport
+    getClassesByYear,
+    getExamsAndGrades,
+    getInitialData,
+    getMultipleExamProgressReport,
+    getSectionsByClass
 } from '@/server/exam/exam-module/reports/Baldwin/multiple-exam-progress-card-report-2';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
-} from '@/server/exam/exam-module/reports/cumulative-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Loader2, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 const schema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -39,12 +37,11 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
 
+    const [loadingYears, setLoadingYears] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     const methods = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -64,17 +61,19 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     // 1. Initial Data
     useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error loading academic years');
-            setYears([]);
-        } else if (academicData?.data) {
-            const formatted = academicData.data.map((i: any) => ({
-                asmaY_Id: i.asmaY_Id ?? 0,
-                asmaY_Year: i.asmaY_Year ?? ''
-            }));
-            setYears(formatted);
-        }
-    }, [academicData, academicError]);
+        const fetchInitial = async () => {
+            setLoadingYears(true);
+            try {
+                const res: any = await getInitialData();
+                setYears(res?.getyearlist || []);
+            } catch (_error) {
+                toast.error('Failed to load academic years');
+            } finally {
+                setLoadingYears(false);
+            }
+        };
+        fetchInitial();
+    }, []);
 
     // 2. Load Classes
     useEffect(() => {
@@ -82,12 +81,12 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchClasses = async () => {
             setLoadingClasses(true);
             try {
-                const res = await getClassDropDownByAcademicYearlist(Number(watchYear));
-                setClasses(res?.data || []);
+                const res: any = await getClassesByYear(Number(watchYear));
+                setClasses(res?.getclasslist || []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
                 setValue('examlist', []);
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to load classes');
             } finally {
                 setLoadingClasses(false);
@@ -102,11 +101,11 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchSections = async () => {
             setLoadingSections(true);
             try {
-                const res = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
-                setSections(res?.data || []);
+                const res: any = await getSectionsByClass(Number(watchYear), Number(watchClass));
+                setSections(res?.getsectionlist || []);
                 setValue('ASMS_Id', '');
                 setValue('examlist', []);
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to load sections');
             } finally {
                 setLoadingSections(false);
@@ -121,10 +120,10 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchExams = async () => {
             setLoadingExams(true);
             try {
-                const res = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
-                setExams(res?.data || []);
+                const res: any = await getExamsAndGrades(Number(watchYear), Number(watchClass), Number(watchSection));
+                setExams(res?.getexam || []);
                 setValue('examlist', []);
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to load exams');
             } finally {
                 setLoadingExams(false);
@@ -137,8 +136,8 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         setIsSubmitting(true);
         try {
             const selectedExams = exams
-                .filter(exm => data.examlist.includes(String(exm.emE_Id)))
-                .map(exm => ({
+                .filter((exm) => data.examlist.includes(String(exm.emE_Id)))
+                .map((exm) => ({
                     EME_Id: exm.emE_Id,
                     EME_ExamName: exm.emE_ExamName
                 }));
@@ -151,15 +150,15 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
             };
 
             const response = await getMultipleExamProgressReport(payload);
-            
+
             if (response) {
-                const yearName = years.find(y => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
+                const yearName = years.find((y) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
                 onReportGenerated(response, { ...data, yearName });
                 toast.success('Report generated');
             } else {
                 toast.warning('No data found');
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to generate report');
         } finally {
             setIsSubmitting(false);
@@ -172,73 +171,97 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-            <h3 className="text-lg font-semibold mb-4 border-b pb-2">Progress Card Report Filters</h3>
-            
+        <div className='rounded-lg border bg-white p-6 shadow-sm'>
+            <h3 className='mb-4 border-b pb-2 font-semibold text-lg'>Progress Card Report Filters</h3>
+
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-4">
-                            <div className="space-y-1">
-                                <Label>Academic Year <span className="text-red-500">*</span></Label>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <div className='space-y-4'>
+                            <div className='space-y-1'>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Year" />
+                                                <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYearLoading ? <SelectItem value="0" disabled>Loading...</SelectItem> :
-                                                    years.map(y => (
-                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                {loadingYears ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    years.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
                                                     ))
-                                                }
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <Label>Class <span className="text-red-500">*</span></Label>
+                            <div className='space-y-1'>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMCL_Id"
+                                    name='ASMCL_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {loadingClasses ? <SelectItem value="0" disabled>Loading...</SelectItem> :
-                                                    classes.map(c => (
-                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                {loadingClasses ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    classes.map((c) => (
+                                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                            {c.asmcL_ClassName}
+                                                        </SelectItem>
                                                     ))
-                                                }
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <Label>Section <span className="text-red-500">*</span></Label>
+                            <div className='space-y-1'>
+                                <Label>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMS_Id"
+                                    name='ASMS_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value} disabled={!watchClass}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Section" />
+                                                <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {loadingSections ? <SelectItem value="0" disabled>Loading...</SelectItem> :
-                                                    sections.map(s => (
-                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                {loadingSections ? (
+                                                    <SelectItem value='0' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    sections.map((s) => (
+                                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                            {s.asmC_SectionName}
+                                                        </SelectItem>
                                                     ))
-                                                }
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -246,22 +269,24 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
                             </div>
                         </div>
 
-                        <div className="space-y-1 flex flex-col h-full">
-                            <Label>Exam <span className="text-red-500">*</span></Label>
+                        <div className='flex h-full flex-col space-y-1'>
+                            <Label>
+                                Exam <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="examlist"
+                                name='examlist'
                                 render={({ field }) => (
-                                    <div className="flex-1 min-h-[150px]">
+                                    <div className='min-h-[150px] flex-1'>
                                         <CustomMultiSelectBox
-                                            options={exams.map(ex => ({
+                                            options={exams.map((ex) => ({
                                                 label: ex.emE_ExamName,
                                                 value: String(ex.emE_Id)
                                             }))}
                                             value={field.value}
                                             onChange={field.onChange}
-                                            placeholder={loadingExams ? "Loading exams..." : "Select Exams"}
-                                            height="180px"
+                                            placeholder={loadingExams ? 'Loading exams...' : 'Select Exams'}
+                                            height='180px'
                                             isSearchRequired={false}
                                         />
                                     </div>
@@ -270,13 +295,13 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                    <div className='mt-4 flex justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' disabled={isSubmitting}>
+                            {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                             Report
                         </Button>
-                        <Button type="button" variant="outline" onClick={onCancel}>
-                            <XCircle className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='outline' onClick={onCancel}>
+                            <XCircle className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                     </div>

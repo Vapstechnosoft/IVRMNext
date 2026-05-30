@@ -1,6 +1,6 @@
+// app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
-
-
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,17 +9,14 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { coeMonthEndReportSchema } from '@/schemas/coe/master';
-import { getCoeMonthEndReport, getCoeMonthEndReportResult } from '@/server/coe/masters/report';
+import { getCoeMonthEndReport } from '@/server/coe/masters/report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import xlsx, { IJsonSheet } from 'json-as-xlsx';
-import { Loader2, Printer, FileSpreadsheet } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import xlsx, { type IJsonSheet } from 'json-as-xlsx';
+import { Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { CoeMonthEndReportPrint } from './_components/coe-month-end-report-print';
-
 
 type FormFields = z.infer<typeof coeMonthEndReportSchema.addOrUpdate>;
 
@@ -62,34 +59,8 @@ export default function CoeMonthEndReport() {
         { value: '12', label: 'December' }
     ];
 
-    const [initialData, setInitialData] = useState<any>({ year: [], month: [] });
-    const [loadingInitial, setLoadingInitial] = useState(true);
-
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const response = await getCoeMonthEndReport({ MI_Id: 2 });
-                console.log("Initial Data:", response);
-
-                if (response) {
-                    const dataObj = response.data || response;
-
-                    const yearData = dataObj.year?.$values || dataObj.year || dataObj.yearlist?.$values || dataObj.yearlist || dataObj.academicYear?.$values || dataObj.academicYear || [];
-                    const monthData = dataObj.month?.$values || dataObj.month || dataObj.monthlist?.$values || dataObj.monthlist || [];
-
-                    setInitialData({
-                        year: yearData,
-                        month: monthData
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to load initial data", error);
-            } finally {
-                setLoadingInitial(false);
-            }
-        };
-        fetchInitialData();
-    }, []);
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
+    // const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(true);
 
     const handleReset = () => {
         reset();
@@ -98,12 +69,12 @@ export default function CoeMonthEndReport() {
         setSelectedMonth('');
     };
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: 'COE_Month_End_Report',
-    });
+    // const handlePrint = useReactToPrint({
+    //     content: () => componentRef.current,
+    //     documentTitle: 'COE_Month_End_Report',
+    // });
 
-    const handleExport = () => {
+    const _handleExport = () => {
         if (!reportData) return;
 
         const data = [
@@ -111,19 +82,21 @@ export default function CoeMonthEndReport() {
                 sheet: 'COE Report',
                 columns: [
                     { label: 'SL.NO', value: 'slNo' },
-                    { label: 'Event Name', value: 'eventName' },
-                    { label: 'Event Description', value: 'eventDesc' },
-                    { label: 'Event Start Date', value: 'startDate' },
-                    { label: 'Event End Date', value: 'endDate' },
+                    { label: 'COE', value: 'coe' },
+                    { label: 'Count', value: 'count' },
+                    { label: 'SMS', value: 'sms' },
+                    { label: 'Email', value: 'email' }
                 ],
-                content: (reportData || []).map((row: any, idx: number) => ({
-                    slNo: idx + 1,
-                    eventName: row.eventName || 'NA',
-                    eventDesc: row.eventDesc || 'NA',
-                    startDate: row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA',
-                    endDate: row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA',
-                })),
-            },
+                content: [
+                    {
+                        slNo: 1,
+                        coe: 'Student & Staff',
+                        count: reportData.totalCount || 0,
+                        sms: reportData.smsCount || 0,
+                        email: reportData.emailCount || 0
+                    }
+                ]
+            }
         ] as IJsonSheet[];
 
         const settings = {
@@ -131,7 +104,7 @@ export default function CoeMonthEndReport() {
             extraLength: 3,
             writeMode: 'writeFile',
             writeOptions: {},
-            RTL: false,
+            RTL: false
         };
 
         xlsx(data, settings);
@@ -145,21 +118,20 @@ export default function CoeMonthEndReport() {
                 return;
             }
             const payload = {
-                Monthid: Number(data.month ?? 0) ?? 0,
-                ASMAY_Id: data.asmaY_Id ?? 0
+                month: data.month ?? '',
+                year: data.asmaY_Id ?? 0
             };
 
-            const selectedYearObj = initialData.year?.find((y: any) => String(y.asmaY_Id || y.hrmlY_Id) === String(data.asmaY_Id));
-            setSelectedYear(selectedYearObj?.asmaY_Year || selectedYearObj?.hrmlY_LeaveYear || '');
+            const selectedYearObj = academicYearData?.data?.find((y: any) => y.asmaY_Id === data.asmaY_Id);
+            setSelectedYear(selectedYearObj?.asmaY_Year || '');
 
             const selectedMonthObj = months.find((m) => m.value === data.month);
             setSelectedMonth(selectedMonthObj?.label || '');
 
-            const response = await getCoeMonthEndReportResult(payload);
+            const response = await getCoeMonthEndReport(payload);
 
-            if (response.data?.coereport && response.data.coereport.length > 0) {
-
-                setReportData(response.data.coereport);
+            if (response.data && response.data.length > 0) {
+                setReportData(response.data[0] || response.data);
                 toast.success('Report fetched successfully');
             } else {
                 setReportData(null);
@@ -203,14 +175,14 @@ export default function CoeMonthEndReport() {
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {loadingInitial ? (
+                                                {loadingYears ? (
                                                     <SelectItem value='loading' disabled>
                                                         Loading...
                                                     </SelectItem>
                                                 ) : (
-                                                    initialData.year?.map((item: any) => (
-                                                        <SelectItem key={item.hrmlY_Id || item.asmaY_Id} value={String(item.hrmlY_Id || item.asmaY_Id)}>
-                                                            {item.hrmlY_LeaveYear || item.asmaY_Year}
+                                                    academicYearData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
                                                         </SelectItem>
                                                     ))
                                                 )}
@@ -240,19 +212,11 @@ export default function CoeMonthEndReport() {
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {initialData.month?.length > 0 ? (
-                                                    initialData.month.map((item: any) => (
-                                                        <SelectItem key={item.monthid} value={String(item.monthid).padStart(2, '0')}>
-                                                            {item.monthname}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    months?.map((item) => (
-                                                        <SelectItem key={item.value} value={String(item.value)}>
-                                                            {item.label}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
+                                                {months?.map((item) => (
+                                                    <SelectItem key={item.value} value={String(item.value)}>
+                                                        {item.label}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -268,132 +232,120 @@ export default function CoeMonthEndReport() {
                                     placeholder='Enter Name'
                                     {...register('ieName')}
                                     error={errors.ieName?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20 w-64'
+                                    className='w-64 transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
 
                             {/* Action Buttons */}
                             <div className='flex w-full max-w-md justify-center gap-4 pt-4'>
                                 <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
-                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Report'}
+                                    {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : 'Report'}
                                 </Button>
                                 <Button type='button' variant='destructive' onClick={handleReset} className='min-w-[120px]'>
                                     Clear
                                 </Button>
-                                {reportData && (
+                                {/* {reportData && (
                                     <>
                                         <Button type='button' onClick={handleExport} className='min-w-[120px] bg-green-600 hover:bg-green-700'>
                                             <FileSpreadsheet className="mr-2 h-4 w-4" /> Export
                                         </Button>
-                                        <Button type='button' onClick={() => handlePrint()} className='min-w-[120px] bg-blue-600 hover:bg-blue-700'>
+                                        <Button type='button' onClick={handlePrint} className='min-w-[120px] bg-blue-600 hover:bg-blue-700'>
                                             <Printer className="mr-2 h-4 w-4" /> Print
                                         </Button>
                                     </>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </Card>
 
                     {/* Report Content */}
                     {reportData && (
-                        <Card className='mt-8 border-0 shadow-xl p-8'>
-                            <div className="flex flex-col gap-6">
+                        <Card className='mt-8 border-0 p-8 shadow-xl' ref={componentRef}>
+                            <div className='flex flex-col gap-6'>
                                 {/* Header */}
-                                <div className="text-center space-y-2">
-                                    <div className="flex justify-center mb-4">
+                                <div className='space-y-2 text-center'>
+                                    <div className='mb-4 flex justify-center'>
+                                        {/* Placeholder for Logo - replace with actual logo path if known, or generic */}
+                                        <div className='relative h-20 w-20'>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src='/assets/images/baldwin-logo.png'
+                                                alt='Baldwin Logo'
+                                                className='h-full w-full object-contain'
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                    <h2 className="text-2xl font-bold uppercase underline decoration-2 underline-offset-4">COE Report</h2>
-                                    <div className="border border-black p-2 mt-2 inline-block min-w-[300px]">
-                                        <h3 className="font-semibold uppercase text-center">COE {selectedMonth} MONTH REPORT</h3>
+                                    <h2 className='font-bold text-2xl uppercase underline decoration-2 underline-offset-4'>COE Report</h2>
+                                    <div className='mt-2 inline-block min-w-[300px] border border-black p-2'>
+                                        <h3 className='font-semibold uppercase'>COE {selectedMonth} MONTH REPORT</h3>
                                     </div>
                                 </div>
 
                                 {/* Info Table */}
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-4 max-w-3xl mx-auto w-full">
-                                    <div className="flex justify-center gap-4 pb-1">
-                                        <span className="font-semibold">Name:</span>
-                                        <span>{ieName || (Array.isArray(reportData) && reportData.length > 0 ? reportData[0].ieName : undefined) || '_________________'}</span>
+                                <div className='mx-auto grid w-full max-w-4xl grid-cols-2 gap-x-12 gap-y-4'>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Name:</span>
+                                        <span>{ieName || reportData.ieName || '_________________'}</span>
                                     </div>
-                                    <div className="flex justify-center gap-4 pb-1">
-                                        <span className="font-semibold">Date:</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Date:</span>
                                         <span>{today.toLocaleDateString()}</span>
                                     </div>
-                                    <div className="flex justify-center gap-4 pb-1">
-                                        <span className="font-semibold">Designation:</span>
-                                        <span>{(Array.isArray(reportData) && reportData.length > 0 ? reportData[0].designation : undefined) || 'Implementation Engineer'}</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Designation:</span>
+                                        <span>{reportData.designation || '_________________'}</span>
                                     </div>
-                                    <div className="flex justify-center gap-4 pb-1">
-                                        <span className="font-semibold">Academic Year:</span>
+                                    <div className='flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Academic Year:</span>
                                         <span>{selectedYear}</span>
                                     </div>
-                                    <div className="flex justify-center gap-4 pb-1 col-span-2">
-                                        <span className="font-semibold">Module:</span>
+                                    <div className='col-span-2 flex justify-between border-b pb-1'>
+                                        <span className='font-semibold'>Module:</span>
                                         <span>COE</span>
                                     </div>
                                 </div>
 
                                 {/* Data Table */}
-                                <div className="mt-6">
-                                    <table className="w-full border-collapse border border-black">
+                                <div className='mt-6'>
+                                    <table className='w-full border-collapse border border-black'>
                                         <thead>
-                                            <tr className="bg-gray-100">
-                                                <th className="border border-black p-2 text-center">SL.NO</th>
-                                                <th className="border border-black p-2 text-left">Event Name</th>
-                                                <th className="border border-black p-2 text-left">Event Description</th>
-                                                <th className="border border-black p-2 text-center">Start Date</th>
-                                                <th className="border border-black p-2 text-center">End Date</th>
+                                            <tr className='bg-gray-100'>
+                                                <th className='border border-black p-2 text-center'>SL.NO</th>
+                                                <th className='border border-black p-2 text-center'>COE</th>
+                                                <th className='border border-black p-2 text-center'>Count</th>
+                                                <th className='border border-black p-2 text-center'>SMS</th>
+                                                <th className='border border-black p-2 text-center'>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {Array.isArray(reportData) && reportData.map((row: any, index: number) => (
-                                                <tr key={index}>
-                                                    <td className="border border-black p-2 text-center">{index + 1}</td>
-                                                    <td className="border border-black p-2 text-left">{row.eventName || 'NA'}</td>
-                                                    <td className="border border-black p-2 text-left">{row.eventDesc || 'NA'}</td>
-                                                    <td className="border border-black p-2 text-center">
-                                                        {row.coeE_EStartDate ? new Date(row.coeE_EStartDate).toISOString().slice(0, 10) : 'NA'}
-                                                    </td>
-                                                    <td className="border border-black p-2 text-center">
-                                                        {row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {(!Array.isArray(reportData) || reportData.length === 0) && (
-                                                <tr>
-                                                    <td colSpan={5} className="border border-black p-4 text-center font-bold text-red-600">
-                                                        No records found
-                                                    </td>
-                                                </tr>
-                                            )}
+                                            <tr>
+                                                <td className='border border-black p-2 text-center'>1</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.coemE_EventName}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.totalCount || 0}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.smsCount || 0}</td>
+                                                <td className='border border-black p-2 text-center'>{reportData.emailCount || 0}</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Footer Signatures */}
-                                <div className="mt-16 space-y-12">
-                                    <div className="flex justify-between px-12">
-                                        <div className="text-left">Implementation Engineer: ________________</div>
-                                        <div className="text-right">Nodal Officer: ________________</div>
+                                <div className='mt-16 space-y-12'>
+                                    <div className='flex justify-between px-12'>
+                                        <div className='text-left'>Implementation Engineer: ________________</div>
+                                        <div className='text-right'>Nodal Officer: ________________</div>
                                     </div>
-                                    <div className="flex justify-between px-12">
-                                        <div className="text-left">End User: ________________</div>
-                                        <div className="text-right">Seal: ________________</div>
+                                    <div className='flex justify-between px-12'>
+                                        <div className='text-left'>End User: ________________</div>
+                                        <div className='text-right'>Seal: ________________</div>
                                     </div>
                                 </div>
                             </div>
                         </Card>
                     )}
-
-                    {/* Hidden Print Wrapper */}
-                    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
-                        <CoeMonthEndReportPrint
-                            ref={componentRef}
-                            reportData={reportData}
-                            selectedYear={selectedYear}
-                            selectedMonth={selectedMonth}
-                            ieName={ieName}
-                        />
-                    </div>
                 </div>
             </form>
         </div>
