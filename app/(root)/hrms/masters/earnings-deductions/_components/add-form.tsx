@@ -21,7 +21,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -49,6 +49,7 @@ interface AddEarningsDeductionsFormProps {
 }
 export default function AddEarningsDeductionsForm({ onSuccess, className = '' }: AddEarningsDeductionsFormProps) {
     const { refetchAll } = useMasterEarningsDeductions();
+    const [resetKey, setResetKey] = useState(0);
 
     // Helper function to map API response to dropdown items
     const mapToDropdownItems = (response: any) => {
@@ -90,8 +91,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                     !k.toLowerCase().endsWith('id')
             );
 
-            const finalKey = idField ? item[idField] : (keyVal ?? (keys[0] ? item[keys[0]] : ''));
-            const finalValue = nameField ? item[nameField] : (displayVal ?? finalKey);
+            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
+            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
 
             return {
                 key: String(finalKey ?? '').trim(),
@@ -173,6 +174,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
     };
     const handleReset = () => {
         reset();
+        setResetKey((prev) => prev + 1);
     };
     return (
         <div className={className}>
@@ -196,6 +198,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             Type <span className='text-destructive'>*</span>
                         </Label>
                         <Controller
+                            key={resetKey}
                             name='HRMED_EDTypeFlag'
                             control={control}
                             rules={{ required: 'Type is required' }}
@@ -242,6 +245,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             Rounding To <span className='text-destructive'>*</span>
                         </Label>
                         <Controller
+                            key={resetKey}
                             name='HRMED_RoundOffFlag'
                             control={control}
                             rules={{ required: 'Rounding option is required' }}
@@ -288,6 +292,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             Earning/Deduction <span className='text-destructive'>*</span>
                         </Label>
                         <Controller
+                            key={resetKey}
                             name='HRMED_EarnDedFlag'
                             control={control}
                             rules={{ required: 'Earning/Deduction is required' }}
@@ -334,6 +339,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             Calculation Type <span className='text-destructive'>*</span>
                         </Label>
                         <Controller
+                            key={resetKey}
                             name='HRMED_AmountPercentFlag'
                             control={control}
                             rules={{ required: 'Calculation Type is required' }}
@@ -415,6 +421,16 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                     return true;
                                 }
                             })}
+                            onInput={(e) => {
+                                const target = e.currentTarget;
+                                let val = target.value;
+                                val = val.replace(/[^0-9.]/g, '');
+                                const parts = val.split('.');
+                                if (parts.length > 2) {
+                                    val = parts[0] + '.' + parts.slice(1).join('');
+                                }
+                                target.value = val;
+                            }}
                         />
                     </div>
                     <div className='group flex items-center gap-2'>

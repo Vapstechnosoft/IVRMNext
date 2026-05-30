@@ -70,7 +70,12 @@ export default function AddFeeAdjustmentForm({
     const [adjustAmounts, setAdjustAmounts] = useState<{ [key: string]: number }>({});
 
     const { data: academicYear, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
-    const { data: classdata, isLoading: loadingClasses, error } = useopeningClassdropdowndatafee();
+    const { data: classdata, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
+
+    // Log the error if any
+
+    console.log('Class data:', classdata);
+    console.log('Loading:', loadingClasses);
     const { data: sectiondata, isLoading: loadingSections } = useopeningSectiondropdowndatafee(
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
@@ -151,6 +156,7 @@ export default function AddFeeAdjustmentForm({
                     fillSecCls: sectionId ? String(sectionId) : '0',
                     filterInitialData: nameType === 'Name:Adm.No' ? 'NameRegNo' : 'RegNoName'
                 };
+                console.log('payload', JSON.stringify(payload));
                 const res = await studentNameDropdown(payload);
                 if (!isMounted) return;
 
@@ -165,7 +171,7 @@ export default function AddFeeAdjustmentForm({
                     }));
                     setStudentDropdownList(formatted);
                 }
-            } catch (_error) {
+            } catch (error) {
                 toast.error('Failed to load students');
             } finally {
                 if (isMounted) setLoadingDropdown(false);
@@ -501,7 +507,6 @@ export default function AddFeeAdjustmentForm({
                             )}
                         />
                         {/* Show error if any */}
-                        {error && <span className='text-red-500 text-sm'>Failed to load classes</span>}
                     </div>
 
                     <div className='flex items-center gap-4'>

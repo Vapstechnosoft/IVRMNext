@@ -586,7 +586,8 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                             { value: 'Regular', label: 'Regular Student' },
                             { value: 'NewStude', label: 'New Student' },
                             { value: 'LeftStudent', label: 'Left Student' },
-                            { value: 'CCAT', label: 'Caste Category' }
+                            { value: 'CCAT', label: 'Caste Category' },
+                            { value: 'FCAT', label: 'Fee Concession Category' }
                         ].map((item) => {
                             return (
                                 <div key={item.value} className='flex items-center space-x-2'>

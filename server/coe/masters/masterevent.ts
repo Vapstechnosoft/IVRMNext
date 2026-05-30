@@ -15,9 +15,17 @@ export async function saveMasterEvent(payload: any) {
     return await api.post<any[]>('coe', url, payload);
 }
 
-export async function getCoeReport(payload: any) {
-    const url = '/coe_report/coe_report';
-    return await api.post<any[]>('coe', url, payload);
+export async function getCoeReport(data: {
+    type: string | number;
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    Monthid: number;
+    COEE_EStartDate: string;
+    COEE_EEndDate: string;
+    [key: string]: any;
+}) {
+    const url = `/COEReport/getReport?type=${data.type}&ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&Monthid=${data.Monthid}&COEE_EStartDate=${data.COEE_EStartDate}&COEE_EEndDate=${data.COEE_EEndDate}`;
+    return await api.post<any>('admission', url, data);
 }
 export async function toggleUploadEvent(id: number, _coee_Id: number) {
     const url = `/master_coe/active_deactive_coe_event/${id}`;
