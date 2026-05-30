@@ -130,6 +130,7 @@ export interface IadmissionStudentApplicationList {
     amsT_Id: number;
     studentName: string;
     className: string;
+    sectionName?: string;
     admissionDate: string;
     gender: string;
     registrationNo: string;
