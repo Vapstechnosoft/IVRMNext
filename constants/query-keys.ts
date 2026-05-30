@@ -170,6 +170,7 @@ export const FEES_QUERY_KEYS = {
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
     FEE_OPENING_ACADEMIC_YEAR_DROPDOWN: 'fee_opening_academic_year_dropdown',
+    FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1: 'fee_opening_academic_year_dropdown1',
     FEE_OPENING_CATEGORY_DROPDOWN: 'fee_opening_category_dropdown',
     FEE_OPENING_CLASS_DROPDOWN: 'fee_opening_class_dropdown',
     FEE_OPENING_SECTION_DROPDOWN: 'fee_opening_section_dropdown',
