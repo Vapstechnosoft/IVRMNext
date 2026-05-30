@@ -169,6 +169,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
 
     const handleReset = () => {
         reset();
+        window.location.reload();
     };
 
     return (
