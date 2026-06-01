@@ -100,3 +100,11 @@ export const staffWiseWorkingHoursReportSchema = {
         hrmE_Id: z.array(z.number()).min(1, 'Select at least one Staff')
     })
 };
+
+export const ttMonthEndReportSchema = {
+    search: z.object({
+        asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
+        month: z.coerce.number().min(1, 'Month is required'),
+        name: z.string().optional()
+    })
+};
