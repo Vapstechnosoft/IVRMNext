@@ -19,10 +19,10 @@ import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft, MessageCircle, Rot
 import { Button } from '@/components/ui/button';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January ' }, { id: 2, name: 'February ' }, { id: 3, name: 'March ' },
+    { id: 4, name: 'April ' }, { id: 5, name: 'May ' }, { id: 6, name: 'June ' },
+    { id: 7, name: 'July ' }, { id: 8, name: 'August ' }, { id: 9, name: 'September ' },
+    { id: 10, name: 'October ' }, { id: 11, name: 'November ' }, { id: 12, name: 'December ' }
 ];
 
 export default function SalarySlipPage() {
@@ -80,13 +80,13 @@ export default function SalarySlipPage() {
     }, [onloadData]);
 
     useEffect(() => {
-  if (showReport && reportRef.current) {
-    reportRef.current.scrollIntoView({ 
-      behavior: "smooth", 
-      block: "start" 
-    });
-  }
-}, [showReport]);
+        if (showReport && reportRef.current) {
+            reportRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    }, [showReport]);
 
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
@@ -345,7 +345,7 @@ export default function SalarySlipPage() {
             />
 
             {showReport && (
-                <div className="space-y-6" ref = {reportRef}>
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">
