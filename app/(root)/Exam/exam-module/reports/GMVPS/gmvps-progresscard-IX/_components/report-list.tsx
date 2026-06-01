@@ -73,7 +73,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             <div ref={printRef} className='print-area' style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
                 {studentDetails.length > 0 ? (
                     studentDetails.map((report: any, index: number) => {
-                        const studentID = report.amsT_Id || report.AMST_Id;
+                        const studentID = report.amsT_Id || report.studentId;
 
                         // Extract subjects for this student
                         const studentSubjects = Array.from(new Set(studentWiseSubjects
@@ -91,21 +91,21 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     amsT_Id: subjObj.amsT_Id
                                 };
                             });
-
+                        console.log('report Data', data);
                         const studentMarks = studentMarksDetails.filter((m: any) => (m.amsT_Id || m.AMST_Id) === studentID);
                         const studentSummary = examMaxMarks.find((emm: any) => (emm.amsT_Id || emm.AMST_Id) === studentID) || {};
                         const remarksObj = promotionRemarks.find((rem: any) => (rem.amsT_Id || rem.AMST_Id) === studentID) || {};
 
-                        const workAtt = (data.work_attendence || []).find((a: any) => (a.amsT_Id || a.AMST_Id) === studentID) || {};
-                        const presentAtt = (data.present_attendence || []).find((a: any) => (a.amsT_Id || a.AMST_Id) === studentID) || {};
-
+                        const workAtt = (data.work_attendence || []).find((a: any) => (a.studentId || a.StudentId) === studentID) || {};
+                        const presentAtt = (data.present_attendence || []).find((a: any) => (a.studentId || a.studentId) === studentID) || {};
+                        console.log("workAtt", data.work_attendence);
+                        console.log("presentAtt", presentAtt);
                         // Graph data
                         const graphSubjects = studentWiseSubjects.filter((s: any) => (s.amsT_Id || s.AMST_Id) === studentID);
                         const graphLabels = graphSubjects.map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName);
                         const graphScores = graphSubjects.map((s: any) => s.subjectPercentage || s.TotalPercentage || 0);
-                        const graphAverages = graphSubjects.map((s: any) => s.ESTMPPS_ClassAverage || 0);
-                        const hasAverage = graphSubjects.some((s: any) => s.ESTMPPS_ClassAverage !== undefined && s.ESTMPPS_ClassAverage !== null);
-
+                        const graphAverages = graphSubjects.map((s: any) => s.classAverage || 0);
+                        const hasAverage = graphSubjects.some((s: any) => s.classAverage !== undefined && s.classAverage !== null);
                         return (
                             <div
                                 key={index}
@@ -197,7 +197,6 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         const summaryMark = graphSubjects.find((gs: any) =>
                                                             (gs.subjectName === subj.subjectName || gs.ISMS_SubjectName === subj.subjectName || gs.ismS_SubjectName === subj.subjectName)
                                                         );
-                                                        console.log(mark, subj, exam);
                                                         let displayValue = '';
                                                         if (exam.isTotal) {
                                                             displayValue = summaryMark?.subjectObtainedMarks || summaryMark?.TotalMarks || '';
@@ -283,7 +282,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>Co-Scholastic Activities</h4>
                                         <div className='mx-auto w-full max-w-4xl'>
                                             {Array.from(new Set(activityMainList.map((a: any) => a.ECACT_SkillName))).map((skillName: any, idx) => {
-                                                const areaActivities = activityMainList.filter((a: any) => a.ECACT_SkillName === skillName);
+                                                const areaActivities = activityMainList.filter((a: any) => a.ECACT_SkillName === skillName && a.amsT_Id == studentID);
                                                 return (
                                                     <div key={idx} className="mb-6">
                                                         <h5 className="text-center font-bold mb-2 uppercase">{skillName}</h5>
@@ -299,13 +298,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             <tbody>
                                                                 {areaActivities.map((act: any, ai: number) => (
                                                                     <tr key={ai}>
-                                                                        <td className="border border-gray-400 p-2 text-left font-medium uppercase">{act.ECACTA_SkillArea}</td>
-                                                                        {termDetails.map((term: any, ti: number) => {
+                                                                        <td className="border border-gray-400 p-2 text-left font-medium uppercase">{act.activityArea}</td>
+                                                                        <td className="border border-gray-400 p-2 font-bold">{act.activityGrade || ''}</td>
+                                                                        {/* {termDetails.map((term: any, ti: number) => {
                                                                             const score = (act.activity_score_details || []).find((s: any) => s.ecT_Id === term.ecT_Id);
                                                                             return (
                                                                                 <td key={ti} className="border border-gray-400 p-2 font-bold">{score?.EMGD_Name || ''}</td>
                                                                             );
-                                                                        })}
+                                                                        })} */}
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -349,11 +349,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{workAtt.totalWorkingDays || workAtt.TotalSchoolDays || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalSchoolDays || presentAtt.totalSchoolDays || ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.presentDays || presentAtt.TotalPresentDays || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays || presentAtt.totalWorkingDays || ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.attendancePercentage || presentAtt.Total_Percentage ? `${presentAtt.attendancePercentage || presentAtt.Total_Percentage}%` : ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.attendancePercentage || presentAtt.total_Percentage ? `${presentAtt.attendancePercentage || presentAtt.total_Percentage}%` : ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
