@@ -443,6 +443,14 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                 return;
             }
 
+            // Validate End Time
+            const startMin = data.ttmB_BreakStartTime.getHours() * 60 + data.ttmB_BreakStartTime.getMinutes();
+            const endMin = data.ttmB_BreakEndTime.getHours() * 60 + data.ttmB_BreakEndTime.getMinutes();
+            if (endMin <= startMin) {
+                toast.error('End Time must be greater than Start Time');
+                return;
+            }
+
             const formatTime = (date: Date) => format(date, 'h:mm a');
 
             const payload = {
