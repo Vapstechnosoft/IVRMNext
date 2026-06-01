@@ -802,9 +802,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                         {...field}
                                         onChange={(value) => {
                                             field.onChange(value);
-                                            if (value > maxPeriods) {
-                                                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
-                                            }
                                         }}
                                         error={errors.ttmB_AfterPeriod?.message}
                                     />

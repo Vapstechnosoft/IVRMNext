@@ -88,13 +88,7 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
     };
 
     const handleCancel = () => {
-        setAcademicYearId(academicYearData?.data?.[0]?.asmaY_Id || null);
-        setClassId(null);
-        setSearchAcademicYearId(null);
-        setSearchClassId(null);
-        setIsSearched(false);
-        setSelectedStudents([]);
-        handleResetSelection();
+        window.location.reload();
     };
 
     const onUpdateAdmissionStatusClose = () => {

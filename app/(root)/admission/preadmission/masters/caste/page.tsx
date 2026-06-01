@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import AddMasterCasteForm from './_components/add-form';
 import { masterCasteColumns } from './_components/columns';
 import UpdateMasterCasteForm from './_components/update-form';
+import ViewDetailsDialog from './_components/view-details-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -72,6 +73,9 @@ function MasterCastePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end mb-2'>
+                        <ViewDetailsDialog />
+                    </div>
                     <GenericDataTable<IMasterCasteList>
                         {...tableProps}
                         columns={masterCasteColumns}

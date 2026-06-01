@@ -5,6 +5,7 @@ export const masterFloorSchema = z.object({
     hrmF_FloorName: z.string().min(1, 'Floor Name is required'),
     hrmF_FloorDesc: z.string().optional(),
     hlmH_Id: z.string().min(1, 'Hostel is required'),
+    hrmF_TotalRooms: z.coerce.number().min(1, 'Number of Rooms must be at least 1'),
     // Facility selection: array of objects with facility ID and active flag
     selected_facilities: z
         .array(

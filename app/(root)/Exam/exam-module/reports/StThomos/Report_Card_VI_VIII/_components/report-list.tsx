@@ -94,40 +94,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const isScholasticSubject = (s: any) => {
         if (!s) return false;
-        const name = String(s?.ismS_SubjectName ?? s?.ISMS_SubjectName ?? '').trim().toUpperCase();
-        if (
-            name.includes('MORAL SCIENCE') ||
-            name.includes('GENERAL KNOWLEDGE') ||
-            name.includes('3RD LANGUAGE') ||
-            name.includes('BENGALI') ||
-            name.includes('CO-SCHOLASTIC')
-        ) {
-            return false;
-        }
-        return true;
-    };
-
-    const getSubjectSortIndex = (name: string) => {
-        const uName = name.trim().toUpperCase();
-        if (uName === 'ENGLISH') return 10;
-        if (uName === 'ENGLISH LANGUAGE') return 20;
-        if (uName === 'ENGLISH LITERATURE') return 30;
-        if ((uName.includes('2ND LANGUAGE') || uName.includes('HINDI') || uName.includes('BENGALI')) && !uName.includes('3RD')) {
-            return 40;
-        }
-        if (uName === 'SOCIAL STUDIES') return 50;
-        if (uName === 'HISTORY & CIVICS' || uName === 'HISTORY' || uName === 'CIVICS') return 60;
-        if (uName === 'GEOGRAPHY') return 70;
-        if (uName === 'MATHEMATICS' || uName === 'MATHS' || uName === 'MATH') return 80;
-        if (uName === 'SCIENCE') return 90;
-        if (uName === 'PHYSICS') return 100;
-        if (uName === 'CHEMISTRY') return 110;
-        if (uName === 'BIOLOGY') return 120;
-        if (uName === 'COMPUTER STUDIES' || uName === 'COMPUTER') return 130;
-        if (uName.includes('3RD LANGUAGE') || (uName.includes('BENGALI') && uName.includes('3RD'))) return 140;
-        if (uName === 'MORAL SCIENCE') return 150;
-        if (uName === 'GENERAL KNOWLEDGE' || uName === 'G.K.' || uName === 'GK') return 160;
-        return 200;
+        const subjectId = Number(s?.ismS_Id ?? s?.ISMS_Id ?? s?.ismS_ID ?? s?.ISMS_ID ?? 0);
+        return subjectId < 1000;
     };
 
     const formatNumberValue = (val: any, decimals: number) => {
@@ -138,36 +106,69 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         return num.toFixed(decimals);
     };
 
-    const isParentSubject = (subj: any) => {
+    const isParentSubject = (subj: any, allSubjects: any[] = []) => {
+        if (!subj) return false;
         const name = String(subj?.ismS_SubjectName ?? subj?.ISMS_SubjectName ?? '').trim().toUpperCase();
-        return name === 'ENGLISH' || name === 'SOCIAL STUDIES' || name === 'SCIENCE';
+
+        // 1. Database indicator: Parent subject in a group has esG_Id > 0 and grouporder > 0
+        const esG_Id = Number(subj?.esG_Id ?? subj?.ESG_Id ?? 0);
+        const grouporder = Number(subj?.grouporder ?? subj?.Grouporder ?? 0);
+        if (esG_Id > 0 && grouporder > 0) {
+            return true;
+        }
+
+        // 2. Dynamic check: does any other subject in the list start with this subject's name?
+        if (allSubjects && allSubjects.length > 0) {
+            const hasChildrenWithSamePrefix = allSubjects.some(s => {
+                const sName = String(s?.ismS_SubjectName ?? s?.ISMS_SubjectName ?? '').trim().toUpperCase();
+                return s !== subj && sName.startsWith(name + ' ');
+            });
+            if (hasChildrenWithSamePrefix) return true;
+        }
+
+        // 3. Robust standard parent subject fallbacks
+        const parentList = ['ENGLISH', 'SCIENCE', 'SOCIAL STUDIES', 'SOCIAL SCIENCE'];
+        if (parentList.includes(name)) {
+            return true;
+        }
+
+        return false;
     };
 
-    const isChildSubject = (subj: any) => {
+    const isChildSubject = (subj: any, allSubjects: any[] = []) => {
+        if (!subj) return false;
         const name = String(subj?.ismS_SubjectName ?? subj?.ISMS_SubjectName ?? '').trim().toUpperCase();
-        return [
+
+        // 1. Dynamic check: does this subject's name start with another subject's name in the list?
+        if (allSubjects && allSubjects.length > 0) {
+            const hasParentWithSamePrefix = allSubjects.some(s => {
+                const sName = String(s?.ismS_SubjectName ?? s?.ISMS_SubjectName ?? '').trim().toUpperCase();
+                return s !== subj && name.startsWith(sName + ' ');
+            });
+            if (hasParentWithSamePrefix) return true;
+        }
+
+        // 2. Robust standard child subject fallbacks
+        const childList = [
             'ENGLISH LANGUAGE',
             'ENGLISH LITERATURE',
             'HISTORY & CIVICS',
             'GEOGRAPHY',
             'PHYSICS',
             'CHEMISTRY',
-            'BIOLOGY'
-        ].includes(name);
-    };
-
-    const isResultSubject = (subj: any) => {
-        const name = String(subj?.ismS_SubjectName ?? subj?.ISMS_SubjectName ?? '').trim().toUpperCase();
-        if (
-            name.includes('MORAL SCIENCE') ||
-            name.includes('GENERAL KNOWLEDGE') ||
-            name.includes('3RD LANGUAGE') ||
-            name.includes('BENGALI') ||
-            name.includes('CO-SCHOLASTIC')
-        ) {
-            return false;
+            'BIOLOGY',
+            'HISTORY',
+            'CIVICS',
+            'PRACTICAL',
+            'PHYSICS PRACTICAL',
+            'CHEMISTRY PRACTICAL',
+            'BIOLOGY PRACTICAL'
+        ];
+        if (childList.includes(name)) {
+            return true;
         }
-        return true;
+
+        return false;
     };
 
     const getUniqueSubjects = (report: any) => {
@@ -230,11 +231,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         // Convert map values to array
         let subjectsList = Array.from(uniqueSubjectsMap.values());
 
-        // Sort by custom subject sort weight
+        // Sort by dynamic database subject order
         subjectsList.sort((a, b) => {
-            const nameA = a.ismS_SubjectName ?? a.ISMS_SubjectName ?? '';
-            const nameB = b.ismS_SubjectName ?? b.ISMS_SubjectName ?? '';
-            return getSubjectSortIndex(nameA) - getSubjectSortIndex(nameB);
+            const orderA = Number(a.empS_SubjOrder ?? a.EMPS_SubjOrder ?? 9999);
+            const orderB = Number(b.empS_SubjOrder ?? b.EMPS_SubjOrder ?? 9999);
+            return orderA - orderB;
         });
 
         return subjectsList;
@@ -251,14 +252,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const subjectId = Number(subj?.ismS_Id ?? subj?.ISMS_Id ?? 0);
 
         const isAvgExam = examNameDisplay === 'AVG';
+        const allSubjects = getUniqueSubjects(report);
 
         // 1. If parent subject and not AVG exam, must be empty cell!
-        if (isParentSubject(subj) && !isAvgExam) {
+        if (isParentSubject(subj, allSubjects) && !isAvgExam) {
             return "";
         }
 
         // 2. If child subject and AVG exam, must be empty cell!
-        if (isChildSubject(subj) && isAvgExam) {
+        if (isChildSubject(subj, allSubjects) && isAvgExam) {
             return "";
         }
 
@@ -711,11 +713,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 {allSubjects.map((subj: any, i: number) => (
                                                     <tr key={i}>
                                                         <td className='border-[0.5px] border-gray-500 p-1 pl-2 text-left'>
-                                                            {isParentSubject(subj) ? (
+                                                            {isParentSubject(subj, allSubjects) ? (
                                                                 <span className='font-semibold'>
                                                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName ?? subj.ISMS_SubjectName}
                                                                 </span>
-                                                            ) : isChildSubject(subj) ? (
+                                                            ) : isChildSubject(subj, allSubjects) ? (
                                                                 <span className='font-normal'>
                                                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                                     {subj.ismS_SubjectName ?? subj.ISMS_SubjectName}
@@ -746,12 +748,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         })}
                                                         {/* Super Average Columns */}
                                                         <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                            {!isChildSubject(subj) && showSuperAverage && (
+                                                            {!isChildSubject(subj, allSubjects) && showSuperAverage && (
                                                                 <span>{subj.estmppsG_GroupObtMarks ?? subj.ESTMPPSG_GroupObtMarks ?? ''}</span>
                                                             )}
                                                         </td>
                                                         <td className='border-[0.5px] border-gray-500 p-1 text-center'>
-                                                            {!isChildSubject(subj) && showSuperAverage && (
+                                                            {!isChildSubject(subj, allSubjects) && showSuperAverage && (
                                                                 <span className='font-semibold'>
                                                                     {subj.groupAVGMarks ?? subj.ESTMPPSG_GroupAVGMarks ?? subj.estmppsG_GroupAvgMarks ?? subj.ESTMPPSG_GroupAvgMarks ?? ''}
                                                                 </span>

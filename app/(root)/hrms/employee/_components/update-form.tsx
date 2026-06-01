@@ -736,6 +736,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setSavedEmployeeId(selectedRow.hrmE_Id);
             setIsFormInitialized(false); // Reset initialization flag
             hasAppliedDetailedData.current = false; // Reset detailed data flag
+            setCurrentStep(1); // Reset back to the first tab when a new employee is selected
             refetchEmployee();
         }
     }, [selectedRow?.hrmE_Id, refetchEmployee]);

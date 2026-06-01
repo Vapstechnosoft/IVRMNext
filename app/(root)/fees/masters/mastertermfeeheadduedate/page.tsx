@@ -68,6 +68,7 @@ function MasterFeeTermsHeadDueDatePageContent({
                         noDataTitle='No fee term heads due dates found'
                         noDataDescription='Please add a fee term head due date'
                         errorTitle='Error loading fee term heads due dates'
+                        manualPagination={true}
                     />
                 </CollapsibleSection>
 

@@ -75,3 +75,58 @@ export function GenericTextAreaField({ name, label, placeholder, required, disab
         </div>
     );
 }
+
+interface GenericSelectFieldProps {
+    name: string;
+    label: string;
+    placeholder?: string;
+    required?: boolean;
+    disabled?: boolean;
+    className?: string;
+    options: { value: string | number; label: string }[];
+}
+
+export function GenericSelectField({
+    name,
+    label,
+    placeholder = '--Select--',
+    required,
+    disabled,
+    className,
+    options
+}: GenericSelectFieldProps) {
+    const {
+        register,
+        formState: { errors },
+        setValue,
+        watch
+    } = useFormContext();
+    const error = errors[name];
+    const value = watch(name);
+
+    return (
+        <div className={cn('flex flex-col gap-2', className)}>
+            <Label htmlFor={name} className={cn(required && "after:ml-0.5 after:text-red-500 after:content-['*']")}>
+                {label}
+            </Label>
+            <select
+                id={name}
+                disabled={disabled}
+                className={cn(
+                    "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                    error && 'border-destructive focus-visible:ring-destructive'
+                )}
+                value={value || ''}
+                onChange={(e) => setValue(name, e.target.value ? Number(e.target.value) : 0, { shouldValidate: true })}
+            >
+                <option value="" disabled hidden>{placeholder}</option>
+                {options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </option>
+                ))}
+            </select>
+            {error && <span className='text-xs text-destructive'>{error.message as string}</span>}
+        </div>
+    );
+}

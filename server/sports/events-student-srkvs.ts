@@ -251,6 +251,42 @@ export async function getEventsStudentSRKVSDetails(spccesT_Id: number): Promise<
     }
 }
 
+// Update View Details
+export async function updateStudentSRKVSDetails(data: any): Promise<ApiResponse<any>> {
+    try {
+        const payload = {
+            MI_Id: 0,
+            UserId: 0,
+            ASMAY_Id: 0,
+            student1: data.map((item: any) => ({
+                spccestR_Id: item.spccestR_Id || 0,
+                amsT_Id: item.amsT_Id || 0,
+                spccesT_Id: item.spccesT_Id || 0,
+                spccestR_Rank: String(item.spccestR_Rank || '0'),
+                spccestR_Points: Number(item.spccestR_Points) || 0,
+                spccestR_Value: String(item.spccestR_Value || ''),
+                spccestR_RecordBrokenFlag: item.spccestR_RecordBrokenFlag ? "true" : "false",
+                spccestR_Remarks: item.spccestR_Remarks || "",
+                spccmuoM_Id: item.spccmuoM_Id || 0,
+                spccestR_EventRecordFlg: !!item.spccestR_EventRecordFlg,
+                spccmscC_MultiAttemptFlg: !!item.spccmscC_MultiAttemptFlg,
+                MultipleBroken: []
+            }))
+        };
+
+        const response = await api.post<any>('sports', 'EventsStudentRecord/UpdateStudentSRKVS', payload);
+
+        if (response.success) {
+            return { success: true, message: response.message || 'Updated Successfully', data: response.data };
+        }
+        
+        return { success: false, message: response.message || 'Failed to update details', data: null };
+    } catch (error) {
+        console.error("Error updating View Details:", error);
+        return { success: false, message: 'An error occurred while updating', data: null };
+    }
+}
+
 // Deactivate Record
 export async function deactivateEventsStudentSRKVS(data: { id: number; activeFlag: boolean }): Promise<ApiResponse<any>> {
     await new Promise((resolve) => setTimeout(resolve, 500));

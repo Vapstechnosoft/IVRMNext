@@ -1,20 +1,20 @@
+import { useState, useEffect } from 'react';
 import {
-    getDetails,
     getInitialData,
-    getReportData,
+    getDetails,
     getSections,
-    getStudentData
+    getStudentData,
+    getReportData
 } from '@/server/sports/transactions/sport-venuewise-participation-report';
-import type {
+import {
+    ISportVenueWiseParticipationReportYear,
     ISportVenueWiseParticipationReportClass,
-    ISportVenueWiseParticipationReportHouse,
-    ISportVenueWiseParticipationReportPayload,
     ISportVenueWiseParticipationReportSection,
     ISportVenueWiseParticipationReportStudent,
     ISportVenueWiseParticipationReportVenue,
-    ISportVenueWiseParticipationReportYear
+    ISportVenueWiseParticipationReportHouse,
+    ISportVenueWiseParticipationReportPayload
 } from '@/types/sports/reports/venue-wise-participation-report';
-import { useEffect, useState } from 'react';
 
 export const useVenueWiseParticipationReport = () => {
     const [years, setYears] = useState<ISportVenueWiseParticipationReportYear[]>([]);
@@ -33,12 +33,12 @@ export const useVenueWiseParticipationReport = () => {
                 const response = await getInitialData();
                 if (response.success && response.data) {
                     setYears(response.data.yearlist || []);
-                    // Initial load typically only guarantees years based on similar reports,
+                    // Initial load typically only guarantees years based on similar reports, 
                     // but we will see if we need to load others.
                 } else {
                     setError(response.message || 'Failed to load initial data');
                 }
-            } catch (_err) {
+            } catch (err) {
                 setError('An error occurred while loading initial data');
             } finally {
                 setLoading(false);
@@ -96,19 +96,21 @@ export const useVenueWiseParticipationReport = () => {
         try {
             setLoading(true);
             const response = await getReportData(payload);
-            if (response.success) {
-                return response.data;
+            if (response.success && response.data) {
+                return response; // Return the full response for GenericDataTable
+            } else {
+                setError(response.message || 'Failed to generate report');
+                return null;
             }
-            setError(response.message || 'Failed to generate report');
-            return [];
         } catch (err) {
             console.error('Error generating report:', err);
             setError('An error occurred while generating report');
-            return [];
+            return null;
         } finally {
             setLoading(false);
         }
     };
+
 
     return {
         years,

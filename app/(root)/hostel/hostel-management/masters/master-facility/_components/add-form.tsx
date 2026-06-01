@@ -70,6 +70,9 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                             required
                             id='hlmftY_FacilityName'
                             {...register('hlmftY_FacilityName')}
+                            onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                            }}
                             error={errors.hlmftY_FacilityName?.message}
                         />
                     </div>
