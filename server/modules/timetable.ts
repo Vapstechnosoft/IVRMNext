@@ -283,6 +283,14 @@ export const timetableModule: IUserAccessibleModules = {
                             url: '/timetable/reports/deputationreport',
                             title: 'Deputation Report',
                             description: 'Deputation Report'
+                        },
+                        {
+                            id: 6,
+                            name: 'Time Table Month End Report',
+                            icon: 'Clock',
+                            url: '/timetable/reports/ttmonthendreport',
+                            title: 'Time Table Month End Report',
+                            description: 'Time Table Month End Report'
                         }
                     ]
                 }

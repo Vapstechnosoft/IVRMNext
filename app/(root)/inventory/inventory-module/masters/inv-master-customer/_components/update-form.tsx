@@ -14,9 +14,10 @@ import { useForm } from 'react-hook-form';
 interface UpdateCustomerFormProps {
     selectedRow: IInvMasterCustomer;
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 
-export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCustomerFormProps) {
+export default function UpdateCustomerForm({ selectedRow, onSuccess, onCancel }: UpdateCustomerFormProps) {
     const { saveMutation } = useInvMasterCustomer();
 
     const form = useForm<InvMasterCustomerSchema>({
@@ -58,6 +59,15 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
                 onSuccess();
             }
         });
+    };
+
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
+        } else {
+            onSuccess();
+        }
     };
 
     return (
@@ -104,6 +114,9 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess }: UpdateCus
             </div>
 
             <div className='mt-4 flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' isLoading={saveMutation.isPending}>
                     <Save className='mr-2 h-4 w-4' />
                     Update
