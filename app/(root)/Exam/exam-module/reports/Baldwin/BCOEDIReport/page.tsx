@@ -29,9 +29,10 @@ export default function BCOEDIReportPage() {
             const res = await getExamReportCard(payload);
             console.log("response", res);
 
-            if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-                const flatRows: any[] = res.data;
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
 
+            if (res && res.success && Array.isArray(flatRows) && flatRows.length > 0) {
                 // Group by student
                 const studentMap = new Map<number, any>();
 
@@ -77,10 +78,10 @@ export default function BCOEDIReportPage() {
                     });
                 });
 
-                const grade_details = (res as any).grade_details || [];
-                const stud_work_attendence = (res as any).stud_work_attendence || [];
-                const stud_present_attendence = (res as any).stud_present_attendence || [];
-                const clstchname = (res as any).clstchname || [];
+                const grade_details = apiData?.grade_details || (res as any).grade_details || [];
+                const stud_work_attendence = apiData?.stud_work_attendence || apiData?.work_attendence || (res as any).stud_work_attendence || (res as any).work_attendence || [];
+                const stud_present_attendence = apiData?.stud_present_attendence || apiData?.present_attendence || (res as any).stud_present_attendence || (res as any).present_attendence || [];
+                const clstchname = apiData?.clstchname || (res as any).clstchname || [];
 
                 setReportData(Array.from(studentMap.values()));
                 setGradeRemarks(grade_details);
@@ -88,7 +89,7 @@ export default function BCOEDIReportPage() {
                 setAttendancePresent(stud_present_attendence);
                 setExamName(flatRows[0].emE_ExamName || '');
                 setAcademicYear(payload.asmaY_Year || ''); // Need to pass year name from form
-                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || '');
+                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.hrme_EmployeeFirstName || '');
                 setShowRemarks(payload.showRemarks);
                 setShowRank(payload.showRank);
 

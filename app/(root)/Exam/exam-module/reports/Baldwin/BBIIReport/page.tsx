@@ -28,18 +28,20 @@ export default function BBIIReportPage() {
             console.log(payload, "pay");
             const res = await getExamReportCard(payload);
             console.log("response", res);
-            if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-                const flatRows: any[] = res.data;
 
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (res && res.success && Array.isArray(flatRows) && flatRows.length > 0) {
                 // Extract extra lists from response
-                const grade_details = (res as any).grade_details || [];
-                const stud_work_attendence = (res as any).stud_work_attendence || [];
-                const stud_present_attendence = (res as any).stud_present_attendence || [];
-                const clstchname = (res as any).clstchname || [];
+                const grade_details = apiData?.grade_details || (res as any).grade_details || [];
+                const stud_work_attendence = apiData?.stud_work_attendence || (res as any).stud_work_attendence || [];
+                const stud_present_attendence = apiData?.stud_present_attendence || (res as any).stud_present_attendence || [];
+                const clstchname = apiData?.clstchname || (res as any).clstchname || [];
 
                 const studentMap = new Map<number, any>();
 
-                flatRows.forEach((row) => {
+                flatRows.forEach((row: any) => {
                     const studentId = row.amsT_Id;
 
                     if (!studentMap.has(studentId)) {
@@ -77,13 +79,14 @@ export default function BBIIReportPage() {
                             eyceS_MarksEntryMax: row.eyceS_MarksEntryMax,
                             estM_Marks: row.estM_Marks,
                             estmpS_ObtainedMarks: row.estmpS_ObtainedMarks,
-                            estmpS_Percentage: row.estmpS_Percentage,
+                            estmpS_Percentage: row.estmpS_Percentage || row.estmP_Percentage,
+                            estmP_Percentage: row.estmP_Percentage || row.estmpS_Percentage,
                             estmpS_ObtainedGrade: row.estmpS_ObtainedGrade,
                             estmpS_PassFailFlg: row.estmpS_PassFailFlg,
                             eyceS_AplResultFlg: row.eyceS_AplResultFlg,
                             emgR_Id: row.emgR_Id,
-                            EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg,
-                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg,
+                            EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg || row.eyceS_MarksDisplayFlg,
+                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg || row.eyceS_GradeDisplayFlg,
                         });
                     }
                 });
@@ -93,8 +96,8 @@ export default function BBIIReportPage() {
                 setAttendanceWork(stud_work_attendence);
                 setAttendancePresent(stud_present_attendence);
                 setExamName(flatRows[0].emE_ExamName || 'Progress Card');
-                setAcademicYear(flatRows[0].asmaY_Year || '');
-                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || '');
+                setAcademicYear(flatRows[0].asmaY_Year || flatRows[0].amaY_Year || '');
+                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.clstchname || '');
                 setShowRemarks(true);
                 setShowRank(false);
                 setIsReportVisible(true);

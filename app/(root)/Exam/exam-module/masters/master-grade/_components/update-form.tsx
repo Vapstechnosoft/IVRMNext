@@ -54,6 +54,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         control,
         name: 'grade_list'
     });
+    const marksPerFlag = watch('emgR_MarksPerFlag');
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
@@ -326,7 +327,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             type='number'
                                             step='any'
                                             min='0'
-                                            max='100'
+                                            max={marksPerFlag === 'P' ? '100' : undefined}
                                             {...register(`grade_list.${index}.emgD_From`, {
                                                 setValueAs: (v) => {
                                                     if (v === '' || v === null) return null;
@@ -341,7 +342,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder='0-100'
+                                            placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
                                             error={errors.grade_list?.[index]?.emgD_From?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -366,7 +367,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             type='number'
                                             step='any'
                                             min='0'
-                                            max='100'
+                                            max={marksPerFlag === 'P' ? '100' : undefined}
                                             {...register(`grade_list.${index}.emgD_To`, {
                                                 setValueAs: (v) => {
                                                     if (v === '' || v === null) return null;
@@ -381,7 +382,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder='0-100'
+                                            placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
                                             error={errors.grade_list?.[index]?.emgD_To?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
