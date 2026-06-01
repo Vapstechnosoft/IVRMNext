@@ -142,6 +142,7 @@ export default function UpdateMasterAcademicYearForm({
 
     const handleReset = () => {
         reset();
+        window.location.reload();
     };
     return (
         <div className={`${className}`}>

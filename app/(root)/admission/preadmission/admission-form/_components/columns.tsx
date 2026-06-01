@@ -52,6 +52,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableSorting: true,
         enableHiding: true
     },
+    {
+        accessorKey: 'sectionName',
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Section' />,
+        cell: ({ row }) => <div>{(row.original as any).sectionName || (row.original as any).section || ''}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
 
     {
         accessorKey: 'admissionDate',
@@ -76,13 +83,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableHiding: true
     },
 
-    {
-        accessorKey: 'registrationNo',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Reg.No.' />,
-        cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
-        enableSorting: false,
-        enableHiding: true
-    },
+    //  {
+    //         accessorKey: 'registrationNo',
+    //         header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Reg.No.' />,
+    //         cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
+    //         enableSorting: false,
+    //         enableHiding: true
+    //     },
     {
         accessorKey: 'admissionNo',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Adm.No.' />,
@@ -208,7 +215,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         // merge those tabs into a single student payload so the edit form can autofill.
                         const hasTabbed = Boolean(
                             (resp && (resp.firstTab || resp.secondTab || resp.thirdTab)) ||
-                                (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
+                            (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
                         );
 
                         let payload: any;

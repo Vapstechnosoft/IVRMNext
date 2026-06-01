@@ -68,6 +68,7 @@ function MasterFeeAmountEntryPageContent({
                         noDataTitle='No Fee Amount Entries Found'
                         noDataDescription='Get started by adding a new Fee Amount Entry.'
                         errorTitle='Error Loading Fee Amount Entries'
+                        manualPagination={true}
                     />
                 </CollapsibleSection>
 

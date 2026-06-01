@@ -85,7 +85,7 @@ export async function saveFinalTabApi(data: any) {
 export async function getAllAdmissionLists(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'studentName,amst_Id,className,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
+        'studentName,amst_Id,className,sectionName,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
     );
     const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}` : ''}`;
     return await api.get<[IadmissionStudentApplicationList]>('admission', url);

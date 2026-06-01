@@ -601,7 +601,7 @@ export async function getUserAccessibleModules() {
                                             id: 47,
                                             name: 'Attendance Absentees Report',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            url: '/admission/localsharehost/reports/attendance-absent-sms',
                                             title: 'Attendance Absentees Report',
                                             description: 'Attendance Absentees Report'
                                         },

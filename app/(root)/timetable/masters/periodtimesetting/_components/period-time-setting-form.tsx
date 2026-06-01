@@ -191,7 +191,16 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
     };
 
     const cancelEdit = () => {
-        reset();
+        reset({
+            ttmdpT_Id: 0,
+            asmaY_Id: '' as any,
+            ttmC_Id: '' as any,
+            ttmP_Id: '' as any,
+            dayids: undefined as any,
+            startTime: undefined,
+            endTime: undefined
+        });
+        setDaySearch('');
         closeEditForm();
     };
 
@@ -206,7 +215,10 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString() || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -231,7 +243,10 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         control={control}
                         name='ttmC_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString() || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
