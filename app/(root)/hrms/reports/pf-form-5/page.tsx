@@ -184,6 +184,10 @@ function PFForm5Content() {
                                 <Printer className='h-4 w-4' />
                                 Print
                             </Button>
+                            <Button variant='outline' size='sm' onClick={handleCancel} className='gap-2'>
+                                <X className='h-4 w-4' />
+                                Cancel
+                            </Button>
                         </div>
                     }
                 >

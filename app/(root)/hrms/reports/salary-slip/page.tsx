@@ -94,7 +94,9 @@ export default function SalarySlipPage() {
         if (
             newFilters.groupType.length > 0 &&
             newFilters.department.length > 0 &&
-            newFilters.designation.length > 0
+            newFilters.designation.length > 0 &&
+            newFilters.year &&
+            newFilters.month
         ) {
             filterEmployees({
                 MI_Id: 30,
