@@ -81,7 +81,7 @@ export const eventsStudentSRKVSColumns: ColumnDef<IEventsStudentSRKVSData>[] = [
 
 function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
     const record = row.original;
-    const { deactivateData, fetchViewDetails } = useEventsStudentSRKVS();
+    const { deactivateData, fetchViewDetails, updateStudentDetails } = useEventsStudentSRKVS();
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [viewData, setViewData] = useState<IEventsStudentSRKVSViewDetails[] | null>(null);
 
@@ -138,6 +138,13 @@ function ActionsCell({ row }: { row: Row<IEventsStudentSRKVSData> }) {
                     isOpen={isViewOpen}
                     onClose={() => setIsViewOpen(false)}
                     data={viewData}
+                    onSave={(updatedData) => {
+                        updateStudentDetails.mutate(updatedData, {
+                            onSuccess: () => {
+                                setIsViewOpen(false);
+                            }
+                        });
+                    }}
                 />
             )}
         </div>

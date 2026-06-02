@@ -601,7 +601,7 @@ export async function getUserAccessibleModules() {
                                             id: 47,
                                             name: 'Attendance Absentees Report',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            url: '/admission/localsharehost/reports/attendance-absent-sms',
                                             title: 'Attendance Absentees Report',
                                             description: 'Attendance Absentees Report'
                                         },
@@ -4240,19 +4240,19 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 14,
-                                            name: 'Form 10',
+                                            name: 'PF Form 10',
                                             icon: 'FileType',
                                             url: '/hrms/reports/pf-form-10',
-                                            title: 'Form 10',
-                                            description: 'Provident Fund Form 10'
+                                            title: 'PF Form 10',
+                                            description: 'Provident Fund PF Form 10'
                                         },
                                         {
                                             id: 15,
-                                            name: 'Form 5',
+                                            name: 'PF Form 5',
                                             icon: 'FileType',
                                             url: '/hrms/reports/pf-form-5',
-                                            title: 'Form 5',
-                                            description: 'Provident Fund Form 5'
+                                            title: 'PF Form 5',
+                                            description: 'Provident Fund PF Form 5'
                                         },
                                         {
                                             id: 16,
