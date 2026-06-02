@@ -481,9 +481,9 @@ export default function CumulativeReportGridView({
                                         {columnFlags.admno && (
                                             <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_AdmNo ?? '-'}</td>
                                         )}
-                                        {/* {columnFlags.regno && (
+                                        {columnFlags.regno && (
                                             <td className='border border-gray-400 px-3 py-2 text-center'>{student.amsT_RegistrationNo ?? '-'}</td>
-                                        )} */}
+                                        )}
 
                                         {/* Applicable Subjects */}
                                         {columnFlags.applicable && subjects

@@ -61,15 +61,46 @@ export default function BBIIReportPage() {
                             estmP_TotalGrade: row.estmP_TotalGrade,
                             estmP_ClassRank: row.estmP_ClassRank,
                             estmP_SectionRank: row.estmP_SectionRank,
-                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark || row.emgD_Remarks,
+                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark,
                             stu_grandmin_marks: row.estmpssS_ObtainedMarks,
                             totaleyceS_MarksEntryMax: row.totaleyceS_MarksEntryMax,
                             totalestM_Marks: row.totalestM_Marks,
                             sub_list: []
                         });
+                    } else {
+                        const existing = studentMap.get(studentId);
+                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                            existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
+                        }
+                        if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
+                            existing.estmP_TotalMaxMarks = row.estmP_TotalMaxMarks;
+                        }
+                        if (row.estmP_TotalObtMarks && !existing.estmP_TotalObtMarks) {
+                            existing.estmP_TotalObtMarks = row.estmP_TotalObtMarks;
+                        }
+                        if (row.estmP_Percentage && !existing.estmP_Percentage) {
+                            existing.estmP_Percentage = row.estmP_Percentage;
+                        }
+                        if (row.estmP_TotalGrade && !existing.estmP_TotalGrade) {
+                            existing.estmP_TotalGrade = row.estmP_TotalGrade;
+                        }
+                        if (row.estmP_SectionRank && !existing.estmP_SectionRank) {
+                            existing.estmP_SectionRank = row.estmP_SectionRank;
+                        }
                     }
 
                     if (row.ismS_Id) {
+                        const rawObt = row.estM_Marks !== null && row.estM_Marks !== undefined ? row.estM_Marks : row.estmpS_ObtainedMarks;
+                        const obtained = rawObt !== null && rawObt !== undefined && !isNaN(Number(rawObt)) ? Number(rawObt) : null;
+
+                        const rawMax = row.eyceS_MarksEntryMax || row.eyceS_MaxMarks || row.estmpS_MaxMarks;
+                        const max = rawMax !== null && rawMax !== undefined && !isNaN(Number(rawMax)) ? Number(rawMax) : null;
+
+                        let subjectPercentage = '';
+                        if (obtained !== null && max !== null && max > 0) {
+                            subjectPercentage = ((obtained / max) * 100).toFixed(2);
+                        }
+
                         studentMap.get(studentId).sub_list.push({
                             amsT_Id: row.amsT_Id,
                             ismS_Id: row.ismS_Id,
@@ -79,14 +110,15 @@ export default function BBIIReportPage() {
                             eyceS_MarksEntryMax: row.eyceS_MarksEntryMax,
                             estM_Marks: row.estM_Marks,
                             estmpS_ObtainedMarks: row.estmpS_ObtainedMarks,
-                            estmpS_Percentage: row.estmpS_Percentage || row.estmP_Percentage,
-                            estmP_Percentage: row.estmP_Percentage || row.estmpS_Percentage,
+                            estmpS_Percentage: subjectPercentage || '',
+                            estmP_Percentage: row.estmP_Percentage || '',
                             estmpS_ObtainedGrade: row.estmpS_ObtainedGrade,
                             estmpS_PassFailFlg: row.estmpS_PassFailFlg,
                             eyceS_AplResultFlg: row.eyceS_AplResultFlg,
                             emgR_Id: row.emgR_Id,
                             EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg || row.eyceS_MarksDisplayFlg,
                             EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg || row.eyceS_GradeDisplayFlg,
+                            emgD_Remarks: row.emgD_Remarks,
                         });
                     }
                 });

@@ -57,6 +57,26 @@ export default function BCOEDIReportPage() {
                             estmP_SectionRank: row.estmP_SectionRank,
                             sub_list: []
                         });
+                    } else {
+                        const existing = studentMap.get(studentId);
+                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                            existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
+                        }
+                        if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
+                            existing.estmP_TotalMaxMarks = row.estmP_TotalMaxMarks;
+                        }
+                        if (row.estmP_TotalObtMarks && !existing.estmP_TotalObtMarks) {
+                            existing.estmP_TotalObtMarks = row.estmP_TotalObtMarks;
+                        }
+                        if (row.estmP_Percentage && !existing.estmP_Percentage) {
+                            existing.estmP_Percentage = row.estmP_Percentage;
+                        }
+                        if (row.estmP_TotalGrade && !existing.estmP_TotalGrade) {
+                            existing.estmP_TotalGrade = row.estmP_TotalGrade;
+                        }
+                        if (row.estmP_SectionRank && !existing.estmP_SectionRank) {
+                            existing.estmP_SectionRank = row.estmP_SectionRank;
+                        }
                     }
 
                     const student = studentMap.get(studentId);
