@@ -818,7 +818,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                     />
                                 )}
                             />
-                            {errors.ttmB_AfterPeriod && <FormError>{errors.ttmB_AfterPeriod.message}</FormError>}
                         </div>
 
                         <div className='space-y-2'>
