@@ -4263,14 +4263,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Provident Fund Form 6A'
                                         },
 
-                                        // {
-                                        //     id: 17,
-                                        //     name: 'PF Form3A',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form3a',
-                                        //     title: 'PF Form3A',
-                                        //     description: 'Provident Fund Form 3A'
-                                        // },
+                                        {
+                                            id: 17,
+                                            name: 'PF Form3A',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form3a',
+                                            title: 'PF Form3A',
+                                            description: 'Provident Fund Form 3A'
+                                        },
                                         {
                                             id: 18,
                                             name: 'HRMS Monthend Report',
