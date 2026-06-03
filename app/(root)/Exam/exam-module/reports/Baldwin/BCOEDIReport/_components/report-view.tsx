@@ -38,12 +38,13 @@ export default function BCOEDIReportView({
     };
 
     const getSubjectRemark = (sub: any) => {
-        if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return sub.emgD_Remarks || '';
+        if (sub.emgD_Remarks) return sub.emgD_Remarks;
+        if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return '';
         const remarkObj = gradeRemarks.find(r =>
             (Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id)) &&
             (String(r.emgD_Name || r.EMGD_Name) === String(sub.estmpS_ObtainedGrade))
         );
-        return remarkObj ? (remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks) : (sub.emgD_Remarks || '');
+        return remarkObj ? (remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks) : '';
     };
 
     const getAttendance = (list: any[], studentId: any) => {

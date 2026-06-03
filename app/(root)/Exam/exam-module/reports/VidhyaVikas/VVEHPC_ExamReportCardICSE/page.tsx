@@ -28,13 +28,14 @@ export default function ProgressCardReportPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
-            if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (!res?.success || !Array.isArray(flatRows) || flatRows.length === 0) {
                 //toast.error('No records found');
                 setIsReportVisible(false);
                 //return;
             }
-
-            const flatRows: any[] = res.data;
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();

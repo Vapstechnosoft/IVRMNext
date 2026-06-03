@@ -123,10 +123,12 @@ export default function UpdatePeriodTimeSettingForm({ onSuccess, selectedRow: ro
 
     const onSubmit = async (data: FormFields) => {
         try {
-            // if (data.endTime <= data.startTime) {
-            //     toast.error('To Time must be greater than From Time');
-            //     return;
-            // }
+            const startMin = data.startTime.getHours() * 60 + data.startTime.getMinutes();
+            const endMin = data.endTime.getHours() * 60 + data.endTime.getMinutes();
+            if (endMin <= startMin) {
+                toast.error('To Time must be greater than From Time');
+                return;
+            }
 
             const formatTime = (date: Date) => format(date, 'h:mm a');
 

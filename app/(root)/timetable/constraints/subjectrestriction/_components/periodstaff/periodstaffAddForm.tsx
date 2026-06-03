@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type PeriodStaffSchema, periodStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -43,10 +44,21 @@ const extractList = (data: any, preferredKey?: string) => {
     }
 
     const keys = [
-        'classlist', 'clssbystaff', 'clsbystaff',
-        'sectionlist', 'secsbystaff', 'sectionlistbystaff',
-        'subjectlist', 'subsbystaff', 'subjectlistbystaff', 'subsbyall',
-        'stafflist', 'staffbyall', 'subjectbystaff', 'sectionbyclass', 'classbycategory'
+        'classlist',
+        'clssbystaff',
+        'clsbystaff',
+        'sectionlist',
+        'secsbystaff',
+        'sectionlistbystaff',
+        'subjectlist',
+        'subsbystaff',
+        'subjectlistbystaff',
+        'subsbyall',
+        'stafflist',
+        'staffbyall',
+        'subjectbystaff',
+        'sectionbyclass',
+        'classbycategory'
     ];
 
     for (const key of keys) {
@@ -89,8 +101,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
 
     const form = useForm<PeriodStaffSchema>({
         resolver: zodResolver(periodStaffSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrpS_Id: 0,
+            ttrpS_Id: undefined,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             hrmE_Id: undefined,
@@ -99,7 +112,14 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttrpS_SUbSelcFlag = watch('ttrpS_SUbSelcFlag');
 
@@ -109,7 +129,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     });
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -132,7 +152,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
-        setValue('hrmE_Id', staffId);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -143,9 +163,12 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
             try {
                 const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
                 if (res && (res.success || res.success === undefined)) {
-                    const classes = extractList(res, 'clsbystaff').length > 0 ? extractList(res, 'clsbystaff') : extractList(res, 'classlist');
-                    const sections = extractList(res, 'secsbystaff').length > 0 ? extractList(res, 'secsbystaff') : extractList(res, 'sectionlist');
-                    const subjects = extractList(res, 'subsbystaff').length > 0 ? extractList(res, 'subsbystaff') : extractList(res, 'subjectlist');
+                    const classes =
+                        extractList(res, 'clsbystaff').length > 0 ? extractList(res, 'clsbystaff') : extractList(res, 'classlist');
+                    const sections =
+                        extractList(res, 'secsbystaff').length > 0 ? extractList(res, 'secsbystaff') : extractList(res, 'sectionlist');
+                    const subjects =
+                        extractList(res, 'subsbystaff').length > 0 ? extractList(res, 'subsbystaff') : extractList(res, 'subjectlist');
 
                     setMasterClasses(classes);
                     setMasterSections(sections);
@@ -245,12 +268,18 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id?.toString()}>
@@ -259,7 +288,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -269,9 +298,18 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {periodList.map((item: any) => {
                                             const id = item.ttmP_Id ?? item.ttmp_id ?? item.TTMP_Id;
@@ -283,7 +321,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -293,9 +331,18 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleStaffChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {staffList?.map((item: any) => {
                                             const id = item.hrmE_Id ?? item.hrme_id ?? item.HRME_Id;
@@ -307,7 +354,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -340,7 +387,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
                                     value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -363,7 +412,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
                                     value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
@@ -382,7 +433,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                     key={selectedSubject?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedSubject(Number(v))}
                                     value={selectedSubject?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subSubjectList.map((item: any) => {
                                             const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
