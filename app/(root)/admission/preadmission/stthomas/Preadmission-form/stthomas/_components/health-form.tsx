@@ -847,7 +847,14 @@ export default function HealthForm() {
                             </Label>
                             <InputText
                                 value={formData.pashD_MEContactNo || ''}
-                                onChange={(e) => handleInputChange('pashD_MEContactNo', e.target.value)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (/[^\d]/.test(value)) {
+                                        toast.error('Please enter numbers only for Emergency Contact Number.');
+                                        return;
+                                    }
+                                    handleInputChange('pashD_MEContactNo', value);
+                                }}
                                 placeholder='Enter emergency contact number'
                                 className='h-10 w-full rounded-lg border-slate-300 bg-white focus:ring-2 focus:ring-blue-500'
                             />
