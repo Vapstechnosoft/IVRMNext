@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/view-data-table/view-data-table';
@@ -43,8 +44,9 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
 
     const form = useForm<DayStaffSchema>({
         resolver: zodResolver(dayStaffSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrdS_Id: 0,
+            ttrdS_Id: undefined,
             asmaY_Id: undefined,
             ttmD_Id: undefined,
             hrmE_Id: undefined,
@@ -57,11 +59,11 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
-    const _asmaY_Id = watch('asmaY_Id');
+    const asmaY_Id = watch('asmaY_Id');
     const ttrdS_SUbSelcFlag = watch('ttrdS_SUbSelcFlag');
 
     const { fields, append, remove, replace } = useFieldArray({
@@ -146,6 +148,8 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                 masterData.subjects.find((s) => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.subjectName ||
                                 masterData.subjects.find((s) => Number(s.ismS_Id || s.ISMS_Id) === Number(isid))?.ismS_SubjectCode ||
                                 '';
+
+                            console.log('Sub object from API:', sub);
                             const nopKey = Object.keys(sub).find(
                                 (k) =>
                                     k.toLowerCase().includes('period') ||
@@ -153,6 +157,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                     k.toLowerCase() === 'ttfdscc_noofperiods'
                             );
                             const nopValue = nopKey ? sub[nopKey] : 0;
+                            console.log('Resolved NOP property key:', nopKey, 'value:', nopValue);
 
                             return {
                                 ttrdp_Id: sub.ttrdp_Id || sub.TTRDP_Id,
@@ -177,7 +182,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
     }, [selectedRow]);
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -216,7 +221,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
-        setValue('hrmE_Id', staffId);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -360,7 +365,9 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     value={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -380,7 +387,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -390,7 +397,9 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString()}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -408,7 +417,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmD_Id && <FormError className='ml-2'>{errors.ttmD_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -418,7 +427,9 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     value={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -440,7 +451,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                             ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

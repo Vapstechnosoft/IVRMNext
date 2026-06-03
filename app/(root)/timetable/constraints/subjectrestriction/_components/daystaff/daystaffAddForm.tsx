@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { dayStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -30,13 +31,14 @@ interface DayStaffAddFormProps {
 export default function DayStaffAddForm({ academicList, dayList, staffList, onSuccess, onCancel }: DayStaffAddFormProps) {
     const form = useForm<DayStaffSchema>({
         resolver: zodResolver(dayStaffSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrdS_Id: 0,
-            asmaY_Id: 0,
-            ttmD_Id: 0,
-            hrmE_Id: 0,
+            ttrdS_Id: undefined,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            hrmE_Id: undefined,
             ttrdS_SUbSelcFlag: false,
-            ttrdscC_Id: 0,
+            ttrdscC_Id: undefined,
             tempararyArrayList: []
         }
     });
@@ -47,7 +49,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
         watch,
         handleSubmit,
         control,
-        formState: { isSubmitting }
+        formState: { errors, isSubmitting }
     } = form;
 
     const ttrdS_SUbSelcFlag = watch('ttrdS_SUbSelcFlag');
@@ -101,7 +103,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     };
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -116,7 +118,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
-        setValue('hrmE_Id', staffId);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -261,7 +263,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -287,7 +289,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmD_Id && <FormError className='ml-2'>{errors.ttmD_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -313,7 +315,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

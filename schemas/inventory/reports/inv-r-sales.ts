@@ -41,16 +41,19 @@ export const invRSalesSchema = z
 
         // Option Validation
         if (data.typeflag === 'Overall' || data.typeflag === 'Detailed') {
-            if (!data.optionflag) return; // Should ideally limit this, but let's assume UI handles it
+            if (!data.optionflag) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select a Filter option', path: ['optionflag'] });
+                return;
+            }
 
             if (data.optionflag === 'Saleno') {
                 if (!data.salesArray || data.salesArray.length === 0) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select at least one Sale No', path: ['optionflag'] });
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select at least one Sale No', path: ['salesArray'] });
                 }
             }
             if (data.optionflag === 'Item') {
                 if (!data.itemArray || data.itemArray.length === 0) {
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select at least one Item', path: ['optionflag'] });
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select at least one Item', path: ['itemArray'] });
                 }
             }
             if (data.optionflag === 'Staff') {

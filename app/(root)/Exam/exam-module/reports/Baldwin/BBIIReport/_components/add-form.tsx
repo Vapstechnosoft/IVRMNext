@@ -361,7 +361,7 @@ export default function BBIIReportForm({
                                     render={({ field, fieldState }) => (
                                         <CustomMultiSelectBox
                                             options={students.map((s) => ({
-                                                label: `${s.amsT_FirstName} / ${s.amsT_AdmNo}`,
+                                                label: `${s.amsT_FirstName}`,
                                                 value: s.amsT_Id.toString()
                                             }))}
                                             onChange={handleStudentChange}

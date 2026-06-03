@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DataTable } from '@/components/ui/view-data-table/view-data-table';
@@ -49,8 +50,9 @@ export default function PeriodStaffUpdate({
 
     const form = useForm<PeriodStaffSchema>({
         resolver: zodResolver(periodStaffSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrpS_Id: 0,
+            ttrpS_Id: undefined,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             hrmE_Id: undefined,
@@ -63,7 +65,7 @@ export default function PeriodStaffUpdate({
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
@@ -268,7 +270,7 @@ export default function PeriodStaffUpdate({
     }, [selectedRow, reset, replace]);
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -313,7 +315,7 @@ export default function PeriodStaffUpdate({
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
-        setValue('hrmE_Id', staffId);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -468,7 +470,9 @@ export default function PeriodStaffUpdate({
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -486,7 +490,7 @@ export default function PeriodStaffUpdate({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -496,7 +500,9 @@ export default function PeriodStaffUpdate({
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -517,7 +523,7 @@ export default function PeriodStaffUpdate({
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -527,7 +533,9 @@ export default function PeriodStaffUpdate({
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     value={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -549,7 +557,7 @@ export default function PeriodStaffUpdate({
                                             ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

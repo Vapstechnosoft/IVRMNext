@@ -9,22 +9,38 @@ export const printPFForm5 = (reportData: any, institution: any, reportMonth: str
 
     const dataList = reportData?.alldata || reportData?.pfreportdetails || [];
 
-    const tableRows = dataList
-        .map((record: any, index: number) => {
-            const empName =
-                `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
-            const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
-            const pfDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
+    const tableRows = dataList.map((record: any, index: number) => {
+        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim().toUpperCase();
+        const fatherHusbandName = record.fatherHusbandName || record.hrmE_FatherName || '';
+        
+        // Age/Date of Birth
+        const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
+        const age = record.hrmE_Age ? `${record.hrmE_Age} Years` : '';
+        const ageDob = dob && age ? `${dob} (${age})` : (dob || age || '');
+        
+        // Sex
+        const sex = record.ivrmmG_GenderName || '';
+        
+        // Date of Eligibility for Service
+        const eligibilityDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
+        
+        // Total Period of Previous Service
+        const totalService = record.totalServicePeriod || '';
+        
+        // Remarks
+        const remarks = record.remark || record.remarks || '';
 
             return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td class="text-left">${record.hrmE_PFAccNo || ''}</td>
                 <td class="text-left">${empName}</td>
-                <td class="text-left">${record.fatherHusbandName || ''}</td>
-                <td class="text-center">${dob}</td>
-                <td class="text-left">${record.ivrmmG_GenderName || ''}</td>
-                <td class="text-center">${pfDate}</td>
+                <td class="text-left">${fatherHusbandName}</td>
+                <td class="text-center">${ageDob}</td>
+                <td class="text-center">${sex}</td>
+                <td class="text-center">${eligibilityDate}</td>
+                <td class="text-left">${totalService}</td>
+                <td class="text-left">${remarks}</td>
             </tr>
         `;
         })
@@ -151,13 +167,15 @@ export const printPFForm5 = (reportData: any, institution: any, reportMonth: str
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>SL.No</th>
-                        <th>PF Acc No</th>
-                        <th>Employee Name</th>
-                        <th>Father/Husband Name</th>
-                        <th>Date of Birth</th>
-                        <th>Gender</th>
-                        <th>PF Joining Date</th>
+                        <th class="text-center">S. No</th>
+                        <th class="text-center">Account No.</th>
+                        <th class="text-center">Name of the Member<br/>(in BLOCK letters)</th>
+                        <th class="text-center">Father's Name or Husband's Name<br/>in case of married women</th>
+                        <th class="text-center">Age/Date of Birth</th>
+                        <th class="text-center">Sex</th>
+                        <th class="text-center">Date of Eligibility for Service</th>
+                        <th class="text-center">Total Period of Previous Service<br/>(excluding period of breaks)<br/>as on the date of joining the Fund</th>
+                        <th class="text-center">Remarks</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -21,6 +21,7 @@ export const TunBridgeTcPrint = React.forwardRef<HTMLDivElement, Props>(({ repor
     const tc = list?.[0] ?? {};
     const prev = reportData?.previousschool?.[0];
 
+    console.log("tchjbjh", tc);
     // Data Mapping from new JSON structure
     const tcno = tc.astc_tcno ?? tc.astC_TCNO ?? tc.astC_TCNo ?? '';
     const stcsno = tc.govtno ?? '';
@@ -44,6 +45,7 @@ export const TunBridgeTcPrint = React.forwardRef<HTMLDivElement, Props>(({ repor
     const AMST_MotherTongue = tc.stumt ?? tc.mediumofinstruction ?? tc.AMST_MotherTongue ?? '';
     const lblPromotion = tc.qualificlass ?? '';
     const todaydate = tc.astc_tcissuedate ?? tc.astC_TCIssueDate ?? tc.tcdatess;
+    const jointclass = tc.jointclass ?? '';
 
     // Prefer dynamic logo from data if available
     const logoUrl = 'https://vapsclg.blob.core.windows.net/files/27/TBHS_Logo.png';
@@ -164,12 +166,12 @@ export const TunBridgeTcPrint = React.forwardRef<HTMLDivElement, Props>(({ repor
                 </div>
 
                 {/* Row 4 */}
-                <div className='flex-row-item'>
-                    <span className='mr-1 whitespace-nowrap'>on</span>
-                    <div className='dotted-underline flex-1'>{fmt(lbldoa, 'dd/MM/yyyy')}</div>
-                    <span className='mx-2'>in</span>
-                    <div className='dotted-underline w-[60px]'>{laststudied}</div>
-                    <span className='ml-2 whitespace-nowrap'>on a Transfer Certificate from</span>
+                <div className="flex-row-item">
+                    <span className="whitespace-nowrap mr-1">on</span>
+                    <div className="flex-1 dotted-underline">{fmt(lbldoa, 'dd/MM/yyyy')}</div>
+                    <span className="mx-2">in</span>
+                    <div className="w-[120px] dotted-underline">{jointclass}</div>
+                    <span className="ml-2 whitespace-nowrap">on a Transfer Certificate from</span>
                 </div>
 
                 {/* Row 5 */}

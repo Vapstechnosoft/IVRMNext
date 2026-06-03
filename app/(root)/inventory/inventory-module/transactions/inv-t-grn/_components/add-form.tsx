@@ -6,6 +6,29 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from '@/components/ui/select';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    invTGRNSchema,
+    type InvTGRNSchema
+} from '@/schemas/inventory/transactions/inv-t-grn';
+import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
+import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { getItemTaxDetail, getItemDetail } from '@/server/inventory/transactions/inv-t-grn';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
@@ -409,10 +432,10 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         </div>
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`GRNItem.${index}.invtgrN_BatchNo`)} className='h-8 text-xs' />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_BatchNo`)} className='h-8 text-xs' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_Qty`, {
                                                 valueAsNumber: true,
                                                 onChange: (_e) => {
@@ -423,7 +446,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_PurchaseRate`, {
                                                 valueAsNumber: true,
                                                 onChange: (_e) => {
@@ -434,19 +457,13 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
-                                            {...register(`GRNItem.${index}.invtgrN_MRP`, { valueAsNumber: true })}
-                                            className='h-8 text-right font-mono text-xs'
-                                        />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_MRP`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
-                                            {...register(`GRNItem.${index}.invtgrN_SalesPrice`, { valueAsNumber: true })}
-                                            className='h-8 text-right font-mono text-xs'
-                                        />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_DiscountAmt`, {
                                                 valueAsNumber: true,
                                                 onChange: (_e) => {

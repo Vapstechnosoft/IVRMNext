@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type PeriodSubjectSchema, periodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -102,8 +103,9 @@ export default function PeriodSubjectUpdate({
 
     const form = useForm<PeriodSubjectSchema>({
         resolver: zodResolver(periodSubjectSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrpsU_Id: 0,
+            ttrpsU_Id: undefined,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             ismS_Id: undefined,
@@ -116,11 +118,11 @@ export default function PeriodSubjectUpdate({
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
-    const _asmaY_Id = watch('asmaY_Id');
+    const asmaY_Id = watch('asmaY_Id');
     const ttrpsU_SUbSelcFlag = watch('ttrpsU_SUbSelcFlag');
 
     const { fields, append, remove, replace } = useFieldArray({
@@ -288,7 +290,7 @@ export default function PeriodSubjectUpdate({
     }, [selectedRow]);
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -314,7 +316,7 @@ export default function PeriodSubjectUpdate({
     };
 
     const handleSubjectChange = async (subjectId: number, asmayIdOverride?: number) => {
-        setValue('ismS_Id', subjectId);
+        setValue('ismS_Id', subjectId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -467,7 +469,9 @@ export default function PeriodSubjectUpdate({
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -485,7 +489,7 @@ export default function PeriodSubjectUpdate({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -495,7 +499,9 @@ export default function PeriodSubjectUpdate({
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -516,7 +522,7 @@ export default function PeriodSubjectUpdate({
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -526,7 +532,9 @@ export default function PeriodSubjectUpdate({
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
@@ -549,7 +557,7 @@ export default function PeriodSubjectUpdate({
                                             })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ismS_Id && <FormError className='ml-2'>{errors.ismS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

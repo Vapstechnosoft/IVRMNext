@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropDownMasterDayClasswise,
@@ -44,16 +45,17 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
 
     const form = useForm<DayPeriodSchema>({
         resolver: zodResolver(dayPeriodSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrdP_Id: 0,
-            asmaY_Id: 0,
-            ttmC_Id: 0,
-            asmcL_Id: 0,
-            asmS_Id: 0,
-            hrmE_Id: 0,
-            ismS_Id: 0,
-            ttmD_Id: 0,
-            ttmP_Id: 0,
+            ttrdP_Id: undefined,
+            asmaY_Id: undefined,
+            ttmC_Id: undefined,
+            asmcL_Id: undefined,
+            asmS_Id: undefined,
+            hrmE_Id: undefined,
+            ismS_Id: undefined,
+            ttmD_Id: undefined,
+            ttmP_Id: undefined,
             ttrdP_SUbSelcFlag: false
         }
     });
@@ -63,7 +65,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         reset
     } = form;
     const watchedYear = watch('asmaY_Id');
@@ -115,12 +117,12 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
     };
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
-        setValue('ttmC_Id', 0);
-        setValue('asmcL_Id', 0);
-        setValue('asmS_Id', 0);
-        setValue('hrmE_Id', 0);
-        setValue('ismS_Id', 0);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
+        setValue('ttmC_Id', undefined as any);
+        setValue('asmcL_Id', undefined as any);
+        setValue('asmS_Id', undefined as any);
+        setValue('hrmE_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
         setClassList([]);
         setSectionList([]);
         setStaffList([]);
@@ -128,11 +130,11 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
     };
 
     const handleCategoryChange = async (categoryId: number) => {
-        setValue('ttmC_Id', categoryId);
-        setValue('asmcL_Id', 0);
-        setValue('asmS_Id', 0);
-        setValue('hrmE_Id', 0);
-        setValue('ismS_Id', 0);
+        setValue('ttmC_Id', categoryId, { shouldValidate: true });
+        setValue('asmcL_Id', undefined as any);
+        setValue('asmS_Id', undefined as any);
+        setValue('hrmE_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
         setClassList([]);
         setSectionList([]);
         setStaffList([]);
@@ -143,10 +145,10 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
     };
 
     const handleClassChange = async (classId: number) => {
-        setValue('asmcL_Id', classId);
-        setValue('asmS_Id', 0);
-        setValue('hrmE_Id', 0);
-        setValue('ismS_Id', 0);
+        setValue('asmcL_Id', classId, { shouldValidate: true });
+        setValue('asmS_Id', undefined as any);
+        setValue('hrmE_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
         setSectionList([]);
         setStaffList([]);
         setSubjectList([]);
@@ -162,9 +164,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
     };
 
     const handleSectionChange = async (sectionId: number) => {
-        setValue('asmS_Id', sectionId);
-        setValue('hrmE_Id', 0);
-        setValue('ismS_Id', 0);
+        setValue('asmS_Id', sectionId, { shouldValidate: true });
+        setValue('hrmE_Id', undefined as any);
+        setValue('ismS_Id', undefined as any);
         setStaffList([]);
         setSubjectList([]);
         if (watchedYear && watchedCategory && watchedClass && sectionId) {
@@ -173,8 +175,8 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
     };
 
     const handleStaffChange = async (staffId: number) => {
-        setValue('hrmE_Id', staffId);
-        setValue('ismS_Id', 0);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
+        setValue('ismS_Id', undefined as any);
         setSubjectList([]);
         if (watchedYear && watchedCategory && watchedClass && watchedSection && staffId) {
             await fetchSubjects(watchedYear, watchedCategory, watchedClass, watchedSection, staffId);
@@ -229,7 +231,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -255,7 +257,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmC_Id && <FormError className='ml-2'>{errors.ttmC_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -264,7 +266,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='asmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => handleClassChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -279,7 +283,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmcL_Id && <FormError className='ml-2'>{errors.asmcL_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -289,7 +293,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='asmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -309,7 +315,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmS_Id && <FormError className='ml-2'>{errors.asmS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -319,7 +325,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff Name</FormLabel>
+                                <FormLabel>
+                                    Staff Name <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => handleStaffChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -334,7 +342,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -343,7 +351,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -358,7 +368,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ismS_Id && <FormError className='ml-2'>{errors.ismS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -367,7 +377,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -382,7 +394,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmD_Id && <FormError className='ml-2'>{errors.ttmD_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -391,7 +403,9 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -406,7 +420,7 @@ export default function DayPeriodAddForm({ dayList, periodList, onSuccess, onCan
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

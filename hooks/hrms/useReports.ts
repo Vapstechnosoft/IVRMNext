@@ -56,12 +56,40 @@ import {
     getPFSummaryReport,
     getVPFSummaryReport
 } from '@/server/hrms/reports/esi-pf-reports';
-import { type HeadWiseReportRequest, getHeadWiseEmployeeDetails } from '@/server/hrms/reports/head-wise-report';
-import { type LeaveStatusReportRequest, getLeaveStatusReport } from '@/server/hrms/reports/leave-status-report';
-import { type MonthEndReportRequest, getMonthEndReport } from '@/server/hrms/reports/month-end-report';
-import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
-import type { SalarySlipFilterRequest, SalarySlipGenerateRequest } from '@/types/hrms/reports/salary-slip-report';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+    getPFChallanReportOnload,
+} from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
+import {
+    getPFForm3ABasicData,
+    searchPFForm3AReport,
+} from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
+import {
+    getSalarySlipOnload,
+    filterEmployeesByYearMonth,
+    generateSalarySlip
+} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import {
+    getYearWiseSalaryDetails,
+    getMonthWiseSalaryDetails,
+    type YearWiseSalaryResponse,
+    type MonthWiseSalaryResponse
+} from '@/server/hrms/reports/employee-salary-details';
+import type {
+    SalarySlipFilterRequest,
+    SalarySlipGenerateRequest
+} from '@/types/hrms/reports/salary-slip-report';
+import {
+    getEmployeeDetailsReportOnload,
+    searchEmployeeDetailsReport,
+    getEmployeeAndEmployeeType,
+    getLoginBasedDepartmentsByGroupType,
+    filterEmployeeDetailsReport,
+    type EmployeeDetailsReportRequest
+} from '@/server/hrms/reports/employee-details-report';
+import {
+    getMonthEndReport,
+    type MonthEndReportRequest
+} from '@/server/hrms/reports/month-end-report';
 
 export type { EmployeeDetailsReportRequest };
 
@@ -351,6 +379,23 @@ export function usePFChallanOnload(MI_Id: number) {
         queryKey: ['pf-challan-onload', MI_Id],
         queryFn: () => getPFChallanReportOnload(MI_Id),
         staleTime: 1000 * 60 * 10
+    });
+}
+
+export function usePFForm3ABasicData() {
+    return useQuery({
+        queryKey: ['pf-form3a-basic-data'],
+        queryFn: () => getPFForm3ABasicData(),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function useSearchPFForm3AReport() {
+    return useMutation({
+        mutationFn: (data: any) => searchPFForm3AReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to search PF Form 3A report');
+        }
     });
 }
 

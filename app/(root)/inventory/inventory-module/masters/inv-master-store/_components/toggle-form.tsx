@@ -26,7 +26,7 @@ export default function ToggleInvMasterStoreForm({ rowData, onClose }: ToggleInv
     const { refetchAll } = useInvMasterStore();
 
     const handleToggle = useCallback(
-        async (_e: React.MouseEvent<HTMLButtonElement>) => {
+        async (e: React.MouseEvent<HTMLButtonElement>) => {
             // Prevent dialog from closing immediately if we want to wait for success
             // But inv-master-tax doesn't prevent default. I will stick to the logic requested.
             // Actually, if I prevent default, I must manually close.

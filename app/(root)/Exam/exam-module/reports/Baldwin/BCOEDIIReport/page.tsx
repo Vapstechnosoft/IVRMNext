@@ -29,9 +29,10 @@ export default function BCOEDIIReportPage() {
             setIsReportVisible(false);
             const res = await getExamReportCard(payload);
 
-            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-                const flatRows: any[] = res.data;
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
 
+            if (res && res.success && Array.isArray(flatRows) && flatRows.length > 0) {
                 // Group by student
                 const studentMap = new Map<number, any>();
 
@@ -56,6 +57,26 @@ export default function BCOEDIIReportPage() {
                             classatt: row.classatt || row.asA_Class_Attended,
                             sub_list: []
                         });
+                    } else {
+                        const existing = studentMap.get(studentId);
+                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                            existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
+                        }
+                        if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
+                            existing.estmP_TotalMaxMarks = row.estmP_TotalMaxMarks;
+                        }
+                        if (row.estmP_TotalObtMarks && !existing.estmP_TotalObtMarks) {
+                            existing.estmP_TotalObtMarks = row.estmP_TotalObtMarks;
+                        }
+                        if (row.estmP_Percentage && !existing.estmP_Percentage) {
+                            existing.estmP_Percentage = row.estmP_Percentage;
+                        }
+                        if (row.estmP_TotalGrade && !existing.estmP_TotalGrade) {
+                            existing.estmP_TotalGrade = row.estmP_TotalGrade;
+                        }
+                        if (row.estmP_SectionRank && !existing.estmP_SectionRank) {
+                            existing.estmP_SectionRank = row.estmP_SectionRank;
+                        }
                     }
 
                     const student = studentMap.get(studentId);
@@ -78,10 +99,10 @@ export default function BCOEDIIReportPage() {
                     });
                 });
 
-                const grade_details = (res as any).grade_details || [];
-                const stud_work_attendence = (res as any).stud_work_attendence || [];
-                const stud_present_attendence = (res as any).stud_present_attendence || [];
-                const clstchname = (res as any).clstchname || [];
+                const grade_details = apiData?.grade_details || (res as any).grade_details || [];
+                const stud_work_attendence = apiData?.stud_work_attendence || apiData?.work_attendence || (res as any).stud_work_attendence || (res as any).work_attendence || [];
+                const stud_present_attendence = apiData?.stud_present_attendence || apiData?.present_attendence || (res as any).stud_present_attendence || (res as any).present_attendence || [];
+                const clstchname = apiData?.clstchname || (res as any).clstchname || [];
 
                 setReportData(Array.from(studentMap.values()));
                 setGradeRemarks(grade_details);
@@ -89,7 +110,7 @@ export default function BCOEDIIReportPage() {
                 setAttendancePresent(stud_present_attendence);
                 setExamName(flatRows[0].emE_ExamName || '');
                 setAcademicYear(payload.asmaY_Year || '');
-                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || '');
+                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.hrme_EmployeeFirstName || '');
                 setShowRemarks(payload.showRemarks);
                 setShowRank(payload.showRank);
                 setShowLogo(payload.showLogo);

@@ -29,26 +29,24 @@ export default function BrsPreBoardReportCardPage() {
         try {
             const res = await getExamReportCard(payload);
 
-            if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (!res?.success || !Array.isArray(flatRows) || flatRows.length === 0) {
                 toast.error('No records found');
                 setIsReportVisible(false);
                 return;
             }
 
-            const flatRows: any[] = res.data;
-
             // Extract additional data from response (sub-subjects, sub-subject marks)
-            const sub_subject: any[] =
-                (res as any).sub_subject ||
-                (res as any).sub_subject_marks?.reduce((acc: any[], m: any) => {
-                    if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
-                        acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
-                    }
-                    return acc;
-                }, []) ||
-                [];
+            const sub_subject: any[] = apiData?.sub_subject || (res as any).sub_subject || (apiData?.sub_subject_marks || (res as any).sub_subject_marks)?.reduce((acc: any[], m: any) => {
+                if (!acc.find((s: any) => s.EMSS_Id === m.EMSS_Id)) {
+                    acc.push({ EMSS_Id: m.EMSS_Id, EMSS_SubSubjectName: m.EMSS_SubSubjectName });
+                }
+                return acc;
+            }, []) || [];
 
-            const sub_subject_marks_raw: any[] = (res as any).sub_subject_marks || [];
+            const sub_subject_marks_raw: any[] = apiData?.sub_subject_marks || (res as any).sub_subject_marks || [];
 
             const studentMap = new Map<number, IExamReportCard & { sub_subject: any[]; sub_subjectmarks: any[] }>();
             const subjectMap = new Map<number, ISubject>();

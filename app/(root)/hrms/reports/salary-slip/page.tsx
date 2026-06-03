@@ -19,18 +19,10 @@ import { printSalarySlips } from './_components/print-utils';
 import { SalarySlipTemplate } from './_components/salary-slip-template';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' },
-    { id: 2, name: 'February' },
-    { id: 3, name: 'March' },
-    { id: 4, name: 'April' },
-    { id: 5, name: 'May' },
-    { id: 6, name: 'June' },
-    { id: 7, name: 'July' },
-    { id: 8, name: 'August' },
-    { id: 9, name: 'September' },
-    { id: 10, name: 'October' },
-    { id: 11, name: 'November' },
-    { id: 12, name: 'December' }
+    { id: 1, name: 'January ' }, { id: 2, name: 'February ' }, { id: 3, name: 'March ' },
+    { id: 4, name: 'April ' }, { id: 5, name: 'May ' }, { id: 6, name: 'June ' },
+    { id: 7, name: 'July ' }, { id: 8, name: 'August ' }, { id: 9, name: 'September ' },
+    { id: 10, name: 'October ' }, { id: 11, name: 'November ' }, { id: 12, name: 'December ' }
 ];
 
 export default function SalarySlipPage() {
@@ -90,8 +82,8 @@ export default function SalarySlipPage() {
     useEffect(() => {
         if (showReport && reportRef.current) {
             reportRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+                behavior: "smooth",
+                block: "start"
             });
         }
     }, [showReport]);
@@ -99,36 +91,38 @@ export default function SalarySlipPage() {
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
 
-        if (newFilters.groupType.length > 0 && newFilters.department.length > 0 && newFilters.designation.length > 0) {
-            filterEmployees(
-                {
-                    MI_Id: 30,
-                    LogInUserId: 0,
-                    hreS_Year: newFilters.year,
-                    hreS_Month: newFilters.month,
-                    hrmgt_ids: newFilters.groupType.join(','),
-                    hrmd_ids: newFilters.department.join(','),
-                    hrmdes_ids: newFilters.designation.join(',')
-                },
-                {
-                    onSuccess: (res) => {
-                        if (res.success && res.data) {
-                            const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
-                            const mapped = empList.map((emp: any, index: number) => ({
-                                id: index + 1,
-                                employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
-                                employeeName:
-                                    `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ''}`.trim(),
-                                groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,
-                                departmentId: emp.hrmD_Id || emp.HRMD_Id,
-                                designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
-                                HRME_Id: emp.hrmE_Id || emp.HRME_Id,
-                                isSelected: false
-                            }));
-                            setEmployees(mapped);
-                        } else {
-                            setEmployees([]);
-                        }
+        if (
+            newFilters.groupType.length > 0 &&
+            newFilters.department.length > 0 &&
+            newFilters.designation.length > 0 &&
+            newFilters.year &&
+            newFilters.month
+        ) {
+            filterEmployees({
+                MI_Id: 30,
+                LogInUserId: 0,
+                hreS_Year: newFilters.year,
+                hreS_Month: newFilters.month,
+                hrmgt_ids: newFilters.groupType.join(','),
+                hrmd_ids: newFilters.department.join(','),
+                hrmdes_ids: newFilters.designation.join(',')
+            }, {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
+                        const mapped = empList.map((emp: any, index: number) => ({
+                            id: index + 1,
+                            employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
+                            employeeName: `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ''}`.trim(),
+                            groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,
+                            departmentId: emp.hrmD_Id || emp.HRMD_Id,
+                            designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
+                            HRME_Id: emp.hrmE_Id || emp.HRME_Id,
+                            isSelected: false
+                        }));
+                        setEmployees(mapped);
+                    } else {
+                        setEmployees([]);
                     }
                 }
             );
@@ -369,7 +363,7 @@ export default function SalarySlipPage() {
             />
 
             {showReport && (
-                <div className='space-y-6' ref={reportRef}>
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className='flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-4 shadow-sm print:hidden'>
                         <div className='flex items-center gap-2'>

@@ -97,19 +97,19 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 mb-6 animate-in shadow-md duration-300'
-                        icon={<PlusCircle className='h-5 w-5' />}>
-                        <div className='relative'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6'
+                        icon={<PlusCircle className='h-5 w-5' />}
+                        rightElement={
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive mr-1' /> Close
                             </Button>
-                            <AddCustomerForm onSuccess={closeAddForm} />
-                        </div>
+                        }>
+                        <AddCustomerForm onSuccess={closeAddForm} onCancel={closeAddForm} />
                     </CollapsibleSection>
                 </div>
             )}
@@ -121,19 +121,19 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 mb-6 animate-in border-primary/20 shadow-md duration-300'
-                        icon={<Pencil className='h-5 w-5' />}>
-                        <div className='relative'>
+                        className='animate-in slide-in-from-top-4 duration-300 shadow-md mb-6 border-primary/20'
+                        icon={<Pencil className='h-5 w-5' />}
+                        rightElement={
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive mr-1' /> Close
                             </Button>
-                            <UpdateCustomerForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
+                        }>
+                        <UpdateCustomerForm selectedRow={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
                     </CollapsibleSection>
                 </div>
             )}

@@ -69,7 +69,7 @@ export async function getInitialData() {
         const subjectResponse = await api.get<any>('library', subjectUrl);
 
         // Fetch department list
-        const departmentUrl = 'MasterDepartmentFacade/get-master-department-list';
+        const departmentUrl = 'BookRegister/department-dropdown';
         const departmentResponse = await api.get<any>('library', departmentUrl);
 
         // Fetch language list

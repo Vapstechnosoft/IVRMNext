@@ -26,18 +26,21 @@ export default function BBIIReportPage() {
         try {
             setIsLoading(true);
             const res = await getExamReportCard(payload);
-            if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-                const flatRows: any[] = res.data;
+            console.log("response", res);
 
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (res && res.success && Array.isArray(flatRows) && flatRows.length > 0) {
                 // Extract extra lists from response
-                const grade_details = (res as any).grade_details || [];
-                const stud_work_attendence = (res as any).stud_work_attendence || [];
-                const stud_present_attendence = (res as any).stud_present_attendence || [];
-                const clstchname = (res as any).clstchname || [];
+                const grade_details = apiData?.grade_details || (res as any).grade_details || [];
+                const stud_work_attendence = apiData?.stud_work_attendence || (res as any).stud_work_attendence || [];
+                const stud_present_attendence = apiData?.stud_present_attendence || (res as any).stud_present_attendence || [];
+                const clstchname = apiData?.clstchname || (res as any).clstchname || [];
 
                 const studentMap = new Map<number, any>();
 
-                flatRows.forEach((row) => {
+                flatRows.forEach((row: any) => {
                     const studentId = row.amsT_Id;
 
                     if (!studentMap.has(studentId)) {
@@ -57,15 +60,46 @@ export default function BBIIReportPage() {
                             estmP_TotalGrade: row.estmP_TotalGrade,
                             estmP_ClassRank: row.estmP_ClassRank,
                             estmP_SectionRank: row.estmP_SectionRank,
-                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark || row.emgD_Remarks,
+                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark,
                             stu_grandmin_marks: row.estmpssS_ObtainedMarks,
                             totaleyceS_MarksEntryMax: row.totaleyceS_MarksEntryMax,
                             totalestM_Marks: row.totalestM_Marks,
                             sub_list: []
                         });
+                    } else {
+                        const existing = studentMap.get(studentId);
+                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                            existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
+                        }
+                        if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
+                            existing.estmP_TotalMaxMarks = row.estmP_TotalMaxMarks;
+                        }
+                        if (row.estmP_TotalObtMarks && !existing.estmP_TotalObtMarks) {
+                            existing.estmP_TotalObtMarks = row.estmP_TotalObtMarks;
+                        }
+                        if (row.estmP_Percentage && !existing.estmP_Percentage) {
+                            existing.estmP_Percentage = row.estmP_Percentage;
+                        }
+                        if (row.estmP_TotalGrade && !existing.estmP_TotalGrade) {
+                            existing.estmP_TotalGrade = row.estmP_TotalGrade;
+                        }
+                        if (row.estmP_SectionRank && !existing.estmP_SectionRank) {
+                            existing.estmP_SectionRank = row.estmP_SectionRank;
+                        }
                     }
 
                     if (row.ismS_Id) {
+                        const rawObt = row.estM_Marks !== null && row.estM_Marks !== undefined ? row.estM_Marks : row.estmpS_ObtainedMarks;
+                        const obtained = rawObt !== null && rawObt !== undefined && !isNaN(Number(rawObt)) ? Number(rawObt) : null;
+
+                        const rawMax = row.eyceS_MarksEntryMax || row.eyceS_MaxMarks || row.estmpS_MaxMarks;
+                        const max = rawMax !== null && rawMax !== undefined && !isNaN(Number(rawMax)) ? Number(rawMax) : null;
+
+                        let subjectPercentage = '';
+                        if (obtained !== null && max !== null && max > 0) {
+                            subjectPercentage = ((obtained / max) * 100).toFixed(2);
+                        }
+
                         studentMap.get(studentId).sub_list.push({
                             amsT_Id: row.amsT_Id,
                             ismS_Id: row.ismS_Id,
@@ -75,13 +109,15 @@ export default function BBIIReportPage() {
                             eyceS_MarksEntryMax: row.eyceS_MarksEntryMax,
                             estM_Marks: row.estM_Marks,
                             estmpS_ObtainedMarks: row.estmpS_ObtainedMarks,
-                            estmpS_Percentage: row.estmpS_Percentage,
+                            estmpS_Percentage: subjectPercentage || '',
+                            estmP_Percentage: row.estmP_Percentage || '',
                             estmpS_ObtainedGrade: row.estmpS_ObtainedGrade,
                             estmpS_PassFailFlg: row.estmpS_PassFailFlg,
                             eyceS_AplResultFlg: row.eyceS_AplResultFlg,
                             emgR_Id: row.emgR_Id,
-                            EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg,
-                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg
+                            EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg || row.eyceS_MarksDisplayFlg,
+                            EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg || row.eyceS_GradeDisplayFlg,
+                            emgD_Remarks: row.emgD_Remarks,
                         });
                     }
                 });
@@ -91,8 +127,8 @@ export default function BBIIReportPage() {
                 setAttendanceWork(stud_work_attendence);
                 setAttendancePresent(stud_present_attendence);
                 setExamName(flatRows[0].emE_ExamName || 'Progress Card');
-                setAcademicYear(flatRows[0].asmaY_Year || '');
-                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || '');
+                setAcademicYear(flatRows[0].asmaY_Year || flatRows[0].amaY_Year || '');
+                setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.clstchname || '');
                 setShowRemarks(true);
                 setShowRank(false);
                 setIsReportVisible(true);

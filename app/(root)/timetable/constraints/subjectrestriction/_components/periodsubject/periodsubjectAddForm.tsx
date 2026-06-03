@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type PeriodSubjectSchema, periodSubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -95,8 +96,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
 
     const form = useForm<PeriodSubjectSchema>({
         resolver: zodResolver(periodSubjectSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrpsU_Id: 0,
+            ttrpsU_Id: undefined,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             ismS_Id: undefined,
@@ -109,7 +111,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
@@ -122,7 +124,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
     });
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -137,7 +139,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
     };
 
     const handleSubjectChange = async (subjectId: number) => {
-        setValue('ismS_Id', subjectId);
+        setValue('ismS_Id', subjectId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -186,6 +188,8 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                       : extractList(res, 'stafflist').length > 0
                         ? extractList(res, 'stafflist')
                         : findArrayByField('hrmE_Id');
+
+            console.log('[PeriodSubjectAddForm] Resolved → classes:', classes.length, 'sections:', sections.length, 'staff:', staff.length);
 
             setMasterClasses(classes);
             setMasterSections(sections);
@@ -288,7 +292,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -306,7 +312,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -316,7 +322,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -337,7 +345,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -347,7 +355,9 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
@@ -370,7 +380,7 @@ export default function PeriodSubjectAddForm({ academicList, periodList, subject
                                             })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ismS_Id && <FormError className='ml-2'>{errors.ismS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

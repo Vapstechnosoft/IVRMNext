@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type DaySubjectSchema, daySubjectSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -37,8 +38,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
     const form = useForm<DaySubjectSchema>({
         resolver: zodResolver(daySubjectSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrdsU_Id: 0,
+            ttrdsU_Id: undefined,
             asmaY_Id: undefined,
             ttmD_Id: undefined,
             ismS_Id: undefined,
@@ -51,7 +53,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
@@ -64,7 +66,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
     });
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -82,7 +84,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
     };
 
     const handleSubjectChange = async (subjectId: number) => {
-        setValue('ismS_Id', subjectId);
+        setValue('ismS_Id', subjectId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedStaff(undefined);
@@ -154,6 +156,8 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
 
     const onSubmit = async (data: DaySubjectSchema) => {
         try {
+            console.log('Payload sent to API:', data); // 👈 payload
+
             if (!data.ttrdsU_SUbSelcFlag) {
                 data.tempararyArrayList = [];
             } else {
@@ -164,6 +168,8 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
             }
 
             const res = await saveDaySubjectDetail(data);
+
+            console.log('API Response:', res);
 
             if (res?.returnval === true || res?.success === true) {
                 toast.success(res.message);
@@ -190,7 +196,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -208,7 +216,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -218,7 +226,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -239,7 +249,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmD_Id && <FormError className='ml-2'>{errors.ttmD_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -249,7 +259,9 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
@@ -272,7 +284,7 @@ export default function DaySubjectAddForm({ academicList, dayList, subjectList, 
                                             })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ismS_Id && <FormError className='ml-2'>{errors.ismS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

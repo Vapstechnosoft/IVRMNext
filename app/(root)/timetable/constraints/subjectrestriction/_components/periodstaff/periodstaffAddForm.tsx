@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError } from '@/components/ui/extension/field';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type PeriodStaffSchema, periodStaffSchema } from '@/schemas/timetable/constraints/subjectrestriction';
@@ -100,8 +101,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
 
     const form = useForm<PeriodStaffSchema>({
         resolver: zodResolver(periodStaffSchema),
+        mode: 'onTouched',
         defaultValues: {
-            ttrpS_Id: 0,
+            ttrpS_Id: undefined,
             asmaY_Id: undefined,
             ttmP_Id: undefined,
             hrmE_Id: undefined,
@@ -114,11 +116,11 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         setValue,
         watch,
         handleSubmit,
-        formState: { isSubmitting },
+        formState: { errors, isSubmitting },
         control,
         reset
     } = form;
-    const _asmaY_Id = watch('asmaY_Id');
+    const asmaY_Id = watch('asmaY_Id');
     const ttrpS_SUbSelcFlag = watch('ttrpS_SUbSelcFlag');
 
     const { fields, append, remove } = useFieldArray({
@@ -127,7 +129,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     });
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -150,7 +152,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
-        setValue('hrmE_Id', staffId);
+        setValue('hrmE_Id', staffId, { shouldValidate: true });
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
@@ -266,7 +268,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -284,7 +288,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -294,7 +298,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>
+                                    Period <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -315,7 +321,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.ttmP_Id && <FormError className='ml-2'>{errors.ttmP_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -325,7 +331,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleStaffChange(Number(v))}
@@ -346,7 +354,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                {errors.hrmE_Id && <FormError className='ml-2'>{errors.hrmE_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

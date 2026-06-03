@@ -324,9 +324,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             />
                                         )}
                                     />
-                                    {errors.optionflag && !watch('grnArray')?.length && (
-                                        <FormError>Please select at least one GRN</FormError>
-                                    )}
+                                    {errors.grnArray && <FormError>{errors.grnArray.message}</FormError>}
                                 </div>
                             )}
 
@@ -352,9 +350,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             />
                                         )}
                                     />
-                                    {errors.optionflag && !watch('itemArray')?.length && (
-                                        <FormError>Please select at least one Item</FormError>
-                                    )}
+                                    {errors.itemArray && <FormError>{errors.itemArray.message}</FormError>}
                                 </div>
                             )}
 
@@ -380,9 +376,7 @@ export default function ReportForm({ onReportGenerated }: ReportFormProps) {
                                             />
                                         )}
                                     />
-                                    {errors.optionflag && !watch('supplierArray')?.length && (
-                                        <FormError>Please select at least one Supplier</FormError>
-                                    )}
+                                    {errors.supplierArray && <FormError>{errors.supplierArray.message}</FormError>}
                                 </div>
                             )}
                         </div>

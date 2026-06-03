@@ -46,7 +46,10 @@ export default function ProgressCardReportGMVPS_X_Page() {
         try {
             setIsLoading(true);
             const res = await getExamReportCard(payload);
-            const flatRows = res?.data || [];
+            console.log("response", res);
+
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
 
             if (!Array.isArray(flatRows) || flatRows.length === 0) {
                 toast.error('No record found');
@@ -64,15 +67,15 @@ export default function ProgressCardReportGMVPS_X_Page() {
             const report_list = Array.from(studentMap.values());
             const savelist = flatRows;
 
-            const _activity_main_list_area = (res as any).activity_main_list_area || [];
-            const getstudentwiseactiviteslist = (res as any).getstudentwiseactiviteslist || [];
+            const activity_main_list_area = apiData?.activity_main_list_area || (res as any).activity_main_list_area || [];
+            const getstudentwiseactiviteslist = apiData?.getstudentwiseactiviteslist || (res as any).getstudentwiseactiviteslist || [];
 
             report_list.forEach((stu: any) => {
                 const studentId = stu.amsT_Id;
                 const activityname_temp: any[] = [];
 
                 getstudentwiseactiviteslist.forEach((act: any) => {
-                    if (act.AMST_Id === studentId) {
+                    if (act.AMST_Id === studentId || act.amsT_Id === studentId) {
                         if (activityname_temp.length === 0) {
                             activityname_temp.push(act);
                         } else {
@@ -89,11 +92,11 @@ export default function ProgressCardReportGMVPS_X_Page() {
             setReportData(report_list);
             setSaveList(savelist);
             setExtraData({
-                getstudentwiseactiviteslist: res.getstudentwiseactiviteslist,
-                work_attendence: res.work_attendence || res.stud_work_attendence,
-                present_attendence: res.present_attendence || res.stud_present_attendence,
-                exammastername: res.exammastername || res.strudentwisedentalandvision,
-                studentdetailsgraph: res.studentdetailsgraph
+                getstudentwiseactiviteslist: getstudentwiseactiviteslist,
+                work_attendence: apiData?.work_attendence || apiData?.stud_work_attendence || res.work_attendence || res.stud_work_attendence,
+                present_attendence: apiData?.present_attendence || apiData?.stud_present_attendence || res.present_attendence || res.stud_present_attendence,
+                exammastername: apiData?.exammastername || apiData?.strudentwisedentalandvision || res.exammastername || res.strudentwisedentalandvision,
+                studentdetailsgraph: apiData?.studentdetailsgraph || res.studentdetailsgraph
             });
 
             setExamName(payload.examName || flatRows[0]?.emE_ExamName || '');

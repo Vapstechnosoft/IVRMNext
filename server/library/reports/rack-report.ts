@@ -3,7 +3,7 @@
 import { api } from '@/lib/apiService';
 import type { IRackReportInitialData, IRackReportRequest, IRackReportResponse } from '@/types/library/reports/rack-report';
 
-const FACADE = '/RackReport';
+const FACADE = 'RackReport';
 
 const extractList = (list: any) => {
     if (!list) return [];
@@ -18,36 +18,78 @@ const extractList = (list: any) => {
     return [];
 };
 
+const normalizeLibraryList = (list: any[]) => {
+    return list.map((lib: any) => {
+        if (!lib || typeof lib !== 'object') return lib;
+        const lmaL_Id = lib.lmaL_Id ?? lib.lmal_Id ?? lib.LMAL_Id ?? lib.lmal_id ?? lib.lmalId ?? lib.id;
+        const lmaL_LibraryName = lib.lmaL_LibraryName ?? lib.lmal_LibraryName ?? lib.LMAL_LibraryName ?? lib.lmal_libraryname ?? lib.libraryname ?? lib.libraryName ?? lib.name;
+        return {
+            ...lib,
+            lmaL_Id: Number(lmaL_Id),
+            lmaL_LibraryName: String(lmaL_LibraryName || '')
+        };
+    });
+};
+
+const normalizeRackList = (list: any[]) => {
+    return list.map((rack: any) => {
+        if (!rack || typeof rack !== 'object') return rack;
+        const lmrA_Id = rack.lmrA_Id ?? rack.lmra_Id ?? rack.LMRA_Id ?? rack.lmra_id ?? rack.lmraId ?? rack.id;
+        const lmrA_RackName = rack.lmrA_RackName ?? rack.lmra_RackName ?? rack.LMRA_RackName ?? rack.lmra_rackname ?? rack.rackname ?? rack.rackName ?? rack.name;
+        return {
+            ...rack,
+            lmrA_Id: Number(lmrA_Id),
+            lmrA_RackName: String(lmrA_RackName || '')
+        };
+    });
+};
+
 export async function getRackReportLibraries() {
-    const url = '/AvailableBooksReport/getdetails';
+    const url = 'AvailableBooksReport/getdetails';
     const response = await api.get<any>('library', url);
-    const responseData = response.data || response;
-    const libList =
-        responseData.data?.libraryList || responseData.libraryList || responseData.lib_list || responseData.data?.lib_list || responseData;
-    return extractList(libList);
+
+    // Safely extract the inner data object
+    let data: any = {};
+    if (response) {
+        if (response.data && typeof response.data === 'object') {
+            data = response.data;
+        } else {
+            data = response;
+        }
+    }
+
+    const libList = data.libraryList || data.lib_list || data.libList || data.msterliblist1 || data.library_list || data || [];
+    const list = extractList(libList);
+    return normalizeLibraryList(list);
 }
 
 export async function getRackReportInitialData() {
-    const url = '/RackReport/library_RackReport_getdetails';
-    const response = await api.get<any>(
-        'library',
-        url
-        //     {
-        //     MI_Id: 30,
-        //     LMAL_Id: lmalId,
-        //     id: pageid
-        // }
-    );
+    const url = 'RackReport/library_RackReport_getdetails';
+    const response = await api.get<any>('library', url);
 
-    const responseData = response.data || response;
-    const data = responseData.data || responseData;
+    // Safely extract the inner data object
+    let data: any = {};
+    if (response) {
+        if (response.data && typeof response.data === 'object') {
+            data = response.data;
+        } else {
+            data = response;
+        }
+    }
+
+    // Extract all lists safely from the data object
+    const libList = data.lib_list || data.libraryList || data.libList || data.msterliblist1 || data.library_list || [];
+    const racklist = data.racklist || data.msterRacklist || [];
+    const booklist = data.booklist || data.msterbooklist || data.book_list || [];
+    const subjectlist = data.subjectlist || data.mstersubjectlist || data.subject_list || [];
+    const floorlist = data.floorlist || [];
 
     return {
-        lib_list: [],
-        racklist: extractList(data.racklist || data.msterRacklist || []),
-        booklist: extractList(data.booklist || data.msterbooklist || data.book_list || []),
-        subjectlist: extractList(data.subjectlist || data.mstersubjectlist || data.subject_list || []),
-        floorlist: extractList(data.floorlist || [])
+        lib_list: normalizeLibraryList(extractList(libList)),
+        racklist: normalizeRackList(extractList(racklist)),
+        booklist: extractList(booklist),
+        subjectlist: extractList(subjectlist),
+        floorlist: extractList(floorlist)
     } as IRackReportInitialData;
 }
 

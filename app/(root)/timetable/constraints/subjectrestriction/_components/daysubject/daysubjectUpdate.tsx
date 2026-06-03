@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { FormError } from '@/components/ui/extension/field';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +31,15 @@ interface DaySubjectUpdateProps {
 export default function DaySubjectUpdate({ academicList, dayList, subjectList, selectedRow, onSuccess, onCancel }: DaySubjectUpdateProps) {
     const form = useForm<DaySubjectSchema>({
         resolver: zodResolver(daySubjectSchema),
-        defaultValues: { ttrdsU_Id: 0, asmaY_Id: 0, ttmD_Id: 0, ismS_Id: 0, ttrdsU_SUbSelcFlag: false, tempararyArrayList: [] }
+        mode: 'onTouched',
+        defaultValues: {
+            ttrdsU_Id: undefined,
+            asmaY_Id: undefined,
+            ttmD_Id: undefined,
+            ismS_Id: undefined,
+            ttrdsU_SUbSelcFlag: false,
+            tempararyArrayList: []
+        }
     });
 
     const {
@@ -39,7 +48,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
         watch,
         reset,
         setValue,
-        formState: { isSubmitting }
+        formState: { errors, isSubmitting }
     } = form;
     const watchedYear = watch('asmaY_Id');
     const watchedSubSelectFlag = watch('ttrdsU_SUbSelcFlag');
@@ -62,7 +71,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
             try {
                 const res: any = await getDaySubjectEditDetails(id);
                 const responseData = res?.data || res;
-                const _data =
+                const data =
                     responseData?.restrict_day_subject_edit?.[0] ||
                     responseData?.restriction_day_subject_edit?.[0] ||
                     responseData?.restrict_day_subject?.[0] ||
@@ -126,6 +135,8 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                 sub.hrmE_EmployeeFirstName ||
                                 masterData.staff.find((s) => Number(s.hrmE_Id || s.HRME_Id) === Number(hid))?.staffName ||
                                 '';
+
+                            console.log('Sub object from API:', sub);
                             const nopKey = Object.keys(sub).find(
                                 (k) =>
                                     k.toLowerCase().includes('period') ||
@@ -133,6 +144,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                     k.toLowerCase() === 'ttfdscc_noofperiods'
                             );
                             const nopValue = nopKey ? sub[nopKey] : 0;
+                            console.log('Resolved NOP property key:', nopKey, 'value:', nopValue);
 
                             return {
                                 ttfdscC_Id: sub.ttfdscC_Id || sub.TTFDSCC_Id,
@@ -176,13 +188,13 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
     };
 
     const handleAcademicYearChange = (yearId: number) => {
-        setValue('asmaY_Id', yearId);
+        setValue('asmaY_Id', yearId, { shouldValidate: true });
         const currentSubjectId = form.getValues('ismS_Id');
         if (yearId && currentSubjectId) loadAssignments(currentSubjectId, yearId);
     };
 
     const handleSubjectChange = async (subjectId: number, yearId?: number) => {
-        setValue('ismS_Id', subjectId);
+        setValue('ismS_Id', subjectId, { shouldValidate: true });
         const effectiveYearId = yearId ?? watchedYear;
         if (effectiveYearId && subjectId) {
             return await loadAssignments(subjectId, effectiveYearId);
@@ -279,6 +291,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.asmaY_Id && <FormError className='ml-2'>{errors.asmaY_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -304,6 +317,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.ttmD_Id && <FormError className='ml-2'>{errors.ttmD_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />
@@ -329,6 +343,7 @@ export default function DaySubjectUpdate({ academicList, dayList, subjectList, s
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.ismS_Id && <FormError className='ml-2'>{errors.ismS_Id.message}</FormError>}
                             </FormItem>
                         )}
                     />

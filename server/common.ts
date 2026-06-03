@@ -1375,69 +1375,37 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Admission Form'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 25,
-                                    name: 'Local ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 77,
-                                            name: 'SVP Class Wise Student Details',
-                                            icon: 'Settings',
-                                            url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                            title: 'SVP Class Wise Student Details',
-                                            description: 'SVP Class Wise Student Details'
-                                        },
-                                        {
-                                            id: 71,
-                                            name: 'SamarthaBonafideCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                            title: 'Samartha Bonafide Certificate',
-                                            description: 'Samartha Bonafide Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'SamarthaTC',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaTC',
-                                            title: 'SamarthaTC',
-                                            description: 'SamarthaTC'
-                                        },
-                                        {
-                                            id: 73,
-                                            name: 'OverAllViewReportt',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                            title: 'OverAllViewReportt',
-                                            description: 'OverAllViewReportt'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        },
-                                        {
-                                            id: 74,
-                                            name: 'SRKVS Student Address Book',
-                                            icon: 'Settings',
-                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                            title: 'SRKVSStudentAddressBook',
-                                            description: 'SRKVSStudentAddressBook'
-                                        }
-                                    ]
                                 }
+                                // {
+                                //     id: 25,
+                                //     name: 'Local ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 77,
+                                //             name: 'SVP Class Wise Student Details',
+                                //             icon: 'Settings',
+                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                //             title: 'SVP Class Wise Student Details',
+                                //             description: 'SVP Class Wise Student Details'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -4284,14 +4252,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Provident Fund Form 6A'
                                         },
 
-                                        // {
-                                        //     id: 17,
-                                        //     name: 'PF Form3A',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form3a',
-                                        //     title: 'PF Form3A',
-                                        //     description: 'Provident Fund Form 3A'
-                                        // },
+                                        {
+                                            id: 17,
+                                            name: 'PF Form3A',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form3a',
+                                            title: 'PF Form3A',
+                                            description: 'Provident Fund Form 3A'
+                                        },
                                         {
                                             id: 18,
                                             name: 'HRMS Monthend Report',
@@ -4460,6 +4428,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/EmployeeSalarySlipStMary',
                                             title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id: 39,
+                                            name: 'Employee Salary Statement',
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/cumulative-salary-report',
+                                            title: 'Employee Salary Statement',
+                                            description: 'Employee Salary Statement'
                                         }
                                     ]
                                 }
@@ -6669,6 +6645,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/reports/stafWiseWorkingHours',
                                             title: 'Staff Wise Working Hours',
                                             description: 'Staff Wise Working Hours Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Month End Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/ttmonthendreport',
+                                            title: 'Time Table Month End Report',
+                                            description: 'Time Table Month End Report'
                                         }
                                     ]
                                 }

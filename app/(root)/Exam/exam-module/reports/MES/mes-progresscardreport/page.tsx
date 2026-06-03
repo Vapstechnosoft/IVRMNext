@@ -45,7 +45,10 @@ export default function MESProgressCardReportPage() {
         try {
             const res = await getExamReportCard(payload);
 
-            if (!res || !res.data || res.data.length === 0) {
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (!res || !flatRows || flatRows.length === 0) {
                 toast.error('No records found');
                 setIsReportVisible(false);
                 return;
@@ -53,7 +56,7 @@ export default function MESProgressCardReportPage() {
 
             // Extract report list (unique students)
             const reportList: any[] = [];
-            res.data.forEach((dev: any) => {
+            flatRows.forEach((dev: any) => {
                 if (!reportList.find((emp: any) => emp.amsT_Id === dev.amsT_Id)) {
                     reportList.push(dev);
                 }
@@ -62,7 +65,7 @@ export default function MESProgressCardReportPage() {
             // Calculate min marks for each student
             reportList.forEach((stu: any) => {
                 let estmpS_MinMarks = 0;
-                res.data.forEach((dev: any) => {
+                flatRows.forEach((dev: any) => {
                     if (stu.amsT_Id === dev.amsT_Id && dev.eyceS_AplResultFlg === true) {
                         estmpS_MinMarks += Number(dev.eyceS_MinMarks);
                     }
@@ -70,15 +73,15 @@ export default function MESProgressCardReportPage() {
                 stu.estmP_MinMarks = estmpS_MinMarks;
             });
 
-            setSaveList(res.data);
+            setSaveList(flatRows);
             setReportData(reportList);
             // setWorkAttendance(res.work_attendence || []);
             // setPresentAttendance(res.present_attendence || []);
             // setPromotionRemarks(res.promotion_remarks || []);
 
             // Set exam name, code and year from the first record or payload
-            if (res.data.length > 0) {
-                const first = res.data[0];
+            if (flatRows.length > 0) {
+                const first = flatRows[0];
                 setExamName(first.emE_ExamName || '');
                 setYear(first.asmaY_Year || '');
                 setExamCode(payload.examCode || '');

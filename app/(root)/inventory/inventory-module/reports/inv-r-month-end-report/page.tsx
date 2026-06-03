@@ -31,7 +31,13 @@ export default function InvRMonthEndReportPage() {
     const [showReport, setShowReport] = useState(false);
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = async (data: IInvRMonthEndReportPayload, extraPayload: any) => {
+    const handleReportGenerated = async (data: IInvRMonthEndReportPayload | null, extraPayload: any) => {
+        if (data === null) {
+            setReportData(null);
+            setCurrentPayload(null);
+            setShowReport(false);
+            return;
+        }
         setIsLoading(true);
         const result = await getInvRMonthEndReport(data);
         if (result.success && result.data) {

@@ -1,11 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Label } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider } from '@/components/ui/form/form-provider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { usePFForm5 } from '@/hooks/hrms/useReports';
 import { getMasterInstitution } from '@/server/hrms/master-dropdown';
@@ -49,6 +44,7 @@ function PFForm5Content() {
     const [institution, setInstitution] = useState<any>(null);
     const [reportMonth, setReportMonth] = useState('');
     const [reportYear, setReportYear] = useState('');
+    const [resetKey,setResetKey] = useState(0);
 
     useEffect(() => {
         const fetchInstitution = async () => {
@@ -73,9 +69,10 @@ function PFForm5Content() {
     const handleCancel = () => {
         reset();
         setReportData(null);
+        setResetKey(prev => prev + 1);
     };
 
-    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: yearsData, isLoading: isLoadingLeaveYear } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm5();
 
     const onSubmit = (data: FilterFormValues) => {
@@ -90,21 +87,19 @@ function PFForm5Content() {
         const selectedMonthObj = MONTH_LIST.find((m) => m.id.toString() === data.month);
         const monthName = selectedMonthObj?.name || '';
 
-        generateReport(
-            {
-                hreS_Year: yearString,
-                hreS_Month: monthName
-            },
-            {
-                onSuccess: (res) => {
-                    if (res.success && res.data) {
-                        setReportData(res.data);
-                        setReportMonth(monthName);
-                        setReportYear(yearString);
-                        toast.success('Report generated successfully');
-                    } else {
-                        toast.error(res.message || 'No data found');
-                    }
+        generateReport({
+            hreS_Year: yearString,
+            hreS_Month: monthName
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data && res?.data?.pfreportdetails && res?.data?.pfreportdetails.length > 0) {
+                    console.log("response",res)
+                    setReportData(res.data);
+                    setReportMonth(monthName);
+                    setReportYear(yearString);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.warning(res.message || 'No data found for this selected criteria');
                 }
             }
         );
@@ -119,96 +114,50 @@ function PFForm5Content() {
         printPFForm5(reportData, institution, reportMonth, reportYear);
     };
 
-    const columns = [
-        {
-            id: 'slNo',
-            header: 'SL.No',
-            cell: ({ row }: any) => row.index + 1
-        },
-        {
-            accessorKey: 'hrmE_PFAccNo',
-            header: 'PF Acc No'
-        },
-        {
-            header: 'Employee Name',
-            cell: ({ row }: any) => {
-                const e = row.original;
-                return `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.trim();
-            }
-        },
-        {
-            accessorKey: 'fatherHusbandName',
-            header: 'Father/Husband Name'
-        },
-        {
-            header: 'Date of Birth',
-            cell: ({ row }: any) => (row.original.hrmE_DOB ? format(new Date(row.original.hrmE_DOB), 'dd-MM-yyyy') : '')
-        },
-        {
-            accessorKey: 'ivrmmG_GenderName',
-            header: 'Gender'
-        },
-        {
-            header: 'PF Joining Date',
-            cell: ({ row }: any) => (row.original.hrmE_PFDate ? format(new Date(row.original.hrmE_PFDate), 'dd-MM-yyyy') : '')
-        }
-    ];
+
+
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
-                <h2 className='font-bold text-2xl tracking-tight'>PF Form 5</h2>
-            </div>
+            {/* <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>PF Form 5</h2>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <div className='space-y-2'>
-                            <Label>
-                                Year <span className='text-destructive'>*</span>
-                            </Label>
-                            <Controller
-                                name='year'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Year' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {yearsData?.data?.map((y: any) => (
-                                                <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
-                                                    {y.hrmlY_LeaveYear}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} key={resetKey}  render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger disabled={isLoadingLeaveYear}><SelectValue placeholder={isLoadingLeaveYear ? 'Loading...' : 'Select Year'} /></SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>
-                                Month <span className='text-destructive'>*</span>
-                            </Label>
-                            <Controller
-                                name='month'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Month' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {MONTH_LIST.map((m) => (
-                                                <SelectItem key={m.id} value={m.id.toString()}>
-                                                    {m.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value} >
+                                    <SelectTrigger disabled={isLoadingLeaveYear}>
+                                        <SelectValue placeholder={isLoadingLeaveYear ? 'Loading...' : 'Select Month'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {MONTH_LIST.map((m) => (
+                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
                     </div>
 
@@ -240,6 +189,10 @@ function PFForm5Content() {
                             <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
                                 <Printer className='h-4 w-4' />
                                 Print
+                            </Button>
+                            <Button variant='outline' size='sm' onClick={handleCancel} className='gap-2'>
+                                <X className='h-4 w-4' />
+                                Cancel
                             </Button>
                         </div>
                     }>
@@ -303,23 +256,58 @@ function PFForm5Content() {
                         </div>
                     </div>
 
-                    <div className='mt-8'>
-                        <GenericDataTable
-                            data={reportData.alldata || reportData.pfreportdetails || []}
-                            columns={columns}
-                            totalItems={(reportData.alldata || reportData.pfreportdetails || []).length}
-                            isPaginationRequired={false}
-                            isSearchRequired={false}
-                            isLoading={isPending}
-                        />
+                    <div className="mt-8 overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300 text-xs">
+                            <thead>
+                                <tr className="bg-gray-100 font-semibold text-gray-900">
+                                    <th className="border border-gray-300 px-3 py-2 text-center">S. No</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Account No.</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Name of the Member (in BLOCK letters)</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Father's Name or Husband's Name in case of married women</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Age/Date of Birth</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Sex</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-center">Date of Eligibility for Service</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Total Period of Previous Service (excluding period of breaks) as on the date of joining the Fund</th>
+                                    <th className="border border-gray-300 px-3 py-2 text-left">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(reportData.alldata || reportData.pfreportdetails || []).map((record: any, index: number) => {
+                                    const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim().toUpperCase();
+                                    const fatherHusbandName = record.fatherHusbandName || record.hrmE_FatherName || '';
+                                    const dob = record.hrmE_DOB ? format(new Date(record.hrmE_DOB), 'dd-MM-yyyy') : '';
+                                    const age = record.hrmE_Age ? `${record.hrmE_Age} Years` : '';
+                                    const ageDob = dob && age ? `${dob} (${age})` : (dob || age || '');
+                                    const sex = record.ivrmmG_GenderName || '';
+                                    const eligibilityDate = record.hrmE_PFDate ? format(new Date(record.hrmE_PFDate), 'dd-MM-yyyy') : '';
+                                    const totalService = record.totalServicePeriod || '';
+                                    const remarks = record.remark || record.remarks || '';
+
+                                    return (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{index + 1}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{record.hrmE_PFAccNo || ''}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{empName}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{fatherHusbandName}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{ageDob}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{sex}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-center">{eligibilityDate}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{totalService}</td>
+                                            <td className="border border-gray-300 px-3 py-2 text-left">{remarks}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div className='mt-8 grid grid-cols-12 gap-4'>
-                        <div className='col-span-12 flex justify-end'>
-                            <div className='mt-12 text-center'>
-                                <label className='clearfix border-black border-t px-8 pt-2 font-medium'>
-                                    Signature of the employer with Official Seal
-                                </label>
+                    <div className="grid grid-cols-12 gap-4 mt-8">
+                        <div className="col-span-12 flex justify-between">
+                            <div className="mt-8 text-center">
+                                Date : 
+                            </div>
+                            <div className="mt-12 text-center">
+                                <label className="clearfix border-t border-black pt-2 px-8 font-medium">Signature of the employer with Official Seal</label>
                             </div>
                         </div>
                         <div className='col-span-12'>

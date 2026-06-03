@@ -38,13 +38,21 @@ export const invRGRNSchema = z
         }
 
         // Selection Validation
-        if ((data.typeflag === 'Overall' || data.typeflag === 'Detailed') && data.optionflag) {
+        if (data.typeflag === 'Overall' || data.typeflag === 'Detailed') {
+            if (!data.optionflag) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select a Filter option',
+                    path: ['optionflag']
+                });
+                return;
+            }
             if (data.optionflag === 'Individual_1') {
                 if (!data.grnArray || data.grnArray.length === 0) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: 'Please select at least one GRN',
-                        path: ['optionflag'] // Or trigger a general error
+                        path: ['grnArray']
                     });
                 }
             }
@@ -53,7 +61,7 @@ export const invRGRNSchema = z
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: 'Please select at least one Item',
-                        path: ['optionflag']
+                        path: ['itemArray']
                     });
                 }
             }
@@ -62,7 +70,7 @@ export const invRGRNSchema = z
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: 'Please select at least one Supplier',
-                        path: ['optionflag']
+                        path: ['supplierArray']
                     });
                 }
             }

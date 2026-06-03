@@ -15,10 +15,11 @@ import { toast } from 'sonner';
 
 interface AddInvMasterStoreFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
     empname_list: IEmployeeDropdown[];
 }
 
-export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddInvMasterStoreFormProps) {
+export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_list }: AddInvMasterStoreFormProps) {
     const { refetchAll } = useInvMasterStore();
     const {
         control,
@@ -70,6 +71,13 @@ export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddIn
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
+        }
+    };
+
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
         }
     };
 
@@ -170,6 +178,9 @@ export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddIn
             </div>
 
             <div className='flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>

@@ -3195,6 +3195,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     render={({ field, fieldState: { error } }) => (
                                                         <div className='flex flex-col space-y-2'>
                                                             <Select
+                                                                key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>

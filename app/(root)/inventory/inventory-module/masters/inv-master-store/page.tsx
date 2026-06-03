@@ -117,7 +117,7 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterStoreForm onSuccess={closeAddForm} empname_list={empname_list} />
+                            <AddInvMasterStoreForm onSuccess={closeAddForm} onCancel={closeAddForm} empname_list={empname_list} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +141,12 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterStoreForm selectedRow={selectedRow} onSuccess={closeEditForm} empname_list={empname_list} />
+                            <UpdateInvMasterStoreForm
+                                selectedRow={selectedRow}
+                                onSuccess={closeEditForm}
+                                onCancel={closeEditForm}
+                                empname_list={empname_list}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
