@@ -58,11 +58,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const getStudentId = (obj: any): number => {
         if (!obj) return 0;
-        return Number(obj.AMST_Id ?? obj.amsT_Id ?? obj.amsT_ID ?? obj.amst_Id ?? 0);
+        return Number(obj.amsT_Id ?? obj.studentId ?? 0);
     };
 
     const getAttendanceObj = (studentId: number, list: any[]) => {
-        return list?.find((a: any) => a && (getStudentId(a) === Number(studentId))) || {};
+        return list?.find((a: any) => a && (Number(getStudentId(a)) === Number(studentId))) || {};
     };
 
     const getAttValue = (attObj: any, keys: string[]) => {
