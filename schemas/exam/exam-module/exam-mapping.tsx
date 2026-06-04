@@ -446,7 +446,7 @@ export const ExamSubjectWizardSchema = {
 
             UserId: z.number().int().nonnegative().optional().default(0),
             MI_Id: z.number().int().nonnegative().optional().default(0),
-            ASMAY_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Id: z.number({ required_error: 'Select Academic Year' }).int().positive({ message: 'Select Academic Year' }),
             ASMAY_Year: z.string().optional().nullable(),
 
             EYCE_BestOfApplicableFlg: z.boolean().optional(),
