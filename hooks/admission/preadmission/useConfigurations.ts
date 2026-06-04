@@ -5,7 +5,7 @@ import {
     getAcademicYearMasterConfiguration,
     getMasterConfiguration
 } from '@/server/admission/preadmission/configuration/master_configuration';
-import { getMasterNumbering, getPreRegistrationNumbering, getRegistrationNumbering, getRegNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
+import { getMasterNumbering, getPreRegistrationNumbering, getRegistrationNumbering, getRegNumbering } from '@/server/preconfiguration/transaction-numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

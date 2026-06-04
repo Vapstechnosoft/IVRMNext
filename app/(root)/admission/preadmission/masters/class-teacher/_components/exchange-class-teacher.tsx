@@ -287,7 +287,9 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                         No Employee found
                                                     </SelectItem>
                                                 ) : (
-                                                    employeeDataA.data.map((e: any) => (
+                                                    employeeDataA.data
+                                                        .filter((e: any) => !(selectedAcademicYearA === selectedAcademicYearB && e.hrmE_Id === selectedStaffB))
+                                                        .map((e: any) => (
                                                         <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
                                                             {e.employee_name}
                                                         </SelectItem>
@@ -386,7 +388,9 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                         No Employee found
                                                     </SelectItem>
                                                 ) : (
-                                                    employeeDataB.data.map((e: any) => (
+                                                    employeeDataB.data
+                                                        .filter((e: any) => !(selectedAcademicYearA === selectedAcademicYearB && e.hrmE_Id === selectedStaffA))
+                                                        .map((e: any) => (
                                                         <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
                                                             {e.employee_name}
                                                         </SelectItem>
