@@ -235,6 +235,8 @@ export default function SalaryCertificatePage() {
     const totalDeductions = calculateTotalDeductions();
     const netSalary = calculateNetSalary();
 
+    const certificateHandler = () =>{}
+
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>
@@ -399,7 +401,7 @@ export default function SalaryCertificatePage() {
                                         </Popover>
                                     </div>
                                     <div className="flex flex-row items-center gap-4">
-                                        <input type="radio" name="reportType" className="w-5 h-5" id="experienceCertificate" checked />
+                                        <input type="radio" name="reportType" className="w-5 h-5" id="experienceCertificate" checked onChange={certificateHandler} />
                                         <Label className='font-medium text-sm text-white-900' htmlFor='experienceCertificate'>
                                             Experience Certificate<span className='text-red-600'>*</span>
                                         </Label>
