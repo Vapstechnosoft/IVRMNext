@@ -2698,7 +2698,6 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-<<<<<<< HEAD
                                     "id": 2000,
                                     "name": "Baldwin",
                                     "icon": "Building2",
@@ -2727,51 +2726,6 @@ export async function getUserAccessibleModules() {
                                             "url": "/Exam/exam-module/reports/Baldwin/BBIIReport",
                                             "title": "Baldwin BBIIReport",
                                             "description": "Baldwin BBII Progress Card"
-=======
-                                    id: 2000,
-                                    name: 'Baldwin',
-                                    icon: 'Building2',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'HallTicketReport',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
-                                            title: 'HallTicketReport',
-                                            description: 'Generate Hall Ticket Report for students'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'MultipleExamProgressCardReport2',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
-                                            title: 'MultipleExamProgressCardReport2',
-                                            description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'BaldwinFinalPromReportBBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'BaldwinFinalPromReportBBHS',
-                                            description: 'BaldwinFinalPromReportBBHS'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'BCEHS BaldwinFinalPromReport',
-                                            icon: 'Report',
-                                            url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
-                                            title: 'BCEHS BaldwinFinalPromReport',
-                                            description: 'Generate BCEHS Final Promotion Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Baldwin BBIIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'Baldwin BBIIReport',
-                                            description: 'Baldwin BBII Progress Card'
->>>>>>> 4dde02a4a20cc975023ea19d27103e6e7cc22a06
                                         },
                                         // Baldwin Girls High School
                                         {
@@ -2808,7 +2762,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin BCOEDIIReport'
                                         },
                                         {
-<<<<<<< HEAD
                                             "id": 8,
                                             "name": "BCEHS BaldwinFinalPromReport",
                                             "icon": "Report",
@@ -2823,30 +2776,6 @@ export async function getUserAccessibleModules() {
                                             "url": "/Exam/exam-module/reports/Baldwin/PromotionReportIX",
                                             "title": "Baldwin PromotionReportIX",
                                             "description": "Baldwin Promotion Report IX"
-=======
-                                            id: 8,
-                                            name: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
-                                            title: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            description: 'Baldwin BBHSPromotionReportStdIX_20_21'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Baldwin PromotionReportIX',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
-                                            title: 'Baldwin PromotionReportIX',
-                                            description: 'Baldwin Promotion Report IX'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Baldwin Final P Report BBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'Baldwin Final P Report BBHS',
-                                            description: 'Baldwin Final P Report BBHS'
->>>>>>> 4dde02a4a20cc975023ea19d27103e6e7cc22a06
                                         }
                                         // ,
                                         // {
