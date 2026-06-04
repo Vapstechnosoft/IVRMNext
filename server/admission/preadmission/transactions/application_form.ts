@@ -110,3 +110,8 @@ export async function getStudentApplicationForm(id: number) {
     const url = `/student_application_form/get_student_application_details/${id}`;
     return await api.get<any>('preadmission', url);
 }
+
+export async function getStudentPrintData(pasR_Id: number, ASMCL_Id: number, ASMAY_Id: number, ASMST_Id: number) {
+    const url = `/student_application_form/getstudentprintData?pasR_Id=${pasR_Id}&ASMCL_Id=${ASMCL_Id}&ASMAY_Id=${ASMAY_Id}&ASMST_Id=${ASMST_Id}`;
+    return await api.post<any>('preadmission', url);
+}
