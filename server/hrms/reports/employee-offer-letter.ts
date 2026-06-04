@@ -53,3 +53,35 @@ export async function getEmployeeLetterDetails(designationId: number, deptId: nu
         };
     }
 }
+
+export async function getEmployeeOfferAndExperienceReport(payload: {
+    HRME_Id: number;
+    HRMGT_Id: number;
+    HRMD_Id: number;
+    HRMDES_Id: number;
+}) {
+    const url = '/api/EmployeeOfferAndExperienceReport/getReport';
+    try {
+        const response = await api.post<any>('hrms', url, payload);
+        if (response.success) {
+            return {
+                success: true,
+                data: response.data,
+                message: response.message
+            };
+        }
+        return {
+            success: false,
+            message: response.message || 'Failed to fetch report data',
+            data: null
+        };
+    } catch (error: any) {
+        console.error('API Error:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch report data',
+            data: null
+        };
+    }
+}
+
