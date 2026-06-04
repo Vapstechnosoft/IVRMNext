@@ -428,7 +428,7 @@ export default function CumulativeReportForm({
                                             render={({ field, fieldState }) => (
                                                 <CustomMultiSelectBox
                                                     options={students.map((s) => ({
-                                                        label: `${s.studentName?.trim() || 'Unknown'} - ${s.amsT_AdmNo || 'N/A'}`.trim(),
+                                                        label: `${s.studentName?.trim()}`,
                                                         value: s.amsT_Id.toString()
                                                     }))}
                                                     onChange={handleStudentChange}

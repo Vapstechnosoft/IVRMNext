@@ -271,29 +271,55 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
                             <Controller
                                 control={control}
                                 name="spccE_Id"
-                                render={({ field }) => (
-                                    <div className="flex flex-col gap-1">
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                                            <SelectTrigger className={errors.spccE_Id ? 'border-destructive ring-destructive/20' : ''}>
-                                                <SelectValue placeholder="Select Program Name" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {programList.map((prog, index) => {
-                                                    const idValue = String(prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || index);
-                                                    return (
-                                                        <SelectItem 
-                                                            key={`${idValue}-${index}`} 
-                                                            value={idValue}
-                                                        >
-                                                            {prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program"}
-                                                        </SelectItem>
-                                                    );
-                                                })}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.spccE_Id && <span className="text-xs font-medium text-destructive">{errors.spccE_Id.message}</span>}
-                                    </div>
-                                )}
+                                render={({ field }) => {
+                                    // Deduplicate by ID and Name to ensure all unique choices are available
+                                    const uniquePrograms = Array.from(
+                                        new Map(
+                                            programList.map((prog) => {
+                                                const id = prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || 0;
+                                                const name = prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program";
+                                                return [`${id}::${name}`, prog];
+                                            })
+                                        ).values()
+                                    ) as any[];
+
+                                    // Find current selected value's composite key
+                                    const selectedProg = uniquePrograms.find((p) => String(p.spccE_Id || p.spccpM_Id || p.spccmE_Id || 0) === String(field.value));
+                                    const selectedName = selectedProg ? (selectedProg.spccpM_Name || selectedProg.spccE_EventName || selectedProg.spccmE_EventName || "Unnamed Program") : '';
+                                    const currentVal = field.value ? `${field.value}::${selectedName}` : '';
+
+                                    return (
+                                        <div className="flex flex-col gap-1">
+                                            <Select 
+                                                onValueChange={(val) => {
+                                                    const [id] = val.split('::');
+                                                    field.onChange(Number(id));
+                                                }} 
+                                                value={currentVal}
+                                            >
+                                                <SelectTrigger className={errors.spccE_Id ? 'border-destructive ring-destructive/20' : ''}>
+                                                    <SelectValue placeholder="Select Program Name" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {uniquePrograms.map((prog, index) => {
+                                                        const id = prog.spccE_Id || prog.spccpM_Id || prog.spccmE_Id || index;
+                                                        const name = prog.spccpM_Name || prog.spccE_EventName || prog.spccmE_EventName || "Unnamed Program";
+                                                        const idValue = `${id}::${name}`;
+                                                        return (
+                                                            <SelectItem 
+                                                                key={`${idValue}-${index}`} 
+                                                                value={idValue}
+                                                            >
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.spccE_Id && <span className="text-xs font-medium text-destructive">{errors.spccE_Id.message}</span>}
+                                        </div>
+                                    );
+                                }}
                             />
                         </div>
 

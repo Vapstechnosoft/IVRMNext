@@ -443,6 +443,14 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                 return;
             }
 
+            // Validate End Time
+            const startMin = data.ttmB_BreakStartTime.getHours() * 60 + data.ttmB_BreakStartTime.getMinutes();
+            const endMin = data.ttmB_BreakEndTime.getHours() * 60 + data.ttmB_BreakEndTime.getMinutes();
+            if (endMin <= startMin) {
+                toast.error('End Time must be greater than Start Time');
+                return;
+            }
+
             const formatTime = (date: Date) => format(date, 'h:mm a');
 
             const payload = {
@@ -805,15 +813,11 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                         {...field}
                                         onChange={(value) => {
                                             field.onChange(value);
-                                            if (value > maxPeriods) {
-                                                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
-                                            }
                                         }}
                                         error={errors.ttmB_AfterPeriod?.message}
                                     />
                                 )}
                             />
-                            {errors.ttmB_AfterPeriod && <FormError>{errors.ttmB_AfterPeriod.message}</FormError>}
                         </div>
 
                         <div className='space-y-2'>

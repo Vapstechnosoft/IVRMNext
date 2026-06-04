@@ -83,6 +83,10 @@ import {
     getPFChallanReportOnload,
 } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
 import {
+    getPFForm3ABasicData,
+    searchPFForm3AReport,
+} from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
+import {
     getSalarySlipOnload,
     filterEmployeesByYearMonth,
     generateSalarySlip
@@ -383,6 +387,23 @@ export function usePFChallanOnload(MI_Id: number) {
         queryKey: ['pf-challan-onload', MI_Id],
         queryFn: () => getPFChallanReportOnload(MI_Id),
         staleTime: 1000 * 60 * 10
+    });
+}
+
+export function usePFForm3ABasicData() {
+    return useQuery({
+        queryKey: ['pf-form3a-basic-data'],
+        queryFn: () => getPFForm3ABasicData(),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function useSearchPFForm3AReport() {
+    return useMutation({
+        mutationFn: (data: any) => searchPFForm3AReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to search PF Form 3A report');
+        }
     });
 }
 

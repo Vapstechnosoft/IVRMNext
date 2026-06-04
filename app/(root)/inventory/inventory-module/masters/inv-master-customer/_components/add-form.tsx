@@ -11,9 +11,10 @@ import { useForm } from 'react-hook-form';
 
 interface AddCustomerFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 
-export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
+export default function AddCustomerForm({ onSuccess, onCancel }: AddCustomerFormProps) {
     const { saveMutation } = useInvMasterCustomer();
 
     const form = useForm<InvMasterCustomerSchema>({
@@ -31,6 +32,7 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isValid }
     } = form;
 
@@ -38,8 +40,16 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
         saveMutation.mutate(data, {
             onSuccess: () => {
                 onSuccess();
+                reset();
             }
         });
+    };
+
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
+        }
     };
 
     return (
@@ -86,6 +96,9 @@ export default function AddCustomerForm({ onSuccess }: AddCustomerFormProps) {
             </div>
 
             <div className='mt-4 flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' isLoading={saveMutation.isPending}>
                     <Save className='mr-2 h-4 w-4' />
                     Save

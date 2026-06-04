@@ -87,6 +87,12 @@ export interface ISportVenueWiseParticipationReportPayload {
     selectedVenuelist?: { spccmeV_Id: number }[];
     selectedhouselist?: { spccmH_Id: number }[];
     selectedSectionlist?: { asmS_Id: number }[];
+    page?: number;
+    page_size?: number;
+    search_column?: string;
+    search_query?: string;
+    sort_column?: string;
+    sort_direction?: string;
 }
 
 export interface SportVenuewiseReportData {

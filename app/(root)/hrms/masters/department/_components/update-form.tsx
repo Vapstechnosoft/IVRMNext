@@ -118,11 +118,12 @@ export default function UpdateDepartmentForm({ onSuccess, className = '', select
                             render={({ field }) => (
                                 <InputNumber
                                     label='Internal Training Min. Hours'
+                                    required
                                     id='hrmD_InternalTrainingMinimumHrs'
-                                    value={field.value}
+                                    value={field.value ?? undefined}
                                     maxDigits={3}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

@@ -166,7 +166,9 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
             };
 
             // Validation: End Time must be greater than Start Time
-            if (data.endTime <= data.startTime) {
+            const startMin = data.startTime.getHours() * 60 + data.startTime.getMinutes();
+            const endMin = data.endTime.getHours() * 60 + data.endTime.getMinutes();
+            if (endMin <= startMin) {
                 toast.error('To Time must be greater than From Time');
                 return;
             }
@@ -191,7 +193,16 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
     };
 
     const cancelEdit = () => {
-        reset();
+        reset({
+            ttmdpT_Id: 0,
+            asmaY_Id: '' as any,
+            ttmC_Id: '' as any,
+            ttmP_Id: '' as any,
+            dayids: undefined as any,
+            startTime: undefined,
+            endTime: undefined
+        });
+        setDaySearch('');
         closeEditForm();
     };
 
@@ -206,7 +217,10 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString() || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
@@ -231,7 +245,10 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
                         control={control}
                         name='ttmC_Id'
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value?.toString() || 'empty'}
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value?.toString() || undefined}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

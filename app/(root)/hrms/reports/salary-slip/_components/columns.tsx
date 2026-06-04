@@ -44,23 +44,24 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEm
     },
     {
         accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
+        header: ({ column }) => <div className='flex justify-center'><DataTableColumnHeader column={column} title='SL. No' /></div>,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='text-center'>{continuousIndex}</div>;
+            return <div className='flex justify-center'>{continuousIndex}</div>;
         },
         enableSorting: false,
         enableHiding: false,
-        size: 80
+        size: 20
     },
     {
         accessorKey: 'employeeCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        size: 150
     },
     {
         accessorKey: 'employeeName',

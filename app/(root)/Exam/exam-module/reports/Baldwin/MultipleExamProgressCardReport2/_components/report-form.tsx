@@ -31,9 +31,10 @@ type FormValues = z.infer<typeof schema>;
 
 interface ReportFormProps {
     onReportGenerated: (data: any, params: any) => void;
+    onReset: () => void;
 }
 
-export function ReportForm({ onReportGenerated }: ReportFormProps) {
+export function ReportForm({ onReportGenerated, onReset }: ReportFormProps) {
     const [years, setYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
@@ -134,6 +135,7 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
     }, [watchYear, watchClass, watchSection, setValue]);
 
     const onSubmit = async (data: FormValues) => {
+        onReset();
         setIsSubmitting(true);
         try {
             const selectedExams = exams
