@@ -38,6 +38,8 @@ export default function AddStudentCountReportForm({
     onFilterChange
 }: AddStudentCountReportFormProps) {
     const [results, setResults] = useState<Array<any>>([]);
+    const [isFromDateOpen, setIsFromDateOpen] = useState(false);
+    const [isToDateOpen, setIsToDateOpen] = useState(false);
     const queryClient = useQueryClient();
 
     const {
@@ -244,7 +246,7 @@ export default function AddStudentCountReportForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className="flex flex-col gap-1 w-full">
-                                                    <Popover>
+                                                    <Popover open={isFromDateOpen} onOpenChange={setIsFromDateOpen}>
                                                         <PopoverTrigger asChild>
                                                             <Button
                                                                 type='button'
@@ -261,7 +263,10 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) => {
+                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    setIsFromDateOpen(false);
+                                                                }}
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}
@@ -278,7 +283,7 @@ export default function AddStudentCountReportForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className="flex flex-col gap-1 w-full">
-                                                    <Popover>
+                                                    <Popover open={isToDateOpen} onOpenChange={setIsToDateOpen}>
                                                         <PopoverTrigger asChild>
                                                             <Button
                                                                 type='button'
@@ -295,7 +300,10 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) => {
+                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    setIsToDateOpen(false);
+                                                                }}
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}

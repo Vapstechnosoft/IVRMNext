@@ -58,7 +58,8 @@ import {
 import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import {
     getEmployeesByFilter,
-    getEmployeeLetterDetails
+    getEmployeeLetterDetails,
+    getEmployeeOfferAndExperienceReport
 } from '@/server/hrms/reports/employee-offer-letter';
 import {
     getESIReportOnload,
@@ -827,6 +828,20 @@ export function useVPFSummaryReport() {
         mutationFn: (data: PFSummaryReportRequest) => getVPFSummaryReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch the VPF Summary Report');
+        }
+    });
+}
+
+export function useEmployeeOfferAndExperienceReport() {
+    return useMutation({
+        mutationFn: (payload: {
+            HRME_Id: number;
+            HRMGT_Id: number;
+            HRMD_Id: number;
+            HRMDES_Id: number;
+        }) => getEmployeeOfferAndExperienceReport(payload),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch employee offer and experience report');
         }
     });
 }

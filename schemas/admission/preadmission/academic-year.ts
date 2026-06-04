@@ -181,12 +181,88 @@ export const PreAdmissionAcademicYearSchema = {
     })
 };
 export const transactionnumberingSchema = z.object({
-    prefix_type: z.enum(['academic', 'particulars']),
-    suffix_type: z.enum(['academic', 'particulars']),
+    auto_manual_flag: z.enum(['Manual', 'Auto']).default('Auto'),
+    duplicates_flag: z.enum(['Yes', 'No']).optional(),
+    
+    prefix_type: z.enum(['academic', 'particulars']).optional(),
+    suffix_type: z.enum(['academic', 'particulars']).optional(),
     prefix_particulars: z.string().optional(),
     suffix_particulars: z.string().optional(),
-    prefix_numeric_width: z.coerce.number().min(1).max(10),
-    suffix_starting_from: z.coerce.number().min(1),
-    prefix_with_zero: z.enum(['yes', 'no']),
-    restart_frequency: z.enum(['never', 'yearly'])
+    prefix_numeric_width: z.coerce.number().optional(),
+    suffix_starting_from: z.coerce.number().optional(),
+    prefix_with_zero: z.enum(['yes', 'no']).optional(),
+    restart_frequency: z.enum(['never', 'yearly', 'monthly']).optional(),
+    
+    // Receipt specific fields
+    transaction_name: z.string().optional(),
+    restart_acad_year: z.boolean().optional(),
+    restart_fin_year: z.boolean().optional(),
+    restart_cal_year: z.boolean().optional(),
+
+    // Voucher specific fields
+    voucher_name: z.string().optional(),
+    voucher_type: z.string().optional(),
+
+    // RollNumber specific fields
+    rollNumberingconfig: z.array(
+        z.object({
+            ivrmarnC_Field: z.string(),
+            ivrmarnC_AscDscOrder: z.string(),
+            ivrmarnC_Order: z.coerce.number(),
+            ivrmarnC_Id: z.coerce.number()
+        })
+    ).optional()
+}).superRefine((data, ctx) => {
+    if (data.auto_manual_flag === 'Manual') {
+        if (!data.duplicates_flag) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Prevent Duplicate is required when Manual is selected',
+                path: ['duplicates_flag']
+            });
+        }
+    } else if (data.auto_manual_flag === 'Auto') {
+        if (!data.prefix_type) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Prefix Type is required',
+                path: ['prefix_type']
+            });
+        }
+        if (!data.suffix_type) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Suffix Type is required',
+                path: ['suffix_type']
+            });
+        }
+        if (!data.prefix_numeric_width || data.prefix_numeric_width < 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Width of numeric part is required',
+                path: ['prefix_numeric_width']
+            });
+        }
+        if (!data.suffix_starting_from || data.suffix_starting_from < 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'SLNO Starting From is required',
+                path: ['suffix_starting_from']
+            });
+        }
+        if (!data.prefix_with_zero) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Prefix with zero is required',
+                path: ['prefix_with_zero']
+            });
+        }
+        if (!data.restart_frequency) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Restart frequency is required',
+                path: ['restart_frequency']
+            });
+        }
+    }
 });

@@ -129,3 +129,8 @@ export async function updtaeStudentFeeGroupMapping(payload: any) {
     const url = '/StudentFeeGroupMappingFacade/updateStudentFeeMappings';
     return await api.post<any>('fees', url, payload);
 }
+
+export async function getStudentFeeGroupMappingEditData(id: number) {
+    const url = `/StudentFeeGroupMappingFacade/geteditdata/${id}`;
+    return await api.get<any>('fees', url);
+}
