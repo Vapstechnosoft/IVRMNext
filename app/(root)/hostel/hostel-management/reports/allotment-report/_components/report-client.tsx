@@ -49,15 +49,17 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
         try {
             setReportType(data.type);
             const res = await getAllotmentReport(data);
-            // if (res.griddata) {
-            //     setReportData(res.griddata);
-            //     if (res.griddata.length === 0) {
-            //         toast.info('No records found');
-            //     }
-            // } else {
-            //     setReportData([]);
-            //     toast.error('Failed to fetch report');
-            // }
+            if (res && res.griddata) {
+                setReportData(res.griddata);
+                if (res.griddata.length === 0) {
+                    toast.info('No records found');
+                } else {
+                    toast.success(`Successfully loaded ${res.griddata.length} allotment(s)`);
+                }
+            } else {
+                setReportData([]);
+                toast.error('Failed to fetch report');
+            }
         } catch (error) {
             console.error(error);
             toast.error('An error occurred');
@@ -183,11 +185,15 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
                                                     <SelectValue placeholder="Select Year" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {dropdowns.yearlist.map((y: any) => (
-                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                            {y.asmaY_Year}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {dropdowns.yearlist?.map((y: any) => {
+                                                        const id = y.asmaY_Id ?? y.ASMAY_Id;
+                                                        const name = y.asmaY_Year ?? y.ASMAY_Year;
+                                                        return (
+                                                            <SelectItem key={id} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -209,11 +215,15 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
                                                     <SelectValue placeholder="Select Hostel" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {dropdowns.hostellist.map((h: any) => (
-                                                        <SelectItem key={h.hlmH_Id} value={String(h.hlmH_Id)}>
-                                                            {h.hlmH_Name}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {dropdowns.hostellist?.map((h: any) => {
+                                                        const id = h.hlmH_Id ?? h.HLMH_Id;
+                                                        const name = h.hlmH_Name ?? h.HLMH_Name ?? h.hlmH_name;
+                                                        return (
+                                                            <SelectItem key={id} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>

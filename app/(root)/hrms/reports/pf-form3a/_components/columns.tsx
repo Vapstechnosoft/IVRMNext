@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer, X } from 'lucide-react';
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 
 interface Contribution {
     month: string;
@@ -190,7 +192,6 @@ export default function PfForm3A({
     vpfContribution = 0,
     year = '2025',
     onCancel = () => window.close(),
-    onPrint = () => window.print(),
     isLoading = false
 }: PfForm3AProps) {
     const totalAmount = contributions.reduce((sum, c) => sum + c.amount, 0);
@@ -200,11 +201,32 @@ export default function PfForm3A({
     const totalTotal = contributions.reduce((sum, c) => sum + c.total, 0);
     const totalRefund = contributions.reduce((sum, c) => sum + c.refund, 0);
 
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        // documentTitle: `PF_Form_3A_${employeeName.replace(/\s+/g, '_')}`
+    });
     return (
         <>
-            <div className='mx-auto w-full max-w-[1200px] bg-white p-6 print:bg-transparent print:p-0'>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 15mm;
+                    }
+                    body {
+                        background: white !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                }
+            ` }} />
+            <div ref={printRef} className='printable-content mx-auto w-full max-w-[1200px] bg-white p-6 print:bg-transparent print:p-0' id="handle-print-pf-form-3a-report">
                 {/* Header */}
-
+                <div className='flex justify-end font-bold'>
+                    FORM 3A
+                </div>
                 <div className='space-y-1 text-center text-sm'>
                     <h3 className='font-bold text-gray-800'>Employees' Provident Fund Scheme, 1952</h3>
                     <p className='text-gray-700'>(Paragraph 35 & 42)</p>
@@ -365,6 +387,7 @@ export default function PfForm3A({
                                                 ₹{c.refund.toLocaleString('en-IN')}
                                             </td>
                                             <td className='border border-gray-400 px-2 py-1 text-center'>{c.periodFrom || '-'}</td>
+                                            <td className='border border-gray-400 px-2 py-1 text-center'>{c.periodTo || '-'}</td>
                                         </tr>
                                     ))}
 
@@ -387,7 +410,7 @@ export default function PfForm3A({
                                         <td className='border border-gray-400 px-2 py-2 text-right'>
                                             ₹{totalRefund.toLocaleString('en-IN')}
                                         </td>
-                                        <td colSpan={4} className='border border-gray-400' />
+                                        <td colSpan={2} className='border border-gray-400' />
                                     </tr>
                                 </>
                             )}
@@ -431,12 +454,12 @@ export default function PfForm3A({
                 </div>
 
                 {/* Action Buttons - Hidden on Print */}
-                <div className='flex justify-end gap-3 print:hidden'>
-                    <Button variant='outline' onClick={onCancel}>
+                <div className='mt-5 flex justify-center gap-3 print:hidden'>
+                    <Button variant='outline' onClick={onCancel} className='w-fit'>
                         <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
-                    <Button variant='outline' onClick={onPrint}>
+                    <Button variant='destructive' onClick={handlePrint} className='w-fit'>
                         <Printer className='mr-2 h-4 w-4' />
                         PRINT
                     </Button>

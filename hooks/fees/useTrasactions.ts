@@ -135,7 +135,22 @@ export const useopeningacademicyerdropdowndatafee = (searchParams?: ApiSearchpar
         }
     };
 };
+export const useopeningacademicyerdropdowndatafee1 = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
 
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1, searchParams ?? {}],
+            queryFn: async () => getOpeningAcademicYearDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1]
+            });
+        }
+    };
+};
 export const useopeningClassdropdowndatafee = () => {
     const queryClient = useQueryClient();
 

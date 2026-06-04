@@ -1,13 +1,13 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Store, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterStore } from '@/hooks/inventory/masters/use-inv-master-store';
 import type { IInvMasterStore } from '@/types/inventory/masters/inv-master-store';
+import { Pencil, Plus, PlusCircle, Store, X } from 'lucide-react';
+import { use } from 'react';
 import AddInvMasterStoreForm from './_components/add-form';
 import { invMasterStoreColumns } from './_components/columns';
 import ToggleInvMasterStoreForm from './_components/toggle-form';
@@ -117,7 +117,7 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterStoreForm onSuccess={closeAddForm} empname_list={empname_list} />
+                            <AddInvMasterStoreForm onSuccess={closeAddForm} onCancel={closeAddForm} empname_list={empname_list} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +141,12 @@ function FormSections({ empname_list }: { empname_list: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterStoreForm selectedRow={selectedRow} onSuccess={closeEditForm} empname_list={empname_list} />
+                            <UpdateInvMasterStoreForm
+                                selectedRow={selectedRow}
+                                onSuccess={closeEditForm}
+                                onCancel={closeEditForm}
+                                empname_list={empname_list}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

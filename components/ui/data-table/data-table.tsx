@@ -14,6 +14,7 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
+    getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon, RotateCcw } from 'lucide-react';
@@ -102,9 +103,20 @@ function DataTableInner<TData, TValue>(
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
+    // Local sorting state for instant UI updates while URL updates in background
+    const [localSorting, setLocalSorting] = useState<{ id: string; desc: boolean }[]>(
+        sortBy ? [{ id: sortBy, desc: order === 'desc' }] : []
+    );
+
+    useEffect(() => {
+        setLocalSorting(sortBy ? [{ id: sortBy, desc: order === 'desc' }] : []);
+    }, [sortBy, order]);
+
     const onSortingChange = (updaterOrValue: any) => {
         const newSortingState =
-            typeof updaterOrValue === 'function' ? updaterOrValue([{ id: sortBy, desc: order === 'desc' }]) : updaterOrValue;
+            typeof updaterOrValue === 'function' ? updaterOrValue(localSorting) : updaterOrValue;
+
+        setLocalSorting(newSortingState);
 
         if (newSortingState && newSortingState.length > 0) {
             setSortBy(newSortingState[0].id);
@@ -150,18 +162,33 @@ function DataTableInner<TData, TValue>(
         }
     };
 
+    const [searchColumnsQuery] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
     const table = useReactTable({
         data,
         columns,
         pageCount,
         state: {
             pagination: paginationState,
-            sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
+            sorting: localSorting,
             globalFilter: searchQuery,
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
         onSortingChange: onSortingChange,
+
+        globalFilterFn: (row, columnId, filterValue) => {
+            const searchCols = searchColumnsQuery ? searchColumnsQuery.split(',') : [];
+            if (searchCols.length > 0 && !searchCols.includes(columnId)) {
+                return false;
+            }
+            const value = row.getValue(columnId);
+            if (value == null) return false;
+            return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+        },
 
         // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
@@ -190,6 +217,7 @@ function DataTableInner<TData, TValue>(
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
         manualPagination: manualPagination,
         manualSorting: manualSorting,
         manualFiltering: manualFiltering,
@@ -238,10 +266,10 @@ function DataTableInner<TData, TValue>(
                         style={
                             scrollable
                                 ? {
-                                      maxHeight: maxHeight,
-                                      overflowY: 'auto',
-                                      position: 'relative'
-                                  }
+                                    maxHeight: maxHeight,
+                                    overflowY: 'auto',
+                                    position: 'relative'
+                                }
                                 : undefined
                         }>
                         <Table>

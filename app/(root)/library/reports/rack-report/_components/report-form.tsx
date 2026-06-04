@@ -43,15 +43,40 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const { data: librariesWrapper } = useRackReportLibraries();
     const { data: initialDataWrapper } = useRackReportInitialData();
     
-    const libraries = Array.isArray(librariesWrapper) ? librariesWrapper : (librariesWrapper as any)?.lib_list || (librariesWrapper as any)?.libraryList || [];
-    const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
-    const racklist = Array.isArray(initialData?.racklist) ? initialData.racklist : [];
+    // Extract libraries from useRackReportLibraries
+    let fetchedLibraries: any[] = [];
+    if (Array.isArray(librariesWrapper)) {
+        fetchedLibraries = librariesWrapper;
+    } else if (librariesWrapper && typeof librariesWrapper === 'object') {
+        const wrapper = (librariesWrapper as any).data || librariesWrapper;
+        fetchedLibraries = wrapper.lib_list || wrapper.libraryList || wrapper.libList || [];
+    }
+
+    // Extract libraries and racklist from useRackReportInitialData
+    let initialLibraries: any[] = [];
+    let racklist: any[] = [];
+    
+    if (initialDataWrapper && typeof initialDataWrapper === 'object') {
+        const wrapper = (initialDataWrapper as any).data || initialDataWrapper;
+        initialLibraries = wrapper.lib_list || wrapper.libraryList || wrapper.libList || [];
+        racklist = wrapper.racklist || wrapper.msterRacklist || [];
+    }
+
+    // Combine or fallback
+    const libraries = fetchedLibraries.length > 0 ? fetchedLibraries : initialLibraries;
 
     useEffect(() => {
-        if (libraries?.length === 1) {
-            setValue('LMAL_Id', libraries[0].lmaL_Id);
+        if (libraries && libraries.length > 0) {
+            const currentLmalId = watch('LMAL_Id');
+            if (!currentLmalId) {
+                if (libraries.length === 1) {
+                    setValue('LMAL_Id', libraries[0].lmaL_Id);
+                } else {
+                    setValue('LMAL_Id', libraries[0].lmaL_Id);
+                }
+            }
         }
-    }, [libraries, setValue]);
+    }, [libraries, setValue, watch]);
 
     const onSubmit = (data: ReportFormValues) => {
         // Updated payload to match the user's requested structure exactly: { "LMAL_Id": 2, "LMRA_Id": 4 }

@@ -42,6 +42,7 @@ function PFForm10Content() {
     const [institution, setInstitution] = useState<any>(null);
     const [reportMonth, setReportMonth] = useState('');
     const [reportYear, setReportYear] = useState('');
+    const [resetKey, setResetKey] = useState(0);
 
     useEffect(() => {
         const fetchInstitution = async () => {
@@ -66,9 +67,10 @@ function PFForm10Content() {
     const handleCancel = () => {
         reset();
         setReportData(null);
+        setResetKey(prev => prev + 1);
     };
 
-    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: yearsData, isLoading:isleaveYearLoading } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm10();
 
     console.log('Report Data:', reportData);
@@ -90,13 +92,13 @@ function PFForm10Content() {
             hreS_Month: monthName
         }, {
             onSuccess: (res) => {
-                if (res.success && res.data) {
+                if (res.success && res.data && res?.data?.pfreport && res?.data?.pfreport.length > 0) {
                     setReportData(res.data);
                     setReportMonth(monthName);
                     setReportYear(yearInt.toString());
                     toast.success('Report generated successfully');
                 } else {
-                    toast.error(res.message || 'No data found');
+                    toast.warning(res.message || 'No data found for this selected criteria');
                 }
             }
         });
@@ -140,19 +142,19 @@ function PFForm10Content() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='text-2xl font-bold tracking-tight'>PF Form 10</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
+                            <Controller name='year' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange}  value={field.value}>
+                                    <SelectTrigger disabled={isleaveYearLoading}>
+                                        <SelectValue placeholder={isleaveYearLoading ? 'Loading...' : 'Select Year'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {yearsData?.data?.map((y: any) => (
@@ -167,10 +169,10 @@ function PFForm10Content() {
 
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
+                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
+                                    <SelectTrigger disabled={isleaveYearLoading}>
+                                        <SelectValue placeholder={isleaveYearLoading ? 'Loading...' : 'Select Month'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {MONTH_LIST.map((m) => (

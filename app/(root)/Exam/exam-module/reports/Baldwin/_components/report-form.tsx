@@ -173,6 +173,7 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
     };
 
     const onSubmit = async (values: BaldwinReportSchema) => {
+        onReset();
         try {
             const selectedStudentDetails = students.filter(s =>
                 values.selectedStudents.includes(String(s.amsT_Id))
@@ -191,12 +192,12 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
                 getMasterInstitution()
             ]);
             console.log("institutionRes", institutionRes?.data);
-            
+
             if (result && result.success === false) {
                 toast.error(result.message || 'Failed to generate report');
                 return;
             }
-            
+
             onReportGenerated({ ...result, selected_academicYear, selected_class, selected_section, institution: institutionRes?.data }, values);
         } catch (error) {
             console.error('Error generating report:', error);

@@ -177,6 +177,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     // ── Submit ───────────────────────────────────────────────────────────────
     const onSubmit = async (formData: HallTicketFormValues) => {
+        onReset();
         const payload = {
             ASMAY_Id: Number(formData.ASMAY_Id),
             ASMCL_Id: Number(formData.ASMCL_Id),
