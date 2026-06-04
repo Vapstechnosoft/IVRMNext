@@ -45,7 +45,7 @@ export interface SelectedRowData {
 interface UpdateFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: SelectedRowData;
+    selectedRow: any;
 }
 
 export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, className = '', selectedRow }: UpdateFormProps) {
