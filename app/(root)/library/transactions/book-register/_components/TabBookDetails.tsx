@@ -119,11 +119,15 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {deptList.map((item: any) => (
-                                            <SelectItem key={item.lmD_Id} value={item.lmD_Id.toString()}>
-                                                {item.lmD_DepartmentName}
-                                            </SelectItem>
-                                        ))}
+                                        {deptList.map((item: any) => {
+                                            const deptId = item.lmD_Id || item.lmd_Id || item.hrmD_Id || item.HRMD_Id || item.id || item.value;
+                                            const deptName = item.lmD_DepartmentName || item.lmd_DepartmentName || item.hrmD_DepartmentName || item.HRMD_DepartmentName || item.name || item.label || item.departmentName;
+                                            return (
+                                                <SelectItem key={deptId} value={deptId?.toString()}>
+                                                    {deptName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}

@@ -73,8 +73,10 @@ export function SalarySlipFilters({
     onReset,
     selectedEmployeeIds
 }: SalarySlipFiltersProps) {
+    const [resetKey,setResetKey] = useState(0);
     const handleReset = () => {
         onReset();
+        setResetKey((prevKey) => prevKey + 1);
     };
     const [_currentYear, setCurrentYear] = useState<number | null>(null);
     useEffect(() => {
@@ -164,9 +166,9 @@ export function SalarySlipFilters({
                 </div>
             </div>
 
-            <div className='flex justify-between my-10 gap-3'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 my-10'>
                 {/* Left Column: Row 2 and Options */}
-                <div className='w-full'>
+                <div className='w-full space-y-4' key={resetKey}>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Month Filter */}
                         <div className='mt-3 mb-3 space-y-2'>
@@ -216,7 +218,7 @@ export function SalarySlipFilters({
                             </Select>
                         </div>
                         {/* Year Filter */}
-                        <div className='mt-3 mb-3 space-y-2'>
+                        <div className='mt-3 mb-3 space-y-2' key={resetKey}>
                             <Label className='font-medium' htmlFor='year-select'>
                                 Year
                             </Label>
@@ -339,7 +341,7 @@ export function SalarySlipFilters({
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                 <Button variant='outline' onClick={handleReset} type='button'>
-                    <RotateCcw className='mr-2 h-4 w-4' />
+                    <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
                 <Button

@@ -80,7 +80,7 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <Controller
+                        {/* <Controller
                             name='hrmD_Order'
                             control={control}
                             render={({ field }) => (
@@ -98,7 +98,7 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
-                        />
+                        /> */}
 
                         <Controller
                             name='hrmD_InternalTrainingMinimumHrs'
@@ -106,11 +106,12 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
                             render={({ field }) => (
                                 <InputNumber
                                     label='Internal Training Min. Hours'
+                                    required
                                     id='hrmD_InternalTrainingMinimumHrs'
-                                    value={field.value}
+                                    value={field.value ?? undefined}
                                     maxDigits={3}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

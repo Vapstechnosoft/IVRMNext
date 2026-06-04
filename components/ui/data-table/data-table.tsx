@@ -179,7 +179,7 @@ function DataTableInner<TData, TValue>(
         },
         onPaginationChange: handlePaginationChange,
         onSortingChange: onSortingChange,
-        
+
         globalFilterFn: (row, columnId, filterValue) => {
             const searchCols = searchColumnsQuery ? searchColumnsQuery.split(',') : [];
             if (searchCols.length > 0 && !searchCols.includes(columnId)) {
@@ -266,10 +266,10 @@ function DataTableInner<TData, TValue>(
                         style={
                             scrollable
                                 ? {
-                                      maxHeight: maxHeight,
-                                      overflowY: 'auto',
-                                      position: 'relative'
-                                  }
+                                    maxHeight: maxHeight,
+                                    overflowY: 'auto',
+                                    position: 'relative'
+                                }
                                 : undefined
                         }>
                         <Table>
