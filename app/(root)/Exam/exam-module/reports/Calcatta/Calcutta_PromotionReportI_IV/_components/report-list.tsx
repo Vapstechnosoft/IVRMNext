@@ -23,7 +23,8 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
         );
     }
 
-    const { getgroupdetails, groupwiseexamlist, studentdetails, skilllist_temp, EMPG_GroupName } = data;
+    const { getgroupdetails, groupwiseexamlist, studentdetails, skilllist_temp } = data;
+    const EMPG_GroupName = data.EMPG_GroupName || data.empG_GroupName;
 
     return (
         <div>
@@ -117,7 +118,7 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                     <tr>
                                                         <th rowSpan={2} className='border-black border-b border-r p-1 text-left'>SUBJECTS</th>
                                                         {getgroupdetails?.map((grp: any, idx: number) => (
-                                                            <th key={idx} colSpan={grp.groupewiseexam?.length || 1} className='border-black border-b p-1 uppercase'>
+                                                            <th key={idx} colSpan={grp.groupewiseexam?.length || 1} className='border-black border-b bg-gray-500 text-white p-1 text-center uppercase font-bold text-[12px]'>
                                                                 {EMPG_GroupName || grp.empG_DistplayName}
                                                             </th>
                                                         ))}
@@ -216,26 +217,60 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                             <table className='w-full border-collapse'>
                                                 <thead>
                                                     <tr>
-                                                        <th className='border-black border-b border-r p-1 uppercase'>SOCIAL HABITS</th>
-                                                        <th className='w-20 border-black border-b p-1 text-center uppercase'>{EMPG_GroupName || 'SEMESTER 1'}</th>
+                                                        <th className='border-black border-b border-r p-1'>&nbsp;</th>
+                                                        <th className='w-20 border-black border-b bg-gray-500 text-white p-1 text-center uppercase font-bold text-[12px]'>
+                                                            {EMPG_GroupName || 'SEMESTER 1'}
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {skilllist_temp?.map((skill: any) => (
-                                                        <React.Fragment key={skill.ECS_Id}>
-                                                            <tr>
-                                                                <td colSpan={2} className='border-black border-b p-1 text-center font-bold uppercase'>
-                                                                    {skill.ECS_SkillName}
-                                                                </td>
-                                                            </tr>
-                                                            {student.studentSkills?.filter((s: any) => s.ECS_Id === skill.ECS_Id).map((sct: any, sIdx: number) => (
-                                                                <tr key={sIdx}>
-                                                                    <td className='border-black border-b border-r p-1 font-semibold text-[11px]'>{sct.ECSA_SkillArea}</td>
-                                                                    <td className='border-black border-b p-1 text-center font-bold'>{sct.EMGD_Name}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </React.Fragment>
-                                                    ))}
+                                                    {(() => {
+                                                        const selectedTerm = EMPG_GroupName ? EMPG_GroupName.trim().toUpperCase() : '';
+                                                        const termToFilter = selectedTerm || 'SEMESTER 1';
+
+                                                        // Filter student skills for the selected term
+                                                        const termFilteredSkills = student.studentSkills?.filter((s: any) => {
+                                                            const termName = (s.ecT_TermName || s.ECT_TermName)?.trim().toUpperCase();
+                                                            return termName === termToFilter;
+                                                        }) || [];
+
+                                                        // Get unique active skill IDs/Names that are actually present for this term
+                                                        const activeSkillIds = new Set(termFilteredSkills.map((s: any) => s.ECS_Id ?? s.ecS_Id));
+                                                        console.log('skilllist_temp', skilllist_temp);
+                                                        // Filter skill list headings
+                                                        const filteredSkillHeadings = skilllist_temp?.filter((skill: any) => {
+                                                            const skillId = skill.ECS_Id ?? skill.ecS_Id;
+                                                            return activeSkillIds.has(skillId);
+                                                        }) || [];
+
+                                                        return filteredSkillHeadings.map((skill: any) => {
+                                                            const skillId = skill.ECS_Id ?? skill.ecS_Id;
+                                                            const skillName = skill.ecS_SkillName || skill.ECS_SkillName;
+
+                                                            // Sub-skills for this specific heading
+                                                            const subSkills = termFilteredSkills.filter((s: any) => (s.ECS_Id ?? s.ecS_Id) === skillId);
+
+                                                            return (
+                                                                <React.Fragment key={skillId}>
+                                                                    <tr>
+                                                                        <td colSpan={2} className='border-black border-b p-1 text-center font-bold uppercase text-[12px]'>
+                                                                            {skillName}
+                                                                        </td>
+                                                                    </tr>
+                                                                    {subSkills.map((sct: any, sIdx: number) => {
+                                                                        const skillArea = sct.ecsA_SkillArea || sct.ECSA_SkillArea;
+                                                                        const grade = sct.emgD_Name_F4 || sct.EMGD_Name_F4 || sct.emgD_Name || sct.EMGD_Name;
+                                                                        return (
+                                                                            <tr key={sIdx}>
+                                                                                <td className='border-black border-b border-r p-1 font-semibold text-[11px]'>{skillArea}</td>
+                                                                                <td className='border-black border-b p-1 text-center font-bold'>{grade}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </React.Fragment>
+                                                            );
+                                                        });
+                                                    })()}
                                                 </tbody>
                                             </table>
                                         </td>

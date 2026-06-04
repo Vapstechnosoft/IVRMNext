@@ -181,11 +181,12 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        const devId = dev.ECS_Id ?? dev.ecS_Id;
+        if (!skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === devId)) {
             skilllist_temp.push(dev);
         }
     }
-
+    console.log("skilllist_temp", skilllist_temp)
     return {
         getinstitution,
         getgroupdetails,
@@ -370,7 +371,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        const devId = dev.ECS_Id ?? dev.ecS_Id;
+        if (!skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === devId)) {
             skilllist_temp.push(dev);
         }
     }

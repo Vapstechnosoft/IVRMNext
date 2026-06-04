@@ -24,7 +24,7 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
         );
     }
 
-    const { getgroupdetails, groupwiseexamlist, studentdetails, examwiseremarkstemp } = data;
+    const { getgroupdetails, groupwiseexamlist, studentdetails, examwiseremarkstemp, skilllist_temp, activitylist_temp, gettermdetails } = data;
 
     return (
         <div>
@@ -140,11 +140,13 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                                         const sSubjId = subj.ISMS_Id || subj.ismS_Id;
                                                         const mEmeId = mrks.EME_Id || mrks.emE_Id;
                                                         const gEmeId = exam.EME_Id || exam.emE_Id;
-                                                        const mGrpName = mrks.EMPSG_DisplayName || mrks.empsG_DisplayName;
-                                                        const gGrpName = exam.EMPG_DistplayName || exam.empG_DistplayName;
+
+                                                        // Robust group matching (casing and key variants)
+                                                        const mGrp = (mrks.EMPG_GroupName || mrks.empG_GroupName || mrks.EMPSG_DisplayName || mrks.empsG_DisplayName || '')?.trim().toUpperCase();
+                                                        const gGrp = (exam.EMPG_GroupName || exam.empG_GroupName || exam.EMPG_DistplayName || exam.empG_DistplayName || '')?.trim().toUpperCase();
 
                                                         const subjMatch = mSubjId && sSubjId && Number(mSubjId) === Number(sSubjId);
-                                                        const grpMatch = !mGrpName || !gGrpName || mGrpName === gGrpName;
+                                                        const grpMatch = !mGrp || !gGrp || mGrp === gGrp;
 
                                                         if (exam.EME_ExamName === 'Highest in Class') {
                                                             return subjMatch && grpMatch && (Number(mEmeId) === 9800000 || Number(mEmeId) === Number(gEmeId));
@@ -156,19 +158,25 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                                     let cellValue: any = '-';
 
                                                     if (marks && marks.length > 0) {
-                                                        const mr = marks[0]; // Take the first matching mark
-                                                        const passFail = mr.PassFailFlag || mr.passFailFlag;
-                                                        const isAbsent = ['AB', 'M', 'L'].includes(passFail);
                                                         const isHighestExam = exam.EME_ExamName === 'Highest in Class';
 
                                                         if (isHighestExam) {
-                                                            cellValue = mr.ESTMPPS_ClassHighest || mr.estmppS_ClassHighest || mr.ESTMPPS_MaxHighest || '';
-                                                        } else if (isAbsent) {
-                                                            cellValue = passFail;
+                                                            const highestEntry = marks.find((m: any) => m.ESTMPPS_ClassHighest !== undefined && m.ESTMPPS_ClassHighest !== null && m.ESTMPPS_ClassHighest !== '' && m.ESTMPPS_ClassHighest !== 0)
+                                                                 || marks.find((m: any) => m.estmppS_ClassHighest !== undefined && m.estmppS_ClassHighest !== null && m.estmppS_ClassHighest !== '' && m.estmppS_ClassHighest !== 0)
+                                                                 || marks.find((m: any) => Number(m.EME_Id || m.emE_Id) === 98000012)
+                                                                 || marks[0];
+                                                            cellValue = highestEntry?.ESTMPPS_ClassHighest ?? highestEntry?.estmppS_ClassHighest ?? highestEntry?.ESTMPPS_MaxHighest ?? '';
                                                         } else {
-                                                            cellValue = mr.ObtainedMarks !== undefined ? mr.ObtainedMarks : mr.obtainedMarks;
-                                                            if (cellValue === undefined || cellValue === null) {
-                                                                cellValue = mr.GroupMarks || mr.ObtainedGrade || mr.obtainedGrade || '-';
+                                                            const mr = marks[0];
+                                                            const passFail = mr.PassFailFlag || mr.passFailFlag;
+                                                            const isAbsent = ['AB', 'M', 'L'].includes(passFail);
+                                                            if (isAbsent) {
+                                                                cellValue = passFail;
+                                                            } else {
+                                                                cellValue = mr.ObtainedMarks !== undefined ? mr.ObtainedMarks : mr.obtainedMarks;
+                                                                if (cellValue === undefined || cellValue === null) {
+                                                                    cellValue = mr.GroupMarks || mr.ObtainedGrade || mr.obtainedGrade || '-';
+                                                                }
                                                             }
                                                         }
                                                     } else if (exam.EME_Id === 9800000) {
@@ -187,9 +195,12 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                             <td className='border-black border-[0.5px] p-2 text-left uppercase font-bold'>TOTAL</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let totalValue: any = '';
-                                                if (exam.EME_Id === 9800000) {
-                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
-                                                    if (mr) totalValue = `${mr.obtainedMarks || mr.ESTMPS_ObtainedMarks} / ${mr.maxMarks || mr.maxmarks}`;
+                                                const mr = student.student_marks?.find((m: any) =>
+                                                    (Number(m.EME_Id ?? m.emE_Id) === Number(exam.EME_Id)) &&
+                                                    ((m.EMPSG_DisplayName ?? m.empsG_DisplayName) === exam.EMPG_DistplayName)
+                                                );
+                                                if (mr) {
+                                                    totalValue = `${mr.ObtainedMarks ?? mr.obtainedMarks ?? mr.ESTMPS_ObtainedMarks ?? ''} / ${mr.maxmarks ?? mr.maxMarks ?? mr.EMPS_MaxMarks ?? ''}`;
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center font-bold'>{totalValue}</td>;
                                             })}
@@ -200,9 +211,13 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                             <td className='border-black border-[0.5px] p-2 text-left uppercase font-bold'>PERCENTAGE</td>
                                             {groupwiseexamlist?.map((exam: any, eIdx: number) => {
                                                 let percValue: any = '';
-                                                if (exam.EME_Id === 9800000) {
-                                                    const mr = student.studentmarks?.find((m: any) => m.emE_Id === exam.EME_Id && m.ismS_SubjectName === 'GRAND TOTAL');
-                                                    if (mr && mr.totalPercentage) percValue = `${mr.totalPercentage.toFixed(2)}%`;
+                                                const mr = student.student_marks?.find((m: any) =>
+                                                    (Number(m.EME_Id ?? m.emE_Id) === Number(exam.EME_Id)) &&
+                                                    ((m.EMPSG_DisplayName ?? m.empsG_DisplayName) === exam.EMPG_DistplayName)
+                                                );
+                                                if (mr) {
+                                                    const p = mr.TotalPercentage ?? mr.totalPercentage ?? mr.ESTMPS_Percentage ?? mr.estmpS_Percentage;
+                                                    percValue = p !== undefined && p !== null ? `${Number(p).toFixed(2)}%` : '';
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center font-bold'>{percValue}</td>;
                                             })}
@@ -272,6 +287,61 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                 </div>
                             </div>
 
+                            {/* Skills Section (Co-Scholastic) */}
+                            {skilllist_temp && skilllist_temp.length > 0 && (
+                                <div className="flex flex-wrap pt-2 pb-4 gap-y-4 gap-x-2">
+                                    {skilllist_temp.map((skill: any, skIdx: number) => {
+                                        const skillId = skill.ECS_Id ?? skill.ecS_Id;
+                                        const skillName = skill.ECS_SkillName ?? skill.ecS_SkillName;
+                                        
+                                        return (
+                                            <div key={skIdx} className="w-full sm:w-[48%] flex-grow p-1">
+                                                <table className="w-full border-collapse border-[0.5px] border-black text-[14px]">
+                                                    <tbody>
+                                                        <tr className="border-[0.5px] border-black">
+                                                            <td className="border-black border-[0.5px] p-2 font-bold bg-gray-400 uppercase">{skillName}</td>
+                                                            {gettermdetails?.map((cos: any, cIdx: number) => {
+                                                                const termName = cos.ecT_TermName ?? cos.ECT_TermName ?? cos.termName ?? '';
+                                                                return (
+                                                                    <td key={cIdx} className="border-black border-[0.5px] bg-gray-400 p-2 text-center uppercase font-bold w-[120px]">{termName}</td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                        {activitylist_temp?.filter((ax: any) => (ax.ECS_Id ?? ax.ecS_Id) === skillId).map((skillx: any, axIdx: number) => {
+                                                            const skillAreaId = skillx.ECSA_Id ?? skillx.ecsA_Id;
+                                                            const skillAreaName = skillx.ECSA_SkillArea ?? skillx.ecsA_SkillArea;
+                                                            
+                                                            return (
+                                                                <tr key={axIdx} className="border-[0.5px] border-black">
+                                                                    <td className="border-black border-[0.5px] p-2 font-semibold">{skillAreaName}</td>
+                                                                    {gettermdetails?.map((cosx: any, cIdx: number) => {
+                                                                        const termId = cosx.ecT_Id ?? cosx.ECT_Id;
+                                                                        const matchingSkills = student.studentSkills?.filter((gradex: any) => {
+                                                                            const gTermId = gradex.ECT_Id ?? gradex.ecT_Id;
+                                                                            const gAreaId = gradex.ECSA_Id ?? gradex.ecsA_Id;
+                                                                            return Number(gTermId) === Number(termId) && Number(gAreaId) === Number(skillAreaId);
+                                                                        });
+                                                                        
+                                                                        return (
+                                                                            <td key={cIdx} className="border-black border-[0.5px] p-2 text-center font-bold">
+                                                                                {matchingSkills?.map((gradex: any, gxIdx: number) => {
+                                                                                    const gradeName = gradex.EMGD_Name ?? gradex.emgD_Name ?? '';
+                                                                                    return <span key={gxIdx}>{gradeName}</span>;
+                                                                                })}
+                                                                            </td>
+                                                                        );
+                                                                    })}
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
                             {/* Graph Analysis Box */}
                             <div className='pt-2'>
                                 <table className='mb-8 w-full border-collapse border-[0.5px] border-black text-[14px]'>
@@ -305,6 +375,26 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Promotion Status Box */}
+                            {student.remarks && (
+                                <div className='pt-2'>
+                                    <table className='w-full border-collapse border-[0.5px] border-black text-[14px]'>
+                                        <tbody>
+                                            <tr className='border-[0.5px] border-black'>
+                                                <th className='bg-gray-400 text-black p-2 text-center font-bold uppercase'>
+                                                    PROMOTION STATUS
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <td className='p-2 text-left font-bold border-black border-[0.5px] min-h-[40px]'>
+                                                    {student.remarks}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
 
                             {/* Signatures Box */}
                             <div className='mt-16'>
