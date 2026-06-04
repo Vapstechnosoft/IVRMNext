@@ -4203,14 +4203,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Bank Cash Report',
                                             description: 'Bank & Cash Summary'
                                         },
-                                        // {
-                                        //     id: 11,
-                                        //     name: 'Employee Service Report',
-                                        //     icon: 'Briefcase',
-                                        //     url: '/hrms/reports/employee-service-report',
-                                        //     title: 'Employee Service Report',
-                                        //     description: 'Employee Service Summary'
-                                        // },
+                                        {
+                                            id: 11,
+                                            name: 'Employee Service Report',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/reports/employee-service-report',
+                                            title: 'Employee Service Report',
+                                            description: 'Employee Service Summary'
+                                        },
                                         {
                                             id: 1289,
                                             name: 'Salary Certificate',

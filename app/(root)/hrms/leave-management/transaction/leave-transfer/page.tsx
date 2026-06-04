@@ -142,6 +142,7 @@ function FormSections() {
     // --- Leave Data Hooks ---
     const { data: yearsData } = useLeaveYearDropdown();
     const { data: leavesData } = useLeaveDropdown();
+    console.log("leavesData", leavesData)
 
     const leaveYears = useMemo(() => {
         return (yearsData?.data || []).map((y: any) => ({
