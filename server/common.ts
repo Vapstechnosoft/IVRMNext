@@ -2700,60 +2700,55 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 2000,
-                                    name: 'Baldwin',
-                                    icon: 'Building2',
-                                    pages: [
+                                    "id": 2000,
+                                    "name": "Baldwin",
+                                    "icon": "Building2",
+                                    "pages": [
+                                        // Baldwin boys high school
                                         {
-                                            id: 1,
-                                            name: 'BaldwinFinalPromReportBBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'BaldwinFinalPromReportBBHS',
-                                            description: 'BaldwinFinalPromReportBBHS'
+                                            "id": 1,
+                                            "name": "BaldwinFinalPromReportBBHS",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS",
+                                            "title": "BaldwinFinalPromReportBBHS",
+                                            "description": "BaldwinFinalPromReportBBHS"
                                         },
                                         {
-                                            id: 2,
-                                            name: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
-                                            title: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            description: 'Baldwin BBHSPromotionReportStdIX_20_21'
+                                            "id": 2,
+                                            "name": "Baldwin BBHSPromotionReportStdIX_20_21",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21",
+                                            "title": "Baldwin BBHSPromotionReportStdIX_20_21",
+                                            "description": "Baldwin BBHSPromotionReportStdIX_20_21"
                                         },
                                         {
-                                            id: 3,
-                                            name: 'Baldwin BBIIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'Baldwin BBIIReport',
-                                            description: 'Baldwin BBII Progress Card'
+                                            "id": 3,
+                                            "name": "Baldwin BBIIReport",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/BBIIReport",
+                                            "title": "Baldwin BBIIReport",
+                                            "description": "Baldwin BBII Progress Card"
+                                        },
+                                        // Baldwin Girls High School
+                                        {
+                                            "id": 4,
+                                            "name": "HallTicketReport",
+                                            "icon": "Ticket",
+                                            "url": "/Exam/exam-module/reports/Baldwin/hall-ticket-report",
+                                            "title": "HallTicketReport",
+                                            "description": "Generate Hall Ticket Report for students"
                                         },
                                         {
-                                            id: 4,
-                                            name: 'HallTicketReport',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
-                                            title: 'HallTicketReport',
-                                            description: 'Generate Hall Ticket Report for students'
+                                            "id": 5,
+                                            "name": "MultipleExamProgressCardReport2",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2",
+                                            "title": "MultipleExamProgressCardReport2",
+                                            "description": "Generate MultipleExamProgressCardReport2 for Baldwin"
                                         },
-                                        {
-                                            id: 5,
-                                            name: 'MultipleExamProgressCardReport2',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
-                                            title: 'MultipleExamProgressCardReport2',
-                                            description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
-                                        },
+                                        // Baldwin Co Eduction School
                                         {
                                             id: 6,
-                                            name: 'BCEHS BaldwinFinalPromReport',
-                                            icon: 'Report',
-                                            url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
-                                            title: 'BCEHS BaldwinFinalPromReport',
-                                            description: 'Generate BCEHS Final Promotion Report'
-                                        },
-                                        {
-                                            id: 7,
                                             name: 'Baldwin BCOEDIReport',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
@@ -2769,12 +2764,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin BCOEDIIReport'
                                         },
                                         {
-                                            id: 9,
-                                            name: 'Baldwin PromotionReportIX',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
-                                            title: 'Baldwin PromotionReportIX',
-                                            description: 'Baldwin Promotion Report IX'
+                                            "id": 8,
+                                            "name": "BCEHS BaldwinFinalPromReport",
+                                            "icon": "Report",
+                                            "url": "/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report",
+                                            "title": "BCEHS BaldwinFinalPromReport",
+                                            "description": "Generate BCEHS Final Promotion Report"
+                                        },
+                                        {
+                                            "id": 9,
+                                            "name": "Baldwin PromotionReportIX",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportIX",
+                                            "title": "Baldwin PromotionReportIX",
+                                            "description": "Baldwin Promotion Report IX"
                                         }
                                     ]
                                 },
