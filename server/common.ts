@@ -5484,6 +5484,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'AI Doubt resolver',
+                                            icon: 'MessageSquare',
+                                            url: '/iframe/ai-doubt-resolver',
+                                            title: 'AI Doubt resolver',
+                                            description: 'Resolve academic doubts using AI'
                                         }
                                     ]
                                 }
@@ -8970,6 +8978,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'AI Doubt resolver',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/ai-doubt-resolver',
+                                            title: 'AI Doubt resolver',
+                                            description: 'Resolve academic doubts using AI'
                                         }
                                     ]
                                 }
@@ -9315,6 +9331,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'Analyze performance metrics and AI-driven insights'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'AI Doubt resolver',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/ai-doubt-resolver',
+                                            title: 'AI Doubt resolver',
+                                            description: 'Resolve academic doubts using AI'
                                         }
                                     ]
                                 }
