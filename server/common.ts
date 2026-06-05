@@ -1155,6 +1155,15 @@ export async function getUserAccessibleModules() {
                                             description: 'StudentTcCancel'
                                         },
                                         {
+                                            id: 6099,
+                                            name: 'MasterQuestionBank',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/MasterQuestionBank',
+                                            title: 'MasterQuestionBank',
+                                            description: 'MasterQuestionBank'
+                                        },
+
+                                        {
                                             id: 604,
                                             name: 'SophiaMultiTransferCertificate',
                                             icon: 'Settings',
