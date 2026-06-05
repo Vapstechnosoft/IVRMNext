@@ -25,6 +25,8 @@ export default function BBIIReportPage() {
     const handleFormSuccess = async (payload: any) => {
         try {
             setIsLoading(true);
+            setReportData([]);
+            setIsReportVisible(false);
             console.log(payload, "pay");
             const res = await getExamReportCard(payload);
             console.log("response", res);

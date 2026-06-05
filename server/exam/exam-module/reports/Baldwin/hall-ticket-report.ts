@@ -49,7 +49,7 @@ export async function getHallTicketReport(data: {
     EME_Id: number;
     studentlist: { amsT_Id: number }[];
 }) {
-    const url = '/VikasaHallTicketReport/report';
+    const url = '/VikasaHallTicketReportFacade/report';
     const response = await api.post<any>('exam', url, data);
     return response;
 }

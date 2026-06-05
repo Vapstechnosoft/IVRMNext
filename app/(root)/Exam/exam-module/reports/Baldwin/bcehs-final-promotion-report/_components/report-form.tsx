@@ -35,9 +35,10 @@ type BCEHSFormValues = z.infer<typeof bcehsSchema>;
 
 interface ReportFormProps {
     onReportGenerated: (data: any, params: any) => void;
+    onReset: () => void;
 }
 
-export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
+export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const academicYears = academicData?.data ?? [];
 
@@ -154,6 +155,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     };
 
     const onSubmit = async (formData: BCEHSFormValues) => {
+        onReset();
         const payload = {
             ASMAY_Id: Number(formData.ASMAY_Id),
             ASMCL_Id: Number(formData.ASMCL_Id),

@@ -25,6 +25,7 @@ export default function BCOEDIReportPage() {
     const handleFormSuccess = async (payload: any) => {
         try {
             setIsLoading(true);
+            setReportData([]);
             setIsReportVisible(false);
             const res = await getExamReportCard(payload);
             console.log("response", res);

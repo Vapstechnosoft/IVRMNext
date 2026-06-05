@@ -2,6 +2,7 @@
 
 import { api } from '@/lib/apiService';
 import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
+import { dataTagSymbol } from '@tanstack/react-query';
 
 /**
  * BCEHS Final Promotion Report - Shared Dropdowns & Specific Actions
@@ -41,18 +42,18 @@ function getProp(obj: any, snake: string, camel: string) {
 export async function getBCEHSFinalPromotionReport(data: any) {
     const url = '/Baldwin_All_Reports/Baldwin_Final_P_Report_card';
 
-    const payload = {
-        asmaY_Id: Number(data.ASMAY_Id),
-        asmcL_Id: Number(data.ASMCL_Id),
-        asmS_Id: Number(data.ASMS_Id),
-        temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) })),
-        ASMAY_Id: Number(data.ASMAY_Id),
-        ASMCL_Id: Number(data.ASMCL_Id),
-        ASMS_Id: Number(data.ASMS_Id),
-        Temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) }))
-    };
+    // const payload = {
+    //     asmaY_Id: Number(data.ASMAY_Id),
+    //     asmcL_Id: Number(data.ASMCL_Id),
+    //     asmS_Id: Number(data.ASMS_Id),
+    //     temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) })),
+    //     ASMAY_Id: Number(data.ASMAY_Id),
+    //     ASMCL_Id: Number(data.ASMCL_Id),
+    //     ASMS_Id: Number(data.ASMS_Id),
+    //     Temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) }))
+    // };
 
-    const response = await api.post<any>('exam', url, payload);
+    const response = await api.post<any>('exam', url, data);
     console.log('getBCEHSFinalPromotionReport response success:', response?.success);
 
     const actualData = response?.data || response;
