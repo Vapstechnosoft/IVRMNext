@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Label } from '@/components/ui/extension/field';
+import { Label, FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,38 +12,53 @@ import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import {
     useDepartmentSalaryReport, useReportDepartments, useReportDesignations, useReportGroupTypes
 } from '@/hooks/hrms/useReports';
-import { Printer, RefreshCw, Search, X } from 'lucide-react';
+import { Loader2, Printer, RefreshCw, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { printDepartmentSalaryReport } from './_components/print-utils';
+
+const departmentSalaryReportSchema = z.object({
+    year: z.string().min(1, 'Year is required'),
+    month: z.string().min(1, 'Month is required'),
+    groupType: z.array(z.string()).min(1, 'Please select at least one Group Type'),
+    department: z.array(z.string()).min(1, 'Please select at least one Department'),
+    designation: z.array(z.string()).min(1, 'Please select at least one Designation'),
+});
+
+type FormFields = z.infer<typeof departmentSalaryReportSchema>;
 
 export default function DepartmentSalaryReportPage() {
     const [isClient, setIsClient] = useState(false);
     useEffect(() => setIsClient(true), []);
+    const [resetKey, setResetKey] = useState(0);
 
     // Form
-    const { control, handleSubmit, watch, setValue, reset } = useForm({
+    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormFields>({
+        resolver: zodResolver(departmentSalaryReportSchema),
         defaultValues: {
             year: '',
             month: '',
-            groupType: [] as string[],
-            department: [] as string[],
-            designation: [] as string[],
+            groupType: [],
+            department: [],
+            designation: [],
         }
     });
 
     const handleCancel = () => {
         reset();
         setReportData(null);
+        setResetKey(prev => prev + 1);
     };
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
 
     // Data Fetching
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
 
     // Cascading Filter Logic
     const activeGroupIds = useMemo(() => {
@@ -54,7 +69,7 @@ export default function DepartmentSalaryReportPage() {
         return watchedGroupType.join(',');
     }, [watchedGroupType, groupTypesData]);
 
-    const { data: departmentsData } = useReportDepartments(activeGroupIds);
+    const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(activeGroupIds);
 
     const activeDeptIds = useMemo(() => {
         if (!watchedDepartment || watchedDepartment.length === 0) return '';
@@ -64,7 +79,7 @@ export default function DepartmentSalaryReportPage() {
         return watchedDepartment.join(',');
     }, [watchedDepartment, departmentsData]);
 
-    const { data: designationsData } = useReportDesignations(activeGroupIds, activeDeptIds);
+    const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(activeGroupIds, activeDeptIds);
 
     // Report Query
     const { mutate: fetchReport, isPending: isLoadingReport, data: reportResult } = useDepartmentSalaryReport();
@@ -82,20 +97,34 @@ export default function DepartmentSalaryReportPage() {
         }
     }, [reportResult]);
 
-    const onSubmit = (data: any) => {
-        if (!data.year || !data.month) {
-            toast.error('Please select Year and Month');
-            return;
+    // Extract dynamic earning and deduction heads
+    const { earningHeads, deductionHeads } = useMemo(() => {
+        if (!reportData || !reportData.departmentSalaryDetails) {
+            return { earningHeads: [], deductionHeads: [] };
         }
-        if (!data.groupType || data.groupType.length === 0) {
-            toast.error('Please select at least one Group Type');
-            return;
-        }
-        if (!data.department || data.department.length === 0) {
-            toast.error('Please select at least one Department');
-            return;
-        }
+        const earningMap = new Map<number, { id: number; name: string; order: number; index: number }>();
+        const deductionMap = new Map<number, { id: number; name: string; order: number; index: number }>();
 
+        reportData.departmentSalaryDetails.forEach((row: any) => {
+            row.earningresult?.forEach((e: any, idx: number) => {
+                if (!earningMap.has(e.hrmeD_Id)) {
+                    earningMap.set(e.hrmeD_Id, { id: e.hrmeD_Id, name: e.hrmeD_Name, order: e.hrmeD_Order || 0, index: idx });
+                }
+            });
+            row.deductionresult?.forEach((d: any, idx: number) => {
+                if (!deductionMap.has(d.hrmeD_Id)) {
+                    deductionMap.set(d.hrmeD_Id, { id: d.hrmeD_Id, name: d.hrmeD_Name, order: d.hrmeD_Order || 0, index: idx });
+                }
+            });
+        });
+
+        const earningHeads = Array.from(earningMap.values()).sort((a, b) => a.order - b.order || a.index - b.index);
+        const deductionHeads = Array.from(deductionMap.values()).sort((a, b) => a.order - b.order || a.index - b.index);
+
+        return { earningHeads, deductionHeads };
+    }, [reportData]);
+
+    const onSubmit = (data: FormFields) => {
         // Prepare IDs
         const gIds = data.groupType.includes('All') ? groupTypesData?.data?.map((g: any) => g.HRMGT_Id || g.hrmgT_Id).join(',') : data.groupType.join(',');
         const dIds = data.department.includes('All') ? departmentsData?.data?.map((d: any) => d.HRMD_Id || d.hrmD_Id).join(',') : data.department.join(',');
@@ -163,9 +192,9 @@ export default function DepartmentSalaryReportPage() {
                         {/* Year & Month */}
                         <div className='space-y-2'>
                             <Label>Year <span className='text-red-500'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger>
+                            <Controller name='year' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
+                                    <SelectTrigger><SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Year'} /></SelectTrigger>
                                     <SelectContent>
                                         {yearsData?.data?.map((y: any) => (
                                             <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id?.toString() || ''}>{y.hrmlY_LeaveYear}</SelectItem>
@@ -173,12 +202,13 @@ export default function DepartmentSalaryReportPage() {
                                     </SelectContent>
                                 </Select>
                             )} />
+                            {errors.year && <FormError>{errors.year.message}</FormError>}
                         </div>
                         <div className='space-y-2'>
                             <Label>Month <span className='text-red-500'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger><SelectValue placeholder="Select Month" /></SelectTrigger>
+                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
+                                    <SelectTrigger><SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Month'} /></SelectTrigger>
                                     <SelectContent>
                                         {MONTH_LIST.map((m) => (
                                             <SelectItem key={m.id} value={m.id.toString()}>{m.name}</SelectItem>
@@ -186,6 +216,7 @@ export default function DepartmentSalaryReportPage() {
                                     </SelectContent>
                                 </Select>
                             )} />
+                            {errors.month && <FormError>{errors.month.message}</FormError>}
                         </div>
                     </div>
 
@@ -201,9 +232,11 @@ export default function DepartmentSalaryReportPage() {
                                     })) || []}
                                     defaultValue={field.value}
                                     onValueChange={field.onChange}
-                                    placeholder="Select Group Types"
+                                    placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
+                                    disabled={isLoadingGroupTypes}
                                 />
                             )} />
+                            {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
                         </div>
                         {/* Department */}
                         <div className='space-y-2'>
@@ -213,10 +246,11 @@ export default function DepartmentSalaryReportPage() {
                                     options={[ ...(departmentsData?.data || []).map((d: any) => ({ label: d.HRMD_DepartmentName || d.hrmD_DepartmentName, value: d.HRMD_Id?.toString() || d.hrmD_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    placeholder="Select Department"
+                                    placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
                                     disabled={!activeGroupIds}
                                 />
                             )} />
+                            {errors.department && <FormError>{errors.department.message}</FormError>}
                         </div>
                         {/* Designation */}
                         <div className='space-y-2'>
@@ -227,10 +261,11 @@ export default function DepartmentSalaryReportPage() {
                                     options={[ ...(designationsData?.data || []).map((d: any) => ({ label: d.HRMDES_DesignationName || d.hrmdeS_DesignationName, value: d.HRMDES_Id?.toString() || d.hrmdeS_Id?.toString() || '' }))]}
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    placeholder="Select Designation"
+                                    placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
                                     disabled={!activeDeptIds}
                                 />
                             )} />
+                            {errors.designation && <FormError>{errors.designation.message}</FormError>}
                         </div>
                     </div>
 
@@ -245,14 +280,34 @@ export default function DepartmentSalaryReportPage() {
                             CANCEL
                         </Button>
                         <Button type='submit' disabled={isLoadingReport} className='w-40 transition-all rounded-xl'>
-                            {isLoadingReport ? <RefreshCw className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
-                            Generate Report
+                            {isLoadingReport ? <Loader2 className='h-4 w-4 animate-spin mr-2' /> : <Search className='h-4 w-4 mr-2' />}
+                            Generate 
                         </Button>
                     </div>
                 </form>
             </CollapsibleSection>
 
             {reportData && reportData.departmentSalaryDetails && reportData.departmentSalaryDetails.length > 0 && (
+                <CollapsibleSection
+                title='Department Salary Report'
+                defaultOpen = {true}
+                rightElement={
+                    <div className="flex justify-center gap-4 py-4 no-print">
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleCancel}
+                            disabled={isLoadingReport}
+                            className='w-fit'>
+                            <X className='h-4 w-4' />
+                            CANCEL
+                        </Button>
+                        <Button type='submit' onClick={handlePrint}  className='w-fit'>
+                            <Printer className="w-4 h-4" /> Print
+                        </Button>
+                    </div>
+                }
+                >
                 <div className="overflow-x-auto mt-8">
                     <div id="print-section" className="p-4 bg-white border border-gray-200 rounded shadow-sm">
                         {/* Institution Header */}
@@ -279,71 +334,35 @@ export default function DepartmentSalaryReportPage() {
                                         <th rowSpan={2} className="border border-gray-400 p-2 whitespace-nowrap min-w-[150px] bg-gray-50">Department Name</th>
 
                                         {/* Earnings Group Header */}
-                                        {(() => {
-                                            const earningHeadsMap = new Map<number, boolean>();
-                                            reportData.departmentSalaryDetails.forEach((row: any) => {
-                                                row.earningresult?.forEach((e: any) => earningHeadsMap.set(e.hrmeD_Id, true));
-                                            });
-                                            return earningHeadsMap.size > 0 ? <th colSpan={earningHeadsMap.size} className="border border-gray-400 p-2 bg-blue-50">Earnings</th> : null;
-                                        })()}
+                                        {earningHeads.length > 0 ? (
+                                            <th colSpan={earningHeads.length} className="border border-gray-400 p-2 bg-blue-50">Earnings</th>
+                                        ) : null}
 
                                         <th rowSpan={2} className="border border-gray-400 p-2 w-[100px] bg-blue-100">Gross Earning</th>
 
                                         {/* Deductions Group Header */}
-                                        {(() => {
-                                            const deductionHeadsMap = new Map<number, boolean>();
-                                            reportData.departmentSalaryDetails.forEach((row: any) => {
-                                                row.deductionresult?.forEach((d: any) => deductionHeadsMap.set(d.hrmeD_Id, true));
-                                            });
-                                            return deductionHeadsMap.size > 0 ? <th colSpan={deductionHeadsMap.size} className="border border-gray-400 p-2 bg-red-50">Deductions</th> : null;
-                                        })()}
+                                        {deductionHeads.length > 0 ? (
+                                            <th colSpan={deductionHeads.length} className="border border-gray-400 p-2 bg-red-50">Deductions</th>
+                                        ) : null}
 
                                         <th rowSpan={2} className="border border-gray-400 p-2 w-[100px] bg-red-100">Gross Deduction</th>
                                         <th rowSpan={2} className="border border-gray-400 p-2 w-[100px] bg-green-100">Net Salary</th>
                                     </tr>
                                     <tr>
                                         {/* Dynamic Earning Headers */}
-                                        {(() => {
-                                            const earningHeadsMap = new Map<number, { id: number; name: string; order: number }>();
-                                            reportData.departmentSalaryDetails.forEach((row: any) => {
-                                                row.earningresult?.forEach((e: any) => {
-                                                    if (!earningHeadsMap.has(e.hrmeD_Id)) earningHeadsMap.set(e.hrmeD_Id, { id: e.hrmeD_Id, name: e.hrmeD_Name, order: e.hrmeD_Order || 0 });
-                                                });
-                                            });
-                                            const earningHeads = Array.from(earningHeadsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-                                            return earningHeads.map(eh => (
-                                                <th key={`eh-${eh.id}`} className="border border-gray-400 p-2 whitespace-nowrap bg-blue-50/50">{eh.name}</th>
-                                            ));
-                                        })()}
+                                        {earningHeads.map(eh => (
+                                            <th key={`eh-${eh.id}`} className="border border-gray-400 p-2 whitespace-nowrap bg-blue-50/50">{eh.name}</th>
+                                        ))}
 
                                         {/* Dynamic Deduction Headers */}
-                                        {(() => {
-                                            const deductionHeadsMap = new Map<number, { id: number; name: string; order: number }>();
-                                            reportData.departmentSalaryDetails.forEach((row: any) => {
-                                                row.deductionresult?.forEach((d: any) => {
-                                                    if (!deductionHeadsMap.has(d.hrmeD_Id)) deductionHeadsMap.set(d.hrmeD_Id, { id: d.hrmeD_Id, name: d.hrmeD_Name, order: d.hrmeD_Order || 0 });
-                                                });
-                                            });
-                                            const deductionHeads = Array.from(deductionHeadsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-                                            return deductionHeads.map(dh => (
-                                                <th key={`dh-${dh.id}`} className="border border-gray-400 p-2 whitespace-nowrap bg-red-50/50">{dh.name}</th>
-                                            ));
-                                        })()}
+                                        {deductionHeads.map(dh => (
+                                            <th key={`dh-${dh.id}`} className="border border-gray-400 p-2 whitespace-nowrap bg-red-50/50">{dh.name}</th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {reportData.departmentSalaryDetails.map((row: any, index: number) => {
-                                        const earningHeadsMap = new Map<number, { id: number; name: string; order: number }>();
-                                        const deductionHeadsMap = new Map<number, { id: number; name: string; order: number }>();
-
-                                        reportData.departmentSalaryDetails.forEach((r: any) => {
-                                            r.earningresult?.forEach((e: any) => { if (!earningHeadsMap.has(e.hrmeD_Id)) earningHeadsMap.set(e.hrmeD_Id, { id: e.hrmeD_Id, name: e.hrmeD_Name, order: e.hrmeD_Order || 0 }); });
-                                            r.deductionresult?.forEach((d: any) => { if (!deductionHeadsMap.has(d.hrmeD_Id)) deductionHeadsMap.set(d.hrmeD_Id, { id: d.hrmeD_Id, name: d.hrmeD_Name, order: d.hrmeD_Order || 0 }); });
-                                        });
-                                        const earningHeads = Array.from(earningHeadsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-                                        const deductionHeads = Array.from(deductionHeadsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-
-                                        const netSalary = row.netSalary !== undefined ? row.netSalary : (row.grossEarning - row.grossDeduction);
+                                        const netSalary = row.netSalary ?? (row.grossEarning - row.grossDeduction);
 
                                         return (
                                             <tr key={index} className="hover:bg-gray-50 transition-colors">
@@ -379,14 +398,6 @@ export default function DepartmentSalaryReportPage() {
                                         {/* Earning Totals */}
                                         {(() => {
                                             const earningHeadsMap = new Map<number, number>();
-                                            const headsMap = new Map<number, any>();
-                                            reportData.departmentSalaryDetails.forEach((r: any) => {
-                                                r.earningresult?.forEach((e: any) => {
-                                                    if (!headsMap.has(e.hrmeD_Id)) headsMap.set(e.hrmeD_Id, { id: e.hrmeD_Id, name: e.hrmeD_Name, order: e.hrmeD_Order || 0 });
-                                                });
-                                            });
-                                            const earningHeads = Array.from(headsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-
                                             reportData.departmentSalaryDetails.forEach((row: any) => {
                                                 earningHeads.forEach(eh => {
                                                     const val = row.earningresult?.find((e: any) => e.hrmeD_Id === eh.id)?.hresD_Amount || 0;
@@ -406,14 +417,6 @@ export default function DepartmentSalaryReportPage() {
                                         {/* Deduction Totals */}
                                         {(() => {
                                             const deductionHeadsMap = new Map<number, number>();
-                                            const headsMap = new Map<number, any>();
-                                            reportData.departmentSalaryDetails.forEach((r: any) => {
-                                                r.deductionresult?.forEach((d: any) => {
-                                                    if (!headsMap.has(d.hrmeD_Id)) headsMap.set(d.hrmeD_Id, { id: d.hrmeD_Id, name: d.hrmeD_Name, order: d.hrmeD_Order || 0 });
-                                                });
-                                            });
-                                            const deductionHeads = Array.from(headsMap.values()).sort((a, b) => a.order - b.order || a.id - b.id);
-
                                             reportData.departmentSalaryDetails.forEach((row: any) => {
                                                 deductionHeads.forEach(dh => {
                                                     const val = row.deductionresult?.find((d: any) => d.hrmeD_Id === dh.id)?.hresD_Amount || 0;
@@ -430,7 +433,7 @@ export default function DepartmentSalaryReportPage() {
                                             {Math.round(reportData.departmentSalaryDetails.reduce((sum: number, row: any) => sum + (row.grossDeduction || 0), 0)).toLocaleString()}
                                         </td>
                                         <td className="border border-gray-400 p-2 text-right">
-                                            {Math.round(reportData.departmentSalaryDetails.reduce((sum: number, row: any) => sum + (row.netSalary !== undefined ? row.netSalary : (row.grossEarning - row.grossDeduction)), 0)).toLocaleString()}
+                                            {Math.round(reportData.departmentSalaryDetails.reduce((sum: number, row: any) => sum + (row.netSalary ?? (row.grossEarning - row.grossDeduction)), 0)).toLocaleString()}
                                         </td>
                                     </tr>
                                 </tfoot>
@@ -444,12 +447,9 @@ export default function DepartmentSalaryReportPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 py-4 no-print">
-                        <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
-                            <Printer className="w-4 h-4 mr-2" /> Print Report
-                        </Button>
-                    </div>
+                    
                 </div>
+                </CollapsibleSection>
             )}
         </div>
     );
