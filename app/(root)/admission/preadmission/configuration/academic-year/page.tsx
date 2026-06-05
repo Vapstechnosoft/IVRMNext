@@ -13,6 +13,7 @@ import { masterAcademicYearColumns } from './_components/columns';
 import ReorderAcademicYearForm from './_components/reorder-form';
 import TogglePreAdmissionAcademicYearForm from './_components/toggle-form';
 import UpdateMasterAcademicYearForm from './_components/update-form';
+import ViewDetailsForm from './_components/view-details-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -71,9 +72,12 @@ function MasterAcademicYearPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='mb-2 flex items-end justify-between'>
+                    <div className='mb-2 flex flex-col items-start justify-between gap-2 md:flex-row md:items-end md:gap-0'>
                         <p className='font-semibold text-destructive text-sm'>Note: Only one preadmission flag should be activated.</p>
-                        <ReorderAcademicYearForm />
+                        <div className='flex items-center gap-2'>
+                            <ViewDetailsForm data={tableData} institution={institutionList[0]} />
+                            <ReorderAcademicYearForm />
+                        </div>
                     </div>
 
                     <GenericDataTable<IMasterAcademicYearMasterList>
@@ -158,7 +162,11 @@ function FormSections({ institutionList }: { institutionList: IInstitutionItem[]
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterAcademicYearForm selectedRow={selectedRow as any} onSuccess={closeEditForm} institutionList={institutionList} />
+                            <UpdateMasterAcademicYearForm
+                                selectedRow={selectedRow as any}
+                                onSuccess={closeEditForm}
+                                institutionList={institutionList}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

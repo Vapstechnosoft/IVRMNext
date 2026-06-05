@@ -97,10 +97,28 @@ export const getAttendanceColumns = (monthDateWise: boolean, monthList?: any[]):
         },
         {
             accessorKey: 'Percentage',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' className='font-bold text-black' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage(%)' className='font-bold text-black' />,
             cell: ({ row }) => {
                 const percentage = Number(row.getValue('Percentage'));
-                return <div>{percentage.toFixed(2)}%</div>;
+                return <div>{percentage.toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'Remarks',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
+            cell: ({ row }) => {
+                const apiRemarks = (row.original as any).Remarks || (row.original as any).remarks;
+                if (apiRemarks) return <div>{apiRemarks}</div>;
+                
+                // Fallback computation if backend doesn't provide Remarks
+                const percentage = Number(row.getValue('Percentage'));
+                let remarks = 'Poor Attendance';
+                if (percentage >= 75) remarks = 'Very Good Attendance';
+                else if (percentage >= 50) remarks = 'Good Attendance';
+                else if (percentage >= 35) remarks = 'Average Attendance';
+                return <div>{remarks}</div>;
             },
             enableSorting: true,
             enableHiding: true

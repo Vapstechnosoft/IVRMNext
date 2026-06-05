@@ -2,10 +2,36 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { Input } from '@/components/ui/input';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Student } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
+import React, { useState, useEffect } from 'react';
+
+const RemarkInput = ({ row, table }: { row: any; table: any }) => {
+    const meta = table.options.meta as any;
+    const isSelected = row.getIsSelected();
+    const studentId = row.original.student_id;
+    const initialValue = meta?.studentData?.get(studentId)?.remark || '';
+
+    const [value, setValue] = useState(initialValue);
+
+    useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
+
+    return (
+        <input
+            type="text"
+            className="flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!isSelected}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={() => meta?.updateStudentData(studentId, 'remark', value)}
+            placeholder="Enter Remarks"
+        />
+    );
+};
 
 export const activedeactiveColumns: ColumnDef<Student>[] = [
     {
@@ -87,21 +113,6 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
     {
         id: 'remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
-        cell: ({ row, table }) => {
-            const meta = table.options.meta as any;
-            const isSelected = row.getIsSelected();
-            const studentId = row.original.student_id;
-            const value = meta?.studentData?.get(studentId)?.remark || '';
-
-            return (
-                <Input
-                    className="w-[180px]"
-                    disabled={!isSelected}
-                    value={value}
-                    onChange={(e) => meta?.updateStudentData(studentId, 'remark', e.target.value)}
-                    placeholder="Enter Remarks"
-                />
-            );
-        }
+        cell: ({ row, table }) => <RemarkInput row={row} table={table} />
     }
 ];
