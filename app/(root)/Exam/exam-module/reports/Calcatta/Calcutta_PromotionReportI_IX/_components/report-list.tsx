@@ -69,7 +69,7 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                 </Button>
             </div>
 
-            <div id='printable-area'>
+            <div id='printable-area' className='printable-content'>
                 {studentdetails.map((student: any, index: number) => {
                     const semesterRemarks = examwiseremarkstemp?.find((r: any) => r.amsT_Id === student.amsT_Id || r.AMST_Id === student.amsT_Id);
 

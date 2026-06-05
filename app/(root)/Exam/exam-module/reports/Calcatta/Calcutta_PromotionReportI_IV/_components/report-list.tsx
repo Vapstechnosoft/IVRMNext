@@ -69,7 +69,7 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                 </Button>
             </div>
 
-            <div id='printable-area'>
+            <div id='printable-area' className='printable-content'>
                 {studentdetails.map((student: any, index: number) => {
                     const dob = student.amsT_DOB ? new Date(student.amsT_DOB).toLocaleDateString('en-GB') : '';
 
