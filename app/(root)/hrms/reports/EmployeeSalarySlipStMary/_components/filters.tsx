@@ -49,6 +49,10 @@ interface SalarySlipFiltersProps {
     onGenerateSlip: () => void;
     onCancel: () => void;
     onReset: () => void;
+    isLoadingGroupTypes: boolean;
+    isLoadingDepartments: boolean;
+    isLoadingDesignations: boolean;
+    isLoadingYears: boolean;
 }
 
 export function SalarySlipFilters({
@@ -71,7 +75,11 @@ export function SalarySlipFilters({
     onSelectEmployee,
     onGenerateSlip,
     onReset,
-    selectedEmployeeIds
+    selectedEmployeeIds,
+    isLoadingGroupTypes,
+    isLoadingDepartments,
+    isLoadingDesignations,
+    isLoadingYears
 }: SalarySlipFiltersProps) {
     const handleReset = () => {
         onReset();
@@ -113,9 +121,10 @@ export function SalarySlipFilters({
                                 groupType: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Group Types'
+                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingGroupTypes || !groupTypes?.length}
                     />
                 </div>
                 {/* Department Filter */}
@@ -135,9 +144,10 @@ export function SalarySlipFilters({
                                 department: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Departments'
+                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDepartments || !departments?.length}
                     />
                 </div>
                 {/* Designation Filter */}
@@ -157,9 +167,10 @@ export function SalarySlipFilters({
                                 designation: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Designations'
+                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDesignations || !designations?.length}
                     />
                 </div>
             </div>
@@ -175,7 +186,7 @@ export function SalarySlipFilters({
                             </Label>
                             <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
                                 <SelectTrigger id='month-select'>
-                                    <SelectValue placeholder='Select month' />
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select month'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {months
@@ -221,8 +232,8 @@ export function SalarySlipFilters({
                                 Year
                             </Label>
                             <Select value={filters.year} onValueChange={(value) => onFilterChange({ ...filters, year: value })}>
-                                <SelectTrigger id='year-select'>
-                                    <SelectValue placeholder='Select year' />
+                                <SelectTrigger id='year-select' disabled={isLoadingYears || !years?.length}>
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {years

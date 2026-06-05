@@ -55,14 +55,14 @@ export default function SalarySlipPage() {
     const reportRef = useRef<HTMLDivElement>(null);
 
     // Cascading Dropdown Hooks
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = filters.groupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = filters.department?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
@@ -71,7 +71,7 @@ export default function SalarySlipPage() {
     useEffect(() => {
         if (onloadData?.data?.institutionDetails?.[0]) {
             const inst = onloadData.data.institutionDetails[0];
-            console.log(" institution Details from onloadData",inst)
+            console.log(" institution Details from onloadData", inst)
             setInstitutionDetails({
                 name: inst.mI_Name || '',
                 address: inst.mI_Address1 || '',
@@ -81,13 +81,13 @@ export default function SalarySlipPage() {
     }, [onloadData]);
 
     useEffect(() => {
-  if (showReport && reportRef.current) {
-    reportRef.current.scrollIntoView({ 
-      behavior: "smooth", 
-      block: "start" 
-    });
-  }
-}, [showReport]);
+        if (showReport && reportRef.current) {
+            reportRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    }, [showReport]);
 
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
@@ -207,7 +207,7 @@ export default function SalarySlipPage() {
                     // Update institution details from the first slip if available
                     const firstSlip = res.data.salarySlipList[0];
                     const inst = firstSlip.institutionDetails;
-                    console.log("institution details from generate slip",inst)
+                    console.log("institution details from generate slip", inst)
                     if (inst) {
                         setInstitutionDetails({
                             name: inst.mI_Name || inst.institutionname || institutionDetails.name,
@@ -286,14 +286,14 @@ export default function SalarySlipPage() {
         printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
-    if (isOnloadLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-                <span className="ml-2">Loading Page...</span>
-            </div>
-        );
-    }
+    // if (isOnloadLoading) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center">
+    //             <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+    //             <span className="ml-2">Loading Page...</span>
+    //         </div>
+    //     );
+    // }
 
     const handleReset = () => {
         setFilters({
@@ -344,10 +344,14 @@ export default function SalarySlipPage() {
                 onGenerateSlip={handleGenerateSlip}
                 onCancel={() => { }}
                 onReset={handleReset}
+                isLoadingGroupTypes={isLoadingGroupTypes}
+                isLoadingDepartments={isLoadingDepartments}
+                isLoadingDesignations={isLoadingDesignations}
+                isLoadingYears={isLoadingYears}
             />
 
             {showReport && (
-                <div className="space-y-6" ref = {reportRef}>
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">
