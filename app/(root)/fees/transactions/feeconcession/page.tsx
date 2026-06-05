@@ -51,7 +51,7 @@ export default function FeeConcessionPage() {
     const {
         data: response,
         isLoading,
-        refetch,
+        // refetch,
         refetchAll,
         error
     } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
@@ -92,7 +92,7 @@ export default function FeeConcessionPage() {
                 loadingYears={loadingYears}
                 selectedAsmaY_Id={selectedAsmaY_Id}
                 onAcademicYearChange={handleAcademicYearChange}
-                refetchAll={refetchAll ?? refetch}
+                refetchAll={refetchAll}
                 //searchParams={searchParams}
                 //router={router}
                 //pathname={pathname}
@@ -237,7 +237,7 @@ function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; sele
                                 onSuccess={() => {
                                     if (isEditFormOpen) closeEditForm();
                                     else closeAddForm();
-                                    refetch();
+                                    // refetch();
                                 }}
                             />
                         </div>
@@ -251,7 +251,7 @@ function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; sele
                     onClose={closeDeleteForm}
                     onSuccess={() => {
                         closeDeleteForm();
-                        refetch();
+                        // refetch();
                     }}
                 />
             )}

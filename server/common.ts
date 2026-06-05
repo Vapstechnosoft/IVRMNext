@@ -392,6 +392,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/active-deactive-students',
                                             title: 'Active Deactive Students',
                                             description: 'Active Deactive Students'
+                                        },
+                                        {
+                                            id: 28,
+                                            name: 'Master Activity',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/masteractivities',
+                                            title: 'Master Activity',
+                                            description: 'Master Activity'
                                         }
                                     ]
                                 },
@@ -756,6 +764,14 @@ export async function getUserAccessibleModules() {
                                     name: 'New Shared Host',
                                     icon: 'Settings',
                                     pages: [
+                                        {
+                                            id: 78,
+                                            name: 'Master Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/newsharedhost/masters/ttcategory',
+                                            title: 'Master Category',
+                                            description: 'Master Category'
+                                        },
                                         {
                                             id: 12,
                                             name: 'Overall Daily Attendance Report',
@@ -1182,37 +1198,6 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
                                             title: 'STTHOMAS Application Form',
                                             description: 'STTHOMAS Application Form'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Total Strength',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/STCS/total-strength',
-                                            title: 'Total Strength',
-                                            description: 'Total Strength'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'St. Thomas TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                            title: 'St. Thomas TC Custom Report',
-                                            description: 'St. Thomas TC Custom Report'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 16,
-                                    name: 'St. Thomas Church School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
                                         },
                                         {
                                             id: 62,
@@ -2198,6 +2183,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/collegefeetransaction',
                                             title: 'College Fee Transaction',
                                             description: 'College Fee Transaction'
+                                        },
+                                        {
+                                            id: 532,
+                                            name: 'Fee Third Party Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feethirdpartyreport',
+                                            title: 'Fee Third Party Report',
+                                            description: 'Fee Third Party Report'
                                         }
                                     ]
                                 }
@@ -4435,6 +4428,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/EmployeeSalarySlipStMary',
                                             title: 'Employee Salary Slip St Mary Report',
                                             description: 'Employee Salary Slips'
+                                        },
+                                        {
+                                            id: 39,
+                                            name: 'Employee Salary Statement',
+                                            icon: 'Calandar',
+                                            url: '/hrms/reports/cumulative-salary-report',
+                                            title: 'Employee Salary Statement',
+                                            description: 'Employee Salary Statement'
                                         }
                                     ]
                                 }
@@ -4512,39 +4513,47 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/add-candidate-interview',
                                             title: 'Add Candidate Interview',
                                             description: 'Add Candidate Interview'
-                                        }
-                                        //         {
-                                        //             id: 3,
-                                        //             name: 'Candidate Interview List',
-                                        //             icon: 'List',
-                                        //             url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                        //             title: 'Candidate Interview List',
-                                        //             description: 'View All Candidate Interviews'
-                                        //         },
-                                        //         {
-                                        //             id: 4,
-                                        //             name: 'Interviewer Feedback',
-                                        //             icon: 'MessageSquare',
-                                        //             url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                        //             title: 'Interviewer Feedback',
-                                        //             description: 'Manage Interviewer Feedback'
-                                        //         },
-                                        //         {
-                                        //             id: 5,
-                                        //             name: 'Job List',
-                                        //             icon: 'Briefcase',
-                                        //             url: '/hrms/recruitment/transaction/job-list',
-                                        //             title: 'Job List',
-                                        //             description: 'View All Jobs'
-                                        //         },
-                                        //         {
-                                        //             id: 6,
-                                        //             name: 'Job Posting List',
-                                        //             icon: 'FileText',
-                                        //             url: '/hrms/recruitment/transaction/job-posting-list',
-                                        //             title: 'Job Posting List',
-                                        //             description: 'View All Job Postings'
-                                        //         }
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Candidate Interview List',
+                                            icon: 'List',
+                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                            title: 'Candidate Interview List',
+                                            description: 'View All Candidate Interviews'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Job List',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/recruitment/transaction/job-list',
+                                            title: 'Job List',
+                                            description: 'View All Jobs'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Job Posting List',
+                                            icon: 'FileText',
+                                            url: '/hrms/recruitment/transaction/job-posting-list',
+                                            title: 'Job Posting List',
+                                            description: 'View All Job Postings'
+                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'VMS Job',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/recruitment/transaction/VMSJobList',
+                                        //     title: 'VMS Job',
+                                        //     description: 'View All VMS Job'
+                                        // }
                                     ]
                                 }
                                 // {
@@ -5938,14 +5947,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Gatepass Report',
                                             description: 'View Student Gatepass Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Student Attendance Report',
-                                            icon: 'FileText',
-                                            url: '/hostel/hostel-management/reports/student-attendance-report',
-                                            title: 'Student Attendance Report',
-                                            description: 'View Student Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Student Attendance Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/hostel/hostel-management/reports/student-attendance-report',
+                                        //     title: 'Student Attendance Report',
+                                        //     description: 'View Student Attendance Report'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Food Conveyance Report',
@@ -6107,58 +6116,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                // {
-                //     id: 25,
-                //     name: 'COE',
-                //     icon: 'Settings',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Calendar of Events',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Master',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Event',
-                //                             icon: 'Settings',
-                //                             url: '/coe/master/masterevent',
-                //                             title: 'Master Event',
-                //                             description: 'Manage Master Event Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Report',
-                //                     icon: 'Settings',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'COE Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coereport',
-                //                             title: 'COE Report',
-                //                             description: 'Manage COE Report'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'COE Month End Report',
-                //                             icon: 'Settings',
-                //                             url: '/coe/report/coemonthendreport',
-                //                             title: 'COE Month End Report',
-                //                             description: 'Manage COE Month End Report'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
 
                 {
                     id: 26,
@@ -6967,17 +6924,9 @@ export async function getUserAccessibleModules() {
                                             id: 1,
                                             name: 'Master Event',
                                             icon: 'Settings',
-                                            url: '/coe/master/masterevent',
+                                            url: '/coe/master/master-coe',
                                             title: 'Master Event',
                                             description: 'Manage Master Event Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Mapping',
-                                            icon: 'Settings',
-                                            url: '/coe/master/master-coe',
-                                            title: 'Mapping',
-                                            description: 'Manage Mapping Details'
                                         }
                                     ]
                                 },
@@ -8432,6 +8381,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
+                //PDA commented here    
                 // {
                 //     id: 999021,
                 //     name: 'PDA',
@@ -8577,6 +8527,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/newsharedhost/transactions/mess-attendance-entry',
                                             title: 'Mess Attendance Entry',
                                             description: 'Daily Student Attendance'
+                                        },
+                                        {
+                                            id: 8003,
+                                            name: 'Written Test Schedule',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/interview-schedule/written-test-schedule',
+                                            title: 'Written Test Schedule',
+                                            description: 'Written Test Schedule'
                                         }
                                     ]
                                 },

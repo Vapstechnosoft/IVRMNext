@@ -117,10 +117,8 @@ export default function PDAOverAllReportPage() {
                 </CardHeader>
                 <CardContent className="p-8">
                     <PDAOverAllReportForm
-                        academicYears={loadData?.fillyear?.$values || []}
-                        classes={loadData?.classlist?.$values || []}
                         onSubmit={handleFormSubmit}
-                        onReset={handleReset}
+                        onReset={() => window.location.reload()}
                     />
                 </CardContent>
             </Card>

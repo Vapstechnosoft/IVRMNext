@@ -117,7 +117,7 @@ export async function getclasswiseStudentDetails(
     payload?: any,
     searchParams?: ApiSearchparams
 ) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName,AMST_RegistrationNo,AMST_Sex,AMST_AdmNo');
     const url = `/Classwisestudentdetails/Getreportdetails?ASMAY_Id=${ASMAY_Id}&Concession_Id=${studentScope}&flag=${fmcC_Id}&${urlParams}`;
 
     return await api.post<any[]>('admission', url, payload);
@@ -126,8 +126,8 @@ export async function getAttendanceAbsentSmsReport(
     ASMAY_Id: number,
     from_date: string,
     frequency: string,
-    amc_id: number = 0,
-    att_type: string = 'D',
+    amc_id = 0,
+    att_type = 'D',
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');

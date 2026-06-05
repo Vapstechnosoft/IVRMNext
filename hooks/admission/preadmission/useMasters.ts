@@ -25,6 +25,7 @@ import {
 } from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
+import { getMasterActivitiesDetails } from '@/server/admission/preadmission/masters/master_activity';
 import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
 import { getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import type { ApiSearchparams } from '@/types';
@@ -597,6 +598,23 @@ export const useStudentCategoryByClass = (asmcL_Id?: number, asmaY_Id?: number, 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.STUDENT_CATEGORY_BY_CLASS]
+            });
+        }
+    };
+};
+
+export const useMasterActivity = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_ACTIVITY, searchParams ?? {}],
+            queryFn: async () => getMasterActivitiesDetails(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_ACTIVITY]
             });
         }
     };

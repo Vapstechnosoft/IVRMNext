@@ -22,8 +22,9 @@ export async function getPDAReport(data: IPDAReportParams) {
 
 
 export async function getAcademicYearList() {
-    const url = '/FeeStudentTransaction/academic-year-list';
-    return await api.get<any[]>('fees', url);
+    const url = '/PDACommonFacade/GetAcademicYearData';
+    // /api/PDACommonFacade/GetAcademicYearData
+    return await api.get<any[]>('pettycashandassettracking', url);
 }
 
 

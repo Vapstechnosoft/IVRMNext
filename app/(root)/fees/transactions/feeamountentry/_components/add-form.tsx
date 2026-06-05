@@ -382,7 +382,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                     }}
                                     //value={field.value ? String(field.value) : undefined}
                                     value={field.value?.toString() || ''}
-                                    disabled={loadingCategory || !selectedAcademicYear}>
+                                    disabled={!selectedAcademicYear}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Category--' />
                                     </SelectTrigger>
@@ -424,7 +424,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                     }}
                                     //value={field.value ? String(field.value) : undefined}
                                     value={field.value?.toString() || ''}
-                                    disabled={loadingGroup || !selectedAcademicYear}>
+                                    disabled={!selectedAcademicYear}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Fee Group--' />
                                     </SelectTrigger>

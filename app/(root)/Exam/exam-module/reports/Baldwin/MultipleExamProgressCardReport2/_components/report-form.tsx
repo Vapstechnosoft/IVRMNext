@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import {
-    getInitialData,
-    getClassesByYear,
-    getSectionsByClass,
-    getExamsAndGrades,
     getMultipleExamProgressReport
 } from '@/server/exam/exam-module/reports/Baldwin/multiple-exam-progress-card-report-2';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+} from '@/server/exam/exam-module/reports/cumulative-report';
 
 const schema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -37,11 +39,12 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
 
-    const [loadingYears, setLoadingYears] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     const methods = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -61,19 +64,17 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
 
     // 1. Initial Data
     useEffect(() => {
-        const fetchInitial = async () => {
-            setLoadingYears(true);
-            try {
-                const res: any = await getInitialData();
-                setYears(res?.getyearlist || []);
-            } catch (error) {
-                toast.error('Failed to load academic years');
-            } finally {
-                setLoadingYears(false);
-            }
-        };
-        fetchInitial();
-    }, []);
+        if (academicError) {
+            toast.error(academicError.message || 'Error loading academic years');
+            setYears([]);
+        } else if (academicData?.data) {
+            const formatted = academicData.data.map((i: any) => ({
+                asmaY_Id: i.asmaY_Id ?? 0,
+                asmaY_Year: i.asmaY_Year ?? ''
+            }));
+            setYears(formatted);
+        }
+    }, [academicData, academicError]);
 
     // 2. Load Classes
     useEffect(() => {
@@ -81,8 +82,8 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchClasses = async () => {
             setLoadingClasses(true);
             try {
-                const res: any = await getClassesByYear(Number(watchYear));
-                setClasses(res?.getclasslist || []);
+                const res = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                setClasses(res?.data || []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
                 setValue('examlist', []);
@@ -101,8 +102,8 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchSections = async () => {
             setLoadingSections(true);
             try {
-                const res: any = await getSectionsByClass(Number(watchYear), Number(watchClass));
-                setSections(res?.getsectionlist || []);
+                const res = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
+                setSections(res?.data || []);
                 setValue('ASMS_Id', '');
                 setValue('examlist', []);
             } catch (error) {
@@ -120,8 +121,8 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
         const fetchExams = async () => {
             setLoadingExams(true);
             try {
-                const res: any = await getExamsAndGrades(Number(watchYear), Number(watchClass), Number(watchSection));
-                setExams(res?.getexam || []);
+                const res = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
+                setExams(res?.data || []);
                 setValue('examlist', []);
             } catch (error) {
                 toast.error('Failed to load exams');
@@ -189,7 +190,7 @@ export function ReportForm({ onReportGenerated }: ReportFormProps) {
                                                 <SelectValue placeholder="Select Year" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {loadingYears ? <SelectItem value="0" disabled>Loading...</SelectItem> :
+                                                {academicYearLoading ? <SelectItem value="0" disabled>Loading...</SelectItem> :
                                                     years.map(y => (
                                                         <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
                                                     ))

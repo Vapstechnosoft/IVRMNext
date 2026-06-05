@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterHead } from '@/hooks/pda/master/useMasterHead';
+import { useMasterHead, usePDADropdownData } from '@/hooks/pda/master/useMasterHead';
 import type { IPDAMasterHead } from '@/types/pda/master/master-head';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
@@ -18,10 +18,19 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function PDAMasterHeadPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useMasterHead(searchParams);
+    const { refetchAll: refetchDropdowns } = usePDADropdownData();
 
     return (
         <FormProvider<IPDAMasterHead>>
-            <PDAMasterHeadPageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
+            <PDAMasterHeadPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetch={() => {
+                    refetchAll();
+                    refetchDropdowns();
+                }}
+            />
         </FormProvider>
     );
 }
@@ -38,11 +47,11 @@ function PDAMasterHeadPageContent({
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<IPDAMasterHead>();
-
-    // Extracting pdadata for the table from the response
+    const { data: feeHeadsResponse } = usePDADropdownData();
+    const feeHeads = feeHeadsResponse?.data?.headdata || [];
     const tableProps = useDataTableProps({
         ...response,
-        data: response?.pdadata || []
+        data: response?.data?.pdadata || []
     });
 
     return (
@@ -85,7 +94,7 @@ function PDAMasterHeadPageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections refetch={refetch} feeHeads={response?.headdata || []} />
+                <FormSections refetch={refetch} feeHeads={feeHeads} />
             </div>
         </div>
     );

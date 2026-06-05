@@ -75,12 +75,12 @@ import {
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import {
     getAcademicThirdPartyTrasaction_GM,
-    geteditThirdpartytrasaction_GM,
-    getThirdPartyTrasaction_GM,
     getThirdPartyTrasactionBankDropDown_GM,
     getThirdPartyTrasactionGroupDropDown_GM,
     getThirdPartyTrasactionHeadDropDown_GM,
-    getThirdPartyTrasactionStudentDropDown_GM
+    getThirdPartyTrasactionStudentDropDown_GM,
+    getThirdPartyTrasaction_GM,
+    geteditThirdpartytrasaction_GM
 } from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
@@ -107,13 +107,13 @@ export const useacademicyerdropdowndatafee = (searchParams?: ApiSearchparams) =>
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1, searchParams ?? {}],
             queryFn: async () => getAcademicYearDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES]
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES1]
             });
         }
     };
@@ -136,14 +136,24 @@ export const useopeningacademicyerdropdowndatafee = (searchParams?: ApiSearchpar
     };
 };
 
-export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
+export const useopeningClassdropdowndatafee = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getOpeningClassDropdownData(),
-            staleTime: 0
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN],
+            queryFn: async () => {
+                try {
+                    const response = await getOpeningClassDropdownData();
+                    console.log('Class dropdown API response:', response);
+                    return response;
+                } catch (error) {
+                    console.error('Class dropdown API error:', error);
+                    throw error;
+                }
+            },
+            staleTime: 0,
+            retry: 1 // Add retry to see if it helps
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -301,18 +311,18 @@ export const useFeeThirdParty = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useGroupdropdowndatathirdpartytransaction = (searchParams?: ApiSearchparams) => {
+export const useGroupdropdowndatathirdpartytransaction = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1],
             queryFn: async () => getThirdPartyTrasactionGroupDropDown(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN]
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_GROUPDROPDOWN1]
             });
         }
     };
@@ -637,13 +647,13 @@ export const useFeeRefundableList = (asmay_Id: number, searchParams?: ApiSearchp
     };
 };
 
-export const useFeeConcessionClassDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+export const useFeeConcessionClassDropdowndata = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
-            queryFn: async () => getConcessionClassesDropdownData(mi_id),
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionClassesDropdownData(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1381,7 +1391,6 @@ export const useacademicyerdropdowndatafee_GM = (searchParams?: ApiSearchparams)
         }
     };
 };
-
 
 export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, fyp_id: number, options?: { enabled?: boolean }) => {
     const queryClient = useQueryClient();

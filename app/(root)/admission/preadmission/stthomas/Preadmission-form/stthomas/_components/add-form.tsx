@@ -573,46 +573,50 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         refetchDropdowns();
     };
 
+    // const handleReset = () => {
+    //     reset({
+    //         pasR_FirstName: '',
+    //         pasR_MiddleName: '',
+    //         pasR_LastName: '',
+    //         asmcL_Id: 0,
+    //         pasR_emailId: '',
+    //         pasR_DOB: undefined,
+    //         pasR_MobileNo: '',
+    //         pasA_WillingToContributeFlg: 0,
+    //         pasR_UndertakingFlag: 0,
+    //         previousSchoolDetails: [
+    //             {
+    //                 pasrpS_PrvSchoolName: '',
+    //                 pasrpS_PreviousClass: '',
+    //                 pasrpS_Board: '',
+    //                 pasrpS_LeftYear: '',
+    //                 pasrpS_LeftReason: '',
+    //                 pasrpS_Address: ''
+    //             }
+    //         ],
+    //         siblingsDetails: []
+    //     });
+    //     setCurrentStep(1);
+    //     setSelectedSourceItems([]);
+    //     setSelectedReferenceItems([]);
+    //     setSameAsResidential(false);
+    //     setUploadedDocuments([]);
+    //     setFilteredClasses([]);
+    //     setIsClassDisabled(true);
+    //     setStudentPhoto(null);
+    //     setStudentPhotoError(null);
+    //     setFatherPhoto(null);
+    //     setFatherPhotoError(null);
+    //     setMotherPhoto(null);
+    //     setMotherPhotoError(null);
+    //     setDocumentErrors({});
+    //     setPhoneValues({});
+    //     setPhoneExpectedInfo({});
+    //     clearErrors();
+    // };
+
     const handleReset = () => {
-        reset({
-            pasR_FirstName: '',
-            pasR_MiddleName: '',
-            pasR_LastName: '',
-            asmcL_Id: 0,
-            pasR_emailId: '',
-            pasR_DOB: undefined,
-            pasR_MobileNo: '',
-            pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0,
-            previousSchoolDetails: [
-                {
-                    pasrpS_PrvSchoolName: '',
-                    pasrpS_PreviousClass: '',
-                    pasrpS_Board: '',
-                    pasrpS_LeftYear: '',
-                    pasrpS_LeftReason: '',
-                    pasrpS_Address: ''
-                }
-            ],
-            siblingsDetails: []
-        });
-        setCurrentStep(1);
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSameAsResidential(false);
-        setUploadedDocuments([]);
-        setFilteredClasses([]);
-        setIsClassDisabled(true);
-        setStudentPhoto(null);
-        setStudentPhotoError(null);
-        setFatherPhoto(null);
-        setFatherPhotoError(null);
-        setMotherPhoto(null);
-        setMotherPhotoError(null);
-        setDocumentErrors({});
-        setPhoneValues({});
-        setPhoneExpectedInfo({});
-        clearErrors();
+        window.location.href = '/admission/preadmission/stthomas/Preadmission-form/stthomas';
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -1158,8 +1162,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1208,8 +1212,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1518,9 +1522,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
-                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                    }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                        }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -2086,15 +2089,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: conZipLength,
-                                                                              message: `Pin code must be ${conZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: conZipLength,
+                                                                            message: `Pin code must be ${conZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2276,15 +2279,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                          minLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          },
-                                                                          maxLength: {
-                                                                              value: perZipLength,
-                                                                              message: `Pin code must be ${perZipLength} digits`
-                                                                          }
-                                                                      }
+                                                                        minLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        },
+                                                                        maxLength: {
+                                                                            value: perZipLength,
+                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                        }
+                                                                    }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2612,10 +2615,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3053,10 +3055,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                            }`}
+                                                                                }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -4192,8 +4193,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
+                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                    masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }

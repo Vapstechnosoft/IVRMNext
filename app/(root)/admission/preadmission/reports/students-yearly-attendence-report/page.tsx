@@ -313,11 +313,7 @@ export default function StudentsYearlyAttendenceReport(props: {
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        setIsAllRecordsSelected(false);
-        handleResetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {

@@ -37,12 +37,15 @@ export function useSignage() {
 
     const deleteMediaMutation = useMutation({
         mutationFn: ({ mediaId, forceDelete }: { mediaId: number; forceDelete?: boolean }) => deleteMedia(mediaId, forceDelete),
-        onSuccess: (res) => {
+        onSuccess: (res, variables) => {
             if (res.success) {
                 toast.success('Media deleted successfully');
                 queryClient.invalidateQueries({ queryKey: [SIGNAGE_QUERY_KEYS.LIBRARY] });
             } else {
-                toast.error(res.message || 'Failed to delete media');
+                const isInUseError = res.message?.includes('422') || res.message?.includes('in use');
+                if (!(isInUseError && !variables.forceDelete)) {
+                    toast.error(res.message || 'Failed to delete media');
+                }
             }
         },
         onError: (err: any) => toast.error(err?.message || 'Failed to delete media')
