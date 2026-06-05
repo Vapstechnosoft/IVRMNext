@@ -597,13 +597,13 @@ export default function CertificateReportPage() {
                             {isLoading ? <RotateCcw className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
                             REPORT
                         </Button>
-                        {/* <Button
+                        <Button
                             size='sm'
                             onClick={handleGenerateQRCode}
                             className='min-w-[100px] bg-[#3f51b5] hover:bg-[#303f9f] text-white shadow-md'>
                             <QrCode className='mr-1 h-3 w-3' />
                             QRCODE
-                        </Button> */}
+                        </Button>
                         <Button
                             size='sm'
                             onClick={handleReset}

@@ -138,7 +138,8 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                             {monthDateWise && days.map((d: any) => <th key={d}>{d}</th>)}
                                             <th>Class Held</th>
                                             <th>Class Attended</th>
-                                            <th>Percentage</th>
+                                            <th>Percentage(%)</th>
+                                            <th>Remarks</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -153,7 +154,14 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                                 ))}
                                                 <td>{student.ASA_ClassHeld}</td>
                                                 <td>{student.ASA_Class_Attended}</td>
-                                                <td>{Number(student.Percentage).toFixed(2)}%</td>
+                                                <td>{Number(student.Percentage).toFixed(2)}</td>
+                                                <td>
+                                                    {student.Remarks || student.remarks || (
+                                                        Number(student.Percentage) >= 75 ? 'Very Good Attendance' :
+                                                        Number(student.Percentage) >= 50 ? 'Good Attendance' :
+                                                        Number(student.Percentage) >= 35 ? 'Average Attendance' : 'Poor Attendance'
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                         <tr className='bg-gray-100 font-bold'>
@@ -163,7 +171,7 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                             <td className='px-4'>
                                                 {totalRecords}
                                             </td>
-                                            <td></td>
+                                            <td colSpan={2}></td>
                                         </tr>
                                         {monthDateWise && (
                                             <tr>

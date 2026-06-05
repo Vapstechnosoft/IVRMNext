@@ -954,6 +954,14 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
+                                            id: 60,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
                                             id: 61,
                                             name: 'NDA Transfer Certificate',
                                             icon: 'Settings',
@@ -1117,7 +1125,7 @@ export async function getUserAccessibleModules() {
                                             id: 6001,
                                             name: 'SophiaRegistration',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaRegistration',
+                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistration',
                                             title: 'SophiaRegistration',
                                             description: 'SophiaRegistration'
                                         },

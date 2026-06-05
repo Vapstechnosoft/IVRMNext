@@ -55,11 +55,8 @@ function StudentApplicationPageContent({
     const session = useSession();
 
     useEffect(() => {
-        // Don't force a full page reload when session role is temporarily undefined.
-        // Session handling should be addressed centrally; avoid reloads here.
     }, [session?.data?.role]);
 
-    // Listen for global admission changes and refetch the table when they occur
     useEffect(() => {
         const handler = () => refetch();
         window.addEventListener('admission:changed', handler as EventListener);
@@ -68,7 +65,6 @@ function StudentApplicationPageContent({
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);
-        // Instead of a full reload, refetch the table data
         refetch();
     };
 
