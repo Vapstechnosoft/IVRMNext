@@ -76,14 +76,14 @@ export default function SalarySlipPage() {
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Cascading Dropdown Hooks
-  const { data: yearsData } = useLeaveYearDropdown();
-  const { data: groupTypesData } = useReportGroupTypes();
+  const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+  const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
   const groupTypeIds = filters.groupType?.join(",") || "";
-  const { data: departmentsData } = useReportDepartments(groupTypeIds);
+  const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
   const deptIds = filters.department?.join(",") || "";
-  const { data: designationsData } = useReportDesignations(
+  const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(
     groupTypeIds,
     deptIds,
   );
@@ -109,13 +109,13 @@ export default function SalarySlipPage() {
   }, [onloadData]);
 
   useEffect(() => {
-  if (showReport && reportRef.current) {
-    reportRef.current.scrollIntoView({ 
-      behavior: "smooth", 
-      block: "start" 
-    });
-  }
-}, [showReport]);
+    if (showReport && reportRef.current) {
+      reportRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  }, [showReport]);
 
   const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
     setFilters(newFilters);
@@ -369,7 +369,7 @@ export default function SalarySlipPage() {
           } else {
             toast.error(
               res.message ||
-                "No salary slip data found for the selected criteria",
+              "No salary slip data found for the selected criteria",
             );
           }
         },
@@ -395,14 +395,14 @@ export default function SalarySlipPage() {
     );
   };
 
-//   if (isOnloadLoading) {
-//     return (
-//       <div className="flex h-screen items-center justify-center">
-//         <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-//         <span className="ml-2">Loading Page...</span>
-//       </div>
-//     );
-//   }
+  //   if (isOnloadLoading) {
+  //     return (
+  //       <div className="flex h-screen items-center justify-center">
+  //         <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+  //         <span className="ml-2">Loading Page...</span>
+  //       </div>
+  //     );
+  //   }
 
   const handleReset = () => {
     setFilters({
@@ -447,12 +447,16 @@ export default function SalarySlipPage() {
         onSelectAll={handleSelectAll}
         onSelectEmployee={handleSelectEmployee}
         onGenerateSlip={handleGenerateSlip}
-        onCancel={() => {}}
+        onCancel={() => { }}
         onReset={handleReset}
+        isLoadingGroupTypes={isLoadingGroupTypes}
+        isLoadingDepartments={isLoadingDepartments}
+        isLoadingDesignations={isLoadingDesignations}
+        isLoadingYears={isLoadingYears}
       />
 
       {showReport && (
-        <div className="space-y-6" ref = {reportRef}>
+        <div className="space-y-6" ref={reportRef}>
           {/* Global Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
             <div className="flex items-center gap-2">
@@ -505,8 +509,8 @@ export default function SalarySlipPage() {
                       showBankDetails={filters.options.bankDetails}
                       showActions={false}
                       onPrint={() => window.print()}
-                      onSendMail={() => {}}
-                      onSendSMS={() => {}}
+                      onSendMail={() => { }}
+                      onSendSMS={() => { }}
                       onCancel={() => setShowReport(false)}
                     />
                   </div>
@@ -525,8 +529,8 @@ export default function SalarySlipPage() {
                   showBankDetails={filters.options.bankDetails}
                   showActions={false}
                   onPrint={() => window.print()}
-                  onSendMail={() => {}}
-                  onSendSMS={() => {}}
+                  onSendMail={() => { }}
+                  onSendSMS={() => { }}
                   onCancel={() => setShowReport(false)}
                 />
               )}

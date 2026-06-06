@@ -19,10 +19,10 @@ import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft, MessageCircle, Rot
 import { Button } from '@/components/ui/button';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January ' }, { id: 2, name: 'February ' }, { id: 3, name: 'March ' },
-    { id: 4, name: 'April ' }, { id: 5, name: 'May ' }, { id: 6, name: 'June ' },
-    { id: 7, name: 'July ' }, { id: 8, name: 'August ' }, { id: 9, name: 'September ' },
-    { id: 10, name: 'October ' }, { id: 11, name: 'November ' }, { id: 12, name: 'December ' }
+    { id: 1, name: 'Januar' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
 ];
 
 export default function SalarySlipPage() {
@@ -55,14 +55,14 @@ export default function SalarySlipPage() {
     const reportRef = useRef<HTMLDivElement>(null);
 
     // Cascading Dropdown Hooks
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = filters.groupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = filters.department?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
@@ -286,14 +286,14 @@ export default function SalarySlipPage() {
         printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
-    if (isOnloadLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-                <span className="ml-2">Loading Page...</span>
-            </div>
-        );
-    }
+    // if (isOnloadLoading) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center">
+    //             <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+    //             <span className="ml-2">Loading Page...</span>
+    //         </div>
+    //     );
+    // }
 
     const handleReset = () => {
         setFilters({
@@ -344,6 +344,10 @@ export default function SalarySlipPage() {
                 onGenerateSlip={handleGenerateSlip}
                 onCancel={() => { }}
                 onReset={handleReset}
+                isLoadingGroupTypes={isLoadingGroupTypes}
+                isLoadingDepartments={isLoadingDepartments}
+                isLoadingDesignations={isLoadingDesignations}
+                isLoadingYears={isLoadingYears}
             />
 
             {showReport && (

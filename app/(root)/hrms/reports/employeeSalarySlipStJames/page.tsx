@@ -55,14 +55,14 @@ export default function SalarySlipPage() {
     const reportRef = useRef<HTMLDivElement>(null);
 
     // Cascading Dropdown Hooks
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = filters.groupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = filters.department?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
@@ -80,13 +80,13 @@ export default function SalarySlipPage() {
     }, [onloadData]);
 
     useEffect(() => {
-  if (showReport && reportRef.current) {
-    reportRef.current.scrollIntoView({ 
-      behavior: "smooth", 
-      block: "start" 
-    });
-  }
-}, [showReport]);
+        if (showReport && reportRef.current) {
+            reportRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    }, [showReport]);
 
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
@@ -202,7 +202,7 @@ export default function SalarySlipPage() {
             groupTypeIdList: filters.groupType
         }, {
             onSuccess: (res) => {
-                console.log("response salary",res)
+                console.log("response salary", res)
                 if (res.success && res.data?.salarySlipList && res.data.salarySlipList.length > 0) {
                     // Update institution details from the first slip if available
                     const firstSlip = res.data.salarySlipList[0];
@@ -237,7 +237,7 @@ export default function SalarySlipPage() {
                             dateOfJoining: empDetails?.hrmE_DOJ,
                             payLevel: empDetails?.hrmP_SalaryType || '-',
                             bankName: rawData.empSalaryDetail?.hreS_BankCode || empDetails?.hrmE_PaymentType || '-',
-                            bankAccountNo:empDetails?.hrmE_BankAccountNo || rawData.empSalaryDetail?.hreS_AccountNo || '-',
+                            bankAccountNo: empDetails?.hrmE_BankAccountNo || rawData.empSalaryDetail?.hreS_AccountNo || '-',
                             pfNo: empDetails?.hrmE_PFAccNo || '-',
                             esiNo: empDetails?.hrmE_ESIAccNo || '-',
                             uanNumber: empDetails?.hrmE_UINumber || '-',
@@ -282,17 +282,17 @@ export default function SalarySlipPage() {
         if (!reportData) return;
         const slips = Array.isArray(reportData) ? reportData : [reportData];
         const monthName = MONTH_LIST.find(m => m.id.toString() === filters.month.toString())?.name || filters.month;
-        printSalarySlips(slips, institutionDetails, monthName, filters.year,filters.options.lopDays,filters.options.leaveDetails,filters.options.panCardNo,filters.options.bankDetails);
+        printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
-    if (isOnloadLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-                <span className="ml-2">Loading Page...</span>
-            </div>
-        );
-    }
+    // if (isOnloadLoading) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center">
+    //             <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+    //             <span className="ml-2">Loading Page...</span>
+    //         </div>
+    //     );
+    // }
 
     const handleReset = () => {
         setFilters({
@@ -343,10 +343,14 @@ export default function SalarySlipPage() {
                 onGenerateSlip={handleGenerateSlip}
                 onCancel={() => { }}
                 onReset={handleReset}
+                isLoadingGroupTypes={isLoadingGroupTypes}
+                isLoadingDepartments={isLoadingDepartments}
+                isLoadingDesignations={isLoadingDesignations}
+                isLoadingYears={isLoadingYears}
             />
 
             {showReport && (
-                <div className="space-y-6" ref = {reportRef}>
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">
