@@ -208,3 +208,8 @@ export async function getStudentAttendanceReport(
 
     return await api.post<any[]>('admission', finalUrl);
 }
+
+export async function sendStudentAttendanceNotice(data: any) {
+    const url = '/StudentAttendanceReport/OnChangeClassAbsent';
+    return await api.post<any>('admission', url, data);
+}
