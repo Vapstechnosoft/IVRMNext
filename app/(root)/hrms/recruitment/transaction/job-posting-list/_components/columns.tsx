@@ -2,17 +2,17 @@
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, Trash2 } from 'lucide-react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 
 export interface JobPostingListItem {
-    hrmrf_Id: number;
-    hrmrf_MRFNO: string;
+    hrmrfr_Id: number;
+    hrmrfr_MRFNO: string;
     hrmP_Position: string;
     hrmD_DepartmentName: string;
-    hrmrf_JobLocation: string;
-    hrmrf_NoofPosition: number;
-    hrmrf_Skills: string;
-    hrmrf_ActiveFlg?: boolean;
+    hrmrfr_JobLocation: string;
+    hrmrfr_NoofPosition: number;
+    hrmrfr_Skills: string;
+    hrmrfr_ActiveFlg?: boolean;
 }
 
 export const jobPostingListColumns: ColumnDef<any>[] = [
@@ -23,9 +23,9 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'hrmrf_MRFNO',
+        accessorKey: 'hrmrfR_MRFNO',
         header: ({ column }) => <DataTableColumnHeader column={column} title='MRF No.' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmrf_MRFNO') || '-'}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmrfR_MRFNO') || '-'}</div>
     },
     {
         accessorKey: 'hrmD_DepartmentName',
@@ -38,29 +38,28 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
         cell: ({ row }) => <div>{row.getValue('hrmP_Position') || '-'}</div>
     },
     {
-        accessorKey: 'hrmrf_JobLocation',
+        accessorKey: 'hrmrfR_JobLocation',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location' />,
-        cell: ({ row }) => <div>{row.getValue('hrmrf_JobLocation') || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmrfR_JobLocation') || '-'}</div>
     },
     {
-        accessorKey: 'hrmrf_NoofPosition',
+        accessorKey: 'hrmrfR_NoofPosition',
         header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Positions' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('hrmrf_NoofPosition') ?? 0}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrmrfR_NoofPosition') ?? 0}</div>
     },
     {
-        accessorKey: 'hrmrf_Skills',
+        accessorKey: 'hrmrfR_Skill',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Skills' />,
-        cell: ({ row }) => <div className='truncate max-w-[200px]'>{row.getValue('hrmrf_Skills') || '-'}</div>
+        cell: ({ row }) => <div className='truncate max-w-[200px]'>{row.getValue('hrmrfR_Skill') || '-'}</div>
     },
     {
-        accessorKey: 'hrmrf_ActiveFlg',
+        accessorKey: 'hrmrfR_Status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
-            const active = row.getValue('hrmrf_ActiveFlg');
+            const active = row.getValue('hrmrfR_Status');
             return (
-                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                    active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
+                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
                     {active ? 'Active' : 'Inactive'}
                 </span>
             );
@@ -69,15 +68,27 @@ export const jobPostingListColumns: ColumnDef<any>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: () => (
-            <div className='flex items-center gap-2'>
-                <Button variant='ghost' size='sm' className='text-blue-600 hover:text-blue-800'>
-                    <Eye className='h-4 w-4' />
-                </Button>
-                <Button variant='ghost' size='sm' className='text-red-600 hover:text-red-800'>
-                    <Trash2 className='h-4 w-4' />
-                </Button>
-            </div>
-        )
+        cell: ({ row }) => {
+            const hrmrfr_Id = row.original.hrmrfr_Id;
+            const hrmrfR_Status = row.original.hrmrfR_Status;
+
+            return (
+                <div className='flex '>
+                    <Button
+                        variant='ghost'
+                        size='sm'
+                        className={hrmrfR_Status ? 'text-blue-600 hover:text-blue-800' : 'text-red-600 hover:text-red-800'}
+                    // onClick={() => handleToggleStatus(hrmrfr_Id, hrmrfR_Status)}
+                    >
+                        {hrmrfR_Status ? <Eye className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                    </Button>
+                    <Button variant='ghost' size='sm' className='text-red-600 hover:text-red-800'>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        },
+        size: 50
     }
 ];
+

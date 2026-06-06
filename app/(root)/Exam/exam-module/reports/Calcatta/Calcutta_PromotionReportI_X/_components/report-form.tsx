@@ -7,7 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { type CalcuttaPromotionReportItoIXSchema, calcuttaPromotionReportItoIXSchema } from '@/schemas/exam/exam-module/reports';
+import { type CalcuttaPromotionReportItoVSchema, calcuttaPromotionReportItoVSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
@@ -24,14 +24,13 @@ export default function CalcuttaPromotionReportForm({
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
 }) {
-    const methods = useForm<CalcuttaPromotionReportItoIXSchema>({
-        resolver: zodResolver(calcuttaPromotionReportItoIXSchema),
+    const methods = useForm<CalcuttaPromotionReportItoVSchema>({
+        resolver: zodResolver(calcuttaPromotionReportItoVSchema),
         mode: 'all',
         defaultValues: {
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            empG_GroupName: '',
             studentList: [],
             academicDate: new Date(),
             issueDate: new Date(),
@@ -40,7 +39,19 @@ export default function CalcuttaPromotionReportForm({
     });
 
     const { control, handleSubmit, reset, setValue, formState } = methods;
-    const { isSubmitting } = formState;
+    const { isSubmitting, errors } = formState;
+
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            console.log('Form validation errors:', errors);
+            toast.error(
+                'Please correct validation errors: ' +
+                Object.keys(errors)
+                    .map((key) => `${key}: ${errors[key as keyof typeof errors]?.message || 'invalid'}`)
+                    .join(', ')
+            );
+        }
+    }, [errors]);
 
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
@@ -87,7 +98,6 @@ export default function CalcuttaPromotionReportForm({
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
-                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
                 setTerms([]);
@@ -111,7 +121,6 @@ export default function CalcuttaPromotionReportForm({
                 }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
-                setValue('empG_GroupName', '');
                 setValue('studentList', []);
                 setStudents([]);
                 setTerms([]);
@@ -159,7 +168,6 @@ export default function CalcuttaPromotionReportForm({
                 }
 
                 setStudents(formattedStudents);
-                setValue('empG_GroupName', '');
                 setValue('studentList', []);
             } catch {
                 toast.error('Failed to load students');
@@ -171,13 +179,13 @@ export default function CalcuttaPromotionReportForm({
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     // on submit
-    const onSubmit = async (data: CalcuttaPromotionReportItoIXSchema) => {
+    const onSubmit = async (data: CalcuttaPromotionReportItoVSchema) => {
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
-            EMPG_GroupName: data.empG_GroupName || '',
+            EMPG_GroupName: '',
             flag: "4",
             academicDate: data.academicDate,
             issueDate: data.issueDate,
@@ -192,7 +200,7 @@ export default function CalcuttaPromotionReportForm({
     return (
         <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
             <div className='mb-4 flex items-center justify-between border-b pb-2'>
-                <h3 className='font-semibold text-gray-800 text-lg'>Calcutta Promotion Report I-IX</h3>
+                <h3 className='font-semibold text-gray-800 text-lg'>Calcutta Promotion Report I-X</h3>
             </div>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
@@ -307,46 +315,6 @@ export default function CalcuttaPromotionReportForm({
                                                         sections.map((s) => (
                                                             <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
                                                                 {s.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
-
-                            <Controller
-                                control={control}
-                                name='empG_GroupName'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-44'>
-                                            Term
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value || ''}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Term' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {loadingTerms ? (
-                                                        <SelectItem value='0' disabled>
-                                                            Terms are loading...
-                                                        </SelectItem>
-                                                    ) : terms.length === 0 ? (
-                                                        <SelectItem value='0' disabled>
-                                                            No Terms found
-                                                        </SelectItem>
-                                                    ) : (
-                                                        terms.map((t: any, idx) => (
-                                                            <SelectItem key={idx} value={String(t.empG_GroupName)}>
-                                                                {t.empG_DisplayName || t.empG_GroupName}
                                                             </SelectItem>
                                                         ))
                                                     )}

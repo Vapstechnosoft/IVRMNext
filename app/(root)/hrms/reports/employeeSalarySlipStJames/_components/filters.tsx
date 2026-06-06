@@ -58,6 +58,10 @@ interface SalarySlipFiltersProps {
   onGenerateSlip: () => void;
   onCancel: () => void;
   onReset: () => void;
+  isLoadingGroupTypes: boolean;
+  isLoadingDepartments: boolean;
+  isLoadingDesignations: boolean;
+  isLoadingYears: boolean;
 }
 
 export function SalarySlipFilters({
@@ -81,6 +85,10 @@ export function SalarySlipFilters({
   onGenerateSlip,
   onReset,
   selectedEmployeeIds,
+  isLoadingGroupTypes,
+  isLoadingDepartments,
+  isLoadingDesignations,
+  isLoadingYears,
 }: SalarySlipFiltersProps) {
   const handleReset = () => {
     onReset();
@@ -123,7 +131,8 @@ export function SalarySlipFilters({
                 groupType: values.map((v) => Number.parseInt(v)),
               })
             }
-            placeholder="Select group types"
+            placeholder={isLoadingGroupTypes ? "Loading..." : "Select group types"}
+            disabled={isLoadingGroupTypes || !groupTypes?.length}
           />
         </div>
         {/* Department Filter */}
@@ -143,7 +152,8 @@ export function SalarySlipFilters({
                 department: values.map((v) => Number.parseInt(v)),
               })
             }
-            placeholder="Select departments"
+            placeholder={isLoadingDepartments ? "Loading..." : "Select departments"}
+            disabled={isLoadingDepartments || !departments?.length}
           />
         </div>
         {/* Designation Filter */}
@@ -163,7 +173,8 @@ export function SalarySlipFilters({
                 designation: values.map((v) => Number.parseInt(v)),
               })
             }
-            placeholder="Select designations"
+            placeholder={isLoadingDesignations ? "Loading..." : "Select designations"}
+            disabled={isLoadingDesignations || !designations?.length}
           />
         </div>
       </div>
@@ -183,7 +194,7 @@ export function SalarySlipFilters({
                 }
               >
                 <SelectTrigger id="month-select">
-                  <SelectValue placeholder="Select month" />
+                  <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
                 </SelectTrigger>
                 <SelectContent>
                   {months
@@ -245,8 +256,8 @@ export function SalarySlipFilters({
                   onFilterChange({ ...filters, year: value })
                 }
               >
-                <SelectTrigger id="year-select">
-                  <SelectValue placeholder="Select year" />
+                <SelectTrigger id="year-select" disabled={isLoadingYears || !years?.length}>
+                  <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select year"} />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year: any, index: number) => {

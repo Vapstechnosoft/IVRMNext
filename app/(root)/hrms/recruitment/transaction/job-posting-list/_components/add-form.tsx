@@ -23,7 +23,7 @@ const jobPostingSchema = z.object({
     location: z.string().min(1, 'Location is required'),
     department: z.string().min(1, 'Department is required'),
     positionType: z.string().min(1, 'Position Type is required'),
-    mrfNo: z.string().min(1, 'MRF No. is required'),
+    mrfNo: z.string().min(1, 'MRF No. is required').regex(/^\d+$/, 'MRF No. must contain only numbers'),
     skill: z.string().min(1, 'Skill is required'),
     experienceFrom: z.string().min(1, 'Experience From is required'),
     experienceTo: z.string().min(1, 'Experience To is required'),
@@ -85,27 +85,30 @@ const AddJobPostingForm = memo(function AddJobPostingForm({
 
     const onSubmit: SubmitHandler<FormFields> = useCallback(async (data) => {
         const payload = {
-            hrmrf_Id: 0,
+            hrmrfr_Id: 0,
             hrmP_Id: Number(data.position),
             hrmD_Id: Number(data.department),
             hrmpR_Id: Number(data.priority),
             hrmpT_Id: Number(data.positionType),
             hrmC_Id: Number(data.qualification),
             ivrmmG_Id: Number(data.gender),
-            hrmrf_NoofPosition: Number(data.noOfPosition),
-            hrmrf_Skills: data.skill,
-            hrmrf_JobDesc: data.jobDescription,
-            hrmrf_EXPFrom: Number(data.experienceFrom),
-            hrmrf_EXPTo: Number(data.experienceTo),
-            hrmrf_Age: Number(data.age),
-            hrmrf_MRFNO: data.mrfNo,
-            hrmrf_WrittenTestFlg: !!data.writtenTest,
-            hrmrf_OnlineTestFlg: !!data.onlineTest,
-            hrmrf_TechnicalInterviewFlg: !!data.technicalInterview,
-            hrmrf_Reason: data.reason,
-            hrmrf_Remark: data.remark || '',
-            hrmrf_Attachment: '',
-            hrmrf_JobLocation: data.location
+            hrmrfr_NoofPosition: Number(data.noOfPosition),
+            hrmrfr_Skills: data.skill,
+            hrmrfr_JobDesc: data.jobDescription,
+            hrmrfr_EXPFrom: Number(data.experienceFrom),
+            hrmrfr_EXPTo: Number(data.experienceTo),
+            hrmrfr_Age: Number(data.age),
+            hrmrfr_MRFNO: data.mrfNo,
+            hrmrfr_WrittenTestFlg: !!data.writtenTest,
+            hrmrfr_OnlineTestFlg: !!data.onlineTest,
+            hrmrfr_TechnicalInterviewFlg: !!data.technicalInterview,
+            hrmrfr_Reason: data.reason,
+            hrmrfr_Remark: data.remark || '',
+            hrmrfr_Attachment: '',
+            hrmrfr_JobLocation: data.location,
+            hrmrfr_Status: 'Pending',
+            hrmrfr_HRComment: 'Pending',
+            hrmrfr_MDComment: 'Pending'
         };
 
         console.log('payload', payload);
@@ -336,7 +339,17 @@ const AddJobPostingForm = memo(function AddJobPostingForm({
                             <label className='block font-medium text-sm'>
                                 MRF No.:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText placeholder='Enter MRF number' {...register('mrfNo')} error={errors.mrfNo?.message} />
+                            <InputText
+                                type='number'
+                                placeholder='Enter MRF number'
+                                {...register('mrfNo')}
+                                error={errors.mrfNo?.message}
+                                onKeyDown={(e) => {
+                                    if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>

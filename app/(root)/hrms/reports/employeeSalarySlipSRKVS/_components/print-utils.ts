@@ -1,6 +1,11 @@
 import { format } from 'date-fns';
 
 export function numberToWords(num: number) {
+    if (num === 0) return "Zero Rupees Only";
+
+    const isNegative = num < 0;
+    const absNum = Math.abs(num);
+
     const a = [
         "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
         "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
@@ -20,15 +25,29 @@ export function numberToWords(num: number) {
         return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
     }
 
-    const [rupees, paise] = num.toFixed(2).split(".");
+    const [rupees, paise] = absNum.toFixed(2).split(".");
+    const rupeesVal = parseInt(rupees);
+    const paiseVal = parseInt(paise);
 
-    let words = inWords(parseInt(rupees)) + " Rupees";
+    let words = "";
 
-    if (parseInt(paise) > 0) {
-        words += " and " + inWords(parseInt(paise)) + " Paise";
+    if (rupeesVal > 0) {
+        words = inWords(rupeesVal) + " Rupees";
     }
 
-    return words + " Only";
+    if (paiseVal > 0) {
+        if (words) {
+            words += " and " + inWords(paiseVal) + " Paise";
+        } else {
+            words = inWords(paiseVal) + " Paise";
+        }
+    }
+
+    if (!words) {
+        words = "Zero Rupees";
+    }
+
+    return (isNegative ? "Minus " : "") + words + " Only";
 }
 
 export function printSalarySlips(
@@ -67,12 +86,8 @@ export function printSalarySlips(
 
         return `
             <div class="salary-slip" style="page-break-after: always; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
-                <div style="border-bottom: 2px solid black; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-                    <img src="${institution.logo}" style="height: 80px; width: auto;" alt="logo" />
-                    <div style="text-align: center; flex-grow: 1;">
-                        <h1 style="margin: 0; color: #002c86; text-transform: uppercase; font-size: 28px;">${institution.name}</h1>
-                        <p style="margin: 5px 0 0; font-size: 14px; font-weight: 600;">${institution.address}</p>
-                    </div>
+                <div style="border-bottom: 2px solid black; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
+                    <img src="${institution.logo}" style="height: 140px; width: auto;" alt="logo" />
                 </div>
 
                 <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px; font-size: 20px;">

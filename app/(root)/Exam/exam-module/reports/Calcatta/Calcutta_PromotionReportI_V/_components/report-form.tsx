@@ -326,46 +326,6 @@ export default function CalcuttaPromotionReportForm({
                                 )}
                             />
 
-                            <Controller
-                                control={control}
-                                name='empG_GroupName'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Term
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <Select
-                                                key={field.value}
-                                                onValueChange={field.onChange}
-                                                value={field.value || ''}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Term' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {loadingTerms ? (
-                                                        <SelectItem value='0' disabled>
-                                                            Terms are loading...
-                                                        </SelectItem>
-                                                    ) : terms.length === 0 ? (
-                                                        <SelectItem value='0' disabled>
-                                                            No Terms found
-                                                        </SelectItem>
-                                                    ) : (
-                                                        terms.map((t: any, idx) => (
-                                                            <SelectItem key={idx} value={String(t.empG_GroupName)}>
-                                                                {t.empG_DisplayName || t.empG_GroupName}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
-
                             <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                                 <Label className='font-medium text-sm sm:w-40'>
                                     New Academic Date <span className='text-red-500'>*</span>
