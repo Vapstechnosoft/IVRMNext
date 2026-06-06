@@ -2796,51 +2796,51 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 2,
-                                            name: 'Calcutta PromotionReportI_IV',
+                                            name: ' Report Card I to V Half Yearly',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
-                                            title: 'Calcutta PromotionReportI_IV',
-                                            description: 'Calcutta PromotionReportI_IV'
+                                            title: ' Report Card I to V Half Yearly',
+                                            description: ' Report Card I to V Half Yearly'
                                         },
                                         {
                                             id: 3,
-                                            name: 'Calcutta PromotionReportI_V',
+                                            name: 'Final Report Card VI-VIII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
-                                            title: 'Calcutta PromotionReportI_V',
-                                            description: 'Calcutta PromotionReportI_V'
+                                            title: 'Final Report Card VI-VIII',
+                                            description: 'Final Report Card VI-VIII'
                                         },
                                         {
                                             id: 4,
-                                            name: 'Calcutta PromotionReportI_IX',
+                                            name: 'Report Card VI to XII Half Yearly',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
-                                            title: 'Calcutta PromotionReportI_IX',
-                                            description: 'Calcutta PromotionReportI_IX'
+                                            title: 'Report Card VI to XII Half Yearly',
+                                            description: 'Report Card VI to XII Half Yearly'
                                         },
                                         {
                                             id: 5,
-                                            name: 'Calcutta PromotionReportIX_X',
+                                            name: 'Final Report Card IX-XII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
-                                            title: 'Calcutta PromotionReportIX_X',
-                                            description: 'Calcutta Promotion Report IX-X'
+                                            title: 'Final Report Card IX-XII',
+                                            description: 'Final Report Card IX-XII'
                                         },
                                         {
                                             id: 6,
-                                            name: 'Calcutta PromotionReportI_X',
+                                            name: 'Final Report Card I-V',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
-                                            title: 'Calcutta PromotionReportI_X',
-                                            description: 'Calcutta PromotionReportI_X'
+                                            title: 'Final Report Card I-V',
+                                            description: 'Final Report Card I-V'
                                         },
                                         {
                                             id: 7,
-                                            name: 'Calcutta MultipleExamCumulativeReportCalcutta',
+                                            name: 'Multiple Exam Cumulative Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
-                                            title: 'MultipleExamCumulativeReportCalcutta',
-                                            description: 'Multiple Exam Cumulative Report Calcutta'
+                                            title: 'Multiple Exam Cumulative Report',
+                                            description: 'Multiple Exam Cumulative Report'
                                         },
 
                                         // HALL TICKET REPORTS
