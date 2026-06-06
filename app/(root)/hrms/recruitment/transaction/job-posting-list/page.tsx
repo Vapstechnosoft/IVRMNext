@@ -12,6 +12,7 @@ import { useGetBasicDataJobListVMS } from '@/hooks/hrms/recruitment/transactions
 export default function JobPostingListPage() {
     
     const { data: response, isLoading, error, refetchAll } = useGetBasicDataJobListVMS();
+    console.log("response ", response);
     const [formOpen, setFormOpen] = useState(false);
 
     const openAddForm = () => {

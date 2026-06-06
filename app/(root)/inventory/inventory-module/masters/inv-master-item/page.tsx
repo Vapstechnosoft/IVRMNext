@@ -90,7 +90,7 @@ function InvMasterItemPageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections dropdowns={response?.data} />
+                <FormSections dropdowns={response?.data || {}} />
 
                 {taxModalItem && (
                     <ItemTaxDialog

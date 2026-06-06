@@ -64,6 +64,11 @@ interface SalarySlipTemplateProps {
 }
 
 export function numberToWords(num: number) {
+    if (num === 0) return "Zero Rupees Only";
+
+    const isNegative = num < 0;
+    const absNum = Math.abs(num);
+
     const a = [
         "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
         "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
@@ -83,15 +88,29 @@ export function numberToWords(num: number) {
         return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
     }
 
-    const [rupees, paise] = num.toFixed(2).split(".");
+    const [rupees, paise] = absNum.toFixed(2).split(".");
+    const rupeesVal = parseInt(rupees);
+    const paiseVal = parseInt(paise);
 
-    let words = inWords(parseInt(rupees)) + " Rupees";
+    let words = "";
 
-    if (parseInt(paise) > 0) {
-        words += " and " + inWords(parseInt(paise)) + " Paise";
+    if (rupeesVal > 0) {
+        words = inWords(rupeesVal) + " Rupees";
     }
 
-    return words + " Only";
+    if (paiseVal > 0) {
+        if (words) {
+            words += " and " + inWords(paiseVal) + " Paise";
+        } else {
+            words = inWords(paiseVal) + " Paise";
+        }
+    }
+
+    if (!words) {
+        words = "Zero Rupees";
+    }
+
+    return (isNegative ? "Minus " : "") + words + " Only";
 }
 
 export function SalarySlipTemplate({
@@ -160,17 +179,12 @@ export function SalarySlipTemplate({
         <div className=' w-full bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
             <div id="EmpPaySlip" className="w-full">
                 {/* Header Section */}
-                <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-4">
-                    <div className="flex-shrink-0">
-                        {schoolLogo && (
-                            <img src={schoolLogo} alt="Institution Logo" className="h-[80px] w-auto object-contain" />
-                        )}
-                    </div>
-                    <div className="flex-grow text-center">
-                        <h1 className="text-3xl font-bold text-[#002c86] uppercase">{schoolName}</h1>
-                        <p className="text-sm font-semibold">{schoolAddress}</p>
-                    </div>
-                    <div className="w-[80px]"></div>
+                <div className="mb-2 flex items-center justify-center border-b-2 border-black pb-4 ">
+
+                    {schoolLogo && (
+                        <img src={schoolLogo} alt="Institution Logo" className="h-[140px] w-auto object-contain" />
+                    )}
+
                 </div>
 
                 <h3 className="mb-6 text-center text-xl font-bold underline">
@@ -255,7 +269,7 @@ export function SalarySlipTemplate({
                                 <td className="py-1">:</td>
                                 <td className="py-1">{salarySlipData.paySlipSeq || 0}</td>
                             </tr> */}
-                            
+
                         </tbody>
                     </table>
                 </div>
