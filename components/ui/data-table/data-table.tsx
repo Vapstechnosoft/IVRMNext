@@ -131,8 +131,9 @@ function DataTableInner<TData, TValue>(
     const paginationState = { pageIndex: currentPage - 1, pageSize };
     // In client-side mode (manualPagination=false), TanStack Table handles slicing,
     // but we still want to show the correct page count based on the data length.
-    const effectiveTotal = manualPagination ? totalItems : data.length;
-    const pageCount = Math.ceil(effectiveTotal / pageSize);
+    const effectiveTotal = manualPagination ? (totalItems || 0) : (data?.length || 0);
+    const validPageSize = pageSize || 10;
+    const pageCount = Math.max(0, Math.ceil(effectiveTotal / validPageSize)) || 0;
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
@@ -154,6 +155,7 @@ function DataTableInner<TData, TValue>(
         data,
         columns,
         pageCount,
+        getRowId,
         state: {
             pagination: paginationState,
             sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
