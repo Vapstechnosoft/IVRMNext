@@ -44,17 +44,13 @@ export const printSalarySlips = (slips: any[], institution: any, month: string, 
         return `
             <div class="slip-container" style="${index > 0 ? 'page-break-before: always; margin-top: 40px;' : ''}">
                 <div class="header" style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 25px;">
-                    <div style="display: flex; justify-content: center; align-items: center; gap: 50px;">
-                    ${institution.logo ? `<img src="https://stjamesstorage.blob.core.windows.net/files/StJamesSmallLogo.png" style="width: auto; height: 80px;  object-fit: contain; margin-bottom: 15px; border-radius: 4px;" />` : ''}
-                        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                            <h1 style="margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">St. James' School</h1>
-                            <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">165,Acharya.J.C Bose ,Kolkata-700014</p>
-                        </div>
+                    <div style="border-bottom: 2px solid black; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
+                        <img src="${institution.logo}" style="height: 140px; width: auto;" alt="logo" />
                     </div>
-                    <div style="margin-top: 10px;">
-                        <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">SALARY SLIP</h2>
-                        <p style="margin: 5px 0; font-size: 14px; font-weight: 600;">FOR THE MONTH OF ${month.toUpperCase()} ${year}</p>
-                    </div>
+
+                    <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px; font-size: 20px;">
+                        Salary Slip: ${month} ${year}
+                    </h3>
                 </div>
 
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">

@@ -17,6 +17,30 @@ import { useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import { toast } from 'sonner';
 import DeleteMasterClassForm from './toggle-form';
+import StudentProfileDialog from './student-profile-dialog';
+
+const StudentProfileCell = ({ row }: { row: any }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div>
+            <span 
+                className="cursor-pointer text-blue-600 hover:underline font-medium" 
+                onClick={() => setIsOpen(true)}
+            >
+                {row.getValue('studentName') ?? 'N.A'}
+            </span>
+            {isOpen && (
+                <StudentProfileDialog 
+                    isOpen={isOpen} 
+                    onClose={() => setIsOpen(false)} 
+                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id || 0} 
+                    asmclId={row.original?.asmcL_Id || row.original?.ASMCL_Id || row.original?.classId || 0} 
+                    asmsId={row.original?.asmS_Id || row.original?.ASMS_Id || row.original?.sectionId || 0} 
+                />
+            )}
+        </div>
+    );
+};
 
 export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationList>[] = [
     {
@@ -41,7 +65,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     {
         accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Name/view Profile' />,
-        cell: ({ row }) => <div>{row.getValue('studentName') ?? 'N.A'}</div>,
+        cell: ({ row }) => <StudentProfileCell row={row} />,
         enableSorting: true,
         enableHiding: true
     },

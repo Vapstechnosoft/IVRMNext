@@ -33,10 +33,7 @@ export default function CalcuttaPromotionReportItoIXForm({
             asmS_Id: 0,
             allTerm: false,
             empG_GroupName: '',
-            studentList: [],
-            issueDate: new Date(),
-            academicDate: new Date(),
-            reportPrintedDate: new Date()
+            studentList: []
         } as any
     });
 
@@ -185,14 +182,11 @@ export default function CalcuttaPromotionReportItoIXForm({
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: data.allTerm ? '' : data.empG_GroupName,
-            flag: "4",
-            academicDate: data.academicDate,
-            issueDate: data.issueDate,
-            reportPrintedDate: data.reportPrintedDate
+            flag: "4"
         };
 
         const dates = {
-            issueDate: data.issueDate
+            issueDate: new Date()
         };
 
         if (onSuccess) {
@@ -390,62 +384,7 @@ export default function CalcuttaPromotionReportItoIXForm({
                                 )}
                             />
 
-                            <Controller
-                                control={control}
-                                name='academicDate'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            New Academic Date <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                            />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
 
-                            <Controller
-                                control={control}
-                                name='reportPrintedDate'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Report Printed On
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                            />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
-
-                            <Controller
-                                control={control}
-                                name='issueDate'
-                                render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-40'>
-                                            Issue Date <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <div className='flex-1'>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={(date: any) => field.onChange(date)}
-                                            />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
-                                    </div>
-                                )}
-                            />
 
                         </div>
 

@@ -48,7 +48,7 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEm
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            const continuousIndex = pageIndex + row.index + 1;
             return <div className='flex justify-center'>{continuousIndex}</div>;
         },
         enableSorting: false,

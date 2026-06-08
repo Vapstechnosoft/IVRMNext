@@ -83,7 +83,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
             // Prepare tax_Applicable array
             const taxApplicable = [];
             if (data.invmI_TaxAplFlg) {
-                for (const tax of dropdowns.get_tax) {
+                for (const tax of dropdowns?.get_tax || []) {
                     if (selectedTaxes[tax.invmT_Id]) {
                         taxApplicable.push({
                             invmiT_Id: 0,
@@ -133,7 +133,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                                         <SelectValue placeholder='Select Group' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns.get_maingroup?.map((group: any) => (
+                                        {dropdowns?.get_maingroup?.map((group: any) => (
                                             <SelectItem key={group.invmG_Id} value={group.invmG_Id?.toString() || ''}>
                                                 {group.invmG_GroupName}
                                             </SelectItem>
@@ -225,7 +225,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                                         <SelectValue placeholder='Select UOM' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns.get_UOM?.map(uom => (
+                                        {dropdowns?.get_UOM?.map(uom => (
                                             <SelectItem key={uom.invmuoM_Id} value={uom.invmuoM_Id?.toString() || uom.invmuoM_Id || ''}>
                                                 {uom.invmuoM_UOMName}
                                             </SelectItem>
@@ -273,7 +273,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
             </div>
 
             {/* Tax Grid Section */}
-            {isTaxApplied && dropdowns.get_tax?.length > 0 && (
+            {isTaxApplied && dropdowns?.get_tax?.length > 0 && (
                 <div className='mt-8 border rounded-lg p-4 bg-muted/30'>
                     <h3 className='text-sm font-semibold mb-3'>Tax Details</h3>
                     <div className='max-h-[300px] overflow-auto border rounded'>
@@ -288,7 +288,7 @@ export default function AddInvMasterItemForm({ onSuccess, dropdowns }: AddInvMas
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {dropdowns.get_tax.map((tax, idx) => (
+                                {dropdowns?.get_tax?.map((tax, idx) => (
                                     <TableRow key={tax.invmT_Id}>
                                         <TableCell>{idx + 1}</TableCell>
                                         <TableCell>
