@@ -49,9 +49,19 @@ export async function getSalarySlipOnload(
 export async function filterEmployeesByYearMonth(
     requestBody: SalarySlipFilterRequest
 ): Promise<ApiResponse<SalarySlipResponse>> {
+    let url = '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month';
+    const params = new URLSearchParams();
+    if (requestBody.page) params.append('page', requestBody.page.toString());
+    if (requestBody.page_size) params.append('page_size', requestBody.page_size.toString());
+    if (requestBody.search) params.append('search', requestBody.search);
+
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
     const response = await api.post<SalarySlipResponse>(
         'hrms',
-        '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month',
+        url,
         requestBody
     );
     // The backend returns raw data, not wrapped in ApiResponse format

@@ -104,6 +104,7 @@ function PFChallanContent() {
 
     // Using general master for Years as reference Cumulative Report
     const { data: yearsData } = useLeaveYearDropdown();
+    console.log("yearsData", yearsData);
     const monthsData = { data: onloadData?.data?.monthdropdown || [] };
 
     const { mutate: generateReport, isPending } = usePFChallan();

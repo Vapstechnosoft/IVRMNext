@@ -78,12 +78,13 @@ export function getMonthInfo(monthsBack: number) {
 }
 
 export function numberToWords(num: number) {
-    let number = num;
+    if (num === 0) return 'Zero Rupees Only';
+
+    const isNegative = num < 0;
+    let number = Math.abs(num);
     const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    if (number === 0) return 'Zero';
 
     const convertLessThanOneThousand = (n: number): string => {
         if (n === 0) return '';
@@ -110,7 +111,7 @@ export function numberToWords(num: number) {
         parts.push(convertLessThanOneThousand(number));
     }
 
-    return `${parts.join(' ')} Rupees Only`;
+    return `${isNegative ? 'Minus ' : ''}${parts.join(' ')} Rupees Only`;
 }
 
 // Plain number-to-words helper (no currency suffix). Used for year conversion.
