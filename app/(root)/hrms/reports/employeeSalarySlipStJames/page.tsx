@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import {
     useReportGroupTypes,
@@ -29,7 +29,20 @@ const MONTH_LIST = [
 export default function SalarySlipPage() {
     const searchParams = useSearchParams();
     const page = Number(searchParams.get("page")) || 1;
-    const pageSize = Number(searchParams.get("page_size")) || 10;
+    const pageSize = Number(searchParams.get("page_size")) || 5;
+
+    const router = useRouter();
+    const pathname = usePathname();
+    
+    useEffect(() => {
+        // We want to clear all params on mount to start fresh, 
+        // but we MUST ensure page_size is 5 so the table defaults correctly.
+        const shouldClearParams = Array.from(searchParams.keys()).some(k => k !== 'page_size');
+        if (shouldClearParams || searchParams.get('page_size') !== '5') {
+            router.replace(`${pathname}?page_size=5`, { scroll: false });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],

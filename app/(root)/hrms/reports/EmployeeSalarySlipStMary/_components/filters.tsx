@@ -332,18 +332,14 @@ export function SalarySlipFilters({
                     {/* Data Table */}
                     <div className='salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden'>
                         <GenericDataTable
-                                {...baseTableProps}
-                                isLoading={isFiltering}
+                            {...baseTableProps}
+                            isLoading={isFiltering}
                             columns={columns}
                             data={filteredEmployees}
                             totalItems={filteredEmployees.length}
                             showViewOptions={true}
                             isSearchRequired={false}
                             isPaginationRequired={true}
-
-
-
-
                             scrollable={true}
                             maxHeight="250px"
                             columnPinning={{ left: ['select', 'id'] }}

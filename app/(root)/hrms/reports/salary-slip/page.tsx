@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import {
     useReportGroupTypes,
@@ -29,7 +29,19 @@ const MONTH_LIST = [
 export default function SalarySlipPage() {
     const searchParams = useSearchParams();
     const page = Number(searchParams.get('page')) || 1;
-    const pageSize = Number(searchParams.get('page_size')) || 10;
+    const pageSize = Number(searchParams.get('page_size')) || 5;
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        // We want to clear all params on mount to start fresh, 
+        // but we MUST ensure page_size is 5 so the table defaults correctly.
+        const shouldClearParams = Array.from(searchParams.keys()).some(k => k !== 'page_size');
+        if (shouldClearParams || searchParams.get('page_size') !== '5') {
+            router.replace(`${pathname}?page_size=5`, { scroll: false });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],
@@ -120,7 +132,7 @@ export default function SalarySlipPage() {
                     if (res.success && res.data) {
                         const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
                         const mapped = empList.map((emp: any, index: number) => ({
-                            id: index + 1,
+                            id: (page - 1) * pageSize + index + 1,
                             employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
                             employeeName: `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ''}`.trim(),
                             groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,

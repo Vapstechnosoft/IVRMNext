@@ -345,9 +345,9 @@ export function SalarySlipFilters({
                                 noDataDescription='Select filters to view employees'
                                 errorTitle='Error Loading Employees'
                                 isSearchRequired={false}
-                                isPaginationRequired={true}
+                                isPaginationRequired={true}                            
                                 scrollable={true}
-                                maxHeight="200px"
+                                maxHeight="250px"
                             />
                         }
                     </div>
