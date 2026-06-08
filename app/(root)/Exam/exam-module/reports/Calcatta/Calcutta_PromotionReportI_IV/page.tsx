@@ -23,13 +23,9 @@ export default function CalcuttaPromotionReportItoIVPage() {
 
     return (
         <div className='flex flex-col gap-6 p-6'>
-
             <div className='flex flex-col gap-6'>
                 <CalcuttaPromotionReportForm onSuccess={handleFormSubmit} />
-                <CalcuttaPromotionReportView
-                    data={reportData}
-                    institution={reportData?.getinstitution?.[0] || null}
-                />
+                <CalcuttaPromotionReportView data={reportData} institution={reportData?.getinstitution?.[0] || null} />
             </div>
         </div>
     );

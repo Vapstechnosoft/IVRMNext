@@ -54,8 +54,7 @@ function StudentApplicationPageContent({
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
 
-    useEffect(() => {
-    }, [session?.data?.role]);
+    useEffect(() => {}, [session?.data?.role]);
 
     useEffect(() => {
         const handler = () => refetch();

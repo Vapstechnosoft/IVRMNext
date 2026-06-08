@@ -19,12 +19,18 @@ interface SalarySlipColumnsProps {
     isAllSelected: boolean;
     isSomeSelected: boolean;
 }
-export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({
+    onSelectAll,
+    onSelectEmployee,
+    selectedEmployeeIds,
+    isAllSelected,
+    isSomeSelected
+}: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={isAllSelected ? true : (isSomeSelected ? 'indeterminate' : false)}
+                checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                 onCheckedChange={(value) => {
                     onSelectAll(!!value);
                 }}
@@ -44,7 +50,11 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEm
     },
     {
         accessorKey: 'id',
-        header: ({ column }) => <div className='flex justify-center'><DataTableColumnHeader column={column} title='SL. No' /></div>,
+        header: ({ column }) => (
+            <div className='flex justify-center'>
+                <DataTableColumnHeader column={column} title='SL. No' />
+            </div>
+        ),
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;

@@ -1,18 +1,18 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Box, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item';
 import type { IInvMasterItem } from '@/types/inventory/masters/inv-master-item';
+import { Box, Pencil, Plus, PlusCircle, X } from 'lucide-react';
+import { use, useEffect, useState } from 'react';
 import AddInvMasterItemForm from './_components/add-form';
 import { invMasterItemColumns } from './_components/columns';
+import ItemTaxDialog from './_components/item-tax-dialog';
 import ToggleInvMasterItemForm from './_components/toggle-form';
 import UpdateInvMasterItemForm from './_components/update-form';
-import ItemTaxDialog from './_components/item-tax-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -92,12 +92,7 @@ function InvMasterItemPageContent({
 
                 <FormSections dropdowns={response?.data || {}} />
 
-                {taxModalItem && (
-                    <ItemTaxDialog
-                        item={taxModalItem}
-                        onClose={() => setTaxModalItem(null)}
-                    />
-                )}
+                {taxModalItem && <ItemTaxDialog item={taxModalItem} onClose={() => setTaxModalItem(null)} />}
             </div>
         </div>
     );

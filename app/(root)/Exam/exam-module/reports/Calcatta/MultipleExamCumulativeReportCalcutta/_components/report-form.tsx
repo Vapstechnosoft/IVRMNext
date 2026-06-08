@@ -5,32 +5,29 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-
-import { multipleExamCumulativeReportCalcuttaSchema, type MultipleExamCumulativeReportCalcuttaValues } from '@/schemas/exam/exam-module/reports';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    type MultipleExamCumulativeReportCalcuttaValues,
+    multipleExamCumulativeReportCalcuttaSchema
+} from '@/schemas/exam/exam-module/reports';
+import { getMultipleExamCumulativeReportCalcutta } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { getExamsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
+import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import MultipleExamCumulativeReportCalcuttaList from './report-list';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
-import { IMasterGrade } from '@/types/exam/exam-module/masters';
-import {
-    getExamsDropDownByAcademicYearandClassandSectionlist,
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { getclassdropdown } from '@/server/fees/masters/student_fee_group_mapping';
-import { getMultipleExamCumulativeReportCalcutta } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
 
-interface MultipleExamCumulativeReportCalcuttaFormProps {
-}
+type MultipleExamCumulativeReportCalcuttaFormProps = {};
 
-const MultipleExamCumulativeReportCalcuttaForm = ({
-}: MultipleExamCumulativeReportCalcuttaFormProps) => {
+const MultipleExamCumulativeReportCalcuttaForm = ({}: MultipleExamCumulativeReportCalcuttaFormProps) => {
     const [isPending, startTransition] = useTransition();
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
@@ -38,8 +35,6 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
     const [grades, setGrades] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
     const [reportData, setReportData] = useState<any>(null);
-
-
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
@@ -53,13 +48,11 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
             emgR_Id: 0,
             examlist: [],
             empsG_PercentValue: 0,
-            flag: "4",
+            flag: '4',
             emE_Id: 0,
-            reporttype: "",
-            empG_GroupName: ""
+            reporttype: '',
+            empG_GroupName: ''
         }
-
-
     });
 
     const watchYear = form.watch('asmaY_Id');
@@ -98,8 +91,6 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
             setGrades([]);
         }
     }, [gradeData, gradeError]);
-
-
 
     // Year change -> fetch classes
     useEffect(() => {
@@ -144,7 +135,6 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
         }
     }, [watchYear, watchClass, form]);
 
-
     // Section change -> fetch exams
     useEffect(() => {
         if (watchYear > 0 && watchClass > 0 && watchSection > 0) {
@@ -164,12 +154,9 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
         }
     }, [watchYear, watchClass, watchSection, form]);
 
-
-
     const onSubmit = (values: MultipleExamCumulativeReportCalcuttaValues) => {
         startTransition(async () => {
             try {
-
                 const payload = {
                     ASMAY_Id: values.asmaY_Id,
                     ASMCL_Id: values.asmcL_Id,
@@ -181,21 +168,19 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                     Temp_AmstIds: [], // Removed students part as requested
                     EMPG_GroupName: values.empG_GroupName,
                     EMGR_Id: values.emgR_Id,
-                    examlist: values.examlist?.map(x => ({
+                    examlist: values.examlist?.map((x) => ({
                         EME_Id: x.emE_Id
                     }))
                 };
 
-
-                console.log("payload", payload);
+                console.log('payload', payload);
                 const res = await getMultipleExamCumulativeReportCalcutta(payload);
-                console.log("res", res);
+                console.log('res', res);
                 if (res?.getcumulativereportdetails?.length > 0) {
                     // Inject metadata for printing
-                    const yr = academicYears.find(y => y.asmaY_Id === values.asmaY_Id)?.asmaY_Year;
-                    const cla = classes.find(c => c.asmcL_Id === values.asmcL_Id)?.asmcL_ClassName;
-                    const sec = sections.find(s => s.asmS_Id === values.asmS_Id)?.asmC_SectionName;
-
+                    const yr = academicYears.find((y) => y.asmaY_Id === values.asmaY_Id)?.asmaY_Year;
+                    const cla = classes.find((c) => c.asmcL_Id === values.asmcL_Id)?.asmcL_ClassName;
+                    const sec = sections.find((s) => s.asmS_Id === values.asmS_Id)?.asmC_SectionName;
 
                     setReportData({
                         ...res,
@@ -220,40 +205,43 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
     };
 
     return (
-        <div className="container mx-auto space-y-6 py-4">
+        <div className='container mx-auto space-y-6 py-4'>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="rounded-lg border border-sky-200 bg-white shadow-sm overflow-hidden">
-                        <div className="bg-sky-800 px-4 py-2 text-white font-medium">
-                            Progress Card Report
-                        </div>
-                        <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                                <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                    <div className='overflow-hidden rounded-lg border border-sky-200 bg-white shadow-sm'>
+                        <div className='bg-sky-800 px-4 py-2 font-medium text-white'>Progress Card Report</div>
+                        <div className='p-6'>
+                            <div className='grid grid-cols-1 gap-x-12 gap-y-6 md:grid-cols-2'>
+                                <div className='space-y-4'>
                                     {/* Academic Year */}
                                     <FormField
                                         control={form.control}
-                                        name="asmaY_Id"
+                                        name='asmaY_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4 space-y-0">
-                                                <FormLabel className="text-right">Academic Year:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="col-span-2">
+                                            <FormItem className='grid grid-cols-3 items-center gap-4 space-y-0'>
+                                                <FormLabel className='text-right'>
+                                                    Academic Year:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='col-span-2'>
                                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value.toString()}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="--Select--" />
+                                                                <SelectValue placeholder='--Select--' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
                                                             {academicYearLoading ? (
-                                                                <SelectItem value="0" disabled>Loading...</SelectItem>
-                                                            ) : academicYears.map((y) => (
-                                                                <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                                                    {y.asmaY_Year}
+                                                                <SelectItem value='0' disabled>
+                                                                    Loading...
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : (
+                                                                academicYears.map((y) => (
+                                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                                        {y.asmaY_Year}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
-
                                                     </Select>
                                                     <FormMessage />
                                                 </div>
@@ -264,15 +252,17 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                     {/* Class */}
                                     <FormField
                                         control={form.control}
-                                        name="asmcL_Id"
+                                        name='asmcL_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4 space-y-0">
-                                                <FormLabel className="text-right">Class:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="col-span-2">
+                                            <FormItem className='grid grid-cols-3 items-center gap-4 space-y-0'>
+                                                <FormLabel className='text-right'>
+                                                    Class:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='col-span-2'>
                                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value.toString()}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="--Select--" />
+                                                                <SelectValue placeholder='--Select--' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -292,15 +282,17 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                     {/* Section */}
                                     <FormField
                                         control={form.control}
-                                        name="asmS_Id"
+                                        name='asmS_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4 space-y-0">
-                                                <FormLabel className="text-right">Section:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="col-span-2">
+                                            <FormItem className='grid grid-cols-3 items-center gap-4 space-y-0'>
+                                                <FormLabel className='text-right'>
+                                                    Section:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='col-span-2'>
                                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value.toString()}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="--Select--" />
+                                                                <SelectValue placeholder='--Select--' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -320,15 +312,17 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                     {/* Grade */}
                                     <FormField
                                         control={form.control}
-                                        name="emgR_Id"
+                                        name='emgR_Id'
                                         render={({ field }) => (
-                                            <FormItem className="grid grid-cols-3 items-center gap-4 space-y-0">
-                                                <FormLabel className="text-right">Grade:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="col-span-2">
+                                            <FormItem className='grid grid-cols-3 items-center gap-4 space-y-0'>
+                                                <FormLabel className='text-right'>
+                                                    Grade:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='col-span-2'>
                                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value.toString()}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select Grade" />
+                                                                <SelectValue placeholder='Select Grade' />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
@@ -346,17 +340,19 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                     />
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className='space-y-4'>
                                     {/* Exam Multiselect */}
                                     <FormField
                                         control={form.control}
-                                        name="examlist"
+                                        name='examlist'
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-col gap-2">
-                                                <FormLabel className="text-left font-bold text-sky-800 uppercase tracking-wider text-xs">Exam List:<span className="text-red-500">*</span></FormLabel>
-                                                <div className="border rounded-md p-4 space-y-2 h-[180px] overflow-y-auto bg-slate-50/50">
+                                            <FormItem className='flex flex-col gap-2'>
+                                                <FormLabel className='text-left font-bold text-sky-800 text-xs uppercase tracking-wider'>
+                                                    Exam List:<span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='h-[180px] space-y-2 overflow-y-auto rounded-md border bg-slate-50/50 p-4'>
                                                     {exams.map((exam) => (
-                                                        <div key={exam.emE_Id} className="flex items-center space-x-2">
+                                                        <div key={exam.emE_Id} className='flex items-center space-x-2'>
                                                             <Checkbox
                                                                 id={`exam-${exam.emE_Id}`}
                                                                 checked={field.value.some((v) => v.emE_Id === exam.emE_Id)}
@@ -365,13 +361,17 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                                                     if (checked) {
                                                                         currentValues.push({ emE_Id: exam.emE_Id });
                                                                     } else {
-                                                                        const idx = currentValues.findIndex((v) => v.emE_Id === exam.emE_Id);
+                                                                        const idx = currentValues.findIndex(
+                                                                            (v) => v.emE_Id === exam.emE_Id
+                                                                        );
                                                                         if (idx > -1) currentValues.splice(idx, 1);
                                                                     }
                                                                     field.onChange(currentValues);
                                                                 }}
                                                             />
-                                                            <label htmlFor={`exam-${exam.emE_Id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                                            <label
+                                                                htmlFor={`exam-${exam.emE_Id}`}
+                                                                className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                                                 {exam.emE_ExamName}
                                                             </label>
                                                         </div>
@@ -382,17 +382,15 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                                         )}
                                     />
                                 </div>
-
-
                             </div>
 
-                            <div className="mt-8 flex justify-center gap-4">
-                                <Button type="submit" disabled={isPending} className="bg-sky-800 hover:bg-sky-900 min-w-[120px]">
-                                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                            <div className='mt-8 flex justify-center gap-4'>
+                                <Button type='submit' disabled={isPending} className='min-w-[120px] bg-sky-800 hover:bg-sky-900'>
+                                    {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                                     Report
                                 </Button>
-                                <Button type="button" variant="destructive" onClick={handleReset} className="min-w-[120px]">
-                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                <Button type='button' variant='destructive' onClick={handleReset} className='min-w-[120px]'>
+                                    <RotateCcw className='mr-2 h-4 w-4' />
                                     Cancel
                                 </Button>
                             </div>
@@ -401,9 +399,7 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                 </form>
             </Form>
 
-            {reportData && (
-                <MultipleExamCumulativeReportCalcuttaList data={reportData} />
-            )}
+            {reportData && <MultipleExamCumulativeReportCalcuttaList data={reportData} />}
         </div>
     );
 };

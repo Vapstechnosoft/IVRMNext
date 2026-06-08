@@ -32,11 +32,7 @@ export default function CalcuttaPromotionReportItoVPage() {
         <div className='flex flex-col gap-6 p-6'>
             <div className='flex flex-col gap-6'>
                 <CalcuttaPromotionReportForm onSuccess={handleFormSubmit} />
-                <CalcuttaPromotionReportView
-                    data={reportData}
-                    dateInfo={dateInfo}
-                    institution={reportData?.getinstitution?.[0] || null}
-                />
+                <CalcuttaPromotionReportView data={reportData} dateInfo={dateInfo} institution={reportData?.getinstitution?.[0] || null} />
             </div>
         </div>
     );

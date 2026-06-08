@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Student } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const RemarkInput = ({ row, table }: { row: any; table: any }) => {
     const meta = table.options.meta as any;
@@ -22,13 +22,13 @@ const RemarkInput = ({ row, table }: { row: any; table: any }) => {
 
     return (
         <input
-            type="text"
-            className="flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            type='text'
+            className='flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
             disabled={!isSelected}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onBlur={() => meta?.updateStudentData(studentId, 'remark', value)}
-            placeholder="Enter Remarks"
+            placeholder='Enter Remarks'
         />
     );
 };
@@ -93,18 +93,14 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
             const value = meta?.studentData?.get(studentId)?.reason || '';
 
             return (
-                <Select
-                    disabled={!isSelected}
-                    value={value}
-                    onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}
-                >
-                    <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Select Reason" />
+                <Select disabled={!isSelected} value={value} onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}>
+                    <SelectTrigger className='w-[140px]'>
+                        <SelectValue placeholder='Select Reason' />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Fee Due">Fee Due</SelectItem>
-                        <SelectItem value="Long Absent">Long Absent</SelectItem>
-                        <SelectItem value="Medical">Medical</SelectItem>
+                        <SelectItem value='Fee Due'>Fee Due</SelectItem>
+                        <SelectItem value='Long Absent'>Long Absent</SelectItem>
+                        <SelectItem value='Medical'>Medical</SelectItem>
                     </SelectContent>
                 </Select>
             );

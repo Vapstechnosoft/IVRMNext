@@ -1,14 +1,14 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    deleteMasterQuestionBank,
     getMasterQuestionBankLoadData,
     getMasterQuestionBankSubjects,
     saveMasterQuestionBank,
-    deleteMasterQuestionBank,
     searchMasterQuestionBankDocument
 } from '@/server/admission/preadmission/transactions/master_question_bank';
-import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useMasterQuestionBankLoadData = () => {
     return useQuery({
@@ -20,8 +20,7 @@ export const useMasterQuestionBankLoadData = () => {
 
 export const useMasterQuestionBankSubjects = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) =>
-            getMasterQuestionBankSubjects(data)
+        mutationFn: (data: { ASMAY_Id: number; ASMCL_Id: number }) => getMasterQuestionBankSubjects(data)
     });
 };
 
@@ -51,7 +50,6 @@ export const useMasterQuestionBankDelete = () => {
 
 export const useMasterQuestionBankSearch = () => {
     return useMutation({
-        mutationFn: (data: { searchparameter: string }) =>
-            searchMasterQuestionBankDocument(data)
+        mutationFn: (data: { searchparameter: string }) => searchMasterQuestionBankDocument(data)
     });
 };

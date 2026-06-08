@@ -58,44 +58,44 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: ""
+            columname: ''
         });
 
         groupewiseexamTemp.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class",
-            columname: ""
+            examnamedisplay: 'Highest in Class',
+            columname: ''
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 9800000,
-            EME_ExamName: "Marks Obtained",
+            EME_ExamName: 'Marks Obtained',
             EME_ExamOrder: 9800000,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
-            columname: "Marks",
+            columname: 'Marks'
         });
 
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
             EME_Id: 98000012,
-            EME_ExamName: "Highest in Class",
+            EME_ExamName: 'Highest in Class',
             EME_ExamOrder: 98000012,
             EMPG_DistplayName: dd.empG_DistplayName,
             EMPSGE_ForMaxMarkrs: null,
-            examnamedisplay: "Highest in Class"
+            examnamedisplay: 'Highest in Class'
         });
 
         dd.empsG_MarksValue = counttotal;
@@ -135,17 +135,19 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
-            const dId = d.AMST_Id || d.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
-            return dId && stuId && Number(dId) === Number(stuId);
-        }).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        const attendance = getstudentwiseattendancedetails
+            .filter((d: any) => {
+                const dId = d.AMST_Id || d.amsT_Id;
+                const stuId = stu.amsT_Id || stu.AMST_Id;
+                return dId && stuId && Number(dId) === Number(stuId);
+            })
+            .map((d: any) => ({
+                classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
+                emE_Id: d.EME_Id || d.emE_Id,
+                classatt: d.PRESENTDAYS || d.presentdays,
+                percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+            }));
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
@@ -164,41 +166,59 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
         for (const subj of studentSubjects) {
-            if (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === 'true') {
+            if (
+                subj.EYCES_MarksDisplayFlg ||
+                subj.eyceS_MarksDisplayFlg ||
+                subj.eyceS_MarksDisplayFlg === 'true' ||
+                subj.EYCES_MarksDisplayFlg === 'true'
+            ) {
                 const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
                 const subjId = subj.ISMS_Id || subj.ismS_Id;
 
                 // Find stats from student's examwisetotal
-                const stats = examwisetotal.find((t: any) =>
-                    (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
-                    (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
-                    t.ISMS_SubjectName === subjectName ||
-                    t.ismS_SubjectName === subjectName
+                const stats = examwisetotal.find(
+                    (t: any) =>
+                        (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
+                        (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
+                        t.ISMS_SubjectName === subjectName ||
+                        t.ismS_SubjectName === subjectName
                 );
 
                 // Find stats from global getexamwisetotaldetails (if student-specific filter is empty or missing average)
-                const globalStats = getexamwisetotaldetails.find((t: any) =>
-                    (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
-                    (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
-                    t.ISMS_SubjectName === subjectName ||
-                    t.ismS_SubjectName === subjectName
+                const globalStats = getexamwisetotaldetails.find(
+                    (t: any) =>
+                        (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
+                        (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
+                        t.ISMS_SubjectName === subjectName ||
+                        t.ismS_SubjectName === subjectName
                 );
 
                 // Find obtained marks directly from studentmarks (more reliable)
-                const obtainedEntry = studentMarks.find((m: any) =>
-                    (Number(m.ISMS_Id || m.ismS_Id) === Number(subjId)) &&
-                    (Number(m.EME_Id || m.emE_Id) === 9800000)
+                const obtainedEntry = studentMarks.find(
+                    (m: any) => Number(m.ISMS_Id || m.ismS_Id) === Number(subjId) && Number(m.EME_Id || m.emE_Id) === 9800000
                 );
 
                 // Find highest marks directly from studentmarks (more reliable)
-                const highestEntry = studentMarks.find((m: any) =>
-                    (Number(m.ISMS_Id || m.ismS_Id) === Number(subjId)) &&
-                    (Number(m.EME_Id || m.emE_Id) === 98000012)
+                const highestEntry = studentMarks.find(
+                    (m: any) => Number(m.ISMS_Id || m.ismS_Id) === Number(subjId) && Number(m.EME_Id || m.emE_Id) === 98000012
                 );
 
-                const obtained = obtainedEntry?.groupMarks ?? obtainedEntry?.obtainedMarks ?? stats?.ObtainedMarks ?? stats?.obtainedMarks ?? 0;
-                const highest = highestEntry?.estmppS_ClassHighest ?? highestEntry?.ESTMPPS_ClassHighest ?? stats?.ESTMPPS_ClassHighest ?? stats?.estmppS_ClassHighest ?? globalStats?.ESTMPPS_ClassHighest ?? globalStats?.estmppS_ClassHighest ?? 0;
-                const average = stats?.ESTMPPS_SectionAverage ?? stats?.estmppS_SectionAverage ?? globalStats?.ESTMPPS_SectionAverage ?? globalStats?.estmppS_SectionAverage ?? 0;
+                const obtained =
+                    obtainedEntry?.groupMarks ?? obtainedEntry?.obtainedMarks ?? stats?.ObtainedMarks ?? stats?.obtainedMarks ?? 0;
+                const highest =
+                    highestEntry?.estmppS_ClassHighest ??
+                    highestEntry?.ESTMPPS_ClassHighest ??
+                    stats?.ESTMPPS_ClassHighest ??
+                    stats?.estmppS_ClassHighest ??
+                    globalStats?.ESTMPPS_ClassHighest ??
+                    globalStats?.estmppS_ClassHighest ??
+                    0;
+                const average =
+                    stats?.ESTMPPS_SectionAverage ??
+                    stats?.estmppS_SectionAverage ??
+                    globalStats?.ESTMPPS_SectionAverage ??
+                    globalStats?.estmppS_SectionAverage ??
+                    0;
 
                 chartData.push({
                     subject: subjectName,
@@ -233,13 +253,13 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         const ecsaId = dev.ECSA_Id ?? dev.ecsA_Id;
         const ecsaSkillArea = dev.ECSA_SkillArea ?? dev.ecsA_SkillArea;
 
-        if (ecsId && !skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === ecsId)) {
+        if (ecsId && !skilllist_temp.find((emp) => (emp.ECS_Id ?? emp.ecS_Id) === ecsId)) {
             skilllist_temp.push({
                 ECS_Id: ecsId,
                 ECS_SkillName: ecsSkillName
             });
         }
-        if (ecsaId && !activitylist_temp.find(act => (act.ECSA_Id ?? act.ecsA_Id) === ecsaId)) {
+        if (ecsaId && !activitylist_temp.find((act) => (act.ECSA_Id ?? act.ecsA_Id) === ecsaId)) {
             activitylist_temp.push({
                 ECS_Id: ecsId,
                 ECSA_Id: ecsaId,
@@ -249,12 +269,10 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
     }
 
     // exam_promotion_groupwise_remarks processing for PE
-    const examwiseremarkstemp = (exam_promotion_groupwise_remarks || []).filter(
-        (r: any) => {
-            const flag = (r.ECTERE_Indi_OverAllFlag || r.ecterE_Indi_OverAllFlag || '').trim().toUpperCase();
-            return flag === 'PE';
-        }
-    );
+    const examwiseremarkstemp = (exam_promotion_groupwise_remarks || []).filter((r: any) => {
+        const flag = (r.ECTERE_Indi_OverAllFlag || r.ecterE_Indi_OverAllFlag || '').trim().toUpperCase();
+        return flag === 'PE';
+    });
 
     return {
         getinstitution,
@@ -266,6 +284,6 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         getgradelist,
         getpromotionremarksdetails,
         examwiseremarkstemp,
-        studentdetails: studentListDetails,
+        studentdetails: studentListDetails
     };
 }
