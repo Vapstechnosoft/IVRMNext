@@ -197,8 +197,8 @@ export function SalarySlipFilters({
                   onFilterChange({ ...filters, month: value })
                 }
               >
-                <SelectTrigger id="month-select">
-                  <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
+                <SelectTrigger id="month-select" disabled={isLoadingYears || !years?.length}>
+                  {/* <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} /> */}
                   <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -398,7 +398,6 @@ export function SalarySlipFilters({
               isLoading={isFiltering}
               columns={columns}
               data={filteredEmployees}
-              totalItems={filteredEmployees.length}
               showViewOptions={true}
               isSearchRequired={false}
               isPaginationRequired={true}

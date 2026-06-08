@@ -136,10 +136,6 @@ export default function SalarySlipPage() {
     }
   }, [showReport]);
 
-  const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
-    setFilters(newFilters);
-
-  
   useEffect(() => {
     if (
       filters.groupType.length > 0 &&
@@ -576,5 +572,4 @@ export default function SalarySlipPage() {
       )}
     </div>
   );
-}
 }
