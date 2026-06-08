@@ -199,6 +199,7 @@ export function SalarySlipFilters({
               >
                 <SelectTrigger id="month-select">
                   <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
+                  <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
                 </SelectTrigger>
                 <SelectContent>
                   {months

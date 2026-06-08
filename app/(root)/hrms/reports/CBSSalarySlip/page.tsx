@@ -136,6 +136,9 @@ export default function SalarySlipPage() {
     }
   }, [showReport]);
 
+  const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
+    setFilters(newFilters);
+
   
   useEffect(() => {
     if (
@@ -573,4 +576,5 @@ export default function SalarySlipPage() {
       )}
     </div>
   );
+}
 }
