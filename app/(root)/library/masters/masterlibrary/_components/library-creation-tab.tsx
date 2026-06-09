@@ -17,12 +17,18 @@ export default function LibraryCreationTab({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    selectedLibraryId,
+    setSelectedLibraryId,
+    setActiveTab
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
+    selectedLibraryId: string;
+    setSelectedLibraryId: (id: string) => void;
+    setActiveTab: (tab: string) => void;
 }) {
     const { openAddForm } = useFormContext<IMasterLibraryList>();
     const tableProps = useDataTableProps(
@@ -71,12 +77,27 @@ export default function LibraryCreationTab({
             </CollapsibleSection>
 
             {/* Forms */}
-            <FormSections refetch={refetch} />
+            <FormSections 
+                refetch={refetch} 
+                selectedLibraryId={selectedLibraryId}
+                setSelectedLibraryId={setSelectedLibraryId}
+                setActiveTab={setActiveTab}
+            />
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
+function FormSections({ 
+    refetch, 
+    selectedLibraryId, 
+    setSelectedLibraryId, 
+    setActiveTab 
+}: { 
+    refetch: () => any; 
+    selectedLibraryId: string; 
+    setSelectedLibraryId: (id: string) => void; 
+    setActiveTab: (tab: string) => void; 
+}) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -127,6 +148,25 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                     handleSuccess();
                                     closeAddForm();
                                 }}
+                                onSaveAndNext={async (name: string, id?: number) => {
+                                    handleSuccess();
+                                    closeAddForm();
+                                    let finalId = id;
+                                    if (!finalId) {
+                                        try {
+                                            const res = await refetch();
+                                            const list = res?.data?.liballdata || res?.data?.list || res?.liballdata || res?.list || [];
+                                            const matched = list.find((item: any) => item.lmaL_LibraryName?.toLowerCase() === name.toLowerCase());
+                                            finalId = matched?.lmaL_Id;
+                                        } catch (e) {
+                                            console.error('Error matching new library name:', e);
+                                        }
+                                    }
+                                    if (finalId) {
+                                        setSelectedLibraryId(finalId.toString());
+                                    }
+                                    setActiveTab('class');
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -155,7 +195,19 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterLibraryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterLibraryForm 
+                                selectedRow={selectedRow} 
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                }} 
+                                onSaveAndNext={(id: string) => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                    setSelectedLibraryId(id);
+                                    setActiveTab('class');
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

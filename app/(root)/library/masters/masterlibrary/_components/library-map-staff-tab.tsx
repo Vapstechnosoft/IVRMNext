@@ -6,21 +6,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { useMasterLibraryMapping, useMasterLibrarySaveStaffMapping, useMasterLibraryEditData } from '@/hooks/library/useMasterLibraryMapping';
 import { Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { toggleMasterLibrary } from '@/server/library/masters/master_library';
+import { toggleDeactivateStaffData } from '@/server/library/masters/master_library';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 
-export function LibraryMapStaffTab() {
-    const { libraries, roles, staff, isLoading: isLibLoading, refetchAll } = useMasterLibraryMapping();
+export function LibraryMapStaffTab({
+    selectedLibraryId,
+    setSelectedLibraryId
+}: {
+    selectedLibraryId?: string;
+    setSelectedLibraryId?: (id: string) => void;
+}) {
+    const { libraries, roles, staff, staffMappings, isLoading: isLibLoading, refetchAll } = useMasterLibraryMapping();
     const { fetchEditStaff } = useMasterLibraryEditData();
     const saveMapping = useMasterLibrarySaveStaffMapping();
-    const [selectedLibrary, setSelectedLibrary] = useState<string>('');
+    const [selectedLibrary, setSelectedLibrary] = useState<string>(selectedLibraryId || '');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [selectedUserMappingId, setSelectedUserMappingId] = useState<number>(0);
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (selectedLibraryId) {
+            setSelectedLibrary(selectedLibraryId);
+        }
+    }, [selectedLibraryId]);
+
+    const handleLibraryChange = (val: string) => {
+        setSelectedLibrary(val);
+        setSelectedLibraryId?.(val);
+    };
 
     // Toggle Modal State
     console.log('DEBUG: render lists - roles =', roles, 'staff =', staff);
@@ -43,7 +60,7 @@ export function LibraryMapStaffTab() {
 
         try {
             const response: any = await saveMapping.mutateAsync(payload);
-            if (response.success || response.message?.toLowerCase().includes('success')) {
+            if (response.returnval || response.success || response.message?.toLowerCase().includes('success')) {
                 toast.success(response.message || 'Staff mapping saved successfully!');
                 handleCancel();
                 refetchAll();
@@ -73,8 +90,8 @@ export function LibraryMapStaffTab() {
         if (!toggleData) return;
         setIsToggling(true);
         try {
-            const response = await toggleMasterLibrary(Number(toggleData.lmaL_Id));
-            if (response.success || response.message?.toLowerCase().includes('success')) {
+            const response: any = await toggleDeactivateStaffData({ luL_Id: Number(toggleData.luL_Id) });
+            if (response.returnval || response.success || response.message?.toLowerCase().includes('success')) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 setIsToggleModalOpen(false);
@@ -89,11 +106,11 @@ export function LibraryMapStaffTab() {
     };
 
     const tableProps = useDataTableProps({
-        data: libraries.map((lib: any, index: number) => ({
-            ...lib,
+        data: (staffMappings || []).map((item: any, index: number) => ({
+            ...item,
             slNo: index + 1,
-            libraryName: lib.lmaL_LibraryName,
-            userName: lib.ivrmuL_UserName || lib.hrmE_EmployeeFirstName || '---',
+            libraryName: item.lmaL_LibraryName || item.libraryName || '---',
+            userName: item.hrmE_EmployeeFirstName || item.userName || '---',
         }))
     });
 
@@ -114,7 +131,7 @@ export function LibraryMapStaffTab() {
                                     Library Name:<span className='text-red-500'>*</span>
                                 </label>
                                 <div className='flex-1'>
-                                    <Select key={selectedLibrary} value={selectedLibrary} onValueChange={setSelectedLibrary}>
+                                    <Select key={selectedLibrary} value={selectedLibrary} onValueChange={handleLibraryChange}>
                                         <SelectTrigger className='h-9'>
                                             <SelectValue placeholder='--Select Library--' />
                                         </SelectTrigger>
@@ -141,7 +158,7 @@ export function LibraryMapStaffTab() {
                                         <SelectContent>
                                             {(staff || []).map((s: any) => {
                                                 const userId = s.ivrmuL_Id || s.hRmE_Id || s.hrmE_Id || s.userId || s.id;
-                                                const userName = s.ivrmuL_UserName || `${s.hrmE_EmployeeFirstName || ''} ${s.hrmE_EmployeeLastName || ''}`.trim() || s.userName || s.hrmE_EmployeeFirstName;
+                                                const userName = s.empName || s.normalizedUserName || s.ivrmuL_UserName || `${s.hrmE_EmployeeFirstName || ''} ${s.hrmE_EmployeeLastName || ''}`.trim() || s.userName || s.hrmE_EmployeeFirstName;
                                                 return (
                                                     <SelectItem key={userId || `staff-${Math.random()}`} value={userId?.toString() || ''}>
                                                         {userName}
@@ -167,7 +184,7 @@ export function LibraryMapStaffTab() {
                                         <SelectContent>
                                             {(roles || []).map((r: any) => {
                                                 const roleId = r.ivrmrT_Id || r.roleTypeId || r.ivrm_Role_Id || r.roleId;
-                                                const roleName = r.ivrmrT_Role || r.roleName || r.ivrm_Role_Name || r.roleTypeName;
+                                                const roleName = r.ivrmrT_RoleFlag || r.ivrmrT_Role || r.roleName || r.ivrm_Role_Name || r.roleTypeName;
                                                 return (
                                                     <SelectItem key={roleId || `role-${Math.random()}`} value={roleId?.toString() || ''}>
                                                         {roleName}
@@ -243,7 +260,7 @@ export function LibraryMapStaffTab() {
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
                                     onToggle={() => openToggleDialog(row.original)}
-                                    toggleConditionKey='lmaL_ActiveFlag'
+                                    toggleConditionKey='luL_ActiveFlg'
                                 />
                             )
                         },
@@ -255,13 +272,13 @@ export function LibraryMapStaffTab() {
 
             {/* Confirmation Dialog for Toggle */}
             <AdaptiveDialog 
-                title='Toggle Library Status' 
+                title='Toggle Mapping Status' 
                 isOpen={isToggleModalOpen} 
                 onClose={() => setIsToggleModalOpen(false)}
             >
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p className='text-sm text-slate-600'>
-                        Are you sure you want to {toggleData?.lmaL_ActiveFlag ? 'deactivate' : 'activate'} record <strong>{toggleData?.libraryName}</strong>?
+                        Are you sure you want to {toggleData?.luL_ActiveFlg ? 'deactivate' : 'activate'} record <strong>{toggleData?.libraryName}</strong>?
                     </p>
                 </AdaptiveBody>
                 <AdaptiveFooter>
@@ -270,12 +287,12 @@ export function LibraryMapStaffTab() {
                     </Button>
                     <Button 
                         onClick={confirmToggleStatus} 
-                        variant={toggleData?.lmaL_ActiveFlag ? 'destructive' : 'default'}
+                        variant={toggleData?.luL_ActiveFlg ? 'destructive' : 'default'}
                         className='h-9 px-6 text-xs'
                         isLoading={isToggling}
                         disabled={isToggling}
                     >
-                        {toggleData?.lmaL_ActiveFlag ? 'DEACTIVATE' : 'ACTIVATE'}
+                        {toggleData?.luL_ActiveFlg ? 'DEACTIVATE' : 'ACTIVATE'}
                     </Button>
                 </AdaptiveFooter>
             </AdaptiveDialog>
