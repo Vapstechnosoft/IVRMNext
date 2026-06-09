@@ -12,9 +12,22 @@ interface ApplicationPrintViewProps {
 export default function ApplicationPrintView({ data, printRef }: ApplicationPrintViewProps) {
     if (!data) return null;
 
-    const details = data.details?.[0] || data.details || {};
-    const academicYear = data.academic_year || '';
-    const className = data.asmcL_ClassName || '';
+    const rawDetails = data.studentReg_DTObj?.[0] || data.result?.student_details || data.details?.[0] || data.details || {};
+
+    // Create a case-insensitive proxy for details to handle API response variations
+    const details = new Proxy(rawDetails, {
+        get(target, prop) {
+            if (typeof prop !== 'string') return target[prop as keyof typeof target];
+            if (target[prop] !== undefined) return target[prop];
+            const lowerProp = prop.toLowerCase();
+            const key = Object.keys(target).find(k => k.toLowerCase() === lowerProp);
+            return key ? target[key] : undefined;
+        }
+    });
+
+    const academicYear = data.academic_year || data.academicdrp?.[0]?.asmaY_Year || details.asmaY_Year || '';
+    const className = data.asmcL_ClassName || data.studentClass?.[0]?.asmcL_ClassName || details.asmcL_ClassName || '';
+    const schoolLogo = data.masterCompany?.[0]?.logo || '';
 
     // Helper to format date
     const formatDate = (dateStr: string) => {
@@ -34,7 +47,8 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
 
     return (
         <div ref={printRef} className="bg-white p-4 text-black overflow-auto max-h-[80vh]">
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .img-style {
                     width: 110px;
                     height: 100px;
@@ -101,8 +115,9 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                     </div>
 
                     <div className="inlineTable2 text-center">
-                        <h2 className="text-xl font-bold uppercase">Baldwin Girls' High School</h2>
-                        <p className="text-sm"># Richmond Road, Bangalore - 560 025</p>
+                        {schoolLogo && (
+                            <img src={schoolLogo} alt="Institution Logo" style={{ height: '80px', margin: '0 auto', display: 'block' }} />
+                        )}
                         <h3 className="text-lg font-bold mt-2">PRE-ADMISSION REGISTRATION FORM</h3>
                         <p className="font-bold">Academic Year {academicYear}</p>
                     </div>
@@ -201,19 +216,19 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                         </tbody>
                     </table>
 
-                    <div className="mt-6 flex justify-between">
-                        <div className="text-center pt-10 border-t border-black w-48">Parent Signature</div>
-                        <div className="text-center pt-10 border-t border-black w-48">Principal Signature</div>
+                    <div className="mt-16 flex justify-between">
+                        <div className="text-center pt-2 border-t border-black w-40">Parent Signature</div>
+                        <div className="text-center pt-2 border-t border-black w-40">Principal Signature</div>
                     </div>
                 </div>
 
                 {/* Office Use Box */}
-                <div className="office-use-box mt-10">
+                <div className="office-use-box mt-30">
                     <p className="font-bold text-center underline">FOR OFFICE USE ONLY</p>
-                    <div className="mt-4 space-y-2">
-                        <p>Admitted to Class: <span className="border-bottom w-32 ml-2"></span></p>
-                        <p>Date of Admission: <span className="border-bottom w-32 ml-2"></span></p>
-                        <p>Admission No: <span className="border-bottom w-32 ml-4"></span></p>
+                    <div className="mt-4 space-y-2 text-left px-4">
+                        <p>Admitted to Class: <span className="border-bottom w-48 ml-2 text-center">{className}</span></p>
+                        <p>Date of Admission: <span className="border-bottom w-48 ml-2 text-center">{formatDate(details.PASR_Date)}</span></p>
+                        <p>Admission No: <span className="border-bottom w-48 ml-4 text-center">{details.PASR_RegistrationNo}</span></p>
                     </div>
                 </div>
             </div>

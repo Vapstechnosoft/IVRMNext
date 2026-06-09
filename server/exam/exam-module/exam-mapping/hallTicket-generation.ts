@@ -26,8 +26,8 @@ export async function getHallTicketStudentList(params: {
         EME_Id: String(params.EME_Id)
     });
 
-    const url = `hall_ticket_generation/view_student_hall_ticket_list?${query.toString()}`;
-    return await api.get<IHallTicketStudentItem>('exam', url);
+    const url = `hall_ticket_generation/view_student_hall_ticket_list`;
+    return await api.post<IHallTicketStudentItem>('exam', url, params);
 }
 
 // 3) (OPTIONAL) Publish Hall Tickets (If Later Needed)

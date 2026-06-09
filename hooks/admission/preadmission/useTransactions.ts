@@ -15,6 +15,7 @@ import {
     getSourceDropdown,
     getStateDropdown,
     getStudentApplicationForm,
+    getStudentPrintData,
     getStudentApplicationList,
     getDistrictDropdown
 } from '@/server/admission/preadmission/transactions/application_form';
@@ -395,6 +396,24 @@ export const useStudentApplicationForm = (pasr_id: number) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_FORM]
+            });
+        }
+    };
+};
+
+export const useStudentPrintData = (pasR_Id: number, ASMCL_Id: number, ASMAY_Id: number, ASMST_Id: number, isEnabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['STUDENT_PRINT_DATA', pasR_Id, ASMCL_Id, ASMAY_Id, ASMST_Id],
+            queryFn: async () => getStudentPrintData(pasR_Id, ASMCL_Id, ASMAY_Id, ASMST_Id),
+            staleTime: 0,
+            enabled: !!pasR_Id && isEnabled
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['STUDENT_PRINT_DATA']
             });
         }
     };

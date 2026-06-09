@@ -41,7 +41,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     const getAttendance = (studentId: number, list: any[]) => {
         if (!list || !Array.isArray(list)) return {};
-        return list.find((a: any) => a && (a.amsT_ID === studentId)) || {};
+        return list.find((a: any) => a && (a.studentId === studentId)) || {};
     };
 
     const getPromMarks = (studentId: number, subjectId: number) => {

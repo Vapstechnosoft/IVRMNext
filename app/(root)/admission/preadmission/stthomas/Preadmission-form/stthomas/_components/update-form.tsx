@@ -798,9 +798,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 pasR_FatherMobleNo: toNull(data.pasR_FatherMobleNo),
                 pasR_MotherMobleNo: toNull(data.pasR_MotherMobleNo),
                 pasR_AltContactNo: toNull(data.pasR_AltContactNo),
-                pasR_AadharNo: toNull(data.pasR_AadharNo),
+                pasR_AadharNo: data.pasR_AadharNo ? Number(data.pasR_AadharNo) : null,
                 pasR_FatherPanno: toNull(data.pasR_FatherPanno),
                 pasR_MotherPanno: toNull(data.pasR_MotherPanno),
+                PASR_FatherAadharNo: data.PASR_FatherAadharNo ? Number(data.PASR_FatherAadharNo) : null,
+                PASR_MotherAadharNo: data.PASR_MotherAadharNo ? Number(data.PASR_MotherAadharNo) : null,
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -816,14 +818,28 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrS_Institution: '',
                     pasrS_DOB: ''
                 })),
+                previousSchoolDetails: [
+                    {
+                        pasrpS_PrvSchoolName: '',
+                        pasrpS_PreviousClass: '',
+                        pasrpS_Board: '',
+                        pasrpS_LeftYear: '',
+                        pasrpS_LeftReason: '',
+                        pasrpS_Address: ''
+                    }
+                ],
                 previousSchoolList: (getValues('previousSchoolDetails') || []).map((school: any) => ({
                     ...school,
-                    pasrpS_TcNo: '',
-                    pasrpS_PreviousPer: '',
-                    pasrpS_PreviousGrade: '',
-                    pasrpS_PreviousMarks: '',
-                    pasrpS_ConcOrScholarshipFlg: ''
+                    pasrpS_TcNo: school.pasrpS_TcNo || '',
+                    pasrpS_PreviousPer: school.pasrpS_PreviousPer || '',
+                    pasrpS_PreviousGrade: school.pasrpS_PreviousGrade || '',
+                    pasrpS_PreviousMarks: school.pasrpS_PreviousMarks || '',
+                    pasrpS_ConcOrScholarshipFlg: school.pasrpS_ConcOrScholarshipFlg || ''
                 })),
+                PASR_FatherAliveFlag: data.PASR_FatherAliveFlag !== undefined ? Number(data.PASR_FatherAliveFlag) : 1,
+                PASR_MotherAliveFlag: data.PASR_MotherAliveFlag !== undefined ? Number(data.PASR_MotherAliveFlag) : 1,
+                PASR_FatherSelfEmployedFlg: String(data.PASR_FatherSelfEmployedFlg) === 'true' || String(data.PASR_FatherSelfEmployedFlg) === '1',
+                PASR_MotherSelfEmployedFlg: String(data.PASR_MotherSelfEmployedFlg) === 'true' || String(data.PASR_MotherSelfEmployedFlg) === '1',
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({

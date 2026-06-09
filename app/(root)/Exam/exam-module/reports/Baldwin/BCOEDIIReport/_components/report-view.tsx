@@ -53,7 +53,7 @@ export default function BCOEDIIReportView({
 
     const getAttendance = (list: any[], studentId: any) => {
         if (!list || !Array.isArray(list)) return {};
-        return list.find(a => Number(a.AMST_Id || a.amsT_Id) === Number(studentId)) || {};
+        return list.find(a => Number(a.studentId) === Number(studentId)) || {};
     };
 
     const calculateGrandTotalMin = (subList: any[]) => {
@@ -151,8 +151,8 @@ export default function BCOEDIIReportView({
                 {(reportData || []).map((report, index) => {
                     const workAt = getAttendance(attendanceWork, report.student_id);
                     const presentAt = getAttendance(attendancePresent, report.student_id);
-                    console.log('workAt: ', attendanceWork);
-                    console.log('presentAt: ', attendancePresent);
+                    console.log('workAt: ', workAt);
+                    console.log('presentAt: ', presentAt);
                     const resultSubjects = (report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1);
                     const nonResultSubjects = (report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === false || s.eyceS_AplResultFlg === 'false' || s.eyceS_AplResultFlg === 0);
 
@@ -328,8 +328,8 @@ export default function BCOEDIIReportView({
                                                 <td>{workAt.march || ''}</td>
                                                 <td>{workAt.april || ''}</td>
                                                 <td>{workAt.may || ''}</td>
-                                                <td className="font-bold">{workAt.TotalSchoolDays || ''}</td>
-                                                <td className="font-bold">{workAt.Total_Percentage || ''}</td>
+                                                <td className="font-bold">{workAt.totalSchoolDays || ''}</td>
+                                                <td className="font-bold">{workAt.total_Percentage || ''}</td>
                                             </tr>
                                             <tr>
                                                 <td colSpan={2} className="font-bold">PRESENT DAYS</td>
@@ -345,8 +345,8 @@ export default function BCOEDIIReportView({
                                                 <td>{presentAt.march || ''}</td>
                                                 <td>{presentAt.april || ''}</td>
                                                 <td>{presentAt.may || ''}</td>
-                                                <td className="font-bold">{presentAt.TotalPresentDays || ''}</td>
-                                                <td className="font-bold">{presentAt.Total_Percentage || ''}</td>
+                                                <td className="font-bold">{presentAt.totalWorkingDays || ''}</td>
+                                                <td className="font-bold">{presentAt.total_Percentage || ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
