@@ -89,8 +89,8 @@ function InvTGRNPageContent({
         closeToggleForm
     } = useFormContext<IInvTGRN>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_GRN',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -120,7 +120,7 @@ function InvTGRNPageContent({
                     icon={<ClipboardList className='h-5 w-5' />}>
                     <GenericDataTable<IInvTGRN>
                         {...tableProps}
-                        data={response?.data?.get_GRN || []}
+                        data={response?.data || []}
                         columns={invTGRNColumns}
                         isLoading={isLoading}
                         error={error}
