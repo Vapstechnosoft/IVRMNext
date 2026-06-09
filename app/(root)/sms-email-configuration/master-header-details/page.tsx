@@ -407,9 +407,6 @@ export default function MasterHeaderDetails() {
             columns={columns as any}
             data={headerdata}
             totalItems={headerdata.length}
-            manualPagination={false}
-            manualFiltering={false}
-            manualSorting={false}
           />
         </CardContent>
       </Card>

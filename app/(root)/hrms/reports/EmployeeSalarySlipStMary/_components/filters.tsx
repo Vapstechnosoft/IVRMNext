@@ -337,8 +337,6 @@ export function SalarySlipFilters({
                             isPaginationRequired={true}
                             showPaginationInfo={false}
                             showRowsPerPage={false}
-                            manualPagination={false}
-                            manualSorting={false}
                             scrollable={true}
                             maxHeight="250px"
                             columnPinning={{ left: ['select', 'id'] }}

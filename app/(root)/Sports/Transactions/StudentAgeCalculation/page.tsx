@@ -366,9 +366,6 @@ export default function StudentAgeCalculationPage(props: { searchParams: SearchP
                     columns={columns}
                     isLoading={initialData.isLoading}
                     error={initialData.error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     loadingMessage='Loading age calculations...'
                 />

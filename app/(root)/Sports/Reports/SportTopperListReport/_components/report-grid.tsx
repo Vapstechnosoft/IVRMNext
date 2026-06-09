@@ -167,7 +167,6 @@ export default function ReportGrid({ data, searchQuery, onSearchChange }: Report
                             columns={columns}
                             data={filteredData}
                             totalItems={filteredData.length}
-                            manualPagination={false}
                         />
                     ) : (
                         <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">

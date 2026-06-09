@@ -151,7 +151,6 @@ function HomeWorkContent({
                         columns={homeWorkColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={false}
                         columnPinning={{ right: ['Status'] }}
                         scrollable={true}
                         loadingMessage='Loading homework details...'

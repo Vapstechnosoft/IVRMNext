@@ -184,7 +184,6 @@ function PageContent({
                         loadingMessage='Loading concessions...'
                         noDataTitle='No Concession Records Found'
                         noDataDescription='No records exist for the selected filters.'
-                        manualPagination={true}
                         // totalItems={totalRecords}
                     />
                 </CollapsibleSection>

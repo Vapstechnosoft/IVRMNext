@@ -208,9 +208,6 @@ export const ReportGrid = ({ response, isLoading, error }: ReportGridProps) => {
                     columns={VenueWiseReportColumns}
                     isLoading={isLoading || false}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     loadingMessage='Loading report...'
                     noDataTitle='No Records Found'
