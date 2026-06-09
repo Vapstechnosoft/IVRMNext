@@ -52,11 +52,31 @@ export default function TTMonthEndReportPage() {
             try {
                 setLoadingDetails(true);
                 const response = await getTTMonthEndReportDetails();
-                const rawData: any = response.data || response;
+                console.log('response', response);
+
+                const rawData: any = response.data?.data || response.data || response;
 
                 if (rawData) {
-                    const acdlist = rawData.acdlist || rawData.academicYears || [];
-                    const monthlist = rawData.monthlist || rawData.months || [];
+                    const acdlist = Array.isArray(rawData) ? rawData : (rawData.acdlist || rawData.academicYears || []);
+                    
+                    let monthlist = Array.isArray(rawData) ? [] : (rawData.monthlist || rawData.months || []);
+                    if (!monthlist || monthlist.length === 0) {
+                        monthlist = [
+                            { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },
+                            { ivrM_Month_Id: 5, ivrM_Month_Name: 'May' },
+                            { ivrM_Month_Id: 6, ivrM_Month_Name: 'June' },
+                            { ivrM_Month_Id: 7, ivrM_Month_Name: 'July' },
+                            { ivrM_Month_Id: 8, ivrM_Month_Name: 'August' },
+                            { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
+                            { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
+                            { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
+                            { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' },
+                            { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
+                            { ivrM_Month_Id: 2, ivrM_Month_Name: 'February' },
+                            { ivrM_Month_Id: 3, ivrM_Month_Name: 'March' }
+                        ];
+                    }
+
                     setAcademicYears(acdlist);
                     setMonths(monthlist);
                 } else {
@@ -83,11 +103,12 @@ export default function TTMonthEndReportPage() {
         try {
             const response = await getTTMonthEndReport({
                 month: Number(data.month),
-                ASMAY_ID: Number(data.asmaY_Id)
+                ASMAY_ID: Number(data.asmaY_Id),
+                year: Number(data.asmaY_Id)
             });
 
-            const rawData: any = response.data || response;
-            const reportList = rawData.reportdatelist || rawData.reportDateList || [];
+            const rawData: any = response.data?.data || response.data || response;
+            const reportList = rawData.dayslst3 || rawData.reportdatelist || rawData.reportDateList || [];
 
             if (!reportList || reportList.length === 0) {
                 toast.error('Record Not Found');
