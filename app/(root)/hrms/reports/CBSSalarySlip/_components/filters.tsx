@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTable } from "@/components/ui/data-table/data-table";
+import { GenericDataTable, useDataTableProps } from "@/components/ui/data-table/generic-data-table";
 import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -62,6 +62,7 @@ interface SalarySlipFiltersProps {
   isLoadingDepartments: boolean;
   isLoadingDesignations: boolean;
   isLoadingYears: boolean;
+  tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -89,6 +90,7 @@ export function SalarySlipFilters({
   isLoadingDepartments,
   isLoadingDesignations,
   isLoadingYears,
+  tableResponse,
 }: SalarySlipFiltersProps) {
   const handleReset = () => {
     onReset();
@@ -102,6 +104,8 @@ export function SalarySlipFilters({
   const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
 
   const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+
+  const baseTableProps = useDataTableProps(tableResponse || filteredEmployees);
 
   return (
     <CollapsibleSection
@@ -193,7 +197,8 @@ export function SalarySlipFilters({
                   onFilterChange({ ...filters, month: value })
                 }
               >
-                <SelectTrigger id="month-select">
+                <SelectTrigger id="month-select" disabled={isLoadingYears || !years?.length}>
+                  {/* <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} /> */}
                   <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,17 +392,15 @@ export function SalarySlipFilters({
             )} */}
           </div>
           {/* Data Table */}
-          <div className="salary-slip-table-wrapper">
-            <DataTable
+          <div className="salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden">
+            <GenericDataTable
+              {...baseTableProps}
               isLoading={isFiltering}
               columns={columns}
               data={filteredEmployees}
-              totalItems={filteredEmployees.length}
               showViewOptions={true}
               isSearchRequired={false}
               isPaginationRequired={true}
-              showPaginationInfo={false}
-              showRowsPerPage={false}
               scrollable={true}
               maxHeight="250px"
               columnPinning={{ left: ["select", "id"] }}

@@ -170,6 +170,7 @@ function DataTableInner<TData, TValue>(
         data,
         columns,
         pageCount,
+        getRowId,
         state: {
             pagination: paginationState,
             sorting: currentSorting,

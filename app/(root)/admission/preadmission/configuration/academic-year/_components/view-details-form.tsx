@@ -76,17 +76,17 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                     </Button>
                 </div>
 
-                <div ref={printRef} className='w-full space-y-6 print:p-8'>
-                    {/* Header Logo & Institution Details */}
-                    {/* Determine logo: prefer institution logo, fallback to stored logo */}
-                    {(() => {
-                        const displayLogo = institution?.mI_Logo || logo;
-                        return displayLogo ? (
-                            <div className='flex flex-col items-center justify-center gap-6 border-b pb-4 md:flex-row'>
+                <div>
+                    <div ref={printRef} className='bg-white p-8 text-black printable-content'>
+
+                        {(() => {
+                            const displayLogo = institution?.mI_Logo || logo;
+                            return displayLogo ? (
+                                <div className='flex flex-col items-center justify-center gap-6 border-b pb-4 md:flex-row'>
                                 <img
                                     src={displayLogo}
                                     alt='Institution Logo'
-                                    className='h-auto max-h-32 w-32 max-w-full shrink-0 object-contain'
+                                    className='h-auto w-auto max-h-32 max-w-full shrink-0 object-contain'
                                 />
                             </div>
                         ) : null;
@@ -95,9 +95,9 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                     <div className='text-center'>
                         <h2 className='font-bold text-blue-800 text-xl uppercase tracking-wider'>ACADEMIC YEAR LIST REPORT</h2>
                     </div>
-                    <div className='overflow-hidden rounded-md border'>
-                        <table className='w-full text-left text-sm'>
-                            <thead className='bg-muted/50 font-semibold text-xs uppercase'>
+                    <div className='rounded-md border print:border-none'>
+                        <table className='w-full text-left text-sm print:text-xs'>
+                            <thead className='bg-muted/50 font-semibold text-xs uppercase print:bg-gray-100'>
                                 <tr>
                                     <th className='w-16 border-b px-6 py-3 text-center'>SLNO</th>
                                     <th className='border-b px-6 py-3 text-center'>Academic year</th>
@@ -127,6 +127,7 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                                 )}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
             </DialogContent>

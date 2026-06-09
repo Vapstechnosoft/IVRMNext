@@ -5,13 +5,13 @@ import { api } from '@/lib/apiService';
 
 
 export async function getTTMonthEndReportDetails() {
-    const url = '/TimeTableCommon/GetClassData';
-    console.info('MasterDayFacade', url);
-    return await api.get<any[]>('timetable', url);
+    const url = '/TimeTableCommon/GetAcademicYearData';
+    console.info('TTMonthEndReportDetails', url);
+    return await api.get<any>('timetable', url);
 }
 
-export async function getTTMonthEndReport(data: { month: number; ASMAY_ID: number }) {
-    const url = '/TTMonthEndReport/getreport';
-    console.info('MasterDayFacade', url);
-    return await api.post<any[]>('timetable', url, data);
+export async function getTTMonthEndReport(data: { month: number; ASMAY_ID: number; year?: number }) {
+    const url = '/TTConsolidatedFacade/MonthEndReportTT';
+    console.info('TTMonthEndReport', url);
+    return await api.post<any>('timetable', url, data);
 }

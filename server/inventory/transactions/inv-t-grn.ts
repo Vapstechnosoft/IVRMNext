@@ -36,9 +36,8 @@ export async function deleteInvTGRN(data: any) {
 }
  
 export async function toggleInvTGRNActive(data: any) {
-    const id = data.invmgrN_Id || data.INVMGRN_Id;
-    const url = `/INV_T_GRNFacade/deactive?id=${id}`;
-    return await api.post<any>('inventory', url, {});
+    const url = `/INV_T_GRNFacade/deactive`;
+    return await api.post<any>('inventory', url, { invmgrN_Id: data.invmgrN_Id });
 }
  
 export async function getInvTGRNItemTax(invtgrN_Id: number) {

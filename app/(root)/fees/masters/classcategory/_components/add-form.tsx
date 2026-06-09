@@ -80,6 +80,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                             {...register('fmcC_ClassCategoryName')}
                             error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='Class Category Name'
                         />
 
                         <InputText

@@ -41,8 +41,8 @@ function InvMasterItemPageContent({
     const { openAddForm } = useFormContext<IInvMasterItem>();
     const [taxModalItem, setTaxModalItem] = useState<IInvMasterItem | null>(null);
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_item',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -78,7 +78,7 @@ function InvMasterItemPageContent({
                     icon={<Box className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterItem>
                         {...tableProps}
-                        data={response?.data?.get_item || []}
+                        data={response?.data || []}
                         columns={invMasterItemColumns}
                         isLoading={isLoading}
                         error={error}
@@ -90,7 +90,7 @@ function InvMasterItemPageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections dropdowns={response?.data || {}} />
+                <FormSections dropdowns={response || {}} />
 
                 {taxModalItem && (
                     <ItemTaxDialog
