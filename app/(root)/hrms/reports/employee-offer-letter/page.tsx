@@ -65,7 +65,8 @@ export default function EmployeeOfferLetterPage() {
 
 function EmployeeOfferLetterContent() {
     const [letterDetails, setLetterDetails] = useState<any>(null);
-    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
+    const [resetKey, setResetKey] = useState(0);
+    const { reset, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FilterFormValues>({
         defaultValues: {
             groupTypeId: '',
             departmentId: '',
@@ -136,11 +137,14 @@ function EmployeeOfferLetterContent() {
         printEmployeeLetter(letterDetails, watch());
     };
 
+    const handleClear = () => {
+        reset()
+        setLetterDetails(null);
+        setResetKey((prev) => prev + 1);
+    }
+
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
-                <h2 className='text-2xl font-bold tracking-tight'>Employee Offer and Experience Report</h2>
-            </div>
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -149,8 +153,8 @@ function EmployeeOfferLetterContent() {
                         <div className='space-y-4 border p-4 rounded-lg bg-muted/10'>
                             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                 <div className='space-y-2'>
-                                    <Label>Group Type <span className='text-destructive'>*</span></Label>
-                                    <Controller name='groupTypeId' control={control} render={({ field }) => (
+                                    <Label>Type <span className='text-destructive'>*</span></Label>
+                                    <Controller name='groupTypeId' control={control} key={resetKey} rules={{ required: 'Select Type' }} render={({ field }) => (
                                         <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value}>
                                             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                                             <SelectContent>
@@ -160,11 +164,12 @@ function EmployeeOfferLetterContent() {
                                             </SelectContent>
                                         </Select>
                                     )} />
+                                    {errors.groupTypeId && <span className="text-red-500 text-xs font-medium block">{errors.groupTypeId.message}</span>}
                                 </div>
 
                                 <div className='space-y-2'>
                                     <Label>Department <span className='text-destructive'>*</span></Label>
-                                    <Controller name='departmentId' control={control} render={({ field }) => (
+                                    <Controller name='departmentId' control={control} key={resetKey} rules={{ required: 'Select Department' }} render={({ field }) => (
                                         <Select onValueChange={(val) => { field.onChange(val); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value} disabled={!watchedGroupType}>
                                             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                                             <SelectContent>
@@ -174,11 +179,12 @@ function EmployeeOfferLetterContent() {
                                             </SelectContent>
                                         </Select>
                                     )} />
+                                    {errors.departmentId && <span className="text-red-500 text-xs font-medium block">{errors.departmentId.message}</span>}
                                 </div>
 
                                 <div className='space-y-2'>
                                     <Label>Designation <span className='text-destructive'>*</span></Label>
-                                    <Controller name='designationId' control={control} render={({ field }) => (
+                                    <Controller name='designationId' control={control} key={resetKey} rules={{ required: 'Select Designation' }} render={({ field }) => (
                                         <Select onValueChange={(val) => { field.onChange(val); setValue('employeeId', ''); }} value={field.value} disabled={!watchedDepartment}>
                                             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                                             <SelectContent>
@@ -188,11 +194,12 @@ function EmployeeOfferLetterContent() {
                                             </SelectContent>
                                         </Select>
                                     )} />
+                                    {errors.designationId && <span className="text-red-500 text-xs font-medium block">{errors.designationId.message}</span>}
                                 </div>
 
                                 <div className='space-y-2'>
                                     <Label>Employee <span className='text-destructive'>*</span></Label>
-                                    <Controller name='employeeId' control={control} render={({ field }) => (
+                                    <Controller name='employeeId' control={control} key={resetKey} rules={{ required: 'Select Employee' }} render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDesignation}>
                                             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                                             <SelectContent>
@@ -204,33 +211,38 @@ function EmployeeOfferLetterContent() {
                                             </SelectContent>
                                         </Select>
                                     )} />
+                                    {errors.employeeId && <span className="text-red-500 text-xs font-medium block">{errors.employeeId.message}</span>}
                                 </div>
                             </div>
 
                             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2'>
                                 <div className='space-y-2'>
                                     <Label>Current Date <span className='text-destructive'>*</span></Label>
-                                    <Controller name='hrmeR_Current_Date' control={control} render={({ field }) => (
+                                    <Controller name='hrmeR_Current_Date' control={control} rules={{ required: 'Select Current Date' }} render={({ field }) => (
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                     )} />
+                                    {errors.hrmeR_Current_Date && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_Current_Date.message}</span>}
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label>Date of Joining</Label>
-                                    <Controller name='hrmE_DOJ' control={control} render={({ field }) => (
+                                    <Label>Date Of Joining <span className='text-destructive'>*</span></Label>
+                                    <Controller name='hrmE_DOJ' control={control} key={resetKey} rules={{ required: 'Select Date Of Joining' }} render={({ field }) => (
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                     )} />
+                                    {errors.hrmE_DOJ && <span className="text-red-500 text-xs font-medium block">{errors.hrmE_DOJ.message}</span>}
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label>Date of Interview</Label>
-                                    <Controller name='hrmeR_DOI' control={control} render={({ field }) => (
+                                    <Label>Date Of Interview <span className='text-destructive'>*</span></Label>
+                                    <Controller name='hrmeR_DOI' control={control} key={resetKey} rules={{ required: 'Select Date Of Interview' }} render={({ field }) => (
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                     )} />
+                                    {errors.hrmeR_DOI && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOI.message}</span>}
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label>Date of Response</Label>
-                                    <Controller name='hrmeR_DOR' control={control} render={({ field }) => (
+                                    <Label>Date Of Response <span className='text-destructive'>*</span></Label>
+                                    <Controller name='hrmeR_DOR' control={control} key={resetKey} rules={{ required: 'Select Date Of Response' }} render={({ field }) => (
                                         <DatePicker date={field.value} setDate={field.onChange} />
                                     )} />
+                                    {errors.hrmeR_DOR && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOR.message}</span>}
                                 </div>
                                 {watchedLetterType === 'relievingLetter' && (
                                     <div className='space-y-2'>
@@ -262,28 +274,7 @@ function EmployeeOfferLetterContent() {
                                         </div>
                                     </>
                                 )}
-                                {(watchedLetterType === 'offerletter' || watchedLetterType === 'Non Teaching offerletter' || watchedLetterType === 'appontmentletter' || watchedLetterType === 'nonteachingappontmentletter') && (
-                                    <>
-                                        <div className='space-y-2'>
-                                            <Label>Staff Category Level</Label>
-                                            <Controller name='staffLevel' control={control} render={({ field }) => (
-                                                <Input {...field} placeholder="Enter Level" />
-                                            )} />
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <Label>Starting Basic</Label>
-                                            <Controller name='startingBasic' control={control} render={({ field }) => (
-                                                <Input {...field} placeholder="Enter Salary" />
-                                            )} />
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <Label>Designation (Override)</Label>
-                                            <Controller name='staffDesignation' control={control} render={({ field }) => (
-                                                <Input {...field} placeholder="Enter Designation" />
-                                            )} />
-                                        </div>
-                                    </>
-                                )}
+
                                 {watchedLetterType === 'accountopening' && (
                                     <div className='col-span-full space-y-2'>
                                         <Label>Bank Address</Label>
@@ -315,9 +306,9 @@ function EmployeeOfferLetterContent() {
                         </div>
                     </div>
 
-                    <div className='flex justify-end gap-2'>
-                        <Button type='button' variant="outline" onClick={() => { setValue('groupTypeId', ''); setLetterDetails(null); }}>Cancel</Button>
-                        <Button type='submit' disabled={isPending} className='w-32'>
+                    <div className='flex justify-center gap-2'>
+                        <Button type='button' variant="outline" className='w-fit' onClick={handleClear}>Cancel</Button>
+                        <Button type='submit' disabled={isPending} className='w-fit'>
                             {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Search
                         </Button>
