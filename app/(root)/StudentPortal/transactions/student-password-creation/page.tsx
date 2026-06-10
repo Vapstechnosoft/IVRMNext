@@ -191,10 +191,7 @@ export default function StudentPasswordCreationPage() {
                             isLoading={tableLoading}
                             onRowSelectionChange={setSelectedStudents}
                             totalItems={students.length}
-<<<<<<< HEAD
-=======
-                        //manualPagination={false}
->>>>>>> be66035547972895b11141c3a004e36d3455f1d3
+                            //manualPagination={false}
                         />
 
                         <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
