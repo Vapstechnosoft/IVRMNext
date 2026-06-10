@@ -112,6 +112,7 @@ function MasterStudentFeeGroupMapping({
                         noDataTitle='No Student Fee Group Mapping Found'
                         noDataDescription='Get started by creating your first Student Fee Group Mapping'
                         errorTitle='Error Loading Student Fee Group Mapping'
+                        manualPagination={true}
                     />
                 </CollapsibleSection>
 
@@ -123,8 +124,17 @@ function MasterStudentFeeGroupMapping({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeEditForm, closeDeleteForm, addFormRef, editFormRef } =
-        useFormContext<IMasterStudentFeeGroupMappingList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterStudentFeeGroupMappingList>();
     return (
         <>
             {/* Add Form */}

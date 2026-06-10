@@ -67,6 +67,7 @@ function InvMasterStorePageContent({
                         {...tableProps}
                         data={response?.data?.get_store || []}
                         columns={invMasterStoreColumns}
+                        getRowId={(row) => String(row.invmsT_Id)}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}

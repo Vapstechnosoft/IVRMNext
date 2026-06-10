@@ -4450,6 +4450,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/cumulative-salary-report',
                                             title: 'Employee Salary Statement',
                                             description: 'Employee Salary Statement'
+                                        },
+                                        {
+                                            id:40,
+                                            name: 'NDA Employee offer letter',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/nda_employeeOfferAndExperienceReport',
+                                            title: 'NDA Employee Offer Letter',
+                                            description: 'Employee Offer Letter'
                                         }
                                     ]
                                 }

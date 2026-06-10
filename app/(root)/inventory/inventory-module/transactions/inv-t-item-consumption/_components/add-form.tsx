@@ -71,6 +71,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setStores(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setStores(data.data);
+                } else if (data?.get_Store) {
+                    setStores(data.get_Store);
+                } else if (data?.get_store) {
+                    setStores(data.get_store);
                 }
             }
         });
@@ -82,6 +86,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setProducts(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setProducts(data.data);
+                } else if (data?.get_Product) {
+                    setProducts(data.get_Product);
+                } else if (data?.get_product) {
+                    setProducts(data.get_product);
                 }
             }
         });
@@ -93,6 +101,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setEmployees(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setEmployees(data.data);
+                } else if (data?.get_employee) {
+                    setEmployees(data.get_employee);
+                } else if (data?.get_Employee) {
+                    setEmployees(data.get_Employee);
                 }
             }
         });
@@ -200,6 +212,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                         setDepartments(data);
                     } else if (data?.data && Array.isArray(data.data)) {
                         setDepartments(data.data);
+                    } else if (data?.get_department) {
+                        setDepartments(data.get_department);
+                    } else if (data?.get_Department) {
+                        setDepartments(data.get_Department);
                     }
                 }
             });
@@ -373,8 +389,8 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
     };
 
     const staffOptions = employees.map((e: any) => ({
-        label: `${e.employeename} (${e.hrmE_EmployeeCode})`,
-        value: e.hrmE_Id.toString() // MultiSelect expects string values usually
+        label: `${e.employeename || e.employeeName || e.hrmE_EmployeeFirstName || 'Unknown'} (${e.hrmE_EmployeeCode || 'N/A'})`,
+        value: (e.hrmE_Id || e.hrme_id || '').toString() // MultiSelect expects string values usually
     }));
 
     return (

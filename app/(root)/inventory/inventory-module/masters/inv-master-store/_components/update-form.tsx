@@ -138,8 +138,8 @@ export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_
                                     <SelectValue placeholder='Select Incharge' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {empname_list.map((emp) => (
-                                        <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                    {empname_list?.map((emp, index) => (
+                                        <SelectItem key={emp.hrmE_Id || `emp-${index}`} value={emp.hrmE_Id?.toString() || `emp-${index}`}>
                                             {emp.employeename}
                                         </SelectItem>
                                     ))}

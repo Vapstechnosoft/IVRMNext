@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTable } from "@/components/ui/data-table/data-table";
+import { GenericDataTable, useDataTableProps } from "@/components/ui/data-table/generic-data-table";
 import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -62,6 +62,7 @@ interface SalarySlipFiltersProps {
   isLoadingDepartments: boolean;
   isLoadingDesignations: boolean;
   isLoadingYears: boolean;
+  tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -73,6 +74,7 @@ export function SalarySlipFilters({
   years,
   employees: _employees,
   filteredEmployees,
+  tableResponse,
   searchTerm,
   selectedCount,
   isFiltering,
@@ -102,6 +104,8 @@ export function SalarySlipFilters({
   const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
 
   const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+
+  const baseTableProps = useDataTableProps(tableResponse || filteredEmployees);
 
   return (
     <CollapsibleSection
@@ -193,7 +197,7 @@ export function SalarySlipFilters({
                   onFilterChange({ ...filters, month: value })
                 }
               >
-                <SelectTrigger id="month-select">
+                <SelectTrigger id="month-select" disabled={isLoadingYears || !years?.length}>
                   <SelectValue placeholder={isLoadingYears ? "Loading..." : "Select month"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -368,7 +372,7 @@ export function SalarySlipFilters({
           <div className="mt-3 flex ">
             <div className="flex items-center justify-end w-full gap-4">
               <div className="font-medium text-foreground text-sm">
-                Employee List ({filteredEmployees.length} employees)
+                Employee List ({tableResponse?.total ?? filteredEmployees.length} total matching employees)
               </div>
               <div className="relative w-48 ">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -387,19 +391,15 @@ export function SalarySlipFilters({
             )} */}
           </div>
           {/* Data Table */}
-          <div className="salary-slip-table-wrapper">
-            <DataTable
+          <div className='salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden'>
+            <GenericDataTable
+              {...baseTableProps}
               isLoading={isFiltering}
               columns={columns}
               data={filteredEmployees}
-              totalItems={filteredEmployees.length}
               showViewOptions={true}
               isSearchRequired={false}
               isPaginationRequired={true}
-              showPaginationInfo={false}
-              showRowsPerPage={false}
-              manualPagination={false}
-              manualSorting={false}
               scrollable={true}
               maxHeight="250px"
               columnPinning={{ left: ["select", "id"] }}
