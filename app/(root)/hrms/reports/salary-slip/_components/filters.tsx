@@ -7,10 +7,10 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { FileText, X, Search, RotateCcw, Loader2 } from 'lucide-react';
+import { Loader2, RotateCcw, Search, X, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
-import { getSalarySlipColumns } from './columns';
+import { CustomPaginationTable, CustomTableColumn } from '@/components/ui/view-data-table/custom-pagination-table';
 
 export interface SalarySlipFilters {
     groupType: number[];
@@ -90,13 +90,32 @@ export function SalarySlipFilters({
         setResetKey((prevKey) => prevKey + 1);
     };
 
-    const isAllSelected = filteredEmployees.length > 0 && selectedEmployeeIds.size === filteredEmployees.length;
-    const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
+    const handleSelectAllWrapper = (checked: boolean, ids: number[]) => {
+        // We will just call the parent's onSelectAll, but since we are doing 
+        // client-side search inside CustomEmployeeList, we'll pass the ids if the parent supports it.
+        // We will modify the parent later to accept ids if needed.
+        (onSelectAll as any)(checked, ids);
+    };
 
-    const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
-
-    // Ensure we use the total from the backend for pagination, but render our mapped/filtered array
-    const baseTableProps = useDataTableProps(tableResponse || filteredEmployees);
+    const columns: CustomTableColumn<EmployeeSalarySlipDisplay>[] = [
+        {
+            header: <div className="text-center font-medium">SL. No</div>,
+            cell: (_, index, currentPage, itemsPerPage) => (
+                <div className="text-center">
+                    {(currentPage - 1) * itemsPerPage + index + 1}
+                </div>
+            ),
+            className: "w-20"
+        },
+        {
+            header: "Employee Code",
+            cell: (emp) => <div className="font-medium">{emp.employeeCode}</div>
+        },
+        {
+            header: "Employee Name",
+            cell: (emp) => <div>{emp.employeeName}</div>
+        }
+    ];
 
     return (
         <CollapsibleSection
@@ -313,43 +332,18 @@ export function SalarySlipFilters({
 
                 {/* Right Column: Employee Table */}
                 <div className='space-y-4 w-full'>
-                    <div className='mt-3 flex '>
-                        <div className='flex items-center justify-end w-full gap-4'>
-                            <div className='font-medium text-foreground text-sm'>
-                                Employee List ({tableResponse?.total ?? filteredEmployees.length} total matching employees)
-                            </div>
-                            <div className="relative w-48 ">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search Name or Code..."
-                                    className="pl-8"
-                                    value={searchTerm}
-                                    onChange={(e) => onSearchChange(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Data Table */}
-                    <div className='salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden'>
-                        {
-                            <GenericDataTable
-                                {...baseTableProps}
-                                data={filteredEmployees}
-                                isLoading={isFiltering}
-                                columns={columns}
-                                error={null}
-                                showViewOptions={true}
-                                columnPinning={{ left: ['select', 'id'] }}
-                                loadingMessage='Loading employees...'
-                                noDataTitle='No Employees Found'
-                                noDataDescription='Select filters to view employees'
-                                errorTitle='Error Loading Employees'
-                                isSearchRequired={false}
-                                isPaginationRequired={true}                            
-                                scrollable={true}
-                                maxHeight="250px"
-                            />
-                        }
+                    {/* Custom Employee List with Pagination and Search */}
+                    <div className='salary-slip-table-wrapper'>
+                        <CustomPaginationTable
+                            data={filteredEmployees}
+                            columns={columns}
+                            searchKeys={['employeeName', 'employeeCode']}
+                            idKey="id"
+                            selectedIds={selectedEmployeeIds}
+                            onSelect={onSelectEmployee}
+                            onSelectAll={handleSelectAllWrapper}
+                            searchPlaceholder="Search Name or Code..."
+                        />
                     </div>
                 </div>
             </div>
