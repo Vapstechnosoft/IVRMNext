@@ -320,7 +320,6 @@ export default function SportStudentParticipationReportPage() {
                                 columns={columns}
                                 data={reportData.data.data}
                                 totalItems={reportData.data.data.length}
-                                //manualPagination={false}
                             />
                         </div>
                         <div className='mt-4 flex justify-end space-x-2'>

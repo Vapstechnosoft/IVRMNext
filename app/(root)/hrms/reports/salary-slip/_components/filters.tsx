@@ -332,6 +332,7 @@ export function SalarySlipFilters({
 
                 {/* Right Column: Employee Table */}
                 <div className='space-y-4 w-full'>
+<<<<<<< HEAD
                     {/* Custom Employee List with Pagination and Search */}
                     <div className='salary-slip-table-wrapper'>
                         <CustomPaginationTable
@@ -344,6 +345,45 @@ export function SalarySlipFilters({
                             onSelectAll={handleSelectAllWrapper}
                             searchPlaceholder="Search Name or Code..."
                         />
+=======
+                    <div className='mt-3 flex '>
+                        <div className='flex items-center justify-end w-full gap-4'>
+                            <div className='font-medium text-foreground text-sm'>
+                                Employee List ({tableResponse?.total ?? filteredEmployees.length} total matching employees)
+                            </div>
+                            <div className="relative w-48 ">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search Name or Code..."
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e) => onSearchChange(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    {/* Data Table */}
+                    <div className='salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden'>
+                        {
+                            <GenericDataTable
+                                {...baseTableProps}
+                                data={filteredEmployees}
+                                isLoading={isFiltering}
+                                columns={columns}
+                                error={null}
+                                showViewOptions={true}
+                                columnPinning={{ left: ['select', 'id'] }}
+                                loadingMessage='Loading employees...'
+                                noDataTitle='No Employees Found'
+                                noDataDescription='Select filters to view employees'
+                                errorTitle='Error Loading Employees'
+                                isSearchRequired={false}
+                                isPaginationRequired={true}
+                                scrollable={true}
+                                maxHeight="250px"
+                            />
+                        }
+>>>>>>> e3d8c7490361b489501c2b23f9628579153e297a
                     </div>
                 </div>
             </div>

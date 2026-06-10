@@ -647,7 +647,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     return (
-        <div className='printable-content space-y-6 font-serif'>
+        <div className='printable-content space-y-6'>
             <div className='no-print flex justify-end'>
                 <Button onClick={handlePrint} className='flex w-fit items-center gap-2'>
                     <Printer className='h-4 w-4' /> Print Report
@@ -688,7 +688,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <div
                                 key={index}
                                 className='page-break-before-always mb-8 border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
-                                
+
                                 {/* Header section */}
                                 {showLogo ? (
                                     <div className='mb-4 flex flex-row items-center justify-between'>
@@ -722,7 +722,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                 {/* Main Report Layout */}
                                 <div className='watermarked-container p-2' style={watermarkStyle}>
-                                    
+
                                     {/* Report Title */}
                                     <div className='mb-2 text-center text-md font-bold uppercase'>
                                         {examName} REPORT CARD {params.ASMAY_Year || ''}
@@ -972,11 +972,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     </table>
 
                                     {/* Bottom Layout - Co-Scholastic left / Chart right */}
-                                    <div className='flex border-[0.5px] border-t-0 border-[#727272]'>
-                                        
+                                    <div className='flex w-full border-[0.5px] border-t-0 border-[#727272]'>
+
                                         {/* Left Column: Graded subjects & Personality profile */}
-                                        <div className='w-[60%] border-r border-[#727272]'>
-                                            
+                                        <div className='w-[50%] border-r border-[#727272]'>
+
                                             {/* Graded Subjects (Skills) */}
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                                 <thead>
@@ -1034,13 +1034,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                                 <thead>
                                                     <tr>
-                                                        <th className='p-1 text-left text-[10px] font-medium border-l-0'>
+                                                        <th className='w-[180px] p-1 text-left text-[10px] font-medium border-l-0'>
                                                             &nbsp;&nbsp;&nbsp;PERSONALITY PROFILE
                                                         </th>
                                                         {groupDetailsMapped.map((grp: any, gIdx: number) => (
                                                             <th
                                                                 key={gIdx}
-                                                                className='w-[70px] p-1 text-center text-[10px] uppercase border-r-0'>
+                                                                className={`w-[70px] p-1 text-center text-[10px] uppercase ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
                                                                 {matchGroupName(grp.empG_DistplayName || grp.empG_DisplayName || grp.empsG_DisplayName || '', 'HALF YEARLY EXAMINATION') ? 'HALF YEARLY' : 'FINAL'}
                                                             </th>
                                                         ))}
@@ -1053,7 +1053,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 &middot; &nbsp;{q}
                                                             </td>
                                                             {groupDetailsMapped.map((_grp: any, gIdx: number) => (
-                                                                <td key={gIdx} className='p-0.5 text-center border-r-0'>
+                                                                <td key={gIdx} className={`p-0.5 text-center ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
                                                                     <input type='checkbox' className='h-3 w-3 pointer-events-none' readOnly />
                                                                 </td>
                                                             ))}
@@ -1064,12 +1064,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </div>
 
                                         {/* Right Column: Chart */}
-                                        <div className='w-[40%] p-2 flex flex-col justify-start items-center'>
+                                        <div className='w-[50%] p-2 flex flex-col justify-start items-center'>
                                             <div className='w-full border-b border-[#727272] pb-1 mb-2 text-center text-[12px] font-bold'>
                                                 PERFORMANCE ANALYSIS(TOTAL)
                                             </div>
                                             {chartLabels.length > 0 ? (
-                                                <div className='relative h-[240px] w-full max-w-[280px]'>
+                                                <div className='relative h-[240px] w-full max-w-[340px]'>
                                                     <Bar
                                                         data={{
                                                             labels: chartLabels,

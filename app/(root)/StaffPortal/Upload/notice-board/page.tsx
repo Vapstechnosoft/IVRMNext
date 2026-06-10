@@ -144,7 +144,7 @@ export default function NoticeBoardPage() {
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <DataTable columns={columns} data={noticeList} totalItems={noticeList.length} manualPagination={false} />
+                        <DataTable columns={columns} data={noticeList} totalItems={noticeList.length} />
                     )}
                 </CardContent>
             </Card>

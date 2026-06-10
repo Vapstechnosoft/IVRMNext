@@ -140,8 +140,6 @@ function InvVendorPaymentContent({
                         error={error}
                         isSearchRequired={true}
                         showSearchColumns={true}
-                        manualPagination={true}
-                        manualSorting={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading payment records...'
                         noDataTitle='No Payments Found'

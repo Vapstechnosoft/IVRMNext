@@ -331,9 +331,6 @@ export function MasterSmsEmailParameterForm() {
             columns={columns as any}
             data={parameterList}
             totalItems={parameterList.length}
-            manualPagination={false}
-            manualFiltering={false}
-            manualSorting={false}
           />
         </CardContent>
       </Card>

@@ -734,9 +734,6 @@ export default function LateLeavePage() {
                             totalItems={lateLeaveResponse?.total || reportData.length}
                             showViewOptions={false}
                             isPaginationRequired={true}
-                            manualPagination={true}
-                            manualFiltering={true}
-                            manualSorting={true}
                             isLoading={isPending}
                         />
                     </div>

@@ -220,7 +220,6 @@ export default function ClassWorkPage() {
                         columns={columns}
                         data={processedGrid}
                         totalItems={processedGrid.length}
-                        manualPagination={false}
                         isLoading={isLoading}
                     />
                 </div>
