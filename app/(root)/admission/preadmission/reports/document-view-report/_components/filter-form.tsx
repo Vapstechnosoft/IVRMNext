@@ -11,10 +11,17 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormError } from '@/components/ui/extension/field';
 
+
+
+
 const filterSchema = z.object({
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    asmcL_Id: z.number().optional()
+    asmcL_Id: z.number({
+        required_error: 'Class is required',
+        invalid_type_error: 'Class is required',
+    }).min(0)
 });
+
 
 type FormFields = z.infer<typeof filterSchema>;
 
@@ -32,7 +39,7 @@ export default function FilterForm({ onFilterChange }: FilterFormProps) {
         resolver: zodResolver(filterSchema),
         defaultValues: {
             asmaY_Id: 0,
-            asmcL_Id: 0
+            asmcL_Id: undefined
         }
     });
 
