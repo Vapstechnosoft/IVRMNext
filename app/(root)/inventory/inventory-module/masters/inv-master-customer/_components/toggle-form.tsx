@@ -2,15 +2,16 @@
 
 import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogCancel,
+    AlertDialogAction
+} from '@/components/ui/alert-dialog';
 import { useInvMasterCustomer } from '@/hooks/inventory/masters/use-inv-master-customer';
-import { AlertTriangle } from 'lucide-react';
 
 interface ToggleCustomerModalProps {
     rowData: any;
@@ -33,31 +34,31 @@ export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalPro
     };
 
     return (
-        <Dialog open={true} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-warning" />
-                        Confirm Action
-                    </DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <strong>{rowData.invmC_CustomerName}</strong>?
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={deleteMutation.isPending}>
+        <AlertDialog open={true} onOpenChange={onClose}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                        {isActive ? 'Deactivate Record' : 'Activate Record'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this customer record?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex gap-2">
+                    <AlertDialogCancel className="text-black dark:text-white hover:bg-transparent" disabled={deleteMutation.isPending}>
                         Cancel
-                    </Button>
-                    <Button
-                        variant={isActive ? 'destructive' : 'default'}
-                        onClick={handleConfirm}
-                        isLoading={deleteMutation.isPending}
-                    >
-                        {isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                        <Button
+                            variant={isActive ? 'destructive' : 'default'}
+                            onClick={handleConfirm}
+                            isLoading={deleteMutation.isPending}
+                        >
+                            Yes, {isActive ? 'Deactivate' : 'Activate'} it
+                        </Button>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }
