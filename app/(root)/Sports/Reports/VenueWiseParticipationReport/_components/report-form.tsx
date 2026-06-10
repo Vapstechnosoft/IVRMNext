@@ -114,7 +114,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     }, [watchedYear, watchedClass, watchedType]);
 
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit = (data: FormValues) => {
         const payload = {
             asmaY_Id: data.ASMAY_Id,
             asmcL_Id: data.ASMCL_Id || 0,
@@ -123,15 +123,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             selectedhouselist: data.selectedhouselist || [],
             selectedVenuelist: data.selectedVenuelist || []
         };
-        const reportData = await generateReport(payload);
-        if (reportData) {
-            onReportGenerated(reportData);
-            if (reportData.length > 0) {
-                toast.success('Report generated successfully');
-            } else {
-                toast.info('No records found');
-            }
-        }
+        onReportGenerated(payload);
     };
 
     // Helper for Select All

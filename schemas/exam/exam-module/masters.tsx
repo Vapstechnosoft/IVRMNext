@@ -102,7 +102,7 @@ export const gradeDetailsSchema = z
             .preprocess(
                 (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
                 z.union([
-                    z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' }),
+                    z.number().min(0, { message: 'From must be at least 0' }),
                     z.null()
                 ])
             )
@@ -111,7 +111,7 @@ export const gradeDetailsSchema = z
         emgD_To: z
             .preprocess(
                 (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-                z.union([z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' }), z.null()])
+                z.union([z.number().min(0, { message: 'To must be at least 0' }), z.null()])
             )
             .default(null),
 
@@ -152,14 +152,35 @@ export const gradeDetailsSchema = z
 
 // Master Grade Schema
 export const masterGradeSchema = {
-    addOrUpdate: z.object({
-        emgR_Id: z.number().optional(),
-        mI_Id: z.number().optional(),
-        emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
-        emgR_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Marks/Percentage flag is required' }),
-        emgR_ActiveFlag: z.boolean().default(true),
-        grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
-    }),
+    addOrUpdate: z
+        .object({
+            emgR_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
+            emgR_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Marks/Percentage flag is required' }),
+            emgR_ActiveFlag: z.boolean().default(true),
+            grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
+        })
+        .superRefine((data, ctx) => {
+            if (data.emgR_MarksPerFlag === 'P') {
+                data.grade_list.forEach((row, index) => {
+                    if (row.emgD_From !== null && (row.emgD_From < 0 || row.emgD_From > 100)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'From value must be between 0 and 100 when percentage is selected',
+                            path: ['grade_list', index, 'emgD_From']
+                        });
+                    }
+                    if (row.emgD_To !== null && (row.emgD_To < 0 || row.emgD_To > 100)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'To value must be between 0 and 100 when percentage is selected',
+                            path: ['grade_list', index, 'emgD_To']
+                        });
+                    }
+                });
+            }
+        }),
 
     delete: z.object({
         emgR_Id: z.number({ required_error: 'Grade Id is required' })

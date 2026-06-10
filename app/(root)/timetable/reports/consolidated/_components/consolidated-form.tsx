@@ -200,7 +200,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                     render={({ field }) => (
                         <RadioGroup
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
                             {mockReportTypes.map((type) => (
                                 <div key={type.id} className='flex items-center space-x-2'>

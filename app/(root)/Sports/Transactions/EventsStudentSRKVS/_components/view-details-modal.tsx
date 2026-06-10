@@ -1,21 +1,46 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { IEventsStudentSRKVSViewDetails } from '@/types/sports/events-student-srkvs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
 
 interface ViewDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     data: IEventsStudentSRKVSViewDetails[] | null;
+    onSave?: (updatedData: IEventsStudentSRKVSViewDetails[]) => void;
 }
 
-export function ViewDetailsModal({ isOpen, onClose, data }: ViewDetailsModalProps) {
+export function ViewDetailsModal({ isOpen, onClose, data, onSave }: ViewDetailsModalProps) {
+    const [editableData, setEditableData] = useState<IEventsStudentSRKVSViewDetails[]>([]);
+
+    useEffect(() => {
+        if (data) {
+            setEditableData([...data]);
+        }
+    }, [data]);
+
+    const handleInputChange = (index: number, field: keyof IEventsStudentSRKVSViewDetails, value: any) => {
+        const newData = [...editableData];
+        newData[index] = { ...newData[index], [field]: value };
+        setEditableData(newData);
+    };
+
+    const handleSave = () => {
+        if (onSave) {
+            onSave(editableData);
+        } else {
+            toast.success("Details updated temporarily. Hook up save API to persist.");
+            onClose();
+        }
+    };
+
     if (!data || data.length === 0) return null;
 
     return (
@@ -25,7 +50,7 @@ export function ViewDetailsModal({ isOpen, onClose, data }: ViewDetailsModalProp
                     <DialogTitle>Student Entry Details</DialogTitle>
                 </DialogHeader>
                 <div className="p-4 border rounded-md bg-card">
-                    <ScrollArea className="h-[80vh]">
+                    <ScrollArea className="h-[60vh]">
                         <Table>
                             <TableHeader className="bg-muted/50">
                                 <TableRow>
@@ -42,7 +67,7 @@ export function ViewDetailsModal({ isOpen, onClose, data }: ViewDetailsModalProp
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data.map((student, index) => (
+                                {editableData.map((student, index) => (
                                     <TableRow key={student.amsT_Id}>
                                         <TableCell className="text-center font-medium">{index + 1}</TableCell>
                                         <TableCell>{student.studentName}</TableCell>
@@ -52,38 +77,41 @@ export function ViewDetailsModal({ isOpen, onClose, data }: ViewDetailsModalProp
                                         <TableCell>
                                             <Input
                                                 className="h-8 w-20"
-                                                defaultValue={String(student.spccestR_Points || '')}
-                                                readOnly
+                                                value={student.spccestR_Points || ''}
+                                                onChange={(e) => handleInputChange(index, 'spccestR_Points', e.target.value)}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <Input
                                                 className="h-8 w-20"
-                                                defaultValue={String(student.spccestR_Rank || '')}
-                                                readOnly
+                                                value={student.spccestR_Rank || ''}
+                                                onChange={(e) => handleInputChange(index, 'spccestR_Rank', e.target.value)}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <Input
                                                 className="h-8 w-32"
-                                                defaultValue={student.spccestR_Remarks || ''}
-                                                readOnly
+                                                value={student.spccestR_Remarks || ''}
+                                                onChange={(e) => handleInputChange(index, 'spccestR_Remarks', e.target.value)}
                                             />
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <Checkbox
                                                 checked={!!student.spccestR_RecordBrokenFlag}
-                                                disabled
+                                                onCheckedChange={(checked) => handleInputChange(index, 'spccestR_RecordBrokenFlag', checked)}
                                             />
                                         </TableCell>
-                                        {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-<TableCell></TableCell>
+                                        <TableCell></TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </ScrollArea>
                 </div>
+                <DialogFooter className="mt-4">
+                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleSave}>Save</Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

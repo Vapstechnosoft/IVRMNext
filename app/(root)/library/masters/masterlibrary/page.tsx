@@ -15,6 +15,7 @@ export default function MasterLibraryPage(props: { searchParams: SearchParams })
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useMasterLibrary(searchParams);
     const [activeTab, setActiveTab] = useState('creation');
+    const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
 
     return (
         <div className='min-h-screen p-1'>
@@ -28,16 +29,31 @@ export default function MasterLibraryPage(props: { searchParams: SearchParams })
 
                     <TabsContent value='creation'>
                         <FormProvider<IMasterLibraryList> >
-                            <LibraryCreationTab response={response} isLoading={isLoading} error={error} refetch={refetch} />
+                            <LibraryCreationTab 
+                                response={response} 
+                                isLoading={isLoading} 
+                                error={error} 
+                                refetch={refetch} 
+                                selectedLibraryId={selectedLibraryId}
+                                setSelectedLibraryId={setSelectedLibraryId}
+                                setActiveTab={setActiveTab}
+                            />
                         </FormProvider>
                     </TabsContent>
 
                     <TabsContent value='class'>
-                        <LibraryMapClassTab />
+                        <LibraryMapClassTab 
+                            selectedLibraryId={selectedLibraryId}
+                            setSelectedLibraryId={setSelectedLibraryId}
+                            onNextTab={() => setActiveTab('staff')}
+                        />
                     </TabsContent>
 
                     <TabsContent value='staff'>
-                        <LibraryMapStaffTab />
+                        <LibraryMapStaffTab 
+                            selectedLibraryId={selectedLibraryId}
+                            setSelectedLibraryId={setSelectedLibraryId}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -49,6 +49,11 @@ interface SalarySlipFiltersProps {
     onGenerateSlip: () => void;
     onCancel: () => void;
     onReset: () => void;
+    isLoadingGroupTypes: boolean;
+    isLoadingDepartments: boolean;
+    isLoadingDesignations: boolean;
+    isLoadingYears: boolean;
+    tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -58,10 +63,12 @@ export function SalarySlipFilters({
     designations,
     months,
     years,
-    employees: _employees,
+    employees,
     filteredEmployees,
+    tableResponse,
     searchTerm,
     selectedCount,
+    selectedEmployeeIds,
     isFiltering,
     isGenerating,
     onFilterChange,
@@ -70,21 +77,26 @@ export function SalarySlipFilters({
     onSelectAll,
     onSelectEmployee,
     onGenerateSlip,
+    onCancel,
     onReset,
-    selectedEmployeeIds
+    isLoadingGroupTypes,
+    isLoadingDepartments,
+    isLoadingDesignations,
+    isLoadingYears
 }: SalarySlipFiltersProps) {
+    const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
         onReset();
+        setResetKey((prevKey) => prevKey + 1);
     };
-    const [_currentYear, setCurrentYear] = useState<number | null>(null);
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
 
-    const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployeeIds.has(emp.id));
+    const isAllSelected = filteredEmployees.length > 0 && selectedEmployeeIds.size === filteredEmployees.length;
     const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
 
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+
+    // Ensure we use the total from the backend for pagination, but render our mapped/filtered array
+    const baseTableProps = useDataTableProps(tableResponse || filteredEmployees);
 
     return (
         <CollapsibleSection
@@ -113,9 +125,10 @@ export function SalarySlipFilters({
                                 groupType: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Group Types'
+                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingGroupTypes || !groupTypes?.length}
                     />
                 </div>
                 {/* Department Filter */}
@@ -135,9 +148,10 @@ export function SalarySlipFilters({
                                 department: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Departments'
+                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDepartments || !departments?.length}
                     />
                 </div>
                 {/* Designation Filter */}
@@ -157,16 +171,17 @@ export function SalarySlipFilters({
                                 designation: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Designations'
+                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDesignations || !designations?.length}
                     />
                 </div>
             </div>
 
-            <div className='flex justify-between my-10 gap-3'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 my-10'>
                 {/* Left Column: Row 2 and Options */}
-                <div className='w-full'>
+                <div className='w-full space-y-4' key={resetKey}>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Month Filter */}
                         <div className='mt-3 mb-3 space-y-2'>
@@ -174,8 +189,8 @@ export function SalarySlipFilters({
                                 Month
                             </Label>
                             <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
-                                <SelectTrigger id='month-select'>
-                                    <SelectValue placeholder='Select month' />
+                                <SelectTrigger id='month-select' disabled={isLoadingYears || !years?.length}>
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select month'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {months
@@ -216,13 +231,13 @@ export function SalarySlipFilters({
                             </Select>
                         </div>
                         {/* Year Filter */}
-                        <div className='mt-3 mb-3 space-y-2'>
+                        <div className='mt-3 mb-3 space-y-2' key={resetKey}>
                             <Label className='font-medium' htmlFor='year-select'>
                                 Year
                             </Label>
                             <Select value={filters.year} onValueChange={(value) => onFilterChange({ ...filters, year: value })}>
-                                <SelectTrigger id='year-select'>
-                                    <SelectValue placeholder='Select year' />
+                                <SelectTrigger id='year-select' disabled={isLoadingYears || !years?.length}>
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {years
@@ -301,7 +316,7 @@ export function SalarySlipFilters({
                     <div className='mt-3 flex '>
                         <div className='flex items-center justify-end w-full gap-4'>
                             <div className='font-medium text-foreground text-sm'>
-                                Employee List ({filteredEmployees.length} employees)
+                                Employee List ({tableResponse?.total ?? filteredEmployees.length} total matching employees)
                             </div>
                             <div className="relative w-48 ">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -315,23 +330,26 @@ export function SalarySlipFilters({
                         </div>
                     </div>
                     {/* Data Table */}
-                    <div className='salary-slip-table-wrapper'>
-                        <DataTable
-                            isLoading={isFiltering}
-                            columns={columns}
-                            data={filteredEmployees}
-                            totalItems={filteredEmployees.length}
-                            showViewOptions={true}
-                            isSearchRequired={false}
-                            isPaginationRequired={true}
-                            showPaginationInfo={false}
-                            showRowsPerPage={false}
-                            manualPagination={false}
-                            manualSorting={false}
-                            scrollable={true}
-                            maxHeight="250px"
-                            columnPinning={{ left: ['select', 'id'] }}
-                        />
+                    <div className='salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden'>
+                        {
+                            <GenericDataTable
+                                {...baseTableProps}
+                                data={filteredEmployees}
+                                isLoading={isFiltering}
+                                columns={columns}
+                                error={null}
+                                showViewOptions={true}
+                                columnPinning={{ left: ['select', 'id'] }}
+                                loadingMessage='Loading employees...'
+                                noDataTitle='No Employees Found'
+                                noDataDescription='Select filters to view employees'
+                                errorTitle='Error Loading Employees'
+                                isSearchRequired={false}
+                                isPaginationRequired={true}                            
+                                scrollable={true}
+                                maxHeight="250px"
+                            />
+                        }
                     </div>
                 </div>
             </div>
@@ -339,7 +357,7 @@ export function SalarySlipFilters({
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                 <Button variant='outline' onClick={handleReset} type='button'>
-                    <RotateCcw className='mr-2 h-4 w-4' />
+                    <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
                 <Button

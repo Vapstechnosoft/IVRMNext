@@ -7,7 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { type CalcuttaPromotionReportItoIXSchema, calcuttaPromotionReportItoIXSchema } from '@/schemas/exam/exam-module/reports';
+import { type CalcuttaPromotionReportItoVSchema, calcuttaPromotionReportItoVSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
@@ -23,8 +23,8 @@ export default function CalcuttaPromotionReportForm({
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
 }) {
-    const methods = useForm<CalcuttaPromotionReportItoIXSchema>({
-        resolver: zodResolver(calcuttaPromotionReportItoIXSchema),
+    const methods = useForm<CalcuttaPromotionReportItoVSchema>({
+        resolver: zodResolver(calcuttaPromotionReportItoVSchema),
         mode: 'all',
         defaultValues: {
             asmaY_Id: 0,
@@ -38,7 +38,19 @@ export default function CalcuttaPromotionReportForm({
     });
 
     const { control, handleSubmit, reset, setValue, formState } = methods;
-    const { isSubmitting } = formState;
+    const { isSubmitting, errors } = formState;
+
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            console.log('Form validation errors:', errors);
+            toast.error(
+                'Please correct validation errors: ' +
+                Object.keys(errors)
+                    .map((key) => `${key}: ${errors[key as keyof typeof errors]?.message || 'invalid'}`)
+                    .join(', ')
+            );
+        }
+    }, [errors]);
 
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
@@ -152,9 +164,11 @@ export default function CalcuttaPromotionReportForm({
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     // on submit
-    const onSubmit = async (data: CalcuttaPromotionReportItoIXSchema) => {
+    const onSubmit = async (data: CalcuttaPromotionReportItoVSchema) => {
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
+            ASMAY_Year: selectedYearObj ? selectedYearObj.asmaY_Year : '',
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),

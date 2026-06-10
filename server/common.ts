@@ -53,6 +53,113 @@ export async function getUserAccessibleModules() {
             success: true,
             message: 'Data fetched successfully!!',
             data: [
+
+                {
+                    id: 1004001,
+                    name: 'PreConfiguration',
+                    icon: 'UserRoundPlus',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'PreConfiguration',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 24561,
+                                            name: 'Master Configuration',
+                                            icon: 'Settings',
+                                            url: '/preconfiguration/master-configuration',
+                                            title: 'Master Configuration',
+                                            description: 'Master Configuration'
+                                        },
+                                        {
+                                            id: 24562,
+                                            name: 'Transaction Numbering',
+                                            icon: 'Settings',
+                                            url: '/preconfiguration/transaction-numbering',
+                                            title: 'Transaction Numbering',
+                                            description: 'Transaction Numbering'
+                                        },
+                                        {
+                                            id: 24563,
+                                            name: 'General Configuration Settings',
+                                            icon: 'Settings',
+                                            url: '/preconfiguration/genconfig',
+                                            title: 'General Configuration Settings',
+                                            description: 'General Configuration Settings'
+                                        },
+                                        {
+                                            id: 24564,
+                                            name: 'Admission Standard',
+                                            icon: 'Settings',
+                                            url: '/preconfiguration/admission-standard',
+                                            title: 'Admission Standard',
+                                            description: 'Admission Standard'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 1004002,
+                    name: 'SMS EMAIL Configuration',
+                    icon: 'UserRoundPlus',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'SMS EMAIL Configuration',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 24571,
+                                            name: 'Master Header Details',
+                                            icon: 'Settings',
+                                            url: '/sms-email-configuration/master-header-details',
+                                            title: 'Master Header Details',
+                                            description: 'Master Header Details'
+                                        },
+                                        {
+                                            id: 24572,
+                                            name: 'Master SMS Email Parameter',
+                                            icon: 'Settings',
+                                            url: '/sms-email-configuration/master-sms-email-parameter',
+                                            title: 'Master SMS Email Parameter',
+                                            description: 'Master SMS Email Parameter'
+                                        },
+                                        {
+                                            id: 24573,
+                                            name: 'Master HTML Templates',
+                                            icon: 'Settings',
+                                            url: '/sms-email-configuration/master-html-templates',
+                                            title: 'Master HTML Templates',
+                                            description: 'Master HTML Templates'
+                                        },
+                                        {
+                                            id: 24574,
+                                            name: 'SMS Email Setting',
+                                            icon: 'Settings',
+                                            url: '/sms-email-configuration/smsmailsetting',
+                                            title: 'SMS Email Setting',
+                                            description: 'SMS Email Setting'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 {
                     id: 1001,
                     name: 'Preadmission',
@@ -63,21 +170,6 @@ export async function getUserAccessibleModules() {
                             name: 'Preadmission',
                             icon: 'UserCog',
                             sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Configuration',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Pre-Registration Numbering',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/pre-registration-numbering',
-                                            title: 'Pre-Registration Numbering',
-                                            description: 'Pre-Registration Numbering'
-                                        }
-                                    ]
-                                },
 
                                 {
                                     id: 2,
@@ -100,31 +192,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Application Form',
                                             description: 'Application Form'
                                         },
-                                        // {
-                                        //     id: 20000000,
-                                        //     name: 'Registration Form',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/registration-form',
-                                        //     title: 'Registration Form',
-                                        //     description: 'Apply for Registration'
-                                        // },
-
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Transfer Application Status',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/transfer-application-status',
-                                        //     title: 'Transfer Application Status',
-                                        //     description: 'Manage Transfer Application Status Details'
-                                        // },
-                                        // {
-                                        //     id: 4,
-                                        //     name: 'Transfer Admission Status',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/transfer-admission-status',
-                                        //     title: 'Transfer Admission Status',
-                                        //     description: 'Manage Transfer Admission Status Details'
-                                        // },
                                         {
                                             id: 3,
                                             name: 'Transfer Application Status',
@@ -141,14 +208,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Transfer to Admission',
                                             description: 'Transfer confirmed preadmission applications to admission'
                                         },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'Document View',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/transactions/document-view',
-                                        //     title: 'Document View',
-                                        //     description: ' Document View'
-                                        // },
                                         {
                                             id: 7,
                                             name: 'Document View',
@@ -601,7 +660,7 @@ export async function getUserAccessibleModules() {
                                             id: 47,
                                             name: 'Attendance Absentees Report',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            url: '/admission/preadmission/reports/attendanceabsentsms',
                                             title: 'Attendance Absentees Report',
                                             description: 'Attendance Absentees Report'
                                         },
@@ -638,14 +697,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
                                         },
-                                        // {
-                                        //     id: 12,
-                                        //     name: 'Overall Daily Attendance Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                        //     title: 'Overall Daily Attendance Report',
-                                        //     description: 'Overall Daily Attendance Report'
-                                        // },
                                         {
                                             id: 52,
                                             name: 'Student Attendance Report',
@@ -654,39 +705,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Attendance Report',
                                             description: 'Student Attendance Report'
                                         }
-                                        //,
-                                        // {
-                                        //     id: 53,
-                                        //     name: 'Student Birthday Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/student-birthday-report',
-                                        //     title: 'Student Birthday Report',
-                                        //     description: 'Student Birthday Report'
-                                        // },
-                                        // {
-                                        //     id: 54,
-                                        //     name: '100% Attendance Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/100attendance-report',
-                                        //     title: '100% Attendance Report',
-                                        //     description: '100% Attendance Report'
-                                        // },
-                                        // {
-                                        //     id: 55,
-                                        //     name: 'St.James TC Custom Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/stjames-tc-customreport',
-                                        //     title: 'St.James TC Custom Report',
-                                        //     description: 'St.James TC Custom Report'
-                                        // },
-                                        // {
-                                        //     id: 56,
-                                        //     name: 'Study Certificate GMVPS Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/study-certificate-gmvps-report',
-                                        //     title: 'Study Certificate GMVPS Report',
-                                        //     description: 'Study Certificate GMVPS Report'
-                                        // }
                                     ]
                                 }
                             ]
@@ -936,6 +954,14 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
+                                            id: 60,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
                                             id: 61,
                                             name: 'NDA Transfer Certificate',
                                             icon: 'Settings',
@@ -1099,7 +1125,7 @@ export async function getUserAccessibleModules() {
                                             id: 6001,
                                             name: 'SophiaRegistration',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaRegistration',
+                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistration',
                                             title: 'SophiaRegistration',
                                             description: 'SophiaRegistration'
                                         },
@@ -1137,6 +1163,15 @@ export async function getUserAccessibleModules() {
                                             description: 'StudentTcCancel'
                                         },
                                         {
+                                            id: 6099,
+                                            name: 'MasterQuestionBank',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/transaction/MasterQuestionBank',
+                                            title: 'MasterQuestionBank',
+                                            description: 'MasterQuestionBank'
+                                        },
+
+                                        {
                                             id: 604,
                                             name: 'SophiaMultiTransferCertificate',
                                             icon: 'Settings',
@@ -1144,14 +1179,6 @@ export async function getUserAccessibleModules() {
                                             title: 'SophiaMultiTransferCertificate',
                                             description: 'SophiaMultiTransferCertificate'
                                         },
-                                        // {
-                                        //     id: 605,
-                                        //     name: 'Attendanceentry',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/transaction/Attendanceentry',
-                                        //     title: 'Attendanceentry',
-                                        //     description: 'Attendanceentry'
-                                        // },
                                         {
                                             id: 606,
                                             name: 'SophiaStudentParticulars',
@@ -2136,14 +2163,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee PreAdmission Transaction ST Marys',
                                             description: 'Manage Fee PreAdmission Transaction ST Marys'
                                         },
-                                        // {
-                                        //     id: 528,
-                                        //     name: 'Mess Attendance Entry Vishwadarshana',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/messattendanceentryvishwa',
-                                        //     title: 'Mess Attendance Entry Vishwadarshana',
-                                        //     description: 'Manage Mess Attendance Entry Vishwadarshana'
-                                        // },
                                         {
                                             id: 529,
                                             name: 'Fee Collection Sophia',
@@ -2698,50 +2717,53 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    id: 2000,
-                                    name: 'Baldwin',
-                                    icon: 'Building2',
-                                    pages: [
+                                    "id": 2000,
+                                    "name": "Baldwin",
+                                    "icon": "Building2",
+                                    "pages": [
+                                        // Baldwin boys high school
                                         {
-                                            id: 1,
-                                            name: 'HallTicketReport',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
-                                            title: 'HallTicketReport',
-                                            description: 'Generate Hall Ticket Report for students'
+                                            "id": 1,
+                                            "name": "BaldwinFinalPromReportBBHS",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS",
+                                            "title": "BaldwinFinalPromReportBBHS",
+                                            "description": "BaldwinFinalPromReportBBHS"
                                         },
                                         {
-                                            id: 2,
-                                            name: 'MultipleExamProgressCardReport2',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
-                                            title: 'MultipleExamProgressCardReport2',
-                                            description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
+                                            "id": 2,
+                                            "name": "Baldwin BBHSPromotionReportStdIX_20_21",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21",
+                                            "title": "Baldwin BBHSPromotionReportStdIX_20_21",
+                                            "description": "Baldwin BBHSPromotionReportStdIX_20_21"
                                         },
                                         {
-                                            id: 3,
-                                            name: 'BaldwinFinalPromReportBBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'BaldwinFinalPromReportBBHS',
-                                            description: 'BaldwinFinalPromReportBBHS'
+                                            "id": 3,
+                                            "name": "Baldwin BBIIReport",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/BBIIReport",
+                                            "title": "Baldwin BBIIReport",
+                                            "description": "Baldwin BBII Progress Card"
+                                        },
+                                        // Baldwin Girls High School
+                                        {
+                                            "id": 4,
+                                            "name": "HallTicketReport",
+                                            "icon": "Ticket",
+                                            "url": "/Exam/exam-module/reports/Baldwin/hall-ticket-report",
+                                            "title": "HallTicketReport",
+                                            "description": "Generate Hall Ticket Report for students"
                                         },
                                         {
-                                            id: 4,
-                                            name: 'BCEHS BaldwinFinalPromReport',
-                                            icon: 'Report',
-                                            url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
-                                            title: 'BCEHS BaldwinFinalPromReport',
-                                            description: 'Generate BCEHS Final Promotion Report'
+                                            "id": 5,
+                                            "name": "MultipleExamProgressCardReport2",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2",
+                                            "title": "MultipleExamProgressCardReport2",
+                                            "description": "Generate MultipleExamProgressCardReport2 for Baldwin"
                                         },
-                                        {
-                                            id: 5,
-                                            name: 'Baldwin BBIIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'Baldwin BBIIReport',
-                                            description: 'Baldwin BBII Progress Card'
-                                        },
+                                        // Baldwin Co Eduction School
                                         {
                                             id: 6,
                                             name: 'Baldwin BCOEDIReport',
@@ -2751,7 +2773,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin BCOEDIReport'
                                         },
                                         {
-                                            id: 7,
+                                            id: 8,
                                             name: 'Baldwin BCOEDIIReport',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
@@ -2759,28 +2781,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin BCOEDIIReport'
                                         },
                                         {
-                                            id: 8,
-                                            name: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
-                                            title: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            description: 'Baldwin BBHSPromotionReportStdIX_20_21'
+                                            "id": 8,
+                                            "name": "BCEHS BaldwinFinalPromReport",
+                                            "icon": "Report",
+                                            "url": "/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report",
+                                            "title": "BCEHS BaldwinFinalPromReport",
+                                            "description": "Generate BCEHS Final Promotion Report"
                                         },
                                         {
-                                            id: 9,
-                                            name: 'Baldwin PromotionReportIX',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
-                                            title: 'Baldwin PromotionReportIX',
-                                            description: 'Baldwin Promotion Report IX'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Baldwin Final P Report BBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'Baldwin Final P Report BBHS',
-                                            description: 'Baldwin Final P Report BBHS'
+                                            "id": 9,
+                                            "name": "Baldwin PromotionReportIX",
+                                            "icon": "BookOpen",
+                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportIX",
+                                            "title": "Baldwin PromotionReportIX",
+                                            "description": "Baldwin Promotion Report IX"
                                         }
                                     ]
                                 },
@@ -2799,51 +2813,51 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 2,
-                                            name: 'Calcutta PromotionReportI_IV',
+                                            name: ' Report Card I to V Half Yearly',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
-                                            title: 'Calcutta PromotionReportI_IV',
-                                            description: 'Calcutta PromotionReportI_IV'
+                                            title: ' Report Card I to V Half Yearly',
+                                            description: ' Report Card I to V Half Yearly'
                                         },
                                         {
                                             id: 3,
-                                            name: 'Calcutta PromotionReportI_V',
+                                            name: 'Final Report Card VI-VIII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
-                                            title: 'Calcutta PromotionReportI_V',
-                                            description: 'Calcutta PromotionReportI_V'
+                                            title: 'Final Report Card VI-VIII',
+                                            description: 'Final Report Card VI-VIII'
                                         },
                                         {
                                             id: 4,
-                                            name: 'Calcutta PromotionReportI_IX',
+                                            name: 'Report Card VI to XII Half Yearly',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
-                                            title: 'Calcutta PromotionReportI_IX',
-                                            description: 'Calcutta PromotionReportI_IX'
+                                            title: 'Report Card VI to XII Half Yearly',
+                                            description: 'Report Card VI to XII Half Yearly'
                                         },
                                         {
                                             id: 5,
-                                            name: 'Calcutta PromotionReportIX_X',
+                                            name: 'Final Report Card IX-XII',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
-                                            title: 'Calcutta PromotionReportIX_X',
-                                            description: 'Calcutta Promotion Report IX-X'
+                                            title: 'Final Report Card IX-XII',
+                                            description: 'Final Report Card IX-XII'
                                         },
                                         {
                                             id: 6,
-                                            name: 'Calcutta PromotionReportI_X',
+                                            name: 'Final Report Card I-V',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
-                                            title: 'Calcutta PromotionReportI_X',
-                                            description: 'Calcutta PromotionReportI_X'
+                                            title: 'Final Report Card I-V',
+                                            description: 'Final Report Card I-V'
                                         },
                                         {
                                             id: 7,
-                                            name: 'Calcutta MultipleExamCumulativeReportCalcutta',
+                                            name: 'Multiple Exam Cumulative Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
-                                            title: 'MultipleExamCumulativeReportCalcutta',
-                                            description: 'Multiple Exam Cumulative Report Calcutta'
+                                            title: 'Multiple Exam Cumulative Report',
+                                            description: 'Multiple Exam Cumulative Report'
                                         },
 
                                         // HALL TICKET REPORTS
@@ -4203,14 +4217,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Bank Cash Report',
                                             description: 'Bank & Cash Summary'
                                         },
-                                        // {
-                                        //     id: 11,
-                                        //     name: 'Employee Service Report',
-                                        //     icon: 'Briefcase',
-                                        //     url: '/hrms/reports/employee-service-report',
-                                        //     title: 'Employee Service Report',
-                                        //     description: 'Employee Service Summary'
-                                        // },
+                                        {
+                                            id: 11,
+                                            name: 'Employee Service Report',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/reports/employee-service-report',
+                                            title: 'Employee Service Report',
+                                            description: 'Employee Service Summary'
+                                        },
                                         {
                                             id: 1289,
                                             name: 'Salary Certificate',
@@ -4229,19 +4243,19 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 14,
-                                            name: 'Form 10',
+                                            name: 'PF Form 10',
                                             icon: 'FileType',
                                             url: '/hrms/reports/pf-form-10',
-                                            title: 'Form 10',
-                                            description: 'Provident Fund Form 10'
+                                            title: 'PF Form 10',
+                                            description: 'Provident Fund PF Form 10'
                                         },
                                         {
                                             id: 15,
-                                            name: 'Form 5',
+                                            name: 'PF Form 5',
                                             icon: 'FileType',
                                             url: '/hrms/reports/pf-form-5',
-                                            title: 'Form 5',
-                                            description: 'Provident Fund Form 5'
+                                            title: 'PF Form 5',
+                                            description: 'Provident Fund PF Form 5'
                                         },
                                         {
                                             id: 16,
@@ -4252,14 +4266,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Provident Fund Form 6A'
                                         },
 
-                                        // {
-                                        //     id: 17,
-                                        //     name: 'PF Form3A',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form3a',
-                                        //     title: 'PF Form3A',
-                                        //     description: 'Provident Fund Form 3A'
-                                        // },
+                                        {
+                                            id: 17,
+                                            name: 'PF Form3A',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form3a',
+                                            title: 'PF Form3A',
+                                            description: 'Provident Fund Form 3A'
+                                        },
                                         {
                                             id: 18,
                                             name: 'HRMS Monthend Report',
@@ -4436,6 +4450,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/cumulative-salary-report',
                                             title: 'Employee Salary Statement',
                                             description: 'Employee Salary Statement'
+                                        },
+                                        {
+                                            id:40,
+                                            name: 'NDA Employee offer letter',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/nda_employeeOfferAndExperienceReport',
+                                            title: 'NDA Employee Offer Letter',
+                                            description: 'Employee Offer Letter'
                                         }
                                     ]
                                 }

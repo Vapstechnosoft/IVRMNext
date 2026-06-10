@@ -83,9 +83,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showSearchColumns = false,
         showExportOptions = false,
         // Smart defaults: if we have less data than total items, we need manual pagination
-        manualPagination = totalItems > data.length,
-        manualSorting = totalItems > data.length,
-        manualFiltering = totalItems > data.length,
+        manualPagination = true,
+        manualSorting = true,
+        manualFiltering = true,
         scrollable = false,
         maxHeight = '600px',
         getRowId,
@@ -221,7 +221,7 @@ export function useDataTableProps(
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
     const extractedData = response?.[dataKey] || [];
-    
+
     return {
         data: extractedData,
         totalItems: response?.[totalKey] || extractedData.length || 0,

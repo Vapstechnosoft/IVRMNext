@@ -64,40 +64,19 @@ interface SalarySlipTemplateProps {
 }
 
 export function numberToWords(num: number) {
+  if (num === 0) return "Zero Rupees Only";
+
+  const isNegative = num < 0;
+  const absNum = Math.abs(num);
+
   const a = [
-    "",
-    "One",
-    "Two",
-    "Three",
-    "Four",
-    "Five",
-    "Six",
-    "Seven",
-    "Eight",
-    "Nine",
-    "Ten",
-    "Eleven",
-    "Twelve",
-    "Thirteen",
-    "Fourteen",
-    "Fifteen",
-    "Sixteen",
-    "Seventeen",
-    "Eighteen",
-    "Nineteen",
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+    "Seventeen", "Eighteen", "Nineteen"
   ];
 
   const b = [
-    "",
-    "",
-    "Twenty",
-    "Thirty",
-    "Forty",
-    "Fifty",
-    "Sixty",
-    "Seventy",
-    "Eighty",
-    "Ninety",
+    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
   ];
 
   function inWords(n: number): string {
@@ -128,15 +107,29 @@ export function numberToWords(num: number) {
     );
   }
 
-  const [rupees, paise] = num.toFixed(2).split(".");
+  const [rupees, paise] = absNum.toFixed(2).split(".");
+  const rupeesVal = parseInt(rupees);
+  const paiseVal = parseInt(paise);
 
-  let words = inWords(parseInt(rupees)) + " Rupees";
+  let words = "";
 
-  if (parseInt(paise) > 0) {
-    words += " and " + inWords(parseInt(paise)) + " Paise";
+  if (rupeesVal > 0) {
+    words = inWords(rupeesVal) + " Rupees";
   }
 
-  return words + " Only";
+  if (paiseVal > 0) {
+    if (words) {
+      words += " and " + inWords(paiseVal) + " Paise";
+    } else {
+      words = inWords(paiseVal) + " Paise";
+    }
+  }
+
+  if (!words) {
+    words = "Zero Rupees";
+  }
+
+  return (isNegative ? "Minus " : "") + words + " Only";
 }
 
 export function SalarySlipTemplate({

@@ -115,22 +115,39 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
 
     // 2. Map all related data to student details
     const studentListDetails = getstudentdetails.map((stu: any) => {
+        const stuId = stu.AMST_Id || stu.amsT_Id;
+
         // Subjects
-        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         // Marks
-        const studentMarks = getstudentmarksdetails.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentMarks = getstudentmarksdetails.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Exam wise total marks
-        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Remarks
-        const promotionRemarks = getpromotionremarksdetails.find((d: any) => d.amsT_Id === stu.amsT_Id);
+        const promotionRemarks = getpromotionremarksdetails.find((d: any) => {
+            const dId = d.AMST_Id || d.amsT_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        });
         const remarks = promotionRemarks?.eprD_Remarks || '';
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
+        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
+            const dId = d.AMST_Id || d.amsT_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        }).map((d: any) => ({
             classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
             emE_Id: d.EME_Id || d.emE_Id,
             classatt: d.PRESENTDAYS || d.presentdays,
@@ -139,17 +156,31 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         }));
 
         // Suggestions
-        const suggestions = examwiseremarks.filter((s: any) => s.amsT_Id === stu.amsT_Id).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
+        const suggestions = examwiseremarks.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        }).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
 
         // Exam wise total details
-        const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
+        const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
+            const tId = t.AMST_Id || t.amsT_Id;
+            return tId && stuId && Number(tId) === Number(stuId);
+        });
 
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
         for (const subj of studentSubjects) {
-            if (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) {
+            const displayMarks = subj.EYCES_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 1 || subj.EYCES_MarksDisplayFlg === '1' || subj.EYCES_MarksDisplayFlg === 'true' ||
+                subj.eyceS_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 1 || subj.eyceS_MarksDisplayFlg === '1' || subj.eyceS_MarksDisplayFlg === 'true';
+            if (displayMarks) {
                 const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
-                const examTotal = examwisetotal.find((t: any) => t.ISMS_SubjectName === subjectName || t.ismS_SubjectName === subjectName);
+                const subjId = subj.ISMS_Id || subj.ismS_Id;
+                const examTotal = examwisetotal.find((t: any) =>
+                    (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
+                    (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
+                    t.ISMS_SubjectName === subjectName ||
+                    t.ismS_SubjectName === subjectName
+                );
 
                 chartData.push({
                     subject: subjectName,
@@ -161,7 +192,10 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         }
 
         // Skills for the specific student
-        const studentSkills = getstudentwiseskillslist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSkills = getstudentwiseskillslist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         return {
             ...stu,
@@ -181,11 +215,12 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        const devId = dev.ECS_Id ?? dev.ecS_Id;
+        if (!skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === devId)) {
             skilllist_temp.push(dev);
         }
     }
-
+    console.log("skilllist_temp", skilllist_temp)
     return {
         getinstitution,
         getgroupdetails,
@@ -200,7 +235,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
  * Fetches and transforms the Calcutta Promotion Report I-V data
  */
 export async function getCalcuttaPromotionReportI_V(data: any) {
-    const url = '/JSHSExamReports/PromotionReportI_IV';
+    const url = '/JSHSExamReports_/cbs_PromotionReportI_IV';
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
@@ -221,7 +256,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         examwiseremarks = [],
         getexamwisetotaldetails = [],
         examWise_PaperType = [],
-        getparticipatedetails = []
+        getparticipatedetails = [],
+        getgradelist = []
     } = response;
 
     // 1. Group wise exam list construction
@@ -304,22 +340,39 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
 
     // 2. Map all related data to student details
     const studentListDetails = getstudentdetails.map((stu: any) => {
+        const stuId = stu.AMST_Id || stu.amsT_Id;
+
         // Subjects
-        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSubjects = getstudentwisesubjectlist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         // Marks
-        const studentMarks = getstudentmarksdetails.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentMarks = getstudentmarksdetails.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Exam wise total marks
-        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => m.AMST_Id === stu.amsT_Id || m.amsT_Id === stu.amsT_Id);
+        const studentExamMarks = getstudent_examwisemarks.filter((m: any) => {
+            const mId = m.AMST_Id || m.amsT_Id;
+            return mId && stuId && Number(mId) === Number(stuId);
+        });
 
         // Remarks
-        const promotionRemarks = getpromotionremarksdetails.find((d: any) => d.amsT_Id === stu.amsT_Id);
+        const promotionRemarks = getpromotionremarksdetails.find((d: any) => {
+            const dId = d.AMST_Id || d.amsT_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        });
         const remarks = promotionRemarks?.eprD_Remarks || '';
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
-        const attendance = getstudentwiseattendancedetails.filter((d: any) => d.AMST_Id === stu.amsT_Id || d.amsT_Id === stu.amsT_Id).map((d: any) => ({
+        const attendance = getstudentwiseattendancedetails.filter((d: any) => {
+            const dId = d.AMST_Id || d.amsT_Id;
+            return dId && stuId && Number(dId) === Number(stuId);
+        }).map((d: any) => ({
             classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
             emE_Id: d.EME_Id || d.emE_Id,
             classatt: d.PRESENTDAYS || d.presentdays,
@@ -328,17 +381,31 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         }));
 
         // Suggestions (optional)
-        const suggestions = examwiseremarks.filter((s: any) => s.amsT_Id === stu.amsT_Id).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
+        const suggestions = examwiseremarks.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        }).map((s: any) => s.ecterE_Remarks || s.eprd_remarks || '');
 
         // Exam wise total details
-        const examwisetotal = getexamwisetotaldetails.filter((t: any) => t.AMST_Id === stu.amsT_Id || t.amsT_Id === stu.amsT_Id);
+        const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
+            const tId = t.AMST_Id || t.amsT_Id;
+            return tId && stuId && Number(tId) === Number(stuId);
+        });
 
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
         for (const subj of studentSubjects) {
-            if (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) {
+            const displayMarks = subj.EYCES_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 1 || subj.EYCES_MarksDisplayFlg === '1' || subj.EYCES_MarksDisplayFlg === 'true' ||
+                subj.eyceS_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 1 || subj.eyceS_MarksDisplayFlg === '1' || subj.eyceS_MarksDisplayFlg === 'true';
+            if (displayMarks) {
                 const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
-                const examTotal = examwisetotal.find((t: any) => t.ISMS_SubjectName === subjectName || t.ismS_SubjectName === subjectName);
+                const subjId = subj.ISMS_Id || subj.ismS_Id;
+                const examTotal = examwisetotal.find((t: any) =>
+                    (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
+                    (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
+                    t.ISMS_SubjectName === subjectName ||
+                    t.ismS_SubjectName === subjectName
+                );
 
                 chartData.push({
                     subject: subjectName,
@@ -350,7 +417,10 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         }
 
         // Skills for the specific student
-        const studentSkills = getstudentwiseskillslist.filter((s: any) => s.AMST_Id === stu.amsT_Id || s.amsT_Id === stu.amsT_Id);
+        const studentSkills = getstudentwiseskillslist.filter((s: any) => {
+            const sId = s.AMST_Id || s.amsT_Id;
+            return sId && stuId && Number(sId) === Number(stuId);
+        });
 
         return {
             ...stu,
@@ -370,7 +440,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
     // Unique skills list (skilllist_temp)
     const skilllist_temp: any[] = [];
     for (const dev of getstudentwiseskillslist) {
-        if (!skilllist_temp.find(emp => emp.ECS_Id === dev.ECS_Id)) {
+        const devId = dev.ECS_Id ?? dev.ecS_Id;
+        if (!skilllist_temp.find(emp => (emp.ECS_Id ?? emp.ecS_Id) === devId)) {
             skilllist_temp.push(dev);
         }
     }
@@ -383,6 +454,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
         skilllist_temp,
         examwiseremarkstemp,
         studentdetails: studentListDetails,
+        getgradelist,
+        getpromotionremarksdetails
     };
 }
 
