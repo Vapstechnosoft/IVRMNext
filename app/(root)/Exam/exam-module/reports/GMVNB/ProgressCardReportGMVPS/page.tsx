@@ -13,7 +13,8 @@ export default function ProgressCardReportPage() {
     const [subjects, setSubjects] = useState<ISubject[]>([]);
     const [headerInfo, setHeaderInfo] = useState<any>({});
     const [examName, setExamName] = useState<string>('');
-    const [examCode] = useState<string>('FA1');
+    const [examCode, setExamCode] = useState<string>('FA1');
+    const [reopenDate, setReopenDate] = useState<string>('');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>();
@@ -58,6 +59,7 @@ export default function ProgressCardReportPage() {
                     subjectMap.set(row.ismS_Id, {
                         ismS_Id: row.ismS_Id,
                         ismS_SubjectName: row.ismS_SubjectName,
+                        ismS_SubjectCode: row.ismS_SubjectCode,
                         eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? true,
                         eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? true,
                         eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? true,
@@ -109,6 +111,7 @@ export default function ProgressCardReportPage() {
                         estmpS_MaxMarks: row.estmpS_MaxMarks,
                         estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? null,
                         estmpS_MinMarks: row.estmpS_MinMarks,
+                        eyceS_MinMarks: row.eyceS_MinMarks,
                         estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || '-',
                         estmpS_PassFailFlg: row.estmpS_PassFailFlg
                     });
@@ -130,6 +133,10 @@ export default function ProgressCardReportPage() {
                 cla: firstRow.asmcL_ClassName,
                 sec: firstRow.asmC_SectionName
             });
+            const rawDate = payload.reopenDate ? new Date(payload.reopenDate) : new Date();
+            const formattedDate = `${String(rawDate.getDate()).padStart(2, '0')}/${String(rawDate.getMonth() + 1).padStart(2, '0')}/${rawDate.getFullYear()}`;
+            setReopenDate(formattedDate);
+            setExamCode(firstRow.emE_ExamCode || firstRow.emE_ExamName || 'FA1');
             setExamName(firstRow.emE_ExamName || 'Progress Card');
             setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
             setIsReportVisible(true);
@@ -255,6 +262,7 @@ export default function ProgressCardReportPage() {
                         examName={examName}
                         examCode={examCode}
                         year={year}
+                        reopenDate={reopenDate}
                         onPrint={handlePrint}
                     />
                 </CollapsibleSection>

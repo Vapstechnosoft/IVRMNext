@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ndsCoScholasticReportSchema, type NDSCoScholasticReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
+    getGmvpsProgressCardIXReport
+} from '@/server/exam/exam-module/reports/nds-co-scholastic-report';
+import {
     getClassDropDownByAcademicYearlist,
-    getExamAcademicYearDropdown,
-    getGmvpsProgressCardIXReport,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
-} from '@/server/exam/exam-module/reports/nds-co-scholastic-report';
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, RefreshCcw, FileText, Printer, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -32,7 +34,8 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [students, setStudents] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [loading, setLoading] = useState(true);
+    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
+
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
@@ -52,22 +55,19 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' }) || [];
 
-    // Load Initial Data
+    // Load Academic Years
     useEffect(() => {
-        (async () => {
-            try {
-                const response = await getExamAcademicYearDropdown();
-                if (response?.success && Array.isArray(response.data)) {
-                    setYears(response.data);
-                }
-            } catch (err) {
-                console.error(err);
-                toast.error('Failed to load initial details');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        if (academicError) {
+            toast.error(academicError.message || 'Failed to load academic years');
+            setYears([]);
+        } else if (academicData?.data) {
+            const formatted = academicData.data.map((i: any) => ({
+                asmaY_Id: i.asmaY_Id ?? 0,
+                asmaY_Year: i.asmaY_Year ?? ''
+            }));
+            setYears(formatted);
+        }
+    }, [academicData, academicError]);
 
     // Load Classes on Year Change
     useEffect(() => {
@@ -192,7 +192,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         }
     };
 
-    if (loading) {
+    if (academicYearLoading) {
         return (
             <div className="flex justify-center p-8">
                 <Loader2 className="animate-spin text-primary h-8 w-8" />
