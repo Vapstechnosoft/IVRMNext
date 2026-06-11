@@ -70,7 +70,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             Temp_Subject_Order: [],
             EYCE_BestOfApplicableFlg: false,
             EYCE_BestOf: undefined,
-            EMCA_Id: undefined
+            EMCA_Id: undefined,
+            ASMAY_Id: undefined
         }
     });
 
@@ -251,11 +252,12 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (formState.isSubmitted) {
             // 1️ No subject selected
             const hasSelectedSubject = Array.isArray(subjects) && subjects.some((s: any) => s.checkedvalue === true);
-            if (!hasSelectedSubject) {
-                toast.error('Select at least one subject before saving');
-                return; // stop here — don’t show other errors
-            }
-            // 2️ Extract first validation error
+            // if (!hasSelectedSubject) {
+            //     toast.error('Select at least one subject before saving');
+            //     return; // stop here — don’t show other errors
+            // }
+            // 2️ Extract first validation error - Disabled to prevent extra toast messages
+            /*
             const errors = formState.errors as Record<string, any>;
             const firstErrorKey = Object.keys(errors)[0];
             if (firstErrorKey) {
@@ -287,6 +289,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     return; // show only the first one
                 }
             }
+            */
         }
     }, [formState.isSubmitted, formState.errors, getValues]);
     // Setting Subjects
@@ -920,37 +923,42 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         <Label>
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select
-                                            value={watchCategory?.toString() ?? ''}
-                                            onValueChange={(val) => {
-                                                const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
-                                                if (selectedCategory) {
-                                                    setValue('EYC_Id', Number(selectedCategory.eyC_Id));
-                                                    setValue('EMCA_Id', Number(selectedCategory.emcA_Id)); // store EMCA_Id for exam fetch
-                                                }
-                                            }}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Category' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {categoriesLoading ? (
-                                                    <SelectItem value='loading' disabled>
-                                                        Loading Categories...
-                                                    </SelectItem>
-                                                ) : categories.length === 0 ? (
-                                                    <SelectItem value='error' disabled>
-                                                        No Categories Found
-                                                    </SelectItem>
-                                                ) : (
-                                                    categories.map((c) => (
-                                                        <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
-                                                            {c.emcA_CategoryName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-
+                                        <Controller
+                                            control={control}
+                                            name='EYC_Id'
+                                            render={({ field, fieldState }) => (
+                                                <Select
+                                                    value={field.value ? String(field.value) : undefined}
+                                                    onValueChange={(val) => {
+                                                        const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
+                                                        if (selectedCategory) {
+                                                            field.onChange(Number(selectedCategory.eyC_Id));
+                                                            setValue('EMCA_Id', Number(selectedCategory.emcA_Id), { shouldValidate: true });
+                                                        }
+                                                    }}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Category' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {categoriesLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Categories...
+                                                            </SelectItem>
+                                                        ) : categories.length === 0 ? (
+                                                            <SelectItem value='error' disabled>
+                                                                No Categories Found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            categories.map((c) => (
+                                                                <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
+                                                                    {c.emcA_CategoryName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
                                         {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                                     </div>
 
@@ -958,22 +966,34 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         <Label>
                                             Exams <span className='text-red-500'>*</span>
                                         </Label>
-                                        <CustomMultiSelectBox
-                                            options={exams.map((ex) => ({
-                                                label: ex.EME_ExamName,
-                                                value: ex.EME_Id.toString()
-                                            }))}
-                                            value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
-                                            onChange={(selectedValues) => {
-                                                const updatedExams = exams.map((ex) => ({
-                                                    ...ex,
-                                                    checked: selectedValues.includes(ex.EME_Id.toString())
-                                                }));
-                                                setExams(updatedExams);
-                                            }}
-                                            isSearchRequired={true}
-                                            height='220px'
+                                        <Controller
+                                            control={control}
+                                            name="exams_list"
+                                            render={({ field }) => (
+                                                <CustomMultiSelectBox
+                                                    options={exams.map((ex) => ({
+                                                        label: ex.EME_ExamName,
+                                                        value: ex.EME_Id.toString()
+                                                    }))}
+                                                    value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
+                                                    onChange={(selectedValues) => {
+                                                        const updatedExams = exams.map((ex) => ({
+                                                            ...ex,
+                                                            checked: selectedValues.includes(ex.EME_Id.toString())
+                                                        }));
+                                                        setExams(updatedExams);
+                                                        field.onChange(
+                                                            updatedExams
+                                                                .filter((e) => e.checked)
+                                                                .map((e) => ({ EME_Id: e.EME_Id, EME_ExamName: e.EME_ExamName }))
+                                                        );
+                                                    }}
+                                                    isSearchRequired={true}
+                                                    height='220px'
+                                                />
+                                            )}
                                         />
+                                        {errors.exams_list && <FormError>{errors.exams_list.message}</FormError>}
                                     </div>
                                 </div>
 

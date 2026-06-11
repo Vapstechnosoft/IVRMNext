@@ -48,22 +48,6 @@ const MONTH_LIST = [
 ];
 
 export default function SalarySlipPage() {
-  const searchParams = useSearchParams();
-  const page = Number(searchParams.get("page")) || 1;
-  const pageSize = Number(searchParams.get("page_size")) || 5;
-
-  const router = useRouter();
-      const pathname = usePathname();
-  
-      useEffect(() => {
-        // We want to clear all params on mount to start fresh, 
-        // but we MUST ensure page_size is 5 so the table defaults correctly.
-        const shouldClearParams = Array.from(searchParams.keys()).some(k => k !== 'page_size');
-        if (shouldClearParams || searchParams.get('page_size') !== '5') {
-            router.replace(`${pathname}?page_size=5`, { scroll: false });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
   const [filters, setFilters] = useState<SalarySlipFiltersType>({
     groupType: [],
@@ -153,8 +137,6 @@ export default function SalarySlipPage() {
           hrmgt_ids: filters.groupType.join(","),
           hrmd_ids: filters.department.join(","),
           hrmdes_ids: filters.designation.join(","),
-          page: page,
-          page_size: pageSize,
           search: searchTerm || undefined
         },
         {
@@ -164,7 +146,7 @@ export default function SalarySlipPage() {
                 ? res.data
                 : (res.data as any).data || [];
               const mapped = empList.map((emp:any, index:number) => ({
-                id: (page - 1) * pageSize + index + 1,
+                id: index + 1,
                 employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
                 employeeName:
                   `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ""} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ""}`.trim(),
@@ -189,7 +171,7 @@ export default function SalarySlipPage() {
       setTableResponse(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month, page, pageSize, searchTerm]);
+  }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month, searchTerm]);
 
   const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
     setFilters(newFilters);
@@ -222,14 +204,15 @@ export default function SalarySlipPage() {
 
   const selectedCount = filteredEmployeesList.filter((e) => selectedEmployeeIds.has(e.id)).length;
 
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = (checked: boolean, ids?: number[]) => {
     setSelectedEmployeeIds((prev) => {
       const next = new Set(prev);
-      filteredEmployeesList.forEach((emp) => {
+      const targetIds = ids || filteredEmployeesList.map((emp) => emp.id);
+      targetIds.forEach((id) => {
         if (checked) {
-          next.add(emp.id);
+          next.add(id);
         } else {
-          next.delete(emp.id);
+          next.delete(id);
         }
       });
       return next;
