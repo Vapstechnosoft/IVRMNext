@@ -251,7 +251,6 @@ function EmployeeAbsentReportPageContent({
                                         columnPinning={{ left: ['hrme_id'], right: ['actions'] }}
                                         isPaginationRequired={false}
                                         isSearchRequired={false}
-                                        manualPagination={true}
                                         loadingMessage='Analyzing attendance records...'
                                         noDataTitle='No records matches your criteria'
                                         noDataDescription='Try adjusting your category, department or date range filters.'

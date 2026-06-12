@@ -414,9 +414,6 @@ export default function MasterHTMLTemplates() {
             columns={columns as any}
             data={parameterlist}
             totalItems={parameterlist.length}
-            manualPagination={false}
-            manualFiltering={false}
-            manualSorting={false}
           />
         </CardContent>
       </Card>

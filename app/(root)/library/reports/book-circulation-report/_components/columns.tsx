@@ -1,9 +1,8 @@
 'use client';
-import React from 'react';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
+import type { IBookCirculationReportGridData } from '@/types/library/reports/book-circulation-report';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
@@ -105,15 +104,50 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
                 enableSorting: true
             },
             {
-                id: 'ASMCL_CLASSNAME',
+                accessorKey: 'ASMCL_CLASSNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-                cell: ({ row }) => <div>{(row.original as any).ASMCL_CLASSNAME || (row.original as any).ASMCL_CLASS_NAME || '--'}</div>,
+                cell: ({ row }) => {
+                    const original = row.original as any;
+                    return (
+                        <div>
+                            {original.ASMCL_CLASSNAME ||
+                                original.ASMCL_CLASS_NAME ||
+                                original.CLASSNAME ||
+                                original.CLASS_NAME ||
+                                original.asmcL_ClassName ||
+                                original.asmcl_classname ||
+                                original.className ||
+                                original.ClassName ||
+                                '--'}
+                        </div>
+                    );
+                },
                 enableSorting: true
             },
             {
-                id: 'ASMC_SECTIONNAME',
+                accessorKey: 'ASMC_SECTIONNAME',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-                cell: ({ row }) => <div>{(row.original as any).ASMC_SECTIONNAME || (row.original as any).ASMS_SECTIONNAME || '--'}</div>,
+                cell: ({ row }) => {
+                    const original = row.original as any;
+                    return (
+                        <div>
+                            {original.ASMC_SECTIONNAME ||
+                                original.ASMS_SECTIONNAME ||
+                                original.SECTIONNAME ||
+                                original.SECTION_NAME ||
+                                original.ASMC_SECTION_NAME ||
+                                original.ASMS_SECTION_NAME ||
+                                original.MC_SECTIONNAME ||
+                                original.asmC_SectionName ||
+                                original.asmS_SectionName ||
+                                original.asmc_sectionname ||
+                                original.asms_sectionname ||
+                                original.sectionName ||
+                                original.SectionName ||
+                                '--'}
+                        </div>
+                    );
+                },
                 enableSorting: true
             },
             {
@@ -180,9 +214,5 @@ export const getColumns = (memberType: string): ColumnDef<IBookCirculationReport
     }
 
     // Combine: Shared + Specific + Status/Dates
-    return [
-        ...SharedColumns,
-        ...specificColumns,
-        ...StatusDateColumns
-    ];
+    return [...SharedColumns, ...specificColumns, ...StatusDateColumns];
 };

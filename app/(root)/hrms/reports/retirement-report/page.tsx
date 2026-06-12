@@ -829,9 +829,6 @@ function RetirementReportContent() {
               showSearchColumns={false}
               showExportOptions={false}
               maxSelectableRows={0}
-              manualPagination={false}
-              manualSorting={false}
-              manualFiltering={false}
               scrollable
             />
           </div>

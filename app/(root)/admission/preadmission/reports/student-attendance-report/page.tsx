@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
+import { Bell, CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -22,7 +22,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
-import { getStudentAttendanceReport } from '@/server/admission/preadmission/reports/report';
+import { getStudentAttendanceReport, sendStudentAttendanceNotice } from '@/server/admission/preadmission/reports/report';
 import type { IStudentAttendanceReportList } from '@/types/admission/preadmission/reports';
 import type { ApiSearchparams } from '@/types';
 import * as XLSX from 'xlsx';
@@ -57,11 +57,14 @@ const parseAttendanceList = (list: any[]) => {
     if (!Array.isArray(list)) return [];
     return list.map((item: any) => {
         let parsedConcession: any = {};
-        if (item.FMCC_ConcessionName) {
-            try {
-                parsedConcession = JSON.parse(item.FMCC_ConcessionName);
-            } catch (e) {
-                console.error('Error parsing FMCC_ConcessionName JSON:', e);
+        if (item.FMCC_ConcessionName && typeof item.FMCC_ConcessionName === 'string') {
+            const trimmed = item.FMCC_ConcessionName.trim();
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                try {
+                    parsedConcession = JSON.parse(trimmed);
+                } catch (e) {
+                    // Ignored to prevent Next.js error overlay
+                }
             }
         }
         const newItem = { ...item };
@@ -220,6 +223,8 @@ export default function StudyCertificateReportPage(props: {
 
     const [allReportData, setAllReportData] = useState<any>(null);
     const [isPrinting, setIsPrinting] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
     const tableProps = useDataTableProps({
         ...parsedStudentsAttendance,
@@ -283,6 +288,48 @@ export default function StudyCertificateReportPage(props: {
             console.error('Print Error:', error);
             toast.error('Failed to prepare print view', { id: 'print-all' });
             setIsPrinting(false);
+        }
+    };
+
+    const handleSendNotice = async () => {
+        try {
+            if (!selectedRows || selectedRows.length === 0) {
+                toast.error('Please select at least one student to send notice.');
+                return;
+            }
+
+            if (!classId || !sectionId) {
+                toast.error('Class and Section must be selected.');
+                return;
+            }
+
+            setIsSending(true);
+            toast.loading('Sending notices...', { id: 'send-notice' });
+
+            const payload = {
+                classlsttwo: [
+                    {
+                        asmcL_Id: classId,
+                        asmS_Id: sectionId
+                    }
+                ],
+                templateName: 'ABSENT_NOTIFICATION',
+                absent: 0,
+                absentSMS: selectedRows.map((row: any) => ({
+                    amsT_Id: row.AMST_Id || row.amsT_Id,
+                    amsT_AdmNo: row.AMST_AdmNo || row.amsT_AdmNo,
+                    remarks: row.Remarks || row.remarks || 'Absent Today',
+                    name: row.name || row.studentName
+                }))
+            };
+
+            await sendStudentAttendanceNotice(payload);
+            toast.success('Notices sent successfully!', { id: 'send-notice' });
+        } catch (error) {
+            console.error('Send Notice Error:', error);
+            toast.error('Failed to send notices.', { id: 'send-notice' });
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -437,7 +484,7 @@ export default function StudyCertificateReportPage(props: {
                     tableHeaders.push(String(day));
                 }
             }
-            tableHeaders.push('Class Held', 'Class Attended', 'Percentage');
+            tableHeaders.push('Class Held', 'Class Attended', 'Percentage(%)', 'Remarks');
 
             // Prepare table data
             const tableData = allData.map((row: any) => {
@@ -454,10 +501,21 @@ export default function StudyCertificateReportPage(props: {
                     }
                 }
 
+                let remarks = 'Poor Attendance';
+                const percentage = Number(row.Percentage || 0);
+                if (row.Remarks || row.remarks) {
+                    remarks = row.Remarks || row.remarks;
+                } else {
+                    if (percentage >= 75) remarks = 'Very Good Attendance';
+                    else if (percentage >= 50) remarks = 'Good Attendance';
+                    else if (percentage >= 35) remarks = 'Average Attendance';
+                }
+
                 baseData.push(
                     row.ASA_ClassHeld,
                     row.ASA_Class_Attended,
-                    `${Number(row.Percentage || 0).toFixed(2)}%`
+                    percentage.toFixed(2),
+                    remarks
                 );
 
                 return baseData;
@@ -656,6 +714,15 @@ export default function StudyCertificateReportPage(props: {
                             <Printer className='mr-2 h-4 w-4' />
                             {isPrinting ? 'Preparing...' : 'Print'}
                         </Button>
+                        <Button
+                            type='button'
+                            variant='default'
+                            className='w-fit bg-indigo-600 hover:bg-indigo-700'
+                            onClick={handleSendNotice}
+                            disabled={isSending || !((parsedStudentsAttendance as any)?.data?.studentAttendanceList?.length > 0)}>
+                            <Bell className='mr-2 h-4 w-4' />
+                            {isSending ? 'Sending...' : 'Send Notice'}
+                        </Button>
                     </div>
                 </div>
             </form>
@@ -766,6 +833,7 @@ export default function StudyCertificateReportPage(props: {
                                 isLoading={isLoading}
                                 error={error}
                                 showViewOptions={false}
+                                onRowSelectionChange={setSelectedRows}
                                 loadingMessage='Loading Student Attendance Reports...'
                                 noDataTitle='No Data Found'
                                 noDataDescription='No Student Attendance Reports found.'

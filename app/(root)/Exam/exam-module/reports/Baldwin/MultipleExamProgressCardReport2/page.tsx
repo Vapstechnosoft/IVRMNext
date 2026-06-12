@@ -16,14 +16,9 @@ export default function MultipleExamProgressCardReport2Page() {
         setReportParams(params);
     };
 
-    const handleReset = () => {
-        setReportData(null);
-        setReportParams(null);
-    };
-
     return (
         <div className="container p-4 space-y-6">
-            <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
+            <ReportForm onReportGenerated={handleReportGenerated} />
             
             {reportData && (
                 <ReportView reportData={reportData} reportParams={reportParams} />

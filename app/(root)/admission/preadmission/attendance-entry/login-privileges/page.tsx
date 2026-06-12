@@ -306,11 +306,21 @@ function PrivilegeForm({
 
             if (result) {
                 const rawClassList = result.classSectionList || result.data?.classSectionList || result.classsectionList || result.data?.classsectionList || [];
-                const csList = rawClassList.map((item: any) => ({
-                    ...item,
-                    id: `${item.asmcL_Id}-${item.asmC_Id}`,
-                    label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
-                }));
+                
+                const seenIds = new Set();
+                const csList = rawClassList.reduce((acc: any[], item: any) => {
+                    const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                    if (!seenIds.has(uniqueId)) {
+                        seenIds.add(uniqueId);
+                        acc.push({
+                            ...item,
+                            id: uniqueId,
+                            label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
+                        });
+                    }
+                    return acc;
+                }, []);
+                
                 setMappingClassSections(csList);
                 
                 const subList = result.subjectList || result.data?.subjectList || [];

@@ -97,9 +97,6 @@ function MasterRackDetailsPageContent({
                         columnPinning={{ right: ['actions'] }}
                         showSearchColumns={true}
                         showViewOptions={true}
-                        manualFiltering={true}
-                        manualPagination={true}
-                        manualSorting={true}
                         loadingMessage='Loading rack details...'
                         noDataTitle='No Rack Details Found'
                         noDataDescription='Get started by creating your first rack entry'

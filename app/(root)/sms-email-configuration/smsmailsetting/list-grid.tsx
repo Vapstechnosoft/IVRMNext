@@ -178,9 +178,6 @@ export function ListGrid({ data, onEdit }: ListGridProps) {
         columns={columns as any}
         data={data}
         totalItems={data.length}
-        manualPagination={false}
-        manualFiltering={false}
-        manualSorting={false}
       />
 
       <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>

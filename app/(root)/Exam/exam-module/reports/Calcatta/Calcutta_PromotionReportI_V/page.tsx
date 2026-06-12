@@ -1,6 +1,6 @@
 'use client';
 
-import { getCalcuttaPromotionReportI_IV } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
+import { getCalcuttaPromotionReportI_V } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import CalcuttaPromotionReportForm from './_components/report-form';
@@ -16,7 +16,8 @@ export default function CalcuttaPromotionReportItoVPage() {
 
     const handleFormSubmit = async (payload: any, dates: any) => {
         try {
-            const res = await getCalcuttaPromotionReportI_IV(payload);
+            const res = await getCalcuttaPromotionReportI_V(payload);
+            console.log('report data', res);
             setReportData({ ...res, EMPG_GroupName: payload.EMPG_GroupName });
             setDateInfo(dates);
             toast.success('Report generated successfully');

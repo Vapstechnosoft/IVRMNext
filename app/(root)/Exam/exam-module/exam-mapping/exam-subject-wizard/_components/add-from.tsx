@@ -55,6 +55,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         mode: 'onChange',
         defaultValues: {
             EYCE_Id: 0,
+            ASMAY_Id: undefined,
             EYC_Id: undefined,
             EMGR_Id: undefined,
             EYCE_SubExamFlg: false,
@@ -844,7 +845,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         reset({
             UserId: 0,
             MI_Id: 0,
-            ASMAY_Id: 0,
+            ASMAY_Id: undefined,
             ASMAY_Year: '',
             EYCE_BestOfApplicableFlg: false,
             EYCE_BestOf: undefined,

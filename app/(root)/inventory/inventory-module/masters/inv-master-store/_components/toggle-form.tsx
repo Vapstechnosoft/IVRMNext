@@ -76,9 +76,7 @@ export default function ToggleInvMasterStoreForm({ rowData, onClose }: ToggleInv
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className='flex gap-2'>
-                    <AlertDialogCancel asChild>
-                        <Button variant='secondary'>Cancel</Button>
-                    </AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
                         <Button variant={rowData.invmS_ActiveFlg ? 'destructive' : 'default'} onClick={handleToggle}>

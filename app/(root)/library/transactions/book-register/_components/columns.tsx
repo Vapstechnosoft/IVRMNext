@@ -53,24 +53,7 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />,
         cell: ({ row }) => <div>{row.getValue('lmL_LanguageName') || '-'}</div>
     },
-    {
-        accessorKey: 'lmB_FirstSummary',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='First Summary' />,
-        cell: ({ row }) => <div>{(row.original as any).lmB_FirstSummary || '-'}</div>,
-        size: 180
-    },
-    {
-        accessorKey: 'lmB_SecondSummary',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Second Summary' />,
-        cell: ({ row }) => <div>{(row.original as any).lmB_SecondSummary || '-'}</div>,
-        size: 180
-    },
-    {
-        accessorKey: 'lmB_ThirdSummary',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Third Summary' />,
-        cell: ({ row }) => <div>{(row.original as any).lmB_ThirdSummary || '-'}</div>,
-        size: 120
-    },
+
     {
         accessorKey: 'lmrA_RackName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rack name' />,

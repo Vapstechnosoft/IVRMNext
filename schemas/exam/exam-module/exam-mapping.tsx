@@ -427,9 +427,9 @@ export const ExamSubjectWizardSchema = {
     addOrUpdate: z
         .object({
             EYCE_Id: z.number().int().nonnegative().optional().default(0),
-            EYC_Id: z.number({ required_error: "Category is required" }).int().positive(),
+            EYC_Id: z.number({ required_error: 'Category is required' }).int().positive(),
             EMCA_Id: z.number().int().positive(),
-            EMGR_Id: z.number({ required_error: "Grade is required" }).int().positive({ message: 'Grade is required' }),
+            EMGR_Id: z.number({ required_error: 'Grade is required' }).int().positive({ message: 'Grade is required' }),
 
             EYCE_SubExamFlg: z.boolean().optional(),
             EYCE_SubSubjectFlg: z.boolean().optional(),

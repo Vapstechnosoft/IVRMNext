@@ -199,7 +199,6 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                     <SelectValue placeholder="-- Select --" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl">
-                    <SelectItem value="">-- Select --</SelectItem>
                     {REMARKS_OPTIONS.map(opt => (
                         <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                     ))}
@@ -282,7 +281,6 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                             <SelectValue placeholder="-- Select --" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                             <SelectItem value="">-- Select --</SelectItem>
                             {REMARKS_OPTIONS.map(opt => (
                                 <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                             ))}

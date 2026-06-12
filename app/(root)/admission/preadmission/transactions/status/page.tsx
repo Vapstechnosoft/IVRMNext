@@ -149,6 +149,8 @@ export default function PreadmissionStatusPage() {
 
     const handleSearch = async () => {
         if (!asmayId) return toast.error('Please select Academic Year');
+        if (!asmclId) return toast.error('Please select Class');
+        if (!pamstId) return toast.error('Please select Status');
         setSelectedStudents([]);
         try {
             const response = await searchMutation.mutateAsync({ ASMAY_Id: asmayId, ASMCL_Id: asmclId, PAMST_Id: pamstId, status_type: statusType });

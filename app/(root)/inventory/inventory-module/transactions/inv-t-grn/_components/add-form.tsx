@@ -278,7 +278,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         <SelectValue placeholder='Select Supplier' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_supplier.map((s: any) => (
+                                        {loadData?.data?.get_supplier?.map((s: any) => (
                                             <SelectItem key={s.invmS_Id} value={s.invmS_Id.toString()}>
                                                 {s.invmS_SupplierName}
                                             </SelectItem>
@@ -301,7 +301,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         <SelectValue placeholder='Select Store' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_Store.map((s: any) => (
+                                        {loadData?.data?.get_Store?.map((s: any) => (
                                             <SelectItem key={s.invmsT_Id} value={s.invmsT_Id.toString()}>
                                                 {s.invmS_StoreName}
                                             </SelectItem>
@@ -402,7 +402,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                                         <SelectValue placeholder='Select Item' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadData?.data?.get_item.map((i: any) => (
+                                                        {loadData?.data?.get_item?.map((i: any) => (
                                                             <SelectItem key={i.invmI_Id} value={i.invmI_Id.toString()}>
                                                                 {i.invmI_ItemName}
                                                             </SelectItem>
@@ -415,7 +415,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
                                         </div>
                                     </td>
                                     <td className='border p-2'>

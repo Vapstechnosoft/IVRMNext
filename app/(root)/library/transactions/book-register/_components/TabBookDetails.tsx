@@ -19,12 +19,14 @@ export default function TabBookDetails({
     dropdownData,
     onNext,
     onCancel,
-    onClear
+    onClear,
+    isSaving
 }: {
     dropdownData: any;
     onNext: () => void;
     onCancel: () => void;
     onClear: () => void;
+    isSaving?: boolean;
 }) {
     const {
         control,
@@ -177,11 +179,15 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjectList.map((item: any) => (
-                                            <SelectItem key={item.lmS_Id} value={item.lmS_Id.toString()}>
-                                                {item.lmS_SubjectName}
-                                            </SelectItem>
-                                        ))}
+                                        {subjectList.map((item: any) => {
+                                            const subId = item.lmS_Id || item.lms_Id || item.LMS_Id || item.id || item.value;
+                                            const subName = item.lmS_SubjectName || item.lms_SubjectName || item.LMS_SubjectName || item.name || item.label || item.subjectName;
+                                            return (
+                                                <SelectItem key={subId} value={subId?.toString()}>
+                                                    {subName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -226,10 +232,7 @@ export default function TabBookDetails({
                     <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
                     <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
                     <InputText label='Book PageNo' {...register('lmBkf_PageNo')} error={errors.lmBkf_PageNo?.message} />
-                    
-                    <InputText label='First Summary' {...register('lmB_FirstSummary')} />
-                    <InputText label='Second Summary' {...register('lmB_SecondSummary')} />
-                    <InputText label='Third Summary' {...register('lmB_ThirdSummary')} />
+
 
                     <div className='flex flex-col gap-1.5'>
                         <Label>
@@ -246,11 +249,15 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {libList.map((item: any) => (
-                                            <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
-                                                {item.lmaL_LibraryName}
-                                            </SelectItem>
-                                        ))}
+                                        {libList.map((item: any) => {
+                                            const libId = item.lmaL_Id || item.lmal_Id || item.LMAL_Id || item.id || item.value;
+                                            const libName = item.lmaL_LibraryName || item.lmal_LibraryName || item.LMAL_LibraryName || item.name || item.label || item.libraryName;
+                                            return (
+                                                <SelectItem key={libId} value={libId?.toString()}>
+                                                    {libName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -277,7 +284,14 @@ export default function TabBookDetails({
                 <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
                     Cancel
                 </Button>
-                <Button type='button' variant='default' onClick={onNext} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onNext}
+                    isLoading={isSaving}
+                    disabled={isSaving}
+                    className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'
+                >
                     Save & Next
                 </Button>
             </div>

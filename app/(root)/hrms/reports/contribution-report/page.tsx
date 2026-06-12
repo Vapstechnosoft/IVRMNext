@@ -1130,7 +1130,6 @@ function ContributionReportContent() {
                   showViewOptions={false}
                   isSearchRequired={false}
                   isPaginationRequired={false}
-                  manualPagination={true}
                   // scrollable={true}
                   // maxHeight="600px"
                 />

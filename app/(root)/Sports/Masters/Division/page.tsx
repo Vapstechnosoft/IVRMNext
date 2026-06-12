@@ -92,9 +92,6 @@ function MasterDivisionPageContent({
                         columns={MasterDivisionColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master divisions...'

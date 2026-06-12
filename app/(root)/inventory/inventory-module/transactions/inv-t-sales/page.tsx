@@ -105,8 +105,8 @@ function InvTSalesPageContent({
 
     // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_Sale',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -138,7 +138,7 @@ function InvTSalesPageContent({
                     icon={<ShoppingCart className='h-5 w-5' />}>
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
-                        data={response?.data?.get_Sale || []}
+                        data={response?.data || []}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}

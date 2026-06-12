@@ -125,7 +125,6 @@ function FeeGroupMappingContent({
                         searchQuery={searchQuery}
                         loadingMessage='Loading fee group mappings...'
                         noDataTitle='No Records Found'
-                        manualPagination={true}
                         noDataDescription={
                             academicYearIdNew === 0
                                 ? 'Please select an Academic Year to view fee group mappings.'

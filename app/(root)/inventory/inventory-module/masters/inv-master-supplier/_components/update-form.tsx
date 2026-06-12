@@ -14,14 +14,16 @@ import type { IInvMasterSupplier } from '@/types/inventory/masters/inv-master-su
 
 interface UpdateInvMasterSupplierFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
     selectedRow: IInvMasterSupplier;
 }
 
-export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: UpdateInvMasterSupplierFormProps) {
+export default function UpdateInvMasterSupplierForm({ onSuccess, onCancel, selectedRow }: UpdateInvMasterSupplierFormProps) {
     const { refetchAll } = useInvMasterSupplier();
     const {
         control,
         handleSubmit,
+        reset,
         formState: { isSubmitting, errors }
     } = useForm<InvMasterSupplierSchema & { invmS_ActiveFlg?: boolean }>({
         resolver: zodResolver(invMasterSupplierSchema),
@@ -190,6 +192,9 @@ export default function UpdateInvMasterSupplierForm({ onSuccess, selectedRow }: 
             </div>
 
             <div className='flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Updating...' : 'Update'}
                 </Button>
