@@ -77,41 +77,55 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         // Extract subjects for this student
                         const studentSubjects = Array.from(new Set(studentWiseSubjects
-                            .filter((s: any) => (s.amsT_Id || s.AMST_Id || s.studentId) === studentID)
+                            .filter((s: any) => String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID))
                             .map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName)))
                             .map(name => {
                                 const subjObj = studentWiseSubjects.find((s: any) =>
-                                    (s.amsT_Id || s.AMST_Id || s.studentId) === studentID &&
+                                    String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID) &&
                                     (s.subjectName === name || s.ISMS_SubjectName === name || s.ismS_SubjectName === name)
                                 );
+                                const appToResultVal = subjObj?.appToResultFlg ?? subjObj?.EMPS_AppToResultFlg ?? subjObj?.emps_AppToResultFlg;
+                                const isAppToResult = appToResultVal !== undefined && appToResultVal !== null
+                                    ? (typeof appToResultVal === 'string' ? appToResultVal.trim().toLowerCase() === 'true' : !!appToResultVal)
+                                    : true;
                                 return {
                                     subjectName: name,
                                     ismS_Id: subjObj?.ismS_Id || subjObj?.ISMS_Id || subjObj?.isms_Id || 0,
-                                    EMPS_AppToResultFlg: subjObj?.appToResultFlg ?? subjObj?.EMPS_AppToResultFlg ?? subjObj?.emps_AppToResultFlg ?? true,
+                                    EMPS_AppToResultFlg: isAppToResult,
                                     amsT_Id: subjObj?.amsT_Id || subjObj?.AMST_Id
                                 };
                             })
                             .filter(subj => subj.EMPS_AppToResultFlg);
 
-                        const studentMarks = studentMarksDetails.filter((m: any) => (m.amsT_Id || m.AMST_Id || m.studentId) === studentID);
-                        const studentSummary = examMaxMarks.find((emm: any) => (emm.amsT_Id || emm.AMST_Id || emm.studentId) === studentID) || {};
-                        const remarksObj = promotionRemarks.find((rem: any) => (rem.amsT_Id || rem.AMST_Id || rem.studentId) === studentID) || {};
+                        const studentMarks = studentMarksDetails.filter((m: any) => String(m.amsT_Id ?? m.AMST_Id ?? m.studentId) === String(studentID));
+                        const studentSummary = examMaxMarks.find((emm: any) => String(emm.amsT_Id ?? emm.AMST_Id ?? emm.studentId) === String(studentID)) || {};
+                        const remarksObj = promotionRemarks.find((rem: any) => String(rem.amsT_Id ?? rem.AMST_Id ?? rem.studentId) === String(studentID)) || {};
 
-                        const workAtt = (data.work_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === studentID) || {};
-                        const presentAtt = (data.present_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === studentID) || {};
+                        const workAtt = (data.work_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
+                        const presentAtt = (data.present_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
                         console.log('present Attendence', presentAtt);
 
-                        // Graph data
-                        const graphSubjects = studentWiseSubjects.filter((s: any) => (s.amsT_Id || s.AMST_Id || s.studentId) === studentID);
+                        // Graph data (Filter by appToResultFlg exactly like legacy code)
+                        const graphSubjects = studentWiseSubjects.filter((s: any) => {
+                            const matchStudent = String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID);
+                            const appToResultVal = s.appToResultFlg ?? s.EMPS_AppToResultFlg ?? s.emps_AppToResultFlg;
+                            const isAppToResult = appToResultVal !== undefined && appToResultVal !== null
+                                ? (typeof appToResultVal === 'string' ? appToResultVal.trim().toLowerCase() === 'true' : !!appToResultVal)
+                                : true;
+                            return matchStudent && isAppToResult;
+                        });
                         const graphLabels = graphSubjects.map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName);
-                        const graphScores = graphSubjects.map((s: any) => s.subjectPercentage || s.TotalPercentage || 0);
-                        const graphAverages = graphSubjects.map((s: any) => s.classAverage || 0);
-                        const hasAverage = graphSubjects.some((s: any) => s.classAverage !== undefined && s.classAverage !== null);
+                        const graphScores = graphSubjects.map((s: any) => Number(s.subjectPercentage ?? s.TotalPercentage ?? 0));
+                        const graphAverages = graphSubjects.map((s: any) => Number(s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage ?? 0));
+                        const hasAverage = graphSubjects.some((s: any) => {
+                            const avgVal = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
+                            return avgVal !== undefined && avgVal !== null;
+                        });
 
                         // Co-scholastic activities data processing
                         const studentActivities = activityMainList.filter((act: any) => {
                             const actAmstId = act.AMST_Id ?? act.amsT_Id ?? act.studentId;
-                            return actAmstId === studentID;
+                            return String(actAmstId) === String(studentID);
                         });
 
                         // Extract unique activity categories (ECACT_SkillName / activityName) for this student
@@ -164,7 +178,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     const ddTermId = dd.activity_ECT_Id ?? dd.ECT_Id ?? dd.ecT_Id ?? dd.ect_Id;
                                     const actArea = act.activityArea ?? act.ECACTA_SkillArea;
                                     const ddArea = dd.activityArea ?? dd.ECACTA_SkillArea;
-                                    return ddArea === actArea && ddTermId === termId;
+                                    return ddArea === actArea && String(ddTermId) === String(termId);
                                 });
                                 if (matchingAct) {
                                     scores.push({
@@ -266,38 +280,43 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             const mExamId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
                                                             const examId = exam.EME_Id ?? exam.emE_Id ?? exam.eme_Id;
 
-                                                            const idMatch = mSubjId !== undefined && subjId !== undefined && mSubjId === subjId && mExamId !== undefined && examId !== undefined && mExamId === examId;
-
                                                             const mSubjName = m.subjectName ?? m.ismS_SubjectName ?? m.ISMS_SubjectName;
                                                             const subjName = subj.subjectName;
                                                             const mExamName = m.emE_ExamName ?? m.EME_ExamName ?? m.eme_ExamName;
                                                             const examName = exam.EME_ExamName;
 
-                                                            const nameMatch = mSubjName && subjName && mSubjName === subjName && mExamName && examName && mExamName === examName;
+                                                            const subjIdMatch = mSubjId && subjId && Number(mSubjId) !== 0 && Number(subjId) !== 0 && Number(mSubjId) === Number(subjId);
+                                                            const subjNameMatch = mSubjName && subjName && mSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
+                                                            const subjMatch = subjIdMatch || subjNameMatch;
 
-                                                            return idMatch || nameMatch;
+                                                            const examIdMatch = mExamId && examId && Number(mExamId) !== 0 && Number(examId) !== 0 && Number(mExamId) === Number(examId);
+                                                            const examNameMatch = mExamName && examName && mExamName.trim().toLowerCase() === examName.trim().toLowerCase();
+                                                            const examMatch = examIdMatch || examNameMatch;
+
+                                                            return !!(subjMatch && examMatch);
                                                         });
                                                         const summaryMark = graphSubjects.find((gs: any) => {
                                                             const gsSubjId = gs.ISMS_Id ?? gs.ismS_Id ?? gs.isms_Id;
                                                             const subjId = subj.ismS_Id ?? subj.ISMS_Id ?? subj.isms_Id;
 
-                                                            const idMatch = gsSubjId !== undefined && subjId !== undefined && gsSubjId === subjId;
                                                             const gsSubjName = gs.subjectName ?? gs.ismS_SubjectName ?? gs.ISMS_SubjectName;
                                                             const subjName = subj.subjectName;
-                                                            const nameMatch = gsSubjName && subjName && gsSubjName === subjName;
 
-                                                            return idMatch || nameMatch;
+                                                            const idMatch = gsSubjId && subjId && Number(gsSubjId) !== 0 && Number(subjId) !== 0 && Number(gsSubjId) === Number(subjId);
+                                                            const nameMatch = gsSubjName && subjName && gsSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
+
+                                                            return !!(idMatch || nameMatch);
                                                         });
                                                         let displayValue = '';
                                                         if (exam.isTotal) {
-                                                            displayValue = summaryMark?.subjectObtainedMarks ?? summaryMark?.TotalMarks ?? summaryMark?.ObtainedMarks ?? '';
+                                                            displayValue = summaryMark?.subjectObtainedMarks ?? summaryMark?.TotalMarks ?? summaryMark?.ObtainedMarks ?? mark?.ObtainedMarks ?? mark?.obtainedMarks ?? '';
                                                         } else if (exam.isGrade) {
-                                                            displayValue = summaryMark?.subjectGrade ?? summaryMark?.TotalGrade ?? summaryMark?.ObtainedGrade ?? '';
+                                                            displayValue = summaryMark?.subjectGrade ?? summaryMark?.TotalGrade ?? summaryMark?.ObtainedGrade ?? mark?.ObtainedGrade ?? mark?.obtainedGrade ?? '';
                                                         } else if (mark) {
                                                             const passFail = mark.PassFailFlag ?? mark.passFailFlag;
                                                             displayValue = passFail === 'AB' || passFail === 'M' || passFail === 'L'
                                                                 ? passFail
-                                                                : (mark.ObtainedMarks !== undefined ? mark.ObtainedMarks : mark.obtainedMarks ?? '');
+                                                                : String(mark.ObtainedMarks ?? mark.obtainedMarks ?? '');
                                                         }
 
                                                         return (
@@ -338,6 +357,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <h4 className='mb-4 text-center text-lg font-bold uppercase'>STUDENT PERFORMANCE INDEX</h4>
                                     <div className='mx-auto h-[400px] w-full max-w-4xl'>
                                         <Bar
+                                            key={`chart-${studentID}`}
+                                            id={`chart-${studentID}`}
                                             data={{
                                                 labels: graphLabels,
                                                 datasets: [
@@ -395,7 +416,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 {subActivities.map((subjco: any, ai: number) => (
                                                                     <tr key={ai}>
                                                                         <td className="border border-gray-400 p-2 text-left font-medium uppercase">{subjco.activityArea ?? subjco.ECACTA_SkillArea}</td>
-                                                                        <td className="border border-gray-400 p-2 font-bold">{subjco?.activityGrade ?? ''}</td>
+                                                                        {termDetails.map((term: any, ti: number) => {
+                                                                            const termId = term.ecT_Id ?? term.ect_Id ?? term.ECT_Id;
+                                                                            const score = (subjco.activity_score_details || []).find((s: any) => String(s.ecT_Id) === String(termId));
+                                                                            return (
+                                                                                <td key={ti} className="border border-gray-400 p-2 font-bold">{score?.activityGrade ?? score?.EMGD_Name ?? ''}</td>
+                                                                            );
+                                                                        })}
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -439,11 +466,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? workAtt.TotalSchool_Days ?? workAtt.totalSchool_Days ?? workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays ?? presentAtt.totalWorkingDays ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.TotalPresentDays ?? presentAtt.totalPresentDays ?? presentAtt.TotalPresent_Days ?? presentAtt.totalPresent_Days ?? presentAtt.presentDays ?? presentAtt.present_days ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.total_Percentage ?? ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.Total_Percentage ?? presentAtt.total_Percentage ?? presentAtt.percentage ?? presentAtt.Percentage ?? ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>

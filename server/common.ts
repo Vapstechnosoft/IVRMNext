@@ -3856,6 +3856,21 @@ export async function getUserAccessibleModules() {
                                             description: 'AI Performance Analysis'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 21031,
+                                    name: "St. Peter's School Durgapur, West Bengal",
+                                    icon: 'Building2',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: "St. Peter's School Durgapur, West Bengal",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/StPeter/FinalPromReportstpeter',
+                                            title: "St. Peter's School Durgapur, West Bengal",
+                                            description: "St. Peter's School Durgapur, West Bengal"
+                                        }
+                                    ]
                                 }
                             ]
                         }
