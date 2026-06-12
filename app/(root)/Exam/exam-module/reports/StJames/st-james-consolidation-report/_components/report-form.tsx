@@ -110,6 +110,8 @@ export default function StJamesConsolidateReportForm({
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id
         };
+
+        console.log("payload", payload);
         if (onSuccess) {
             await onSuccess(payload);
         }
