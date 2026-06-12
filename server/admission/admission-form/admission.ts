@@ -101,6 +101,11 @@ export async function getStudentAdmissionFormById(id: number) {
     return await api.get<any>('admission', url);
 }
 
+export async function getStudentProfileView(amstId: number, asmclId: number, asmsId: number) {
+    const url = `/StudentAdmissionFacade/ViewStudentProfile?AMST_Id=${amstId}&ASMCL_Id=${asmclId}&ASMS_Id=${asmsId}`;
+    return await api.post<any>('admission', url);
+}
+
 export async function deleteAdmissionForm(id: number) {
     const url = `/StudentAdmissionFacade/delete-admission/${id}`;
     return await api.delete('admission', url);

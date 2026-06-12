@@ -14,7 +14,6 @@ interface ReportGridProps {
     data: IHouseInchargeReportData[];
     searchQuery: string;
     onSearchChange: (query: string) => void;
-    manualPagination?: boolean;
 }
 
 const columns: ColumnDef<IHouseInchargeReportData>[] = [
@@ -65,7 +64,7 @@ const columns: ColumnDef<IHouseInchargeReportData>[] = [
     },
 ];
 
-export default function ReportGrid({ data, searchQuery, onSearchChange, manualPagination = true }: ReportGridProps) {
+export default function ReportGrid({ data, searchQuery, onSearchChange }: ReportGridProps) {
     const componentRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = useReactToPrint({
@@ -149,7 +148,6 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                             columns={columns}
                             data={filteredData}
                             totalItems={filteredData.length}
-                            manualPagination={false}
                         />
                     ) : (
                         <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">
@@ -179,8 +177,8 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                                     <tr key={rowIndex}>
                                         {columns.map((col: any, colIndex) => (
                                             <td key={colIndex} className="border border-gray-300 p-2">
-                                                {col.accessorKey ? (row as any)[col.accessorKey] : 
-                                                 col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
+                                                {col.accessorKey ? (row as any)[col.accessorKey] :
+                                                    col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
                                             </td>
                                         ))}
                                     </tr>

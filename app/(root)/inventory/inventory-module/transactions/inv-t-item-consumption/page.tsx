@@ -102,8 +102,8 @@ function InvTItemConsumptionPageContent({
 
     const { deleteMutation } = useInvTItemConsumption();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_itemconsumption',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total' // Adjust if API returns total differently
     });
 
@@ -133,7 +133,7 @@ function InvTItemConsumptionPageContent({
                     icon={<PackageMinus className='h-5 w-5' />}>
                     <GenericDataTable<InvTItemConsumption>
                         {...tableProps}
-                        data={response?.data?.get_itemconsumption || []}
+                        data={response?.data || []}
                         columns={invTItemConsumptionColumns}
                         isLoading={isLoading}
                         error={error}

@@ -14,7 +14,6 @@ interface ReportGridProps {
     data: ISportHouseReportData[];
     searchQuery: string;
     onSearchChange: (query: string) => void;
-    manualPagination?: boolean;
 }
 
 const columns: ColumnDef<ISportHouseReportData>[] = [
@@ -60,7 +59,7 @@ const columns: ColumnDef<ISportHouseReportData>[] = [
     },
 ];
 
-export default function ReportGrid({ data, searchQuery, onSearchChange, manualPagination = true }: ReportGridProps) {
+export default function ReportGrid({ data, searchQuery, onSearchChange }: ReportGridProps) {
     const componentRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = useReactToPrint({
@@ -132,7 +131,6 @@ export default function ReportGrid({ data, searchQuery, onSearchChange, manualPa
                         columns={columns}
                         data={filteredData}
                         totalItems={filteredData.length}
-                        manualPagination={manualPagination}
                     />
                 ) : (
                     <div className="py-20 text-center border-2 border-dashed rounded-xl bg-muted/30">

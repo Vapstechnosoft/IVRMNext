@@ -38,8 +38,8 @@ function InvMasterSupplierPageContent({
     refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IInvMasterSupplier>();
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_supplier',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -65,7 +65,7 @@ function InvMasterSupplierPageContent({
                     icon={<Truck className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterSupplier>
                         {...tableProps}
-                        data={response?.data?.get_supplier || []}
+                        data={response?.data || []}
                         columns={invMasterSupplierColumns}
                         isLoading={isLoading}
                         error={error}
@@ -117,7 +117,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterSupplierForm onSuccess={closeAddForm} />
+                            <AddInvMasterSupplierForm onSuccess={closeAddForm} onCancel={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +141,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterSupplierForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateInvMasterSupplierForm selectedRow={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

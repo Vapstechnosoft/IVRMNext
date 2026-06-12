@@ -316,7 +316,6 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                                 isLoading={isFetching}
                                 totalItems={totalRecords}
                                 isSearchRequired={true}
-                                manualFiltering={totalRecords > reportData.length}
                                 noDataTitle="No GRN Found"
                                 noDataDescription="No records found matching your search criteria."
                             />

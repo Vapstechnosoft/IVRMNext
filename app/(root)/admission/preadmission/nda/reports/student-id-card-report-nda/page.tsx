@@ -80,43 +80,20 @@ export default function StudentIdCardReportNdaPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-10 space-y-12 animate-in fade-in duration-1000">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-10 rounded-[3rem] shadow-2xl shadow-indigo-100/30 border border-slate-100 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl -mr-32 -mt-32 transition-transform group-hover:scale-110 duration-700" />
-        <div className="flex items-center gap-8 relative z-10">
-          <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-indigo-200 transform group-hover:rotate-6 transition-transform duration-500">
-            <CreditCard className="w-12 h-12" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-5xl font-black text-indigo-950 tracking-tighter uppercase">ID CARD REPORT</h1>
-              <Badge className="bg-indigo-50 text-indigo-600 border-none font-black px-4 py-1.5 rounded-full text-[10px] tracking-widest uppercase">
-                Notre Dame
-              </Badge>
-            </div>
-            <p className="text-indigo-500 font-bold tracking-widest uppercase text-xs mt-2 italic">Precision ID Card Generation & Printing</p>
-          </div>
-        </div>
-
-        {/* Buttons moved to Search Component for Layout Parity */}
-      </div>
-
-      <div className="grid grid-cols-1 gap-12">
+    <div className="p-4">
+      <div className="grid grid-cols-1 gap-6">
         {/* Filter Section */}
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white/70 backdrop-blur-xl ring-1 ring-slate-100 overflow-hidden">
-          <CardContent className="p-10">
-            <StudentIdCardSearch
-              academicList={initialData?.getAcademicYearList || []}
-              initialClassList={initialData?.getClassList || []}
-              onSubmit={handleSearch}
-              onReset={handleReset}
-              onPrint={handlePrint}
-              showPrint={showReport}
-              isLoading={reportMutation.isPending}
-            />
-          </CardContent>
-        </Card>
+        <div className="w-full">
+          <StudentIdCardSearch
+            academicList={initialData?.getAcademicYearList || []}
+            initialClassList={initialData?.getClassList || []}
+            onSubmit={handleSearch}
+            onReset={handleReset}
+            onPrint={handlePrint}
+            showPrint={showReport}
+            isLoading={reportMutation.isPending}
+          />
+        </div>
 
         {/* Report Preview Section */}
         {showReport && (

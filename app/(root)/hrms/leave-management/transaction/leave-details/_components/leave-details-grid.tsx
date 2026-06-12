@@ -29,9 +29,6 @@ export function LeaveDetailsGrid({ response, isLoading, currentApiParams, onSear
                 showSearch={true}
                 showPagination={true}
                 showSorting={true}
-                manualPagination={true}
-                manualSorting={true}
-                manualFiltering={true}
                 columnPinning={{ right: ['actions'] }}
                 currentApiParams={currentApiParams}
                 onSearchQueryChange={onSearchQueryChange}

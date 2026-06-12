@@ -47,10 +47,7 @@ function InvMasterCustomerPageContent({
         closeToggleForm
     } = useFormContext<IInvMasterCustomer>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_customer',
-        totalKey: 'total'
-    });
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -69,8 +66,6 @@ function InvMasterCustomerPageContent({
                     </Button>
                 </div>
 
-                <FormSections />
-
                 <CollapsibleSection
                     title='Customer List'
                     defaultOpen={true}
@@ -80,7 +75,7 @@ function InvMasterCustomerPageContent({
                     icon={<Users className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterCustomer>
                         {...tableProps}
-                        data={response?.data?.get_customer || []}
+                        data={response?.data || []}
                         columns={invMasterCustomerColumns}
                         isLoading={isLoading}
                         error={error}
@@ -91,6 +86,8 @@ function InvMasterCustomerPageContent({
                         errorTitle='Error Loading Customer Data'
                     />
                 </CollapsibleSection>
+
+                <FormSections />
 
                 {isToggleFormOpen && selectedRow && (
                     <ToggleCustomerModal rowData={selectedRow} onClose={closeToggleForm} />

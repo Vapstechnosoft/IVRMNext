@@ -96,9 +96,6 @@ function EventsStudentSRKVSPageContent({ response, isLoading, error, refetchAll 
                         columns={eventsStudentSRKVSColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}

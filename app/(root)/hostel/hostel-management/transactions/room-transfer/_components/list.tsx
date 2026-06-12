@@ -12,8 +12,7 @@ export default function RoomTransferList({ data }: RoomTransferListProps) {
         <DataTable
             columns={roomTransferColumns} // Updated prop
             data={data}
-            totalItems={data.length} // Added required prop
-            //manualPagination={false} // Enable client-side pagination
+            totalItems={data.length} // Added required prop // Enable client-side pagination
         />
     );
 }

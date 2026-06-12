@@ -489,6 +489,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 pasR_ConPincode,
                 pasR_PerPincode,
                 pasA_WillingToContributeFlg,
+                // Extract Aadhar fields as strings
+                PASR_FatherAadharNo,
+                PASR_MotherAadharNo,
                 ...filteredData
             } = data;
             const payload = {
@@ -509,6 +512,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
                 PASR_PerPincode:
                     pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
+                PASR_FatherAadharNo: PASR_FatherAadharNo ? Number(PASR_FatherAadharNo) : null,
+                PASR_MotherAadharNo: PASR_MotherAadharNo ? Number(PASR_MotherAadharNo) : null,
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -1272,14 +1277,23 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 className='w-fit font-semibold'
                                                 disabled
                                             />
+
+
+
                                             {/* Student Photo Upload - Mandatory */}
                                             <div className='col-span-full w-fit'>
+
+
+
+
                                                 <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                     <div className='mb-1'>
                                                         <Label htmlFor='student_photo'>
                                                             Student Photo <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
                                                     </div>
+
+
 
                                                     {!studentPhoto?.pasR_Student_Pic_Path ? (
                                                         <label
@@ -1402,8 +1416,49 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         </div>
                                                     )}
                                                 </div>
+
+                                                <div className='rounded-lg border border-blue-200 bg-blue-50 p-2'>
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id="usercreation"
+                                                                name="usercreation"
+                                                            />
+                                                            <Label htmlFor="usercreation">
+                                                                Create User
+                                                            </Label>
+                                                        </div>
+
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id="admcheck"
+                                                                    name="admcheck"
+                                                                />
+                                                                <Label htmlFor="admcheck">
+                                                                    Application No.
+                                                                </Label>
+                                                                <input
+                                                                    type="text"
+                                                                    id="appNo"
+                                                                    name="appNo"
+                                                                    placeholder="Enter Application No."
+                                                                    className="rounded-md border px-3 py-2"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
                                             </div>
                                         </div>
+
+
+
+
                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                             <InputText
                                                 label='First Name'

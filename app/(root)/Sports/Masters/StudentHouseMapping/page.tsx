@@ -84,9 +84,6 @@ function StudentHouseMappingContent({
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading student house mappings...'

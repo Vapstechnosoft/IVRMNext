@@ -50,9 +50,6 @@ interface GenericDataTableProps<T> {
     defaultVisibility?: { [key: string]: boolean };
     scrollable?: boolean;
     maxHeight?: string;
-    manualPagination?: boolean;
-    manualSorting?: boolean;
-    manualFiltering?: boolean;
     getRowId?: (row: T) => string;
     // Bento-Glass Props
 }
@@ -81,10 +78,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorComponent,
         showSearchColumns = false,
         showExportOptions = false,
-        // Smart defaults: if we have less data than total items, we need manual pagination
-        manualPagination = totalItems > data.length,
-        manualSorting = totalItems > data.length,
-        manualFiltering = totalItems > data.length,
         scrollable = false,
         maxHeight = '600px',
         getRowId
@@ -151,9 +144,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
-                    manualPagination={manualPagination}
-                    manualSorting={manualSorting}
-                    manualFiltering={manualFiltering}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -179,9 +169,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
-                manualPagination={manualPagination}
-                manualSorting={manualSorting}
-                manualFiltering={manualFiltering}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {

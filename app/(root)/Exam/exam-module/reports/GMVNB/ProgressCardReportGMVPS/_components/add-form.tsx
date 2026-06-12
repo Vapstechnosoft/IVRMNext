@@ -1,12 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleContent } from '@/components/ui/collapsible';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { cn } from '@/lib/utils';
 import { vvehpc_examreportcardSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
@@ -15,6 +18,8 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -24,6 +29,7 @@ type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
     applicableFlag: boolean;
     nonApplicableFlag: boolean;
     page_size: number;
+    reopenDate: Date;
 };
 
 export default function ProgressCardReportForm({
@@ -40,7 +46,8 @@ export default function ProgressCardReportForm({
             asmcL_Id: 0,
             asmS_Id: 0,
             emE_Id: 0,
-            studentList: []
+            studentList: [],
+            reopenDate: new Date()
         }
     });
 
@@ -192,7 +199,8 @@ export default function ProgressCardReportForm({
             emE_Id: data.emE_Id,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
-            toDate: currentDateTime
+            toDate: currentDateTime,
+            reopenDate: data.reopenDate ? data.reopenDate.toISOString() : null
         };
         if (onSuccess) {
             await onSuccess(payload);
@@ -375,6 +383,41 @@ export default function ProgressCardReportForm({
                                                         )}
                                                     </SelectContent>
                                                 </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    control={control}
+                                    name='reopenDate'
+                                    render={({ field, fieldState }) => (
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Date <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant={'outline'}
+                                                            className={cn(
+                                                                'w-full justify-start text-left font-normal',
+                                                                !field.value && 'text-muted-foreground'
+                                                            )}>
+                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className='w-auto p-0'>
+                                                        <Calendar
+                                                            mode='single'
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         </div>

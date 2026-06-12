@@ -1,6 +1,8 @@
 export interface IInstitutionItem {
     mI_Id: number;
     mI_Name: string;
+    mI_Logo?: string;
+    [key: string]: any;
 }
 
 export interface IMasterAcademicYearMasterList {

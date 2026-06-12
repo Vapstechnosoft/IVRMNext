@@ -12,9 +12,10 @@ import { z } from 'zod';
 
 interface AddInvMasterTaxFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 type FormFields = z.infer<typeof invMasterTaxSchema.addOrUpdate>;
-export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormProps) {
+export default function AddInvMasterTaxForm({ onSuccess, onCancel }: AddInvMasterTaxFormProps) {
     const { refetchAll } = useInvMasterTax();
     const {
         control,
@@ -86,6 +87,9 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
             </div>
 
             <div className='flex justify-end gap-2 pt-4'>
+                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>

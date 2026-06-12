@@ -854,9 +854,6 @@ export const calcuttaPromotionReportItoIXSchema = z
         asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
         allTerm: z.boolean().default(false),
         empG_GroupName: z.string().optional(),
-        issueDate: z.date({ required_error: 'Issue Date is required' }).optional(),
-        academicDate: z.date({ required_error: 'New Academic Date is required' }),
-        reportPrintedDate: z.date().optional(),
         studentList: z
             .array(
                 z.object({

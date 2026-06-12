@@ -2,6 +2,7 @@
 export interface ISubject {
     ismS_Id: number;
     ismS_SubjectName: string;
+    ismS_SubjectCode?: string;
     eyceS_AplResultFlg: boolean;
     type: 'Marks' | 'Grade';
     eyceS_MarksDisplayFlg?: boolean;
@@ -80,6 +81,7 @@ export interface IExamReportCard {
         estmpS_PassFailFlg?: string | null;
         estmpS_MaxMarks?: number | null;
         estmpS_MinMarks?: number | null;
+        eyceS_MinMarks?: number | null;
     }>;
     estmP_TotalMaxMarks?: number | null;
     estmP_TotalObtMarks?: number | null;

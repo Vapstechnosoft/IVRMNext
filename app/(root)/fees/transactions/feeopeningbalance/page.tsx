@@ -228,9 +228,6 @@ function PageContent({
                             isLoading={isLoading}
                             columnPinning={{ right: ['actions'] }}
                             loadingMessage={`Loading ${activeTab} Opening Balances...`}
-                            manualPagination={true}
-                            manualSorting={true}
-                            manualFiltering={true}
                             isPaginationRequired={true}
                             isSearchRequired={true}
                         />

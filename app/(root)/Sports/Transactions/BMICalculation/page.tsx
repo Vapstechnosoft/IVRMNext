@@ -99,9 +99,6 @@ function BMICalculationPageContent({
                         columns={bmiCalculationColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         showViewOptions={true}
                         columnPinning={{ right: ['actions'] }}

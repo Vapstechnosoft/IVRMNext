@@ -73,39 +73,110 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             <div ref={printRef} className='print-area' style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
                 {studentDetails.length > 0 ? (
                     studentDetails.map((report: any, index: number) => {
-                        const studentID = report.amsT_Id || report.studentId;
+                        const studentID = report.amsT_Id || report.AMST_Id || report.studentId;
 
                         // Extract subjects for this student
                         const studentSubjects = Array.from(new Set(studentWiseSubjects
-                            .filter((s: any) => (s.amsT_Id || s.AMST_Id) === studentID)
+                            .filter((s: any) => (s.amsT_Id || s.AMST_Id || s.studentId) === studentID)
                             .map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName)))
                             .map(name => {
                                 const subjObj = studentWiseSubjects.find((s: any) =>
-                                    (s.amsT_Id || s.AMST_Id) === studentID &&
+                                    (s.amsT_Id || s.AMST_Id || s.studentId) === studentID &&
                                     (s.subjectName === name || s.ISMS_SubjectName === name || s.ismS_SubjectName === name)
                                 );
                                 return {
                                     subjectName: name,
-                                    ismS_Id: subjObj?.ismS_Id || subjObj?.ISMS_Id || 0,
-                                    EMPS_AppToResultFlg: true,
-                                    amsT_Id: subjObj.amsT_Id
+                                    ismS_Id: subjObj?.ismS_Id || subjObj?.ISMS_Id || subjObj?.isms_Id || 0,
+                                    EMPS_AppToResultFlg: subjObj?.appToResultFlg ?? subjObj?.EMPS_AppToResultFlg ?? subjObj?.emps_AppToResultFlg ?? true,
+                                    amsT_Id: subjObj?.amsT_Id || subjObj?.AMST_Id
                                 };
-                            });
-                        console.log('report Data', data);
-                        const studentMarks = studentMarksDetails.filter((m: any) => (m.amsT_Id || m.AMST_Id) === studentID);
-                        const studentSummary = examMaxMarks.find((emm: any) => (emm.amsT_Id || emm.AMST_Id) === studentID) || {};
-                        const remarksObj = promotionRemarks.find((rem: any) => (rem.amsT_Id || rem.AMST_Id) === studentID) || {};
+                            })
+                            .filter(subj => subj.EMPS_AppToResultFlg);
 
-                        const workAtt = (data.work_attendence || []).find((a: any) => (a.studentId || a.StudentId) === studentID) || {};
-                        const presentAtt = (data.present_attendence || []).find((a: any) => (a.studentId || a.studentId) === studentID) || {};
-                        console.log("workAtt", data.work_attendence);
-                        console.log("presentAtt", presentAtt);
+                        const studentMarks = studentMarksDetails.filter((m: any) => (m.amsT_Id || m.AMST_Id || m.studentId) === studentID);
+                        const studentSummary = examMaxMarks.find((emm: any) => (emm.amsT_Id || emm.AMST_Id || emm.studentId) === studentID) || {};
+                        const remarksObj = promotionRemarks.find((rem: any) => (rem.amsT_Id || rem.AMST_Id || rem.studentId) === studentID) || {};
+
+                        const workAtt = (data.work_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === studentID) || {};
+                        const presentAtt = (data.present_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === studentID) || {};
+                        console.log('present Attendence', presentAtt);
+
                         // Graph data
-                        const graphSubjects = studentWiseSubjects.filter((s: any) => (s.amsT_Id || s.AMST_Id) === studentID);
+                        const graphSubjects = studentWiseSubjects.filter((s: any) => (s.amsT_Id || s.AMST_Id || s.studentId) === studentID);
                         const graphLabels = graphSubjects.map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName);
                         const graphScores = graphSubjects.map((s: any) => s.subjectPercentage || s.TotalPercentage || 0);
                         const graphAverages = graphSubjects.map((s: any) => s.classAverage || 0);
                         const hasAverage = graphSubjects.some((s: any) => s.classAverage !== undefined && s.classAverage !== null);
+
+                        // Co-scholastic activities data processing
+                        const studentActivities = activityMainList.filter((act: any) => {
+                            const actAmstId = act.AMST_Id ?? act.amsT_Id ?? act.studentId;
+                            return actAmstId === studentID;
+                        });
+
+                        // Extract unique activity categories (ECACT_SkillName / activityName) for this student
+                        const activity_main_list_area: any[] = [];
+                        studentActivities.forEach((act: any) => {
+                            const catName = act.activityName ?? act.ECACT_SkillName;
+                            const catId = act.ecacT_Id ?? act.ECACT_Id;
+                            if (catName) {
+                                const exists = activity_main_list_area.some(
+                                    (item: any) => (item.activityName ?? item.ECACT_SkillName) === catName
+                                );
+                                if (!exists) {
+                                    activity_main_list_area.push({
+                                        ECACT_SkillName: catName,
+                                        activityName: catName,
+                                        ECACT_Id: catId,
+                                        ecacT_Id: catId
+                                    });
+                                }
+                            }
+                        });
+
+                        // Extract unique activity skill areas (ECACTA_SkillArea / activityArea) for this student
+                        const activity_main_list: any[] = [];
+                        studentActivities.forEach((act: any) => {
+                            const areaName = act.activityArea ?? act.ECACTA_SkillArea;
+                            const catId = act.ecacT_Id ?? act.ECACT_Id;
+                            if (areaName) {
+                                const exists = activity_main_list.some(
+                                    (item: any) => (item.activityArea ?? item.ECACTA_SkillArea) === areaName
+                                );
+                                if (!exists) {
+                                    activity_main_list.push({
+                                        ECACTA_SkillArea: areaName,
+                                        activityArea: areaName,
+                                        activityGrade: act.activityGrade,
+                                        ECACT_Id: catId,
+                                        ecacT_Id: catId
+                                    });
+                                }
+                            }
+                        });
+
+                        // Build activity score details per term
+                        activity_main_list.forEach((act: any) => {
+                            const scores: any[] = [];
+                            termDetails.forEach((term: any) => {
+                                const termId = term.ecT_Id ?? term.ect_Id ?? term.ECT_Id;
+                                const matchingAct = studentActivities.find((dd: any) => {
+                                    const ddTermId = dd.activity_ECT_Id ?? dd.ECT_Id ?? dd.ecT_Id ?? dd.ect_Id;
+                                    const actArea = act.activityArea ?? act.ECACTA_SkillArea;
+                                    const ddArea = dd.activityArea ?? dd.ECACTA_SkillArea;
+                                    return ddArea === actArea && ddTermId === termId;
+                                });
+                                if (matchingAct) {
+                                    scores.push({
+                                        EMGD_Name: matchingAct.activityGrade ?? matchingAct.EMGD_Name ?? matchingAct.emgD_Name,
+                                        activityGrade: matchingAct.activityGrade ?? matchingAct.EMGD_Name ?? matchingAct.emgD_Name,
+                                        ecT_Id: termId
+                                    });
+                                }
+                            });
+                            act.activity_score_details = scores;
+                        });
+
                         return (
                             <div
                                 key={index}
@@ -142,9 +213,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         ))}
                                     </div>
                                     <div className='absolute right-4 top-[-20px]'>
-                                        {(report.studentPhoto || report.AMST_Photoname) && (
+                                        {(report.studentPhoto || report.photo || report.AMST_Photoname) && (
                                             <img
-                                                src={report.studentPhoto || report.AMST_Photoname}
+                                                src={report.studentPhoto || report.photo || report.AMST_Photoname}
                                                 alt="Student"
                                                 className='h-[150px] w-[150px] border border-black object-cover'
                                             />
@@ -189,23 +260,44 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <tr key={sIdx}>
                                                     <td className='border border-gray-400 p-2 text-left font-semibold uppercase'>{subj.subjectName}</td>
                                                     {groupWiseExamList.map((exam: any, eIdx: number) => {
-                                                        const mark = studentMarks.find((m: any) =>
-                                                            m.ismS_SubjectName === subj.subjectName &&
-                                                            m.emE_ExamName === exam.EME_ExamName &&
-                                                            m.amsT_Id === subj.amsT_Id
-                                                        );
-                                                        const summaryMark = graphSubjects.find((gs: any) =>
-                                                            (gs.subjectName === subj.subjectName || gs.ISMS_SubjectName === subj.subjectName || gs.ismS_SubjectName === subj.subjectName)
-                                                        );
+                                                        const mark = studentMarks.find((m: any) => {
+                                                            const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id;
+                                                            const subjId = subj.ismS_Id ?? subj.ISMS_Id ?? subj.isms_Id;
+                                                            const mExamId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
+                                                            const examId = exam.EME_Id ?? exam.emE_Id ?? exam.eme_Id;
+
+                                                            const idMatch = mSubjId !== undefined && subjId !== undefined && mSubjId === subjId && mExamId !== undefined && examId !== undefined && mExamId === examId;
+
+                                                            const mSubjName = m.subjectName ?? m.ismS_SubjectName ?? m.ISMS_SubjectName;
+                                                            const subjName = subj.subjectName;
+                                                            const mExamName = m.emE_ExamName ?? m.EME_ExamName ?? m.eme_ExamName;
+                                                            const examName = exam.EME_ExamName;
+
+                                                            const nameMatch = mSubjName && subjName && mSubjName === subjName && mExamName && examName && mExamName === examName;
+
+                                                            return idMatch || nameMatch;
+                                                        });
+                                                        const summaryMark = graphSubjects.find((gs: any) => {
+                                                            const gsSubjId = gs.ISMS_Id ?? gs.ismS_Id ?? gs.isms_Id;
+                                                            const subjId = subj.ismS_Id ?? subj.ISMS_Id ?? subj.isms_Id;
+
+                                                            const idMatch = gsSubjId !== undefined && subjId !== undefined && gsSubjId === subjId;
+                                                            const gsSubjName = gs.subjectName ?? gs.ismS_SubjectName ?? gs.ISMS_SubjectName;
+                                                            const subjName = subj.subjectName;
+                                                            const nameMatch = gsSubjName && subjName && gsSubjName === subjName;
+
+                                                            return idMatch || nameMatch;
+                                                        });
                                                         let displayValue = '';
                                                         if (exam.isTotal) {
-                                                            displayValue = summaryMark?.subjectObtainedMarks || summaryMark?.TotalMarks || '';
+                                                            displayValue = summaryMark?.subjectObtainedMarks ?? summaryMark?.TotalMarks ?? summaryMark?.ObtainedMarks ?? '';
                                                         } else if (exam.isGrade) {
-                                                            displayValue = summaryMark?.subjectGrade || summaryMark?.TotalGrade || '';
+                                                            displayValue = summaryMark?.subjectGrade ?? summaryMark?.TotalGrade ?? summaryMark?.ObtainedGrade ?? '';
                                                         } else if (mark) {
-                                                            displayValue = mark.passFailFlag === 'AB' || mark.PassFailFlag === 'AB'
-                                                                ? 'AB'
-                                                                : (mark.obtainedMarks !== undefined ? mark.obtainedMarks : mark.ObtainedMarks || '');
+                                                            const passFail = mark.PassFailFlag ?? mark.passFailFlag;
+                                                            displayValue = passFail === 'AB' || passFail === 'M' || passFail === 'L'
+                                                                ? passFail
+                                                                : (mark.ObtainedMarks !== undefined ? mark.ObtainedMarks : mark.obtainedMarks ?? '');
                                                         }
 
                                                         return (
@@ -277,15 +369,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className='page-break-before-always mb-8' />
 
                                 {/* Co-Scholastic activities */}
-                                {activityMainList.length > 0 && (
+                                {activity_main_list_area.length > 0 && (
                                     <div className='mt-8 px-4'>
                                         <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>Co-Scholastic Activities</h4>
                                         <div className='mx-auto w-full max-w-4xl'>
-                                            {Array.from(new Set(activityMainList.map((a: any) => a.ECACT_SkillName))).map((skillName: any, idx) => {
-                                                const areaActivities = activityMainList.filter((a: any) => a.ECACT_SkillName === skillName && a.amsT_Id == studentID);
+                                            {activity_main_list_area.map((acti: any, idx: number) => {
+                                                const actiId = acti.ecacT_Id ?? acti.ECACT_Id;
+                                                const subActivities = activity_main_list.filter((subjco: any) => {
+                                                    const subjcoId = subjco.ecacT_Id ?? subjco.ECACT_Id;
+                                                    return subjcoId === actiId;
+                                                });
                                                 return (
                                                     <div key={idx} className="mb-6">
-                                                        <h5 className="text-center font-bold mb-2 uppercase">{skillName}</h5>
+                                                        <h5 className="text-center font-bold mb-2 uppercase">{acti.activityName ?? acti.ECACT_SkillName}</h5>
                                                         <table className="w-full border-collapse border border-gray-400 text-xs text-center">
                                                             <thead className="bg-[#BABABA]">
                                                                 <tr>
@@ -296,16 +392,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {areaActivities.map((act: any, ai: number) => (
+                                                                {subActivities.map((subjco: any, ai: number) => (
                                                                     <tr key={ai}>
-                                                                        <td className="border border-gray-400 p-2 text-left font-medium uppercase">{act.activityArea}</td>
-                                                                        <td className="border border-gray-400 p-2 font-bold">{act.activityGrade || ''}</td>
-                                                                        {/* {termDetails.map((term: any, ti: number) => {
-                                                                            const score = (act.activity_score_details || []).find((s: any) => s.ecT_Id === term.ecT_Id);
-                                                                            return (
-                                                                                <td key={ti} className="border border-gray-400 p-2 font-bold">{score?.EMGD_Name || ''}</td>
-                                                                            );
-                                                                        })} */}
+                                                                        <td className="border border-gray-400 p-2 text-left font-medium uppercase">{subjco.activityArea ?? subjco.ECACTA_SkillArea}</td>
+                                                                        <td className="border border-gray-400 p-2 font-bold">{subjco?.activityGrade ?? ''}</td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -332,11 +422,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.SPCCSHW_Height || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.SPCCSHW_Weight || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.AMST_BloodGroup || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.HMDNHY_DentalHygiene || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.HMVSN_VisionHygiene || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.height || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.weight || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.bloodGroup || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.dentalHygiene || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.visionHygiene || '-'}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -349,11 +439,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalSchoolDays || presentAtt.totalSchoolDays || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays || presentAtt.totalWorkingDays || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays ?? presentAtt.totalWorkingDays ?? ''}</td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.attendancePercentage || presentAtt.total_Percentage ? `${presentAtt.attendancePercentage || presentAtt.total_Percentage}%` : ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.total_Percentage ?? ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>

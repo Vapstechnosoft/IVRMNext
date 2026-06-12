@@ -21,7 +21,7 @@ export const noticeBoardSchema = z
             .array(
                 z.object({
                     intbfL_Id: z.number().optional(),
-                    intbfL_FilePath: z.string().min(1, 'File Path or URL is required'),
+                    intbfL_FilePath: z.string().optional(),
                     fileName: z.string().optional(),
                     file: z.any().optional(), // For file upload handling
                     isUploading: z.boolean().optional()
