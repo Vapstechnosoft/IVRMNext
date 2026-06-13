@@ -11,7 +11,7 @@ import { AddForm } from './_components/add-form';
 import { UpdateForm } from './_components/update-form';
 import { ToggleForm } from './_components/toggle-form';
 import { useSportsCCNames } from '@/hooks/sports/useSportsCCNames';
-import type { SportsCCNameDTO, ISportsCCName } from '@/types/sports/masters/sports-cc-name';
+import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -20,7 +20,7 @@ export default function SportsCCNamePage(props: { searchParams: SearchParams }) 
     const { loadData, refetchAll } = useSportsCCNames(searchParams);
 
     return (
-        <FormProvider<ISportsCCName>>
+        <FormProvider<SportsCCNameDTO>>
             <SportsCCNamePageContent 
                 response={loadData.data} 
                 isLoading={loadData.isPending || loadData.isFetching} 
@@ -92,9 +92,6 @@ function SportsCCNamePageContent({
                     columns={MasterSportsCCNameColumns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading master sports cc names...'

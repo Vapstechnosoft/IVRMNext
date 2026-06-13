@@ -9,7 +9,7 @@ import { addOrUpdateMasterProfessionalTax } from '@/server/hrms/hrmsConfig/maste
 import type { IMasterProfessionalTaxList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,7 +24,7 @@ interface UpdateProfessionalTaxFormProps {
 
 export default function UpdateProfessionalTaxForm({ onSuccess, className = '', selectedRow: row }: UpdateProfessionalTaxFormProps) {
     const { refetchAll } = useMasterProfessionalTax();
-
+    const [resetKey, setResetKey] = useState(0);
     const {
         handleSubmit,
         control,
@@ -72,6 +72,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
 
     const handleReset = () => {
         reset();
+        setResetKey(prev => prev + 1);
     };
 
     return (
@@ -84,6 +85,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Salary From'
                                     required
                                     id='hrmpT_SalaryFrom'
@@ -105,6 +107,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Salary To'
                                     required
                                     id='hrmpT_SalaryTo'
@@ -126,6 +129,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Professional Tax Amount'
                                     required
                                     id='hrmpT_PTax'
@@ -142,8 +146,8 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             )}
                         />
                     </div>
-                    {(errors.root || errors.hrmpT_SalaryTo) && (
-                        <FormError>{errors.hrmpT_SalaryTo?.message || errors.root?.message}</FormError>
+                    {errors.root && (
+                        <FormError>{errors.root.message}</FormError>
                     )}
                 </div>
 

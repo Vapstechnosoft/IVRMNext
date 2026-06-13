@@ -32,6 +32,7 @@ export default function TabPurchaseDetails({
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
     const purchaseType = watch('lmB_PurOrDonated');
+    const publisherList = dropdownData?.publisherlist || dropdownData?.publisherList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -81,9 +82,9 @@ export default function TabPurchaseDetails({
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='Purchased'>Purchased</SelectItem>
-                                    <SelectItem value='Donated'>Donated</SelectItem>
-                                    <SelectItem value='Specimen'>Specimen</SelectItem>
+                                    <SelectItem value='P'>Purchased</SelectItem>
+                                    <SelectItem value='D'>Donated</SelectItem>
+                                    <SelectItem value='S'>Specimen</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -146,7 +147,7 @@ export default function TabPurchaseDetails({
 
                 <InputText label='Bill No' {...register('lmB_BillNo')} placeholder='Enter Bill No.' />
 
-                {purchaseType === 'Donated' && (
+                {(purchaseType === 'Donated' || purchaseType === 'D') && (
                     <>
                         <InputText label='Donor Name' {...register('donor_Id')} />
                         <InputText label='Donor Address' {...register('lmB_DonorAddress')} />
@@ -182,11 +183,15 @@ export default function TabPurchaseDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdownData?.publisherList?.map((item: any) => (
-                                            <SelectItem key={item.lmP_Id} value={item.lmP_Id.toString()}>
-                                                {item.lmP_PublisherName}
-                                            </SelectItem>
-                                        ))}
+                                        {publisherList?.map((item: any) => {
+                                            const publisherId = item.lmP_Id || item.lmp_Id || item.id || item.value;
+                                            const publisherName = item.lmP_PublisherName || item.lmp_PublisherName || item.publisherName || item.name || '';
+                                            return (
+                                                <SelectItem key={publisherId} value={publisherId.toString()}>
+                                                    {publisherName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}

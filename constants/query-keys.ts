@@ -39,6 +39,7 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_DOCUMENT: 'master_document',
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
+    MASTER_ACTIVITY: 'master_activity',
     MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
     UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
     MASTER_CLASS_TEACHER: 'master_class_teacher',
@@ -668,5 +669,6 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
     TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
     TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list',
-    CANDIDATE_DROPDOWN: 'candidate_dropdown'
+    CANDIDATE_DROPDOWN: 'candidate_dropdown',
+    TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };

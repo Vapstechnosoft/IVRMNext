@@ -58,7 +58,8 @@ import {
 import type { EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import {
     getEmployeesByFilter,
-    getEmployeeLetterDetails
+    getEmployeeLetterDetails,
+    getEmployeeOfferAndExperienceReport
 } from '@/server/hrms/reports/employee-offer-letter';
 import {
     getESIReportOnload,
@@ -82,6 +83,10 @@ import {
 import {
     getPFChallanReportOnload,
 } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
+import {
+    getPFForm3ABasicData,
+    searchPFForm3AReport,
+} from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
 import {
     getSalarySlipOnload,
     filterEmployeesByYearMonth,
@@ -383,6 +388,23 @@ export function usePFChallanOnload(MI_Id: number) {
         queryKey: ['pf-challan-onload', MI_Id],
         queryFn: () => getPFChallanReportOnload(MI_Id),
         staleTime: 1000 * 60 * 10
+    });
+}
+
+export function usePFForm3ABasicData() {
+    return useQuery({
+        queryKey: ['pf-form3a-basic-data'],
+        queryFn: () => getPFForm3ABasicData(),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function useSearchPFForm3AReport() {
+    return useMutation({
+        mutationFn: (data: any) => searchPFForm3AReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to search PF Form 3A report');
+        }
     });
 }
 
@@ -806,6 +828,20 @@ export function useVPFSummaryReport() {
         mutationFn: (data: PFSummaryReportRequest) => getVPFSummaryReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch the VPF Summary Report');
+        }
+    });
+}
+
+export function useEmployeeOfferAndExperienceReport() {
+    return useMutation({
+        mutationFn: (payload: {
+            HRME_Id: number;
+            HRMGT_Id: number;
+            HRMD_Id: number;
+            HRMDES_Id: number;
+        }) => getEmployeeOfferAndExperienceReport(payload),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch employee offer and experience report');
         }
     });
 }

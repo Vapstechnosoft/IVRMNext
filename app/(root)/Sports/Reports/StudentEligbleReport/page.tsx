@@ -108,9 +108,6 @@ export default function StudentEligibleReportPage(props: { searchParams: SearchP
                                 columns={columns}
                                 isLoading={reportQuery.isLoading}
                                 error={reportQuery.isError ? reportQuery.error : null}
-                                manualPagination={true}
-                                manualSorting={true}
-                                manualFiltering={true}
                                 showSearchColumns={true}
                                 showViewOptions={true}
                                 loadingMessage='Loading report data...'

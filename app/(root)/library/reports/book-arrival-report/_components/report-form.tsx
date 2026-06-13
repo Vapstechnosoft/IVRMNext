@@ -2,17 +2,16 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBookArrivalReportInitialData } from '@/hooks/library/reports/useBookArrivalReport';
 import type { IBookArrivalReportRequest } from '@/types/library/reports/book-arrival-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X, FileText, Download } from 'lucide-react';
-import { Controller, useForm } from 'react-hook-form';
-import { DatePicker } from '@/components/ui/date-picker';
-import { z } from 'zod';
 import { format } from 'date-fns';
+import { Download, FileText, Loader2, Search, X } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const reportFormSchema = z
     .object({
@@ -45,11 +44,11 @@ interface ReportFormProps {
     hasData: boolean;
     onPrint?: () => void;
     onExport?: () => void;
+    initialData: any;
 }
 
-export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: ReportFormProps) => {
-    const { data: initialDataWrapper } = useBookArrivalReportInitialData();
-    const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
+export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, initialData: initialDataProp }: ReportFormProps) => {
+    const initialData = (initialDataProp as any)?.data || initialDataProp;
 
     const {
         control,
@@ -84,10 +83,10 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border'>
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 rounded-lg border bg-white p-8 shadow-sm'>
             {/* Library Name Row */}
             <div className='flex justify-center'>
-                <div className='flex items-center gap-4 w-full max-w-2xl'>
+                <div className='flex w-full max-w-2xl items-center gap-4'>
                     <Label className='min-w-[150px] text-right font-medium text-sm'>
                         Library Name:<span className='text-red-500'>*</span>
                     </Label>
@@ -111,17 +110,17 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                                 </Select>
                             )}
                         />
-                        {errors.p_lmal_id && <p className='text-xs text-destructive mt-1'>{errors.p_lmal_id.message}</p>}
+                        {errors.p_lmal_id && <p className='mt-1 text-destructive text-xs'>{errors.p_lmal_id.message}</p>}
                     </div>
                 </div>
             </div>
 
             {/* Book Type Section */}
-            <div className='space-y-2 mx-auto max-w-4xl'>
+            <div className='mx-auto max-w-4xl space-y-2'>
                 <div className='flex justify-center'>
                     <Label className='font-bold text-[#3b82f6] text-sm'>BOOK TYPE :-</Label>
                 </div>
-                <div className='border rounded-md p-4 bg-gray-50/30'>
+                <div className='rounded-md border bg-gray-50/30 p-4'>
                     <Controller
                         control={control}
                         name='p_type'
@@ -129,35 +128,48 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                             <RadioGroup
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                className='flex flex-wrap justify-center gap-x-6 gap-y-4'
-                            >
+                                className='flex flex-wrap justify-center gap-x-6 gap-y-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='ALL' id='bt_all' />
-                                    <Label htmlFor='bt_all' className='text-xs font-normal cursor-pointer'>ALL</Label>
+                                    <Label htmlFor='bt_all' className='cursor-pointer font-normal text-xs'>
+                                        ALL
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Issue' id='bt_issue' />
-                                    <Label htmlFor='bt_issue' className='text-xs font-normal cursor-pointer'>Issue</Label>
+                                    <Label htmlFor='bt_issue' className='cursor-pointer font-normal text-xs'>
+                                        Issue
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Reference' id='bt_ref' />
-                                    <Label htmlFor='bt_ref' className='text-xs font-normal cursor-pointer'>Reference</Label>
+                                    <Label htmlFor='bt_ref' className='cursor-pointer font-normal text-xs'>
+                                        Reference
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Issuable' id='bt_issuable' />
-                                    <Label htmlFor='bt_issuable' className='text-xs font-normal cursor-pointer'>Issuable</Label>
+                                    <Label htmlFor='bt_issuable' className='cursor-pointer font-normal text-xs'>
+                                        Issuable
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Not Issuable' id='bt_notiss' />
-                                    <Label htmlFor='bt_notiss' className='text-xs font-normal cursor-pointer'>Not Issuable</Label>
+                                    <Label htmlFor='bt_notiss' className='cursor-pointer font-normal text-xs'>
+                                        Not Issuable
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='ReferenceonlyIssuable' id='bt_r_iss' />
-                                    <Label htmlFor='bt_r_iss' className='text-xs font-normal cursor-pointer'>Reference only Issuable</Label>
+                                    <Label htmlFor='bt_r_iss' className='cursor-pointer font-normal text-xs'>
+                                        Reference only Issuable
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='ReferenceonlyNon-Issuable' id='bt_r_niss' />
-                                    <Label htmlFor='bt_r_niss' className='text-xs font-normal cursor-pointer'>Reference only Non-Issuable</Label>
+                                    <Label htmlFor='bt_r_niss' className='cursor-pointer font-normal text-xs'>
+                                        Reference only Non-Issuable
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}
@@ -166,31 +178,33 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
             </div>
 
             {/* Source Type Section */}
-            <div className='space-y-2 mx-auto max-w-4xl'>
+            <div className='mx-auto max-w-4xl space-y-2'>
                 <div className='flex justify-center'>
                     <Label className='font-bold text-[#3b82f6] text-sm'>SOURCE TYPE :-</Label>
                 </div>
-                <div className='border rounded-md p-4 bg-gray-50/30'>
+                <div className='rounded-md border bg-gray-50/30 p-4'>
                     <Controller
                         control={control}
                         name='p_type2'
                         render={({ field }) => (
-                            <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className='flex justify-center gap-12'
-                            >
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className='flex justify-center gap-12'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='ALL' id='st_all' />
-                                    <Label htmlFor='st_all' className='text-xs font-normal cursor-pointer'>ALL</Label>
+                                    <Label htmlFor='st_all' className='cursor-pointer font-normal text-xs'>
+                                        ALL
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Purchased' id='st_pur' />
-                                    <Label htmlFor='st_pur' className='text-xs font-normal cursor-pointer'>Purchased</Label>
+                                    <Label htmlFor='st_pur' className='cursor-pointer font-normal text-xs'>
+                                        Purchased
+                                    </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Donated' id='st_don' />
-                                    <Label htmlFor='st_don' className='text-xs font-normal cursor-pointer'>Donated</Label>
+                                    <Label htmlFor='st_don' className='cursor-pointer font-normal text-xs'>
+                                        Donated
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         )}
@@ -200,7 +214,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
 
             {/* Department Row */}
             <div className='flex justify-center'>
-                <div className='flex items-center gap-4 w-full max-w-2xl'>
+                <div className='flex w-full max-w-2xl items-center gap-4'>
                     <Label className='min-w-[150px] text-right font-medium text-sm'>
                         Department:<span className='text-red-500'>*</span>
                     </Label>
@@ -209,12 +223,11 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                             control={control}
                             name='p_lmd_id'
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value === '0' ? undefined : field.value}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
                                         <SelectValue placeholder='Select' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='0'>Select</SelectItem>
                                         {Array.isArray(initialData?.deptlist) &&
                                             initialData?.deptlist?.map((dept: any) => (
                                                 <SelectItem key={dept.lmD_Id} value={dept.lmD_Id.toString()}>
@@ -225,25 +238,25 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                                 </Select>
                             )}
                         />
-                        {errors.p_lmd_id && <p className='text-xs text-destructive mt-1'>{errors.p_lmd_id.message}</p>}
+                        {errors.p_lmd_id && <p className='mt-1 text-destructive text-xs'>{errors.p_lmd_id.message}</p>}
                     </div>
                 </div>
             </div>
 
             {/* Date Range Section */}
             <div className='flex justify-center'>
-                <div className='flex items-center gap-4 w-full max-w-2xl'>
-                    <Label className='min-w-[150px] text-right font-medium text-sm'>
-                        Between Entry Date :
-                    </Label>
-                    <div className='flex-1 border rounded-md p-3 bg-gray-50/30 flex items-center'>
+                <div className='flex w-full max-w-2xl items-center gap-4'>
+                    <Label className='min-w-[150px] text-right font-medium text-sm'>Between Entry Date :</Label>
+                    <div className='flex flex-1 items-center rounded-md border bg-gray-50/30 p-3'>
                         <Controller
                             control={control}
                             name='datewised'
                             render={({ field }) => (
                                 <div className='flex items-center space-x-2 pl-4'>
                                     <Checkbox id='datewised' checked={field.value} onCheckedChange={field.onChange} />
-                                    <Label htmlFor='datewised' className='text-xs font-normal cursor-pointer'>Entry Date</Label>
+                                    <Label htmlFor='datewised' className='cursor-pointer font-normal text-xs'>
+                                        Entry Date
+                                    </Label>
                                 </div>
                             )}
                         />
@@ -252,11 +265,9 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
             </div>
 
             <div className='flex justify-center'>
-                <div className='flex items-center gap-4 w-full max-w-2xl'>
-                    <Label className='min-w-[150px] text-right font-medium text-sm'>
-                        From Date :
-                    </Label>
-                    <div className='flex-1 flex items-center gap-4'>
+                <div className='flex w-full max-w-2xl items-center gap-4'>
+                    <Label className='min-w-[150px] text-right font-medium text-sm'>From Date :</Label>
+                    <div className='flex flex-1 items-center gap-4'>
                         <div className='flex-1'>
                             <Controller
                                 control={control}
@@ -272,7 +283,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                                 )}
                             />
                         </div>
-                        <Label className='text-sm font-medium'>To Date :</Label>
+                        <Label className='font-medium text-sm'>To Date :</Label>
                         <div className='flex-1'>
                             <Controller
                                 control={control}
@@ -293,7 +304,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
             </div>
             {errors.p_fromdate && (
                 <div className='flex justify-center'>
-                    <p className='text-xs text-destructive'>{errors.p_fromdate.message}</p>
+                    <p className='text-destructive text-xs'>{errors.p_fromdate.message}</p>
                 </div>
             )}
 
@@ -301,18 +312,16 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
             <div className='flex items-center justify-center gap-4 pt-4'>
                 <Button
                     type='submit'
-                    className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#4251b1] hover:bg-[#35418e] shadow-sm rounded-sm'
-                    disabled={isLoading}
-                >
+                    className='h-8 min-w-[100px] rounded-sm bg-[#4251b1] px-4 py-1 text-xs shadow-sm hover:bg-[#35418e]'
+                    disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    className='h-8 min-w-[100px] rounded-sm bg-[#ff5a30] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => reset()}
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
@@ -320,17 +329,15 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport }: 
                     <>
                         <Button
                             type='button'
-                            className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#22c55e] hover:bg-[#16a34a] text-white shadow-sm rounded-sm'
-                            onClick={onPrint}
-                        >
+                            className='h-8 min-w-[100px] rounded-sm bg-[#22c55e] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#16a34a]'
+                            onClick={onPrint}>
                             <FileText className='mr-1.5 h-3.5 w-3.5' />
                             PRINT
                         </Button>
                         <Button
                             type='button'
-                            className='h-8 px-4 py-1 text-xs min-w-[100px] bg-[#eab308] hover:bg-[#ca8a04] text-white shadow-sm rounded-sm'
-                            onClick={onExport}
-                        >
+                            className='h-8 min-w-[100px] rounded-sm bg-[#eab308] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#ca8a04]'
+                            onClick={onExport}>
                             <Download className='mr-1.5 h-3.5 w-3.5' />
                             EXPORT TO EXCEL
                         </Button>

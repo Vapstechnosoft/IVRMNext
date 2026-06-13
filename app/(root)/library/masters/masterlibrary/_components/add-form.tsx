@@ -11,6 +11,7 @@ import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_librar
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -18,13 +19,13 @@ type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
 
 interface AddMasterLibraryFormProps {
     onSuccess?: () => void;
+    onSaveAndNext?: (name: string, id?: number) => void;
     className?: string;
 }
 
-export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddMasterLibraryFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterLibrary();
-
+export default function AddMasterLibraryForm({ onSuccess, onSaveAndNext, className = '' }: AddMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
+    const [shouldNext, setShouldNext] = useState(false);
 
     const {
         register,
@@ -44,16 +45,21 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
                 lmaL_LibraryName: lmaL_LibraryName
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response: any = await addOrUpdateMasterLibrary(payload);
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response.success || response.returnval) {
+                toast.success(response.message || 'Master Library saved successfully');
                 reset();
-                //refetchMasterCasteCategoryCode();
                 refetchAll();
-                onSuccess?.();
+                
+                const newId = response.lmaL_Id || response.data?.lmaL_Id;
+                if (shouldNext && onSaveAndNext) {
+                    onSaveAndNext(lmaL_LibraryName, newId);
+                } else {
+                    onSuccess?.();
+                }
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save Master Library');
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -96,13 +102,26 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
                     </Button>
                     <Button
                         type='submit'
+                        onClick={() => setShouldNext(false)}
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
+                        isLoading={isSubmitting && !shouldNext}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save Master Library
+                        </div>
+                    </Button>
+                    <Button
+                        type='submit'
+                        onClick={() => setShouldNext(true)}
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-3 bg-[#4251b1] hover:bg-[#35418e]'
+                        isLoading={isSubmitting && shouldNext}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Save & Next
                         </div>
                     </Button>
                 </div>

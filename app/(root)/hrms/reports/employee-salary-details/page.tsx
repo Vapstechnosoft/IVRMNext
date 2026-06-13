@@ -171,9 +171,6 @@ function EmployeeSalaryDetailsContent() {
                                 isLoading={isYearLoading}
                                 showViewOptions={true}
                                 isSearchRequired={true}
-                                manualPagination={false}
-                                manualSorting={false}
-                                manualFiltering={false}
                                 columnPinning={{ right: ['viewDetails'] }}
                                 loadingMessage='Loading salary details...'
                                 noDataTitle='No Salary Data Found'

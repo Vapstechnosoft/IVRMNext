@@ -106,8 +106,6 @@ function StaffReplacementPageContent({
                     columns={columns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
                     isSearchRequired={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading data...'

@@ -50,9 +50,6 @@ interface GenericDataTableProps<T> {
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
     currentApiParams?: ApiSearchparams;
-    manualPagination?: boolean;
-    manualSorting?: boolean;
-    manualFiltering?: boolean;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -80,10 +77,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorIcon = Database,
         LoadingComponent,
         ErrorComponent,
-        currentApiParams,
-        manualPagination,
-        manualSorting,
-        manualFiltering
+        currentApiParams
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -144,19 +138,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     maxSelectableRows={maxSelectableRows}
                     showSearch={showSearch}
                     showSorting={showSorting}
-                    onRowSelectionChange={(selectedRows) => {
-                        if (onRowSelectionChange) {
-                            onRowSelectionChange(selectedRows);
-                        }
-                    }}
-                    onSearchQueryChange={(value) => {
-                        if (onSearchQueryChange) {
-                            onSearchQueryChange(value);
-                        }
-                    }}
-                    manualPagination={manualPagination}
-                    manualSorting={manualSorting}
-                    manualFiltering={manualFiltering}
+                    onRowSelectionChange={onRowSelectionChange}
                 />
             </div>
         );
@@ -188,9 +170,6 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     }
                 }}
                 currentApiParams={currentApiParams}
-                manualPagination={manualPagination}
-                manualSorting={manualSorting}
-                manualFiltering={manualFiltering}
             />
         </div>
     );

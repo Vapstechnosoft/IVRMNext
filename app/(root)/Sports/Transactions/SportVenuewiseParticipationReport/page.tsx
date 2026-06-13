@@ -341,9 +341,6 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
                             columns={columns}
                             isLoading={reportData.isPending}
                             error={reportData.error}
-                            manualPagination={true}
-                            manualSorting={true}
-                            manualFiltering={true}
                             showSearchColumns={true}
                         />
                         <div className='mt-4 flex justify-end space-x-2'>

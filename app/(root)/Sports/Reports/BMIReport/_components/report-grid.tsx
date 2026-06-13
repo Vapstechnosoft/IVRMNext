@@ -181,9 +181,6 @@ export default function ReportGrid({ response, searchParams, isLoading }: Report
                     {...tableProps}
                     columns={columns}
                     isLoading={isLoading}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     loadingMessage="Loading report data..."
                 />

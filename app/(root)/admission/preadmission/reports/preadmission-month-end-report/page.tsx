@@ -91,11 +91,20 @@ export default function MonthendreportPage() {
     // Handle Report Generate
 
     const handleGenerateReport = async () => {
-        if (!academicYearId || !selectedMonth || !selectedYear) {
-            toast.error('Please fill all required fields!');
+        if (!academicYearId) {
+            toast.error('Please select Academic Year!');
             return;
         }
 
+        if (!selectedMonth) {
+            toast.error('Please select Month!');
+            return;
+        }
+
+        if (!selectedYear) {
+            toast.error('Please select Year!');
+            return;
+        }
         // Show loading toast and store ID
         const toastId = toast.loading('Loading report...');
 

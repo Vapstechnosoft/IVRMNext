@@ -3,7 +3,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { invRSalesSchema, type InvRSalesSchema } from '@/schemas/inventory/reports/inv-r-sales';
-import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList, useInvRSalesItemLoadData } from '@/hooks/inventory/reports/use-inv-r-sales';
+import { useInvRSalesLoadData, useInvRSalesDetails, useInvRSalesClassData, useInvRSalesStudentList, useInvRSalesSectionList, useInvRSalesItemLoadData, useInvRSalesStaffLoadData } from '@/hooks/inventory/reports/use-inv-r-sales';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -68,6 +68,10 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     const { data: itemLoadData, refetch: refetchItemLoadData } = useInvRSalesItemLoadData(
         optionflag === 'Item' ? 'Item_1' : ''
     );
+    // Staff load-data from the same item-consumption API, enabled only when optionflag === 'Staff'
+    const { data: staffLoadData, refetch: refetchStaffLoadData } = useInvRSalesStaffLoadData(
+        optionflag === 'Staff'
+    );
 
     useEffect(() => {
         if (optionflag) {
@@ -84,8 +88,11 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             if (optionflag === 'Item') {
                 refetchItemLoadData();
             }
+            if (optionflag === 'Staff') {
+                refetchStaffLoadData();
+            }
         }
-    }, [optionflag, refetchDetails, refetchItemLoadData, setValue]);
+    }, [optionflag, refetchDetails, refetchItemLoadData, refetchStaffLoadData, setValue]);
 
     useEffect(() => {
         if (individualflag) {
@@ -116,11 +123,33 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
         }
     }, [classId, sectionId, individualflag, refetchStudentList, setValue]);
 
+    const getGenericDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+        if (Array.isArray(resData)) return resData;
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+        if (resData?.get_customer) {
+            if (Array.isArray(resData.get_customer)) return resData.get_customer;
+            if (resData.get_customer.$values) return resData.get_customer.$values;
+        }
+        if (resData?.get_salesdetails) {
+            if (Array.isArray(resData.get_salesdetails)) return resData.get_salesdetails;
+            if (resData.get_salesdetails.$values) return resData.get_salesdetails.$values;
+        }
+        if (resData?.get_salesDetails) {
+            if (Array.isArray(resData.get_salesDetails)) return resData.get_salesDetails;
+            if (resData.get_salesDetails.$values) return resData.get_salesDetails.$values;
+        }
+        if (Array.isArray(data.get_customer)) return data.get_customer;
+        if (data.get_customer?.$values) return data.get_customer.$values;
+        return [];
+    };
+
     const grnSalesOptions = useMemo(() => {
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
-            const id = item.invmsL_Id ?? item.invmsl_Id ?? item.INVMSL_Id;
-            const no = item.invmsL_SalesNo ?? item.invmsl_SalesNo ?? item.INVMSL_SalesNo;
+            const id = item.id ?? item.invmsL_Id ?? item.invmsl_Id ?? item.INVMSL_Id;
+            const no = item.name ?? item.invmsL_SalesNo ?? item.invmsl_SalesNo ?? item.INVMSL_SalesNo;
             return {
                 label: no?.toString() || '',
                 value: id?.toString() || ''
@@ -145,6 +174,23 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
 
     const itemDetailsArray = useMemo(() => getItemDetailsArray(itemLoadData), [itemLoadData]);
 
+    // Helper to extract staff array from item-consumption-style load data response
+    const getStaffDetailsArray = (data: any) => {
+        if (!data) return [];
+        const resData = data.data;
+        if (Array.isArray(resData)) return resData;
+        if (resData?.$values && Array.isArray(resData.$values)) return resData.$values;
+        if (resData?.get_ICreportdetails) {
+            if (Array.isArray(resData.get_ICreportdetails)) return resData.get_ICreportdetails;
+            if (resData.get_ICreportdetails.$values) return resData.get_ICreportdetails.$values;
+        }
+        if (Array.isArray(data.get_ICreportdetails)) return data.get_ICreportdetails;
+        if (data.get_ICreportdetails?.$values) return data.get_ICreportdetails.$values;
+        return [];
+    };
+
+    const staffDetailsArray = useMemo(() => getStaffDetailsArray(staffLoadData), [staffLoadData]);
+
     const itemOptions = useMemo(() => {
         // Prefer the GRN load-data source when optionflag is 'Item'
         if (optionflag === 'Item' && itemDetailsArray.length > 0) {
@@ -154,7 +200,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
             })).filter((o: any) => o.value);
         }
         // Fallback to detailsData (existing behaviour)
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
             const id = item.invmI_Id ?? item.invmi_Id ?? item.INVMI_Id;
             const name = item.invmI_ItemName ?? item.invmi_ItemName ?? item.INVMI_ItemName;
@@ -166,7 +212,15 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
     }, [detailsData, itemDetailsArray, optionflag]);
 
     const staffOptions = useMemo(() => {
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        // Prefer the item-consumption load-data source when optionflag is 'Staff'
+        if (optionflag === 'Staff' && staffDetailsArray.length > 0) {
+            return staffDetailsArray.map((item: any) => ({
+                label: item.name || item.employeename || 'Unknown Staff',
+                value: (item.id || item.hrmE_Id)?.toString() || ''
+            })).filter((o: any) => o.value);
+        }
+        // Fallback to detailsData (existing behaviour)
+        const details = getGenericDetailsArray(detailsData);
         return details.map((item: any) => {
             const id = item.hrmE_Id ?? item.hrme_Id ?? item.HRME_Id;
             const name = item.employeename ?? item.employeeName ?? item.HRME_EmployeeName;
@@ -175,13 +229,14 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                 value: id?.toString() || ''
             };
         }).filter((o: any) => o.value);
-    }, [detailsData]);
+    }, [detailsData, staffDetailsArray, optionflag]);
 
     const customerOptions = useMemo(() => {
-        const details = detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [];
+        const details = getGenericDetailsArray(detailsData);
+
         return details.map((item: any) => {
-            const id = item.invmC_Id ?? item.invmc_Id ?? item.INVMC_Id;
-            const name = item.invmC_CustomerName ?? item.invmc_CustomerName ?? item.INVMC_CustomerName;
+            const id = item.id ?? item.invmC_Id ?? item.invmc_Id ?? item.INVMC_Id;
+            const name = item.name ?? item.invmC_CustomerName ?? item.invmc_CustomerName ?? item.INVMC_CustomerName ?? item.customerName;
             return {
                 label: name?.toString() || '',
                 value: id?.toString() || ''
@@ -370,7 +425,7 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                             <div className="space-y-2 max-w-xl">
                                 <Label>Select Sale No <span className="text-destructive">*</span></Label>
                                 <Controller name="salesArray" control={control} render={({ field }) => (
-                                    <MultiSelect options={grnSalesOptions} onValueChange={(val) => field.onChange(detailsData?.data?.get_salesdetails?.filter((i: any) => val.includes(i.invmsL_Id.toString())))} defaultValue={field.value?.map((v: any) => v.invmsL_Id.toString())} placeholder="Select Sale No..." />
+                                    <MultiSelect options={grnSalesOptions} onValueChange={(val) => field.onChange(getGenericDetailsArray(detailsData).filter((i: any) => val.includes((i.id ?? i.invmsL_Id ?? i.invmsl_Id ?? i.INVMSL_Id)?.toString())))} defaultValue={field.value?.map((v: any) => (v.id ?? v.invmsL_Id ?? v.invmsl_Id ?? v.INVMSL_Id)?.toString())} placeholder="Select Sale No..." />
                                 )} />
                                 {errors.salesArray && <FormError>{errors.salesArray.message}</FormError>}
                             </div>
@@ -387,8 +442,8 @@ export default function ReportForm({ onSubmit, isLoading }: ReportFormProps) {
                                                 ? itemDetailsArray
                                                     .filter((i: any) => val.includes((i.id || i.invmI_Id)?.toString()))
                                                     .map((i: any) => ({ ...i, checked: true }))
-                                                : (detailsData?.data?.get_salesdetails || detailsData?.data?.get_salesDetails || [])
-                                                    .filter((i: any) => val.includes(i.invmI_Id?.toString()))
+                                                : getGenericDetailsArray(detailsData)
+                                                    .filter((i: any) => val.includes((i.invmI_Id ?? i.invmi_Id ?? i.INVMI_Id)?.toString()))
                                                     .map((i: any) => ({ ...i, checked: true }));
                                             field.onChange(selectedObjects);
                                         }}

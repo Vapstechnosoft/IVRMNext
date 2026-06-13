@@ -5,18 +5,21 @@ import { Calendar } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouteDropDown, useSessionDropDown, useVehicleDropDown, useVehicleRouteMapping } from '@/hooks/transport/transportmodule/usetransaction';
+import {
+    useRouteDropDown,
+    useSessionDropDown,
+    useVehicleDropDown,
+    useVehicleRouteMapping
+} from '@/hooks/transport/transportmodule/usetransaction';
 import { cn } from '@/lib/utils';
 import { vehicleRouteMappingSchema } from '@/schemas/transport/transaction';
-import { routeDropDown } from '@/server/transport/transport-module/masters/route';
 import { saveVehicleRouteMapping } from '@/server/transport/transport-module/transaction/vehicle-route-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
 import { CalendarIcon, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface AddFormProps {
     onClose?: () => void;
@@ -36,10 +39,10 @@ export default function AddForm({ onClose }: AddFormProps) {
     const routes = Array.isArray(routeData) ? routeData : routeData?.data || [];
     const sessions = Array.isArray(sessionData) ? sessionData : sessionData?.data || [];
 
+    console.log('vehicleData', vehicles);
+    console.log('routeData', routes);
+    console.log('sessionData', sessions);
 
-    console.log("vehicleData", vehicles);
-    console.log("routeData", routes);
-    console.log("sessionData", sessions);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -54,18 +57,15 @@ export default function AddForm({ onClose }: AddFormProps) {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         try {
-
-
-
             const payload = {
                 trmV_Id: values.trmV_Id,
                 trmR_Id: values.trmR_Id,
                 trmS_Id: values.trmS_Id,
                 trmS_Flag: values.trmS_Flag,
                 trvR_Date: values.trvR_Date,
-                trvR_Id: values.trvR_Id,
-            }
-            console.log("vehicleroutemapping", payload);
+                trvR_Id: values.trvR_Id
+            };
+            console.log('vehicleroutemapping', payload);
             const response = await saveVehicleRouteMapping(payload);
 
             if (response.success) {
@@ -92,11 +92,10 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmV_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Vehicle <span className='text-destructive'>*</span></FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString()}
-                                >
+                                <FormLabel>
+                                    Vehicle <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Vehicle' />
@@ -121,11 +120,10 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmR_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Route Name <span className='text-destructive'>*</span></FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString()}
-                                >
+                                <FormLabel>
+                                    Route Name <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Route' />
@@ -150,7 +148,9 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trvR_Date'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
-                                <FormLabel>Date <span className='text-destructive'>*</span></FormLabel>
+                                <FormLabel>
+                                    Date <span className='text-destructive'>*</span>
+                                </FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -159,8 +159,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                                                 className={cn(
                                                     'w-full pl-3 text-left font-normal',
                                                     !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
+                                                )}>
                                                 {field.value ? (
                                                     <span>{new Date(field.value).toLocaleDateString()}</span>
                                                 ) : (
@@ -175,9 +174,7 @@ export default function AddForm({ onClose }: AddFormProps) {
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
                                             onSelect={(date) => field.onChange(date?.toISOString())}
-                                            disabled={(date) =>
-                                                date < new Date('1900-01-01')
-                                            }
+                                            disabled={(date) => date < new Date('1900-01-01')}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -193,11 +190,10 @@ export default function AddForm({ onClose }: AddFormProps) {
                         name='trmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Session Name <span className='text-destructive'>*</span></FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value?.toString()}
-                                >
+                                <FormLabel>
+                                    Session Name <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Session' />
@@ -226,19 +222,18 @@ export default function AddForm({ onClose }: AddFormProps) {
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Flag" />
+                                            <SelectValue placeholder='Select Flag' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="PickUp">PickUp</SelectItem>
-                                        <SelectItem value="Drop">Drop</SelectItem>
+                                        <SelectItem value='PickUp'>PickUp</SelectItem>
+                                        <SelectItem value='Drop'>Drop</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-
                 </div>
 
                 <div className='flex justify-end space-x-2'>

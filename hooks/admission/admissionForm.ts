@@ -1,5 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getAllAdmissionLists, getStudentAdmissionFormById, getAdmissionFormDetails } from '@/server/admission/admission-form/admission';
+import { getAllAdmissionLists, getStudentAdmissionFormById, getAdmissionFormDetails, getStudentProfileView } from '@/server/admission/admission-form/admission';
 
 import { IadmissionFormDetails } from '@/types/admission/admission';
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
@@ -40,6 +40,25 @@ export const useStudentAdmissionFormById = (amstId: number) => {
         }
     };
 };
+
+export const useStudentProfileView = (amstId: number, asmclId: number, asmsId: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_ADMISSION_FORM, 'profile', amstId, asmclId, asmsId],
+            queryFn: async () => getStudentProfileView(amstId, asmclId, asmsId),
+            staleTime: 0,
+            enabled: !!amstId
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.STUDENT_ADMISSION_FORM, 'profile']
+            });
+        }
+    };
+};
+
 export const useAdmissionFormDetails = (): UseQueryResult<IadmissionFormDetails> & { refetchAll: () => void } => {
     const queryClient = useQueryClient();
     const query = useQuery<IadmissionFormDetails>({

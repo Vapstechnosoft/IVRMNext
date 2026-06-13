@@ -15,16 +15,17 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Search, RotateCcw, Printer, FileDown } from 'lucide-react';
 
 import {
-    usePDADebitCreditReportInitialData,
-    usePDADebitCreditReportSectionsMutation,
-    usePDADebitCreditReportStudentsMutation,
-    usePDADebitCreditReportMutation,
-} from '@/hooks/pettycash/report/usePDADebitCreditReport';
+    usePDAAcademicYear,
+    usePDAClass,
+    usePDASection,
+    usePDAStudent,
+} from '@/hooks/pda/usePDACommon';
+import { usePDADebitCreditReportMutation } from '@/hooks/pettycash/report/usePDADebitCreditReport';
 import { IPDADebitCreditReportRow, IPDADebitCreditStudentDetail } from '@/types/pettycash/report/PDADebitCreditReport';
 
 // ---------- Zod Schema ----------
 const formSchema = z.object({
-    ASMAY_Id: z.string().min(1, 'Please Select Academic Year'),
+    asmaY_Id: z.string().min(1, 'Please Select Academic Year'),
     asmcL_Id: z.string().min(1, 'Please Select Class'),
     asmC_Id: z.string().min(1, 'Please Select Section'),
     AMST_Id: z.string().min(1, 'Please Select Student'),
@@ -50,14 +51,6 @@ export default function PDADebitCreditReportForm({
     onExport,
     showReportButtons,
 }: PDADebitCreditReportFormProps) {
-    const { data: initialData } = usePDADebitCreditReportInitialData();
-    const sectionsMutation = usePDADebitCreditReportSectionsMutation();
-    const studentsMutation = usePDADebitCreditReportStudentsMutation();
-    const reportMutation = usePDADebitCreditReportMutation();
-
-    const [sections, setSections] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
-
     const {
         control,
         handleSubmit,
@@ -68,70 +61,36 @@ export default function PDADebitCreditReportForm({
     } = useForm<PDADebitCreditFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            ASMAY_Id: '',
+            asmaY_Id: '',
             asmcL_Id: '',
             asmC_Id: '',
             AMST_Id: '',
         },
     });
 
-    const watchedYear = watch('ASMAY_Id');
+    const watchedYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
     const watchedSection = watch('asmC_Id');
 
-    // Load sections when class changes
-    useEffect(() => {
-        if (watchedYear && watchedClass) {
-            setValue('asmC_Id', '');
-            setValue('AMST_Id', '');
-            setSections([]);
-            setStudents([]);
-            sectionsMutation.mutate(
-                { ASMAY_Id: Number(watchedYear), ASMCL_Id: Number(watchedClass) },
-                {
-                    onSuccess: (res: any) => {
-                        const raw = res?.data?.fillsection || res?.data;
-                        setSections(Array.isArray(raw) ? raw : raw?.$values || []);
-                    },
-                }
-            );
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedYear, watchedClass]);
+    const { data: yearsRes } = usePDAAcademicYear();
+    console.log('academic year', yearsRes?.data);
+    const { data: classesRes } = usePDAClass(Number(watchedYear));
+    console.log('class', classesRes?.data);
+    const { data: sectionsRes } = usePDASection(Number(watchedYear), Number(watchedClass));
+    console.log('section', sectionsRes?.data);
+    const { data: studentsRes } = usePDAStudent(Number(watchedYear), Number(watchedClass), Number(watchedSection));
+    console.log('student', studentsRes?.data);
 
-    // Load students when section changes
-    useEffect(() => {
-        if (watchedYear && watchedClass && watchedSection) {
-            setValue('AMST_Id', '');
-            setStudents([]);
-            studentsMutation.mutate(
-                {
-                    ASMAY_Id: Number(watchedYear),
-                    ASMCL_Id: Number(watchedClass),
-                    AMSC_Id: Number(watchedSection),
-                },
-                {
-                    onSuccess: (res: any) => {
-                        const raw = res?.data?.fillstudent || res?.data;
-                        setStudents(Array.isArray(raw) ? raw : raw?.$values || []);
-                    },
-                }
-            );
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedSection]);
+    const reportMutation = usePDADebitCreditReportMutation();
 
-    const initialApiData = initialData?.data;
-    const years: any[] = Array.isArray(initialApiData?.fillyear)
-        ? initialApiData.fillyear
-        : initialApiData?.fillyear?.$values || [];
-    const classes: any[] = Array.isArray(initialApiData?.classlist)
-        ? initialApiData.classlist
-        : initialApiData?.classlist?.$values || [];
+    const years = (Array.isArray(yearsRes?.data) ? yearsRes?.data : yearsRes?.data?.data) || yearsRes?.data?.fillyear?.$values || [];
+    const classes = (Array.isArray(classesRes?.data) ? classesRes?.data : classesRes?.data?.data) || classesRes?.data?.classlist?.$values || [];
+    const sections = (Array.isArray(sectionsRes?.data) ? sectionsRes?.data : sectionsRes?.data?.data) || sectionsRes?.data?.fillsection?.$values || [];
+    const students = (Array.isArray(studentsRes?.data) ? studentsRes?.data : studentsRes?.data?.data) || studentsRes?.data?.fillstudent?.$values || [];
 
     const onSubmit = (values: PDADebitCreditFormValues) => {
         const payload = {
-            ASMAY_Id: Number(values.ASMAY_Id),
+            ASMAY_Id: Number(values.asmaY_Id),
             ASMCL_Id: Number(values.asmcL_Id),
             AMSC_Id: Number(values.asmC_Id),
             Amst_Id: Number(values.AMST_Id),
@@ -160,8 +119,6 @@ export default function PDADebitCreditReportForm({
 
     const handleReset = () => {
         reset();
-        setSections([]);
-        setStudents([]);
         onCancel();
     };
 
@@ -175,7 +132,7 @@ export default function PDADebitCreditReportForm({
                             Academic Year <span className="text-red-500">*</span>
                         </Label>
                         <Controller
-                            name="ASMAY_Id"
+                            name="asmaY_Id"
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
@@ -192,7 +149,7 @@ export default function PDADebitCreditReportForm({
                                 </Select>
                             )}
                         />
-                        {errors.ASMAY_Id && <span className="text-red-500 text-xs font-medium">{errors.ASMAY_Id.message}</span>}
+                        {errors.asmaY_Id && <span className="text-red-500 text-xs font-medium">{errors.asmaY_Id.message}</span>}
                     </div>
 
                     {/* Class */}
@@ -236,8 +193,8 @@ export default function PDADebitCreditReportForm({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {sections.map((s: any) => (
-                                            <SelectItem key={s.amsC_Id} value={s.amsC_Id.toString()}>
-                                                {s.asmc_sectionname}
+                                            <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>
+                                                {s.asmC_SectionName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -263,7 +220,7 @@ export default function PDADebitCreditReportForm({
                                     <SelectContent>
                                         {students.map((st: any) => (
                                             <SelectItem key={st.amsT_Id} value={st.amsT_Id.toString()}>
-                                                {st.amsT_AdmNo} :: {st.amsT_FirstName}
+                                                {st.amsT_FirstName} {st.amsT_MiddleName || ''} {st.amsT_LastName || ''}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

@@ -1,14 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,20 +12,33 @@ import { saveMasterVehicle } from '@/server/transport/transport-module/masters/m
 
 import type { IMasterVehicleDocument } from '@/types/transport/transport-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Plus, Trash2, Upload, Loader2, Eye, Minus, X } from 'lucide-react';
-import { useState, useRef } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { Eye, Loader2, Minus, Plus, Upload, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const formSchema = z.object({
-    TRMV_VehicleName: z.string().min(1, 'Vehicle Name is required').regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
+    TRMV_VehicleName: z
+        .string()
+        .min(1, 'Vehicle Name is required')
+        .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMFT_Id: z.coerce.number().min(1, 'Fuel Type is required'),
     TRMVT_Id: z.coerce.number().min(1, 'Vehicle Type is required'),
     TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required', invalid_type_error: 'Date of Purchase is required' }),
-    TRMV_VehicleNo: z.string().min(1, 'Vehicle No is required').regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
-    TRMV_ChassisNo: z.string().min(1, 'Chassis No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
-    TRMV_EngineNo: z.string().min(1, 'Engine No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
+    TRMV_VehicleNo: z
+        .string()
+        .min(1, 'Vehicle No is required')
+        .regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
+    TRMV_ChassisNo: z
+        .string()
+        .min(1, 'Chassis No is required')
+        .regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed')
+        .max(16, 'Chassis No cannot exceed 16 characters'),
+    TRMV_EngineNo: z
+        .string()
+        .min(1, 'Engine No is required')
+        .regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
     TRMV_PurchasedFrom: z.string().min(1, 'Purchased From is required'),
     TRMV_Cost: z.coerce.number().min(1, 'Approximate Cost is required'),
     TRMV_Capacity: z.coerce.number().min(1, 'Capacity must be valid'),
@@ -41,7 +47,10 @@ const formSchema = z.object({
     TRMV_RegistrationDate: z.date().optional(),
     TRMV_ManufacturedDate: z.date().optional(),
     TRMV_RegFCUpToDate: z.date().optional(),
-    TRMV_SWDOff: z.string().min(1, 'S/W/D Off is required'),
+    TRMV_SWDOff: z
+        .string()
+        .min(1, 'S/W/D Off is required')
+        .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMV_Address: z.string().min(1, 'Address is required'),
     TRMV_OwnersName: z.string().min(1, 'Owner Name is required'),
 
@@ -60,7 +69,7 @@ const formSchema = z.object({
 
     // File Uploads
     TRMV_VehicleImage: z.string().optional(),
-    vehicleDocuments: z.array(z.any()).optional(),
+    vehicleDocuments: z.array(z.any()).optional()
 });
 
 export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
@@ -76,7 +85,6 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     const [isViewing, setIsViewing] = useState(false);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
     const fileInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -108,7 +116,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
             TRMV_UnladenWeight: 0,
             TRMV_CC: '',
             TRMV_TaxUpTo: '',
-            vehicleDocuments: [{ cfilepath: '', cfilename: '', cfiledesc: '', isUploading: false }],
+            vehicleDocuments: [{ cfilepath: '', cfilename: '', cfiledesc: '', isUploading: false }]
         }
     });
 
@@ -120,7 +128,12 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const { fields: fileFields, append: appendFile, remove: removeFile, update: updateFile } = useFieldArray({
+    const {
+        fields: fileFields,
+        append: appendFile,
+        remove: removeFile,
+        update: updateFile
+    } = useFieldArray({
         control: form.control,
         name: 'vehicleDocuments'
     });
@@ -137,7 +150,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         try {
             const uploadRes: any = await uploadDocument(formData);
 
-            console.log("response", uploadRes)
+            console.log('response', uploadRes);
             let path = '';
             if (uploadRes?.success && typeof uploadRes.data === 'string') {
                 path = uploadRes.data;
@@ -184,7 +197,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         'TRMV_SWDOff',
         'TRMV_OwnersName',
         'TRMV_Desc',
-        'TRMV_Address',
+        'TRMV_Address'
     ];
 
     const handleNext = async () => {
@@ -198,7 +211,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     const handleTabChange = async (value: string) => {
         if (value === 'end') {
             const isValid = await form.trigger(startTabFields);
-            if (!isValid) return;   // block the switch; errors are already shown
+            if (!isValid) return; // block the switch; errors are already shown
         }
         setCurrentTab(value);
     };
@@ -227,8 +240,8 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
 
             // 2. Upload Documents
             const uploadedDocs: IMasterVehicleDocument[] = (values.vehicleDocuments || [])
-                .filter(doc => doc.cfilepath)
-                .map(doc => ({
+                .filter((doc) => doc.cfilepath)
+                .map((doc) => ({
                     cfilename: doc.cfilename || '',
                     cfiledesc: doc.cfiledesc || doc.cfilename || '',
                     cfilepath: doc.cfilepath as string
@@ -244,7 +257,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 TRMV_VehicleImage: vehicleImagePath,
                 vehicleDocuments: uploadedDocs
             };
-            console.log("pay vehicle", payload);
+            console.log('pay vehicle', payload);
             const response = await saveMasterVehicle(payload);
 
             if (response.message === 'Add') {
@@ -268,34 +281,30 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                    <TabsList className="flex w-full rounded-lg border border-border bg-muted p-1 gap-1">
+                <Tabs value={currentTab} onValueChange={handleTabChange} className='w-full'>
+                    <TabsList className='flex w-full gap-1 rounded-lg border border-border bg-muted p-1'>
                         <TabsTrigger
-                            value="start"
-                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
-                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
-                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
-                        >
+                            value='start'
+                            className='flex-1 rounded-md px-6 py-2 font-semibold text-sm transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground'>
                             START
                         </TabsTrigger>
                         <TabsTrigger
-                            value="end"
-                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
-                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
-                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
-                        >
+                            value='end'
+                            className='flex-1 rounded-md px-6 py-2 font-semibold text-sm transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground'>
                             END
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="start" className="space-y-4 pt-4">
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <TabsContent value='start' className='space-y-4 pt-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
                                 name='TRMV_VehicleName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Vehicle Name' />
                                         </FormControl>
@@ -308,11 +317,13 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMFT_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Fuel Type <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Fuel Type <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Fuel Type" />
+                                                    <SelectValue placeholder='Select Fuel Type' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -332,11 +343,13 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMVT_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle Type <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle Type <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Vehicle Type" />
+                                                    <SelectValue placeholder='Select Vehicle Type' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -356,13 +369,11 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_PurchaseDate'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Date Of Purchase <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Date Of Purchase <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                                placeholder='Select Date'
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -373,7 +384,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_VehicleNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Vehicle No' />
                                         </FormControl>
@@ -386,9 +399,11 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_ChassisNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Chassis No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Chassis No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Enter Chassis No' />
+                                            <Input {...field} placeholder='Enter Chassis No' maxLength={16} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -399,7 +414,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_EngineNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Engine No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Engine No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Engine No' />
                                         </FormControl>
@@ -412,7 +429,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_PurchasedFrom'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Purchased From <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Purchased From <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Purchased From' />
                                         </FormControl>
@@ -425,9 +444,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Capacity'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Seating <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Seating <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Capacity' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Capacity'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -438,9 +464,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Cost'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Approximate Cost <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Approximate Cost <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Cost' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Cost'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -451,7 +484,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_CompanyName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Company Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Company Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Company Name' />
                                         </FormControl>
@@ -464,7 +499,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_SWDOff'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>S/W/D OFF <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            S/W/D OFF <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter S/W/D OFF' />
                                         </FormControl>
@@ -477,7 +514,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_OwnersName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Owner Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Owner Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Owner Name' />
                                         </FormControl>
@@ -490,7 +529,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Desc'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Description <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Textarea {...field} placeholder='Enter Description' />
                                         </FormControl>
@@ -503,7 +544,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Address'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Address <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Address <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Textarea {...field} placeholder='Enter Address' />
                                         </FormControl>
@@ -513,39 +556,45 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                             />
 
                             {/* Image Upload in First Tab */}
-                            <div className="col-span-1 md:col-span-2 space-y-2">
+                            <div className='col-span-1 space-y-2 md:col-span-2'>
                                 <FormLabel>Vehicle Photo</FormLabel>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative h-32 w-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50">
+                                <div className='flex items-center gap-4'>
+                                    <div className='relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-300 border-dashed bg-gray-50'>
                                         {imagePreview ? (
-                                            <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                                            <img src={imagePreview} alt='Preview' className='h-full w-full object-cover' />
                                         ) : (
-                                            <Upload className="h-8 w-8 text-gray-400" />
+                                            <Upload className='h-8 w-8 text-gray-400' />
                                         )}
                                         <Input
-                                            type="file"
-                                            accept="image/*"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            type='file'
+                                            accept='image/*'
+                                            className='absolute inset-0 cursor-pointer opacity-0'
                                             onChange={handleImageChange}
-                                            id="vehicle-image-input"
+                                            id='vehicle-image-input'
                                         />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-500 mb-2">Upload vehicle photo (JPG, PNG). Max 2MB.</p>
-                                        <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('vehicle-image-input')?.click()}>
+                                    <div className='flex-1'>
+                                        <p className='mb-2 text-gray-500 text-sm'>Upload vehicle photo (JPG, PNG). Max 2MB.</p>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            size='sm'
+                                            onClick={() => document.getElementById('vehicle-image-input')?.click()}>
                                             Select Image
                                         </Button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end mt-4">
-                            <Button type="button" onClick={handleNext} className="bg-primary text-white">Next</Button>
+                        <div className='mt-4 flex justify-end'>
+                            <Button type='button' onClick={handleNext} className='bg-primary text-white'>
+                                Next
+                            </Button>
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="end" className="space-y-4 pt-4">
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <TabsContent value='end' className='space-y-4 pt-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
                                 name='TRMV_Model'
@@ -565,11 +614,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Registration Date</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -593,11 +638,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Manufactured Date</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -661,7 +702,12 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                     <FormItem>
                                         <FormLabel>No Of Cylinder</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter No Of Cylinder' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter No Of Cylinder'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -687,7 +733,12 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                     <FormItem>
                                         <FormLabel>Unladen Weight</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Unladen Weight' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Unladen Weight'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -725,21 +776,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>REG/FC UpTo</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
 
-
                         {/* Documents Section in End Tab */}
-                        <div className="mt-6 border-t pt-4">
-                            <h3 className="text-lg font-semibold mb-4">Transport Documents</h3>
+                        <div className='mt-6 border-t pt-4'>
+                            <h3 className='mb-4 font-semibold text-lg'>Transport Documents</h3>
                             <div className='overflow-x-auto'>
                                 <table className='w-full table-auto border-collapse border text-left text-sm'>
                                     <thead className='bg-muted'>
@@ -899,11 +945,11 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                             </div>
                         </div>
 
-                        <div className='flex justify-between gap-2 mt-4'>
+                        <div className='mt-4 flex justify-between gap-2'>
                             <Button type='button' variant='outline' onClick={() => setCurrentTab('start')}>
                                 Previous
                             </Button>
-                            <div className="flex gap-2">
+                            <div className='flex gap-2'>
                                 <Button type='button' variant='outline' onClick={onClose}>
                                     Cancel
                                 </Button>
@@ -913,6 +959,6 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                     </TabsContent>
                 </Tabs>
             </form>
-        </Form >
+        </Form>
     );
 }

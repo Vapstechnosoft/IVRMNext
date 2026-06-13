@@ -63,3 +63,28 @@ export async function saveInterviewerFeedback(data:InterviewSchedule):Promise<Ap
         throw error;
     }
 }
+
+
+export async function getCandidateInterviewList(): Promise<ApiResponse<any>> {
+    try{
+        const url = '/api/AddCandidateInterviewVMS/get_candidate_interview_list'
+        const reponse = await api.get('hrmsrecruitment', url);
+        if(reponse.success){
+            return {
+                success: reponse?.success,
+                message: reponse?.message || 'Data fetched successfully',
+                data: reponse?.data || reponse,
+            };
+        }else{
+            return {
+                success: reponse?.success,
+                message: reponse?.message || 'Data fetched successfully',
+                data: reponse?.data || reponse,
+            };
+        }
+
+    }catch (error: any) {
+        console.error('Error fetching master job grid data:', error);
+        throw error;
+    }
+}

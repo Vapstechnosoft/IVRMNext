@@ -32,6 +32,15 @@ export default function TabAuthorDetails({
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
 
+    const lmAU_Id = useWatch({ control, name: 'lmAU_Id' });
+    const [isMasterAuthor, setIsMasterAuthor] = useState(false);
+
+    useEffect(() => {
+        if (lmAU_Id) {
+            setIsMasterAuthor(true);
+        }
+    }, [lmAU_Id]);
+
     const { fields: accessionFields, append: appendAccession, remove: removeAccession } = useFieldArray({
         control,
         name: 'accessionList'
@@ -98,6 +107,7 @@ export default function TabAuthorDetails({
 
     const rackList = dropdownData?.racklist || dropdownData?.rackList || [];
     const accessoriesList = dropdownData?.accessoriesList || [];
+    const authorList = dropdownData?.authorlist || dropdownData?.authorList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -107,14 +117,77 @@ export default function TabAuthorDetails({
                     <h3 className='font-bold text-blue-800 border-b pb-2 uppercase tracking-wide'>Author Entry & Price Details</h3>
                     
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id='master-author' />
+                        <Checkbox
+                            id='master-author'
+                            checked={isMasterAuthor}
+                            onCheckedChange={(checked) => {
+                                setIsMasterAuthor(checked as boolean);
+                                if (!checked) {
+                                    setValue('lmAU_Id', undefined);
+                                } else {
+                                    setValue('lmB_AuthorFirstName', '');
+                                    setValue('lmB_AuthorMiddleName', '');
+                                    setValue('lmB_AuthorLastName', '');
+                                }
+                            }}
+                        />
                         <Label htmlFor='master-author'>Master Author</Label>
                     </div>
 
                     <div className='grid grid-cols-1 gap-4'>
-                        <InputText label='First Name' required {...register('lmB_AuthorFirstName')} />
-                        <InputText label='Middle Name' {...register('lmB_AuthorMiddleName')} />
-                        <InputText label='Last Name' {...register('lmB_AuthorLastName')} />
+                        {isMasterAuthor ? (
+                            <div className='flex flex-col gap-1.5'>
+                                <Label>Author Name <span className='text-red-500'>*</span></Label>
+                                <Controller
+                                    control={control}
+                                    name='lmAU_Id'
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                const selectedAuthor = authorList.find((item: any) => {
+                                                    const itemId = item.lmaU_Id || item.lmau_Id || item.LMAU_Id || item.lmA_Id || item.lma_Id || item.LMA_Id || item.id || item.value;
+                                                    return itemId === id;
+                                                });
+                                                if (selectedAuthor) {
+                                                    const fName = selectedAuthor.lmaU_AuthorFirstName || selectedAuthor.lmau_AuthorFirstName || selectedAuthor.LMAU_AuthorFirstName || selectedAuthor.lmA_AuthorFirstName || selectedAuthor.lma_AuthorFirstName || '';
+                                                    const mName = selectedAuthor.lmA_AuthorMiddleName || selectedAuthor.lma_AuthorMiddleName || '';
+                                                    const lName = selectedAuthor.lmA_AuthorLastName || selectedAuthor.lma_AuthorLastName || '';
+                                                    setValue('lmB_AuthorFirstName', fName);
+                                                    setValue('lmB_AuthorMiddleName', mName);
+                                                    setValue('lmB_AuthorLastName', lName);
+                                                }
+                                            }}
+                                            value={field.value ? field.value.toString() : undefined}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='--Select Author--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {authorList.map((item: any) => {
+                                                    const authorId = item.lmaU_Id || item.lmau_Id || item.LMAU_Id || item.lmA_Id || item.lma_Id || item.LMA_Id || item.id || item.value;
+                                                    const authorName = item.lmaU_AuthorFirstName || item.lmau_AuthorFirstName || item.LMAU_AuthorFirstName || item.lmA_AuthorFirstName || item.lma_AuthorFirstName || item.authorName || item.name || '';
+                                                    const middleName = item.lmA_AuthorMiddleName || item.lma_AuthorMiddleName || '';
+                                                    const lastName = item.lmA_AuthorLastName || item.lma_AuthorLastName || '';
+                                                    const fullName = [authorName, middleName, lastName].filter(Boolean).join(' ');
+                                                    return (
+                                                        <SelectItem key={authorId} value={authorId?.toString()}>
+                                                            {fullName || authorName}
+                                                        </SelectItem>
+                                                    );
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                <InputText label='First Name' required {...register('lmB_AuthorFirstName')} />
+                                <InputText label='Middle Name' {...register('lmB_AuthorMiddleName')} />
+                                <InputText label='Last Name' {...register('lmB_AuthorLastName')} />
+                            </>
+                        )}
 
                         <div className='flex flex-col gap-1.5'>
                             <Label>Book Status <span className='text-red-500'>*</span></Label>
@@ -149,11 +222,15 @@ export default function TabAuthorDetails({
                                             <SelectValue placeholder='--select field--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {rackList.map((item: any) => (
-                                                <SelectItem key={item.lmrA_Id} value={item.lmrA_Id.toString()}>
-                                                    {item.lmrA_RackName}
-                                                </SelectItem>
-                                            ))}
+                                            {rackList.map((item: any) => {
+                                                const rackId = item.lmrA_Id || item.lmra_Id || item.id || item.value;
+                                                const rackName = item.lmrA_RackName || item.lmra_RackName || item.rackName || item.name || '';
+                                                return (
+                                                    <SelectItem key={rackId} value={rackId?.toString()}>
+                                                        {rackName}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 )}

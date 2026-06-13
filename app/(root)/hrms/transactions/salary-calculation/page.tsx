@@ -106,8 +106,10 @@ export default function SalaryCalculationPage() {
   // Report-based cascading queries
   const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
   const groupTypeIds = watchedGroupType?.join(",") || "";
+  console.log("groupTypeIds", groupTypeIds);
   const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(groupTypeIds);
   const deptIds = watchedDepartment?.join(",") || "";
+  console.log("departmentsData", departmentsData);
   const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(
     groupTypeIds,
     deptIds,
@@ -237,13 +239,14 @@ export default function SalaryCalculationPage() {
       toast.error("Please perform a search first before generating salary");
       return;
     }
+    console.log("selected employees", selectedEmployees);
     const payload: NewSalaryCalculationGenerateRequest = {
       hreS_Year: currentSearchData.salaryYear,
       hreS_Month: currentSearchData.salaryMonth,
       comm: "cashbank", //"cashbank",
       masterEmployeeList: selectedEmployees.map((empId) => ({
         hrmE_Id: empId,
-        type: "string",
+        type: "cashbank",
         imC_Id: 0,
       })),
     };
