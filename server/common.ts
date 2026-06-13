@@ -3864,11 +3864,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: "St. Peter's School Durgapur, West Bengal",
+                                            name: "St. Peter's FinalPromReportstpeter",
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/StPeter/FinalPromReportstpeter',
-                                            title: "St. Peter's School Durgapur, West Bengal",
-                                            description: "St. Peter's School Durgapur, West Bengal"
+                                            title: "St. Peter's FinalPromReportstpeter",
+                                            description: "St. Peter's FinalPromReportstpeter"
                                         }
                                     ]
                                 }
