@@ -50,7 +50,7 @@ export default function AdmissionMonthEndReport({
     const pincode = inst.mI_Pincode || '';
     const contact = inst.mI_ContactDetails || '';
     const logoUrl = inst.mI_Logo;
-
+    console.log("logoUrl", logoUrl);
     const chartData = reportData.map((x) => ({
         name: x.name,
         count: x.count || 0

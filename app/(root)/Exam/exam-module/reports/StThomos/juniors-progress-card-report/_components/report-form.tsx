@@ -111,17 +111,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                          (
-                              s
-                          ): s is {
-                              amsT_AdmNo: number;
-                              amsT_Id: number;
-                              studentName?: string;
-                              amsT_FirstName?: string;
-                              amsT_MiddleName?: string;
-                              amsT_LastName?: string;
-                          } => !!s?.amsT_Id
-                      )
+                        (
+                            s
+                        ): s is {
+                            amsT_AdmNo: number;
+                            amsT_Id: number;
+                            studentName?: string;
+                            amsT_FirstName?: string;
+                            amsT_MiddleName?: string;
+                            amsT_LastName?: string;
+                        } => !!s?.amsT_Id
+                    )
                     : [];
 
                 // Map to consistent format if needed, but the cumulative report logic returns objects with amsT_Id and studentName/amsT_FirstName
@@ -173,8 +173,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             }))
         };
         try {
+            const selectedYear = academicYears.find((y: any) => String(y.asmaY_Id) === String(data.ASMAY_Id))?.asmaY_Year || '';
+            const selectedClass = classes.find((c: any) => String(c.asmcL_Id) === String(data.ASMCL_Id))?.asmcL_ClassName || '';
+            const selectedSection = sections.find((s: any) => String(s.asmS_Id) === String(data.ASMS_Id))?.asmC_SectionName || '';
+
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
-            onReportGenerated({ ...result, institution: institutionRes?.data }, data);
+            console.log('result', result);
+            onReportGenerated(
+                { ...result, institution: institutionRes?.data },
+                {
+                    ...data,
+                    academicYearName: selectedYear,
+                    className: selectedClass,
+                    sectionName: selectedSection
+                }
+            );
         } catch (error) {
             console.error('Error:', error);
             toast.error('Failed to generate report');

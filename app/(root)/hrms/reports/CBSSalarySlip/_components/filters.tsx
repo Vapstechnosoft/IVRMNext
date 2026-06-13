@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { FileText, X, Search, RotateCcw, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { EmployeeSalarySlipDisplay } from "./columns";
-import { getSalarySlipColumns } from "./columns";
+import { CustomPaginationTable, CustomTableColumn } from '@/components/ui/view-data-table/custom-pagination-table';
 
 export interface SalarySlipFilters {
   groupType: number[];
@@ -100,12 +100,29 @@ export function SalarySlipFilters({
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployeeIds.has(emp.id));
-  const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
+  const handleSelectAllWrapper = (checked: boolean, ids: number[]) => {
+      (onSelectAll as any)(checked, ids);
+  };
 
-  const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
-
-  const baseTableProps = useDataTableProps(tableResponse || filteredEmployees);
+  const columns: CustomTableColumn<EmployeeSalarySlipDisplay>[] = [
+      {
+          header: <div className="text-center font-medium">SL. No</div>,
+          cell: (_, index, currentPage, itemsPerPage) => (
+              <div className="text-center">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+              </div>
+          ),
+          className: "w-20"
+      },
+      {
+          header: "Employee Code",
+          cell: (emp) => <div className="font-medium">{emp.employeeCode}</div>
+      },
+      {
+          header: "Employee Name",
+          cell: (emp) => <div>{emp.employeeName}</div>
+      }
+  ];
 
   return (
     <CollapsibleSection
@@ -370,40 +387,17 @@ export function SalarySlipFilters({
         </div>
         {/* Employee Table with Search */}
         <div className="space-y-4 w-full">
-          <div className="mt-3 flex ">
-            <div className="flex items-center justify-end w-full gap-4">
-              <div className="font-medium text-foreground text-sm">
-                Employee List ({filteredEmployees.length} employees)
-              </div>
-              <div className="relative w-48 ">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search Name or Code..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                />
-              </div>
-            </div>
-            {/* {selectedCount > 0 && (
-              <span className="text-muted-foreground text-sm">
-                {selectedCount} selected
-              </span>
-            )} */}
-          </div>
           {/* Data Table */}
-          <div className="salary-slip-table-wrapper [&_.pagination-size-container]:hidden [&_.pagination-info]:hidden">
-            <GenericDataTable
-              {...baseTableProps}
-              isLoading={isFiltering}
-              columns={columns}
-              data={filteredEmployees}
-              showViewOptions={true}
-              isSearchRequired={false}
-              isPaginationRequired={true}
-              scrollable={true}
-              maxHeight="250px"
-              columnPinning={{ left: ["select", "id"] }}
+          <div className="salary-slip-table-wrapper">
+            <CustomPaginationTable
+                data={filteredEmployees}
+                columns={columns}
+                searchKeys={['employeeName', 'employeeCode']}
+                idKey="id"
+                selectedIds={selectedEmployeeIds}
+                onSelect={onSelectEmployee}
+                onSelectAll={handleSelectAllWrapper}
+                searchPlaceholder="Search Name or Code..."
             />
           </div>
         </div>

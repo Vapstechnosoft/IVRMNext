@@ -93,9 +93,6 @@ interface DataTableProps<TData, TValue> {
   maxSelectableRows?: number;
   onRowSelectionChange?: (selectedRows: TData[]) => void;
   showSearchColumns?: boolean;
-  manualPagination?: boolean;
-  manualFiltering?: boolean;
-  manualSorting?: boolean;
   scrollable?: boolean;
   maxHeight?: string;
   getRowId?: (originalRow: TData, index: number) => string;
@@ -122,9 +119,6 @@ function DataTableInner<TData, TValue>(
     maxSelectableRows = 0,
     onRowSelectionChange,
     showSearchColumns = false,
-    manualPagination = true,
-    manualFiltering = true,
-    manualSorting = true,
     scrollable = false,
     maxHeight = "600px",
     getRowId,
@@ -155,8 +149,15 @@ function DataTableInner<TData, TValue>(
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
+    const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
+
     const onSortingChange = (updaterOrValue: any) => {
-        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue([{ id: sortBy, desc: order === 'desc' }]) : updaterOrValue;
+        const newSortingState = typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+
+        const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
+        if (!hasChanged) {
+            return;
+        }
 
         if (newSortingState && newSortingState.length > 0) {
             setSortBy(newSortingState[0].id);
@@ -184,10 +185,10 @@ function DataTableInner<TData, TValue>(
   }, [rowSelection]);
 
   const paginationState = { pageIndex: currentPage - 1, pageSize };
-  // In client-side mode (manualPagination=false), TanStack Table handles slicing,
+  // TanStack Table handles slicing for client-side pagination,
   // but we still want to show the correct page count based on the data length.
-  const effectiveTotal = manualPagination ? totalItems : data.length;
-  const pageCount = Math.ceil(effectiveTotal / pageSize);
+  const effectiveTotal = data.length;
+  const pageCount = Math.max(1, Math.ceil(effectiveTotal / pageSize));
 
   const handlePaginationChange = (
     updaterOrValue:
@@ -198,6 +199,15 @@ function DataTableInner<TData, TValue>(
       typeof updaterOrValue === "function"
         ? updaterOrValue(paginationState)
         : updaterOrValue;
+
+    if (effectiveTotal === 0) {
+        return;
+    }
+
+    if (pagination.pageIndex === paginationState.pageIndex && pagination.pageSize === paginationState.pageSize) {
+        return;
+    }
+
     setCurrentPage(pagination.pageIndex + 1);
     setPageSize(pagination.pageSize);
 
@@ -214,7 +224,7 @@ function DataTableInner<TData, TValue>(
         pageCount,
         state: {
             pagination: paginationState,
-            sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
+            sorting: currentSorting,
             globalFilter: searchQuery,
             rowSelection,
             columnFilters,
@@ -253,9 +263,9 @@ function DataTableInner<TData, TValue>(
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    manualPagination: manualPagination,
-    manualSorting: manualSorting,
-    manualFiltering: manualFiltering,
+    manualPagination: false,
+    manualSorting: false,
+    manualFiltering: false,
     initialState: {
       columnPinning: columnPinning || { right: ["actions"] },
     },

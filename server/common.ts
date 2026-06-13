@@ -5663,10 +5663,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 12,
-                                            name: 'Student Password Creation',
+                                            name: 'Student Credential',
                                             icon: 'LockKeyhole',
                                             url: '/alumni/alumni-module/transactions/student-password-creation',
-                                            title: 'Student Password Creation',
+                                            title: 'Student Credential',
                                             description: 'Student Credentials Management'
                                         },
                                         {

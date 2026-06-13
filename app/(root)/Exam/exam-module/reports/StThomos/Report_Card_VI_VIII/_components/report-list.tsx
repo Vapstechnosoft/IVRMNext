@@ -245,11 +245,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         return subjectId >= 1000;
     };
 
-    const isChildSubject = (subj: any) => {
+    const isChildSubject = (subj: any, report: any) => {
         if (!subj) return false;
         const subjectId = Number(subj.ismS_Id ?? subj.ISMS_Id ?? 0);
-        const esG_Id = Number(subj.esG_Id ?? subj.ESG_Id ?? 0);
-        return subjectId < 1000 && esG_Id > 0;
+        if (subjectId >= 1000) return false;
+
+        const marksArray = report?.studentmarks || [];
+        const hasAvg = marksArray.some((m: any) => {
+            const mSubId = Number(m.ismS_Id ?? m.ISMS_Id ?? 0);
+            return mSubId === subjectId && (m.emE_Id === 9800001 || String(m.emE_ExamName || '').toUpperCase() === 'AVG' || String(m.displayName || '').toUpperCase() === 'AVG');
+        });
+        return !hasAvg;
     };
 
     // Gather unique subjects combining marks list and standard list
@@ -309,7 +315,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         }
 
         // 2. If child subject and AVG exam, must be empty cell!
-        if (isScholastic && isChildSubject(subj) && isAvgExam) {
+        if (isScholastic && isChildSubject(subj, report) && isAvgExam) {
             return '';
         }
 
@@ -763,7 +769,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 <span className='font-semibold'>
                                                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}
                                                                 </span>
-                                                            ) : isChildSubject(subj) ? (
+                                                            ) : isChildSubject(subj, report) ? (
                                                                 <span className='font-normal text-gray-700'>
                                                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{subj.ismS_SubjectName}
                                                                 </span>
@@ -922,10 +928,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     </table>
 
                                     {/* Bottom Layout - Co-Scholastic left / Chart right */}
-                                    <div className='flex border-[0.5px] border-t-0 border-[#727272]'>
+                                    <div className='flex w-full border-[0.5px] border-t-0 border-[#727272]'>
 
                                         {/* Left Column: Graded subjects & Personality profile */}
-                                        <div className='w-[60%] border-r border-[#727272]'>
+                                        <div className='w-[50%] border-r border-[#727272]'>
 
                                             {/* Graded Subjects (Skills) */}
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
@@ -984,13 +990,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                                 <thead>
                                                     <tr>
-                                                        <th className='p-1 text-left text-[10px] font-medium border-l-0'>
+                                                        <th className='w-[180px] p-1 text-left text-[10px] font-medium border-l-0'>
                                                             &nbsp;&nbsp;&nbsp;PERSONALITY PROFILE
                                                         </th>
                                                         {groupDetailsMapped.map((grp: any, gIdx: number) => (
                                                             <th
                                                                 key={gIdx}
-                                                                className='w-[70px] p-1 text-center text-[10px] uppercase border-r-0'>
+                                                                className={`w-[70px] p-1 text-center text-[10px] uppercase ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
                                                                 {matchGroupName(grp.empG_DistplayName || grp.empG_DisplayName || grp.empsG_DisplayName || '', 'HALF YEARLY EXAMINATION') ? 'HALF YEARLY' : 'FINAL'}
                                                             </th>
                                                         ))}
@@ -1003,7 +1009,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 &middot; &nbsp;{q}
                                                             </td>
                                                             {groupDetailsMapped.map((_grp: any, gIdx: number) => (
-                                                                <td key={gIdx} className='p-0.5 text-center border-r-0'>
+                                                                <td key={gIdx} className={`p-0.5 text-center ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
                                                                     <input type='checkbox' className='h-3 w-3 pointer-events-none' readOnly />
                                                                 </td>
                                                             ))}
@@ -1014,12 +1020,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </div>
 
                                         {/* Right Column: Chart */}
-                                        <div className='w-[40%] p-2 flex flex-col justify-start items-center'>
+                                        <div className='w-[50%] p-2 flex flex-col justify-start items-center'>
                                             <div className='w-full border-b border-[#727272] pb-1 mb-2 text-center text-[12px] font-bold'>
                                                 PERFORMANCE ANALYSIS(TOTAL)
                                             </div>
                                             {chartLabels.length > 0 ? (
-                                                <div className='relative h-[240px] w-full max-w-[280px]'>
+                                                <div className='relative h-[240px] w-full max-w-[340px]'>
                                                     <Bar
                                                         data={{
                                                             labels: chartLabels,

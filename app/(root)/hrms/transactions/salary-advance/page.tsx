@@ -174,8 +174,6 @@ function SalaryAdvancePageContent({
                     data={advances}
                     totalItems={advances.length}
                     isLoading={isLoading}
-                    manualPagination={false}
-                    manualFiltering={false}
                     showSearchColumns={true}
                 />
             </div>

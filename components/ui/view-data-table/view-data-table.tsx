@@ -41,9 +41,6 @@ interface DataTableProps<TData, TValue> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
-    manualPagination?: boolean;
-    manualSorting?: boolean;
-    manualFiltering?: boolean;
 }
 
 export interface DataTableRef {
@@ -67,10 +64,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
-        currentApiParams,
-        manualPagination = true,
-        manualSorting = true,
-        manualFiltering = true
+        currentApiParams
     } = props;
 
     const { page = 1, page_size = 10, search_query = '', sort_column = '', sort_direction = 'desc' } = currentApiParams || {};
@@ -118,11 +112,41 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         rowSelectionRef.current = rowSelection;
     }, [rowSelection]);
 
+    const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
+
+    const onSortingChange = (updaterOrValue: any) => {
+        const newSortingState =
+            typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+
+        const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
+        if (!hasChanged) {
+            return;
+        }
+
+        if (newSortingState && newSortingState.length > 0) {
+            setSortBy(newSortingState[0].id);
+            setOrder(newSortingState[0].desc ? 'desc' : 'asc');
+        } else {
+            setSortBy('');
+            setOrder('desc');
+        }
+        setCurrentPage(1); // Reset to first page on sort
+    };
+
     const paginationState = { pageIndex: currentPage - 1, pageSize };
-    const pageCount = Math.ceil(totalItems / pageSize);
+    const pageCount = Math.max(1, Math.ceil(totalItems / pageSize));
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
+        
+        if (data.length === 0) {
+            return;
+        }
+
+        if (pagination.pageIndex === paginationState.pageIndex && pagination.pageSize === paginationState.pageSize) {
+            return;
+        }
+
         setCurrentPage(pagination.pageIndex + 1);
         setPageSize(pagination.pageSize);
     };
@@ -133,11 +157,12 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         pageCount,
         state: {
             pagination: paginationState,
-            sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
+            sorting: currentSorting,
             globalFilter: searchQuery,
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
+        onSortingChange: onSortingChange,
 
         onRowSelectionChange: (newSelection) => {
             const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
@@ -164,9 +189,9 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        manualPagination,
-        manualSorting,
-        manualFiltering,
+        manualPagination: true,
+        manualSorting: true,
+        manualFiltering: true,
 
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
