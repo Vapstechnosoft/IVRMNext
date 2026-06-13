@@ -88,9 +88,6 @@ function EventsStudentMappingPageContent({ response, isLoading, error, refetchAl
                         columns={eventsStudentMappingColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}

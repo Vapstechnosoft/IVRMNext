@@ -249,7 +249,6 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                                 columns={columns}
                                 data={filteredData}
                                 totalItems={filteredData.length}
-                                manualPagination={false}
                             />
                         </div>
 

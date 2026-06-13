@@ -1667,6 +1667,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Effect to populate form when employeeData is loaded
     // Fetch specific employee details using the ID-based endpoint (likely has better data)
     const { data: employeeDetailsData, isLoading: isLoadingDetails } = useEmployeeById(selectedRow?.hrmE_Id || null);
+    console.log("employee details",employeeDetailsData)
 
     // Effect to populate form when employeeData is loaded
     useEffect(() => {

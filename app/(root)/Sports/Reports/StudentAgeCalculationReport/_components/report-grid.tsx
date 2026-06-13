@@ -197,8 +197,6 @@ export default function ReportGrid({ data, isLoading }: ReportGridProps) {
                         data={data}
                         isLoading={!!isLoading}
                         totalItems={data.length}
-                        manualPagination={false}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         loadingMessage="Generating report..."
                     />
