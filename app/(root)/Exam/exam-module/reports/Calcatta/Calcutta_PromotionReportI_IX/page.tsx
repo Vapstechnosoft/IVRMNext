@@ -15,6 +15,7 @@ export default function CalcuttaPromotionReportItoIXPage() {
     const handleFormSubmit = async (payload: any, dates: any) => {
         try {
             const res = await getCalcuttaPromotionReportI_IX(payload);
+            console.log('Calcutta Promotion Report I-IX API response', res);
             setReportData(res);
             setDateInfo(dates);
             toast.success('Report generated successfully');

@@ -67,6 +67,14 @@ export default function InvRStockPage(props: { searchParams: Promise<any> }) {
     const totalRecords = reportResult?.total || 0;
 
     const handleReportGenerated = (data: IInvRStockReportData[], payload: any, total: number) => {
+        if (payload === null) {
+            setCurrentPayload(null);
+            setCurrentPage(1);
+            setSearchQuery(null);
+            setSearchColumns('All');
+            return;
+        }
+
         if (total === 0) {
             toast.error("No record found");
         }

@@ -117,7 +117,14 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
     const totalRecords = reportResult?.total || 0;
 
     // Handle initial report generation (Page 1)
-    const handleReportGenerated = (data: IInvRGRNReportData[], payload: IInvRGRNPayload, total: number) => {
+    const handleReportGenerated = (data: IInvRGRNReportData[], payload: IInvRGRNPayload | null, total: number) => {
+        if (payload === null) {
+            setCurrentPayload(null);
+            setCurrentPage(1);
+            setSearchQuery(null);
+            return;
+        }
+
         if (total === 0) {
             toast.error("No record found");
         }
@@ -327,7 +334,6 @@ export default function InvRGRNPage(props: { searchParams: Promise<any> }) {
                                 isLoading={isFetching}
                                 totalItems={totalRecords}
                                 isSearchRequired={true}
-                                manualFiltering={totalRecords > reportData.length}
                                 noDataTitle="No GRN Found"
                                 noDataDescription="No records found matching your search criteria."
                             />

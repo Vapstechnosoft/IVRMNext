@@ -64,35 +64,54 @@ interface SalarySlipTemplateProps {
 }
 
 export function numberToWords(num: number) {
-        const a = [
-            "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-            "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-            "Seventeen", "Eighteen", "Nineteen"
-        ];
+    if (num === 0) return "Zero Rupees Only";
 
-        const b = [
-            "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
-        ];
+    const isNegative = num < 0;
+    const absNum = Math.abs(num);
 
-        function inWords(n: number): string {
-            if (n < 20) return a[n];
-            if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
-            if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + inWords(n % 100) : "");
-            if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
-            if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
-            return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
-        }
+    const a = [
+        "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+        "Seventeen", "Eighteen", "Nineteen"
+    ];
 
-        const [rupees, paise] = num.toFixed(2).split(".");
+    const b = [
+        "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
+    ];
 
-        let words = inWords(parseInt(rupees)) + " Rupees";
-
-        if (parseInt(paise) > 0) {
-            words += " and " + inWords(parseInt(paise)) + " Paise";
-        }
-
-        return words + " Only";
+    function inWords(n: number): string {
+        if (n < 20) return a[n];
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
+        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + inWords(n % 100) : "");
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
+        return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
     }
+
+    const [rupees, paise] = absNum.toFixed(2).split(".");
+    const rupeesVal = parseInt(rupees);
+    const paiseVal = parseInt(paise);
+
+    let words = "";
+
+    if (rupeesVal > 0) {
+        words = inWords(rupeesVal) + " Rupees";
+    }
+
+    if (paiseVal > 0) {
+        if (words) {
+            words += " and " + inWords(paiseVal) + " Paise";
+        } else {
+            words = inWords(paiseVal) + " Paise";
+        }
+    }
+
+    if (!words) {
+        words = "Zero Rupees";
+    }
+
+    return (isNegative ? "Minus " : "") + words + " Only";
+}
 export function SalarySlipTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -138,7 +157,7 @@ export function SalarySlipTemplate({
 
     // formate the amount to text
 
-   
+
 
 
 
@@ -165,17 +184,12 @@ export function SalarySlipTemplate({
         <div className='mx-auto w-full  bg-white p-8 shadow-md print:p-0 print:shadow-none mb-8'>
             <div id="EmpPaySlip" className="w-full">
                 {/* Header Section */}
-                <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-4">
-                    <div className="flex-shrink-0">
-                        {schoolLogo && (
-                            <img src={schoolLogo} className="h-[80px] w-auto object-contain" />
-                        )}
-                    </div>
-                    <div className="flex-grow text-center">
-                        <h1 className="text-3xl font-bold text-[#002c86] uppercase">{schoolName}</h1>
-                        <p className="text-sm font-semibold">{schoolAddress}</p>
-                    </div>
-                    <div className="w-[80px]"></div> {/* Spacer to center the title */}
+                <div className="mb-2 flex items-center justify-center border-b-2 border-black pb-4 ">
+
+                    {schoolLogo && (
+                        <img src={schoolLogo} alt="Institution Logo" className="h-[140px] w-auto object-contain" />
+                    )}
+
                 </div>
 
                 <h3 className="mb-6 text-center text-xl font-bold underline">

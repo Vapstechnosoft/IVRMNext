@@ -58,6 +58,9 @@ export interface SalarySlipFilterRequest {
     hrmdes_ids: string;
     hrmd_ids: string;
     hrmgt_ids: string;
+    page?: number;
+    page_size?: number;
+    search?: string;
 }
 
 export interface SalarySlipGenerateRequest {

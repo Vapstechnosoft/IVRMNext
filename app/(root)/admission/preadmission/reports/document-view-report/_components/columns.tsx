@@ -3,11 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useStudentApplicationForm } from '@/hooks/admission/preadmission/useTransactions';
+import { useStudentPrintData } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Eye, FileText } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import ApplicationPrintView from './application-print-view';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -56,7 +57,20 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         header: ({ column }) => <DataTableColumnHeader column={column} title='Application Form' className='font-bold text-black' />,
         cell: ({ row }) => {
             const [open, setOpen] = useState(false);
-            const { data: studentDetails, isLoading } = useStudentApplicationForm(row.original.pasr_id);
+            const printRef = React.useRef<HTMLDivElement>(null);
+
+            const { data: studentDetails, isLoading } = useStudentPrintData(
+                row.original.pasr_id || (row.original as any).pasR_Id,
+                (row.original as any).selected_asmcL_Id || row.original.asmcl_id || 0,
+                (row.original as any).selected_asmaY_Id || row.original.asmaY_Id || 0,
+                (row.original as any).asmst_Id || (row.original as any).ASMST_Id || 0, // Pass ASMST_Id if available
+                open // Fetch data only when the dialog is opened
+            );
+
+            const handlePrint = useReactToPrint({
+                contentRef: printRef,
+                documentTitle: 'Pre-Admission_Registration_Form'
+            });
 
             return (
                 <Dialog open={open} onOpenChange={setOpen}>
@@ -75,11 +89,18 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
                                     <Spinner />
                                 </div>
                             ) : (
-                                <ApplicationPrintView data={studentDetails?.data} />
+                                <ApplicationPrintView 
+                                    printRef={printRef}
+                                    data={{
+                                        ...studentDetails?.data,
+                                        academic_year: studentDetails?.data?.academic_year || row.original.academic_year || '',
+                                        asmcL_ClassName: studentDetails?.data?.asmcL_ClassName || row.original.applied_class_name || ''
+                                    }} 
+                                />
                             )}
                         </div>
                         <div className="p-4 border-t flex justify-end">
-                            <Button onClick={() => window.print()} variant="outline">Print</Button>
+                            <Button onClick={() => handlePrint()} variant="outline">Print</Button>
                         </div>
                     </DialogContent>
                 </Dialog>

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
 import DeleteOpeningBalanceForm from './_components/delete-form';
 
@@ -33,18 +33,27 @@ export default function FeeOpeningBalancePage() {
 
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
 
-    const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
+    // Memoize searchParams to prevent infinite loop
+    const searchParamsString = useMemo(() => searchParams?.toString() || '', [searchParams]);
+    const memoizedSearchParams = useMemo(() => searchParams, [searchParamsString]);
+
+    // Prepare API params
+    const apiSearchParams = useMemo(() => {
+        return searchParams ? Object.fromEntries(searchParams.entries()) : {};
+    }, [searchParamsString]);
 
     const {
         data: feeResponse,
         isLoading: feeLoading,
-        refetch: refetchFee
+        refetch: refetchFee,
+        isFetching: isFeeFetching
     } = useFeeOpeningBalanceList(selectedAsmayId || 0, apiSearchParams as any);
 
     const {
         data: pdaResponse,
         isLoading: pdaLoading,
-        refetch: refetchPDA
+        refetch: refetchPDA,
+        isFetching: isPdaFetching
     } = useFeeOpeningPDAList(selectedAsmayId || 0, apiSearchParams as any);
 
     const feeData: OpeningBalanceRow[] = (feeResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
@@ -54,13 +63,37 @@ export default function FeeOpeningBalancePage() {
     const totalPdaRecords = (pdaResponse as ApiResponse<OpeningBalanceRow[]>)?.total ?? 0;
     const totalRecords = activeTab === 'Fee' ? totalFeeRecords : totalPdaRecords;
 
-    const isLoading = activeTab === 'Fee' ? feeLoading : pdaLoading;
+    const isLoading = activeTab === 'Fee' ? feeLoading || isFeeFetching : pdaLoading || isPdaFetching;
     const tableData: OpeningBalanceRow[] = activeTab === 'Fee' ? feeData : pdaData;
 
-    const refetchAll = () => {
-        if (activeTab === 'Fee') refetchFee();
-        else refetchPDA();
-    };
+    const refetchAll = useCallback(() => {
+        if (activeTab === 'Fee') {
+            refetchFee();
+        } else {
+            refetchPDA();
+        }
+    }, [activeTab, refetchFee, refetchPDA]);
+
+    // Handle page change from the table
+    const handlePageChange = useCallback(
+        (newPage: number) => {
+            const params = new URLSearchParams(searchParams?.toString());
+            params.set('page', newPage.toString());
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        },
+        [searchParams, router, pathname]
+    );
+
+    // Handle page size change
+    const handlePageSizeChange = useCallback(
+        (newPageSize: number) => {
+            const params = new URLSearchParams(searchParams?.toString());
+            params.set('pageSize', newPageSize.toString());
+            params.set('page', '1'); // Reset to first page
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        },
+        [searchParams, router, pathname]
+    );
 
     return (
         <FormProvider<OpeningBalanceRow>>
@@ -75,9 +108,9 @@ export default function FeeOpeningBalancePage() {
                 totalRecords={totalRecords}
                 isLoading={isLoading}
                 refetchAll={refetchAll}
-                searchParams={searchParams}
-                router={router}
-                pathname={pathname}
+                searchParams={memoizedSearchParams}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
             />
         </FormProvider>
     );
@@ -95,8 +128,8 @@ function PageContent({
     isLoading,
     refetchAll,
     searchParams,
-    router,
-    pathname
+    onPageChange,
+    onPageSizeChange
 }: {
     selectedAsmayId: number | null;
     setSelectedAsmayId: (id: number | null) => void;
@@ -109,19 +142,22 @@ function PageContent({
     isLoading: boolean;
     refetchAll: () => void;
     searchParams: ReturnType<typeof useSearchParams>;
-    router: ReturnType<typeof useRouter>;
-    pathname: string;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
 }) {
     const { openAddForm } = useFormContext<OpeningBalanceRow>();
 
-    // This hook must receive router + searchParams to update URL on page/size change
+    // Get current page and pageSize from URL
+    const currentPage = Number(searchParams?.get('page')) || 1;
+    const currentPageSize = Number(searchParams?.get('pageSize')) || 10;
+
+    // Use data table props
     const tableProps = useDataTableProps({
         data: tableData,
         totalItems: totalRecords,
         searchParams,
-        router,
-        pathname,
-        activeTab
+        onPageChange,
+        onPageSizeChange
     });
 
     return (
@@ -169,7 +205,9 @@ function PageContent({
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        // disabled={!selectedAsmayId}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                    >
                         <Plus className='h-4 w-4' />
                         Add Fee Opening Balance
                     </Button>
@@ -190,21 +228,34 @@ function PageContent({
                             isLoading={isLoading}
                             columnPinning={{ right: ['actions'] }}
                             loadingMessage={`Loading ${activeTab} Opening Balances...`}
-                            noDataTitle={`No ${activeTab} Opening Balance Records Found`}
-                            noDataDescription='No records exist for the selected academic year.'
-                            totalItems={totalRecords}
+                            isPaginationRequired={true}
+                            isSearchRequired={true}
                         />
                     )}
                 </CollapsibleSection>
 
-                <FormSections refetch={refetchAll} activeTab={activeTab} />
+                <FormSections refetch={refetchAll} activeTab={activeTab} selectedAsmayId={selectedAsmayId} />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch, activeTab }: { refetch: () => void; activeTab: 'Fee' | 'PDA' }) {
+function FormSections({
+    refetch,
+    activeTab,
+    selectedAsmayId
+}: { refetch: () => void; activeTab: 'Fee' | 'PDA'; selectedAsmayId: number | null }) {
     const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } = useFormContext<OpeningBalanceRow>();
+
+    const handleAddSuccess = useCallback(() => {
+        closeAddForm();
+        refetch();
+    }, [closeAddForm, refetch]);
+
+    const handleDeleteSuccess = useCallback(() => {
+        closeDeleteForm();
+        refetch();
+    }, [closeDeleteForm, refetch]);
 
     return (
         <>
@@ -227,12 +278,7 @@ function FormSections({ refetch, activeTab }: { refetch: () => void; activeTab: 
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
-                            <AddFeeOpeningBalanceForm
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }}
-                            />
+                            <AddFeeOpeningBalanceForm academicYear={selectedAsmayId} onSuccess={handleAddSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -243,10 +289,7 @@ function FormSections({ refetch, activeTab }: { refetch: () => void; activeTab: 
                     rowData={selectedRow}
                     activeTab={activeTab}
                     onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        closeDeleteForm();
-                        refetch();
-                    }}
+                    onSuccess={handleDeleteSuccess}
                 />
             )}
         </>

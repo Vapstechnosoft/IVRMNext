@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, addDays } from 'date-fns';
@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { onlineLeaveSchema, OnlineLeaveValues } from '@/types/staff-portal/online-leave-schema';
 import { useOnlineLeave } from '@/hooks/staff-portal/useOnlineLeave';
 import { toast } from 'sonner';
+import { saveLeaveRequestDocument } from '@/server/hrms/leave-management/transaction/online-leave-application';
 
 interface Props {
     selectedLeave: any | null | undefined;
@@ -32,6 +33,7 @@ interface Props {
     isHalfDay: boolean;
     setIsHalfDay: (val: boolean) => void;
     onSuccess?: () => void;
+    employeeId?: number;
 }
 
 const LeaveApplicationForm = ({
@@ -41,9 +43,57 @@ const LeaveApplicationForm = ({
     totalDays,
     isHalfDay,
     setIsHalfDay,
-    onSuccess
+    onSuccess,
+    employeeId
 }: Props) => {
     const { applyMutation } = useOnlineLeave();
+    const [isReportingDateOpen, setIsReportingDateOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState<any>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+    
+
+    const handleFileUrl = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        const hrmeId = employeeId;
+
+        if (!hrmeId || hrmeId === 0) {
+            toast.error('Employee details not loaded yet');
+            return;
+        }
+
+        if (file) {
+            try {
+                setIsUploading(true);
+                const formData = new FormData();
+
+                // The swagger UI specifically expects the key 'leave_document'
+                formData.append('leave_document', file);
+                const response = await saveLeaveRequestDocument(hrmeId, formData);
+                console.log("Upload API response:", response);
+
+                if (response.success && response.data) {
+                    form.setValue('supportingDocument', response.data);
+                    setUploadedFileName(file.name);
+                    toast.success('Document uploaded successfully');
+                } else {
+                    toast.error(response.message || 'Failed to upload document');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Error uploading document');
+            } finally {
+                setIsUploading(false);
+            }
+        }
+    };
+
+    const handleViewFile = () => {
+        const file = form.getValues('supportingDocument');
+        if (file) {
+            setPreviewFile(file);
+        }
+    };
 
     const form = useForm<OnlineLeaveValues>({
         resolver: zodResolver(onlineLeaveSchema),
@@ -55,6 +105,13 @@ const LeaveApplicationForm = ({
             isHalfDay: false,
         },
     });
+
+    // Reset uploaded file name if the form is reset or successful
+    useEffect(() => {
+        if (!form.watch('supportingDocument')) {
+            setUploadedFileName(null);
+        }
+    }, [form.watch('supportingDocument')]);
 
     // Sync with props
     useEffect(() => {
@@ -180,7 +237,7 @@ const LeaveApplicationForm = ({
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel className='text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1 block'>Date Reporting Back: <span className='text-red-500'>*</span></FormLabel>
-                                    <Popover>
+                                    <Popover open={isReportingDateOpen} onOpenChange={setIsReportingDateOpen}>
                                         <PopoverTrigger asChild>
                                             <FormControl>
                                                 <Button variant='outline' className={cn('w-full h-11 text-left font-normal border-slate-200 rounded-xl bg-white', !field.value && 'text-muted-foreground')}>
@@ -190,7 +247,16 @@ const LeaveApplicationForm = ({
                                             </FormControl>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                            <Calendar
+                                                mode='single'
+                                                selected={field.value}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setIsReportingDateOpen(false);
+                                                }}
+                                                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                     <FormMessage />
@@ -211,26 +277,55 @@ const LeaveApplicationForm = ({
                                             <Input
                                                 type='file'
                                                 className='absolute inset-0 opacity-0 cursor-pointer z-10'
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) field.onChange(file.name);
-                                                }}
+                                                onChange={handleFileUrl}
+                                                disabled={isUploading}
                                             />
                                             <Button
                                                 type='button'
                                                 variant='outline'
-                                                className='w-full h-11 bg-amber-400 hover:bg-amber-500 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px]'
+                                                disabled={isUploading}
+                                                className='w-full h-11 bg-amber-400 hover:bg-amber-500 text-slate-900 border-none font-bold flex items-center justify-center gap-2 rounded-xl shadow-sm uppercase text-[10px] cursor-pointer'
                                             >
-                                                <FileText className='h-4 w-4' /> {field.value ? 'Change File' : 'Choose File'}
+                                                <FileText className='h-4 w-4' /> {isUploading ? 'Uploading...' : 'Choose File'}
                                             </Button>
-                                            {field.value && (
-                                                <span className='absolute -bottom-5 left-0 text-[10px] text-slate-400 italic truncate w-full'>
-                                                    {field.value}
-                                                </span>
-                                            )}
+                                            <div className='flex items-center gap-2 mt-2'>
+                                                {uploadedFileName && (
+                                                    <span className='text-[10px] text-slate-400 italic truncate w-full' title={uploadedFileName}>
+                                                        {uploadedFileName}
+                                                    </span>
+                                                )}
+                                                {
+                                                    uploadedFileName && (
+                                                        <div className='text-[12px] font-semibold pr-2 cursor-pointer hover:text-orange-500' onClick={handleViewFile}>
+                                                            View
+                                                        </div>
+                                                    )
+                                                }
+                                            </div>
                                         </div>
                                     </FormControl>
                                     <FormMessage />
+                                    {previewFile && (
+                                        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                                            {/* Popup Box */}
+                                            <div className="relative bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full">
+                                                {/* Close Button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPreviewFile(null)}
+                                                    className="absolute top-2 right-2 text-white bg-red-500 px-3 py-1 rounded"
+                                                >
+                                                    ✕
+                                                </button>
+                                                {/* Image */}
+                                                <img
+                                                    src={previewFile}
+                                                    alt="Preview"
+                                                    className="w-full max-h-[70vh] object-contain rounded"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </FormItem>
                             )}
                         />

@@ -5,6 +5,7 @@ import { getCadidateGridData, getCandidateDetails, saveOrUpdateCandidate, toggle
 import { getCandidatesAndInterviewers } from '@/server/hrms/recruitment/transactions/addCandidateInterview';
 import { getCandidateInterviewList, getInterviewFeedbackGridData, InterviewSchedule, saveInterviewerFeedback } from '@/server/hrms/recruitment/transactions/interviewFeedback';
 import { getCandidateInterviewListVMS, getCandidateInterviewByIdVMS, toggleCandidateInterviewStatusVMS, saveOrUpdateCandidateInterviewVMS } from '@/server/hrms/recruitment/transactions/candidateInterviewList';
+import { getBasicDataJobListVMS, saveOrUpdateJobListVMS } from '@/server/hrms/recruitment/transactions/jobListVMS';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -221,6 +222,44 @@ export function useSaveOrUpdateCandidateInterviewVMS() {
         },
         onError: (error: any) => {
             toast.error(error.message || 'An error occurred while saving');
+        }
+    });
+}
+
+// ---------------- JobListVMS Hooks ----------------
+
+export function useGetBasicDataJobListVMS() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [RECRUITMENT_QUERY_KEYS.TRANSACTION_JOB_LIST_VMS],
+            queryFn: async () => getBasicDataJobListVMS(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [RECRUITMENT_QUERY_KEYS.TRANSACTION_JOB_LIST_VMS]
+            });
+        }
+    };
+}
+
+export function useSaveOrUpdateJobListVMS() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveOrUpdateJobListVMS(data),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message || 'Job posting saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [RECRUITMENT_QUERY_KEYS.TRANSACTION_JOB_LIST_VMS]
+                });
+            } else {
+                toast.error(response.message || 'Failed to save job posting');
+            }
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'An error occurred while saving job posting');
         }
     });
 }

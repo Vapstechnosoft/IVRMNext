@@ -4,10 +4,11 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterYears } from '@/hooks/hrms/useReports';
+import { usePFForm3ABasicData, useSearchPFForm3AReport } from '@/hooks/hrms/useReports';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { type PFForm3aFields, PFForm3aSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Search } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -16,64 +17,36 @@ import PFChallan from './_components/columns';
 
 type FormFields = z.infer<typeof PFForm3aSchema>;
 
-const mockEmployees = [
-    { key: '1208', value: 'ANUSHA T' },
-    { key: 'EMP002', value: 'KIRAN KUMAR' },
-    { key: 'EMP003', value: 'PALLAVI C' },
-    { key: 'EMP004', value: 'RAFIQ' },
-    { key: 'EMP005', value: 'NATARAJA' }
-];
-
-const tableProps = {
-    contributions: [
-        {
-            month: 'April',
-            amount: 50000,
-            epf: 6000,
-            epfDifference: 0,
-            pensionContribution: 4165,
-            total: 10165,
-            refund: 0,
-            periodFrom: '01-04-2025',
-            periodTo: '30-04-2025',
-            remarks: ''
-        },
-        {
-            month: 'May',
-            amount: 52000,
-            epf: 6240,
-            epfDifference: 0,
-            pensionContribution: 4320,
-            total: 10560,
-            refund: 0,
-            periodFrom: '01-05-2025',
-            periodTo: '31-05-2025',
-            remarks: ''
-        }
-    ],
-    establishmentName: 'Vidya Vikasa Vidya Samsthe (R)',
-    establishmentCode: 'PF',
-    establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
-};
-
 export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
     const [selectedEmployee, setSelectedEmployee] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<string>('');
+    const [resetKey, setResetKey] = useState(0);
 
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+    // Fetch basic data (years, employees, months)
+    const { data: basicData, isLoading: basicDataLoading, isError: basicDataError } = usePFForm3ABasicData();
+    const searchMutation = useSearchPFForm3AReport();
 
     const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
+        basicData?.data?.leaves?.map((item: any) => ({
+            value: item.hrmlY_LeaveYear,
+            label: item.hrmlY_LeaveYear
         })) || [];
 
-    const EmployeeOptions = mockEmployees.map((emp) => ({
-        value: emp.key,
-        label: emp.value
-    }));
+    const EmployeeOptions =
+        basicData?.data?.employee?.map((emp: any) => {
+            const fullName = [
+                emp.hrmE_EmployeeFirstName,
+                emp.hrmE_EmployeeMiddleName,
+                emp.hrmE_EmployeeLastName
+            ]
+                .filter((name) => name && name.trim() !== '')
+                .join(' ');
+            return {
+                value: emp.hrmE_Id.toString(),
+                label: fullName
+            };
+        }) || [];
 
     const {
         control,
@@ -90,27 +63,89 @@ export default function DepartmentSalaryReportPage() {
     });
 
     const onSearch = async (data: PFForm3aFields) => {
-        setIsSearching(true);
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            searchMutation.mutate({
+                MI_Id: HRMS_MI_ID,
+                HRME_Id: Number(data.employee),
+                HRES_Year: data.year
+            }, {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        const employeeInfo = res.data.employeeDetails?.[0] || res.data.currentemployeeDetails?.[0] || {};
+                        const accountNo = employeeInfo.hrmE_PFAccNo || employeeInfo.HRME_PFAccNo || '-';
+                        const fatherName = employeeInfo.hrmE_FatherName || employeeInfo.HRME_FatherName || employeeInfo.fatherHusbandName || employeeInfo.FatherHusbandName || res.data.fatherHusbandName || '-';
 
-            // Get month and year labels for display
+                        const inst = res.data.institutionDetails?.[0] || {};
+                        const establishmentName = inst.mI_Name || inst.MI_Name || res.data.mI_Name || res.data.MI_Name || '-';
+                        const establishmentAddress = [
+                            inst.mI_Address1 || inst.MI_Address1 || '',
+                            inst.mI_Address2 || inst.MI_Address2 || '',
+                            inst.mI_Address3 || inst.MI_Address3 || ''
+                        ]
+                            .map(s => s ? s.trim() : '')
+                            .filter(Boolean)
+                            .join(', ') || '-';
 
-            const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
-            const employeeLabel = EmployeeOptions.find((opt: any) => opt.value === data.employee)?.label || data.employee;
+                        const finFrom = res.data.finYearFromDate || '';
+                        const yearMatch = finFrom.match(/\d{4}/);
+                        const startYear = yearMatch ? Number(yearMatch[0]) : (Number(data.year) || new Date().getFullYear());
 
-            // Store selected values
-            setSelectedEmployee(employeeLabel);
-            setSelectedYear(yearLabel);
+                        const MONTH_NAMES = [
+                            'April', 'May', 'June', 'July', 'August', 'September',
+                            'October', 'November', 'December', 'January', 'February', 'March'
+                        ];
 
-            // Set the report data (in real scenario, this would come from API)
-            setReportData(tableProps);
+                        const rawGridData = res.data.getpfgriddata || res.data.pfreport || [];
+                        const contributions = Array.isArray(rawGridData) ? rawGridData.map((item: any, index: number) => {
+                            const monthName = item.hreS_Month || item.HRES_Month || item.ivrM_Month_Name || item.IVRM_Month_Name || MONTH_NAMES[index] || '';
+                            const yearVal = item.hreS_Year || item.HRES_Year || (index < 9 ? startYear : startYear + 1);
+                            const monthYear = monthName && yearVal ? `${monthName.trim()} - ${yearVal}` : monthName;
 
-            toast.success('Report generated successfully!');
+                            const amount = Number(item.amountofWages || item.AmountofWages || 0);
+                            const epf = Number(item.pfAmount || item.PFAmount || 0);
+                            const epfDifference = Number(item.hreS_EPF || item.HRES_EPF || 0);
+                            const pensionContribution = Number(item.hreS_FPF || item.HRES_FPF || 0);
+                            const total = epfDifference + pensionContribution;
+
+                            return {
+                                month: monthYear || 'N/A',
+                                amount,
+                                epf,
+                                epfDifference,
+                                pensionContribution,
+                                total,
+                                refund: Number(item.refund || item.vpfAmount || item.VPFAmount || 0),
+                                periodFrom: item.periodFrom || item.FromDate || '',
+                                periodTo: item.periodTo || item.ToDate || '',
+                                remarks: item.remark || item.Remark || ''
+                            };
+                        }) : [];
+
+                        const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
+                        const employeeLabel = EmployeeOptions.find((opt: any) => opt.value === data.employee)?.label || data.employee;
+
+                        setSelectedEmployee(employeeLabel);
+                        setSelectedYear(yearLabel);
+
+                        setReportData({
+                            contributions,
+                            accountNo,
+                            fatherName,
+                            establishmentName,
+                            establishmentAddress
+                        });
+
+                        toast.success('Report generated successfully!');
+                    } else {
+                        toast.warning(res.message || 'No data found for selected criteria');
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error.message || 'Failed to search PF Form 3A report');
+                }
+            });
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
         }
     };
 
@@ -122,16 +157,15 @@ export default function DepartmentSalaryReportPage() {
         setReportData(null);
         setSelectedEmployee('');
         setSelectedYear('');
-        toast.info('Form has been reset');
+        setResetKey(prev => prev + 1);
+
     };
     const handleCancel = () => {
         setReportData(null);
         setSelectedEmployee('');
         setSelectedYear('');
     };
-    const handlePrint = () => {
-        window.print();
-    };
+
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>
@@ -149,19 +183,20 @@ export default function DepartmentSalaryReportPage() {
                                         Year: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
+                                        key={resetKey}
                                         name='year'
                                         control={control}
                                         render={({ field }) => (
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Year' />
+                                                <SelectTrigger className='w-full' disabled={basicDataLoading}>
+                                                    <SelectValue placeholder={basicDataLoading ? 'Loading...' : 'Select Year'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {masterYearsLoading ? (
+                                                    {basicDataLoading ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) : masterYearsError ? (
+                                                    ) : basicDataError ? (
                                                         <SelectItem value='error' disabled>
                                                             Error loading data
                                                         </SelectItem>
@@ -183,19 +218,30 @@ export default function DepartmentSalaryReportPage() {
                                         Employee: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
+                                        key={resetKey}
                                         name='employee'
                                         control={control}
                                         render={({ field }) => (
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Employee' />
+                                                <SelectTrigger className='w-full' disabled={basicDataLoading}>
+                                                    <SelectValue placeholder={basicDataLoading ? 'Loading...' : 'Select Employee'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {EmployeeOptions.map((opt: any) => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
+                                                    {basicDataLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : basicDataError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        EmployeeOptions.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -210,24 +256,25 @@ export default function DepartmentSalaryReportPage() {
                                 type='button'
                                 variant='outline'
                                 onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
+                                disabled={searchMutation.isPending || isSubmitting}
                                 className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
+                                <X className='mr-2 h-4 w-4' />
+                                Cancel
                             </Button>
                             <Button
                                 type='submit'
                                 onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
+                                disabled={searchMutation.isPending || isSubmitting}
                                 className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
+                                {searchMutation.isPending ? (
                                     <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
+                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                        Generate
                                     </>
                                 ) : (
                                     <div className='flex items-center'>
                                         <Search className='mr-2 h-4 w-4' />
-                                        Search
+                                        Generate
                                     </div>
                                 )}
                             </Button>
@@ -244,17 +291,16 @@ export default function DepartmentSalaryReportPage() {
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         <PFChallan
                             contributions={reportData.contributions || []}
-                            accountNo='MH/56789/123'
+                            accountNo={reportData.accountNo}
                             employeeName={selectedEmployee}
-                            fatherName='-'
+                            fatherName={reportData.fatherName}
                             establishmentName={reportData.establishmentName}
                             establishmentAddress={reportData.establishmentAddress}
                             contributionRate={12}
                             vpfContribution={0}
                             year={selectedYear}
-                            onCancel={handleCancel}
-                            onPrint={handlePrint}
-                            isLoading={false}
+                            onCancel={handleReset}
+                            isLoading={searchMutation.isPending}
                         />
                     </CollapsibleSection>
                 )}
@@ -262,3 +308,4 @@ export default function DepartmentSalaryReportPage() {
         </div>
     );
 }
+

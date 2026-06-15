@@ -121,7 +121,6 @@ export default function StudentComplaintsViewClient() {
                             isPaginationRequired={true}
                             isLoading={isLoading}
                             totalItems={data.length}
-                            manualPagination={false}
                         />
                     </CardContent>
                 </Card>

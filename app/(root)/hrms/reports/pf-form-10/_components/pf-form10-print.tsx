@@ -15,16 +15,19 @@ export const printPFForm10 = (
     const dataList = reportData?.alldata || reportData?.pfreport || [];
 
     const tableRows = dataList.map((record: any, index: number) => {
-        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim();
+        const empName = `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`.trim().toUpperCase();
         const dol = record.hrmE_DOL ? format(new Date(record.hrmE_DOL), 'dd-MM-yyyy') : '';
+        const fatherOrHusband = record.hrmE_FatherName || record.fatherHusbandName || '';
 
         return `
             <tr>
                 <td class="text-center">${index + 1}</td>
-                <td class="text-left">${record.hrmE_PFAccNo || ''}</td>
+                <td class="text-center">${record.hrmE_PFAccNo || ''}</td>
                 <td class="text-left">${empName}</td>
+                <td class="text-left">${fatherOrHusband}</td>
                 <td class="text-center">${dol}</td>
                 <td class="text-left">${record.hrmE_LeavingReason || ''}</td>
+                <td class="text-left">${record.remarks || ''}</td>
             </tr>
         `;
     }).join('');
@@ -148,11 +151,13 @@ export const printPFForm10 = (
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>SL.No</th>
-                        <th>PF Acc No</th>
-                        <th>Employee Name</th>
-                        <th>Date of Leaving</th>
-                        <th>Reason for Leaving</th>
+                        <th class="text-center">S. No</th>
+                        <th class="text-center">Account No.</th>
+                        <th class="text-center">Name of the Member<br/>(in BLOCK letters)</th>
+                        <th class="text-center">Father's Name or Husband's Name<br/>in case of married women</th>
+                        <th class="text-center">Date of Leaving Service</th>
+                        <th class="text-center">Reason for Leaving Service</th>
+                        <th class="text-center">Remarks</th>
                     </tr>
                 </thead>
                 <tbody>

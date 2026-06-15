@@ -106,8 +106,10 @@ export default function SalaryCalculationPage() {
   // Report-based cascading queries
   const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
   const groupTypeIds = watchedGroupType?.join(",") || "";
+  console.log("groupTypeIds", groupTypeIds);
   const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(groupTypeIds);
   const deptIds = watchedDepartment?.join(",") || "";
+  console.log("departmentsData", departmentsData);
   const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(
     groupTypeIds,
     deptIds,

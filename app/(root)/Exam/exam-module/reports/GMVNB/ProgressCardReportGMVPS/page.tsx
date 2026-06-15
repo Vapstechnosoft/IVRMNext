@@ -31,20 +31,21 @@ export default function ProgressCardReportPage() {
 
             console.log(res, "response");
 
-            if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
+            const apiData = res?.data;
+            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+
+            if (!res?.success || !Array.isArray(flatRows) || flatRows.length === 0) {
                 setIsReportVisible(false);
                 return;
             }
 
-            const flatRows: any[] = res.data;
-
             // Extra data from response
-            const activity_main_list_area = (res as any).activity_main_list_area || [];
-            const getstudentwiseactiviteslist = (res as any).getstudentwiseactiviteslist || [];
-            const strudentwisedentalandvision = (res as any).strudentwisedentalandvision || [];
-            const stud_work_attendence = (res as any).stud_work_attendence || [];
-            const stud_present_attendence = (res as any).stud_present_attendence || [];
-            const studentdetailsgraph = (res as any).studentdetailsgraph || [];
+            const activity_main_list_area = apiData?.activity_main_list_area || (res as any).activity_main_list_area || [];
+            const getstudentwiseactiviteslist = apiData?.getstudentwiseactiviteslist || (res as any).getstudentwiseactiviteslist || [];
+            const strudentwisedentalandvision = apiData?.strudentwisedentalandvision || (res as any).strudentwisedentalandvision || [];
+            const stud_work_attendence = apiData?.stud_work_attendence || (res as any).stud_work_attendence || [];
+            const stud_present_attendence = apiData?.stud_present_attendence || (res as any).stud_present_attendence || [];
+            const studentdetailsgraph = apiData?.studentdetailsgraph || (res as any).studentdetailsgraph || [];
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();

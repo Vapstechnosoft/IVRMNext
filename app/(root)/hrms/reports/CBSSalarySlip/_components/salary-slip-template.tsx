@@ -64,40 +64,19 @@ interface SalarySlipTemplateProps {
 }
 
 export function numberToWords(num: number) {
+  if (num === 0) return "Zero Rupees Only";
+
+  const isNegative = num < 0;
+  const absNum = Math.abs(num);
+
   const a = [
-    "",
-    "One",
-    "Two",
-    "Three",
-    "Four",
-    "Five",
-    "Six",
-    "Seven",
-    "Eight",
-    "Nine",
-    "Ten",
-    "Eleven",
-    "Twelve",
-    "Thirteen",
-    "Fourteen",
-    "Fifteen",
-    "Sixteen",
-    "Seventeen",
-    "Eighteen",
-    "Nineteen",
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+    "Seventeen", "Eighteen", "Nineteen"
   ];
 
   const b = [
-    "",
-    "",
-    "Twenty",
-    "Thirty",
-    "Forty",
-    "Fifty",
-    "Sixty",
-    "Seventy",
-    "Eighty",
-    "Ninety",
+    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
   ];
 
   function inWords(n: number): string {
@@ -128,15 +107,29 @@ export function numberToWords(num: number) {
     );
   }
 
-  const [rupees, paise] = num.toFixed(2).split(".");
+  const [rupees, paise] = absNum.toFixed(2).split(".");
+  const rupeesVal = parseInt(rupees);
+  const paiseVal = parseInt(paise);
 
-  let words = inWords(parseInt(rupees)) + " Rupees";
+  let words = "";
 
-  if (parseInt(paise) > 0) {
-    words += " and " + inWords(parseInt(paise)) + " Paise";
+  if (rupeesVal > 0) {
+    words = inWords(rupeesVal) + " Rupees";
   }
 
-  return words + " Only";
+  if (paiseVal > 0) {
+    if (words) {
+      words += " and " + inWords(paiseVal) + " Paise";
+    } else {
+      words = inWords(paiseVal) + " Paise";
+    }
+  }
+
+  if (!words) {
+    words = "Zero Rupees";
+  }
+
+  return (isNegative ? "Minus " : "") + words + " Only";
 }
 export function SalarySlipTemplate({
   schoolName = "",
@@ -219,15 +212,12 @@ export function SalarySlipTemplate({
     <div className="mx-auto w-full  bg-white px-8 shadow-md print:p-0 print:shadow-none mb-8">
       <div id="EmpPaySlip" className="w-full">
         {/* Header Section */}
-        <div className="mb-6 flex justify-center w-full">
-          <div>
-            {schoolLogo && (
-              <img
-                src={schoolLogo}
-                className="h-fit w-fit object-contain px-20"
-              />
-            )}
-          </div>
+        <div className="mb-2 flex items-center justify-center border-b-2 border-black pb-4 ">
+
+          {schoolLogo && (
+            <img src={schoolLogo} alt="Institution Logo" className="h-[140px] w-auto object-contain" />
+          )}
+
         </div>
 
         <h3 className="mb-6 text-center text-xl font-bold">
@@ -263,17 +253,17 @@ export function SalarySlipTemplate({
                 <td className="py-1">
                   {salarySlipData.dateOfJoining
                     ? new Date(salarySlipData.dateOfJoining)
-                        .toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })
-                        .replace(/\//g, "-")
+                      .toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
+                      .replace(/\//g, "-")
                     : "-"}
                 </td>
               </tr>
 
-              
+
               {/* {showBankDetails && (
                 <>
                   <tr>
@@ -295,10 +285,10 @@ export function SalarySlipTemplate({
           <table className="w-full border-collapse">
             <tbody>
               <tr>
-                  <td className="font-semibold py-1">Income Tax Number(PAN)</td>
-                  <td className="py-1">:</td>
-                  <td className="py-1">{salarySlipData.panNo}</td>
-                </tr>
+                <td className="font-semibold py-1">Income Tax Number(PAN)</td>
+                <td className="py-1">:</td>
+                <td className="py-1">{salarySlipData.panNo}</td>
+              </tr>
               {/* {salarySlipData.uanNumber && (
                 <tr>
                   <td className="font-semibold py-1">PF UAN Number</td>
@@ -314,10 +304,10 @@ export function SalarySlipTemplate({
                 </tr>
               )} */}
               <tr>
-                  <td className="font-semibold py-1">PF UAN Number</td>
-                  <td className="py-1">:</td>
-                  <td className="py-1">{salarySlipData.uanNumber}</td>
-                </tr>
+                <td className="font-semibold py-1">PF UAN Number</td>
+                <td className="py-1">:</td>
+                <td className="py-1">{salarySlipData.uanNumber}</td>
+              </tr>
               <tr>
                 <td className="font-semibold py-1">UAN No</td>
                 <td className="py-1">:</td>
@@ -403,7 +393,7 @@ export function SalarySlipTemplate({
           </p>
         </div>
 
-        
+
 
         {/* Leave Details Table */}
         {showLeaveDetails && (
@@ -433,7 +423,7 @@ export function SalarySlipTemplate({
               </thead>
               <tbody>
                 {salarySlipData.leaveDetails &&
-                salarySlipData.leaveDetails.length > 0 ? (
+                  salarySlipData.leaveDetails.length > 0 ? (
                   salarySlipData.leaveDetails.map((leave, index) => (
                     <tr key={index}>
                       <td className="border border-black p-2 text-center">

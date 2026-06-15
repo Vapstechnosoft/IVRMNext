@@ -1,16 +1,14 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { FileText, X, Search, RotateCcw, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CustomPaginationTable, type CustomTableColumn } from '@/components/ui/view-data-table/custom-pagination-table';
+import { FileText, Loader2, X } from 'lucide-react';
+import { useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
-import { getSalarySlipColumns } from './columns';
 
 export interface SalarySlipFilters {
     groupType: number[];
@@ -49,6 +47,11 @@ interface SalarySlipFiltersProps {
     onGenerateSlip: () => void;
     onCancel: () => void;
     onReset: () => void;
+    isLoadingGroupTypes: boolean;
+    isLoadingDepartments: boolean;
+    isLoadingDesignations: boolean;
+    isLoadingYears: boolean;
+    tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -58,10 +61,12 @@ export function SalarySlipFilters({
     designations,
     months,
     years,
-    employees: _employees,
+    employees,
     filteredEmployees,
+    tableResponse,
     searchTerm,
     selectedCount,
+    selectedEmployeeIds,
     isFiltering,
     isGenerating,
     onFilterChange,
@@ -70,21 +75,43 @@ export function SalarySlipFilters({
     onSelectAll,
     onSelectEmployee,
     onGenerateSlip,
+    onCancel,
     onReset,
-    selectedEmployeeIds
+    isLoadingGroupTypes,
+    isLoadingDepartments,
+    isLoadingDesignations,
+    isLoadingYears
 }: SalarySlipFiltersProps) {
+    const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
         onReset();
+        setResetKey((prevKey) => prevKey + 1);
     };
-    const [_currentYear, setCurrentYear] = useState<number | null>(null);
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
 
-    const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every(emp => selectedEmployeeIds.has(emp.id));
-    const isSomeSelected = filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some(emp => selectedEmployeeIds.has(emp.id));
+    const handleSelectAllWrapper = (checked: boolean, ids: number[]) => {
+        // We will just call the parent's onSelectAll, but since we are doing
+        // client-side search inside CustomEmployeeList, we'll pass the ids if the parent supports it.
+        // We will modify the parent later to accept ids if needed.
+        (onSelectAll as any)(checked, ids);
+    };
 
-    const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+    const columns: CustomTableColumn<EmployeeSalarySlipDisplay>[] = [
+        {
+            header: <div className='text-center font-medium'>SL. No</div>,
+            cell: (_, index, currentPage, itemsPerPage) => (
+                <div className='text-center'>{(currentPage - 1) * itemsPerPage + index + 1}</div>
+            ),
+            className: 'w-20'
+        },
+        {
+            header: 'Employee Code',
+            cell: (emp) => <div className='font-medium'>{emp.employeeCode}</div>
+        },
+        {
+            header: 'Employee Name',
+            cell: (emp) => <div>{emp.employeeName}</div>
+        }
+    ];
 
     return (
         <CollapsibleSection
@@ -113,9 +140,10 @@ export function SalarySlipFilters({
                                 groupType: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Group Types'
+                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingGroupTypes || !groupTypes?.length}
                     />
                 </div>
                 {/* Department Filter */}
@@ -135,9 +163,10 @@ export function SalarySlipFilters({
                                 department: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Departments'
+                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDepartments || !departments?.length}
                     />
                 </div>
                 {/* Designation Filter */}
@@ -157,16 +186,17 @@ export function SalarySlipFilters({
                                 designation: values.map((v) => Number.parseInt(v))
                             })
                         }
-                        placeholder='Select Designations'
+                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
                         className='w-full'
                         maxHeight={240}
+                        disabled={isLoadingDesignations || !designations?.length}
                     />
                 </div>
             </div>
 
-            <div className='flex justify-between my-10 gap-3'>
+            <div className='my-10 grid grid-cols-1 gap-8 lg:grid-cols-2'>
                 {/* Left Column: Row 2 and Options */}
-                <div className='w-full'>
+                <div className='w-full space-y-4' key={resetKey}>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Month Filter */}
                         <div className='mt-3 mb-3 space-y-2'>
@@ -174,8 +204,8 @@ export function SalarySlipFilters({
                                 Month
                             </Label>
                             <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
-                                <SelectTrigger id='month-select'>
-                                    <SelectValue placeholder='Select month' />
+                                <SelectTrigger id='month-select' disabled={isLoadingYears || !years?.length}>
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select month'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {months
@@ -211,40 +241,45 @@ export function SalarySlipFilters({
                                                 </SelectItem>
                                             );
                                         })}
-                                    {months.length === 0 && <div className='px-2 py-1.5 text-muted-foreground text-sm'>No months available</div>}
+                                    {months.length === 0 && (
+                                        <div className='px-2 py-1.5 text-muted-foreground text-sm'>No months available</div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
                         {/* Year Filter */}
-                        <div className='mt-3 mb-3 space-y-2'>
+                        <div className='mt-3 mb-3 space-y-2' key={resetKey}>
                             <Label className='font-medium' htmlFor='year-select'>
                                 Year
                             </Label>
                             <Select value={filters.year} onValueChange={(value) => onFilterChange({ ...filters, year: value })}>
-                                <SelectTrigger id='year-select'>
-                                    <SelectValue placeholder='Select year' />
+                                <SelectTrigger id='year-select' disabled={isLoadingYears || !years?.length}>
+                                    <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select year'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {years
-                                        .map((year: any, index: number) => {
-                                            const yearValue =
-                                                year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId?.toString();
-                                            const yearLabel = year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId;
-                                            const key = year.hrmlY_Id || year.HRMLY_Id || year.yearId || index;
-                                            return (
-                                                <SelectItem key={`year-${index}-${key}`} value={yearValue}>
-                                                    {yearLabel}
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    {years.length === 0 && <div className='px-2 py-1.5 text-muted-foreground text-sm'>No years available</div>}
+                                    {years.map((year: any, index: number) => {
+                                        const yearValue =
+                                            year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId?.toString();
+                                        const yearLabel = year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId;
+                                        const key = year.hrmlY_Id || year.HRMLY_Id || year.yearId || index;
+                                        return (
+                                            <SelectItem key={`year-${index}-${key}`} value={yearValue}>
+                                                {yearLabel}
+                                            </SelectItem>
+                                        );
+                                    })}
+                                    {years.length === 0 && (
+                                        <div className='px-2 py-1.5 text-muted-foreground text-sm'>No years available</div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
                         {/* Slip/page Filter */}
                         <div className='mt-3 mb-3 space-y-2'>
                             <Label>Slip/page</Label>
-                            <Select value={filters.slipPerPage} onValueChange={(value) => onFilterChange({ ...filters, slipPerPage: value })}>
+                            <Select
+                                value={filters.slipPerPage}
+                                onValueChange={(value) => onFilterChange({ ...filters, slipPerPage: value })}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
@@ -297,40 +332,18 @@ export function SalarySlipFilters({
                 </div>
 
                 {/* Right Column: Employee Table */}
-                <div className='space-y-4 w-full'>
-                    <div className='mt-3 flex '>
-                        <div className='flex items-center justify-end w-full gap-4'>
-                            <div className='font-medium text-foreground text-sm'>
-                                Employee List ({filteredEmployees.length} employees)
-                            </div>
-                            <div className="relative w-48 ">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search Name or Code..."
-                                    className="pl-8"
-                                    value={searchTerm}
-                                    onChange={(e) => onSearchChange(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Data Table */}
+                <div className='w-full space-y-4'>
+                    {/* Custom Employee List with Pagination and Search */}
                     <div className='salary-slip-table-wrapper'>
-                        <DataTable
-                            isLoading={isFiltering}
-                            columns={columns}
+                        <CustomPaginationTable
                             data={filteredEmployees}
-                            totalItems={filteredEmployees.length}
-                            showViewOptions={true}
-                            isSearchRequired={false}
-                            isPaginationRequired={true}
-                            showPaginationInfo={false}
-                            showRowsPerPage={false}
-                            manualPagination={false}
-                            manualSorting={false}
-                            scrollable={true}
-                            maxHeight="250px"
-                            columnPinning={{ left: ['select', 'id'] }}
+                            columns={columns}
+                            searchKeys={['employeeName', 'employeeCode']}
+                            idKey='id'
+                            selectedIds={selectedEmployeeIds}
+                            onSelect={onSelectEmployee}
+                            onSelectAll={handleSelectAllWrapper}
+                            searchPlaceholder='Search Name or Code...'
                         />
                     </div>
                 </div>
@@ -339,7 +352,7 @@ export function SalarySlipFilters({
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                 <Button variant='outline' onClick={handleReset} type='button'>
-                    <RotateCcw className='mr-2 h-4 w-4' />
+                    <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
                 <Button
@@ -351,15 +364,10 @@ export function SalarySlipFilters({
                         filters.department.length === 0 ||
                         filters.designation.length === 0
                     }>
-                    {isGenerating ? (
-                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                    ) : (
-                        <FileText className='mr-2 h-4 w-4' />
-                    )}
+                    {isGenerating ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FileText className='mr-2 h-4 w-4' />}
                     {isGenerating ? 'Generating...' : 'Generate Slip'}
                 </Button>
             </div>
         </CollapsibleSection>
     );
 }
-

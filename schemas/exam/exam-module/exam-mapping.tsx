@@ -427,9 +427,9 @@ export const ExamSubjectWizardSchema = {
     addOrUpdate: z
         .object({
             EYCE_Id: z.number().int().nonnegative().optional().default(0),
-            EYC_Id: z.number().int().positive({ message: 'EYC_Id required' }),
-            EMCA_Id: z.number().int().positive({ message: 'EMCA_Id required' }),
-            EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
+            EYC_Id: z.number({ required_error: 'Category is required' }).int().positive(),
+            EMCA_Id: z.number().int().positive(),
+            EMGR_Id: z.number({ required_error: 'Grade is required' }).int().positive({ message: 'Grade is required' }),
 
             EYCE_SubExamFlg: z.boolean().optional(),
             EYCE_SubSubjectFlg: z.boolean().optional(),
@@ -446,13 +446,13 @@ export const ExamSubjectWizardSchema = {
 
             UserId: z.number().int().nonnegative().optional().default(0),
             MI_Id: z.number().int().nonnegative().optional().default(0),
-            ASMAY_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Id: z.number({ required_error: 'Academic Year is required' }).int().positive({ message: 'Academic Year is required' }),
             ASMAY_Year: z.string().optional().nullable(),
 
             EYCE_BestOfApplicableFlg: z.boolean().optional(),
             EYCE_BestOf: z.number().int().min(0).optional(),
 
-            exams_list: z.array(ExamItemSchema).optional().default([]),
+            exams_list: z.array(ExamItemSchema).min(1, { message: 'Please select at least one Exam' }),
             // yearly_category_exam_subjects: z
             //     .array(YearlyCategoryExamSubjectSchema)
             //     .min(1, { message: 'At least one yearly_category_exam_subjects is required' }),

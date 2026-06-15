@@ -94,6 +94,14 @@ export const breakTimeSettingsSchema = {
         ttmB_AfterPeriod: z.number().min(1, 'After Period is required'),
         arraybeforeperiodsList: z.array(z.number()).optional(),
         arrayafterperiodsList: z.array(z.number()).optional()
+    }).refine((data) => {
+        if (!data.ttmB_BreakStartTime || !data.ttmB_BreakEndTime) return true;
+        const startMin = data.ttmB_BreakStartTime.getHours() * 60 + data.ttmB_BreakStartTime.getMinutes();
+        const endMin = data.ttmB_BreakEndTime.getHours() * 60 + data.ttmB_BreakEndTime.getMinutes();
+        return endMin > startMin;
+    }, {
+        message: 'End Time must be greater than Start Time',
+        path: ['ttmB_BreakEndTime']
     })
 };
 
@@ -170,6 +178,14 @@ export const periodTimeSettingSchema = {
         dayids: z.array(z.string()).nonempty('Please select at least one Day'),
         startTime: z.date({ required_error: 'Start Time is required' }),
         endTime: z.date({ required_error: 'End Time is required' })
+    }).refine((data) => {
+        if (!data.startTime || !data.endTime) return true;
+        const startMin = data.startTime.getHours() * 60 + data.startTime.getMinutes();
+        const endMin = data.endTime.getHours() * 60 + data.endTime.getMinutes();
+        return endMin > startMin;
+    }, {
+        message: 'To Time must be greater than From Time',
+        path: ['endTime']
     }),
     delete: z.object({
         ttmdpT_Id: deleteIdSchema('ttmdpT_Id')

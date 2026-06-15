@@ -12,6 +12,7 @@ export default function PromotionReportStdIX2021Page() {
     const handleReportGenerated = (data: any, params: any) => {
         setReportData(data);
         setReportParams(params);
+        console.log('bbhs IX report data', data);
     };
 
     const handleReset = () => {

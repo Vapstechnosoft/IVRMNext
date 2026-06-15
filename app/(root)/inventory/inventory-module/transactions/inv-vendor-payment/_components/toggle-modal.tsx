@@ -41,7 +41,7 @@ export const ToggleVendorPaymentModal = ({ rowData, onClose }: ToggleModalProps)
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={deactivateMutation.isPending}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="text-foreground hover:bg-transparent" disabled={deactivateMutation.isPending}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={(e) => {
                             e.preventDefault();

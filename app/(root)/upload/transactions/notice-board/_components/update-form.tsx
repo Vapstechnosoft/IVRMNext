@@ -65,6 +65,9 @@ export default function UpdateNoticeBoardForm({
     const [employees, setEmployees] = useState<any[]>([]);
     const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+    const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+    const [isDisplayDateOpen, setIsDisplayDateOpen] = useState(false);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<INoticeBoard>({
@@ -329,7 +332,6 @@ export default function UpdateNoticeBoardForm({
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        if (checked) setValue('check_staff', false);
                                     }}
                                 />
                                 <Label className="font-semibold">Student</Label>
@@ -345,7 +347,6 @@ export default function UpdateNoticeBoardForm({
                                     checked={field.value}
                                     onCheckedChange={(checked) => {
                                         field.onChange(checked);
-                                        if (checked) setValue('check_student', false);
                                     }}
                                 />
                                 <Label className="font-semibold">Staff</Label>
@@ -416,7 +417,7 @@ export default function UpdateNoticeBoardForm({
                         render={({ field, fieldState }) => (
                             <div className='flex flex-col'>
                                 <Label>Start Date <span className="text-red-500">*</span></Label>
-                                <Popover>
+                                <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
@@ -424,7 +425,7 @@ export default function UpdateNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar mode='single' selected={field.value} onSelect={(date) => { field.onChange(date); setIsStartDateOpen(false); }} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -439,7 +440,7 @@ export default function UpdateNoticeBoardForm({
                         render={({ field, fieldState }) => (
                             <div className='flex flex-col'>
                                 <Label>End Date <span className="text-red-500">*</span></Label>
-                                <Popover>
+                                <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
@@ -447,7 +448,7 @@ export default function UpdateNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar mode='single' selected={field.value} onSelect={(date) => { field.onChange(date); setIsEndDateOpen(false); }} initialFocus />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -477,7 +478,7 @@ export default function UpdateNoticeBoardForm({
                             render={({ field, fieldState }) => (
                                 <div className='flex flex-col'>
                                     <Label>Display Date <span className="text-red-500">*</span></Label>
-                                    <Popover>
+                                    <Popover open={isDisplayDateOpen} onOpenChange={setIsDisplayDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                                 {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Pick a date</span>}
@@ -485,7 +486,7 @@ export default function UpdateNoticeBoardForm({
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar mode='single' selected={field.value || undefined} onSelect={field.onChange} initialFocus />
+                                            <Calendar mode='single' selected={field.value || undefined} onSelect={(date) => { field.onChange(date); setIsDisplayDateOpen(false); }} initialFocus />
                                         </PopoverContent>
                                     </Popover>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

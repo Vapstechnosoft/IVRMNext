@@ -4,43 +4,31 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { use, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import AddJobPostingForm from './_components/add-form';
 import { jobPostingListColumns } from './_components/columns';
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function JobPostingListPage(props: {
-    searchParams: SearchParams;
-}) {
-    const _searchParams = use(props.searchParams);
-    // Mock data for now - replace with actual API call
-    const response = { data: [], totalItems: 0, isLoading: false, error: null };
-    const refetchAll = () => {};
-    return (
-        <FormProvider<any>>
-            <JobPostingListPageContent response={response} isLoading={false} error={null} refetch={refetchAll} />
-        </FormProvider>
-    );
-}
-function JobPostingListPageContent({
-    response,
-    isLoading,
-    error,
-    refetch
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-    refetch: () => void;
-}) {
-    const { openAddForm } = useFormContext();
-    const tableProps = useDataTableProps(response);
-    const session = useSession();
-    useEffect(() => {
-        if (session?.status === 'authenticated' && session?.data?.role === undefined) {
-            window.location.reload();
-        }
-    }, [session?.data?.role, session?.status]);
+import { useGetBasicDataJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+
+export default function JobPostingListPage() {
+    
+    const { data: response, isLoading, error, refetchAll } = useGetBasicDataJobListVMS();
+    console.log("response ", response);
+    const [formOpen, setFormOpen] = useState(false);
+
+    const openAddForm = () => {
+        setFormOpen(true);
+    }
+
+    const handleCloseForm = () => {
+        setFormOpen(false);
+    }
+
+    const gridResponse = useMemo(() => {
+        return response?.data?.vmsmrfList ?? [];
+    }, [response]);
+
+    const tableProps = useDataTableProps(gridResponse);
+
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
@@ -54,6 +42,7 @@ function JobPostingListPageContent({
                         Add Job
                     </Button>
                 </div>
+
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -73,50 +62,64 @@ function JobPostingListPageContent({
                         errorTitle='Error Loading Job Postings'
                     />
                 </CollapsibleSection>
+
                 {/* Forms - Below Table */}
-                <FormSections refetch={refetch} />
+                {formOpen && (
+                    <FormSections
+                        refetch={refetchAll}
+                        basicDataResponse={response}
+                        isLoadingBasicData={isLoading}
+                        onClose={handleCloseForm}
+                    />
+                )}
             </div>
         </div>
     );
 }
+
 function FormSections({
-    refetch
+    refetch,
+    basicDataResponse,
+    isLoadingBasicData,
+    onClose
 }: {
     refetch: () => void;
+    basicDataResponse: any;
+    isLoadingBasicData: boolean;
+    onClose: () => void;
 }) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
+
+    const handleSuccess = useCallback(() => {
+        onClose();
+        refetch();
+    }, [onClose, refetch]);
+
     return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='Job Posting'
-                        description='Fill in the details below to create a new job posting'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddJobPostingForm
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }}
-                                onCancel={closeAddForm}
-                            />
-                        </div>
-                    </CollapsibleSection>
+        <div className='slide-in-from-top-4 animate-in'>
+            <CollapsibleSection
+                title='Job Posting'
+                description='Fill in the details below to create a new job posting'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                <div className='relative'>
+                    <Button
+                        type='button'
+                        onClick={onClose}
+                        variant='ghost'
+                        size='sm'
+                        className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
+                    </Button>
+                    <AddJobPostingForm
+                        basicDataResponse={basicDataResponse}
+                        isLoadingBasicData={isLoadingBasicData}
+                        onSuccess={handleSuccess}
+                        onCancel={onClose}
+                    />
                 </div>
-            )}
-        </>
+            </CollapsibleSection>
+        </div>
     );
 }

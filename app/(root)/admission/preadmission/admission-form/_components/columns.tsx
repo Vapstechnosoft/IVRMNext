@@ -17,6 +17,30 @@ import { useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import { toast } from 'sonner';
 import DeleteMasterClassForm from './toggle-form';
+import StudentProfileDialog from './student-profile-dialog';
+
+const StudentProfileCell = ({ row }: { row: any }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <>
+            <div 
+                className="cursor-pointer text-blue-600 hover:underline font-medium"
+                onClick={() => setIsOpen(true)}
+            >
+                {row.getValue('studentName') ?? 'N.A'}
+            </div>
+            {isOpen && (
+                <StudentProfileDialog 
+                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id} 
+                    asmclId={row.original?.asmcL_Id || row.original?.ASMCL_Id || row.original?.classId || 0}
+                    asmsId={row.original?.asmS_Id || row.original?.ASMS_Id || row.original?.sectionId || 0}
+                    isOpen={isOpen} 
+                    onClose={() => setIsOpen(false)} 
+                />
+            )}
+        </>
+    );
+};
 
 export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationList>[] = [
     {
@@ -41,7 +65,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     {
         accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Name/view Profile' />,
-        cell: ({ row }) => <div>{row.getValue('studentName') ?? 'N.A'}</div>,
+        cell: ({ row }) => <StudentProfileCell row={row} />,
         enableSorting: true,
         enableHiding: true
     },
@@ -49,6 +73,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         accessorKey: 'className',
         header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Class' />,
         cell: ({ row }) => <div>{row.getValue('className')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'sectionName',
+        header: ({ column }) => <DataTableColumnHeader className='font-bold text-blue-600' column={column} title='Section' />,
+        cell: ({ row }) => <div>{(row.original as any).sectionName || (row.original as any).section || ''}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -76,13 +107,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableHiding: true
     },
 
-    {
-        accessorKey: 'registrationNo',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Reg.No.' />,
-        cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
-        enableSorting: false,
-        enableHiding: true
-    },
+    //  {
+    //         accessorKey: 'registrationNo',
+    //         header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Reg.No.' />,
+    //         cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
+    //         enableSorting: false,
+    //         enableHiding: true
+    //     },
     {
         accessorKey: 'admissionNo',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Adm.No.' />,
@@ -208,7 +239,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         // merge those tabs into a single student payload so the edit form can autofill.
                         const hasTabbed = Boolean(
                             (resp && (resp.firstTab || resp.secondTab || resp.thirdTab)) ||
-                                (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
+                            (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
                         );
 
                         let payload: any;

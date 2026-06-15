@@ -273,7 +273,6 @@ export default function InvRItemConsumptionPage(props: { searchParams: Promise<a
                             isLoading={isFetching}
                             totalItems={totalRecords}
                             isSearchRequired={true}
-                            manualFiltering={manualFiltering}
                             noDataTitle="No Consumption Found"
                             noDataDescription="No records found matching your selection or search criteria."
                         />
