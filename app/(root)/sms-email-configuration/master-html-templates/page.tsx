@@ -149,7 +149,7 @@ export default function MasterHTMLTemplates() {
       const position = quillSelection !== null ? quillSelection : (quill.getLength() - 1); // getLength includes trailing newline
       const insertPos = Math.max(0, position);
       quill.insertText(insertPos, paramName);
-      
+
       const newPos = insertPos + paramName.length;
       setTimeout(() => {
         quill.setSelection(newPos, 0);
@@ -159,15 +159,15 @@ export default function MasterHTMLTemplates() {
     }
 
     const currentValue = form.getValues("ismhtmL_HTMLTemplate") || "";
-    
+
     if (textareaRef.current) {
       const cursorPosition = textareaRef.current.selectionStart;
       const textBeforeCursor = currentValue.substring(0, cursorPosition);
       const textAfterCursor = currentValue.substring(cursorPosition);
       const newValue = `${textBeforeCursor}${paramName}${textAfterCursor}`;
-      
+
       form.setValue("ismhtmL_HTMLTemplate", newValue, { shouldValidate: true });
-      
+
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
@@ -230,11 +230,10 @@ export default function MasterHTMLTemplates() {
           </button>
           <span className="text-gray-300">|</span>
           <button
-            className={`text-sm transition-colors ${
-              row.original.ismhtmL_ActiveFlg
-                ? "text-destructive hover:text-destructive/80"
-                : "text-green-600 hover:text-green-700"
-            }`}
+            className={`text-sm transition-colors ${row.original.ismhtmL_ActiveFlg
+              ? "text-destructive hover:text-destructive/80"
+              : "text-green-600 hover:text-green-700"
+              }`}
             onClick={() => handleDeactivate(row.original)}
           >
             {row.original.ismhtmL_ActiveFlg ? "Deactivate" : "Activate"}
@@ -268,136 +267,136 @@ export default function MasterHTMLTemplates() {
             </Button>
           </CardHeader>
           <CardContent className="pt-6 bg-slate-50/50">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="flex justify-center mb-6">
-                <div className="w-full max-w-lg">
-                  <FormField
-                    control={form.control}
-                    name="ismhtmL_HTMLName"
-                    render={({ field }) => (
-                      <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                        <FormLabel className="text-right col-span-1 text-sm font-medium text-gray-700">
-                          Template Name:<span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl className="col-span-3">
-                          <Input {...field} maxLength={50} className="h-9 border-blue-200 focus-visible:ring-blue-500" />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="md:col-span-3 space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="ismhtmL_HTMLTemplate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <div className="space-y-6">
-                            <div className="bg-white border rounded-md">
-                              <ReactQuill
-                                // @ts-ignore
-                                ref={quillRef}
-                                theme="snow"
-                                value={field.value}
-                                onChange={field.onChange}
-                                onChangeSelection={(selection) => {
-                                  if (selection) {
-                                    setQuillSelection(selection.index);
-                                  }
-                                }}
-                                className="h-[250px] mb-12"
-                                placeholder="Type your HTML template here..."
-                                modules={{
-                                  toolbar: [
-                                    [{ 'header': [1, 2, 3, false] }],
-                                    ['bold', 'italic', 'underline', 'strike'],
-                                    [{ 'align': [] }],
-                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                    ['link', 'image'],
-                                    ['clean']
-                                  ],
-                                }}
-                              />
-                            </div>
-                            
-                            <div>
-                              <FormLabel className="text-sm font-semibold mb-2 block">Html Template:</FormLabel>
-                              <Textarea
-                                {...field}
-                                ref={(e) => {
-                                  field.ref(e);
-                                  // @ts-ignore
-                                  textareaRef.current = e;
-                                }}
-                                className="min-h-[150px] font-mono text-xs resize-y bg-slate-50"
-                                placeholder="Raw HTML will appear here..."
-                              />
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="md:col-span-1 border rounded-md p-0 bg-white shadow-sm flex flex-col h-[500px]">
-                  <div className="bg-slate-100 p-2 border-b">
-                    <FormLabel className="text-xs font-bold text-center block tracking-wide">
-                      PARAMETERS:
-                    </FormLabel>
-                  </div>
-                  <div className="p-2 border-b">
-                    <Input
-                      placeholder="Search parameters..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-8 text-xs"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="flex justify-center mb-6">
+                  <div className="w-full max-w-lg">
+                    <FormField
+                      control={form.control}
+                      name="ismhtmL_HTMLName"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
+                          <FormLabel className="text-right col-span-1 text-sm font-medium text-gray-700">
+                            Template Name:<span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl className="col-span-3">
+                            <Input {...field} maxLength={50} className="h-9 border-blue-200 focus-visible:ring-blue-500" />
+                          </FormControl>
+                          <FormMessage className="col-start-2 col-span-3" />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <ScrollArea className="flex-1 p-2">
-                    <div className="space-y-1">
-                      {filteredParameters.length > 0 ? (
-                        filteredParameters.map((param) => (
-                          <div
-                            key={param.ismP_ID}
-                            className="p-2 hover:bg-primary/10 rounded cursor-pointer text-sm transition-colors border border-transparent hover:border-primary/20"
-                            onClick={() => appendParameter(param.ismP_NAME)}
-                            title={`Insert ${param.ismP_NAME}`}
-                          >
-                            {param.ismP_NAME}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-sm text-muted-foreground text-center py-4">
-                          No parameters found
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
                 </div>
-              </div>
 
-              <div className="flex justify-center items-center gap-4 pt-6 mt-4 border-t border-border/50">
-                <Button type="submit" className="w-[120px] bg-[#3f51b5] hover:bg-[#3f51b5]/90 text-white rounded shadow-md" disabled={saveMutation.isPending}>
-                  <i className="fa fa-floppy-o mr-2" aria-hidden="true"></i>
-                  Save
-                </Button>
-                <Button type="button" className="w-[120px] bg-[#ff5722] hover:bg-[#ff5722]/90 text-white rounded shadow-md" onClick={handleClear}>
-                  <i className="fa fa-times mr-2" aria-hidden="true"></i>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="md:col-span-3 space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="ismhtmL_HTMLTemplate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="space-y-6">
+                              <div className="bg-white border rounded-md">
+                                <ReactQuill
+                                  // @ts-ignore
+                                  ref={quillRef}
+                                  theme="snow"
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  onChangeSelection={(selection) => {
+                                    if (selection) {
+                                      setQuillSelection(selection.index);
+                                    }
+                                  }}
+                                  className="h-[250px] mb-12"
+                                  placeholder="Type your HTML template here..."
+                                  modules={{
+                                    toolbar: [
+                                      [{ 'header': [1, 2, 3, false] }],
+                                      ['bold', 'italic', 'underline', 'strike'],
+                                      [{ 'align': [] }],
+                                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                      ['link', 'image'],
+                                      ['clean']
+                                    ],
+                                  }}
+                                />
+                              </div>
+
+                              <div>
+                                <FormLabel className="text-sm font-semibold mb-2 block">Html Template:</FormLabel>
+                                <Textarea
+                                  {...field}
+                                  ref={(e) => {
+                                    field.ref(e);
+                                    // @ts-ignore
+                                    textareaRef.current = e;
+                                  }}
+                                  className="min-h-[150px] font-mono text-xs resize-y bg-slate-50"
+                                  placeholder="Raw HTML will appear here..."
+                                />
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="md:col-span-1 border rounded-md p-0 bg-white shadow-sm flex flex-col h-[500px]">
+                    <div className="bg-slate-100 p-2 border-b">
+                      <FormLabel className="text-xs font-bold text-center block tracking-wide">
+                        PARAMETERS:
+                      </FormLabel>
+                    </div>
+                    <div className="p-2 border-b">
+                      <Input
+                        placeholder="Search parameters..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <ScrollArea className="flex-1 p-2">
+                      <div className="space-y-1">
+                        {filteredParameters.length > 0 ? (
+                          filteredParameters.map((param) => (
+                            <div
+                              key={param.ismP_ID}
+                              className="p-2 hover:bg-primary/10 rounded cursor-pointer text-sm transition-colors border border-transparent hover:border-primary/20"
+                              onClick={() => appendParameter(param.ismP_NAME)}
+                              title={`Insert ${param.ismP_NAME}`}
+                            >
+                              {param.ismP_NAME}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-muted-foreground text-center py-4">
+                            No parameters found
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center gap-4 pt-6 mt-4 border-t border-border/50">
+                  <Button type="submit" className="w-[120px] bg-[#3f51b5] hover:bg-[#3f51b5]/90 text-white rounded shadow-md" disabled={saveMutation.isPending}>
+                    <i className="fa fa-floppy-o mr-2" aria-hidden="true"></i>
+                    Save
+                  </Button>
+                  <Button type="button" className="w-[120px] bg-[#ff5722] hover:bg-[#ff5722]/90 text-white rounded shadow-md" onClick={handleClear}>
+                    <i className="fa fa-times mr-2" aria-hidden="true"></i>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       )}
 
       {!showForm && (
@@ -410,13 +409,13 @@ export default function MasterHTMLTemplates() {
             </Button>
           </CardHeader>
           <CardContent className="pt-6">
-          <DataTable
-            columns={columns as any}
-            data={parameterlist}
-            totalItems={parameterlist.length}
-          />
-        </CardContent>
-      </Card>
+            <DataTable
+              columns={columns as any}
+              data={parameterlist}
+              totalItems={parameterlist.length}
+            />
+          </CardContent>
+        </Card>
       )}
 
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>

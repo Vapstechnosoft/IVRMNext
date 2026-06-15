@@ -128,13 +128,14 @@ export default function StJamesNurseryReportForm({
     const onSubmit = async (data: StJamesNurseryReportSchema) => {
         const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
-        
+
         const payload = {
             ...data,
             asmaY_Year: selectedYearObj?.asmaY_Year || '',
             emE_ExamName: selectedExamObj?.emE_ExamName || ''
         };
 
+        console.log("payload", payload);
         if (onSuccess) {
             await onSuccess(payload);
         }

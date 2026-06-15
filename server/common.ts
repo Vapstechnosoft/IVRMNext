@@ -3295,37 +3295,21 @@ export async function getUserAccessibleModules() {
                                     name: 'GMVPS',
                                     icon: 'Building2',
                                     pages: [
-                                        // {
-                                        //     "id": 21001,
-                                        //     "name": "GMVPS_Vidyaniketan Performance Analysis Report",
-                                        //     "icon": "BookOpen",
-                                        //     "url": "/Exam/exam-module/reports/GMVPS/vidyaniketan-performance-analysis-report",
-                                        //     "title": "GMVPS_Vidyaniketan Performance Analysis Report",
-                                        //     "description": "GMVPS_Vidyaniketan Performance Analysis Report"
-                                        // },
                                         {
                                             id: 1,
-                                            name: 'ProgressCardReportGMVPS',
+                                            name: 'Indvividual Report Card GMVPS',
                                             icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/GMVPS/vidyaniketan-progress-card-report',
-                                            title: 'ProgressCardReportGMVPS',
-                                            description: 'GMVPS_Vidyaniketan Progress Card Report'
+                                            url: '/Exam/exam-module/reports/GMVNB/ProgressCardReportGMVPS',
+                                            title: 'Indvividual Report Card GMVPS',
+                                            description: 'Indvividual Report Card GMVPS'
                                         },
-                                        // {
-                                        //     "id": 2,
-                                        //     "name": "GMVPS_Vidyaniketan I-VIII Report Card",
-                                        //     "icon": "BookOpen",
-                                        //     "url": "/Exam/exam-module/reports/GMVPS/vidyaniketan-report-card-I-VIII",
-                                        //     "title": "GMVPS_Vidyaniketan I-VIII Report Card",
-                                        //     "description": "GMVPS_Vidyaniketan I-VIII Report Card"
-                                        // },
                                         {
                                             id: 2,
-                                            name: 'Gmvps_ProgressCardReportIX',
+                                            name: 'Gmvps Report IX',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/GMVPS/gmvps-progresscard-IX',
-                                            title: 'Gmvps_ProgressCardReportIX',
-                                            description: 'Gmvps_ProgressCardReportIX'
+                                            title: 'Gmvps Report IX',
+                                            description: 'Gmvps Report IX'
                                         },
                                         {
                                             id: 3,
@@ -3476,6 +3460,52 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
                                             title: 'NDS Final Report Card',
                                             description: 'NDS Final Report Card'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2009,
+                                    name: 'Notre Dame Solapur',
+                                    icon: 'Building2',
+                                    pages: [
+                                        {
+                                            id: 21050,
+                                            name: 'FinalNdasReportCard',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/FinalNdasReportCard',
+                                            title: 'NDS_Co_Scholasticreport',
+                                            description: 'NDS_Co_Scholasticreport'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'NdasReportCardTerm',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
+                                            title: 'NdasReportCardTerm',
+                                            description: 'NdasReportCardTerm'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2009,
+                                    name: 'Notre Dame School Choodasandra',
+                                    icon: 'Building2',
+                                    pages: [
+                                        {
+                                            id: 21050,
+                                            name: 'NDS_Co_Scholasticreport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_Co_Scholasticreport',
+                                            title: 'NDS_Co_Scholasticreport',
+                                            description: 'NDS_Co_Scholasticreport'
+                                        },
+                                        {
+                                            id: 21051,
+                                            name: 'NDS_I_To_VIII_ReportCard',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/NDS/NDS_I_To_VIII_ReportCard',
+                                            title: 'NDS_I_To_VIII_ReportCard',
+                                            description: 'NDS_I_To_VIII_ReportCard'
                                         }
                                     ]
                                 },
@@ -3824,6 +3854,21 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/ai-performance-analysis',
                                             title: 'AI Performance Analysis',
                                             description: 'AI Performance Analysis'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 21031,
+                                    name: "St. Peter's School Durgapur, West Bengal",
+                                    icon: 'Building2',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: "St. Peter's FinalPromReportstpeter",
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/StPeter/FinalPromReportstpeter',
+                                            title: "St. Peter's FinalPromReportstpeter",
+                                            description: "St. Peter's FinalPromReportstpeter"
                                         }
                                     ]
                                 }
@@ -4452,7 +4497,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Employee Salary Statement'
                                         },
                                         {
-                                            id:40,
+                                            id: 40,
                                             name: 'NDA Employee offer letter',
                                             icon: 'FileType',
                                             url: '/hrms/reports/nda_employeeOfferAndExperienceReport',

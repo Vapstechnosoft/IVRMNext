@@ -84,10 +84,10 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
     return (
         <div className="space-y-4 mt-6">
             <div className="flex justify-end gap-2 no-print">
-                <Button onClick={handlePrint} className="bg-sky-800 hover:bg-sky-900">
+                <Button onClick={handlePrint} className="bg-orange-500 hover:bg-orange-600 text-white">
                     <Printer className="mr-2 h-4 w-4" /> Print
                 </Button>
-                <Button onClick={handleExport} className="bg-emerald-700 hover:bg-emerald-800">
+                <Button onClick={handleExport} className="bg-orange-500 hover:bg-orange-600 text-white">
                     <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
                 </Button>
             </div>
@@ -96,14 +96,14 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
                 <table className="w-full border-collapse border border-black text-[12px]" id="table1">
                     <thead>
                         <tr>
-                            <th colSpan={colnspan} className="p-4 bg-white text-black border border-black">
+                            <th colSpan={colnspan + 2} className="p-4 bg-white text-black border border-black">
                                 <div className="text-center space-y-1">
-                                    <h1 className="text-2xl font-bold uppercase">{inst.mI_Name}</h1>
-                                    <p className="text-sm font-bold">{inst.mI_Address1}, {inst.ivrmmcT_Name}-{inst.mI_Pincode}</p>
+                                    <h1 className="text-2xl font-bold uppercase text-purple-800">{inst.mI_Name}</h1>
+                                    <p className="text-sm font-bold text-gray-700">{inst.mI_Address1}, {inst.ivrmmcT_Name}-{inst.mI_Pincode}</p>
                                     <div className="border-b border-black py-1">
-                                        <h2 className="text-lg font-bold">CONSOLIDATED MARKS SHEET</h2>
+                                        <h2 className="text-lg font-bold text-purple-800">CONSOLIDATED MARKS SHEET</h2>
                                     </div>
-                                    <div className="flex justify-center gap-12 mt-2 font-bold text-sm">
+                                    <div className="flex justify-center gap-12 mt-2 font-bold text-sm text-purple-900">
                                         <span>ACADEMIC YEAR : {yr}</span>
                                         <span>CLASS & SEC : {cla} - {sec}</span>
                                     </div>
@@ -111,27 +111,29 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
                             </th>
                         </tr>
                         <tr>
-                            <th className="border border-black p-2 bg-slate-50 w-10" rowSpan={2}>
+                            <th className="border border-black p-2 bg-purple-800 text-white w-10" rowSpan={2}>
                                 <div className="vertical-text font-bold mx-auto">Roll No</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 min-w-[200px]" rowSpan={2}>
+                            <th className="border border-black p-2 bg-purple-800 text-white min-w-[200px]" rowSpan={2}>
                                 <div className="vertical-text font-bold mx-auto">Student Name</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 w-24" rowSpan={2}>
+                            <th className="border border-black p-2 bg-purple-800 text-white w-24" rowSpan={2}>
                                 <div className="vertical-text font-bold mx-auto">Reg.NO</div>
                             </th>
-                            <th className="border border-black p-2 bg-slate-50 w-16" rowSpan={2}>
+                            <th className="border border-black p-2 bg-purple-800 text-white w-16" rowSpan={2}>
                                 <div className="vertical-text font-bold mx-auto">ATTENDANCE %</div>
                             </th>
                             {getsubjectslist.map((sub: any, idx: number) => (
-                                <th key={idx} colSpan={sub.colspan} className="border border-black p-2 text-center bg-slate-50 font-bold">
+                                <th key={idx} colSpan={sub.colspan} className="border border-black p-2 text-center bg-purple-800 text-white font-bold">
                                     {sub.ISMS_SubjectName}
                                 </th>
                             ))}
+                            <th className="border border-black p-2 bg-purple-800 text-white text-center" rowSpan={2}>Total</th>
+                            <th className="border border-black p-2 bg-purple-800 text-white text-center" rowSpan={2}>Percentage</th>
                         </tr>
                         <tr>
                             {subcolmns.map((col: any, idx: number) => (
-                                <th key={idx} className="border border-black p-2 bg-slate-50 text-center w-10">
+                                <th key={idx} className="border border-black p-2 bg-purple-800 text-white text-center w-10">
                                     <div className="vertical-text mx-auto text-[10px]">{col.EMSE_SubExamName}</div>
                                 </th>
                             ))}
@@ -139,7 +141,7 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
                     </thead>
                     <tbody>
                         {studentlistd.map((stu: any, sIdx: number) => (
-                            <tr key={sIdx} className="hover:bg-slate-50 transition-colors">
+                            <tr key={sIdx} className="hover:bg-purple-50 transition-colors">
                                 <td className="border border-black p-2 text-center">{stu.AMAY_RollNo}</td>
                                 <td className="border border-black p-2 text-left font-medium">{stu.AMST_FirstName}</td>
                                 <td className="border border-black p-2 text-left">{stu.AMST_AdmNo}</td>
@@ -162,6 +164,12 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
                                         )}
                                     </td>
                                 ))}
+                                <td className="border border-black p-2 text-center bg-orange-100 font-bold text-purple-900">
+                                    {stu.totallist?.find((colt: any) => colt.ISMS_Id === 1000000)?.MARKSOBTAINED || ''}
+                                </td>
+                                <td className="border border-black p-2 text-center bg-orange-100 font-bold text-purple-900">
+                                    {stu.totallist?.find((colt: any) => colt.ISMS_Id === 1000000)?.PERCENTAGE || ''}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
