@@ -11,8 +11,134 @@ import { usePointsRecordReport } from '@/hooks/sports/usePointsRecordReport';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
-import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+
+function buildPrintHtml(data: IPointsRecordReportData[], formData: PointsRecordReportFormSchema | null, loadData: any): string {
+    const getYearName = (yearId: number) => {
+        return loadData?.data?.yearlist?.find((y: any) => y.asmaY_Id === yearId)?.asmaY_Year || '';
+    };
+
+    const getCategoryName = (catId?: number) => {
+        if (!catId) return '';
+        return loadData?.data?.categoryList?.find((c: any) => c.spccmcC_Id === catId)?.spccmcC_CompitionCategory || '';
+    };
+
+    let tableContent = '';
+    
+    if (formData?.Type === 'CC') {
+        const groupedData = data.reduce((acc: any, item) => {
+            const eventName = item.spccmE_EventName || 'Unknown Event';
+            if (!acc[eventName]) acc[eventName] = [];
+            acc[eventName].push(item);
+            return acc;
+        }, {});
+        
+        const eventNames = Object.keys(groupedData);
+        
+        if (eventNames.length > 0) {
+            tableContent = `
+                <thead style="background:#f3f4f6;text-align:center;font-weight:bold;">
+                    <tr>
+                        <th style="border:1px solid #000;padding:6px 10px;">SL. NO</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Place</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Student Name</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Adm. No.</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Class</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Section</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">House Name</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Points</th>
+                        <th style="border:1px solid #000;padding:6px 10px;">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${eventNames.map((eventName, eIdx) => {
+                        let html = `<tr><th colspan="9" style="border:1px solid #000;padding:6px 10px;text-align:left;background:#f9fafb;">EVENT: ${eventName}</th></tr>`;
+                        html += groupedData[eventName].map((item: any, sIdx: number) => {
+                            let rowHtml = `<tr>`;
+                            if (sIdx === 0) {
+                                rowHtml += `<td rowspan="${groupedData[eventName].length}" style="border:1px solid #000;padding:6px 10px;text-align:center;vertical-align:middle;font-weight:bold;">${eIdx + 1}</td>`;
+                            }
+                            rowHtml += `
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.spccestR_Rank ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:left;">${item.amsT_Name ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.amsT_AdmNo ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.asmcL_ClassName ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.asmC_SectionName ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.spccmH_HouseName ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.spccestR_Points ?? '-'}</td>
+                                <td style="border:1px solid #000;padding:6px 10px;text-align:center;">${item.spccestR_Remarks ?? '-'}</td>
+                            </tr>`;
+                            return rowHtml;
+                        }).join('');
+                        return html;
+                    }).join('')}
+                </tbody>
+            `;
+        } else {
+            tableContent = `<tbody><tr><td colspan="9" style="text-align:center;padding:20px;">No Records Found</td></tr></tbody>`;
+        }
+    } else {
+        const printHeaders = [
+            'SL.NO', 'Student Name', 'Adm. No.', 'Class', 'Section',
+            'House Name', 'Event', 'Venue', 'Sports', 'Points', 'Place', 'Remarks'
+        ];
+        
+        const printAccessors: (keyof IPointsRecordReportData)[] = [
+            'amsT_Name', 'amsT_AdmNo', 'asmcL_ClassName', 'asmC_SectionName',
+            'spccmH_HouseName', 'spccmE_EventName', 'spccmeV_EventVenue', 'spccmscC_SportsCCName', 'spccestR_Points', 'spccestR_Rank', 'spccestR_Remarks'
+        ];
+
+        const headerCells = printHeaders.map(h =>
+            `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`
+        ).join('');
+        
+        const rows = data.map((row, idx) => {
+            const cells = printAccessors.map((key) => {
+                const val = row[key] !== null && row[key] !== undefined ? String(row[key]) : '-';
+                return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${val}</td>`;
+            }).join('');
+            return `<tr><td style="border:1px solid #000;padding:6px 10px;text-align:center;">${idx + 1}</td>${cells}</tr>`;
+        }).join('');
+        
+        tableContent = `
+            <thead><tr>${headerCells}</tr></thead>
+            <tbody>${rows.length > 0 ? rows : `<tr><td colspan="${printHeaders.length + 1}" style="text-align:center;padding:20px;">No Records Found</td></tr>`}</tbody>
+        `;
+    }
+
+    const titleSuffix = formData?.Type === 'CC' ? '' : (formData?.ASMAY_Id ? ` ${getYearName(formData.ASMAY_Id)}` : '');
+    const subtitle = formData?.Type === 'CC' ? `
+        <div style="margin-top:8px;font-size:14px;font-weight:normal;">
+            <p style="margin:4px 0;">Academic Year: ${formData?.ASMAY_Id ? getYearName(formData.ASMAY_Id) : ''}</p>
+            <p style="margin:4px 0;">Competition Category: ${formData?.SPCCMCC_Id ? getCategoryName(formData.SPCCMCC_Id) : ''}</p>
+        </div>
+    ` : '';
+
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8"/>
+            <title>Points Record Report</title>
+            <style>
+                * { box-sizing: border-box; }
+                body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; background: #fff; color: #000; }
+                h2 { text-align: center; text-transform: uppercase; text-decoration: underline; margin-bottom: 16px; font-size: 16px; }
+                table { width: 100%; border-collapse: collapse; }
+                @media print {
+                    body { margin: 10mm; }
+                    @page { size: landscape; margin: 10mm; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>POINTS RECORD REPORT${titleSuffix}${subtitle}</h2>
+            <table>
+                ${tableContent}
+            </table>
+        </body>
+        </html>
+    `;
+}
 
 interface ReportGridProps {
     data: IPointsRecordReportData[];
@@ -22,30 +148,6 @@ interface ReportGridProps {
 export default function ReportGrid({ data, formData }: ReportGridProps) {
     const { loadData } = usePointsRecordReport();
     const [searchQuery, setSearchQuery] = useState('');
-    const componentRef = useRef<HTMLDivElement>(null);
-
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: 'Points_Record_Report',
-        pageStyle: `
-          @page { size: landscape; margin: 10mm; }
-          @media print {
-            body { -webkit-print-color-adjust: exact !important; margin: 0 !important; padding: 0 !important; }
-            .no-clip { overflow: visible !important; }
-            table { border-collapse: collapse !important; width: 100% !important; page-break-inside: auto; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            th, td { border: 1px solid #000 !important; padding: 8px !important; text-align: center !important; font-size: 9pt !important; }
-            thead { display: table-header-group !important; }
-          }
-        `
-    });
-
-    const handleExcelExport = () => {
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "PointsRecordReport");
-        XLSX.writeFile(workbook, "PointsRecordReport.xlsx");
-    };
 
     const getYearName = (yearId: number) => {
         return loadData.data?.yearlist.find(y => y.asmaY_Id === yearId)?.asmaY_Year || '';
@@ -59,23 +161,48 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
     const filteredData = data.filter(item => {
         const query = searchQuery.toLowerCase();
         return (
-            (item.AMST_Name && item.AMST_Name.toLowerCase().includes(query)) ||
-            (item.AMST_AdmNo && item.AMST_AdmNo.toLowerCase().includes(query)) ||
-            (item.SPCCMH_HouseName && item.SPCCMH_HouseName?.toLowerCase().includes(query)) ||
-            (item.SPCCME_EventName && item.SPCCME_EventName?.toLowerCase().includes(query)) ||
-            (item.ASMCL_ClassName && item.ASMCL_ClassName?.toLowerCase().includes(query)) ||
-            (item.ASMC_SectionName && item.ASMC_SectionName?.toLowerCase().includes(query))
+            (item.amsT_Name && item.amsT_Name.toLowerCase().includes(query)) ||
+            (item.amsT_AdmNo && item.amsT_AdmNo.toLowerCase().includes(query)) ||
+            (item.spccmH_HouseName && item.spccmH_HouseName?.toLowerCase().includes(query)) ||
+            (item.spccmE_EventName && item.spccmE_EventName?.toLowerCase().includes(query)) ||
+            (item.asmcL_ClassName && item.asmcL_ClassName?.toLowerCase().includes(query)) ||
+            (item.asmC_SectionName && item.asmC_SectionName?.toLowerCase().includes(query))
         );
     });
 
     const groupedData = filteredData.reduce((acc: any, item) => {
-        const eventName = item.SPCCME_EventName || 'Unknown Event';
+        const eventName = item.spccmE_EventName || 'Unknown Event';
         if (!acc[eventName]) acc[eventName] = [];
         acc[eventName].push(item);
         return acc;
     }, {});
 
     const eventNames = Object.keys(groupedData);
+
+    const handlePrint = () => {
+        const html = buildPrintHtml(filteredData, formData, loadData);
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        if (!printWindow) return;
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        // Wait for content to render before printing
+        printWindow.onload = () => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        };
+    };
+
+    const handleExcelExport = () => {
+        const worksheet = XLSX.utils.json_to_sheet(filteredData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "PointsRecordReport");
+        XLSX.writeFile(workbook, "PointsRecordReport.xlsx");
+    };
 
     const columns: ColumnDef<IPointsRecordReportData>[] = [
         {
@@ -84,60 +211,60 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
             cell: ({ row }) => row.index + 1,
         },
         {
-            accessorKey: 'AMST_Name',
+            accessorKey: 'amsT_Name',
             header: 'Student Name',
         },
         {
-            accessorKey: 'AMST_AdmNo',
+            accessorKey: 'amsT_AdmNo',
             header: 'Adm. No.',
         },
         {
-            accessorKey: 'ASMCL_ClassName',
+            accessorKey: 'asmcL_ClassName',
             header: 'Class',
         },
         {
-            accessorKey: 'ASMC_SectionName',
+            accessorKey: 'asmC_SectionName',
             header: 'Section',
         },
         {
-            accessorKey: 'SPCCMH_HouseName',
+            accessorKey: 'spccmH_HouseName',
             header: 'House Name',
         },
         {
-            accessorKey: 'SPCCME_EventName',
+            accessorKey: 'spccmE_EventName',
             header: 'Event',
         },
         {
-            accessorKey: 'SPCCMEV_EventVenue',
+            accessorKey: 'spccmeV_EventVenue',
             header: 'Venue',
         },
         {
-            accessorKey: 'SPCCMSCC_SportsCCName',
+            accessorKey: 'spccmscC_SportsCCName',
             header: 'Sports',
         },
         {
-            accessorKey: 'SPCCESTR_Points',
+            accessorKey: 'spccestR_Points',
             header: 'Points',
         },
         {
-            accessorKey: 'SPCCESTR_Rank',
+            accessorKey: 'spccestR_Rank',
             header: 'Place',
         },
         {
-            accessorKey: 'SPCCESTR_Remarks',
+            accessorKey: 'spccestR_Remarks',
             header: 'Remarks',
         },
     ];
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border screen-only">
+            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
                 <div className="flex items-center gap-4">
                     <div className="text-sm font-medium text-muted-foreground mr-4">
                         Total Records: <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">{data.length}</span>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePrint()} className="hover:bg-primary/5 border-2">
+                        <Button variant="outline" size="sm" onClick={handlePrint} className="hover:bg-primary/5 border-2">
                             <Printer className="h-4 w-4 mr-2 text-primary" />
                             Print
                         </Button>
@@ -158,24 +285,9 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                 </div>
             </div>
 
-            <div className="bg-white p-6 shadow-sm border rounded-lg overflow-visible" ref={componentRef}>
-                <style jsx global>{`
-                    @media screen {
-                        .print-only { display: none !important; }
-                    }
-                    @media print {
-                        .screen-only { display: none !important; }
-                        .print-only { display: block !important; }
-                        .no-clip { overflow: visible !important; }
-                        body { -webkit-print-color-adjust: exact !important; background: white !important; }
-                        .rounded-lg { border-radius: 0 !important; }
-                        .shadow-sm { shadow: none !important; }
-                        .border { border: none !important; }
-                    }
-                `}</style>
-
+            <div className="bg-white p-6 shadow-sm border rounded-lg overflow-visible">
                 {formData?.Type === 'CC' ? (
-                    <div className="space-y-6 no-clip">
+                    <div className="space-y-6">
                         <div className="text-center">
                             <h3 className="text-xl font-bold uppercase underline">POINTS RECORD REPORT</h3>
                             <div className="mt-2 text-sm font-medium">
@@ -184,19 +296,19 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                             </div>
                         </div>
 
-                        <div className="overflow-x-auto no-clip">
+                        <div className="overflow-x-auto">
                             <table className="w-full border-collapse border border-gray-300 text-center text-sm">
-                                <thead className="bg-[#3a5dae] text-white print:bg-gray-100 print:text-black">
+                                <thead className="bg-[#3a5dae] text-white">
                                     <tr>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">SL. NO</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Place</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Student Name</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Adm. No.</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Class</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Section</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">House Name</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Points</th>
-                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white print:bg-gray-100 print:text-black font-bold">Remarks</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">SL. NO</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Place</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Student Name</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Adm. No.</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Class</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Section</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">House Name</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Points</th>
+                                        <th className="border border-gray-300 p-2 bg-[#3a5dae] text-white font-bold">Remarks</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -215,14 +327,14 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                                                                 {eIdx + 1}
                                                             </td>
                                                         )}
-                                                        <td className="border border-gray-300 p-2">{item.SPCCESTR_Rank}</td>
-                                                        <td className="border border-gray-300 p-2 text-left">{item.AMST_Name}</td>
-                                                        <td className="border border-gray-300 p-2">{item.AMST_AdmNo}</td>
-                                                        <td className="border border-gray-300 p-2">{item.ASMCL_ClassName}</td>
-                                                        <td className="border border-gray-300 p-2">{item.ASMC_SectionName}</td>
-                                                        <td className="border border-gray-300 p-2">{item.SPCCMH_HouseName}</td>
-                                                        <td className="border border-gray-300 p-2">{item.SPCCESTR_Points}</td>
-                                                        <td className="border border-gray-300 p-2">{item.SPCCESTR_Remarks}</td>
+                                                        <td className="border border-gray-300 p-2">{item.spccestR_Rank}</td>
+                                                        <td className="border border-gray-300 p-2 text-left">{item.amsT_Name}</td>
+                                                        <td className="border border-gray-300 p-2">{item.amsT_AdmNo}</td>
+                                                        <td className="border border-gray-300 p-2">{item.asmcL_ClassName}</td>
+                                                        <td className="border border-gray-300 p-2">{item.asmC_SectionName}</td>
+                                                        <td className="border border-gray-300 p-2">{item.spccmH_HouseName}</td>
+                                                        <td className="border border-gray-300 p-2">{item.spccestR_Points}</td>
+                                                        <td className="border border-gray-300 p-2">{item.spccestR_Remarks}</td>
                                                     </tr>
                                                 ))}
                                             </React.Fragment>
@@ -239,52 +351,18 @@ export default function ReportGrid({ data, formData }: ReportGridProps) {
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-6 no-clip">
+                    <div className="space-y-6">
                         <div className="text-center">
                             <h3 className="text-xl font-bold uppercase underline">POINTS RECORD REPORT {formData?.ASMAY_Id ? getYearName(formData.ASMAY_Id) : ''}</h3>
                         </div>
 
-                        <div className="screen-only">
+                        <div>
                             <DataTable
                                 columns={columns}
                                 data={filteredData}
                                 totalItems={filteredData.length}
                                 manualPagination={false}
                             />
-                        </div>
-
-                        <div className="print-only overflow-x-auto no-clip">
-                            <table className="w-full border-collapse border border-gray-300 text-center text-[10pt]">
-                                <thead className="bg-[#3a5dae] text-white print:bg-gray-100 print:text-black">
-                                    <tr>
-                                        {columns.map((col: any, i) => (
-                                            <th key={i} className="border border-gray-300 p-2 font-bold bg-[#3a5dae] text-white print:bg-gray-100 print:text-black whitespace-nowrap">
-                                                {typeof col.header === 'string' ? col.header : 'SL.NO'}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredData.length > 0 ? (
-                                        filteredData.map((row, rowIndex) => (
-                                            <tr key={rowIndex} className="bg-white">
-                                                {columns.map((col: any, colIndex) => (
-                                                    <td key={colIndex} className="border border-gray-300 p-2">
-                                                        {col.accessorKey ? (row as any)[col.accessorKey] : 
-                                                         col.cell ? (col.cell as any)({ row: { original: row, index: rowIndex } }) : ''}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={columns.length} className="border border-gray-300 p-10 text-center text-muted-foreground font-medium">
-                                                No Records Found
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 )}
