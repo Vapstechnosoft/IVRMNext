@@ -108,6 +108,7 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                             }}
                             error={errors.fmH_FeeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            placeholder='Enter Fee Head'
                         />
 
                         <div className='group flex flex-col gap-1.5'>

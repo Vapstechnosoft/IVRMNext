@@ -145,7 +145,7 @@ export const StudentBirthdayPrint = forwardRef<HTMLDivElement, StudentBirthdayPr
                                         <td>{row.classname}</td>
                                         <td>{row.sectionname}</td>
                                         <td>
-                                            {row.amst_dob ? format(new Date(row.amst_dob), 'dd/MMM/yyyy') : ''}
+                                            {row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : ''}
                                         </td>
                                         <td>
                                             {row.amst_photo && (

@@ -323,8 +323,8 @@ function EmployeeStrengthReportContent() {
                             data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
                             columns={columns}
                             totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
-                            isPaginationRequired={true}
-                            isSearchRequired={true}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
                             showSearchColumns={false}
                             isLoading={isPending}
                         />

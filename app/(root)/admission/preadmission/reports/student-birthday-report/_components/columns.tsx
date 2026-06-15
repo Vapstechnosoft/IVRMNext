@@ -51,7 +51,7 @@ export const birthdayColumns: ColumnDef<any>[] = [
         header: () => <span className='font-bold text-black text-center'>Date of Birth</span>,
         cell: ({ row }) => {
             const date = row.getValue('amst_dob') as string;
-            return date ? format(new Date(date), 'dd/MMM/yyyy') : 'N/A';
+            return date ? format(new Date(date), 'dd-MM-yyyy') : 'N/A';
         }
     },
     {

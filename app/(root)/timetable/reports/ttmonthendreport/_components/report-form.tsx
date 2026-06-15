@@ -128,12 +128,12 @@ export default function ReportForm({
                         </div>
 
                         {/* IE Name Input */}
-                        <div className='flex max-w-md flex-col gap-2 md:col-span-2'>
+                        {/* <div className='flex max-w-md flex-col gap-2 md:col-span-2'>
                             <Label htmlFor='name' className='font-semibold text-sm'>
                                 IE Name:
                             </Label>
                             <InputText id='name' placeholder='Enter Implementation Engineer Name' {...register('name')} />
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Action Buttons */}

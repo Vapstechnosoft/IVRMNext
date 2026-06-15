@@ -65,10 +65,10 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEm
     },
     {
         accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name'  />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
         cell: ({ row }) => <div >{row.getValue('employeeName')}</div>,
         enableSorting: true,
         enableHiding: true,
-        
+
     }
 ];

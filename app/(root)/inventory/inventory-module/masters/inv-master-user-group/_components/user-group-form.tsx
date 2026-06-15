@@ -231,19 +231,20 @@ export function ToggleUserGroupForm({ rowData, onClose }: ToggleUserGroupFormPro
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <div className='space-y-3'>
                         <p className='text-sm text-warning-foreground'>
-                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.invmG_GroupName}</strong>?
+                            Are you sure you want to {isActive ? 'Deactivate' : 'Activate'} <strong>{rowData.invmG_GroupName}</strong>?
                         </p>
                     </div>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
+                        variant={isActive ? 'warning' : 'default'}
+                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

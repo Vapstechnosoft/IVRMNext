@@ -36,8 +36,7 @@ export async function deleteInvTGRN(data: any) {
 }
  
 export async function toggleInvTGRNActive(data: any) {
-    const id = data.invmgrN_Id || data.INVMGRN_Id;
-    const url = `/INV_T_GRNFacade/deactive?id=${id}`;
+    const url = `/INV_T_GRNFacade/deactive?id=${data.invmgrN_Id}`;
     return await api.post<any>('inventory', url, {});
 }
  
