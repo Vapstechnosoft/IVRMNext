@@ -195,6 +195,7 @@ export const studentAdmissionFormSchema = {
 
         // Other Details
         amsT_AadharNo: z.string().optional().nullable(),
+        amsT_ApparNo: z.string().regex(/^\d*$/, 'APAAR ID must contain only numbers').optional().nullable(),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 
         reference_ids: z.array(z.string()).optional(),

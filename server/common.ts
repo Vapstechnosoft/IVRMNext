@@ -309,22 +309,38 @@ export async function getUserAccessibleModules() {
                                     name: 'Configuration',
                                     icon: 'Settings',
                                     pages: [
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Master Configuration',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/configuration/master-configuration',
+                                        //     title: 'Master Configuration',
+                                        //     description: 'Master Configuration'
+                                        // },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Registration Numbering',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/configuration/registration-numbering',
+                                        //     title: 'Registration Numbering',
+                                        //     description: 'Registration Numbering'
+                                        // }
                                         {
                                             id: 11,
-                                            name: 'Master Configuration',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/master-configuration',
-                                            title: 'Master Configuration',
-                                            description: 'Master Configuration'
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
                                         },
                                         {
                                             id: 12,
-                                            name: 'Registration Numbering',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/registration-numbering',
-                                            title: 'Registration Numbering',
-                                            description: 'Registration Numbering'
-                                        }
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/alumni/alumni-module/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        },
                                     ]
                                 },
                                 {
@@ -1016,6 +1032,30 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/nda/reports/nda-student-profile-report',
                                             title: 'NDA Student Profile Report',
                                             description: 'NDA Student Profile Report'
+                                        },
+                                        {
+                                            id: 601,
+                                            name: 'OverallDailyAttendanceReport',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                            title: 'OverallDailyAttendanceReport',
+                                            description: 'OverallDailyAttendanceReport'
+                                        },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 590,
+                                            name: 'Smart Card Details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
                                         }
                                     ]
                                 },
@@ -1402,22 +1442,38 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Admission Form'
                                         }
                                     ]
-                                }
-                                // {
-                                //     id: 25,
-                                //     name: 'Local ShareHost',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 77,
-                                //             name: 'SVP Class Wise Student Details',
-                                //             icon: 'Settings',
-                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                //             title: 'SVP Class Wise Student Details',
-                                //             description: 'SVP Class Wise Student Details'
-                                //         }
-                                //     ]
-                                // },
+                                },
+                                {
+                                    id: 25,
+                                    name: 'Local ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        // {
+                                        //     id: 77,
+                                        //     name: 'SVP Class Wise Student Details',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                        //     title: 'SVP Class Wise Student Details',
+                                        //     description: 'SVP Class Wise Student Details'
+                                        // },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 591,
+                                            name: 'Import',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/masters/import',
+                                            title: 'Import',
+                                            description: 'Import'
+                                        }
+                                    ]
+                                },
                                 // {
                                 //     id: 26,
                                 //     name: 'Old ShareHost',
