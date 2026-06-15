@@ -13,6 +13,13 @@ interface CumulativeReportPrintViewProps {
         classrank: boolean;
         sectionrank: boolean;
         attendancedispaly: boolean;
+        applicable: boolean;
+        nonapplicable: boolean;
+        readmit: boolean;
+        grdaeDisply: boolean;
+        marksdisplay: boolean;
+        gradecolm: boolean;
+        status: boolean;
     };
 }
 
@@ -32,9 +39,59 @@ export default function CumulativeReportPrintView({
 }: CumulativeReportPrintViewProps) {
     const fontSizeValue = fontSizeMap[fontSize];
 
-    // Separate applicable and non-applicable subjects
-    const applicableSubjects = subjects.filter((s) => s.eyceS_AplResultFlg);
-    const nonApplicableSubjects = subjects.filter((s) => !s.eyceS_AplResultFlg);
+    // Separate applicable and non-applicable subjects dynamically
+    const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg) : [];
+    const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => !s.eyceS_AplResultFlg) : [];
+
+    // Helper to get subject header text
+    const getSubjectHeaderName = (subj: ISubject) => {
+        const name = subj.ismS_SubjectName || '';
+        const isEVS = name.toUpperCase().includes('EVS');
+        if (isEVS) return name; // EVS always shows Marks & Grade
+
+        const showMarks = columnFlags.marksdisplay;
+        const showGrade = columnFlags.grdaeDisply;
+
+        if (showMarks && showGrade) {
+            return `${name} (M | G)`;
+        } else if (showMarks) {
+            return `${name} (M)`;
+        } else if (showGrade) {
+            return `${name} (G)`;
+        }
+        return name;
+    };
+
+    // Helper for rendering cell marks/grades in print view
+    const renderPrintMarkContent = (subj: ISubject, student: ICumulativeReport) => {
+        const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
+        if (!mark) return '-';
+        if (mark.estmpS_PassFailFlg === 'AB') {
+            return 'AB';
+        }
+
+        const showMarks = columnFlags.marksdisplay;
+        const showGrade = columnFlags.grdaeDisply;
+
+        const marksVal = mark.estmpS_ObtainedMarks;
+        const gradeVal = mark.estmpS_ObtainedGrade;
+
+        const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
+
+        if (isEVS || (showMarks && showGrade)) {
+            return (
+                <div className='evs-cell'>
+                    <span>{marksVal ?? '-'}</span>
+                    <span>{gradeVal ?? '-'}</span>
+                </div>
+            );
+        } else if (showMarks) {
+            return marksVal ?? '-';
+        } else if (showGrade) {
+            return gradeVal ?? '-';
+        }
+        return marksVal ?? gradeVal ?? '-';
+    };
 
     return (
         <>
@@ -219,7 +276,7 @@ export default function CumulativeReportPrintView({
 
                                 {applicableSubjects.map((subj) => (
                                     <th key={subj.ismS_Id} colSpan={2}>
-                                        {subj.ismS_SubjectName}
+                                        {getSubjectHeaderName(subj)}
                                     </th>
                                 ))}
 
@@ -227,8 +284,17 @@ export default function CumulativeReportPrintView({
                                     <>
                                         <th>Total</th>
                                         <th>Obtained</th>
-                                        <th style={{ width: '5%' }}>%</th>
-                                        <th>Grade</th>
+                                        {columnFlags.readmit && <th style={{ width: '5%' }}>%</th>}
+                                        {columnFlags.gradecolm && <th>Grade</th>}
+                                        {columnFlags.sectionrank && <th>Section Rank</th>}
+                                        {columnFlags.classrank && <th>Class Rank</th>}
+                                        {!columnFlags.attendancedispaly && (
+                                            <>
+                                                <th>Class Held</th>
+                                                <th>Attendance</th>
+                                            </>
+                                        )}
+                                        {columnFlags.status && <th>Status</th>}
                                     </>
                                 )}
 
@@ -252,61 +318,38 @@ export default function CumulativeReportPrintView({
                                         {columnFlags.regno && <td>{student.amsT_RegistrationNo ?? '-'}</td>}
                                         {columnFlags.rollno && <td>{student.amaY_RollNo ?? '-'}</td>}
 
-                                        {/* Applicable Subjects (EVS = Marks + Grade side by side) */}
-                                        {applicableSubjects.map((subj) => {
-                                            const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
-                                            const isAB = mark?.estmpS_PassFailFlg === 'AB';
-                                            const showBoth = mark?.estmpS_ObtainedMarks != null && mark?.estmpS_ObtainedGrade;
+                                        {/* Applicable Subjects */}
+                                        {applicableSubjects.map((subj) => (
+                                            <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
+                                                {renderPrintMarkContent(subj, student)}
+                                            </td>
+                                        ))}
 
-                                            return (
-                                                <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
-                                                    {isAB ? (
-                                                        'AB'
-                                                    ) : showBoth ? (
-                                                        <div className='evs-cell'>
-                                                            <span>{mark.estmpS_ObtainedMarks}</span>
-                                                            <span>{mark.estmpS_ObtainedGrade}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            {mark?.estmpS_ObtainedMarks ?? '-'}
-                                                            {mark?.estmpS_ObtainedGrade &&
-                                                                !mark?.estmpS_ObtainedMarks &&
-                                                                ` ${mark.estmpS_ObtainedGrade}`}
-                                                        </>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
-
-                                        {/* Total Columns - NO BOLD */}
+                                        {/* Total Columns */}
                                         {applicableSubjects.length > 0 && (
                                             <>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
-                                                <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>
-                                                <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>
+                                                {columnFlags.readmit && <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>}
+                                                {columnFlags.gradecolm && <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>}
+                                                {columnFlags.sectionrank && <td>{isAbsent || student.estmP_SectionRank === '0' ? '' : (student.estmP_SectionRank ?? '-')}</td>}
+                                                {columnFlags.classrank && <td>{isAbsent || student.estmP_ClassRank === '0' ? '' : (student.estmP_ClassRank ?? '-')}</td>}
+                                                {!columnFlags.attendancedispaly && (
+                                                    <>
+                                                        <td>{student.classheld ?? '-'}</td>
+                                                        <td>{student.classatt ?? '-'}</td>
+                                                    </>
+                                                )}
+                                                {columnFlags.status && <td>{student.estmP_Result ?? '-'}</td>}
                                             </>
                                         )}
 
                                         {/* Non-applicable subjects */}
-                                        {nonApplicableSubjects.map((subj) => {
-                                            const mark = student.sub_list?.find((m) => m.ismS_Id === subj.ismS_Id);
-                                            const isAB = mark?.estmpS_PassFailFlg === 'AB';
-
-                                            return (
-                                                <td key={subj.ismS_Id} colSpan={2}>
-                                                    {isAB ? (
-                                                        'AB'
-                                                    ) : (
-                                                        <>
-                                                            {mark?.estmpS_ObtainedMarks ?? ''}
-                                                            {mark?.estmpS_ObtainedGrade ?? ''}
-                                                        </>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
+                                        {nonApplicableSubjects.map((subj) => (
+                                            <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
+                                                {renderPrintMarkContent(subj, student)}
+                                            </td>
+                                        ))}
                                     </tr>
                                 );
                             })}

@@ -9,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 
 import { type InvMasterUserGroupType, invMasterUserGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
-import { deactivateInvMasterGroup } from '@/server/inventory/masters/inv-master-group';
-import { saveMasterUserGroup } from '@/server/inventory/masters/user-group';
+import { deactivateInvMasterGroup, saveInvMasterUserGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterUserGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -71,16 +70,17 @@ function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
 
     const onSubmit: SubmitHandler<InvMasterUserGroupType> = async (data) => {
         try {
-            const result = await saveMasterUserGroup(data);
+            const result = await saveInvMasterUserGroup(data);
             if (result.success || result.returnval) {
-                toast.success(result.message);
+                toast.success(result.message || (mode === 'add' ? 'User group saved successfully' : 'User group updated successfully'));
+                queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onSuccess();
                 if (mode === 'add') reset();
             } else {
-                toast.error(result.message);
+                toast.error(result.message || 'Failed to save record');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'An error occurred');
         }
     };
 
@@ -175,9 +175,7 @@ function UserGroupForm({ onSuccess, initialData, mode }: UserGroupFormProps) {
     );
 }
 
-export function AddUserGroupForm({
-    onSuccess
-}: { onSuccess: () => void }) {
+export function AddUserGroupForm({ onSuccess }: { onSuccess: () => void }) {
     return <UserGroupForm onSuccess={onSuccess} mode='add' />;
 }
 
@@ -244,7 +242,7 @@ export function ToggleUserGroupForm({ rowData, onClose }: ToggleUserGroupFormPro
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'warning' : 'default'}
-                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

@@ -480,10 +480,11 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     // Data transformation logic based on AngularJS controller
     const {
         getinstitution = [],
-        getcumulativereportdetails = [],
+        cumulativeReportDetails = [],
         getsubjectslist = [],
         getstudentlist = [],
-        gettermdetails = []
+        gettermdetails = [],
+        getsubjectwisetotaldetails = []
     } = response;
 
     // Sub columns processing
@@ -512,16 +513,18 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
 
     // Student wise marks mapping
     const studentListWithMarks = getstudentlist.map((stu: any) => {
-        const markslist = getcumulativereportdetails.filter((m: any) => m.AMST_Id === stu.AMST_Id);
+        const markslist = cumulativeReportDetails.filter((m: any) => m.AMST_Id === stu.AMST_Id || m.amsT_Id === stu.amsT_Id);
+        const totallist = getsubjectwisetotaldetails.filter((m: any) => m.AMST_Id === stu.AMST_Id || m.amsT_Id === stu.amsT_Id);
         return {
             ...stu,
-            markslist
+            markslist,
+            totallist
         };
     });
 
     return {
         getinstitution,
-        getcumulativereportdetails,
+        cumulativeReportDetails,
         getsubjectslist,
         studentlistd: studentListWithMarks,
         subcolmns,
