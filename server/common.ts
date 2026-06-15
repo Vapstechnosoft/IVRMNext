@@ -2230,14 +2230,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 530,
-                                            name: 'Fee Receipt Delete Report Nagarjuna',
+                                            name: 'Fee Receipt Delete Report Samartha',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feereceiptdeletereportnagarjuna',
-                                            title: 'Fee Receipt Delete Report Nagarjuna',
-                                            description: 'Manage Fee Receipt Delete Report Nagarjuna'
+                                            url: '/fees/feereports/feereceiptdeletereportsamartha',
+                                            title: 'Fee Receipt Delete Report Samartha',
+                                            description: 'Manage Fee Receipt Delete Report Samartha'
                                         },
                                         {
-                                            id: 530,
+                                            id: 531,
                                             name: 'Fee Collection Statement Report Nagarjuna',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feecollectionstatementreportnagarjuna',
