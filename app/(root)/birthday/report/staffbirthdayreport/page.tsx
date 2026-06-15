@@ -266,7 +266,7 @@ export default function StaffBirthdayReportPage() {
             'Staff Name': row.HRME_EmployeeFirstName || '',
             'Department': row.HRMD_DepartmentName || '',
             'Designation': row.HRMDES_DesignationName || '',
-            'Date of Birth': row.HRME_DOB ? format(new Date(row.HRME_DOB), 'dd/MMM/yyyy') : ''
+            'Date of Birth': row.HRME_DOB ? format(new Date(row.HRME_DOB), 'dd-MM-yyyy') : ''
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -289,7 +289,7 @@ export default function StaffBirthdayReportPage() {
     const formatDateOfBirth = (dateString: string) => {
         if (!dateString) return '';
         try {
-            return format(new Date(dateString), 'dd/MMM/yyyy');
+            return format(new Date(dateString), 'dd-MM-yyyy');
         } catch (e) {
             return dateString;
         }

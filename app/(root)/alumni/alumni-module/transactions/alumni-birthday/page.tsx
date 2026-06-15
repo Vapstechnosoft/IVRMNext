@@ -220,6 +220,7 @@ export default function AlumniStudentBirthdayPage() {
 
             <BirthdayForm
                 initialData={initialData}
+                totalRecords={participants.length}
                 onTypeChange={handleCategoryChange}
                 onChannelChange={(channels) => {
                     setSms(channels.sms);

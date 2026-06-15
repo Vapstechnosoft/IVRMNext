@@ -21,9 +21,11 @@ interface BirthdayFormProps {
     onSubmit: (values: IBirthdayFormValues) => void;
     onCancel: () => void;
     isLoading: boolean;
+    totalRecords?: number;
 }
 
-export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading }: BirthdayFormProps) {
+
+export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading, totalRecords = 0 }: BirthdayFormProps) {
     const form = useForm<IBirthdayFormValues>({
         resolver: zodResolver(birthdayFormSchema),
         defaultValues: {
@@ -60,7 +62,7 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                 <span className="text-sm font-bold text-slate-700">Please Select Radio Button:</span>
                                 <span className="text-red-500 font-bold">*</span>
                             </div>
-                            
+
                             <FormField
                                 control={form.control}
                                 name='radioption'
@@ -78,8 +80,8 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                                 {['student', 'Staff', 'Alumni'].map((cat) => (
                                                     <div key={cat} className="flex items-center space-x-2 cursor-pointer group">
                                                         <RadioGroupItem value={cat} id={`cat-${cat}`} className="h-5 w-5 text-primary border-slate-300" />
-                                                        <label 
-                                                            htmlFor={`cat-${cat}`} 
+                                                        <label
+                                                            htmlFor={`cat-${cat}`}
                                                             className="text-sm font-bold text-slate-600 cursor-pointer group-hover:text-primary capitalize"
                                                         >
                                                             {cat === 'student' ? 'Student' : cat}
@@ -100,7 +102,7 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                     <span className="text-sm font-bold text-slate-700">Please Select Check Box:</span>
                                     <span className="text-red-500 font-bold">*</span>
                                 </div>
-                                
+
                                 <div className='flex items-center gap-8'>
                                     {[
                                         { name: 'sms', label: 'SMS' },
@@ -113,14 +115,14 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                             name={channel.name as any}
                                             render={({ field }) => (
                                                 <div className="flex items-center space-x-3 cursor-pointer group">
-                                                    <input 
+                                                    <input
                                                         type="checkbox"
                                                         id={`check-${channel.name}`}
                                                         checked={field.value}
                                                         onChange={(e) => field.onChange(e.target.checked)}
                                                         className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer accent-primary"
                                                     />
-                                                    <label 
+                                                    <label
                                                         htmlFor={`check-${channel.name}`}
                                                         className={cn(
                                                             "text-sm font-bold cursor-pointer transition-colors uppercase tracking-wider",
@@ -141,18 +143,18 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
 
                         {isAnySelected && (
                             <div className='flex items-center justify-center gap-6 pt-10 mt-10 border-t border-slate-100 animate-in zoom-in-95 duration-300'>
-                                <Button 
-                                    type='submit' 
-                                    size='lg' 
-                                    disabled={isLoading} 
+                                <Button
+                                    type='submit'
+                                    size='lg'
+                                    disabled={isLoading || initialData == undefined || totalRecords === 0}
                                     className='h-14 px-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20'
                                 >
                                     {isLoading ? 'Sending...' : <><Send className='mr-3 h-4 w-4' /> Send Wishes</>}
                                 </Button>
-                                <Button 
-                                    type='button' 
-                                    variant='ghost' 
-                                    size='lg' 
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='lg'
                                     onClick={onCancel}
                                     className='h-14 px-10 rounded-xl font-black uppercase tracking-widest text-[10px] text-slate-400'
                                 >
