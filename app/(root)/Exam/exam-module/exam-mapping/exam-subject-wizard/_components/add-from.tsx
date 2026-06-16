@@ -70,8 +70,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             Temp_Subject_Order: [],
             EYCE_BestOfApplicableFlg: false,
             EYCE_BestOf: undefined,
-            EMCA_Id: undefined,
-            ASMAY_Id: undefined
+            EMCA_Id: undefined
         }
     });
 
@@ -248,6 +247,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             }
         })();
     }, [watchCategory, rowData]);
+
+    // Sync exams checklist state with react-hook-form exams_list state once form finishes loading
+    useEffect(() => {
+        if (isEditFormLoading) return;
+        const checkedExams = exams.filter((e) => e.checked).map((e) => ({ EME_Id: e.EME_Id, EME_ExamName: e.EME_ExamName }));
+        setValue('exams_list', checkedExams, { shouldValidate: true });
+    }, [exams, isEditFormLoading, setValue]);
+
     useEffect(() => {
         if (formState.isSubmitted) {
             // 1️ No subject selected

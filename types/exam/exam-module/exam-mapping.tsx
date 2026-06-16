@@ -712,7 +712,11 @@ export interface IBackendSearchResponse {
     marksEntryStateDate: string | null;
     get_papertype_grade_details: any[];
     answer_sheet: any[];
+    saved_ssse_list?: any[];
+    saved_ss_list?: any[];
+    saved_se_list?: any[];
 }
+
 
 // types/marks-entry.ts
 export type SubSub = {

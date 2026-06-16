@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterSubExam } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +20,7 @@ interface AddMasterSubExamFormProps {
 }
 
 export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddMasterSubExamFormProps) {
-    const { refetchAll } = useMasterExam();
+    const { refetchAll } = useMasterSubExam();
 
     const {
         register,
