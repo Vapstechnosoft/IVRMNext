@@ -4,12 +4,12 @@ import { IWrittenTestScheduleDetails } from '@/types/admission/preadmission/tran
 
 export async function getWrittenTestScheduleDetails(classId: number) {
     const response = await api.get<IWrittenTestScheduleDetails>('preadmission', `/WrittenTestSchedule/Getdetails?ASMCL_ID=${classId}`);
-    return response.data;
+    return response.data || response;
 }
 
 export async function getWrittenTestStudentDetails(pawtS_Id: number) {
     const response = await api.post<any>('preadmission', `/WrittenTestSchedule/GetStudentdetails?PAWTS_Id=${pawtS_Id}`);
-    return response.data;
+    return response.data || response;
 }
 
 export async function saveWrittenTestSchedule(data: any) {
@@ -25,7 +25,7 @@ export async function deleteWrittenTestSchedule(id: number) {
 
 export async function getWrittenTestSelectedRowDetails(id: number) {
     const response = await api.post<any>('preadmission', `/WrittenTestSchedule/GetSelectedRowDetails?PAWTS_Id=${id}`);
-    return response.data;
+    return response.data || response;
 }
 
 export async function deleteWrittenTestScheduleStudentData(data: { PAWTS_Id: number; PASR_Id: number }) {
@@ -35,5 +35,5 @@ export async function deleteWrittenTestScheduleStudentData(data: { PAWTS_Id: num
 
 export async function getWrittenTestRemainStudentDetails() {
     const response = await api.post<any>('preadmission', `/WrittenTestSchedule/GetRemainStudentdetails`);
-    return response.data;
+    return response.data || response;
 }

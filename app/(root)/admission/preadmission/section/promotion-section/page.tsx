@@ -141,7 +141,7 @@ export default function MasterPromotionSectionPage(props: {
 
     useEffect(() => {
         const fetchLeftStudents = async () => {
-            if (leftAcademicYear && leftClassAdmitted && leftSection && rightAcademicYear && rightClass && rightSection) {
+            if (leftAcademicYear && leftClassAdmitted && leftSection && rightAcademicYear && rightClass) {
                 // setIsLoadingLeftStudents(true);
                 try {
                     const payload = {
@@ -149,8 +149,8 @@ export default function MasterPromotionSectionPage(props: {
                         presenT_ASMCL_Id: Number(leftClassAdmitted),
                         presenT_ASMS_Id: Number(leftSection),
                         promotioN_ASMAY_Id: Number(rightAcademicYear),
-                        promotioN_ASMCL_Id: rightClass,
-                        promotioN_ASMS_Id: rightSection
+                        promotioN_ASMCL_Id: Number(rightClass),
+                        promotioN_ASMS_Id: Number(rightSection) || 0
                     };
 
                     const response = await getPromotionSection(payload);
