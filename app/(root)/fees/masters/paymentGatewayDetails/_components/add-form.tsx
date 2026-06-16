@@ -72,25 +72,17 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                // user_id: 20612,
-                // mi_id: 30,
+                fpgD_Id: 0,
                 fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_MerchantId: data.fpgD_MerchantId,
                 fpgD_Image: data.fpgD_Image,
                 fpgD_URL: data.fpgD_URL,
                 fpgD_AccNo: data.fpgD_AccNo,
-                // submerchantIds: submerchantIds
-                //     .filter((item) => item.id.trim() !== '')
-                //     .map((item) => ({
-                //         fpgD_SubMerchantId: item.id
-                //     })),
-                // submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
-
-                // submerchantIds: submerchantIds
-                //   .filter(({ id }) => id.trim())
-                //   .map(({ id }) => String(id)),
-
-                submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [],
+                submerchantIds: data.submerchantIds
+                    ?.filter((item) => item.id.trim() !== '')
+                    .map((item) => ({
+                        fpgD_SubMerchantId: item.id
+                    })) ?? [],
 
                 fpgD_AuthorisationKey: data.fpgD_MerchantKey,
 
@@ -104,7 +96,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                refetchAll();
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -114,6 +106,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         }
     };
 
+    const [resetKey, setResetKey] = useState(0);
+
     const handleReset = () => {
         reset({
             fpgD_MerchantId: '',
@@ -122,11 +116,12 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
             fpgD_URL: '',
             fpgD_AccNo: '',
             fpgD_MerchantKey: '',
-            impG_Id: 0,
+            impG_Id: '' as any,
             fpgD_MobileActiveFlag: false
         });
 
         replace([{ id: '' }]);
+        setResetKey((prev) => prev + 1);
     };
 
     const [submerchantIds, setSubmerchantIds] = useState([{ id: '' }]);
@@ -363,6 +358,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
                                 render={({ field }) => (
                                     <Select
+                                        key={resetKey}
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                         }}
@@ -449,9 +445,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             id={`submerchantIds.${index}.id`}
                                             type='text'
                                             {...register(`submerchantIds.${index}.id`)}
-                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${
-                                                errors.submerchantIds?.[index]?.id ? '' : ''
-                                            }`}
+                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${errors.submerchantIds?.[index]?.id ? '' : ''
+                                                }`}
                                             onKeyDown={(e) => {
                                                 // Block minus, plus, special chars used in number inputs
                                                 if (['-', '+', ' '].includes(e.key)) {
@@ -538,8 +533,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save Payment GatewayDetails
+                            Save Payment  <Save className='ml-2 h-4 w-4' />
+                            {/* Details */}
                         </div>
                     </Button>
                 </div>

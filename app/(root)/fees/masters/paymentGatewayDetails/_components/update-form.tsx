@@ -11,7 +11,7 @@ import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_paym
 import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -91,20 +91,21 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
         }
     }, [selectedRow, reset]);
 
+    const [resetKey, setResetKey] = useState(0);
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const payload = {
-            // user_id: 20612,
-            // mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
             fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_MerchantId: data.fpgD_MerchantId,
             fpgD_Image: data.fpgD_Image,
             fpgD_URL: data.fpgD_URL,
             fpgD_AccNo: data.fpgD_AccNo,
-            // submerchantIds:
-            //     data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })) || [],
-
-            submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) || [],
+            submerchantIds: data.submerchantIds
+                ?.filter((item) => item.id.trim() !== '')
+                .map((item) => ({
+                    fpgD_SubMerchantId: item.id
+                })) ?? [],
 
             fpgD_AuthorisationKey: data.fpgD_MerchantKey,
             impG_Id: data.impG_Id,
@@ -119,7 +120,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                refetchAll();
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -296,6 +297,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         defaultValue={selectedRow?.impG_Id ?? 0}
                         render={({ field }) => (
                             <Select
+                                key={resetKey}
                                 onValueChange={(value) => field.onChange(Number(value))}
                                 value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
@@ -399,7 +401,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             </div>
 
             <div className='flex gap-3 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
+                <Button type='button' variant='outline' onClick={() => { reset(); setResetKey(prev => prev + 1); }} disabled={isSubmitting}>
                     Reset
                 </Button>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
