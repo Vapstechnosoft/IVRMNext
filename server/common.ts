@@ -53,7 +53,6 @@ export async function getUserAccessibleModules() {
             success: true,
             message: 'Data fetched successfully!!',
             data: [
-
                 {
                     id: 1004001,
                     name: 'PreConfiguration',
@@ -170,7 +169,6 @@ export async function getUserAccessibleModules() {
                             name: 'Preadmission',
                             icon: 'UserCog',
                             sub_menu: [
-
                                 {
                                     id: 2,
                                     name: 'Transactions',
@@ -309,22 +307,38 @@ export async function getUserAccessibleModules() {
                                     name: 'Configuration',
                                     icon: 'Settings',
                                     pages: [
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Master Configuration',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/configuration/master-configuration',
+                                        //     title: 'Master Configuration',
+                                        //     description: 'Master Configuration'
+                                        // },
+                                        // {
+                                        //     id: 12,
+                                        //     name: 'Registration Numbering',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/configuration/registration-numbering',
+                                        //     title: 'Registration Numbering',
+                                        //     description: 'Registration Numbering'
+                                        // }
                                         {
                                             id: 11,
-                                            name: 'Master Configuration',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/master-configuration',
-                                            title: 'Master Configuration',
-                                            description: 'Master Configuration'
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
                                         },
                                         {
                                             id: 12,
-                                            name: 'Registration Numbering',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/registration-numbering',
-                                            title: 'Registration Numbering',
-                                            description: 'Registration Numbering'
-                                        }
+                                            name: 'Student Password Creation',
+                                            icon: 'LockKeyhole',
+                                            url: '/alumni/alumni-module/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        },
                                     ]
                                 },
                                 {
@@ -546,15 +560,18 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/attendance-entry/login-privileges',
                                             title: 'Login Privileges',
                                             description: 'Manage attendance login privileges'
-                                        },
-                                        {
-                                            id: 38,
-                                            name: 'Student Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/attendance-entry/student-attendance',
-                                            title: 'Student Attendance',
-                                            description: 'Enter student attendance'
                                         }
+
+                                        //Staff login
+                                        // ,
+                                        // {
+                                        //     id: 38,
+                                        //     name: 'Student Attendance',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/attendance-entry/student-attendance',
+                                        //     title: 'Student Attendance',
+                                        //     description: 'Enter student attendance'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1016,6 +1033,30 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/nda/reports/nda-student-profile-report',
                                             title: 'NDA Student Profile Report',
                                             description: 'NDA Student Profile Report'
+                                        },
+                                        {
+                                            id: 601,
+                                            name: 'OverallDailyAttendanceReport',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                            title: 'OverallDailyAttendanceReport',
+                                            description: 'OverallDailyAttendanceReport'
+                                        },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 590,
+                                            name: 'Smart Card Details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                            title: 'Smartcarddetails',
+                                            description: 'Smartcarddetails'
                                         }
                                     ]
                                 },
@@ -1402,22 +1443,38 @@ export async function getUserAccessibleModules() {
                                             description: 'BRS Admission Form'
                                         }
                                     ]
-                                }
-                                // {
-                                //     id: 25,
-                                //     name: 'Local ShareHost',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 77,
-                                //             name: 'SVP Class Wise Student Details',
-                                //             icon: 'Settings',
-                                //             url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                //             title: 'SVP Class Wise Student Details',
-                                //             description: 'SVP Class Wise Student Details'
-                                //         }
-                                //     ]
-                                // },
+                                },
+                                {
+                                    id: 25,
+                                    name: 'Local ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        // {
+                                        //     id: 77,
+                                        //     name: 'SVP Class Wise Student Details',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                        //     title: 'SVP Class Wise Student Details',
+                                        //     description: 'SVP Class Wise Student Details'
+                                        // },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 591,
+                                            name: 'Import',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/masters/import',
+                                            title: 'Import',
+                                            description: 'Import'
+                                        }
+                                    ]
+                                },
                                 // {
                                 //     id: 26,
                                 //     name: 'Old ShareHost',
@@ -2173,14 +2230,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 530,
-                                            name: 'Fee Receipt Delete Report Nagarjuna',
+                                            name: 'Fee Receipt Delete Report Samartha',
                                             icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feereceiptdeletereportnagarjuna',
-                                            title: 'Fee Receipt Delete Report Nagarjuna',
-                                            description: 'Manage Fee Receipt Delete Report Nagarjuna'
+                                            url: '/fees/feereports/feereceiptdeletereportsamartha',
+                                            title: 'Fee Receipt Delete Report Samartha',
+                                            description: 'Manage Fee Receipt Delete Report Samartha'
                                         },
                                         {
-                                            id: 530,
+                                            id: 531,
                                             name: 'Fee Collection Statement Report Nagarjuna',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feecollectionstatementreportnagarjuna',
@@ -2717,51 +2774,51 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
-                                    "id": 2000,
-                                    "name": "Baldwin",
-                                    "icon": "Building2",
-                                    "pages": [
+                                    id: 2000,
+                                    name: 'Baldwin',
+                                    icon: 'Building2',
+                                    pages: [
                                         // Baldwin boys high school
                                         {
-                                            "id": 1,
-                                            "name": "BaldwinFinalPromReportBBHS",
-                                            "icon": "BookOpen",
-                                            "url": "/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS",
-                                            "title": "BaldwinFinalPromReportBBHS",
-                                            "description": "BaldwinFinalPromReportBBHS"
+                                            id: 1,
+                                            name: 'BaldwinFinalPromReportBBHS',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
+                                            title: 'BaldwinFinalPromReportBBHS',
+                                            description: 'BaldwinFinalPromReportBBHS'
                                         },
                                         {
-                                            "id": 2,
-                                            "name": "Baldwin BBHSPromotionReportStdIX_20_21",
-                                            "icon": "BookOpen",
-                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21",
-                                            "title": "Baldwin BBHSPromotionReportStdIX_20_21",
-                                            "description": "Baldwin BBHSPromotionReportStdIX_20_21"
+                                            id: 2,
+                                            name: 'Baldwin BBHSPromotionReportStdIX_20_21',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
+                                            title: 'Baldwin BBHSPromotionReportStdIX_20_21',
+                                            description: 'Baldwin BBHSPromotionReportStdIX_20_21'
                                         },
                                         {
-                                            "id": 3,
-                                            "name": "Baldwin BBIIReport",
-                                            "icon": "BookOpen",
-                                            "url": "/Exam/exam-module/reports/Baldwin/BBIIReport",
-                                            "title": "Baldwin BBIIReport",
-                                            "description": "Baldwin BBII Progress Card"
+                                            id: 3,
+                                            name: 'Baldwin BBIIReport',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                            title: 'Baldwin BBIIReport',
+                                            description: 'Baldwin BBII Progress Card'
                                         },
                                         // Baldwin Girls High School
                                         {
-                                            "id": 4,
-                                            "name": "HallTicketReport",
-                                            "icon": "Ticket",
-                                            "url": "/Exam/exam-module/reports/Baldwin/hall-ticket-report",
-                                            "title": "HallTicketReport",
-                                            "description": "Generate Hall Ticket Report for students"
+                                            id: 4,
+                                            name: 'HallTicketReport',
+                                            icon: 'Ticket',
+                                            url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
+                                            title: 'HallTicketReport',
+                                            description: 'Generate Hall Ticket Report for students'
                                         },
                                         {
-                                            "id": 5,
-                                            "name": "MultipleExamProgressCardReport2",
-                                            "icon": "BookOpen",
-                                            "url": "/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2",
-                                            "title": "MultipleExamProgressCardReport2",
-                                            "description": "Generate MultipleExamProgressCardReport2 for Baldwin"
+                                            id: 5,
+                                            name: 'MultipleExamProgressCardReport2',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
+                                            title: 'MultipleExamProgressCardReport2',
+                                            description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
                                         },
                                         // Baldwin Co Eduction School
                                         {
@@ -2781,20 +2838,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Baldwin BCOEDIIReport'
                                         },
                                         {
-                                            "id": 8,
-                                            "name": "BCEHS BaldwinFinalPromReport",
-                                            "icon": "Report",
-                                            "url": "/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report",
-                                            "title": "BCEHS BaldwinFinalPromReport",
-                                            "description": "Generate BCEHS Final Promotion Report"
+                                            id: 8,
+                                            name: 'BCEHS BaldwinFinalPromReport',
+                                            icon: 'Report',
+                                            url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
+                                            title: 'BCEHS BaldwinFinalPromReport',
+                                            description: 'Generate BCEHS Final Promotion Report'
                                         },
                                         {
-                                            "id": 9,
-                                            "name": "Baldwin PromotionReportIX",
-                                            "icon": "BookOpen",
-                                            "url": "/Exam/exam-module/reports/Baldwin/PromotionReportIX",
-                                            "title": "Baldwin PromotionReportIX",
-                                            "description": "Baldwin Promotion Report IX"
+                                            id: 9,
+                                            name: 'Baldwin PromotionReportIX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
+                                            title: 'Baldwin PromotionReportIX',
+                                            description: 'Baldwin Promotion Report IX'
                                         }
                                     ]
                                 },
@@ -4612,7 +4669,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/recruitment/transaction/job-posting-list',
                                             title: 'Job Posting List',
                                             description: 'View All Job Postings'
-                                        },
+                                        }
                                         // {
                                         //     id: 7,
                                         //     name: 'VMS Job',
@@ -8448,7 +8505,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-                //PDA commented here    
+                //PDA commented here
                 // {
                 //     id: 999021,
                 //     name: 'PDA',

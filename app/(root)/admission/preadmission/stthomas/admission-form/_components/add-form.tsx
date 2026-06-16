@@ -154,6 +154,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_BloodGroup: '',
             amsT_MotherTongue: '',
             amsT_AadharNo: '',
+            amsT_ApparNo: '',
             amsT_BirthCertNO: '',
             amsT_BirthPlace: '',
             amsT_Nationality: 0,
@@ -873,6 +874,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+                amsT_ApparNo: formData.amsT_ApparNo ?? '',
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
@@ -3825,8 +3827,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
                                                 </div>
 
-                                                {/* Row 5: Aadhaar & Blood Group */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* Row 5: Aadhaar, APAAR ID & Blood Group */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <InputText
                                                         label='Aadhaar No.'
                                                         id='amsT_AadharNo'
@@ -3834,6 +3836,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
                                                     />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_ApparNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='APAAR ID'
+                                                                    placeholder='Enter APAAR ID'
+                                                                    id='amsT_ApparNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ApparNo && <FormError>{errors.amsT_ApparNo.message as string}</FormError>}
+                                                    </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
                                                         <Controller
