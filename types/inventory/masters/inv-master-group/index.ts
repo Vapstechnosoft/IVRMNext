@@ -27,6 +27,7 @@ export interface IInvMasterItemGroup {
     invmG_GroupName: string;
     invmG_AliasName: string;
     invmG_ParentId: number;
+    userGroupName?: string;
     invmG_ActiveFlg: boolean;
 }
 

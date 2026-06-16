@@ -28,6 +28,13 @@ export const InvMasterItemGroupColumns: ColumnDef<IInvMasterItemGroup>[] = [
         enableHiding: true
     },
     {
+        accessorKey: 'userGroupName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Group Name' />,
+        cell: ({ row }) => <div>{row.getValue('userGroupName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
         accessorKey: 'invmG_AliasName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Alias Name' />,
         cell: ({ row }) => <div>{row.getValue('invmG_AliasName')}</div>,

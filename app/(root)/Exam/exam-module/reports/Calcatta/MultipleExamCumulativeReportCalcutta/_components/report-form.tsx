@@ -190,7 +190,7 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                 console.log("payload", payload);
                 const res = await getMultipleExamCumulativeReportCalcutta(payload);
                 console.log("res", res);
-                if (res?.getcumulativereportdetails?.length > 0) {
+                if (res?.cumulativeReportDetails?.length > 0) {
                     // Inject metadata for printing
                     const yr = academicYears.find(y => y.asmaY_Id === values.asmaY_Id)?.asmaY_Year;
                     const cla = classes.find(c => c.asmcL_Id === values.asmcL_Id)?.asmcL_ClassName;

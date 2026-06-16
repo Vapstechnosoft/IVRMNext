@@ -106,9 +106,12 @@ export default function UpdateEventsMappingForm({ onSuccess, data: selectedRow }
 
 function AddEventsMappingFormWithValues({ initialValues, onSuccess }: { initialValues: any, onSuccess?: () => void }) {
     const { loadData, save } = useEventMapping();
-    const { academicYear, eventsList, venuelist, sponsorList } = (loadData.data as any)?.data || {
-        academicYear: [], eventsList: [], venuelist: [], sponsorList: []
-    };
+    const { 
+        academicYear = [], 
+        eventsList = [], 
+        venuelist = [], 
+        sponsorList = [] 
+    } = (loadData.data as any)?.data || {};
 
     const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<IEventMappingDTO>({
         resolver: zodResolver(eventMappingSchema),

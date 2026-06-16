@@ -104,13 +104,13 @@ export default function SalaryCalculationPage() {
   const calculateMutation = useCalculateEmployeeSalary();
 
   // Report-based cascading queries
-  const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
+  const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
   const groupTypeIds = watchedGroupType?.join(",") || "";
   console.log("groupTypeIds", groupTypeIds);
-  const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(groupTypeIds);
+  const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
   const deptIds = watchedDepartment?.join(",") || "";
   console.log("departmentsData", departmentsData);
-  const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(
+  const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(
     groupTypeIds,
     deptIds,
   );
@@ -292,10 +292,9 @@ export default function SalaryCalculationPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               {/* Group Type */}
-              <div className="space-y-3">
-                <Label className="font-semibold">
-                  Group Type
-                  <span className="ml-1 text-medium text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="groupType" className="font-medium text-foreground text-sm">
+                  Group Type: <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="groupType"
@@ -311,16 +310,15 @@ export default function SalaryCalculationPage() {
                       placeholder={isLoadingGroupTypes ? "Loading..." : "Select Group Types"}
                       className="w-full"
                       maxHeight={240}
-                      disabled={isLoadingGroupTypes}
+                      disabled={isLoadingGroupTypes || !groupTypeOptions?.length}
                     />
                   )}
                 />
               </div>
               {/* Department */}
-              <div className="space-y-3">
-                <Label className="font-semibold">
-                  Department
-                  <span className="ml-1 text-medium text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="department" className="font-medium text-foreground text-sm">
+                  Department: <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="department"
@@ -333,19 +331,18 @@ export default function SalaryCalculationPage() {
                       defaultValue={
                         Array.isArray(field.value) ? field.value : []
                       }
-                      placeholder={isLoadingDepartments && departmentOptions?.length === 0 ? "Loading..." : "Select Departments"}
+                      placeholder={isLoadingDepartments ? "Loading..." : "Select Departments"}
                       className="w-full"
                       maxHeight={240}
-                      disabled={isLoadingDepartments && departmentOptions?.length === 0}
+                      disabled={isLoadingDepartments || !departmentOptions?.length}
                     />
                   )}
                 />
               </div>
               {/* Designation */}
-              <div className="space-y-3">
-                <Label className="font-semibold">
-                  Designation
-                  <span className="ml-1 text-medium text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="designation" className="font-medium text-foreground text-sm">
+                  Designation: <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="designation"
@@ -358,19 +355,18 @@ export default function SalaryCalculationPage() {
                       defaultValue={
                         Array.isArray(field.value) ? field.value : []
                       }
-                      placeholder={isLoadingDesignations && designationOptions?.length === 0 ? "Loading..." : "Select Designations"}
+                      placeholder={isLoadingDesignations ? "Loading..." : "Select Designations"}
                       className="w-full"
                       maxHeight={240}
-                      disabled={isLoadingDesignations && designationOptions?.length === 0}
+                      disabled={isLoadingDesignations || !designationOptions?.length}
                     />
                   )}
                 />
               </div>
               {/* Month */}
-              <div className="space-y-3">
-                <Label className="font-semibold">
-                  Month
-                  <span className="ml-1 text-medium text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="salaryMonth" className="font-medium text-foreground text-sm">
+                  Month: <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="salaryMonth"
@@ -397,10 +393,9 @@ export default function SalaryCalculationPage() {
                 />
               </div>
               {/* Year */}
-              <div className="space-y-3">
-                <Label className="font-semibold">
-                  Year
-                  <span className="ml-1 text-medium text-red-500">*</span>
+              <div className="space-y-2">
+                <Label htmlFor="salaryYear" className="font-medium text-foreground text-sm">
+                  Year: <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   key={resetkey} // Reset select when resetKey changes
