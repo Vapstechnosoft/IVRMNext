@@ -672,3 +672,4 @@ export const RECRUITMENT_QUERY_KEYS = {
     CANDIDATE_DROPDOWN: 'candidate_dropdown',
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
+export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };
