@@ -229,6 +229,30 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/transactions/interview-schedule/oralreschedule',
                                             title: 'Oral Test ReSchedule',
                                             description: 'Oral Test ReSchedule'
+                                        },
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'Written Test Schedule',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/transactions/interview-schedule/written-test-schedule',
+                                        //     title: 'Written Test Schedule',
+                                        //     description: 'Written Test Schedule'
+                                        // },
+                                        {
+                                            id: 11,
+                                            name: 'Oral Test Marks Entry',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/marks-entry/oraltestmarks',
+                                            title: 'Oral Test Marks Entry',
+                                            description: 'Oral Test Marks Entry'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Written Test Marks Entry',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/marks-entry/writtentestmarks',
+                                            title: 'Written Test Marks Entry',
+                                            description: 'Written Test Marks Entry'
                                         }
                                     ]
                                 }
@@ -307,22 +331,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Configuration',
                                     icon: 'Settings',
                                     pages: [
-                                        // {
-                                        //     id: 11,
-                                        //     name: 'Master Configuration',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/configuration/master-configuration',
-                                        //     title: 'Master Configuration',
-                                        //     description: 'Master Configuration'
-                                        // },
-                                        // {
-                                        //     id: 12,
-                                        //     name: 'Registration Numbering',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/configuration/registration-numbering',
-                                        //     title: 'Registration Numbering',
-                                        //     description: 'Registration Numbering'
-                                        // }
                                         {
                                             id: 11,
                                             name: 'User Password Creation',

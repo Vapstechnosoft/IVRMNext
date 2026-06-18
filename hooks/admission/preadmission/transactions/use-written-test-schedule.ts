@@ -16,11 +16,17 @@ export const useWrittenTestScheduleDetails = (classId: number = 0) => {
     return {
         ...useQuery({
             queryKey: [QUERY_KEY, 'details', classId],
-            queryFn: async () => getWrittenTestScheduleDetails(classId),
+            queryFn: async (): Promise<any> => getWrittenTestScheduleDetails(classId),
             staleTime: 0
         }),
         refetchAll: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
     };
+};
+
+export const useWrittenTestScheduleClassChange = () => {
+    return useMutation({
+        mutationFn: async (classId: number): Promise<any> => getWrittenTestScheduleDetails(classId)
+    });
 };
 
 export const useSaveWrittenTestSchedule = () => {
@@ -46,7 +52,7 @@ export const useDeleteWrittenTestSchedule = () => {
 export const useWrittenTestSelectedRowDetails = (id?: number) => {
     return useQuery({
         queryKey: [QUERY_KEY, 'selectedRowDetails', id],
-        queryFn: async () => {
+        queryFn: async (): Promise<any> => {
             if (!id) return null;
             return await getWrittenTestSelectedRowDetails(id);
         },
@@ -62,5 +68,17 @@ export const useDeleteWrittenTestScheduleStudent = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
         }
+    });
+};
+
+export const useWrittenTestStudentDetails = (pawtS_Id?: number) => {
+    return useQuery({
+        queryKey: [QUERY_KEY, 'studentDetails', pawtS_Id],
+        queryFn: async (): Promise<any> => {
+            if (!pawtS_Id) return null;
+            return await getWrittenTestStudentDetails(pawtS_Id);
+        },
+        enabled: !!pawtS_Id,
+        staleTime: 0
     });
 };
