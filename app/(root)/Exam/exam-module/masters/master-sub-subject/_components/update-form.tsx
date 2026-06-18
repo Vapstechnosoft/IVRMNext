@@ -109,12 +109,14 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
                     <InputText
                         label='Sub Subject Name'
                         required
+                        placeholder='Enter Sub Subject Name'
                         {...register('emsS_SubSubjectName')}
                         error={errors.emsS_SubSubjectName?.message}
                     />
                     <InputText
                         label='Sub Subject Code'
                         required
+                        placeholder='Enter Sub Subject Code'
                         {...register('emsS_SubSubjectCode')}
                         error={errors.emsS_SubSubjectCode?.message}
                     />
