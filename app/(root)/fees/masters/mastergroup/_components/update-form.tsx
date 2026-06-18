@@ -133,6 +133,7 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                             label='Fee Group'
                             required
                             id='fmG_GroupName'
+                            placeholder='Fee Group'
                             {...register('fmG_GroupName')}
                             error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -165,6 +166,7 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                                 label='Remarks'
                                 required
                                 id='fmG_Remarks'
+                                placeholder='Remarks'
                                 {...register('fmG_Remarks')}
                                 error={errors.fmG_Remarks?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'

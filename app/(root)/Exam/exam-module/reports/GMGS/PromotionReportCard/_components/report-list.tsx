@@ -82,12 +82,73 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                         const studentSubjects = studentWiseSubjects.filter((s: any) => (s.amsT_Id || s.AMST_Id) === studentID);
                         const studentMarks = studentMarksDetails.filter((m: any) => (m.amsT_Id || m.AMST_Id) === studentID);
 
-                        // Co-Scholastic Activities grouped logic
-                        const activityAreas = Array.from(new Set(activityMainListArea
-                            .filter((a: any) => (a.amsT_Id || a.AMST_Id) === studentID)
-                            .map((a: any) => a.ECACT_SkillName || a.ecacT_SkillName)));
-                        
-                        const activityDetails = activityMainListArea.filter((a: any) => (a.amsT_Id || a.AMST_Id) === studentID);
+                        // Co-scholastic activities data processing
+                        const studentActivities = activityMainListArea.filter((act: any) => {
+                            const actAmstId = act.AMST_Id ?? act.amsT_Id ?? act.studentId;
+                            return String(actAmstId) === String(studentID);
+                        });
+
+                        // Extract unique activity categories (ECACT_SkillName / activityName) for this student
+                        const activity_main_list_area: any[] = [];
+                        studentActivities.forEach((act: any) => {
+                            const catName = act.activityName ?? act.ECACT_SkillName ?? act.ecacT_SkillName;
+                            const catId = act.ecacT_Id ?? act.ECACT_Id;
+                            if (catName) {
+                                const exists = activity_main_list_area.some(
+                                    (item: any) => (item.activityName ?? item.ECACT_SkillName) === catName
+                                );
+                                if (!exists) {
+                                    activity_main_list_area.push({
+                                        ECACT_SkillName: catName,
+                                        activityName: catName,
+                                        ECACT_Id: catId,
+                                        ecacT_Id: catId
+                                    });
+                                }
+                            }
+                        });
+
+                        // Extract unique activity skill areas (ECACTA_SkillArea / activityArea) for this student
+                        const activity_main_list: any[] = [];
+                        studentActivities.forEach((act: any) => {
+                            const areaName = act.activityArea ?? act.ECACTA_SkillArea ?? act.ecactA_SkillArea;
+                            const catId = act.ecacT_Id ?? act.ECACT_Id;
+                            if (areaName) {
+                                const exists = activity_main_list.some(
+                                    (item: any) => (item.activityArea ?? item.ECACTA_SkillArea) === areaName
+                                );
+                                if (!exists) {
+                                    activity_main_list.push({
+                                        ECACTA_SkillArea: areaName,
+                                        activityArea: areaName,
+                                        activityGrade: act.activityGrade ?? act.EMGD_Name ?? act.emgD_Name ?? act.ecsactT_Score,
+                                        ECACT_Id: catId,
+                                        ecacT_Id: catId,
+                                        activity_score_details: []
+                                    });
+                                }
+                            }
+                        });
+
+                        // Build activity score details per term
+                        activity_main_list.forEach((act: any) => {
+                            termDetails.forEach((term: any) => {
+                                const termId = term.ecT_Id ?? term.ect_Id ?? term.ECT_Id;
+                                const matchingAct = studentActivities.find((dd: any) => {
+                                    const ddTermId = dd.activity_ECT_Id ?? dd.ECT_Id ?? dd.ecT_Id ?? dd.ect_Id;
+                                    const actArea = act.activityArea ?? act.ECACTA_SkillArea;
+                                    const ddArea = dd.activityArea ?? dd.ECACTA_SkillArea ?? dd.ecactA_SkillArea;
+                                    return ddArea === actArea && String(ddTermId) === String(termId);
+                                });
+                                if (matchingAct) {
+                                    act.activity_score_details.push({
+                                        EMGD_Name: matchingAct.activityGrade ?? matchingAct.EMGD_Name ?? matchingAct.emgD_Name ?? matchingAct.ecsactT_Score,
+                                        activityGrade: matchingAct.activityGrade ?? matchingAct.EMGD_Name ?? matchingAct.emgD_Name ?? matchingAct.ecsactT_Score,
+                                        ecT_Id: termId
+                                    });
+                                }
+                            });
+                        });
 
                         // Health details from report
                         const height = report.amsT_height || report.AMST_height;
@@ -104,14 +165,77 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                         // Graph data for Class Average vs Student Score
                         const graphSubjects = studentSubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg || s.subjectName);
                         const graphLabels = graphSubjects.map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName || s.subjectName);
-                        const graphScores = graphSubjects.map((s: any) => s.ESTMPPS_ObtainedMarks || s.estmppS_ObtainedMarks || s.subjectObtainedMarks || 0);
-                        const graphClassAverages = graphSubjects.map((s: any) => s.ESTMPPS_ClassAverage || s.estmppS_ClassAverage || 0);
-                        const graphSectionAverages = graphSubjects.map((s: any) => s.ESTMPPS_SectionAverage || s.estmppS_SectionAverage || 0);
+                        
+                        // Default to GMVPS logic if properties exist on subject
+                        const graphScores = graphSubjects.map((s: any) => {
+                            const subjScore = s.subjectObtainedMarks ?? s.subjectPercentage ?? s.ESTMPPS_ObtainedMarks;
+                            if (subjScore !== undefined) return Number(subjScore);
+                            
+                            // Otherwise calculate sum of marks across all groups
+                            let total = 0;
+                            groupWiseExamList.filter(e => e.isTotal).forEach((groupTotalExam: any) => {
+                                const groupExams = groupWiseExamList.filter(e => !e.isTotal && !e.isGrade && (e.EMPG_DistplayName || e.empG_DistplayName) === (groupTotalExam.EMPG_DistplayName || groupTotalExam.empG_DistplayName));
+                                groupExams.forEach(ge => {
+                                    const mark = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id) && (m.EME_Id || m.emE_Id) === ge.EME_Id);
+                                    if (mark) total += (mark.ObtainedMarks || mark.obtainedMarks || 0);
+                                });
+                            });
+                            return total;
+                        });
+
+                        const graphClassAverages = graphSubjects.map((s: any) => {
+                            const subjAvg = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
+                            if (subjAvg !== undefined) return Number(subjAvg);
+                            
+                            // If missing, look for it in studentMarks
+                            let avg = 0;
+                            const markWithAvg = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id) && (m.ESTMPPS_ClassAverage || m.estmpps_ClassAverage || m.classAverage));
+                            if (markWithAvg) avg = markWithAvg.ESTMPPS_ClassAverage || markWithAvg.estmpps_ClassAverage || markWithAvg.classAverage;
+                            return avg;
+                        });
+
+                        // Graph 2: Performance Analysis (Term wise)
+                        const groupedMarksBySubject = graphSubjects.map((subj: any) => {
+                            let subjObj: any = { subject: subj.ISMS_SubjectName || subj.ismS_SubjectName || subj.subjectName, terms: {} };
+                            groupDetails.forEach((group: any) => {
+                                const groupName = group.EMPG_DistplayName || group.empG_DistplayName;
+                                const examsInGroup = groupExamDetails.filter((ge: any) => (ge.EMPG_DistplayName || ge.empG_DistplayName) === groupName);
+                                let groupTotal = 0;
+                                examsInGroup.forEach((exam: any) => {
+                                    const mark = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) === (exam.EME_Id || exam.emE_Id));
+                                    if (mark) groupTotal += (mark.ObtainedMarks || mark.obtainedMarks || 0);
+                                });
+                                subjObj.terms[groupName] = groupTotal;
+                            });
+                            return subjObj;
+                        });
+
+                        const graph2Labels = groupedMarksBySubject.map((item: any) => item.subject);
+                        const allTerms = groupDetails.map((g: any) => g.EMPG_DistplayName || g.empG_DistplayName);
+                        const termColors: any = { "TERM I": "#1cc405", "TERM II": "#770396" };
+                        const graph2Datasets = allTerms.map((term: any, idx: number) => ({
+                            label: term as string,
+                            data: groupedMarksBySubject.map((subject: any) => subject.terms[term] || 0),
+                            backgroundColor: termColors[term as string] || (idx === 0 ? '#1cc405' : '#770396'),
+                            borderColor: 'black',
+                            borderWidth: 1,
+                        }));
+
+                        console.log(`Student ${studentID} API DATA:`, {
+                            studentSubjects,
+                            studentMarks,
+                            graph1_Labels: graphLabels,
+                            graph1_Scores: graphScores,
+                            graph1_Averages: graphClassAverages,
+                            graph2_GroupedMarks: groupedMarksBySubject,
+                            graph2_Datasets: graph2Datasets
+                        });
 
                         return (
                             <div
                                 key={index}
-                                className='page-break-before-always mx-auto mb-8 w-full max-w-5xl border border-gray-300 bg-white p-6 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
+                                className={`mx-auto mb-8 w-[90%] max-w-[90%] bg-white p-2 shadow-sm border border-gray-300 ${index > 0 ? 'page-break-before-always' : ''}`}
+                                style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
 
                                 <div className='mb-4 w-full flex justify-center'>
                                     <img
@@ -126,40 +250,40 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 </h3>
 
                                 {/* Student Profile */}
-                                <div className='relative mb-8 px-4'>
-                                    <div className='flex flex-col space-y-2 text-sm w-3/4'>
+                                <div className='relative mb-8 px-8'>
+                                    <div className='flex flex-col space-y-1 text-[15px] w-3/4'>
                                         {[
-                                            { label: 'Name of the student', value: report.studentname || report.studentName },
-                                            { label: 'Admission number', value: report.admno || report.admNo || report.admissionNo },
-                                            { label: 'Class & Section', value: `${report.classname || report.className}   ${report.sectionname || report.sectionName}` },
-                                            { label: 'Date of birth', value: report.dob },
-                                            { label: "Mother's name", value: report.mothername || report.motherName },
-                                            { label: "Father's name", value: report.fathername || report.fatherName }
+                                            { label: 'Name of the Student', value: report.studentname || report.studentName },
+                                            { label: 'Admission Number', value: report.admno || report.admNo || report.admissionNo },
+                                            { label: 'Class & Section', value: `${report.classname || report.className}    ${report.sectionname || report.sectionName}` },
+                                            { label: 'Date of Birth', value: report.dob },
+                                            { label: "Mother's Name", value: report.mothername || report.motherName },
+                                            { label: "Father's Name", value: report.fathername || report.fatherName }
                                         ].map((item, i) => (
                                             <div key={i} className='flex'>
-                                                <div className='w-48 font-bold ml-[5%]'>{item.label}</div>
-                                                <div className='w-4'>:</div>
-                                                <div className='font-bold'>{item.value || ''}</div>
+                                                <div className='w-48 font-bold'>{item.label}</div>
+                                                <div className='w-4 font-bold'>:</div>
+                                                <div className='font-bold ml-2'>{item.value || ''}</div>
                                             </div>
                                         ))}
                                     </div>
-                                    <div className='absolute right-[10%] top-[-20px]'>
-                                        <div className='border border-black flex justify-center items-center h-[150px] w-[150px] bg-gray-100 overflow-hidden'>
-                                            {report.AMST_Photoname || report.amsT_Photoname ? (
+                                    <div className='absolute right-8 top-[-20px]'>
+                                        <div className='flex items-center justify-center border border-gray-400 p-1 h-[130px] w-[110px] bg-gray-100 self-center'>
+                                            {report.photo || report.AMST_Photoname || report.amsT_Photoname ? (
                                                 <img
-                                                    src={report.AMST_Photoname || report.amsT_Photoname}
+                                                    src={report.photo || report.AMST_Photoname || report.amsT_Photoname}
                                                     alt="Student Photo"
                                                     className='h-full w-full object-cover'
                                                 />
                                             ) : (
-                                                <span className='text-xs text-gray-500'>Photo</span>
+                                                <span className='text-xs text-gray-500 font-bold'>PHOTO</span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Scholastic Section */}
-                                <h3 className='mb-2 text-center text-xl font-bold uppercase'>SCHOLASTIC REPORT</h3>
+                                <h3 className='mb-2 text-center text-xl font-bold uppercase text-[#1a3b7c]'>SCHOLASTIC REPORT</h3>
                                 <div className='px-4'>
                                     <table className='mb-6 w-full border-collapse border border-gray-400 text-sm'>
                                         <thead>
@@ -198,7 +322,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                         );
 
                                                         let displayValue = '';
-                                                        
+
                                                         if (exam.isTotal) {
                                                             const totalMarks = studentMarks
                                                                 .filter((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001)
@@ -208,7 +332,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                             const totalMarks = studentMarks
                                                                 .filter((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001)
                                                                 .reduce((acc: number, curr: any) => acc + (curr.ObtainedMarks || curr.obtainedMarks || 0), 0);
-                                                            
+
                                                             if (totalMarks > 0) {
                                                                 if (totalMarks >= 91) displayValue = 'A1';
                                                                 else if (totalMarks >= 81) displayValue = 'A2';
@@ -242,7 +366,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
 
                                 {/* Grading Scale */}
                                 <div className='mb-6 px-4 mt-6'>
-                                    <h3 className='mb-2 text-left text-lg font-bold underline uppercase'>SCHOLASTIC GRADING SCALE</h3>
+                                    <h3 className='mb-2 text-left text-lg font-bold underline uppercase text-[#1a3b7c]'>SCHOLASTIC GRADING SCALE</h3>
                                     <table className='w-full border-collapse border border-gray-400 text-center text-sm'>
                                         <tbody>
                                             <tr>
@@ -264,7 +388,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 {/* Graph 1 */}
                                 <div className='mb-10 mt-10 w-full px-4 flex justify-center'>
                                     <div className='w-3/4 flex flex-col items-center'>
-                                        <h4 className='mb-4 text-center text-lg font-bold uppercase'>STUDENT PERFORMANCE INDEX</h4>
+                                        <h4 className='mb-4 text-center text-lg font-bold uppercase text-[#1a3b7c]'>STUDENT PERFORMANCE INDEX</h4>
                                         <div className='w-full h-[300px] flex justify-center'>
                                             <Bar
                                                 data={{
@@ -276,8 +400,6 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                             backgroundColor: '#FF5733',
                                                             borderColor: 'black',
                                                             borderWidth: 1,
-                                                            barPercentage: 0.4,
-                                                            categoryPercentage: 0.5
                                                         },
                                                         {
                                                             label: 'Student Score',
@@ -285,8 +407,6 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                             backgroundColor: '#00c1e4',
                                                             borderColor: 'black',
                                                             borderWidth: 1,
-                                                            barPercentage: 0.4,
-                                                            categoryPercentage: 0.5
                                                         }
                                                     ]
                                                 }}
@@ -298,8 +418,13 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                         tooltip: { enabled: true }
                                                     },
                                                     scales: {
-                                                        y: { beginAtZero: true },
-                                                        x: { ticks: { minRotation: 0, maxRotation: 0 } }
+                                                        y: {
+                                                            beginAtZero: true,
+                                                            ticks: { color: 'red' }
+                                                        },
+                                                        x: {
+                                                            ticks: { color: 'blue' }
+                                                        }
                                                     }
                                                 }}
                                             />
@@ -310,37 +435,40 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 {/* Co-Scholastic activities & Graph 2 */}
                                 <div className='mt-8 px-4 grid grid-cols-2 gap-8'>
                                     <div>
-                                        {activityAreas.map((skillName: any, idx) => {
-                                            const skillsInArea = Array.from(new Set(activityDetails
-                                                .filter((a: any) => (a.ECACT_SkillName || a.ecacT_SkillName) === skillName)
-                                                .map((a: any) => a.ECACTA_SkillArea || a.ecactA_SkillArea)));
+                                        <h3 className='mb-4 text-center text-lg font-bold uppercase text-[#1a3b7c]'>
+                                            Co-SCHOLASTIC ACTIVITIES
+                                        </h3>
+                                        {activity_main_list_area.map((acti: any, idx: number) => {
+                                            const actiId = acti.ecacT_Id ?? acti.ECACT_Id;
+                                            const subActivities = activity_main_list.filter((subjco: any) => {
+                                                const subjcoId = subjco.ecacT_Id ?? subjco.ECACT_Id;
+                                                return subjcoId === actiId;
+                                            });
 
                                             return (
                                                 <div key={idx} className="mb-6">
-                                                    <h4 className="text-center font-bold mb-2 uppercase text-lg">{skillName}</h4>
+                                                    <h4 className="text-center font-bold mb-2 uppercase text-lg text-[#1a3b7c]">{acti.activityName ?? acti.ECACT_SkillName}</h4>
                                                     <table className="w-full border-collapse border border-gray-400 text-sm">
                                                         <thead className="bg-[#BABABA]">
                                                             <tr>
-                                                                <th className="border border-gray-400 p-2 text-left font-bold text-black">Particulars</th>
+                                                                <th className="border border-gray-400 p-2 text-left font-bold text-black uppercase">Particulars</th>
                                                                 {termDetails.map((term: any, ti: number) => (
-                                                                    <th key={ti} className="border border-gray-400 p-2 font-bold text-black text-center">{term.ecT_TermName}</th>
+                                                                    <th key={ti} className="border border-gray-400 p-2 font-bold text-black text-center uppercase">{term.ecT_TermName}</th>
                                                                 ))}
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {skillsInArea.map((areaName: any, ai: number) => (
+                                                            {subActivities.map((subjco: any, ai: number) => (
                                                                 <tr key={ai}>
-                                                                    <td className="border border-gray-400 p-2 text-left font-bold break-words">
-                                                                        {areaName}
+                                                                    <td className="border border-gray-400 p-2 text-left font-bold break-words uppercase">
+                                                                        {subjco.activityArea ?? subjco.ECACTA_SkillArea}
                                                                     </td>
                                                                     {termDetails.map((term: any, ti: number) => {
-                                                                        const scoreDetail = activityDetails.find((a: any) =>
-                                                                            (a.ECACTA_SkillArea || a.ecactA_SkillArea) === areaName &&
-                                                                            (a.ECT_Id || a.ecT_Id) === term.ecT_Id
-                                                                        );
+                                                                        const termId = term.ecT_Id ?? term.ect_Id ?? term.ECT_Id;
+                                                                        const score = (subjco.activity_score_details || []).find((s: any) => String(s.ecT_Id) === String(termId));
                                                                         return (
                                                                             <td key={ti} className="border border-gray-400 p-2 text-center font-bold">
-                                                                                {scoreDetail ? (scoreDetail.EMGD_Name || scoreDetail.emgD_Name) : ''}
+                                                                                {score?.activityGrade ?? score?.EMGD_Name ?? ''}
                                                                             </td>
                                                                         );
                                                                     })}
@@ -352,32 +480,13 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                             );
                                         })}
                                     </div>
-                                    <div className='flex flex-col items-center'>
-                                        <h4 className='mb-4 text-center text-lg font-bold uppercase'>STUDENT PERFORMANCE ANALYSIS</h4>
-                                        <div className='w-[350px] h-[350px]'>
+                                    <div className='flex flex-col items-center pl-6'>
+                                        <h4 className='mb-4 text-center text-lg font-bold uppercase text-[#1a3b7c]'>STUDENT PERFORMANCE ANALYSIS</h4>
+                                        <div className='w-[350px] h-[400px]'>
                                             <Bar
                                                 data={{
-                                                    labels: graphLabels,
-                                                    datasets: [
-                                                        {
-                                                            label: 'Section Average',
-                                                            data: graphSectionAverages,
-                                                            backgroundColor: '#1cc405',
-                                                            borderColor: 'black',
-                                                            borderWidth: 1,
-                                                            barPercentage: 0.4,
-                                                            categoryPercentage: 0.5
-                                                        },
-                                                        {
-                                                            label: 'Student Score',
-                                                            data: graphScores,
-                                                            backgroundColor: '#770396',
-                                                            borderColor: 'black',
-                                                            borderWidth: 1,
-                                                            barPercentage: 0.4,
-                                                            categoryPercentage: 0.5
-                                                        }
-                                                    ]
+                                                    labels: graph2Labels,
+                                                    datasets: graph2Datasets
                                                 }}
                                                 options={{
                                                     responsive: true,
@@ -388,7 +497,11 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                     },
                                                     scales: {
                                                         y: { beginAtZero: true },
-                                                        x: { ticks: { minRotation: 0, maxRotation: 0 } }
+                                                        x: {
+                                                            ticks: { minRotation: 40, maxRotation: 40 },
+                                                            barPercentage: 0.2,
+                                                            categoryPercentage: 0.5,
+                                                        }
                                                     }
                                                 }}
                                             />
@@ -397,8 +510,8 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 </div>
 
                                 {/* Health Status */}
-                                <div className='mt-12 px-4'>
-                                    <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>HEALTH STATUS</h4>
+                                <div className='mt-10 px-4'>
+                                    <h4 className='mb-4 text-center text-lg font-bold underline text-[#1a3b7c] uppercase'>HEALTH STATUS</h4>
                                     <table className='w-full border-collapse border border-gray-400 text-sm text-center'>
                                         <tbody>
                                             <tr className='bg-[#BABABA] text-black font-bold'>
@@ -406,37 +519,37 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                 <td className='border border-gray-400 p-2'>Weight (in kg)</td>
                                                 <td className='border border-gray-400 p-2'>Blood Group</td>
                                                 <td className='border border-gray-400 p-2'>Dental Hygiene</td>
-                                                <td className='border border-gray-400 p-2'>Vision</td>
+                                                <td className='border border-gray-400 p-2'>Vision ( Right & Left )</td>
                                             </tr>
                                             <tr>
-                                                <td className='border border-gray-400 p-2 font-bold'>{height || ''}</td>
-                                                <td className='border border-gray-400 p-2 font-bold'>{weight || ''}</td>
-                                                <td className='border border-gray-400 p-2 font-bold'>{bloodGroup || ''}</td>
-                                                <td className='border border-gray-400 p-2'></td>
-                                                <td className='border border-gray-400 p-2'></td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.height || report.SPCCSHW_Height || report.AMST_height || report.AMST_Height || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.weight || report.SPCCSHW_Weight || report.AMST_Weight || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.bloodGroup || report.AMST_BloodGroup || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.dentalHygiene || report.HMDNHY_DentalHygiene || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.visionHygiene || report.HMVSN_VisionHygiene || ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Attendance */}
-                                <div className='mt-12 px-4'>
-                                    <h3 className='mb-4 text-center text-xl font-bold underline uppercase'>ATTENDANCE DETAILS</h3>
+                                <div className='mt-10 px-4'>
+                                    <h3 className='mb-4 text-center text-lg font-bold underline text-[#1a3b7c] uppercase'>ATTENDANCE DETAILS</h3>
                                     <table className='w-full border-collapse border border-gray-400 text-sm text-center'>
                                         <tbody>
                                             <tr>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black text-left'>Total number of <br /> working days</th>
-                                                <th className='border border-gray-400 p-2 w-24'>
-                                                    <b>{workAtt.TotalSchoolDays !== 0 ? workAtt.TotalSchoolDays : ''}</b>
-                                                </th>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black text-left'>Number of days <br /> attended</th>
-                                                <th className='border border-gray-400 p-2 w-24'>
-                                                    <b>{workAtt.Total_Percentage !== 0 ? workAtt.Total_Percentage : ''}</b>
-                                                </th>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black text-left'>Attendance <br /> Percentage</th>
-                                                <th className='border border-gray-400 p-2 w-24'>
-                                                    <b>{presentAtt.Total_Percentage !== 0 ? presentAtt.Total_Percentage : ''}</b>
-                                                </th>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Total number of <br /> working days</th>
+                                                <td className='border border-gray-400 p-2 w-1/6 font-bold'>
+                                                    {report.totalSchoolDays ?? workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? workAtt.TotalSchool_Days ?? workAtt.totalSchool_Days ?? workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? ''}
+                                                </td>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Number of days <br /> attended</th>
+                                                <td className='border border-gray-400 p-2 w-1/6 font-bold'>
+                                                    {report.totalPresentDays ?? presentAtt.TotalWorkingDays ?? presentAtt.totalWorkingDays ?? presentAtt.TotalPresentDays ?? presentAtt.totalPresentDays ?? presentAtt.TotalPresent_Days ?? presentAtt.totalPresent_Days ?? presentAtt.presentDays ?? presentAtt.present_days ?? ''}
+                                                </td>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Attendance <br /> Percentage</th>
+                                                <td className='border border-gray-400 p-2 w-1/6 font-bold'>
+                                                    {presentAtt.Total_Percentage ?? presentAtt.total_Percentage ?? presentAtt.TotalPercentage ?? presentAtt.totalPercentage ?? ''}
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -467,18 +580,33 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 </div>
 
                                 {/* Signatures */}
-                                <div className='mt-20 px-4 flex justify-between text-sm font-bold'>
-                                    <div className='text-center w-1/3 flex flex-col items-center pt-8'>
-                                        <span>Principal’s Signature</span>
+                                <div className='mt-12 px-8 flex flex-col space-y-4'>
+                                    <div className='flex w-full items-center justify-between'>
+                                        <div className='w-1/3 text-left'>
+                                        </div>
+                                        <div className='w-1/3 text-center flex justify-center'>
+                                            <img src="https://vapsclg.blob.core.windows.net/files/50/managersign/ebca00dc-ae10-43fe-a6ea-99658b662e07.jpg"
+                                                style={{ width: '100px' }} alt="Manager Sign" />
+                                        </div>
+                                        <div className='w-1/3 text-right'>
+                                            &nbsp;
+                                        </div>
                                     </div>
-                                    <div className='text-center w-1/3 flex flex-col items-center pt-8'>
-                                        <span>Institution Seal</span>
-                                    </div>
-                                    <div className='text-center w-1/3 flex flex-col items-center justify-end'>
-                                        {classTeacherName.length > 0 && (
-                                            <span className='mb-2 uppercase'>{classTeacherName[0].hrmE_EmployeeFirstName}</span>
-                                        )}
-                                        <span>Class Teacher’s Signature</span>
+
+                                    <div className='flex w-full justify-between font-bold' style={{ fontFamily: 'sans-serif' }}>
+                                        <div className='w-1/3 text-left'>
+                                            Principal’s Signature
+                                        </div>
+                                        <div className='w-1/3 text-center'>
+                                            Institution Seal
+                                        </div>
+                                        <div className='w-1/3 text-right flex flex-col items-end'>
+                                            {classTeacherName.length > 0 && (
+                                                <span className='uppercase'>{classTeacherName[0].hrmE_EmployeeFirstName}</span>
+                                            )}
+                                            <span>Class Teacher’s Signature</span>
+                                            <span>Date: {generatedDate ? format(generatedDate, 'dd/MM/yyyy') : ''}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

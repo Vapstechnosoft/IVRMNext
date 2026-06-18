@@ -17,6 +17,11 @@ export default async function Navbar() {
             <div className='container flex max-h-14 items-center py-2'>
                 <div className='flex w-full items-center gap-2'>
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
+                    {session?.mi_name && (
+                        <span className='ml-2 text-sm font-semibold text-foreground/80 hidden md:inline-block border-l pl-3 py-1 max-w-[250px] truncate' title={session.mi_name}>
+                            {session.mi_name}
+                        </span>
+                    )}
                     <NavigationSystem />
                     <div className='flex items-center gap-4'>
                         <HeaderSearch />
