@@ -78,7 +78,7 @@ function InvMasterItemPageContent({
                     icon={<Box className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterItem>
                         {...tableProps}
-                        data={response?.data || []}
+                        data={response?.get_item?.$values || response?.get_item || (Array.isArray(response?.data) ? response?.data : response?.data?.$values) || []}
                         columns={invMasterItemColumns}
                         isLoading={isLoading}
                         error={error}
@@ -116,6 +116,16 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
         editFormRef
     } = useFormContext<IInvMasterItem>();
 
+    const safeDropdowns = {
+        ...dropdowns,
+        get_tax: dropdowns?.get_tax?.$values || (Array.isArray(dropdowns?.get_tax) ? dropdowns?.get_tax : []),
+        get_itemgroup: dropdowns?.get_itemgroup?.$values || (Array.isArray(dropdowns?.get_itemgroup) ? dropdowns?.get_itemgroup : []),
+        companynames: dropdowns?.companynames?.$values || (Array.isArray(dropdowns?.companynames) ? dropdowns?.companynames : []),
+        ledgernames: dropdowns?.ledgernames?.$values || (Array.isArray(dropdowns?.ledgernames) ? dropdowns?.ledgernames : []),
+        get_UOM: dropdowns?.get_UOM?.$values || (Array.isArray(dropdowns?.get_UOM) ? dropdowns?.get_UOM : []),
+        get_maingroup: dropdowns?.get_maingroup?.$values || (Array.isArray(dropdowns?.get_maingroup) ? dropdowns?.get_maingroup : [])
+    };
+
     return (
         <>
             {isAddFormOpen && (
@@ -137,7 +147,7 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterItemForm dropdowns={dropdowns} onSuccess={closeAddForm} />
+                            <AddInvMasterItemForm dropdowns={safeDropdowns} onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -161,7 +171,7 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterItemForm dropdowns={dropdowns} selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateInvMasterItemForm dropdowns={safeDropdowns} selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
