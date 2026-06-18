@@ -13,8 +13,8 @@ export async function getWrittenTestMarksStudents(pawtsId: number) {
 }
 
 export async function getWrittenTestMarksGrid(data: {
-    isms_Id: number | string;
-    selectedStudentDetails: any[];
+    ismS_Id: number | string;
+    selectedStudentDetails: { pasR_Id: number }[];
 }) {
     const response = await api.post<any>('preadmission', '/WrittenTestMarksEntry/GetWrittenTestMarks', data);
     return response.data;
@@ -24,7 +24,11 @@ export async function saveWrittenTestMarks(data: {
     paswM_Id: number;
     pawtS_Id: number;
     writtenTestScheduleAppFlag: string | boolean;
-    selectedStudentMarksData: any[];
+    selectedStudentMarksData: {
+        pasR_Id: number;
+        ismS_Id: number;
+        obtMarks: number;
+    }[];
 }) {
     const response = await api.post<any>('preadmission', '/WrittenTestMarksEntry/SaveWrittenTestMarksEntryData', data);
     return response.data;
