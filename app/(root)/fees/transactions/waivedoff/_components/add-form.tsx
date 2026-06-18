@@ -342,6 +342,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         // setHeadList([]);
         setSelectedHead([]);
         setPhotoFile(null);
+        setUploadedLogo(null);
     };
     return (
         <div className={`${className}`}>

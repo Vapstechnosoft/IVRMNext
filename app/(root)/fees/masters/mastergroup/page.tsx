@@ -127,7 +127,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Mode Of Payment'
+                        title='Update Master Group'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
