@@ -16,6 +16,8 @@ export default function BBIIReportPage() {
     const [attendancePresent, setAttendancePresent] = useState<any[]>([]);
     const [examName, setExamName] = useState('');
     const [academicYear, setAcademicYear] = useState('');
+    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedSection, setSelectedSection] = useState('');
     const [classTeacher, setClassTeacher] = useState('');
     const [showRemarks, setShowRemarks] = useState(true);
     const [showRank, setShowRank] = useState(false);
@@ -27,6 +29,8 @@ export default function BBIIReportPage() {
             setIsLoading(true);
             setReportData([]);
             setIsReportVisible(false);
+            setSelectedClass(payload.selectedClassName || '');
+            setSelectedSection(payload.selectedSectionName || '');
             console.log(payload, "pay");
             const res = await getExamReportCard(payload);
             console.log("response", res);
@@ -182,6 +186,8 @@ export default function BBIIReportPage() {
                         classTeacher={classTeacher}
                         showRemarks={showRemarks}
                         showRank={showRank}
+                        selectedClass={selectedClass}
+                        selectedSection={selectedSection}
                     />
                 </CollapsibleSection>
             )}

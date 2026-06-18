@@ -55,6 +55,7 @@ export const authConfig: NextAuthConfig = {
                 token.roleId = user.roleId;
                 token.designation = user.designation;
                 token.amst_id = user.amst_id;
+                token.mi_name = user.mi_name || user.mI_Name || user.mi_Name || '';
             }
             if (trigger === 'update' && session) {
                 token = { ...token, ...session };

@@ -14,6 +14,8 @@ interface BBIIReportViewProps {
     classTeacher: string;
     showRemarks: boolean;
     showRank: boolean;
+    selectedClass?: string;
+    selectedSection?: string;
 }
 
 export default function BBIIReportView({
@@ -25,7 +27,9 @@ export default function BBIIReportView({
     academicYear,
     classTeacher,
     showRemarks,
-    showRank
+    showRank,
+    selectedClass,
+    selectedSection
 }: BBIIReportViewProps) {
     const [isMounted, setIsMounted] = useState(false);
 
@@ -242,11 +246,11 @@ export default function BBIIReportView({
                                     <div className="col-span-3">
                                         <div className="form-group">
                                             <label className="w-1/3"><b>CLASS</b></label>
-                                            <label className="flex-1">: <b>{report.asmcL_ClassName || ''}</b></label>
+                                            <label className="flex-1">: <b>{selectedClass || report.asmcL_ClassName || ''}</b></label>
                                         </div>
                                         <div className="form-group">
                                             <label className="w-1/3"><b>SECTION</b></label>
-                                            <label className="flex-1">: <b>{report.asmC_SectionName || ''}</b></label>
+                                            <label className="flex-1">: <b>{selectedSection || report.asmC_SectionName || ''}</b></label>
                                         </div>
                                     </div>
                                     <div className="col-span-4">
@@ -328,7 +332,7 @@ export default function BBIIReportView({
                                                 <td></td>
                                                 <td></td>
                                                 <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estM_Marks || subj.estmpS_ObtainedMarks || '') : subj.estmpS_PassFailFlg}
+                                                    {subj.estmpS_PassFailFlg !== 'AB' ? ('') : subj.estmpS_PassFailFlg}
                                                 </td>
                                                 <td></td>
                                                 <td>
