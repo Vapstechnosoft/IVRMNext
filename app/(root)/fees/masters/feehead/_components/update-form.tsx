@@ -10,7 +10,7 @@ import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
 import type { IFeeHeadsList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -85,8 +85,11 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
         }
     };
 
+    const [resetKey, setResetKey] = useState(0);
+
     const handleReset = () => {
         reset();
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -136,7 +139,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                                 control={control}
                                 defaultValue={row?.fmH_Flag ?? ''}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                                    <Select key={resetKey} onValueChange={field.onChange} value={field.value || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Fee Head Type' />
                                         </SelectTrigger>

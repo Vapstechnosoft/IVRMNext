@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -70,8 +71,11 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
         }
     };
 
+    const [resetKey, setResetKey] = useState(0);
+
     const handleReset = () => {
         reset();
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -119,7 +123,7 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                                 name='fmH_Flag'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                                    <Select key={resetKey} onValueChange={field.onChange} value={field.value || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Fee Head Type' />
                                         </SelectTrigger>

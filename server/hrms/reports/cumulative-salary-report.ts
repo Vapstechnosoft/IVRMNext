@@ -7,6 +7,8 @@ export interface CumulativeSalaryReportRequest {
     hreS_Month: string;
     hrmdeS_IdList: number[];
     hrmdeS_Ids: string
+    hrmD_IdList: number[];
+    groupTypeIdList: number[];
 }
 
 export async function getCumulativeSalaryReport(data: CumulativeSalaryReportRequest) {

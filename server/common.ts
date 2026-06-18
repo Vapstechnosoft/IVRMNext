@@ -229,6 +229,23 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/transactions/interview-schedule/oralreschedule',
                                             title: 'Oral Test ReSchedule',
                                             description: 'Oral Test ReSchedule'
+                                        },
+
+                                        {
+                                            id: 11,
+                                            name: 'Oral Test Marks Entry',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/marks-entry/oraltestmarks',
+                                            title: 'Oral Test Marks Entry',
+                                            description: 'Oral Test Marks Entry'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Written Test Marks Entry',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/marks-entry/writtentestmarks',
+                                            title: 'Written Test Marks Entry',
+                                            description: 'Written Test Marks Entry'
                                         }
                                     ]
                                 }
@@ -307,22 +324,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Configuration',
                                     icon: 'Settings',
                                     pages: [
-                                        // {
-                                        //     id: 11,
-                                        //     name: 'Master Configuration',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/configuration/master-configuration',
-                                        //     title: 'Master Configuration',
-                                        //     description: 'Master Configuration'
-                                        // },
-                                        // {
-                                        //     id: 12,
-                                        //     name: 'Registration Numbering',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/configuration/registration-numbering',
-                                        //     title: 'Registration Numbering',
-                                        //     description: 'Registration Numbering'
-                                        // }
                                         {
                                             id: 11,
                                             name: 'User Password Creation',
@@ -1057,6 +1058,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
                                             title: 'Smartcarddetails',
                                             description: 'Smartcarddetails'
+                                        },
+                                        {
+                                            id: 68,
+                                            name: 'NDA Study Certificate',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/nda-study-certificate',
+                                            title: 'NDA Study Certificate',
+                                            description: 'NDA Study Certificate'
+                                        },
+                                        {
+                                            id: 69,
+                                            name: 'Mobile App Download Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/mobile-app-download-report',
+                                            title: 'Mobile App Download Report',
+                                            description: 'Mobile App Download Report'
                                         }
                                     ]
                                 },
@@ -1475,21 +1492,173 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // {
-                                //     id: 26,
-                                //     name: 'Old ShareHost',
-                                //     icon: 'Settings',
-                                //     pages: [
-                                //         {
-                                //             id: 78,
-                                //             name: 'Admission Procedure',
-                                //             icon: 'Settings',
-                                //             url: '/admission/oldsharehost/reports/admission-procedure',
-                                //             title: 'Admission Procedure',
-                                //             description: 'Admission Procedure'
-                                //         }
-                                //     ]
-                                // }
+                                {
+                                    id: 26,
+                                    name: 'Old ShareHost',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 78,
+                                            name: 'Admission Procedure',
+                                            icon: 'Settings',
+                                            url: '/admission/oldsharehost/reports/admission-procedure',
+                                            title: 'Admission Procedure',
+                                            description: 'Admission Procedure'
+                                        },
+                                        {
+                                            id: 54,
+                                            name: '100% Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/100attendance-report',
+                                            title: '100% Attendance Report',
+                                            description: '100% Attendance Report'
+                                        },
+                                        {
+                                            id: 595,
+                                            name: 'ClassWise Daily Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                            title: 'ClassWise Daily Attendance',
+                                            description: 'ClassWise Daily Attendance'
+                                        },
+                                        {
+                                            id: 594,
+                                            name: 'CategoryWise Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                                            title: 'CategoryWise Attendance',
+                                            description: 'CategoryWise Attendance'
+                                        },
+                                        {
+                                            id: 591,
+                                            name: 'Import',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/masters/import',
+                                            title: 'Import',
+                                            description: 'Import'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Student tc custom report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report-custom',
+                                            title: 'Student tc custom report',
+                                            description: 'Student tc custom report'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 14,
+                                    name: 'Hutchings',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 591,
+                                            name: 'Import',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/sophia/masters/import',
+                                            title: 'Import',
+                                            description: 'Import'
+                                        },
+                                        {
+                                            id: 69,
+                                            name: 'Mobile App Download Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/reports/mobile-app-download-report',
+                                            title: 'Mobile App Download Report',
+                                            description: 'Mobile App Download Report'
+                                        }
+                                        // {
+                                        //     id: 62,
+                                        //     name: 'NDA Student TC',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/transactions/nda-student-tc',
+                                        //     title: 'NDA Student TC',
+                                        //     description: 'NDA Student TC'
+                                        // },
+                                        // {
+                                        //     id: 63,
+                                        //     name: 'NDA Student Profile Update',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                        //     title: 'NDA Student Profile Update',
+                                        //     description: 'NDA Student Profile Update'
+                                        // },
+                                        // {
+                                        //     id: 64,
+                                        //     name: 'Notredame Custom TC Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/notredame-custom-tc-report',
+                                        //     title: 'Notredame Custom TC Report',
+                                        //     description: 'Notredame Custom TC Report'
+                                        // },
+                                        // {
+                                        //     id: 66,
+                                        //     name: 'NDA Student Id Card Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/student-id-card-report-nda',
+                                        //     title: 'NDA Student Id Card Report',
+                                        //     description: 'NDA Student Id Card Report'
+                                        // },
+                                        // {
+                                        //     id: 65,
+                                        //     name: 'NDA Student Photo Approval',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/masters/nda-student-photo-approval',
+                                        //     title: 'NDA Student Photo Approval',
+                                        //     description: 'NDA Student Photo Approval'
+                                        // },
+                                        // {
+                                        //     id: 67,
+                                        //     name: 'NDA Student Profile Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                        //     title: 'NDA Student Profile Report',
+                                        //     description: 'NDA Student Profile Report'
+                                        // },
+                                        // {
+                                        //     id: 601,
+                                        //     name: 'OverallDailyAttendanceReport',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                        //     title: 'OverallDailyAttendanceReport',
+                                        //     description: 'OverallDailyAttendanceReport'
+                                        // },
+                                        // {
+                                        //     id: 595,
+                                        //     name: 'ClassWise Daily Attendance',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                        //     title: 'ClassWise Daily Attendance',
+                                        //     description: 'ClassWise Daily Attendance'
+                                        // },
+                                        // {
+                                        //     id: 590,
+                                        //     name: 'Smart Card Details',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                        //     title: 'Smartcarddetails',
+                                        //     description: 'Smartcarddetails'
+                                        // },
+                                        // {
+                                        //     id: 68,
+                                        //     name: 'NDA Study Certificate',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/nda-study-certificate',
+                                        //     title: 'NDA Study Certificate',
+                                        //     description: 'NDA Study Certificate'
+                                        // },
+                                        // {
+                                        //     id: 69,
+                                        //     name: 'Mobile App Download Report',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/nda/reports/mobile-app-download-report',
+                                        //     title: 'Mobile App Download Report',
+                                        //     description: 'Mobile App Download Report'
+                                        // }
+                                    ]
+                                }
                             ]
                         }
                     ]

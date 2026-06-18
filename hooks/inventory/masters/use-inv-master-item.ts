@@ -20,8 +20,8 @@ export const useInvMasterItem = (searchParams?: ApiSearchparams) => {
             
             return {
                 ...(itemData || {}),
-                get_UOM: uomData?.data || [],
-                get_maingroup: mainGroupData?.data || []
+                get_UOM: uomData?.data?.$values || (Array.isArray(uomData?.data) ? uomData?.data : []) || [],
+                get_maingroup: mainGroupData?.data?.$values || (Array.isArray(mainGroupData?.data) ? mainGroupData?.data : []) || []
             };
         },
         staleTime: 0
