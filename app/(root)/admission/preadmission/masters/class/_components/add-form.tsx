@@ -78,7 +78,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 reset();
                 refetchAll();
                 onSuccess?.();
-                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
