@@ -334,8 +334,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`year-${resetKey}`}
-                                    value={field.value ? String(field.value) : ''}
+                                    key={`year-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Reset dependent fields
@@ -387,8 +387,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`category-${resetKey}`}
-                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                    key={`category-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Category change might not strictly require clearing others, but typically
@@ -433,8 +433,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         render={({ field }) => (
                             <>
                                 <Select
-                                    key={`class-${resetKey}`}
-                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                    key={`class-${resetKey}-${field.value}`}
+                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Class Changed -> Reset Sections

@@ -171,7 +171,6 @@ export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_
                                 {...field}
                                 id='invmS_ContactNo'
                                 placeholder='Enter Contact Number'
-                                disabled
                                 className={errors.invmS_ContactNo ? 'border-red-500' : ''}
                             />
                         )}

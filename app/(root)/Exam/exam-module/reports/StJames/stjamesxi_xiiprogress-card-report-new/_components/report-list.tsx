@@ -1,8 +1,7 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import React from 'react';
-import { format } from 'date-fns';
 
 interface StJamesXI_XIIReportListProps {
     data: any;
@@ -15,60 +14,225 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
         window.print();
     };
 
-    const getstudentdetails = data?.getstudentdetails || [];
-    const getexamdetails = data?.getexamdetails || [];
-    const getstudentmarksdetails = data?.getstudentmarksdetails || [];
-    const getstudentwisesubjectlistnew = data?.getstudentwisesubjectlistnew || [];
-    const getexamwisetotaldetails = data?.getexamwisetotaldetails || [];
-    const getstudentwiseattendancedetails = data?.getstudentwiseattendancedetails || [];
-    const year = data?.year || '';
+    if (!data) return null;
+
+    const findKeyCaseInsensitive = (obj: any, targetKey: string) => {
+        if (!obj) return undefined;
+        const targetLower = targetKey.toLowerCase();
+        const foundKey = Object.keys(obj).find((k) => k.toLowerCase() === targetLower);
+        return foundKey ? obj[foundKey] : undefined;
+    };
+
+    const getVal = (obj: any, ...keys: string[]) => {
+        for (const k of keys) {
+            const val = findKeyCaseInsensitive(obj, k);
+            if (val !== undefined) return val;
+        }
+        return undefined;
+    };
+
+    const findArraysContaining = (obj: any, substring: string) => {
+        if (!obj) return [];
+        const subLower = substring.toLowerCase();
+        let combined: any[] = [];
+        Object.keys(obj).forEach((k) => {
+            if (k.toLowerCase().includes(subLower) && Array.isArray(obj[k])) {
+                combined = [...combined, ...obj[k]];
+            }
+        });
+        return combined;
+    };
+
+    const getstudentmarksdetails = (() => {
+        const key = Object.keys(data).find((k) => k.toLowerCase() === 'getstudentmarksdetails');
+        if (key && Array.isArray(data[key])) return data[key];
+        return findArraysContaining(data, 'mark');
+    })();
+
+    const getstudentwisesubjectlistnew = (() => {
+        const keyNew = Object.keys(data).find((k) => k.toLowerCase() === 'getstudentwisesubjectlistnew');
+        if (keyNew && Array.isArray(data[keyNew])) return data[keyNew];
+
+        const keyOld = Object.keys(data).find((k) => k.toLowerCase() === 'getstudentwisesubjectlist');
+        if (keyOld && Array.isArray(data[keyOld])) return data[keyOld];
+
+        return findArraysContaining(data, 'subject');
+    })();
+
+    const getstudentwiseattendancedetails = (() => {
+        const key = Object.keys(data).find((k) => k.toLowerCase() === 'getstudentwiseattendancedetails');
+        if (key && Array.isArray(data[key])) return data[key];
+        return findArraysContaining(data, 'attend');
+    })();
+
+    const getexamwisetotaldetails = (() => {
+        const key = Object.keys(data).find((k) => k.toLowerCase() === 'getexamwisetotaldetails');
+        if (key && Array.isArray(data[key])) return data[key];
+        return findArraysContaining(data, 'total');
+    })();
+
+    const getstudentdetails = (() => {
+        let combined: any[] = [];
+        Object.keys(data).forEach((k) => {
+            const kLower = k.toLowerCase();
+            if (
+                kLower.includes('student') &&
+                !kLower.includes('subject') &&
+                !kLower.includes('mark') &&
+                !kLower.includes('attend') &&
+                !kLower.includes('total') &&
+                Array.isArray(data[k])
+            ) {
+                combined = [...combined, ...data[k]];
+            }
+        });
+        if (combined.length === 0) {
+            const fallbackVal = findKeyCaseInsensitive(data, 'getstudentdetails');
+            if (Array.isArray(fallbackVal)) return fallbackVal;
+        }
+        return combined;
+    })();
+
+    const getexamdetails = (() => {
+        let combined: any[] = [];
+        Object.keys(data).forEach((k) => {
+            const kLower = k.toLowerCase();
+            if (
+                kLower.includes('exam') &&
+                !kLower.includes('subject') &&
+                !kLower.includes('mark') &&
+                !kLower.includes('attend') &&
+                !kLower.includes('total') &&
+                !kLower.includes('student') &&
+                Array.isArray(data[k])
+            ) {
+                combined = [...combined, ...data[k]];
+            }
+        });
+        if (combined.length === 0) {
+            const fallbackVal = findKeyCaseInsensitive(data, 'getexamdetails');
+            if (Array.isArray(fallbackVal)) return fallbackVal;
+        }
+        return combined;
+    })();
+
+    const year = data?.year ?? findKeyCaseInsensitive(data, 'year');
+
+    const getStudentId = (obj: any) => {
+        if (!obj) return undefined;
+        const keys = Object.keys(obj);
+        const matchingKeys = keys.filter((k) => {
+            const kLower = k.toLowerCase();
+            return kLower === 'amst_id' || kLower === 'amstid';
+        });
+        for (const key of matchingKeys) {
+            const val = obj[key];
+            if (val && val !== 0 && val !== '0') {
+                return val;
+            }
+        }
+        for (const key of matchingKeys) {
+            const val = obj[key];
+            if (val === 0 || val === '0') {
+                return 0;
+            }
+        }
+        return undefined;
+    };
 
     const tempexamdetails: any[] = [];
     if (reporttype === 'indi') {
         getexamdetails.forEach((exam: any) => {
-            tempexamdetails.push({ 
-                ...exam, 
-                EME_Id: exam.emE_Id, 
-                columname: 'Marks', 
-                emE_ExamCode: exam.emE_ExamCode,
-                emE_ExamDescription: exam.emE_ExamDescription 
+            const examId = exam.emE_Id ?? exam.eme_Id ?? exam.emeId ?? 0;
+            const _examName = exam.emE_ExamName ?? exam.eme_ExamName ?? exam.emE_Examname ?? '';
+            const examCode = exam.emE_ExamCode ?? exam.eme_ExamCode ?? exam.emE_Examcode ?? '';
+            const examDesc = exam.emE_ExamDescription ?? exam.eme_ExamDescription ?? exam.emE_Examdescription ?? '';
+
+            tempexamdetails.push({
+                ...exam,
+                EME_Id: examId,
+                columname: 'Marks',
+                emE_ExamCode: examCode,
+                emE_ExamDescription: examDesc
             });
             // According to legacy code, Point is not shown for UAT
-            if (exam.emE_ExamDescription !== 'UAT') {
-                tempexamdetails.push({ 
-                    ...exam, 
-                    EME_Id: exam.emE_Id, 
-                    columname: 'Point', 
-                    emE_ExamCode: exam.emE_ExamCode,
-                    emE_ExamDescription: exam.emE_ExamDescription 
+            if (examDesc !== 'UAT') {
+                tempexamdetails.push({
+                    ...exam,
+                    EME_Id: examId,
+                    columname: 'Point',
+                    emE_ExamCode: examCode,
+                    emE_ExamDescription: examDesc
                 });
             }
         });
     } else {
         // Promotion
-        const promoExamDetails = [...getexamdetails, { empG_GroupName: "Final Average", empsG_Order: 10001 }];
+        const promoExamDetails = [...getexamdetails, { empG_GroupName: 'Final Average', empsG_Order: 10001 }];
         promoExamDetails.forEach((dd: any) => {
-            tempexamdetails.push({ Groupname: dd.empG_GroupName, columnid: dd.empsG_Order, columname: "Marks" });
-            tempexamdetails.push({ Groupname: dd.empG_GroupName, columnid: dd.empsG_Order, columname: "Point" });
+            const groupName = dd.empG_GroupName ?? dd.empg_groupname ?? dd.GroupName ?? '';
+            const order = dd.empsG_Order ?? dd.empsg_order ?? dd.Order ?? 0;
+            tempexamdetails.push({ Groupname: groupName, columnid: order, columname: 'Marks' });
+            tempexamdetails.push({ Groupname: groupName, columnid: order, columname: 'Point' });
         });
     }
 
     const students = getstudentdetails.map((student: any) => {
-        const studentId = student.amsT_Id || student.AMST_Id;
-        const subjects = getstudentwisesubjectlistnew
-            .filter((sub: any) => Number(sub.amsT_Id || sub.AMST_Id) === Number(studentId))
-            .map((sub: any) => ({
-                ismS_SubjectName: sub.subjectname || sub.ISMS_SubjectName || sub.ismS_SubjectName,
-                ISMS_Id: sub.subid || sub.ISMS_Id || sub.ismS_Id,
-                eyceS_AplResultFlg: sub.eyceS_AplResultFlg !== undefined ? sub.eyceS_AplResultFlg : sub.EYCES_AplResultFlg,
-                subjectorder: sub.subjectorder || sub.ISMS_Order || sub.ismS_Order,
-                ismS_SubjectCode: sub.ISMS_SubjectCode || sub.ismS_SubjectCode,
-                subid: sub.subid || sub.ISMS_Id || sub.ismS_Id
-            }));
+        const studentId = getStudentId(student);
 
-        const marks = getstudentmarksdetails.filter((m: any) => Number(m.amsT_Id || m.AMST_Id) === Number(studentId));
-        const markstotal = getexamwisetotaldetails.filter((t: any) => Number(t.amsT_Id || t.AMST_Id) === Number(studentId));
-        const attendance = getstudentwiseattendancedetails.filter((a: any) => Number(a.amsT_Id || a.AMST_Id) === Number(studentId));
+        const filteredSubjects = getstudentwisesubjectlistnew.filter((sub: any) => {
+            const subStudentId = getStudentId(sub);
+            return subStudentId !== undefined && Number(subStudentId) === Number(studentId);
+        });
+
+        // Deduplicate subjects by ISMS_Id to prevent duplicate subject rows on the report card
+        const subjectMap = new Map();
+        filteredSubjects.forEach((sub: any) => {
+            const subId = getVal(sub, 'subid', 'subId', 'isms_id', 'ismsid', 'isms_id');
+            if (subId !== undefined) {
+                subjectMap.set(Number(subId), sub);
+            } else {
+                subjectMap.set(Math.random().toString(), sub);
+            }
+        });
+
+        const subjects = Array.from(subjectMap.values())
+            .map((sub: any) => {
+                const ismsSubjectName = getVal(sub, 'subjectname', 'subjectName', 'isms_subjectname') ?? '';
+                const ismsId = getVal(sub, 'subid', 'subId', 'isms_id', 'ismsid', 'isms_id');
+                const eycesAplResultFlg = getVal(sub, 'eyces_aplresultflg', 'eyceS_AplResultFlg', 'eyceS_AplResultflg') ?? true;
+                const subjectOrder = getVal(sub, 'subjectorder', 'subjectOrder', 'isms_order', 'isms_order') ?? 9999;
+                const ismsSubjectCode = getVal(sub, 'isms_subjectcode', 'ismssubjectcode', 'isms_subjectcode') ?? '';
+
+                return {
+                    ismS_SubjectName: ismsSubjectName,
+                    ISMS_Id: ismsId,
+                    eyceS_AplResultFlg:
+                        eycesAplResultFlg === true ||
+                        eycesAplResultFlg === 1 ||
+                        String(eycesAplResultFlg).toLowerCase() === 'true' ||
+                        String(eycesAplResultFlg).toLowerCase() === 'y',
+                    subjectorder: Number(subjectOrder),
+                    ismS_SubjectCode: ismsSubjectCode,
+                    subid: ismsId
+                };
+            })
+            .sort((a: any, b: any) => a.subjectorder - b.subjectorder);
+
+        const marks = getstudentmarksdetails.filter((m: any) => {
+            const mStudentId = getStudentId(m);
+            return mStudentId !== undefined && Number(mStudentId) === Number(studentId);
+        });
+
+        const markstotal = getexamwisetotaldetails.filter((t: any) => {
+            const tStudentId = getStudentId(t);
+            return tStudentId !== undefined && Number(tStudentId) === Number(studentId);
+        });
+
+        const attendance = getstudentwiseattendancedetails.filter((a: any) => {
+            const aStudentId = getStudentId(a);
+            return aStudentId !== undefined && Number(aStudentId) === Number(studentId);
+        });
 
         return { ...student, subjects, marks, markstotal, attendance };
     });
@@ -76,20 +240,120 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
     const formatDate = (date: any) => {
         if (!date) return '';
         const d = new Date(date);
-        return isNaN(d.getTime()) ? date : format(d, 'dd-MMM-yyyy');
+        if (Number.isNaN(d.getTime())) return date;
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}.${month}.${year}`;
+    };
+
+    const formatTeacherName = (name: string) => {
+        if (!name) return '';
+        return name
+            .toLowerCase()
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    const findMarks = (marks: any[], colm: any, subj: any) => {
+        if (!marks || !colm || !subj) return undefined;
+
+        const subjName = String(subj.ismS_SubjectName ?? '')
+            .toLowerCase()
+            .trim();
+        const subjId = subj.ISMS_Id;
+
+        return marks.find((m: any) => {
+            const mSubId = getVal(m, 'subid', 'subId', 'isms_id', 'ismsid', 'isms_id');
+            const mSubName = getVal(m, 'subjectname', 'subjectName', 'isms_subjectname', 'isms_subjectname');
+
+            let isSubjMatch = false;
+            if (subjId !== undefined && mSubId !== undefined && Number(mSubId) === Number(subjId)) {
+                isSubjMatch = true;
+            } else if (subjName && mSubName && String(mSubName).toLowerCase().trim() === subjName) {
+                isSubjMatch = true;
+            }
+
+            if (!isSubjMatch) return false;
+
+            if (reporttype === 'indi') {
+                const mEmeId = getVal(m, 'emeid', 'eme_id', 'emeId');
+                return mEmeId !== undefined && Number(mEmeId) === Number(colm.EME_Id);
+            }
+            const mGroupName = getVal(m, 'empsg_groupname', 'empG_GroupName', 'groupname');
+            const colGroupName = colm.Groupname;
+            return (
+                mGroupName !== undefined &&
+                colGroupName !== undefined &&
+                String(mGroupName).toLowerCase().trim() === String(colGroupName).toLowerCase().trim()
+            );
+        });
+    };
+
+    const findTotal = (totals: any[], colm: any) => {
+        if (!totals || !colm) return undefined;
+        return totals.find((t: any) => {
+            if (reporttype === 'indi') {
+                const tEmeId = getVal(t, 'emeid', 'eme_id', 'emeId');
+                return (
+                    tEmeId !== undefined &&
+                    Number(tEmeId) === Number(colm.EME_Id) &&
+                    colm.emE_ExamCode !== 'IA1' &&
+                    colm.emE_ExamCode !== 'IA2'
+                );
+            }
+            const tGroupName = getVal(t, 'groupname', 'empsg_groupname', 'empG_GroupName');
+            const colGroupName = colm.Groupname;
+            return (
+                tGroupName !== undefined &&
+                colGroupName !== undefined &&
+                String(tGroupName).toLowerCase().trim() === String(colGroupName).toLowerCase().trim()
+            );
+        });
+    };
+
+    const findAttendance = (attendance: any[], colm: any) => {
+        if (!attendance || !colm) return undefined;
+        return attendance.find((a: any) => {
+            if (reporttype === 'indi') {
+                const aEmeId = getVal(a, 'emeid', 'eme_id', 'emeId');
+                return (
+                    aEmeId !== undefined &&
+                    Number(aEmeId) === Number(colm.EME_Id) &&
+                    colm.emE_ExamCode !== 'IA1' &&
+                    colm.emE_ExamCode !== 'IA2'
+                );
+            }
+            const aGroupName = getVal(a, 'groupname', 'empsg_groupname', 'empG_GroupName');
+            const colGroupName = colm.Groupname;
+            return (
+                aGroupName !== undefined &&
+                colGroupName !== undefined &&
+                String(aGroupName).toLowerCase().trim() === String(colGroupName).toLowerCase().trim()
+            );
+        });
     };
 
     const getMarksVal = (mrks: any, colm: any) => {
         if (!mrks) return '';
-        const obtMarks = reporttype === 'indi' ? mrks.obtainmarks : mrks.ESTMPPSG_GroupObtMarks;
-        const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
-        const obtPoints = reporttype === 'indi' ? mrks.ObtainedGradePoints : mrks.ESTMPPSG_GradePoints;
+        const obtMarks =
+            reporttype === 'indi'
+                ? (getVal(mrks, 'obtainmarks', 'estmppsg_groupobtmarks') ?? '')
+                : (getVal(mrks, 'estmppsg_groupobtmarks', 'obtainmarks') ?? '');
+        const passFail =
+            reporttype === 'indi' ? (getVal(mrks, 'passfailflg') ?? '') : (getVal(mrks, 'estmpps_passfailflg', 'passfailflg') ?? '');
+        const obtPoints =
+            reporttype === 'indi'
+                ? (getVal(mrks, 'obtainedgradepoints', 'estmppsg_gradepoints') ?? '')
+                : (getVal(mrks, 'estmppsg_gradepoints', 'obtainedgradepoints') ?? '');
 
         if (colm.columname === 'Marks') {
             if (passFail === 'AB') return passFail;
             if (passFail === 'Fail') return <span className='underline'>{obtMarks}</span>;
             return obtMarks;
-        } else if (colm.columname === 'Point') {
+        }
+        if (colm.columname === 'Point') {
             if (passFail === 'AB') return passFail;
             if (passFail === 'Fail') return <span className='underline'>{obtPoints}</span>;
             return obtPoints;
@@ -99,9 +363,16 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
 
     const getGradeVal = (mrks: any, colm: any, isCCA: boolean) => {
         if (!mrks) return '';
-        const obtGrade = reporttype === 'indi' ? mrks.ObtainedGrade : mrks.ESTMPPSG_GroupObtGrade;
-        const obtMarks = reporttype === 'indi' ? mrks.obtainmarks : mrks.ESTMPPSG_GroupObtMarks;
-        const passFail = reporttype === 'indi' ? mrks.PassFailFlg : mrks.ESTMPPS_PassFailFlg;
+        const obtGrade =
+            reporttype === 'indi'
+                ? (getVal(mrks, 'obtainedgrade', 'estmppsg_groupobtgrade') ?? '')
+                : (getVal(mrks, 'estmppsg_groupobtgrade', 'obtainedgrade') ?? '');
+        const obtMarks =
+            reporttype === 'indi'
+                ? (getVal(mrks, 'obtainmarks', 'estmppsg_groupobtmarks') ?? '')
+                : (getVal(mrks, 'estmppsg_groupobtmarks', 'obtainmarks') ?? '');
+        const passFail =
+            reporttype === 'indi' ? (getVal(mrks, 'passfailflg') ?? '') : (getVal(mrks, 'estmpps_passfailflg', 'passfailflg') ?? '');
 
         if (colm.columname === 'Marks') {
             if (passFail === 'AB') return passFail;
@@ -163,8 +434,10 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
 
                             <div className='mb-2 flex justify-between font-bold'>
                                 <div className='w-1/3'>{report.studentname}</div>
-                                <div className='w-1/3 flex justify-between px-4'>
-                                    <span>Class : {report.classname} {report.sectionname}</span>
+                                <div className='flex w-1/3 justify-between px-4'>
+                                    <span>
+                                        Class : {report.classname} {report.sectionname}
+                                    </span>
                                     <span>Roll : {report.rollno}</span>
                                 </div>
                                 <div className='w-1/3 text-right'>Reg.No. : {report.admno}</div>
@@ -177,10 +450,10 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
                         </div>
 
                         <div className='overflow-x-auto'>
-                            <table className='w-full border-collapse border-2 border-gray-400 text-sm font-bold'>
-                                <thead className='border-double border-4 border-gray-400'>
+                            <table className='w-full border-collapse border-2 border-gray-400 font-bold text-sm'>
+                                <thead className='border-4 border-gray-400 border-double'>
                                     <tr>
-                                        <th className='border border-gray-400 p-2 text-left w-[250px]' rowSpan={2}></th>
+                                        <th className='w-[250px] border border-gray-400 p-2 text-left' rowSpan={2} />
                                         {getexamdetails.map((exam: any, eIdx: number) => {
                                             const colSpan = reporttype === 'indi' ? (exam.emE_ExamDescription === 'UAT' ? 1 : 2) : 2;
                                             return (
@@ -190,106 +463,141 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
                                             );
                                         })}
                                         {reporttype === 'promotion' && (
-                                            <th className='border border-gray-400 p-2 text-center' colSpan={2}>Final Average</th>
+                                            <th className='border border-gray-400 p-2 text-center' colSpan={2}>
+                                                Final Average
+                                            </th>
                                         )}
                                     </tr>
                                     <tr>
                                         {tempexamdetails.map((colm: any, cIdx: number) => (
                                             <th key={cIdx} className='border border-gray-400 p-2 text-center'>
-                                                {colm.emE_ExamDescription === 'UAT' && colm.columname === 'Marks' ? 'Marks(50)' : colm.columname}
+                                                {colm.emE_ExamDescription === 'UAT' && colm.columname === 'Marks'
+                                                    ? 'Marks(50)'
+                                                    : colm.columname}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className='border-double border-4 border-gray-400'>
-                                    {report.subjects.filter((s: any) => s.eyceS_AplResultFlg).map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) => 
-                                                    reporttype === 'indi' 
-                                                        ? (m.emeid === colm.EME_Id && m.subid === subj.subid)
-                                                        : (m.EMPSG_GroupName === colm.Groupname && m.ISMS_Id === subj.subid)
-                                                );
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center'>{getMarksVal(mrks, colm)}</td>;
-                                            })}
-                                        </tr>
-                                    ))}
-                                    {report.subjects.filter((s: any) => !s.eyceS_AplResultFlg).map((subj: any, sIdx: number) => (
-                                        <tr key={sIdx}>
-                                            <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
-                                            {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const mrks = report.marks.find((m: any) => 
-                                                    reporttype === 'indi' 
-                                                        ? (m.emeid === colm.EME_Id && m.subid === subj.subid)
-                                                        : (m.EMPSG_GroupName === colm.Groupname && m.ISMS_Id === subj.subid)
-                                                );
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center'>{getGradeVal(mrks, colm, subj.ismS_SubjectCode === 'CCA')}</td>;
-                                            })}
-                                        </tr>
-                                    ))}
+                                <tbody className='border-4 border-gray-400 border-double'>
+                                    {report.subjects
+                                        .filter((s: any) => s.eyceS_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = findMarks(report.marks, colm, subj);
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {getMarksVal(mrks, colm)}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    {report.subjects
+                                        .filter((s: any) => !s.eyceS_AplResultFlg)
+                                        .map((subj: any, sIdx: number) => (
+                                            <tr key={sIdx}>
+                                                <td className='border border-gray-400 p-2 pl-6 text-left'>{subj.ismS_SubjectName}</td>
+                                                {tempexamdetails.map((colm: any, cIdx: number) => {
+                                                    const mrks = findMarks(report.marks, colm, subj);
+                                                    return (
+                                                        <td key={cIdx} className='border border-gray-400 p-2 text-center'>
+                                                            {getGradeVal(mrks, colm, subj.ismS_SubjectCode === 'CCA')}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
                                 </tbody>
 
                                 <tbody>
-                                    <tr className='border-none'><td className='p-2' colSpan={tempexamdetails.length + 1}>&nbsp;</td></tr>
+                                    <tr className='border-none'>
+                                        <td className='p-2' colSpan={tempexamdetails.length + 1}>
+                                            &nbsp;
+                                        </td>
+                                    </tr>
                                 </tbody>
 
-                                <tbody className='border-double border-4 border-gray-400'>
+                                <tbody className='border-4 border-gray-400 border-double'>
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Total (Eng + 3)</td>
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
-                                                reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname)
+                                            const totl = findTotal(report.markstotal, colm);
+                                            const val = totl
+                                                ? colm.columname === 'Marks'
+                                                    ? reporttype === 'indi'
+                                                        ? totl.estmP_TotalObtMarks
+                                                        : totl.TOTALOBTAINEDMARKS
+                                                    : reporttype === 'indi'
+                                                      ? totl.estmP_GradePoints
+                                                      : totl.GRANDTOTALPOINT
+                                                : '';
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
                                             );
-                                            const val = totl ? (colm.columname === 'Marks' ? (reporttype === 'indi' ? totl.estmP_TotalObtMarks : totl.TOTALOBTAINEDMARKS) : (reporttype === 'indi' ? totl.estmP_GradePoints : totl.GRANDTOTALPOINT)) : '';
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
                                         })}
                                     </tr>
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Average (Eng + 3)</td>
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
-                                                reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname)
+                                            const totl = findTotal(report.markstotal, colm);
+                                            const val =
+                                                totl && colm.columname === 'Marks'
+                                                    ? reporttype === 'indi'
+                                                        ? totl.estmP_Percentage
+                                                        : totl.PERCENTAGEOBTAINED
+                                                    : '';
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
                                             );
-                                            const val = totl && colm.columname === 'Marks' ? (reporttype === 'indi' ? totl.estmP_Percentage : totl.PERCENTAGEOBTAINED) : '';
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
                                         })}
                                     </tr>
                                     {displayAttendance && (
                                         <tr>
                                             <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Attendance</td>
                                             {tempexamdetails.map((colm: any, cIdx: number) => {
-                                                const att = report.attendance.find((a: any) => 
-                                                    reporttype === 'indi'
-                                                        ? (Number(a.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                        : (a.GROUPNAME === colm.Groupname)
+                                                const att = findAttendance(report.attendance, colm);
+                                                const val =
+                                                    att && colm.columname === 'Marks'
+                                                        ? reporttype === 'indi'
+                                                            ? `${att.percentage} %`
+                                                            : `${att.PERCENTAGEOBTAINED} %`
+                                                        : '';
+                                                return (
+                                                    <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                        {val}
+                                                    </td>
                                                 );
-                                                const val = att && colm.columname === 'Marks' ? (reporttype === 'indi' ? `${att.percentage} %` : `${att.PERCENTAGEOBTAINED} %`) : '';
-                                                return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
                                             })}
                                         </tr>
                                     )}
                                     <tr>
                                         <td className='border border-gray-400 p-2 pl-6 text-left font-bold'>Position</td>
                                         {tempexamdetails.map((colm: any, cIdx: number) => {
-                                            const totl = report.markstotal.find((t: any) => 
-                                                reporttype === 'indi'
-                                                    ? (Number(t.emE_Id) === Number(colm.EME_Id) && colm.emE_ExamCode !== 'IA1' && colm.emE_ExamCode !== 'IA2')
-                                                    : (t.GROUPNAME === colm.Groupname)
+                                            const totl = findTotal(report.markstotal, colm);
+                                            const val =
+                                                totl && colm.columname === 'Marks'
+                                                    ? reporttype === 'indi'
+                                                        ? totl.estmP_SectionPosition
+                                                        : totl.POSITION
+                                                    : '';
+                                            return (
+                                                <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>
+                                                    {val}
+                                                </td>
                                             );
-                                            const val = totl && colm.columname === 'Marks' ? (reporttype === 'indi' ? totl.estmP_SectionPosition : totl.POSITION) : '';
-                                            return <td key={cIdx} className='border border-gray-400 p-2 text-center font-bold'>{val}</td>;
                                         })}
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div className='mt-8 text-sm font-bold'>
+                        <div className='mt-8 font-bold text-sm'>
                             <div className='mb-12'>Class Teacher's Comment :</div>
                             <div className='mt-16 flex justify-between px-10'>
                                 <div className='flex flex-col items-center text-center'>
@@ -297,10 +605,10 @@ export default function StJamesXI_XIIReportList({ data, reporttype, displayAtten
                                     <div className='text-xs'>Principal/Secretary</div>
                                 </div>
                                 <div className='flex flex-col items-center text-center'>
-                                    <div className='w-48 border-black border-t-[1.5px] pt-1 font-bold link'>
-                                        {report.classteacher || report.Classteacher || ''}
+                                    <div className='link w-48 border-black border-t-[1.5px] pt-1 font-bold'>
+                                        {formatTeacherName(report.classteacher || report.Classteacher) || <span>&nbsp;</span>}
                                     </div>
-                                    <div className='text-xs font-bold'>Class Teacher</div>
+                                    <div className='font-bold text-xs'>Class Teacher</div>
                                 </div>
                                 <div className='flex flex-col items-center text-center'>
                                     <div className='w-32 border-black border-t-[1.5px] pt-1 font-bold'>&nbsp;</div>

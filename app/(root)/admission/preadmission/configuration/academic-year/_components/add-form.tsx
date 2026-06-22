@@ -115,9 +115,6 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
 
             // Populate Cut-off Date (June 1st of From Year)
             setValue('asmaY_Cut_Of_Date', startDate.toISOString(), { shouldValidate: true });
-
-            // Populate Academic Year Code with From Year if empty
-            setValue('asmaY_AcademicYearCode', academicFromYear, { shouldValidate: true });
         } else {
             setValue('asmaY_Year', '');
         }

@@ -96,7 +96,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
     useEffect(() => {
         if (academicYears) {
-            if (academicYears?.data && Array.isArray(academicYears.data)) {
+            if (academicYears?.data && Array.isArray(academicYears.data) && academicYears.data.length > 0) {
                 const firstId = academicYears.data[0].asmaY_Id;
                 setValue('academicYear', firstId || 0);
             }
@@ -342,6 +342,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         // setHeadList([]);
         setSelectedHead([]);
         setPhotoFile(null);
+        setUploadedLogo(null);
     };
     return (
         <div className={`${className}`}>

@@ -639,6 +639,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         combined.amsT_Language_Spoken ??
                         '',
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
+                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
 
                     // Caste and Religion mapping
                     imC_Id:
@@ -2250,6 +2251,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+                amsT_ApparNo: formData.amsT_ApparNo ?? '',
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
@@ -3391,6 +3393,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             amsT_BankIFSCCode: '',
             amsT_BankBranch: '',
             amsT_AadharNo: '',
+            amsT_ApparNo: '',
             amsT_Sex: '',
             amsT_Date: null,
             amsT_Nationality: 0,
@@ -5295,8 +5298,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
                                                 </div>
 
-                                                {/* Aadhaar & Category */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* Aadhaar, APAAR ID & Category */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
                                                             name='amsT_AadharNo'
@@ -5315,6 +5318,25 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         />
                                                         {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
                                                     </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_ApparNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='APAAR ID'
+                                                                    placeholder='Enter APAAR ID'
+                                                                    id='amsT_ApparNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ApparNo && <FormError>{errors.amsT_ApparNo.message}</FormError>}
+                                                    </div>
+
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='asmcC_Id'>Student Category</Label>
                                                         <Controller

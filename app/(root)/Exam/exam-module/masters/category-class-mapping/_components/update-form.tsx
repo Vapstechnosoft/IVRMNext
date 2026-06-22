@@ -472,7 +472,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select key={`year-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -507,7 +507,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='emcA_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select key={`category-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
@@ -534,7 +534,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         name='asmcL_Id'
                         render={({ field }) => (
                             <Select
-                                value={field.value ? String(field.value) : undefined}
+                                key={`class-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                 onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />

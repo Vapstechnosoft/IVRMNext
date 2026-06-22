@@ -361,7 +361,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 ISMS_Id: ISMS_Id
             });
             const data = Array.isArray(response.data) ? response.data[0] : response.data;
-
+            console.log('Marks entry api search result', data);
             if (data === null) {
                 toast.error('This Subject Is Not Mapped With Students');
                 setIsStudentsGridOpen(false);
@@ -1305,38 +1305,38 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             eyceS_SubSubjectFlg: subjectMeta.subsubFlag,
             subject_subsubjects: subjectMeta.subsubFlag
                 ? subjectMeta.subsubData.map((ss) => ({
-                      eycessS_Id: 0,
-                      eyceS_Id: 0,
-                      emsS_Id: ss.subsubId,
-                      emgR_Id: 0,
-                      eycessS_MaxMarks: ss.maxMarks,
-                      eycessS_MinMarks: ss.minMarks || 0,
-                      eycessS_MarksEntryMax: ss.marksEntryMax,
-                      eycessS_ExemptedFlg: false,
-                      eycessS_ExemptedPer: '',
-                      eycessS_ActiveFlg: true,
-                      eycessS_SubSubjectOrder: 0,
-                      emsS_SubSubjectName: ss.subsubName,
-                      emsS_SubSubjectCode: ''
-                  }))
+                    eycessS_Id: 0,
+                    eyceS_Id: 0,
+                    emsS_Id: ss.subsubId,
+                    emgR_Id: 0,
+                    eycessS_MaxMarks: ss.maxMarks,
+                    eycessS_MinMarks: ss.minMarks || 0,
+                    eycessS_MarksEntryMax: ss.marksEntryMax,
+                    eycessS_ExemptedFlg: false,
+                    eycessS_ExemptedPer: '',
+                    eycessS_ActiveFlg: true,
+                    eycessS_SubSubjectOrder: 0,
+                    emsS_SubSubjectName: ss.subsubName,
+                    emsS_SubSubjectCode: ''
+                }))
                 : [],
             eyceS_SubExamFlg: subjectMeta.subexamFlag,
             subject_subexams: subjectMeta.subexamFlag
                 ? subjectMeta.subexamData.map((se) => ({
-                      eycessE_Id: 0,
-                      eyceS_Id: 0,
-                      emsE_Id: se.subexamId,
-                      emgR_Id: 0,
-                      eycessE_MaxMarks: se.maxMarks,
-                      eycessE_MinMarks: se.minMarks || 0,
-                      eycessE_MarksEntryMax: se.marksEntryMax,
-                      eycessE_ExemptedFlg: false,
-                      eycessE_ExemptedPer: '',
-                      eycessE_ActiveFlg: true,
-                      eycessE_SubExamOrder: 0,
-                      emsE_SubExamName: se.subexamName,
-                      emsE_SubExamCode: ''
-                  }))
+                    eycessE_Id: 0,
+                    eyceS_Id: 0,
+                    emsE_Id: se.subexamId,
+                    emgR_Id: 0,
+                    eycessE_MaxMarks: se.maxMarks,
+                    eycessE_MinMarks: se.minMarks || 0,
+                    eycessE_MarksEntryMax: se.marksEntryMax,
+                    eycessE_ExemptedFlg: false,
+                    eycessE_ExemptedPer: '',
+                    eycessE_ActiveFlg: true,
+                    eycessE_SubExamOrder: 0,
+                    emsE_SubExamName: se.subexamName,
+                    emsE_SubExamCode: ''
+                }))
                 : [],
             emgR_Id: 0,
             grade_details: gradeDetails,
@@ -1356,17 +1356,17 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             configuration: config ? [config] : [],
             subsubjectlist: subjectMeta.subsubFlag
                 ? subjectMeta.subsubData.map((ss) => ({
-                      emsS_Id: ss.subsubId,
-                      emsS_SubSubjectName: ss.subsubName,
-                      emsS_SubSubjectOrder: 0
-                  }))
+                    emsS_Id: ss.subsubId,
+                    emsS_SubSubjectName: ss.subsubName,
+                    emsS_SubSubjectOrder: 0
+                }))
                 : [],
             subexamlist: subjectMeta.subexamFlag
                 ? subjectMeta.subexamData.map((se) => ({
-                      emsE_Id: se.subexamId,
-                      emsE_SubExamName: se.subexamName,
-                      emsE_SubExamOrder: 0
-                  }))
+                    emsE_Id: se.subexamId,
+                    emsE_SubExamName: se.subexamName,
+                    emsE_SubExamOrder: 0
+                }))
                 : [],
             savedMarksCount: mainSaveList.length,
             lastDateEntry: 1000,
@@ -1644,8 +1644,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                         subSubjObj?.ESTM_Flg && subSubjObj.ESTM_Flg !== ''
                                                                             ? subSubjObj.ESTM_Flg
                                                                             : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                              ? (subSubjObj?.ESTMSS_Marks ?? '')
-                                                                              : (subSubjObj?.ESTMSS_Grade ?? '')
+                                                                                ? (subSubjObj?.ESTMSS_Marks ?? '')
+                                                                                : (subSubjObj?.ESTMSS_Grade ?? '')
                                                                     }
                                                                     max={subsub.maxMarks}
                                                                     min={subsub.minMarks}
@@ -1697,8 +1697,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                         subExamObj?.ESTM_Flg && subExamObj.ESTM_Flg !== ''
                                                                             ? subExamObj.ESTM_Flg
                                                                             : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                              ? (subExamObj?.ESTMSS_Marks ?? '')
-                                                                              : (subExamObj?.ESTMSS_Grade ?? '')
+                                                                                ? (subExamObj?.ESTMSS_Marks ?? '')
+                                                                                : (subExamObj?.ESTMSS_Grade ?? '')
                                                                     }
                                                                     max={subexam.maxMarks}
                                                                     min={subexam.minMarks}
@@ -1745,10 +1745,10 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                             student.estM_Flg != null && student.estM_Flg !== ''
                                                                 ? student.estM_Flg
                                                                 : subjectMeta.marksGradeEntryFlg === 'G' && student.estM_Grade
-                                                                  ? student.estM_Grade
-                                                                  : subjectMeta.marksGradeEntryFlg === 'M' && student.estM_Marks
-                                                                    ? (student.estM_Marks ?? '')
-                                                                    : ''
+                                                                    ? student.estM_Grade
+                                                                    : subjectMeta.marksGradeEntryFlg === 'M' && student.estM_Marks
+                                                                        ? (student.estM_Marks ?? '')
+                                                                        : ''
                                                         }
                                                         max={subjectMeta.maxMarks}
                                                         min={subjectMeta.minMarks}
