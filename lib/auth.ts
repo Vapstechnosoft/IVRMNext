@@ -14,6 +14,7 @@ export class CustomAuthError extends AuthError {
 }
 
 export const authConfig: NextAuthConfig = {
+    trustHost: true,
     session: {
         strategy: 'jwt'
     },

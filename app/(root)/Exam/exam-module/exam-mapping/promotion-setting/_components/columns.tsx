@@ -43,7 +43,16 @@ export const PromotionSettingColumns: ColumnDef<IPromotionSetting>[] = [
     {
         accessorKey: 'emP_MarksPerFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Promotion Type' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('emP_MarksPerFlg') as string) === 'M' ? 'Marks' : 'Percentage')
+        cell: ({ row }) => {
+            const val = row.getValue('emP_MarksPerFlg') as string;
+            const mapping: Record<string, string> = {
+                M: 'Marks',
+                P: 'Percentage',
+                T: 'Total',
+                F: 'Final Exam'
+            };
+            return getStatusBadge(mapping[val] || 'Percentage');
+        }
     },
 
     // Pass To Individual
