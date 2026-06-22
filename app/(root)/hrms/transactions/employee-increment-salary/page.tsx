@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { Plus, Save, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
@@ -21,7 +21,9 @@ import { getEmployeeIncrementColumns } from './_components/columns';
 import { Badge } from '@/components/ui/badge';
 import { useGetEmployees } from '@/hooks/hrms/useMasters';
 
-export default function EmployeeIncrementSalaryPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function EmployeeIncrementSalaryPage(props: { searchParams: SearchParams }) {
     const [heads, setHeads] = useState<any[]>([]);
     const [isHeadsLoading, setIsHeadsLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -50,10 +52,9 @@ export default function EmployeeIncrementSalaryPage() {
     const { mutate: saveIncrement, isPending: isSaving } = useAddOrUpdateEmployeeSalaryIncrement();
 
     // Grid Data
-    const { data: gridData, isLoading: isGridLoading } = useEmployeeIncrementGrid();
+    const searchParams = use(props.searchParams);
+    const { data: gridData, isLoading: isGridLoading } = useEmployeeIncrementGrid(searchParams);
     const { mutate: deleteIncrement, isPending: isDeleting } = useDeleteEmployeeIncrementMaster();
-
-    const [searchTerm, setSearchTerm] = useState('');
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this record?')) {
@@ -63,26 +64,7 @@ export default function EmployeeIncrementSalaryPage() {
 
     const columns = useMemo(() => getEmployeeIncrementColumns(handleDelete), []);
 
-    const filteredData = useMemo(() => {
-        console.log("🚀 ~ filteredData ~ gridData:", gridData)
-        if (!gridData) return [];
-        if (!searchTerm) return gridData;
-        return gridData.filter((item: any) =>
-            item.employeeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.hrmeD_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.hrmD_DepartmentName?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [gridData, searchTerm]);
-
-    const tableResponse = useMemo(() => ({
-        success: true,
-        data: filteredData,
-        total: filteredData.length,
-        page: 1,
-        page_size: 10
-    }), [filteredData]);
-
-    const tableProps = useDataTableProps(tableResponse);
+    const tableProps = useDataTableProps(gridData);
 
     // Form Setup
     const { control, handleSubmit, reset, watch, setValue } = useForm({
@@ -139,7 +121,7 @@ export default function EmployeeIncrementSalaryPage() {
                         <div className='flex items-center gap-4'>
                             <span>Employee Increment List</span>
                             <Badge variant='secondary' className='bg-primary/10 text-primary border-primary/20 font-bold'>
-                                Total Records: {filteredData.length}
+                                Total Records: {gridData?.length}
                             </Badge>
                         </div>
                     }
@@ -309,15 +291,15 @@ export default function EmployeeIncrementSalaryPage() {
                                     </div>
                                 </div>
 
-                                 {/* Actions */}
+                                {/* Actions */}
                                 <div className='flex justify-end items-center gap-3 pt-10'>
-                                      <Button
+                                    <Button
                                         type='button'
                                         variant='outline'
                                         onClick={handleCancel}
                                         disabled={isSaving}
                                         className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'
-                                       >
+                                    >
                                         <X className='w-4 h-4 mr-2' />
                                         CANCEL
                                     </Button>
@@ -337,7 +319,7 @@ export default function EmployeeIncrementSalaryPage() {
                                             </span>
                                         )}
                                     </Button>
-                                  
+
                                 </div>
                             </form>
                         </CollapsibleSection>

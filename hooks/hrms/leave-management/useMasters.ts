@@ -149,6 +149,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                     // Extract list from response
                     let leaveList: MasterLeave[] = [];
                     const data = response.data;
+                    let leaveOrderList: any[] = [];
 
                     if (data) {
                         // Case 1: data is directly an array (New GET API)
@@ -159,8 +160,12 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                         }
                         // Case 2: data is an object with list fields (Wrapper API)
                         else if (typeof data === 'object') {
-                            const dataObj = data as MasterLeaveGetResponseData;
-                            const possibleLists = [dataObj.GridviewDetails, dataObj.leavelistedit, dataObj.leaveData];
+                            const dataObj = data as any;
+                            const possibleLists = [dataObj.list, dataObj.GridviewDetails, dataObj.leavelistedit, dataObj.leaveData];
+
+                            if (dataObj.leaveOrderList) {
+                                leaveOrderList = dataObj.leaveOrderList;
+                            }
 
                             for (const list of possibleLists) {
                                 if (list && Array.isArray(list)) {
@@ -181,6 +186,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                     return {
                         success: true,
                         data: leaveList,
+                        leaveOrderList: leaveOrderList,
                         total: response.total || leaveList.length,
                         page: response.page || 1,
                         page_Size: response.page_Size || 10,
@@ -774,7 +780,7 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
                 }
                 return {
                     success: true,
-                    data: mappedData,
+                    data: apiData,
                     message: response.message || 'Leave authorization fetched successfully'
                 };
             } catch (error: any) {
