@@ -44,7 +44,7 @@ export default function ViewGRNDetailsModal({ rowData, isOpen, onClose }: ViewGR
             isOpen={isOpen}
             onClose={onClose}
             title={`GRN Details - ${rowData.invmgrN_GRNNo}`}
-            size='xl'
+            size='4xl'
         >
             <AdaptiveBody className='p-6'>
                 <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-muted/30 rounded-lg'>
