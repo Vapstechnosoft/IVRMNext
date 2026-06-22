@@ -17,12 +17,12 @@ export async function addOrUpdateMasterBuilding(data: any) {
 }
 
 export async function ToggleMasterBuilding(ttmd_id: number) {
-    const url = `/MasterBuildingFacade/MasterBuildingActivateDeactivate//${ttmd_id}`;
+    const url = `/MasterBuildingFacade/MasterBuildingActivateDeactivate/${ttmd_id}`;
     return await api.put<any>('timetable', url);
 }
 
 export async function getMasterBuildingclasssectionDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmB_BuildingName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmB_BuildingName,asmcL_ClassName,asmC_SectionName');
     const url = `/MasterBuildingFacade/GetMasterBuildingClassSectionGridList?${urlParams}`;
     console.info('GetMasterBuildingClassSectionGridList', url);
     return await api.get<IMasterBuildClassSectionGrid[]>('timetable', url);
