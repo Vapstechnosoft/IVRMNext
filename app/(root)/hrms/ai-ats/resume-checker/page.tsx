@@ -589,7 +589,7 @@ export default function AIResumeCheckerPage() {
                                                                          <p className='mb-1 flex items-center gap-1.5 text-slate-500 text-sm'>
                                                                              <GraduationCap className='h-4 w-4' /> Education Focus
                                                                          </p>
-                                                                         <p className='font-medium text-slate-900 capitalize'>
+                                                                         <p className='font-medium text-slate-900'>
                                                                              {analysisResult?.candidate?.education?.field || 'Not specified'}
                                                                          </p>
                                                                      </div>

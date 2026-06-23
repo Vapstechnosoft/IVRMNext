@@ -54,9 +54,7 @@ export default function ToggleInvMasterTaxForm({ rowData, onClose }: ToggleInvMa
                 </AlertDialogHeader>
 
                 <AlertDialogFooter className="flex gap-2">
-                    <AlertDialogCancel asChild>
-                        <Button variant="secondary">Cancel</Button>
-                    </AlertDialogCancel>
+                    <AlertDialogCancel className="text-black dark:text-white hover:bg-transparent">Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
                         <Button

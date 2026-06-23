@@ -4,13 +4,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Upload, X } from 'lucide-react';
+import { Save, Upload, X, Loader2 } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import { z } from 'zod';
+import { useSaveOrUpdateJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
+import { memo, useCallback, useMemo, useEffect } from 'react';
+
 const jobPostingSchema = z.object({
     position: z.string().min(1, 'Position is required'),
     priority: z.string().min(1, 'Priority is required'),
@@ -22,7 +23,7 @@ const jobPostingSchema = z.object({
     location: z.string().min(1, 'Location is required'),
     department: z.string().min(1, 'Department is required'),
     positionType: z.string().min(1, 'Position Type is required'),
-    mrfNo: z.string().min(1, 'MRF No. is required'),
+    mrfNo: z.string().min(1, 'MRF No. is required').regex(/^\d+$/, 'MRF No. must contain only numbers'),
     skill: z.string().min(1, 'Skill is required'),
     experienceFrom: z.string().min(1, 'Experience From is required'),
     experienceTo: z.string().min(1, 'Experience To is required'),
@@ -32,19 +33,45 @@ const jobPostingSchema = z.object({
     technicalInterview: z.boolean().optional(),
     onlineTest: z.boolean().optional()
 });
+
 type FormFields = z.infer<typeof jobPostingSchema>;
+
 interface AddJobPostingFormProps {
+    basicDataResponse?: any;
+    isLoadingBasicData?: boolean;
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-export default function AddJobPostingForm({ onSuccess, onCancel, className = '' }: AddJobPostingFormProps) {
+
+const AddJobPostingForm = memo(function AddJobPostingForm({
+    basicDataResponse,
+    isLoadingBasicData,
+    onSuccess,
+    onCancel,
+    className = ''
+}: AddJobPostingFormProps) {
+    const { mutate: saveJobPosting, isPending: isSaving } = useSaveOrUpdateJobListVMS();
+
+    const basicData = useMemo(() => basicDataResponse?.data || {}, [basicDataResponse]);
+    const positionList = useMemo(() => basicData.masterPositionList || [], [basicData]);
+    const priorityList = useMemo(() => basicData.masterPriorityList || [], [basicData]);
+    const qualificationList = useMemo(() => basicData.masterQualification || [], [basicData]);
+    const genderList = useMemo(() => basicData.masterGender || [], [basicData]);
+    const locationList = useMemo(() =>
+        Array.from(
+            new Map((basicData.masterLocation || []).map((item: any) => [item.hrmlO_LocationName, item])).values()
+        ), [basicData]
+    );
+    const departmentList = useMemo(() => basicData.masterDepartmentList || [], [basicData]);
+    const positionTypeList = useMemo(() => basicData.masterPosTypeList || [], [basicData]);
+
     const {
         control,
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<FormFields>({
         resolver: zodResolver(jobPostingSchema),
         mode: 'onChange',
@@ -52,19 +79,63 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
             writtenTest: false,
             technicalInterview: false,
             onlineTest: false,
-            location: 'HO'
+            location: ''
         }
     });
-    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
-        try {
-            // TODO: Replace with actual API call
-            toast.success('Job posting added successfully');
-            reset();
-            onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to add job posting');
-        }
-    };
+
+    const onSubmit: SubmitHandler<FormFields> = useCallback(async (data) => {
+        const payload = {
+            hrmrfr_Id: 0,
+            hrmP_Id: Number(data.position),
+            hrmD_Id: Number(data.department),
+            hrmpR_Id: Number(data.priority),
+            hrmpT_Id: Number(data.positionType),
+            hrmC_Id: Number(data.qualification),
+            ivrmmG_Id: Number(data.gender),
+            hrmrfr_NoofPosition: Number(data.noOfPosition),
+            hrmrfr_Skills: data.skill,
+            hrmrfr_JobDesc: data.jobDescription,
+            hrmrfr_EXPFrom: Number(data.experienceFrom),
+            hrmrfr_EXPTo: Number(data.experienceTo),
+            hrmrfr_Age: Number(data.age),
+            hrmrfr_MRFNO: data.mrfNo,
+            hrmrfr_WrittenTestFlg: !!data.writtenTest,
+            hrmrfr_OnlineTestFlg: !!data.onlineTest,
+            hrmrfr_TechnicalInterviewFlg: !!data.technicalInterview,
+            hrmrfr_Reason: data.reason,
+            hrmrfr_Remark: data.remark || '',
+            hrmrfr_Attachment: '',
+            hrmrfr_JobLocation: data.location,
+            hrmrfr_Status: 'Pending',
+            hrmrfr_HRComment: 'Pending',
+            hrmrfr_MDComment: 'Pending'
+        };
+
+        console.log('payload', payload);
+
+        saveJobPosting(payload, {
+            onSuccess: (res) => {
+                if (res.success) {
+                    reset();
+                    onSuccess?.();
+                }
+            }
+        });
+    }, [saveJobPosting, reset, onSuccess]);
+
+    const handleReset = useCallback(() => {
+        reset();
+    }, [reset]);
+
+    if (isLoadingBasicData) {
+        return (
+            <div className='flex min-h-[300px] flex-col items-center justify-center space-y-4 rounded-xl border border-dashed py-12'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                <p className='text-muted-foreground text-sm'>Loading form data...</p>
+            </div>
+        );
+    }
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -81,13 +152,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Position--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Software Engineer'>Software Engineer</SelectItem>
-                                            <SelectItem value='Hardware Engineer'>Hardware Engineer</SelectItem>
-                                            <SelectItem value='IT Executive'>IT Executive</SelectItem>
-                                            <SelectItem value='Manager'>Manager</SelectItem>
+                                            {positionList.map((item: any) => (
+                                                <SelectItem key={item.hrmP_Id} value={item.hrmP_Id.toString()}>
+                                                    {item.hrmP_Position}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -104,12 +176,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Priority--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='High'>High</SelectItem>
-                                            <SelectItem value='Medium'>Medium</SelectItem>
-                                            <SelectItem value='Low'>Low</SelectItem>
+                                            {priorityList.map((item: any) => (
+                                                <SelectItem key={item.hrmpR_Id} value={item.hrmpR_Id.toString()}>
+                                                    {item.hrmP_Name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -126,13 +200,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Qualification--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='UG'>UG</SelectItem>
-                                            <SelectItem value='PG'>PG</SelectItem>
-                                            <SelectItem value='PhD'>PhD</SelectItem>
-                                            <SelectItem value='Diploma'>Diploma</SelectItem>
+                                            {qualificationList.map((item: any) => (
+                                                <SelectItem key={item.hrmC_Id} value={item.hrmC_Id.toString()}>
+                                                    {item.hrmC_QulaificationName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -167,12 +242,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Gender--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Male'>Male</SelectItem>
-                                            <SelectItem value='Female'>Female</SelectItem>
-                                            <SelectItem value='Any'>Any</SelectItem>
+                                            {genderList.map((item: any) => (
+                                                <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_Id.toString()}>
+                                                    {item.ivrmmG_GenderName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -194,26 +271,18 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 name='location'
                                 control={control}
                                 render={({ field }) => (
-                                    <RadioGroup value={field.value} onValueChange={field.onChange} className='flex flex-row gap-6'>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='HO' id='ho' />
-                                            <label htmlFor='ho' className='cursor-pointer font-normal text-sm'>
-                                                HO
-                                            </label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Client' id='client' />
-                                            <label htmlFor='client' className='cursor-pointer font-normal text-sm'>
-                                                Client
-                                            </label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Location' id='location' />
-                                            <label htmlFor='location' className='cursor-pointer font-normal text-sm'>
-                                                Location
-                                            </label>
-                                        </div>
-                                    </RadioGroup>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='--Select Location--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {locationList.map((item: any) => (
+                                                <SelectItem key={item.hrmlO_Id} value={item.hrmlO_LocationName}>
+                                                    {item.hrmlO_LocationName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 )}
                             />
                             {errors.location && <FormError>{errors.location.message}</FormError>}
@@ -228,13 +297,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Department--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='IT'>IT</SelectItem>
-                                            <SelectItem value='HR'>HR</SelectItem>
-                                            <SelectItem value='Finance'>Finance</SelectItem>
-                                            <SelectItem value='Operations'>Operations</SelectItem>
+                                            {departmentList.map((item: any) => (
+                                                <SelectItem key={item.hrmD_Id} value={item.hrmD_Id.toString()}>
+                                                    {item.hrmD_DepartmentName}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -251,12 +321,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder='--Select Position Type--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Permanent'>Permanent</SelectItem>
-                                            <SelectItem value='Contract'>Contract</SelectItem>
-                                            <SelectItem value='Part-time'>Part-time</SelectItem>
+                                            {positionTypeList.map((item: any) => (
+                                                <SelectItem key={item.hrmpT_Id} value={item.hrmpT_Id.toString()}>
+                                                    {item.hrmpT_Name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -267,7 +339,17 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             <label className='block font-medium text-sm'>
                                 MRF No.:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText placeholder='Enter MRF number' {...register('mrfNo')} error={errors.mrfNo?.message} />
+                            <InputText
+                                type='number'
+                                placeholder='Enter MRF number'
+                                {...register('mrfNo')}
+                                error={errors.mrfNo?.message}
+                                onKeyDown={(e) => {
+                                    if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                            />
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
@@ -311,7 +393,7 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Attachment:</label>
-                            <Button type='button' variant='outline' className='w-full justify-start'>
+                            <Button type='button' variant='outline' className='w-full justify-start' disabled={isSaving}>
                                 <Upload className='mr-2 h-4 w-4' />
                                 Upload Employee Document
                             </Button>
@@ -321,19 +403,19 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                 {/* Bottom Section - Checkboxes */}
                 <div className='flex items-center gap-6 border-t pt-4'>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id='writtenTest' {...register('writtenTest')} />
+                        <Checkbox id='writtenTest' {...register('writtenTest')} disabled={isSaving} />
                         <label htmlFor='writtenTest' className='cursor-pointer font-medium text-sm'>
                             Written Test
                         </label>
                     </div>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id='technicalInterview' {...register('technicalInterview')} />
+                        <Checkbox id='technicalInterview' {...register('technicalInterview')} disabled={isSaving} />
                         <label htmlFor='technicalInterview' className='cursor-pointer font-medium text-sm'>
                             Technical Interview
                         </label>
                     </div>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id='onlineTest' {...register('onlineTest')} />
+                        <Checkbox id='onlineTest' {...register('onlineTest')} disabled={isSaving} />
                         <label htmlFor='onlineTest' className='cursor-pointer font-medium text-sm'>
                             Online Test
                         </label>
@@ -342,32 +424,23 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
             </div>
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-4'>
                 <Button
-                    type='button'
-                    variant='outline'
-                    onClick={() => {
-                        reset();
-                        onCancel?.();
-                    }}
-                    disabled={isSubmitting}>
-                    <X className='mr-2 h-4 w-4' />
-                    Cancel
-                </Button>
-                <Button
                     type='submit'
-                    disabled={isSubmitting}
+                    disabled={isSaving}
                     className='bg-orange-500 text-white hover:bg-orange-600'
-                    isLoading={isSubmitting}
+                    isLoading={isSaving}
                     loadingText='Saving...'>
                     <div className='flex items-center'>
                         <Save className='mr-2 h-4 w-4' />
                         Save & Proceed
                     </div>
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()} disabled={isSubmitting}>
+                <Button type='button' variant='destructive' onClick={handleReset} disabled={isSaving}>
                     <X className='mr-2 h-4 w-4' />
                     Clear
                 </Button>
             </div>
         </form>
     );
-}
+});
+
+export default AddJobPostingForm;

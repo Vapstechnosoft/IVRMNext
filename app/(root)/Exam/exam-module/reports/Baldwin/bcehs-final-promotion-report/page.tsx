@@ -13,12 +13,17 @@ export default function BCEHSFinalPromotionReportPage() {
         setReportParams(params);
     };
 
+    const handleReset = () => {
+        setReportData(null);
+        setReportParams(null);
+    };
+
     return (
         <div className="container overflow-hidden p-0">
             <div className="flex flex-col gap-4">
 
 
-                <ReportForm onReportGenerated={handleFormSubmit} />
+                <ReportForm onReportGenerated={handleFormSubmit} onReset={handleReset} />
 
                 {reportData && (
                     <ReportList

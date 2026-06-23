@@ -1,25 +1,26 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInvMasterStore } from '@/hooks/inventory/masters/use-inv-master-store';
-import { invMasterStoreSchema, type TInvMasterStore } from '@/schemas/inventory/masters/inv-master-store';
+import { type TInvMasterStore, invMasterStoreSchema } from '@/schemas/inventory/masters/inv-master-store';
 import { saveInvMasterStore } from '@/server/inventory/masters/inv-master-store';
-import { toast } from 'sonner';
-import type { IInvMasterStore, IEmployeeDropdown } from '@/types/inventory/masters/inv-master-store';
+import type { IEmployeeDropdown, IInvMasterStore } from '@/types/inventory/masters/inv-master-store';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface UpdateInvMasterStoreFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
     empname_list: IEmployeeDropdown[];
     selectedRow: IInvMasterStore;
 }
 
-export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, selectedRow }: UpdateInvMasterStoreFormProps) {
+export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_list, selectedRow }: UpdateInvMasterStoreFormProps) {
     const { refetchAll } = useInvMasterStore();
     const {
         control,
@@ -37,7 +38,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
             invmS_ContactPerson: selectedRow.invmS_ContactPerson || '',
             invmS_ContactNo: selectedRow.invmS_ContactNo,
             hrmE_Id: selectedRow.hrmE_Id,
-            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg,
+            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg
         }
     });
 
@@ -45,7 +46,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
 
     useEffect(() => {
         if (selectedEmpId) {
-            const emp = empname_list.find(e => e.hrmE_Id === Number(selectedEmpId));
+            const emp = empname_list.find((e) => e.hrmE_Id === Number(selectedEmpId));
             if (emp) {
                 setValue('invmS_ContactNo', emp.hrmE_MobileNo);
             }
@@ -74,9 +75,18 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
         }
     };
 
+    const handleCancel = () => {
+        reset();
+        if (onCancel) {
+            onCancel();
+        } else {
+            onSuccess();
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_StoreName'>
                         Store Name <span className='text-red-500'>*</span>
@@ -93,9 +103,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                             />
                         )}
                     />
-                    {errors.invmS_StoreName && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_StoreName.message}</p>
-                    )}
+                    {errors.invmS_StoreName && <p className='text-red-500 text-xs'>{errors.invmS_StoreName.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -114,9 +122,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                             />
                         )}
                     />
-                    {errors.invmS_StoreLocation && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_StoreLocation.message}</p>
-                    )}
+                    {errors.invmS_StoreLocation && <p className='text-red-500 text-xs'>{errors.invmS_StoreLocation.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -132,8 +138,8 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                                     <SelectValue placeholder='Select Incharge' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {empname_list.map((emp) => (
-                                        <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                    {empname_list?.map((emp, index) => (
+                                        <SelectItem key={emp.hrmE_Id || `emp-${index}`} value={emp.hrmE_Id?.toString() || `emp-${index}`}>
                                             {emp.employeename}
                                         </SelectItem>
                                     ))}
@@ -141,9 +147,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                             </Select>
                         )}
                     />
-                    {errors.hrmE_Id && (
-                        <p className='text-red-500 text-xs'>{errors.hrmE_Id.message}</p>
-                    )}
+                    {errors.hrmE_Id && <p className='text-red-500 text-xs'>{errors.hrmE_Id.message}</p>}
                 </div>
 
                 <div className='space-y-2'>
@@ -151,13 +155,7 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                     <Controller
                         name='invmS_ContactPerson'
                         control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                id='invmS_ContactPerson'
-                                placeholder='Enter Contact Person'
-                            />
-                        )}
+                        render={({ field }) => <Input {...field} id='invmS_ContactPerson' placeholder='Enter Contact Person' />}
                     />
                 </div>
 
@@ -173,18 +171,18 @@ export default function UpdateInvMasterStoreForm({ onSuccess, empname_list, sele
                                 {...field}
                                 id='invmS_ContactNo'
                                 placeholder='Enter Contact Number'
-                                disabled
                                 className={errors.invmS_ContactNo ? 'border-red-500' : ''}
                             />
                         )}
                     />
-                    {errors.invmS_ContactNo && (
-                        <p className='text-red-500 text-xs'>{errors.invmS_ContactNo.message}</p>
-                    )}
+                    {errors.invmS_ContactNo && <p className='text-red-500 text-xs'>{errors.invmS_ContactNo.message}</p>}
                 </div>
             </div>
 
             <div className='flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Updating...' : 'Update'}
                 </Button>

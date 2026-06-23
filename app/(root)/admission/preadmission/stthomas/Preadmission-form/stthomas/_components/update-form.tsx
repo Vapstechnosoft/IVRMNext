@@ -11,9 +11,9 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import 'react-phone-input-2/lib/style.css';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -115,9 +115,13 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0
+            pasR_UndertakingFlag: 0,
+            PASR_FatherAliveFlag: '1',
+            PASR_MotherAliveFlag: '1'
         }
     });
+
+    const isGuardianRequired = watch('PASR_FatherAliveFlag') === '0' && watch('PASR_MotherAliveFlag') === '0';
 
     // Sibling details controlled by react-hook-form
     const {
@@ -152,8 +156,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     return;
                 }
 
-                if (key === 'pasR_DOB' && value) {
-                    setValue(key, new Date(value as string));
+                if (
+                    ['pasR_DOB', 'PASR_ChurchBaptisedDate', 'PASRPSLeftDate', 'PASRPSTcIssueDate', 'PASRPSTCProducingDate'].includes(key) &&
+                    value
+                ) {
+                    setValue(key as any, new Date(value as string));
+                    return;
+                }
+
+                if (
+                    [
+                        'PASR_FatherAliveFlag',
+                        'PASR_FatherSelfEmployedFlg',
+                        'PASR_MotherAliveFlag',
+                        'PASR_MotherSelfEmployedFlg',
+                        'PASRG_FeeUndertakeFlg'
+                    ].includes(key) &&
+                    value !== undefined &&
+                    value !== null
+                ) {
+                    setValue(key as any, String(value));
                     return;
                 }
 
@@ -162,10 +184,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 if (
                     normalized === '' ||
                     normalized === null ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) ||
+                    (normalized === 0 &&
+                        !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(
+                            key
+                        )) ||
                     normalized === '0'
                 ) {
-                    if (!['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)) {
+                    if (
+                        !['pasR_TransportReqdFlag', 'pasR_ConState', 'pasR_PerState', 'caste_Id', 'religion_Id', 'asmcL_Id'].includes(key)
+                    ) {
                         normalized = undefined;
                     }
                 }
@@ -194,7 +221,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                 if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
                     // Check if the value is numeric before converting
-                    if (!isNaN(Number(normalized))) {
+                    if (!Number.isNaN(Number(normalized))) {
                         normalized = Number(normalized);
                     }
                 }
@@ -266,6 +293,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     }, [rowData, setValue, replaceSiblings, replacePreviousSchools]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
+    const [isChurchBaptisedDateOpen, setIsChurchBaptisedDateOpen] = useState(false);
+    const [isLeftDateOpen, setIsLeftDateOpen] = useState(false);
+    const [isTcIssueDateOpen, setIsTcIssueDateOpen] = useState(false);
+    const [isTcProducingDateOpen, setIsTcProducingDateOpen] = useState(false);
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [isClassDisabled, setIsClassDisabled] = useState(true);
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
@@ -429,6 +460,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 'pasR_MotherTongue',
                 'pasR_TransportReqdFlag'
             ];
+
+            if (watch('PASR_Churchname')) {
+                const baptisedDate = watch('PASR_ChurchBaptisedDate');
+                if (!baptisedDate) {
+                    toast.error('Baptised Date is required if Church Name is specified');
+                    return;
+                }
+            }
+
             if (!studentPhoto?.pasR_Student_Pic_Path) {
                 toast.error('Please upload student photo');
                 return;
@@ -475,6 +515,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             }
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+
+            if (isGuardianRequired) {
+                fieldsToValidate.push('PASRG_GuardianName', 'PASRG_GuardianRelation', 'PASRG_Occupation', 'PASRG_GuardianAddress');
+            }
 
             if (!fatherPhoto?.pasR_FatherPhoto) {
                 toast.error('Please upload father photo');
@@ -693,6 +737,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             const {
                 pasR_DOB,
+                PASR_ChurchBaptisedDate,
+                PASRPSLeftDate,
+                PASRPSTcIssueDate,
+                PASRPSTCProducingDate,
                 source_ids,
                 reference_ids,
                 pasR_ConCountry,
@@ -729,6 +777,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
                 ),
                 pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
+                PASR_ChurchBaptisedDate: PASR_ChurchBaptisedDate ? format(PASR_ChurchBaptisedDate, 'yyyy-MM-dd') : null,
+                PASRPSLeftDate: PASRPSLeftDate ? format(PASRPSLeftDate, 'yyyy-MM-dd') : null,
+                PASRPSTcIssueDate: PASRPSTcIssueDate ? format(PASRPSTcIssueDate, 'yyyy-MM-dd') : null,
+                PASRPSTCProducingDate: PASRPSTCProducingDate ? format(PASRPSTCProducingDate, 'yyyy-MM-dd') : null,
                 pasR_Age: 0,
                 pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
                 pasR_FatherPhoto: toNullOther(fatherPhoto?.pasR_FatherPhoto),
@@ -746,9 +798,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 pasR_FatherMobleNo: toNull(data.pasR_FatherMobleNo),
                 pasR_MotherMobleNo: toNull(data.pasR_MotherMobleNo),
                 pasR_AltContactNo: toNull(data.pasR_AltContactNo),
-                pasR_AadharNo: toNull(data.pasR_AadharNo),
+                pasR_AadharNo: data.pasR_AadharNo ? Number(data.pasR_AadharNo) : null,
                 pasR_FatherPanno: toNull(data.pasR_FatherPanno),
                 pasR_MotherPanno: toNull(data.pasR_MotherPanno),
+                PASR_FatherAadharNo: data.PASR_FatherAadharNo ? Number(data.PASR_FatherAadharNo) : null,
+                PASR_MotherAadharNo: data.PASR_MotherAadharNo ? Number(data.PASR_MotherAadharNo) : null,
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -764,14 +818,28 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrS_Institution: '',
                     pasrS_DOB: ''
                 })),
+                previousSchoolDetails: [
+                    {
+                        pasrpS_PrvSchoolName: '',
+                        pasrpS_PreviousClass: '',
+                        pasrpS_Board: '',
+                        pasrpS_LeftYear: '',
+                        pasrpS_LeftReason: '',
+                        pasrpS_Address: ''
+                    }
+                ],
                 previousSchoolList: (getValues('previousSchoolDetails') || []).map((school: any) => ({
                     ...school,
-                    pasrpS_TcNo: '',
-                    pasrpS_PreviousPer: '',
-                    pasrpS_PreviousGrade: '',
-                    pasrpS_PreviousMarks: '',
-                    pasrpS_ConcOrScholarshipFlg: ''
+                    pasrpS_TcNo: school.pasrpS_TcNo || '',
+                    pasrpS_PreviousPer: school.pasrpS_PreviousPer || '',
+                    pasrpS_PreviousGrade: school.pasrpS_PreviousGrade || '',
+                    pasrpS_PreviousMarks: school.pasrpS_PreviousMarks || '',
+                    pasrpS_ConcOrScholarshipFlg: school.pasrpS_ConcOrScholarshipFlg || ''
                 })),
+                PASR_FatherAliveFlag: data.PASR_FatherAliveFlag !== undefined ? Number(data.PASR_FatherAliveFlag) : 1,
+                PASR_MotherAliveFlag: data.PASR_MotherAliveFlag !== undefined ? Number(data.PASR_MotherAliveFlag) : 1,
+                PASR_FatherSelfEmployedFlg: String(data.PASR_FatherSelfEmployedFlg) === 'true' || String(data.PASR_FatherSelfEmployedFlg) === '1',
+                PASR_MotherSelfEmployedFlg: String(data.PASR_MotherSelfEmployedFlg) === 'true' || String(data.PASR_MotherSelfEmployedFlg) === '1',
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -801,8 +869,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
         refetchDropdowns();
     };
-
-
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -1351,8 +1417,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1401,8 +1467,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1600,9 +1666,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     type='button'
                                                                     variant='outline'
                                                                     size='sm'
-                                                                    onClick={() =>
-                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
-                                                                    }>
+                                                                    onClick={() => handleImagePreview(studentPhoto.pasR_Student_Pic_Path)}>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
                                                                 <Button
@@ -1751,8 +1815,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1848,9 +1913,12 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     name='pasR_Sex'
                                                     control={control}
                                                     render={({ field }) => {
-                                                        const normalizedValue = gender?.data?.find(
-                                                            (g) => g.ivrmmG_GenderName.toUpperCase() === field.value?.toString().toUpperCase()
-                                                        )?.ivrmmG_GenderName || field.value?.toString();
+                                                        const normalizedValue =
+                                                            gender?.data?.find(
+                                                                (g) =>
+                                                                    g.ivrmmG_GenderName.toUpperCase() ===
+                                                                    field.value?.toString().toUpperCase()
+                                                            )?.ivrmmG_GenderName || field.value?.toString();
 
                                                         return (
                                                             <Select
@@ -2016,6 +2084,96 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 {...register('pasR_ExtraActivity')}
                                                 error={errors.pasR_ExtraActivity?.message}
                                             />
+                                            <InputText
+                                                label='If Christian, Name of Church'
+                                                id='PASR_Churchname'
+                                                placeholder='Enter church name'
+                                                {...register('PASR_Churchname')}
+                                                error={errors.PASR_Churchname?.message}
+                                            />
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Controller
+                                                    name='PASR_ChurchBaptisedDate'
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Label htmlFor='PASR_ChurchBaptisedDate'>
+                                                                Baptised Date{' '}
+                                                                {watch('PASR_Churchname') ? <span className='text-red-500'>*</span> : null}
+                                                            </Label>
+                                                            <Popover
+                                                                open={isChurchBaptisedDateOpen}
+                                                                onOpenChange={setIsChurchBaptisedDateOpen}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'dd/MM/yyyy')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                setIsChurchBaptisedDateOpen(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                            {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
+                                            <InputText
+                                                label='Address of Church'
+                                                id='PASR_ChurchAddress'
+                                                placeholder='Enter address of church'
+                                                {...register('PASR_ChurchAddress')}
+                                                error={errors.PASR_ChurchAddress?.message}
+                                            />
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label htmlFor='PASR_BloodGroup'>Blood Group</Label>
+                                                <Controller
+                                                    name='PASR_BloodGroup'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            key={field.value || 'empty'}
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ''}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder='Select blood group' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                                                                    <SelectItem key={bg} value={bg}>
+                                                                        {bg}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.PASR_BloodGroup && <FormError>{errors.PASR_BloodGroup.message}</FormError>}
+                                            </div>
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='source_ids'>Source</Label>
                                                 <Controller
@@ -2218,15 +2376,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2401,15 +2559,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2757,9 +2915,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2815,6 +2974,119 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         placeholder={`Enter Father's Company/Office`}
                                                         {...register('pasA_FatherCompany')}
                                                         error={errors.pasA_FatherCompany?.message}
+                                                    />
+                                                    <div className='group flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_FatherAliveFlag'>Father Alive?</Label>
+                                                        <Controller
+                                                            name='PASR_FatherAliveFlag'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <RadioGroup
+                                                                    id='PASR_FatherAliveFlag'
+                                                                    value={field.value !== undefined ? String(field.value) : '1'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    className='flex gap-6 pt-2'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='1'
+                                                                            id='PASR_FatherAliveFlag_yes'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_FatherAliveFlag_yes'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            Yes
+                                                                        </Label>
+                                                                    </div>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='0'
+                                                                            id='PASR_FatherAliveFlag_no'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_FatherAliveFlag_no'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            No
+                                                                        </Label>
+                                                                    </div>
+                                                                </RadioGroup>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <InputText
+                                                        label='Father Church Affiliation'
+                                                        id='PASR_FatherChurchAffiliation'
+                                                        placeholder='Enter church affiliation'
+                                                        {...register('PASR_FatherChurchAffiliation')}
+                                                        error={errors.PASR_FatherChurchAffiliation?.message}
+                                                    />
+                                                    <div className='group flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_FatherSelfEmployedFlg'>Father Self Employed?</Label>
+                                                        <Controller
+                                                            name='PASR_FatherSelfEmployedFlg'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <RadioGroup
+                                                                    id='PASR_FatherSelfEmployedFlg'
+                                                                    value={field.value !== undefined ? String(field.value) : '0'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    className='flex gap-6 pt-2'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='1'
+                                                                            id='PASR_FatherSelfEmployedFlg_yes'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_FatherSelfEmployedFlg_yes'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            Yes
+                                                                        </Label>
+                                                                    </div>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='0'
+                                                                            id='PASR_FatherSelfEmployedFlg_no'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_FatherSelfEmployedFlg_no'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            No
+                                                                        </Label>
+                                                                    </div>
+                                                                </RadioGroup>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <InputText
+                                                        label='Father Office Phone No.'
+                                                        id='PASR_FatherOfficePhNo'
+                                                        placeholder='Enter office phone number'
+                                                        {...register('PASR_FatherOfficePhNo')}
+                                                        error={errors.PASR_FatherOfficePhNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Father Email ID'
+                                                        id='PASR_FatheremailId'
+                                                        placeholder='Enter father email'
+                                                        {...register('PASR_FatheremailId')}
+                                                        error={errors.PASR_FatheremailId?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Father Aadhaar No.'
+                                                        id='PASR_FatherAadharNo'
+                                                        placeholder='Enter father Aadhaar'
+                                                        {...register('PASR_FatherAadharNo')}
+                                                        error={errors.PASR_FatherAadharNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Father Passing Year'
+                                                        id='PASR_FatherPassingYear'
+                                                        placeholder='Enter passing year'
+                                                        {...register('PASR_FatherPassingYear')}
+                                                        error={errors.PASR_FatherPassingYear?.message}
                                                     />
                                                 </div>
                                             </div>
@@ -3104,9 +3376,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3163,6 +3436,112 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasA_MotherCompany')}
                                                         error={errors.pasA_MotherCompany?.message}
                                                     />
+                                                    <div className='group flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_MotherAliveFlag'>Mother Alive?</Label>
+                                                        <Controller
+                                                            name='PASR_MotherAliveFlag'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <RadioGroup
+                                                                    id='PASR_MotherAliveFlag'
+                                                                    value={field.value !== undefined ? String(field.value) : '1'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    className='flex gap-6 pt-2'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='1'
+                                                                            id='PASR_MotherAliveFlag_yes'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_MotherAliveFlag_yes'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            Yes
+                                                                        </Label>
+                                                                    </div>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='0'
+                                                                            id='PASR_MotherAliveFlag_no'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_MotherAliveFlag_no'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            No
+                                                                        </Label>
+                                                                    </div>
+                                                                </RadioGroup>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <InputText
+                                                        label='Mother Church Affiliation'
+                                                        id='PASR_MotherChurchAffiliation'
+                                                        placeholder='Enter church affiliation'
+                                                        {...register('PASR_MotherChurchAffiliation')}
+                                                        error={errors.PASR_MotherChurchAffiliation?.message}
+                                                    />
+                                                    <div className='group flex flex-col gap-1.5'>
+                                                        <Label htmlFor='PASR_MotherSelfEmployedFlg'>Mother Self Employed?</Label>
+                                                        <Controller
+                                                            name='PASR_MotherSelfEmployedFlg'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <RadioGroup
+                                                                    id='PASR_MotherSelfEmployedFlg'
+                                                                    value={field.value !== undefined ? String(field.value) : '0'}
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    className='flex gap-6 pt-2'>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='1'
+                                                                            id='PASR_MotherSelfEmployedFlg_yes'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_MotherSelfEmployedFlg_yes'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            Yes
+                                                                        </Label>
+                                                                    </div>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <RadioGroupItem
+                                                                            value='0'
+                                                                            id='PASR_MotherSelfEmployedFlg_no'
+                                                                            className='h-5 w-5'
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='PASR_MotherSelfEmployedFlg_no'
+                                                                            className='cursor-pointer font-medium'>
+                                                                            No
+                                                                        </Label>
+                                                                    </div>
+                                                                </RadioGroup>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <InputText
+                                                        label='Mother Office Phone No.'
+                                                        id='PASR_MotherOfficePhNo'
+                                                        placeholder='Enter office phone number'
+                                                        {...register('PASR_MotherOfficePhNo')}
+                                                        error={errors.PASR_MotherOfficePhNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Mother Email ID'
+                                                        id='PASR_MotheremailId'
+                                                        placeholder='Enter mother email'
+                                                        {...register('PASR_MotheremailId')}
+                                                        error={errors.PASR_MotheremailId?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Mother Aadhaar No.'
+                                                        id='PASR_MotherAadharNo'
+                                                        placeholder='Enter mother Aadhaar'
+                                                        {...register('PASR_MotherAadharNo')}
+                                                        error={errors.PASR_MotherAadharNo?.message}
+                                                    />
                                                 </div>
                                             </div>
 
@@ -3211,9 +3590,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3232,6 +3612,84 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     />
                                                 </div>
                                             </div>
+                                            {isGuardianRequired && (
+                                                <div className='space-y-4 border-t pt-6'>
+                                                    <h3 className='font-bold text-gray-800 text-lg'>Guardian Details</h3>
+                                                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                        <InputText
+                                                            label='Guardian Name'
+                                                            id='PASRG_GuardianName'
+                                                            placeholder='Enter guardian name'
+                                                            {...register('PASRG_GuardianName')}
+                                                            error={errors.PASRG_GuardianName?.message}
+                                                            required
+                                                        />
+                                                        <InputText
+                                                            label='Guardian Relation'
+                                                            id='PASRG_GuardianRelation'
+                                                            placeholder='Enter guardian relation'
+                                                            {...register('PASRG_GuardianRelation')}
+                                                            error={errors.PASRG_GuardianRelation?.message}
+                                                            required
+                                                        />
+                                                        <InputText
+                                                            label='Guardian Occupation'
+                                                            id='PASRG_Occupation'
+                                                            placeholder='Enter occupation'
+                                                            {...register('PASRG_Occupation')}
+                                                            error={errors.PASRG_Occupation?.message}
+                                                            required
+                                                        />
+                                                        <InputText
+                                                            label='Guardian Address'
+                                                            id='PASRG_GuardianAddress'
+                                                            placeholder='Enter address'
+                                                            {...register('PASRG_GuardianAddress')}
+                                                            error={errors.PASRG_GuardianAddress?.message}
+                                                            required
+                                                        />
+                                                        <div className='group flex flex-col gap-1.5'>
+                                                            <Label htmlFor='PASRG_FeeUndertakeFlg'>Fee Undertake?</Label>
+                                                            <Controller
+                                                                name='PASRG_FeeUndertakeFlg'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <RadioGroup
+                                                                        id='PASRG_FeeUndertakeFlg'
+                                                                        value={field.value !== undefined ? String(field.value) : '0'}
+                                                                        onValueChange={(value) => field.onChange(value)}
+                                                                        className='flex gap-6 pt-2'>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <RadioGroupItem
+                                                                                value='1'
+                                                                                id='PASRG_FeeUndertakeFlg_yes'
+                                                                                className='h-5 w-5'
+                                                                            />
+                                                                            <Label
+                                                                                htmlFor='PASRG_FeeUndertakeFlg_yes'
+                                                                                className='cursor-pointer font-medium'>
+                                                                                Yes
+                                                                            </Label>
+                                                                        </div>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <RadioGroupItem
+                                                                                value='0'
+                                                                                id='PASRG_FeeUndertakeFlg_no'
+                                                                                className='h-5 w-5'
+                                                                            />
+                                                                            <Label
+                                                                                htmlFor='PASRG_FeeUndertakeFlg_no'
+                                                                                className='cursor-pointer font-medium'>
+                                                                                No
+                                                                            </Label>
+                                                                        </div>
+                                                                    </RadioGroup>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -3452,9 +3910,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                     className='w-fit'
                                                                                     onClick={() => {
                                                                                         const path = uploadedDoc.document_Path;
-                                                                                        if (
-                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-                                                                                        ) {
+                                                                                        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                                                                                             handleImagePreview(path);
                                                                                         } else {
                                                                                             window.open(path, '_blank');
@@ -3808,6 +4264,140 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     ))}
                                                 </div>
                                             )}
+                                            <div className='mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                <Controller
+                                                    name='PASRPSLeftDate'
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='PASRPSLeftDate'>Left Date</Label>
+                                                            <Popover open={isLeftDateOpen} onOpenChange={setIsLeftDateOpen}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'dd/MM/yyyy')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                setIsLeftDateOpen(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                            {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name='PASRPSTcIssueDate'
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='PASRPSTcIssueDate'>TC Issue Date</Label>
+                                                            <Popover open={isTcIssueDateOpen} onOpenChange={setIsTcIssueDateOpen}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'dd/MM/yyyy')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                setIsTcIssueDateOpen(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                            {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name='PASRPSTCProducingDate'
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col gap-1.5'>
+                                                            <Label htmlFor='PASRPSTCProducingDate'>TC Producing Date</Label>
+                                                            <Popover open={isTcProducingDateOpen} onOpenChange={setIsTcProducingDateOpen}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'dd/MM/yyyy')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                setIsTcProducingDateOpen(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                            {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
                                         </div>
 
                                         <InputTextarea
@@ -3985,8 +4575,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
@@ -4000,18 +4590,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         <DialogTitle>Image Preview</DialogTitle>
                     </DialogHeader>
                     <div className='flex items-center justify-center p-4'>
-                        {previewImage && (
-                            <img
-                                src={previewImage}
-                                alt='Preview'
-                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
-                            />
-                        )}
+                        {previewImage && <img src={previewImage} alt='Preview' className='max-h-[70vh] w-auto rounded-lg shadow-lg' />}
                     </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
-
-

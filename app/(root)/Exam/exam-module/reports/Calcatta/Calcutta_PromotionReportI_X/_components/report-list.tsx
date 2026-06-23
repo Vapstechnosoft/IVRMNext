@@ -16,6 +16,7 @@ export default function CalcuttaPromotionReportI_IXList() {
             setLoading(true);
             setPayload(data);
             const result = await getCalcuttaPromotionReportI_IX(data);
+            console.log('Report Data:', result);
             setReportData(result);
         } catch (error) {
             console.error('Failed to generate report', error);
@@ -37,6 +38,38 @@ export default function CalcuttaPromotionReportI_IXList() {
         if (!date) return '';
         const d = new Date(date);
         return d.toLocaleDateString('en-GB'); // dd/MM/yyyy
+    };
+
+    // Helper to compute totals dynamically if getgradelist is empty
+    const getComputedTotals = (student: any) => {
+        let groupObtainedSum = 0;
+        let yearlyObtainedSum = 0;
+        let maxMarksSum = 0;
+
+        const subjects = student.studentsubjects || [];
+        subjects.forEach((subj: any) => {
+            const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
+            if (appToResult === true || appToResult === 'true') {
+                const groupMarks = subj.estmppsG_GroupObtMarks ?? subj.groupMarks ?? 0;
+                const yearlyMarks = subj.yeralyGroupObtMarks ?? subj.yearlyMarks ?? 0;
+                const maxMarks = subj.empS_MaxMarks ?? subj.maxMarks ?? 0;
+
+                groupObtainedSum += Number(groupMarks) || 0;
+                yearlyObtainedSum += Number(yearlyMarks) || 0;
+                maxMarksSum += Number(maxMarks) || 0;
+            }
+        });
+
+        const groupPercentage = maxMarksSum > 0 ? ((groupObtainedSum / maxMarksSum) * 100).toFixed(1) : '0';
+        const yearlyPercentage = (maxMarksSum / 2) > 0 ? ((yearlyObtainedSum / (maxMarksSum / 2)) * 100).toFixed(1) : '0';
+
+        return {
+            groupObtainedSum,
+            yearlyObtainedSum,
+            maxMarksSum,
+            groupPercentage,
+            yearlyPercentage
+        };
     };
 
     return (
@@ -70,7 +103,7 @@ export default function CalcuttaPromotionReportI_IXList() {
                         </button>
                     </div>
 
-                    <div className="print-content text-black">
+                    <div className="printable-content text-black">
                         <style dangerouslySetInnerHTML={{
                             __html: `
                             @media print {
@@ -115,11 +148,11 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                     <div className="flex-1 space-y-2">
                                                         <div className="grid grid-cols-[120px_1fr] items-center gap-2">
                                                             <div className="font-bold">Student's Name</div>
-                                                            <div>: {report.amsT_FirstName} {report.amsT_MiddleName} {report.amsT_LastName}</div>
+                                                            <div>: {report.amsT_FirstName ?? report.AMST_FirstName ?? ''} {report.amsT_MiddleName ?? report.AMST_MiddleName ?? ''} {report.amsT_LastName ?? report.AMST_LastName ?? ''}</div>
                                                         </div>
                                                         <div className="grid grid-cols-[120px_1fr] items-center gap-2">
                                                             <div className="font-bold">Scholar No.</div>
-                                                            <div>: {report.amsT_AdmNo}</div>
+                                                            <div>: {report.amsT_AdmNo ?? report.AMST_AdmNo ?? ''}</div>
                                                         </div>
                                                         <div className="grid grid-cols-[120px_1fr] items-center gap-2">
                                                             <div className="font-bold">Total Students</div>
@@ -130,20 +163,20 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                         <div className="flex-1 space-y-2">
                                                             <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                                                                 <div className="font-bold">Class & Sec</div>
-                                                                <div>: {report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                                                <div>: {report.asmcL_ClassName ?? report.ASMCL_ClassName ?? ''} - {report.asmC_SectionName ?? report.ASMC_SectionName ?? ''}</div>
                                                             </div>
                                                             <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                                                                 <div className="font-bold">Roll No</div>
-                                                                <div>: {report.amaY_RollNo}</div>
+                                                                <div>: {report.amaY_RollNo ?? report.AMAY_RollNo ?? ''}</div>
                                                             </div>
                                                         </div>
                                                         <div className="flex w-[100px] items-center justify-center text-right">
-                                                            {report.amsT_Photoname && (
+                                                            {(report.amsT_Photoname ?? report.AMST_Photoname) && (
                                                                 <div className="relative h-[100px] w-[100px] border border-gray-300">
-                                                                    <Image src={report.amsT_Photoname} alt="Student Photo" fill className="object-contain" />
+                                                                    <Image src={report.amsT_Photoname ?? report.AMST_Photoname} alt="Student Photo" fill className="object-contain" />
                                                                 </div>
                                                             )}
-                                                            {!report.amsT_Photoname && (
+                                                            {!(report.amsT_Photoname ?? report.AMST_Photoname) && (
                                                                 <div className="flex h-[100px] w-[100px] items-center justify-center border border-gray-300 bg-gray-100 text-xs text-gray-400">
                                                                     Photo
                                                                 </div>
@@ -188,15 +221,17 @@ export default function CalcuttaPromotionReportI_IXList() {
                                             {/* Applicable Subjects */}
                                             {report.studentsubjects.map((subj: any, sIdx: number) => {
                                                 if (!subj.EMPS_AppToResultFlg && !subj.empS_AppToResultFlg) return null;
+                                                const isSubjGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                                                                      subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                                const colspanVal = subj.colspan !== undefined && subj.colspan !== null ? Number(subj.colspan) : 0;
                                                 return (
                                                     <tr key={sIdx}>
                                                         <td className="border border-black p-1 text-left break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
 
                                                         {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                            const isGrouped = subj.GropuFlag || subj.gropuFlag;
-                                                            if (isGrouped && grpexam.EME_Id === 9800000 && subj.colspan === -1) return null;
+                                                            if (isSubjGrouped && Number(grpexam.EME_Id) === 9800000 && colspanVal === -1) return null;
 
-                                                            const rs = (subj.colspan > 1 && isGrouped && grpexam.EME_Id !== 98000012 && grpexam.EME_Id === 9800000) ? subj.colspan : 1;
+                                                            const rs = (colspanVal > 1 && isSubjGrouped && Number(grpexam.EME_Id) !== 98000012 && Number(grpexam.EME_Id) === 9800000) ? colspanVal : 1;
 
                                                             return (
                                                                 <td key={eIdx} rowSpan={rs} className="border border-black p-1 text-center">
@@ -279,24 +314,24 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                         })}
 
                                                         {/* Grand Total Column */}
-                                                        {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
-                                                            <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarks || subj.groupMarks}</span>}
-                                                                {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) && (
+                                                        {(!isSubjGrouped || colspanVal !== -1) && (
+                                                            <td rowSpan={(colspanVal > 1 && isSubjGrouped) ? colspanVal : 1} className="border border-black p-1 text-center">
+                                                                {isSubjGrouped && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarks || subj.groupMarks}</span>}
+                                                                {!isSubjGrouped && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) && (
                                                                     <span>
                                                                         {subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? subj.ESTMPPSG_GroupObtMarks} {(subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'SE' && `/ ${subj.EMPS_MaxMarks || subj.empS_MaxMarks}`}
                                                                     </span>
                                                                 )}
-                                                                {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
+                                                                {!isSubjGrouped && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
                                                             </td>
                                                         )}
 
                                                         {/* Yearly Avg Column */}
-                                                        {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
-                                                            <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarksnew || subj.groupMarksnew}</span>}
-                                                                {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks}</span>}
-                                                                {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
+                                                        {(!isSubjGrouped || colspanVal !== -1) && (
+                                                            <td rowSpan={(colspanVal > 1 && isSubjGrouped) ? colspanVal : 1} className="border border-black p-1 text-center">
+                                                                {isSubjGrouped && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarksnew || subj.groupMarksnew}</span>}
+                                                                {!isSubjGrouped && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks}</span>}
+                                                                {!isSubjGrouped && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
                                                             </td>
                                                         )}
                                                     </tr>
@@ -322,10 +357,24 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                     </td>
                                                 ))}
                                                 <td className="border border-black p-1 text-center font-bold">
-                                                    {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${Math.round(dd.GroupMarks_Total)}/${dd.maxmarks}`).join(', ')}
+                                                    {(() => {
+                                                        const list = reportData.getgradelist?.filter((d: any) => (d.AMST_Id || d.amsT_Id) === (report.amsT_Id || report.AMST_Id)) || [];
+                                                        if (list.length > 0) {
+                                                            return list.map((dd: any) => `${Math.round(dd.GroupMarks_Total ?? dd.groupMarks_Total ?? 0)}/${dd.maxmarks ?? dd.maxMarks ?? 0}`).join(', ');
+                                                        }
+                                                        const computed = getComputedTotals(report);
+                                                        return `${Math.round(computed.groupObtainedSum)}/${computed.maxMarksSum}`;
+                                                    })()}
                                                 </td>
                                                 <td className="border border-black p-1 text-center font-bold">
-                                                    {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${Math.round(dd.YearlyMarks_Total)}/${dd.maxmarks / 2}`).join(', ')}
+                                                    {(() => {
+                                                        const list = reportData.getgradelist?.filter((d: any) => (d.AMST_Id || d.amsT_Id) === (report.amsT_Id || report.AMST_Id)) || [];
+                                                        if (list.length > 0) {
+                                                            return list.map((dd: any) => `${Math.round(dd.YearlyMarks_Total ?? dd.yearlyMarks_Total ?? 0)}/${(dd.maxmarks ?? dd.maxMarks ?? 0) / 2}`).join(', ');
+                                                        }
+                                                        const computed = getComputedTotals(report);
+                                                        return `${Math.round(computed.yearlyObtainedSum)}/${computed.maxMarksSum / 2}`;
+                                                    })()}
                                                 </td>
                                             </tr>
 
@@ -343,10 +392,24 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                     </td>
                                                 ))}
                                                 <td className="border border-black p-1 text-center font-bold">
-                                                    {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${dd.GroupMarks_PER}%`).join(', ')}
+                                                    {(() => {
+                                                        const list = reportData.getgradelist?.filter((d: any) => (d.AMST_Id || d.amsT_Id) === (report.amsT_Id || report.AMST_Id)) || [];
+                                                        if (list.length > 0) {
+                                                            return list.map((dd: any) => `${dd.GroupMarks_PER ?? dd.groupMarks_PER ?? ''}%`).join(', ');
+                                                        }
+                                                        const computed = getComputedTotals(report);
+                                                        return `${computed.groupPercentage}%`;
+                                                    })()}
                                                 </td>
                                                 <td className="border border-black p-1 text-center font-bold">
-                                                    {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${dd.YearlyMarks_PER}%`).join(', ')}
+                                                    {(() => {
+                                                        const list = reportData.getgradelist?.filter((d: any) => (d.AMST_Id || d.amsT_Id) === (report.amsT_Id || report.AMST_Id)) || [];
+                                                        if (list.length > 0) {
+                                                            return list.map((dd: any) => `${dd.YearlyMarks_PER ?? dd.yearlyMarks_PER ?? ''}%`).join(', ');
+                                                        }
+                                                        const computed = getComputedTotals(report);
+                                                        return `${computed.yearlyPercentage}%`;
+                                                    })()}
                                                 </td>
                                             </tr>
 
@@ -418,18 +481,18 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                 <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
                                                     <tbody>
                                                         <tr>
-                                                            <td className="border border-black p-1 font-bold">{skill.ECS_SkillName}</td>
+                                                            <td className="border border-black p-1 font-bold">{skill.ECS_SkillName ?? skill.ecs_SkillName}</td>
                                                             {reportData.gettermdetails.map((cos: any, cIdx: number) => (
-                                                                <td key={cIdx} className="border border-black bg-[#d1d5db] p-1 text-center print:bg-[#d1d5db]">{cos.ecT_TermName}</td>
+                                                                <td key={cIdx} className="border border-black bg-[#d1d5db] p-1 text-center print:bg-[#d1d5db]">{cos.ecT_TermName ?? cos.ECT_TermName}</td>
                                                             ))}
                                                         </tr>
-                                                        {reportData.activitylist_temp.filter((ax: any) => ax.ECS_Id === skill.ECS_Id).map((skillx: any, axIdx: number) => (
+                                                        {reportData.activitylist_temp.filter((ax: any) => (ax.ECS_Id ?? ax.ecS_Id) === (skill.ECS_Id ?? skill.ecS_Id)).map((skillx: any, axIdx: number) => (
                                                             <tr key={axIdx}>
                                                                 <td className="border border-black p-1">{skillx.ECSA_SkillArea}</td>
                                                                 {reportData.gettermdetails.map((cosx: any, cIdx: number) => (
                                                                     <td key={cIdx} className="border border-black p-1 text-center">
-                                                                        {report.studentSkills.filter((gradex: any) => gradex.ECT_Id === cosx.ecT_Id && gradex.ECSA_Id === skillx.ECSA_Id).map((gradex: any, gxIdx: number) => (
-                                                                            <span key={gxIdx}>{gradex.EMGD_Name}</span>
+                                                                        {report.studentSkills.filter((gradex: any) => gradex.ecT_Id === cosx.ecT_Id && gradex.ecsA_Id === skillx.ECSA_Id).map((gradex: any, gxIdx: number) => (
+                                                                            <span key={gxIdx}>{gradex.emgD_Name_F4 ?? gradex.emgD_Name_F4}</span>
                                                                         ))}
                                                                     </td>
                                                                 ))}

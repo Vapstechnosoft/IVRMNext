@@ -121,17 +121,17 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                 );
                 const valid = Array.isArray(data)
                     ? (data as any[]).filter(
-                          (
-                              s
-                          ): s is {
-                              amsT_AdmNo: number;
-                              amsT_Id: number;
-                              studentName?: string;
-                              amsT_FirstName?: string;
-                              amsT_MiddleName?: string;
-                              amsT_LastName?: string;
-                          } => !!s?.amsT_Id
-                      )
+                        (
+                            s
+                        ): s is {
+                            amsT_AdmNo: number;
+                            amsT_Id: number;
+                            studentName?: string;
+                            amsT_FirstName?: string;
+                            amsT_MiddleName?: string;
+                            amsT_LastName?: string;
+                        } => !!s?.amsT_Id
+                    )
                     : [];
 
                 const mappedStudents = valid.map((s) => ({
@@ -183,6 +183,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         };
         try {
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
+            console.log('StThomos Report Card X_XII API Response:', result);
             const enrichedParams = {
                 ...data,
                 ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,

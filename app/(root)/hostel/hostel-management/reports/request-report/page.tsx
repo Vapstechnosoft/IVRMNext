@@ -4,24 +4,22 @@ import { useState } from 'react';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { requestReportSchema, RequestReportValues } from '@/schemas/hostel/reports/request-report.schema';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Loader2, Printer, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { FileText, Loader2, Printer, XCircle, Minus, Download } from 'lucide-react';
+import { DateField } from '@/components/ui/dateField';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getRequestReport } from '@/server/hostel/hostel-management/reports/request-report';
+import { getRequestReport, RequestReportDto } from '@/server/hostel/hostel-management/reports/request-report';
+import { Heading } from '@/components/layout/heading';
 
 export default function RequestReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [type, setType] = useState<'student' | 'staff'>('student');
-    const [currentDate] = useState(new Date());
 
     const form = useForm<RequestReportValues>({
         resolver: zodResolver(requestReportSchema),
@@ -36,16 +34,16 @@ export default function RequestReportPage() {
         setLoading(true);
         setType(values.type);
         try {
-            const data = await getRequestReport(values);
-            // if (data && data.grid_list) {
-            //     setReportData(data.grid_list);
-            //     if (data.grid_list.length === 0) {
-            //         toast.info("No data found for selected criteria");
-            //     }
-            // } else {
-            //     setReportData([]);
-            //     toast.info("No data found for selected criteria");
-            // }
+            const data: RequestReportDto = await getRequestReport(values);
+            if (data?.grid_list) {
+                setReportData(data.grid_list);
+                if (data.grid_list.length === 0) {
+                    toast.info("No data found for selected criteria");
+                }
+            } else {
+                setReportData([]);
+                toast.info("No data found for selected criteria");
+            }
         } catch (error) {
             console.error(error);
             toast.error("Failed to fetch report data");
@@ -56,7 +54,6 @@ export default function RequestReportPage() {
 
     const handlePrint = () => {
         if (!reportData || reportData.length === 0) return;
-
         const tableContent = document.getElementById('reportTable');
         const fromDate = form.getValues('fromDate');
         const toDate = form.getValues('toDate');
@@ -72,28 +69,20 @@ export default function RequestReportPage() {
                             <style>
                                 body { font-family: 'Times New Roman', serif; padding: 20px; }
                                 .header { text-align: center; margin-bottom: 20px; }
-                                .school-name { font-size: 24px; font-weight: bold; color: #2e57a0; margin: 0; }
+                                .school-name { font-size: 24px; font-weight: bold; color: #4255a7; margin: 0; }
                                 .report-title { font-size: 18px; font-weight: bold; margin-top: 10px; }
-                                .dates { font-size: 14px; margin-top: 5px; }
                                 table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
                                 th, td { border: 1px solid black; padding: 8px; text-align: left; }
                                 th { background-color: #f2f2f2; font-weight: bold; }
-                                .text-center { text-align: center; }
                             </style>
                         </head>
                         <body onload="window.print(); window.close();">
                             <div class="header">
                                 <h1 class="school-name">Hostel Request Report</h1>
-                                <div class="report-title">Request Details</div>
-                                <div class="dates">
-                                    From: ${format(fromDate, 'dd/MM/yyyy')} To: ${format(toDate, 'dd/MM/yyyy')}
-                                </div>
+                                <div class="report-title">Request Details (${type.toUpperCase()})</div>
+                                <div class="dates">From: ${format(fromDate, 'dd/MM/yyyy')} To: ${format(toDate, 'dd/MM/yyyy')}</div>
                             </div>
                             ${tableContent.outerHTML}
-                            <div style="margin-top: 40px; display: flex; justify-content: space-between; font-size: 12px;">
-                                <div>Signature</div>
-                                <div>Date: ${format(currentDate, 'dd/MM/yyyy')}</div>
-                            </div>
                         </body>
                     </html>
                 `);
@@ -104,162 +93,151 @@ export default function RequestReportPage() {
 
     return (
         <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <Card>
-                    <CardHeader className="pb-4">
-                        <CardTitle>Hostel Request Report</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <FormProvider {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <Controller
-                                        control={form.control}
-                                        name="type"
-                                        render={({ field, fieldState }) => (
-                                            <div className="space-y-3">
-                                                <Label>Occupant Type</Label>
+            <div className="flex items-center justify-end px-8 py-2 text-[10px] text-gray-500 font-medium bg-gray-100/50">
+                <span>Report &gt; RequestReport</span>
+            </div>
+            <div className="flex-1 space-y-4 p-8 pt-4 bg-slate-50/50 min-h-screen">
+                <Heading 
+                    title="Request Report" 
+                    description="View and generate hostel request reports."
+                />
+                
+                <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                    <Card className="shadow-md border-t-4 border-t-[#4255a7]">
+                        <CardHeader className="bg-white py-2 px-4 border-b flex flex-row items-center justify-between">
+                            <CardTitle className="text-[#4255a7] text-sm font-bold uppercase tracking-wider">
+                                HOSTEL STUDENT AND STAFF REQUEST REPORT
+                            </CardTitle>
+                            <Minus className="h-4 w-4 text-gray-400 cursor-pointer" />
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <FormProvider {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+                                    {/* Type Selection Bar */}
+                                    <div className="bg-gray-50/50 p-4 border-b flex justify-center">
+                                        <Controller
+                                            control={form.control}
+                                            name="type"
+                                            render={({ field }) => (
                                                 <RadioGroup
                                                     onValueChange={field.onChange}
-                                                    defaultValue={field.value}
-                                                    className="flex flex-row space-x-4"
+                                                    value={field.value}
+                                                    className="flex space-x-12"
                                                 >
-                                                    <div className="flex items-center space-x-2 space-y-0">
-                                                        <RadioGroupItem value="student" />
-                                                        <Label className="font-normal">Student</Label>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="student" id="student" />
+                                                        <Label htmlFor="student" className="cursor-pointer font-bold uppercase text-xs">Student</Label>
                                                     </div>
-                                                    <div className="flex items-center space-x-2 space-y-0">
-                                                        <RadioGroupItem value="staff" />
-                                                        <Label className="font-normal">Staff</Label>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="staff" id="staff" />
+                                                        <Label htmlFor="staff" className="cursor-pointer font-bold uppercase text-xs">Staff</Label>
                                                     </div>
                                                 </RadioGroup>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            )}
+                                        />
+                                    </div>
+
+                                    {/* Form Body */}
+                                    <div className="p-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-1 max-w-3xl mx-auto">
+                                            <div className="flex items-center py-1">
+                                                <Label className="w-40 text-left text-gray-700 font-medium">From Date:<span className="text-red-500">*</span></Label>
+                                                <span className="text-gray-500 mr-4">:</span>
+                                                <div className="flex-1">
+                                                    <Controller
+                                                        control={form.control}
+                                                        name="fromDate"
+                                                        render={({ field, fieldState }) => (
+                                                            <DateField field={field} fieldState={fieldState} label="" placeholder="Select date" />
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
-                                        )}
-                                    />
-                                    <Controller
-                                        control={form.control}
-                                        name="fromDate"
-                                        render={({ field, fieldState }) => (
-                                            <div className="flex flex-col">
-                                                <Label>From Date</Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant={"outline"}
-                                                            className={cn(
-                                                                "w-full pl-3 text-left font-normal",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            {field.value ? (
-                                                                format(field.value, "PPP")
-                                                            ) : (
-                                                                <span>Pick a date</span>
-                                                            )}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) =>
-                                                                date > new Date() || date < new Date("1900-01-01")
-                                                            }
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+
+                                            <div className="flex items-center py-1">
+                                                <Label className="w-40 text-left text-gray-700 font-medium">To Date:<span className="text-red-500">*</span></Label>
+                                                <span className="text-gray-500 mr-4">:</span>
+                                                <div className="flex-1">
+                                                    <Controller
+                                                        control={form.control}
+                                                        name="toDate"
+                                                        render={({ field, fieldState }) => (
+                                                            <DateField field={field} fieldState={fieldState} label="" placeholder="Select date" />
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
-                                        )}
-                                    />
-                                    <Controller
-                                        control={form.control}
-                                        name="toDate"
-                                        render={({ field, fieldState }) => (
-                                            <div className="flex flex-col">
-                                                <Label>To Date</Label>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant={"outline"}
-                                                            className={cn(
-                                                                "w-full pl-3 text-left font-normal",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            {field.value ? (
-                                                                format(field.value, "PPP")
-                                                            ) : (
-                                                                <span>Pick a date</span>
-                                                            )}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) =>
-                                                                date > new Date() || date < new Date("1900-01-01")
-                                                            }
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
-                                        )}
-                                    />
-                                </div>
-                                <div className="flex justify-end gap-2">
-                                    <Button type="submit" disabled={loading} className="w-32">
-                                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                                        Generate
-                                    </Button>
-                                    <Button type="button" variant="outline" onClick={handlePrint} disabled={!reportData.length} className="w-32">
-                                        <Printer className="mr-2 h-4 w-4" />
-                                        Print
-                                    </Button>
-                                </div>
-                            </form>
-                        </FormProvider>
-                    </CardContent>
-                </Card>
+                                        </div>
+
+                                        {/* Action Row */}
+                                        <div className="flex items-center justify-center gap-4 mt-12">
+                                            <Button 
+                                                type="submit" 
+                                                disabled={loading}
+                                                className="w-32 bg-[#4255a7] hover:bg-[#354486] text-white rounded-md shadow-md uppercase font-bold text-xs"
+                                            >
+                                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-3 w-3" />}
+                                                REPORT
+                                            </Button>
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                onClick={() => {
+                                                    form.reset();
+                                                    setReportData([]);
+                                                }} 
+                                                className="w-32 bg-[#ff5c33] hover:bg-[#e64d26] text-white border-none rounded-md shadow-md uppercase font-bold text-xs"
+                                            >
+                                                <XCircle className="mr-2 h-3 w-3" />
+                                                CANCEL
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </FormProvider>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {reportData.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Report Results</CardTitle>
+                    <Card className="shadow-md border-t-4 border-t-[#4255a7] animate-in fade-in slide-in-from-top-4 duration-700">
+                        <CardHeader className="bg-[#4255a7] py-1 px-4 flex flex-row items-center justify-between">
+                            <CardTitle className="text-white text-[11px] font-bold uppercase tracking-wider">REPORT DETAILS</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="sm" onClick={handlePrint} className="h-6 text-white hover:bg-white/20 text-[10px]">
+                                    <Printer className="h-3 w-3 mr-1" /> PRINT
+                                </Button>
+                                <Minus className="h-3 w-3 text-white cursor-pointer opacity-70" />
+                            </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="rounded-md border">
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
                                 <Table id="reportTable">
-                                    <TableHeader>
+                                    <TableHeader className="bg-gray-50">
                                         <TableRow>
-                                            <TableHead className="w-[80px]">SL.No.</TableHead>
-                                            <TableHead>{type === 'student' ? 'Student Name' : 'Staff Name'}</TableHead>
-                                            <TableHead>{type === 'student' ? 'Class' : 'Department'}</TableHead>
-                                            <TableHead>Hostel</TableHead>
-                                            <TableHead>Category</TableHead>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>Status</TableHead>
+                                            <TableHead className="w-[80px] text-gray-700 font-bold">SL.No.</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">{type === 'student' ? 'Student Name' : 'Staff Name'}</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">{type === 'student' ? 'Class' : 'Department'}</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">Hostel</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">Category</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">Date</TableHead>
+                                            <TableHead className="text-gray-700 font-bold">Status</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {reportData.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{index + 1}</TableCell>
-                                                <TableCell>{type === 'student' ? item.studentname : item.empname}</TableCell>
-                                                <TableCell>{type === 'student' ? item.ASMCL_ClassName : item.HRMD_DepartmentName}</TableCell>
-                                                <TableCell>{item.HLMH_Name}</TableCell>
-                                                <TableCell>{item.HLMRCA_RoomCategory}</TableCell>
-                                                <TableCell>{format(new Date(item.HLHSREQ_RequestDate || item.HLHSTREQ_RequestDate), 'dd/MM/yyyy')}</TableCell>
-                                                <TableCell>{item.HLHSREQ_BookingStatus}</TableCell>
+                                            <TableRow key={index} className="hover:bg-gray-50/50">
+                                                <TableCell className="py-2 text-xs">{index + 1}</TableCell>
+                                                <TableCell className="py-2 text-xs">{type === 'student' ? item.studentname : item.empname}</TableCell>
+                                                <TableCell className="py-2 text-xs">{type === 'student' ? item.ASMCL_ClassName : item.HRMD_DepartmentName}</TableCell>
+                                                <TableCell className="py-2 text-xs">{item.HLMH_Name}</TableCell>
+                                                <TableCell className="py-2 text-xs">{item.HLMRCA_RoomCategory}</TableCell>
+                                                <TableCell className="py-2 text-xs">
+                                                    {item.HLHSREQ_RequestDate || item.HLHSTREQ_RequestDate 
+                                                        ? format(new Date(item.HLHSREQ_RequestDate || item.HLHSTREQ_RequestDate), 'dd/MM/yyyy') 
+                                                        : '-'}
+                                                </TableCell>
+                                                <TableCell className="py-2 text-xs">{item.HLHSREQ_BookingStatus || '-'}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

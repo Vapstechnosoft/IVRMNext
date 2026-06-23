@@ -2,16 +2,212 @@
 
 import { api } from '@/lib/apiService';
 
+import { transformReportData } from './bcehs-final-promotion-report';
+
+function getProp(obj: any, snake: string, camel: string) {
+    if (!obj) return undefined;
+    if (obj[camel] !== undefined) return obj[camel];
+    if (obj[snake] !== undefined) return obj[snake];
+    const lower = camel.toLowerCase();
+    if (obj[lower] !== undefined) return obj[lower];
+    return undefined;
+}
+
 export async function getBBHSFinalPromotionReportBBHS(data: any) {
-    return await getBaldwinReportDetails(data);
+    const url = '/Baldwin_All_Reports/Baldwin_Final_P_Report_card';
+
+    const payload = {
+        asmaY_Id: Number(data.ASMAY_Id),
+        asmcL_Id: Number(data.ASMCL_Id),
+        asmS_Id: Number(data.ASMS_Id),
+        temp_AmstIds: data.selectedStudents.map((id: any) => ({ amsT_Id: Number(id) })),
+        ASMAY_Id: Number(data.ASMAY_Id),
+        ASMCL_Id: Number(data.ASMCL_Id),
+        ASMS_Id: Number(data.ASMS_Id),
+        Temp_AmstIds: data.selectedStudents.map((id: any) => ({ amsT_Id: Number(id) }))
+    };
+
+    const response = await api.post<any>('exam', url, payload);
+    console.log('getBBHSFinalPromotionReportBBHS success:', response?.success);
+    console.log('getBBHSFinalPromotionReportBBHS keys:', response ? Object.keys(response) : 'null');
+
+    const actualData = response?.data || response;
+    console.log('actualData keys:', actualData ? Object.keys(actualData) : 'null');
+
+    const examlist = getProp(actualData, 'examlist', 'examList') || [];
+    const subjectlist = getProp(actualData, 'subjectlist', 'subjectList') || [];
+    const studentlist = getProp(actualData, 'studentlist', 'studentList') || [];
+
+    console.log('Lengths - examlist:', examlist.length, 'subjectlist:', subjectlist.length, 'studentlist:', studentlist.length);
+
+    const hasExamList = examlist.length > 0;
+    const hasSubjectList = subjectlist.length > 0;
+
+    if (actualData && hasExamList && hasSubjectList) {
+        const transformed = await transformReportData(actualData, Number(data.ASMAY_Id), Number(data.ASMCL_Id), Number(data.ASMS_Id));
+        console.log('transformed student_list length:', transformed?.student_list?.length);
+        return transformed;
+    }
+    return actualData;
+}
+
+function getStudentId(obj: any): number {
+    if (!obj) return 0;
+    return Number(obj.AMST_Id ?? obj.amsT_Id ?? obj.amsT_ID ?? obj.amst_Id ?? 0);
 }
 
 export async function getPromotionReportStdIX2021(data: any) {
-    return await getBaldwinReportDetails(data);
+    try {
+        const url = '/Baldwin_All_Reports/BBHS_IX_20202021';
+
+        const payload = {
+            asmaY_Id: Number(data.ASMAY_Id),
+            asmcL_Id: Number(data.ASMCL_Id),
+            asmS_Id: Number(data.ASMS_Id),
+            temp_AmstIds: data.selectedStudents.map((id: any) => ({ amsT_Id: Number(id) })),
+            ASMAY_Id: Number(data.ASMAY_Id),
+            ASMCL_Id: Number(data.ASMCL_Id),
+            ASMS_Id: Number(data.ASMS_Id),
+            Temp_AmstIds: data.selectedStudents.map((id: any) => ({ amsT_Id: Number(id) }))
+        };
+
+        console.log('Sending payload to BBHS_IX_20202021:', JSON.stringify(payload));
+        const response = await api.post<any>('exam', url, payload);
+        console.log('getPromotionReportStdIX2021 raw response received:', !!response);
+
+        const raw = response?.data || response;
+        if (!raw) {
+            return { success: false, message: 'No response data received from API' };
+        }
+
+        // 1. Get Class Teacher name
+        let clastechname = '';
+        if (Array.isArray(raw.clstchname) && raw.clstchname.length > 0) {
+            const emp = raw.clstchname[0];
+            if (emp) {
+                clastechname = [emp.hrmE_EmployeeFirstName, emp.hrmE_EmployeeMiddleName, emp.hrmE_EmployeeLastName]
+                    .filter(Boolean)
+                    .join(' ');
+            }
+        }
+
+        // 2. Build groupwiseexamlist
+        const groupwiseexamlist: any[] = [];
+        const getgroupdetails = Array.isArray(raw.getgroupdetails) ? raw.getgroupdetails : [];
+        const getgroupexamdetails = Array.isArray(raw.getgroupexamdetails) ? raw.getgroupexamdetails : [];
+
+        getgroupdetails.forEach((dd: any) => {
+            if (!dd) return;
+            let counttotal = 0;
+            const groupwiseexamlist_temp: any[] = [];
+            getgroupexamdetails.forEach((d: any) => {
+                if (d && dd.empG_DistplayName === d.empG_DistplayName) {
+                    counttotal += Number(d.empsgE_ForMaxMarkrs || 0);
+
+                    const examItem = {
+                        EMPG_GroupName: d.empG_GroupName,
+                        EME_Id: d.emE_Id,
+                        EME_ExamName: d.emE_ExamName,
+                        EME_ExamOrder: d.emE_ExamOrder,
+                        EMPG_DistplayName: d.empG_DistplayName,
+                        EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
+                        examnamedisplay: d.emE_ExamCode || d.emE_ExamName
+                    };
+                    groupwiseexamlist_temp.push(examItem);
+                    groupwiseexamlist.push(examItem);
+                }
+            });
+
+            // Add total column for this group
+            const totalItem = {
+                EMPG_GroupName: dd.empG_GroupName,
+                EME_Id: 9800000,
+                EME_ExamName: "Marks Obtained",
+                EME_ExamOrder: 9800000,
+                EMPG_DistplayName: dd.empG_DistplayName,
+                EMPSGE_ForMaxMarkrs: counttotal,
+                examnamedisplay: 'Total'
+            };
+            groupwiseexamlist_temp.push(totalItem);
+            groupwiseexamlist.push(totalItem);
+
+            dd.empsG_MarksValue = counttotal;
+            dd.groupewiseexam = groupwiseexamlist_temp;
+        });
+
+        // 3. Format students
+        const selectedIds = new Set((data.selectedStudents || []).map(Number));
+        const rawStudents = Array.isArray(raw.getstudentdetails) ? raw.getstudentdetails : [];
+
+        console.log('rawStudents length:', rawStudents.length);
+        console.log('selectedIds:', Array.from(selectedIds));
+
+        const filteredStudents = rawStudents.filter((s: any) => s && selectedIds.has(getStudentId(s)));
+        console.log('filteredStudents length:', filteredStudents.length);
+
+        const student_list = filteredStudents.map((stu: any) => {
+            if (!stu) return null;
+            const studentId = getStudentId(stu);
+
+            // Subject List for this student
+            const studentsubjects = (Array.isArray(raw.getstudentwisesubjectlist) ? raw.getstudentwisesubjectlist : [])
+                .filter((s: any) => s && getStudentId(s) === studentId);
+
+            // Marks details for this student
+            const studentmarks = (Array.isArray(raw.getstudentmarksdetails) ? raw.getstudentmarksdetails : [])
+                .filter((s: any) => s && getStudentId(s) === studentId);
+
+            // Exam groupwise totals
+            const student_marks = (Array.isArray(raw.getstudent_examwisemarks) ? raw.getstudent_examwisemarks : [])
+                .filter((s: any) => s && getStudentId(s) === studentId);
+
+            // Promotion marks details (totals/ranks)
+            const promo = (Array.isArray(raw.getpromotionmarksdetails) ? raw.getpromotionmarksdetails : [])
+                .find((s: any) => s && getStudentId(s) === studentId);
+
+            return {
+                ...stu,
+                amsT_Id: studentId,
+                AMST_Id: studentId,
+                studentname: stu.studentname || `${stu.amsT_FirstName || ''} ${stu.amsT_MiddleName || ''} ${stu.amsT_LastName || ''}`.trim(),
+                classname: stu.classname || data.selected_class || '',
+                sectionname: stu.sectionname || data.selected_section || '',
+                admno: stu.admno || stu.amsT_AdmNo || '',
+                dob: stu.dob || stu.amsT_DOB || '',
+                studentsubjects,
+                studentmarks,
+                student_marks,
+                TotalMarks: promo?.estmpP_TotalObtMarks ?? '',
+                TotalMaxMarks: promo?.estmpP_TotalMaxMarks ?? '',
+                TotalGrade: promo?.estmpP_TotalGrade ?? '',
+                TotalPercentage: promo?.estmpP_Percentage ?? '',
+                SectionRank: promo?.estmpP_SectionRank ?? '',
+                ClassRank: promo?.estmpP_ClassRank ?? ''
+            };
+        }).filter(Boolean);
+
+        return {
+            success: true,
+            student_list,
+            groupwiseexamlist,
+            getgroupdetails,
+            stud_work_attendence: Array.isArray(raw.work_attendence) ? raw.work_attendence : [],
+            stud_present_attendence: Array.isArray(raw.present_attendence_P) ? raw.present_attendence_P : [],
+            getstudentwisesubjectlist: Array.isArray(raw.getstudentwisesubjectlist) ? raw.getstudentwisesubjectlist : [],
+            Year_Name: data.selected_academicYear || raw.Year_Name || '',
+            Class_Teacher_Name: clastechname
+        };
+    } catch (error: any) {
+        console.error('CRITICAL ERROR in getPromotionReportStdIX2021:', error);
+        return {
+            success: false,
+            message: error?.message || String(error) || 'An unknown error occurred inside Server Action.'
+        };
+    }
 }
 
 export async function getPromotionReportIX(data: any) {
-    return await getBaldwinReportDetails(data);
+    return await getPromotionReportStdIX2021(data);
 }
 
 export async function getBaldwinReportDetails(data: any) {
@@ -73,7 +269,7 @@ export async function getBaldwinReportDetails(data: any) {
             { flag: 'O', Per_val: 20, equal_flag: false },
             { flag: 'F', Per_val: 100, equal_flag: false }
         ],
-        exam_process_details: student_list.flatMap(s => exams.map(e => ({
+        exam_process_details: student_list.flatMap((s: any) => exams.map(e => ({
             amsT_Id: s.amsT_Id,
             emE_Id: e.emE_Id,
             estmP_TotalObtMarks: 150,
@@ -81,7 +277,7 @@ export async function getBaldwinReportDetails(data: any) {
             estmP_SectionRank: 5,
             estmP_ClassRank: 12
         }))),
-        promotion_student_marks: student_list.flatMap(s => subjects.map(sub => ({
+        promotion_student_marks: student_list.flatMap((s: any) => subjects.map(sub => ({
             amsT_Id: s.amsT_Id,
             ismS_Id: sub.ismS_Id,
             estmppS_ObtainedMarks: 88,
@@ -89,12 +285,12 @@ export async function getBaldwinReportDetails(data: any) {
             estmppS_ObtainedGrade: 'A',
             estmppS_Remarks: 'Excellent'
         }))),
-        promotion_main_marks: student_list.map(s => ({
+        promotion_main_marks: student_list.map((s: any) => ({
             amsT_Id: s.amsT_Id,
             estmpP_SectionRank: 5
         })),
-        stud_work_attendence: student_list.flatMap(s => generateAttendance(s.amsT_Id)),
-        stud_present_attendence: student_list.flatMap(s => generateAttendance(s.amsT_Id)),
+        stud_work_attendence: student_list.flatMap((s: any) => generateAttendance(s.amsT_Id)),
+        stud_present_attendence: student_list.flatMap((s: any) => generateAttendance(s.amsT_Id)),
         ExmConfig_PromotionFlag: true,
         EMP_MarksPerFlg: 'P', // Toggle between 'P', 'F', 'T' to see variants
         Year_Name: '2023-24',

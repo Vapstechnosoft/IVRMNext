@@ -62,12 +62,12 @@ export const EmployeePunchAttendanceFilter = ({
         const response = await getReport(payload);
         console.log("response", response)
 
-        if (response.success && response.data) {
+        if (response.success && response.data && response.data.length > 0) {
             setReportData(response.data);
             toast.success('Report fetched successfully');
         } else {
             setReportData([]);
-            toast.error(response.message || 'No Record Found');
+            toast.error('No Record Found');
         }
     };
 
@@ -137,7 +137,7 @@ export const EmployeePunchAttendanceFilter = ({
                         </div>
                     </div>
 
-                    
+
                     {/* Date Filters */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-4'>
                         {/* From Date */}

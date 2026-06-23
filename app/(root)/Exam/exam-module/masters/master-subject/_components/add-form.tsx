@@ -79,6 +79,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Subject Name'
                             required
+                            placeholder='Enter Subject Name'
                             id='ismS_SubjectName'
                             {...register('ismS_SubjectName')}
                             error={errors.ismS_SubjectName?.message}
@@ -86,6 +87,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='IVRS Subject Name'
                             required
+                            placeholder='Enter IVRS Subject Name'
                             id='ismS_IVRSSubjectName'
                             {...register('ismS_IVRSSubjectName')}
                             error={errors.ismS_IVRSSubjectName?.message}
@@ -93,6 +95,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Subject Code'
                             required
+                            placeholder='Enter Subject Code'
                             id='ismS_SubjectCode'
                             {...register('ismS_SubjectCode')}
                             error={errors.ismS_SubjectCode?.message}
@@ -100,6 +103,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Description'
                             required
+                            placeholder='Enter Description'
                             id='ismS_SubjectNameNew'
                             {...register('ismS_SubjectNameNew')}
                             error={errors.ismS_SubjectNameNew?.message}

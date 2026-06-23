@@ -2,7 +2,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { usePreadmissionStatusCountReport } from '@/hooks/admission/preadmission/useTransactions';
-import type { IPreadmissionStatusCountReport } from '@/types/admission/preadmission/transactions';
 import { ArrowRightLeft, BadgeIndianRupee, FileCheck, FileX, Loader2, UserCheck } from 'lucide-react';
 
 interface StatusCardProps {
@@ -11,9 +10,10 @@ interface StatusCardProps {
     label: string;
     iconColor: string;
     iconBgColor: string;
+    labelClassName?: string;
 }
 
-function StatusCard({ icon, count, label, iconColor, iconBgColor }: StatusCardProps) {
+function StatusCard({ icon, count, label, iconColor, iconBgColor, labelClassName }: StatusCardProps) {
     return (
         <Card className='card-glow-orange shadow-none'>
             <CardContent className='p-6'>
@@ -28,7 +28,7 @@ function StatusCard({ icon, count, label, iconColor, iconBgColor }: StatusCardPr
 
                     {/* Count and Label Section */}
                     <div className='flex-1 text-nowrap'>
-                        <p className='font-medium text-muted-foreground text-sm'>{label}</p>
+                        <p className={`font-medium text-muted-foreground text-sm ${labelClassName || ''}`}>{label}</p>
                     </div>
                 </div>
             </CardContent>
@@ -54,7 +54,8 @@ export default function PreadmissionStatusCountReport({ filterPayload }: { filte
             icon: <UserCheck className='h-6 w-6' />,
             count: data?.reg,
             label: 'Registered Applications',
-            iconColor: 'text-emerald-600',
+            labelClassName: '-ml-[20px]',
+            iconColor: 'text-emerald-500',
             iconBgColor: 'bg-emerald-50 dark:bg-emerald-950/30'
         },
         {
@@ -118,6 +119,7 @@ export default function PreadmissionStatusCountReport({ filterPayload }: { filte
                         icon={card.icon}
                         count={card.count || 0}
                         label={card.label}
+                        labelClassName={card.labelClassName}
                         iconColor={card.iconColor}
                         iconBgColor={card.iconBgColor}
                     />

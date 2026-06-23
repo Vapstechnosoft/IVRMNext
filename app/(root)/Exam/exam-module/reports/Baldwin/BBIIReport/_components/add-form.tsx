@@ -167,6 +167,9 @@ export default function BBIIReportForm({
             return;
         }
 
+        const className = classes.find(c => c.asmcL_Id === data.asmcL_Id)?.asmcL_ClassName || '';
+        const sectionName = sections.find(s => s.asmS_Id === data.asmS_Id)?.asmC_SectionName || '';
+
         const currentDateTime = new Date().toISOString();
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
@@ -175,7 +178,9 @@ export default function BBIIReportForm({
             emE_Id: data.emE_Id,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
-            toDate: currentDateTime
+            toDate: currentDateTime,
+            selectedClassName: className,
+            selectedSectionName: sectionName
         };
         if (onSuccess) {
             await onSuccess(payload);
@@ -344,7 +349,7 @@ export default function BBIIReportForm({
                                     render={({ field, fieldState }) => (
                                         <CustomMultiSelectBox
                                             options={students.map((s) => ({
-                                                label: `${s.amsT_FirstName} / ${s.amsT_AdmNo}`,
+                                                label: `${s.amsT_FirstName}`,
                                                 value: s.amsT_Id.toString()
                                             }))}
                                             onChange={handleStudentChange}

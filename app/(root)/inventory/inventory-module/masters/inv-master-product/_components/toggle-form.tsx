@@ -13,7 +13,7 @@ interface ToggleProductFormProps {
 
 export default function ToggleProductForm({ rowData, onClose }: ToggleProductFormProps) {
     const { deactiveProductMutation, deactiveProductQtyMutation } = useInvMasterProduct();
-    
+
     // Determine if it's a product qty record or a main product record
     const isProductQty = 'invmpI_Id' in rowData;
     const mutation = isProductQty ? deactiveProductQtyMutation : deactiveProductMutation;
@@ -64,13 +64,14 @@ export default function ToggleProductForm({ rowData, onClose }: ToggleProductFor
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={mutation.isPending}
                         variant={isActive ? 'destructive' : 'default'}
+                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

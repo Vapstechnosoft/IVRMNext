@@ -288,3 +288,9 @@ export interface IConcessionDropDown {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
 }
+
+export interface IMasterActivityList {
+    amA_Id: number;
+    amA_Activity: string;
+    amA_Activity_Desc: string;
+}

@@ -17,7 +17,7 @@ import { invMasterItemGroupSchema, type InvMasterItemGroupType } from '@/schemas
 import { deactivateInvMasterGroup, saveInvMasterItemGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -142,6 +142,17 @@ function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemG
                         {mode === 'add' ? 'Save Item Group' : 'Update Item Group'}
                     </div>
                 </Button>
+                <Button
+                    type='button'
+                    disabled={isSubmitting}
+                    variant='outline'
+                    onClick={() => reset()}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    <div className='flex items-center'>
+                        <X className='mr-2 h-4 w-4' />
+                        Cancel
+                    </div>
+                </Button>
             </div>
         </form>
     );
@@ -209,13 +220,14 @@ export function ToggleItemGroupForm({ rowData, onClose }: ToggleItemGroupFormPro
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'destructive' : 'default'}
+                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

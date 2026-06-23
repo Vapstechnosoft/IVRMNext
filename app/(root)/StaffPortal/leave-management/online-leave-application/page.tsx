@@ -404,6 +404,7 @@ export default function OnlineLeavePage() {
                         {/* Application Form Integrated Below Grid */}
                         <div className='mt-8 pb-4'>
                             <ApplyLeaveForm
+                                employeeId={employee?.hrmE_Id}
                                 selectedLeave={selectedLeave}
                                 selectedFromDate={selectedFromDate}
                                 selectedToDate={selectedToDate}

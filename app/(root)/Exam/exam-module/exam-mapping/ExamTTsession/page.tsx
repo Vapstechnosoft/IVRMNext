@@ -9,7 +9,7 @@ import type { IMasterParticulars } from '@/types/pettycash/master/masters';
 import { useExamTTSession } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import AddExamTTSessionForm from './_components/add-form';
 import { ExamTTSessionColumns } from './_components/columns';
 import ToggleExamTTSessionForm from './_components/toggle-form';
@@ -39,7 +39,9 @@ function ExamTTSessionPageContent({
 }) {
     const { openAddForm } = useFormContext<IExamTTSession>();
     const tableProps = useDataTableProps(data);
-
+    useEffect(() => {
+        console.log('data', data);
+    }, [data])
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>

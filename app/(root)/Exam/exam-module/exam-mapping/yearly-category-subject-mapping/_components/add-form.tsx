@@ -125,26 +125,16 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         }
     };
     const handleReset = () => {
-        reset(
-            {
-                userId: 1,
-                eycG_Id: 0,
-                // mI_Id: 30,
-                asmaY_Id: undefined,
-                emcA_Id: undefined,
-                emG_Id: undefined,
-                subjects_list: [],
-                eyC_BasedOnPaperTypeFlg: false
-            },
-            {
-                keepErrors: false,
-                keepDirty: false,
-                keepTouched: false,
-                keepIsSubmitted: false,
-                keepSubmitCount: false,
-                keepValues: false // ensures placeholders reappear
-            }
-        );
+        reset({
+            userId: 1,
+            eycG_Id: 0,
+            asmaY_Id: undefined,
+            emcA_Id: undefined,
+            emG_Id: undefined,
+            subjects_list: [],
+            eyC_BasedOnPaperTypeFlg: false
+        });
+        setCategories([]);
         setSubjects([]);
     };
 

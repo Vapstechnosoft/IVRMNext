@@ -28,7 +28,8 @@ async function getAccessToken(): Promise<string> {
             grant_type: 'client_credentials',
             client_id: CLIENT_ID,
             client_secret: CLIENT_SECRET
-        })
+        }),
+        signal: AbortSignal.timeout(30000) // 30-second timeout
     });
 
     if (!res.ok) {
@@ -98,7 +99,8 @@ async function xiboRequest<T = any>(opts: RequestOptions): Promise<T> {
         method: opts.method,
         headers,
         body,
-        cache: 'no-store'
+        cache: 'no-store',
+        signal: AbortSignal.timeout(30000) // 30-second timeout
     });
 
     if (!res.ok) {
@@ -143,13 +145,27 @@ async function safe<T>(fn: () => Promise<T>): Promise<{ success: boolean; data?:
  */
 export async function uploadMedia(file: File) {
     return safe(async () => {
-        const blob = new Blob([await file.arrayBuffer()], { type: file.type });
-        return xiboRequest({
+        let filename = file.name;
+        // Automatically rename .jfif to .jpg to bypass Xibo's extension restrictions
+        if (filename.toLowerCase().endsWith('.jfif')) {
+            filename = filename.slice(0, -5) + '.jpg';
+        }
+
+        const blob = file; // Use the File object directly as it is already a subclass of Blob
+        const res = await xiboRequest({
             method: 'POST',
             path: '/api/library',
-            data: { name: file.name },
-            files: [{ fieldName: 'files[]', filename: file.name, blob }]
+            data: { name: filename },
+            files: [{ fieldName: 'files[]', filename, blob }]
         });
+
+        // Check if Xibo returned an upload-level error inside a 200 OK response
+        const fileError = res?.files?.[0]?.error || res?.[0]?.error;
+        if (fileError) {
+            throw new Error(fileError);
+        }
+
+        return res;
     });
 }
 

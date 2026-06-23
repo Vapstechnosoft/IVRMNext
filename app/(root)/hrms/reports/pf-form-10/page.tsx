@@ -7,7 +7,6 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { exportToExcel } from '@/lib/export-to-file';
 import { usePFForm10 } from '@/hooks/hrms/useReports';
@@ -42,6 +41,7 @@ function PFForm10Content() {
     const [institution, setInstitution] = useState<any>(null);
     const [reportMonth, setReportMonth] = useState('');
     const [reportYear, setReportYear] = useState('');
+    const [resetKey, setResetKey] = useState(0);
 
     useEffect(() => {
         const fetchInstitution = async () => {
@@ -66,9 +66,10 @@ function PFForm10Content() {
     const handleCancel = () => {
         reset();
         setReportData(null);
+        setResetKey(prev => prev + 1);
     };
 
-    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: yearsData, isLoading:isleaveYearLoading } = useLeaveYearDropdown();
     const { mutate: generateReport, isPending } = usePFForm10();
 
     console.log('Report Data:', reportData);
@@ -90,13 +91,13 @@ function PFForm10Content() {
             hreS_Month: monthName
         }, {
             onSuccess: (res) => {
-                if (res.success && res.data) {
+                if (res.success && res.data && res?.data?.pfreport && res?.data?.pfreport.length > 0) {
                     setReportData(res.data);
                     setReportMonth(monthName);
                     setReportYear(yearInt.toString());
                     toast.success('Report generated successfully');
                 } else {
-                    toast.error(res.message || 'No data found');
+                    toast.warning(res.message || 'No data found for this selected criteria');
                 }
             }
         });
@@ -111,48 +112,23 @@ function PFForm10Content() {
         printPFForm10(reportData, institution, reportMonth, reportYear);
     };
 
-    const columns = [
-        {
-            id: 'slNo',
-            header: 'SL.No',
-            cell: ({ row }: any) => row.index + 1
-        },
-        {
-            accessorKey: 'hrmE_PFAccNo',
-            header: 'PF Acc No'
-        },
-        {
-            header: 'Employee Name',
-            cell: ({ row }: any) => {
-                const e = row.original;
-                return `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.trim();
-            }
-        },
-        {
-            header: 'Date of Leaving',
-            cell: ({ row }: any) => row.original.hrmE_DOL ? format(new Date(row.original.hrmE_DOL), 'dd-MM-yyyy') : ''
-        },
-        {
-            accessorKey: 'hrmE_LeavingReason',
-            header: 'Reason for Leaving'
-        }
-    ];
+
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='text-2xl font-bold tracking-tight'>PF Form 10</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
-                            <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Year" />
+                            <Controller name='year' control={control} key={resetKey} render={({ field }) => (
+                                <Select onValueChange={field.onChange}  value={field.value}>
+                                    <SelectTrigger disabled={isleaveYearLoading}>
+                                        <SelectValue placeholder={isleaveYearLoading ? 'Loading...' : 'Select Year'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {yearsData?.data?.map((y: any) => (
@@ -167,10 +143,10 @@ function PFForm10Content() {
 
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
-                            <Controller name='month' control={control} render={({ field }) => (
+                            <Controller name='month' control={control} key={resetKey} render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
+                                    <SelectTrigger disabled={isleaveYearLoading}>
+                                        <SelectValue placeholder={isleaveYearLoading ? 'Loading...' : 'Select Month'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {MONTH_LIST.map((m) => (
@@ -267,15 +243,51 @@ function PFForm10Content() {
                         </div>
                     </div>
 
-                    <div className="mt-8">
-                        <GenericDataTable
-                            data={reportData.alldata || reportData.pfreport || []}
-                            columns={columns}
-                            totalItems={(reportData.alldata || reportData.pfreport || []).length}
-                            isPaginationRequired={false}
-                            isSearchRequired={false}
-                            isLoading={isPending}
-                        />
+                    <div className="mt-8 overflow-x-auto relative">
+                        {/* {isPending && (
+                            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        )} */}
+                        <table className="w-full border-collapse border border-gray-400 text-sm">
+                            <thead>
+                                <tr className="bg-gray-150">
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">S. No</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Account No.</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Name of the Member<br />(in BLOCK letters)</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Father's Name or Husband's Name<br />in case of married women</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Date of Leaving Service</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Reason for Leaving Service</th>
+                                    <th className="border border-gray-400 p-2 text-center font-bold text-xs">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(reportData.alldata || reportData.pfreport || []).length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="border border-gray-400 p-8 text-center text-gray-500">
+                                            No records found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    (reportData.alldata || reportData.pfreport || []).map((item: any, idx: number) => {
+                                        const empName = `${item.hrmE_EmployeeFirstName || ''} ${item.hrmE_EmployeeMiddleName || ''} ${item.hrmE_EmployeeLastName || ''}`.trim().toUpperCase();
+                                        const dol = item.hrmE_DOL ? format(new Date(item.hrmE_DOL), 'dd-MM-yyyy') : '';
+                                        const fatherOrHusband = item.hrmE_FatherName || item.fatherHusbandName || '';
+                                        return (
+                                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                                <td className="border border-gray-400 p-2 text-center">{idx + 1}</td>
+                                                <td className="border border-gray-400 p-2 text-center">{item.hrmE_PFAccNo || ''}</td>
+                                                <td className="border border-gray-400 p-2 font-medium">{empName}</td>
+                                                <td className="border border-gray-400 p-2">{fatherOrHusband}</td>
+                                                <td className="border border-gray-400 p-2 text-center">{dol}</td>
+                                                <td className="border border-gray-400 p-2">{item.hrmE_LeavingReason || ''}</td>
+                                                <td className="border border-gray-400 p-2">{item.remarks || ''}</td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
 
                     <div className="grid grid-cols-12 gap-4 mt-8">

@@ -39,6 +39,28 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
     const session = await auth();
     return (
         <html lang='en' suppressHydrationWarning>
+            <head>
+                <script dangerouslySetInnerHTML={{
+                    __html: `
+                        if (window.performance && window.performance.getEntriesByType('navigation').length > 0) {
+                            if (window.performance.getEntriesByType('navigation')[0].type === 'reload') {
+                                var url = new URL(window.location.href);
+                                var params = ['page', 'page_size', 'search_query', 'sort_column', 'search_columns', 'sort_direction'];
+                                var changed = false;
+                                for (var i = 0; i < params.length; i++) {
+                                    if (url.searchParams.has(params[i])) {
+                                        url.searchParams.delete(params[i]);
+                                        changed = true;
+                                    }
+                                }
+                                if (changed) {
+                                    window.location.replace(url.href);
+                                }
+                            }
+                        }
+                    `
+                }} />
+            </head>
             <body
                 suppressHydrationWarning
                 className={cn('min-h-screen min-w-[360px] bg-layout font-sans antialiased', geistSans.variable, geistMono.variable)}>

@@ -34,6 +34,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
         ASMS_Id: rowData.asmS_Id,
         EME_Id: rowData.emE_Id
     });
+    console.log("studentsData", studentsData);
 
     useEffect(() => {
         if (!rowData) return;

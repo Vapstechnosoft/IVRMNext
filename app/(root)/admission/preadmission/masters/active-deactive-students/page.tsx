@@ -1,15 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select as UISelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
-    //useMasterClass,
     useMasterClassDropdown,
     useMasterSectionDropdown,
     useMasterStudentList
@@ -18,11 +18,11 @@ import { masterActiveDeactiveStudentSchema } from '@/schemas/admission/preadmiss
 import { ActiveDeactive } from '@/server/admission/preadmission/masters/active_deactive_student';
 import type { ApiSearchparams } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Save, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { UpdateStudentStatusDialog } from './_components/active-deactive-student-update';
 import { activedeactiveColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
@@ -60,15 +60,13 @@ export default function MasterActiveDeactiveStudentPage(props: {
     const [sectionId, setSectionId] = useState<number>(0);
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
     const [studentData, setStudentData] = useState<Map<number, StudentData>>(new Map());
-    const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
-
     const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
+    const { data: SectionData, isLoading: SectionLoading, isError: SectionError } = useMasterSectionDropdown();
 
     const {
         control,
-        reset,
         setValue,
         formState: { errors }
     } = useForm<FormFields>({
@@ -83,7 +81,6 @@ export default function MasterActiveDeactiveStudentPage(props: {
         mode: 'onChange'
     });
 
-    const { data: SectionData, isLoading: SectionLoading, isError: SectionError } = useMasterSectionDropdown();
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
               page: Number(searchParams.page) || 1,
@@ -107,7 +104,6 @@ export default function MasterActiveDeactiveStudentPage(props: {
         const numValue = Number(value);
         setAcademicYearId(numValue);
         setValue('asmaY_Id', numValue);
-
         setClassId(0);
         setSectionId(0);
         setValue('asmcL_Id', 0);
@@ -120,7 +116,6 @@ export default function MasterActiveDeactiveStudentPage(props: {
         const numValue = Number(value);
         setClassId(numValue);
         setValue('asmcL_Id', numValue);
-
         setSectionId(0);
         setValue('asmS_Id', 0);
         setSelectedStudents(new Set());
@@ -138,33 +133,104 @@ export default function MasterActiveDeactiveStudentPage(props: {
     const handleStatus = (value: string) => {
         setAmst_sol(value);
         setValue('amsT_SOL', value as any);
+        setSelectedStudents(new Set());
+        setStudentData(new Map());
     };
 
     const handleSelectStudent = (selectedRows: Student[]) => {
         const selectedIds = new Set(selectedRows.map((student) => student.student_id));
-
         setSelectedStudents(selectedIds);
+    };
 
-        // Update form students array
-        const studentsArray = selectedRows.map((student) => {
-            const sd = studentData.get(student.student_id) || {
-                student_id: student.student_id,
-                reason: '',
-                remark: ''
-            };
+    const updateStudentData = (studentId: number, field: 'reason' | 'remark', value: string) => {
+        setStudentData((prev) => {
+            const newMap = new Map(prev);
+            const current = newMap.get(studentId) || { student_id: studentId, reason: '', remark: '' };
+            newMap.set(studentId, { ...current, [field]: value });
+            return newMap;
+        });
+    };
+
+    const handleClear = () => {
+        setAcademicYearId(0);
+        setClassId(0);
+        setSectionId(0);
+        setAmst_sol('S');
+        setValue('asmaY_Id', 0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
+        setValue('amsT_SOL', 'S' as any);
+        setSelectedStudents(new Set());
+        setStudentData(new Map());
+        
+        if (tableRef.current) {
+            tableRef.current.resetRowSelection();
+        }
+    };
+
+    const handleSave = async () => {
+        if (academicYearId === 0 || classId === 0 || sectionId === 0) {
+            toast.error('Please select Academic Year, Class, and Section');
+            return;
+        }
+
+        if (selectedStudents.size === 0) {
+            toast.error('Please select at least one student');
+            return;
+        }
+
+        let hasError = false;
+
+        const studentsArray = Array.from(selectedStudents).map((id) => {
+            const sd = studentData.get(id);
+            if (!sd?.reason || !sd?.remark) {
+                hasError = true;
+            }
             return {
-                amsT_Id: student.student_id,
-                reason: sd.reason || '',
-                remarks: sd.remark || ''
+                amsT_Id: id,
+                reason: sd?.reason || '',
+                remarks: sd?.remark || ''
             };
         });
-        setValue('students', studentsArray as any);
+
+        if (hasError) {
+            toast.error('Please fill Reason and Remarks for all selected students');
+            return;
+        }
+
+        const amsT_SOL_activate = amst_sol === 'S' ? 'D' : 'S';
+
+        const payload = {
+            asmaY_Id: academicYearId,
+            asmcL_Id: classId,
+            asmS_Id: sectionId,
+            amsT_SOL: amst_sol as any,
+            amsT_SOL_activate: amsT_SOL_activate,
+            students: studentsArray,
+            remarks: ''
+        };
+
+        try {
+            const response = await ActiveDeactive(payload);
+            if (response.success) {
+                toast.success(amst_sol === 'S' ? 'Record Deactivated Successfully' : 'Record Activated Successfully');
+                handleClear();
+            } else {
+                toast.error('Record Not Activated/Deactivated Successfully');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to update students');
+        }
     };
 
     const tableProps = {
         ...useDataTableProps(StudentListData),
         enableRowSelection: true,
-        getRowId: (row: Student) => row.student_id.toString()
+        getRowId: (row: Student) => row.student_id.toString(),
+        meta: {
+            studentData,
+            updateStudentData
+        }
     };
 
     return (
@@ -207,7 +273,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         name='asmaY_Id'
                                         control={control}
                                         render={({ field }) => (
-                                            <Select
+                                            <UISelect
                                                 onValueChange={handleAcademicYearChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}>
                                                 <SelectTrigger className='w-full'>
@@ -226,7 +292,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                                         ))
                                                     )}
                                                 </SelectContent>
-                                            </Select>
+                                            </UISelect>
                                         )}
                                     />
                                     {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
@@ -240,7 +306,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         name='asmcL_Id'
                                         control={control}
                                         render={({ field }) => (
-                                            <Select
+                                            <UISelect
                                                 onValueChange={handleClassChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={academicYearId === 0}>
@@ -264,7 +330,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                                         ))
                                                     )}
                                                 </SelectContent>
-                                            </Select>
+                                            </UISelect>
                                         )}
                                     />
                                     {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
@@ -278,7 +344,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         name='asmS_Id'
                                         control={control}
                                         render={({ field }) => (
-                                            <Select
+                                            <UISelect
                                                 onValueChange={handleSectionChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={classId === 0}>
@@ -302,7 +368,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                                         ))
                                                     )}
                                                 </SelectContent>
-                                            </Select>
+                                            </UISelect>
                                         )}
                                     />
                                     {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
@@ -311,62 +377,61 @@ export default function MasterActiveDeactiveStudentPage(props: {
                         </div>
                     </CollapsibleSection>
 
-                    <CollapsibleSection
-                        title='Student List'
-                        description='Select students to activate/deactivate'
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        {selectedStudents.size > 0 && (
-                            <div className='mb-3 flex justify-end'>
-                                <Button onClick={() => setIsUpdateDialogOpen(true)} className='w-fit'>
-                                    Update Selected ({selectedStudents.size})
-                                </Button>
-                            </div>
-                        )}
-                        <div className='space-y-4'>
-                            <GenericDataTable<Student>
-                                {...tableProps}
-                                ref={tableRef}
-                                columns={activedeactiveColumns}
-                                isLoading={StudentListLoading}
-                                error={StudentListError ? new Error('Failed to load students') : null}
-                                showViewOptions={false}
-                                loadingMessage='Loading students...'
-                                noDataTitle='No Students Found'
-                                noDataDescription='Try adjusting your filters.'
-                                onRowSelectionChange={handleSelectStudent}
-                            />
-                            <UpdateStudentStatusDialog
-                                isOpen={isUpdateDialogOpen}
-                                onClose={() => setIsUpdateDialogOpen(false)}
-                                selectedStudents={Array.from(selectedStudents)
-                                    .map((id) => students.find((s: Student) => s.student_id === id))
-                                    .filter(Boolean)}
-                                amsT_SOL={amst_sol}
-                                asmaY_Id={academicYearId}
-                                asmcL_Id={classId}
-                                asmS_Id={sectionId}
-                                onSubmit={async (updates) => {
-                                    // Your API call here
+                    {academicYearId > 0 && classId > 0 && sectionId > 0 && (
+                        <CollapsibleSection
+                            title='Student List'
+                            description='Select students to activate/deactivate'
+                            defaultOpen={true}
+                            variant='default'
+                            size='lg'
+                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                            <div className='space-y-4'>
+                                <GenericDataTable<Student>
+                                    {...tableProps}
+                                    ref={tableRef}
+                                    columns={activedeactiveColumns}
+                                    isLoading={StudentListLoading}
+                                    error={StudentListError ? new Error('Failed to load students') : null}
+                                    showViewOptions={false}
+                                    loadingMessage='Loading students...'
+                                    noDataTitle='No Students Found'
+                                    noDataDescription='Try adjusting your filters.'
+                                    onRowSelectionChange={handleSelectStudent}
+                                />
 
-                                    try {
-                                        const response = await ActiveDeactive(updates);
-                                        if (response.success) {
-                                            toast.success(response.message || 'Students updated successfully!');
-                                        } else {
-                                            toast.error(response.message || 'Failed to update students');
-                                        }
-                                    } catch (error: any) {
-                                        toast.error(error.message || 'Failed to update students');
-                                    }
-                                    setIsUpdateDialogOpen(false);
-                                    setSelectedStudents(new Set());
-                                }}
-                            />
-                        </div>
-                    </CollapsibleSection>
+                                <div className="flex flex-col items-center gap-6 py-4 border-t mt-4">
+                                    <div className="flex items-center gap-8 p-4 bg-muted/30 rounded-lg">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox checked={amst_sol === 'D'} disabled />
+                                            <Label className="text-sm font-medium leading-none">Activate the Students</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox checked={amst_sol === 'S'} disabled />
+                                            <Label className="text-sm font-medium leading-none">Deactivate the Students</Label>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <Button
+                                            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]"
+                                            onClick={handleSave}
+                                        >
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Save
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            className="min-w-[120px]"
+                                            onClick={handleClear}
+                                        >
+                                            <X className="w-4 h-4 mr-2" />
+                                            Clear
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </CollapsibleSection>
+                    )}
                 </div>
             </div>
         </div>

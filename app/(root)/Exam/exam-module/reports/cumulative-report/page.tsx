@@ -27,16 +27,28 @@ export default function CumulativeReportPage() {
     const printRef = useRef<HTMLDivElement>(null);
 
     const [columnFlags, setColumnFlags] = useState({
-        admno: false,
+        admno: true,
         regno: false,
         rollno: true,
         classrank: true,
         sectionrank: true,
-        attendancedispaly: false
+        attendancedispaly: false,
+        applicable: true,
+        nonapplicable: false,
+        readmit: false,
+        grdaeDisply: false,
+        marksdisplay: false,
+        gradecolm: false,
+        status: false
     });
 
     const handleReportSuccess = async (payload: any, setSearchParams: any) => {
         if (!payload) return;
+
+        // Hide the active report and clear previous data state immediately before fetching new data
+        setIsReportVisible(false);
+        setReportData([]);
+        setSubjects([]);
 
         try {
             setCurrentPayload(payload);
@@ -84,13 +96,17 @@ export default function CumulativeReportPage() {
             );
 
             const formatted: ICumulativeReport[] = rawList.map((s: any) => {
-                const fullName = [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim();
+                const fullName = [
+                    s.amsT_FirstName ?? s.AMST_FirstName,
+                    s.amsT_MiddleName ?? s.AMST_MiddleName,
+                    s.amsT_LastName ?? s.AMST_LastName
+                ].filter(Boolean).join(' ').trim() || s.studentName || s.AMST_StudentName || s.studentname || s.amsT_StudentName;
 
                 return {
                     amsT_FirstName: fullName || 'Unknown',
-                    amaY_RollNo: s.amaY_RollNo ?? null,
-                    amsT_AdmNo: s.amsT_AdmNo ?? null,
-                    amsT_RegistrationNo: s.amsT_RegistrationNo ?? null,
+                    amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? s.amaY_Rollno ?? s.rollNo ?? s.rollno ?? null,
+                    amsT_AdmNo: s.amsT_AdmNo ?? s.AMST_AdmNo ?? s.amsT_Admno ?? s.AMST_Admno ?? s.admNo ?? s.admno ?? s.amsT_AdmNoValue ?? s.AMST_AdmNoValue ?? null,
+                    amsT_RegistrationNo: s.amsT_RegistrationNo ?? s.AMST_RegistrationNo ?? s.amsT_Registrationno ?? s.AMST_Registrationno ?? s.registrationNo ?? s.regno ?? s.regNo ?? null,
                     sub_list: (s.subjectsList ?? []).map((sub: any) => ({
                         ismS_Id: sub.ismS_Id,
                         estmpS_ObtainedMarks: sub.estmpS_ObtainedMarks ?? null,
@@ -111,7 +127,7 @@ export default function CumulativeReportPage() {
 
             const first = { ...rawList[0], ...institudtion_data };
             const header: Partial<IReportHeader> = {
-                mI_name: first?.mI_Name ?? 'Vidya Vikasa Vidya Samsthe (R)',
+                mI_Name: institudtion_data?.mI_Name,
                 yr: first?.asmaY_Year ?? '',
                 cla: first?.asmcL_ClassName ?? '',
                 sec: first?.asmC_SectionName ?? '',
@@ -121,12 +137,19 @@ export default function CumulativeReportPage() {
             const cfg = first?.exm_Configuration?.[0] ?? responseData.exm_Configuration?.[0] ?? {};
 
             setColumnFlags({
-                admno: cfg.exmConfig_AdmnoColumnDisplay ?? false,
+                admno: true, // Always show admission number as requested by the user
                 regno: cfg.exmConfig_RegnoColumnDisplay ?? false,
                 rollno: cfg.exmConfig_RollnoColumnDisplay ?? true,
-                classrank: true,
-                sectionrank: true,
-                attendancedispaly: false
+                classrank: payload.classrank ?? true,
+                sectionrank: payload.sectionrank ?? true,
+                attendancedispaly: payload.attendancedispaly ?? false,
+                applicable: payload.applicableFlag === '1',
+                nonapplicable: payload.nonApplicableFlag === '1',
+                readmit: payload.Percentage_Flag ?? false,
+                grdaeDisply: payload.Grade_Flag ?? false,
+                marksdisplay: payload.Marks_Flag ?? false,
+                gradecolm: payload.OverallGrade_Flag ?? false,
+                status: payload.Status_Flag ?? false
             });
 
             setSubjects(subjectsList);

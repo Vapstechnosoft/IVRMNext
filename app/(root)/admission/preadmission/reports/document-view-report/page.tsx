@@ -63,7 +63,9 @@ export default function DocumentViewReportPage(props: { searchParams: SearchPara
 
             return {
                 ...student,
-                doclist: studentDocs
+                doclist: studentDocs,
+                selected_asmaY_Id: filterPayload?.asmaY_Id || 0,
+                selected_asmcL_Id: filterPayload?.asmcL_Id || 0
             };
         });
     }, [response, masterDocs]);

@@ -14,6 +14,8 @@ interface BBIIReportViewProps {
     classTeacher: string;
     showRemarks: boolean;
     showRank: boolean;
+    selectedClass?: string;
+    selectedSection?: string;
 }
 
 export default function BBIIReportView({
@@ -25,7 +27,9 @@ export default function BBIIReportView({
     academicYear,
     classTeacher,
     showRemarks,
-    showRank
+    showRank,
+    selectedClass,
+    selectedSection
 }: BBIIReportViewProps) {
     const [isMounted, setIsMounted] = useState(false);
 
@@ -51,6 +55,7 @@ export default function BBIIReportView({
     };
 
     const getSubjectRemark = (sub: any) => {
+        if (sub.emgD_Remarks) return sub.emgD_Remarks;
         if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return '';
         const remarkObj = gradeRemarks.find(r =>
             (Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id)) &&
@@ -61,8 +66,74 @@ export default function BBIIReportView({
 
     const getAttendance = (list: any[], studentId: any) => {
         if (!list || !Array.isArray(list)) return {};
-        // Use Number conversion for robust ID comparison
-        return list.find(a => Number(a.AMST_Id || a.amsT_Id) === Number(studentId)) || {};
+        const id = Number(studentId);
+        return list.find(a =>
+            Number(a.studentId || a.amsT_ID || a.amsT_Id || a.AMST_Id || a.AMST_ID || a.StudentId || a.student_id || 0) === id
+        ) || {};
+    };
+
+    const getMonthValue = (at: any, month: string) => {
+        if (!at) return '';
+        const m = month.toLowerCase();
+
+        let keys: string[] = [];
+        if (m === 'jun') keys = ['June', 'june', 'JUN', 'jun'];
+        else if (m === 'jul') keys = ['July', 'july', 'JUL', 'jul'];
+        else if (m === 'aug') keys = ['August', 'august', 'AUG', 'aug'];
+        else if (m === 'sep') keys = ['September', 'september', 'SEP', 'sep'];
+        else if (m === 'oct') keys = ['October', 'october', 'OCT', 'oct'];
+        else if (m === 'nov') keys = ['November', 'november', 'NOV', 'nov'];
+        else if (m === 'dec') keys = ['December', 'december', 'DEC', 'dec'];
+        else if (m === 'jan') keys = ['January', 'january', 'JAN', 'jan'];
+        else if (m === 'feb') keys = ['Febrauary', 'febrauary', 'February', 'february', 'FEB', 'feb'];
+        else if (m === 'mar') keys = ['March', 'march', 'MAR', 'mar'];
+        else if (m === 'apr') keys = ['April', 'april', 'APR', 'apr'];
+        else if (m === 'may') keys = ['May', 'may', 'MAY', 'may'];
+
+        for (const key of keys) {
+            if (at[key] !== undefined && at[key] !== null) {
+                return at[key] !== 0 && at[key] !== '0' ? at[key] : '';
+            }
+        }
+        return '';
+    };
+
+    const getAttendanceTotal = (at: any, student: any, type: 'work' | 'present') => {
+        if (type === 'work') {
+            const keys = ['TotalSchoolDays', 'totalSchoolDays', 'TotalWorkingDays', 'totalWorkingDays', 'Total', 'total'];
+            for (const key of keys) {
+                if (at && at[key] !== undefined && at[key] !== null && at[key] !== 0 && at[key] !== '0') {
+                    return at[key];
+                }
+            }
+            return student.classheld || '';
+        } else {
+            const keys = ['TotalPresentDays', 'totalPresentDays', 'Total', 'total'];
+            for (const key of keys) {
+                if (at && at[key] !== undefined && at[key] !== null && at[key] !== 0 && at[key] !== '0') {
+                    return at[key];
+                }
+            }
+            return student.classatt || '';
+        }
+    };
+
+    const getAttendancePercentage = (at: any, student: any, type: 'work' | 'present') => {
+        const keys = ['Total_Percentage', 'total_Percentage', 'Percentage', 'percentage'];
+        for (const key of keys) {
+            if (at && at[key] !== undefined && at[key] !== null && at[key] !== 0 && at[key] !== '0') {
+                const val = Number(at[key]);
+                return isNaN(val) ? at[key] : val.toFixed(2);
+            }
+        }
+        if (type === 'work') {
+            return student.classheld ? '100.00' : '';
+        } else {
+            if (student.classheld && student.classatt) {
+                return ((Number(student.classatt) / Number(student.classheld)) * 100).toFixed(2);
+            }
+            return '';
+        }
     };
 
     return (
@@ -175,11 +246,11 @@ export default function BBIIReportView({
                                     <div className="col-span-3">
                                         <div className="form-group">
                                             <label className="w-1/3"><b>CLASS</b></label>
-                                            <label className="flex-1">: <b>{report.asmcL_ClassName || ''}</b></label>
+                                            <label className="flex-1">: <b>{selectedClass || report.asmcL_ClassName || ''}</b></label>
                                         </div>
                                         <div className="form-group">
                                             <label className="w-1/3"><b>SECTION</b></label>
-                                            <label className="flex-1">: <b>{report.asmC_SectionName || ''}</b></label>
+                                            <label className="flex-1">: <b>{selectedSection || report.asmC_SectionName || ''}</b></label>
                                         </div>
                                     </div>
                                     <div className="col-span-4">
@@ -223,7 +294,7 @@ export default function BBIIReportView({
                                                 <td>
                                                     {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estM_Marks || subj.estmpS_ObtainedMarks || '') : subj.estmpS_PassFailFlg}
                                                 </td>
-                                                <td>{subj.estmP_Percentage || ''}</td>
+                                                <td>{subj.estmpS_Percentage || ''}</td>
                                                 <td>
                                                     {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estmpS_ObtainedGrade || '') : subj.estmpS_PassFailFlg}
                                                 </td>
@@ -261,7 +332,7 @@ export default function BBIIReportView({
                                                 <td></td>
                                                 <td></td>
                                                 <td>
-                                                    {subj.estmpS_PassFailFlg !== 'AB' ? (subj.estM_Marks || subj.estmpS_ObtainedMarks || '') : subj.estmpS_PassFailFlg}
+                                                    {subj.estmpS_PassFailFlg !== 'AB' ? ('') : subj.estmpS_PassFailFlg}
                                                 </td>
                                                 <td></td>
                                                 <td>
@@ -307,20 +378,20 @@ export default function BBIIReportView({
                                                 const at = getAttendance(attendanceWork, report.student_id);
                                                 return (
                                                     <>
-                                                        <td>{at.June && at.June !== 0 ? at.June : ''}</td>
-                                                        <td>{at.July && at.July !== 0 ? at.July : ''}</td>
-                                                        <td>{at.August && at.August !== 0 ? at.August : ''}</td>
-                                                        <td>{at.September && at.September !== 0 ? at.September : ''}</td>
-                                                        <td>{at.October && at.October !== 0 ? at.October : ''}</td>
-                                                        <td>{at.November && at.November !== 0 ? at.November : ''}</td>
-                                                        <td>{at.December && at.December !== 0 ? at.December : ''}</td>
-                                                        <td>{at.January && at.January !== 0 ? at.January : ''}</td>
-                                                        <td>{at.Febrauary && at.Febrauary !== 0 ? at.Febrauary : ''}</td>
-                                                        <td>{at.March && at.March !== 0 ? at.March : ''}</td>
-                                                        <td>{at.April && at.April !== 0 ? at.April : ''}</td>
-                                                        <td>{at.May && at.May !== 0 ? at.May : ''}</td>
-                                                        <td><b>{at.TotalSchoolDays && at.TotalSchoolDays !== 0 ? at.TotalSchoolDays : ''}</b></td>
-                                                        <td><b>{at.Total_Percentage && at.Total_Percentage !== 0 ? at.Total_Percentage : ''}</b></td>
+                                                        <td>{getMonthValue(at, 'jun')}</td>
+                                                        <td>{getMonthValue(at, 'jul')}</td>
+                                                        <td>{getMonthValue(at, 'aug')}</td>
+                                                        <td>{getMonthValue(at, 'sep')}</td>
+                                                        <td>{getMonthValue(at, 'oct')}</td>
+                                                        <td>{getMonthValue(at, 'nov')}</td>
+                                                        <td>{getMonthValue(at, 'dec')}</td>
+                                                        <td>{getMonthValue(at, 'jan')}</td>
+                                                        <td>{getMonthValue(at, 'feb')}</td>
+                                                        <td>{getMonthValue(at, 'mar')}</td>
+                                                        <td>{getMonthValue(at, 'apr')}</td>
+                                                        <td>{getMonthValue(at, 'may')}</td>
+                                                        <td><b>{getAttendanceTotal(at, report, 'work')}</b></td>
+                                                        <td><b>{getAttendancePercentage(at, report, 'work') ? getAttendancePercentage(at, report, 'work') + '%' : ''}</b></td>
                                                     </>
                                                 );
                                             })()}
@@ -332,20 +403,20 @@ export default function BBIIReportView({
                                                 const at = getAttendance(attendancePresent, report.student_id);
                                                 return (
                                                     <>
-                                                        <td>{at.June && at.June !== 0 ? at.June : ''}</td>
-                                                        <td>{at.July && at.July !== 0 ? at.July : ''}</td>
-                                                        <td>{at.August && at.August !== 0 ? at.August : ''}</td>
-                                                        <td>{at.September && at.September !== 0 ? at.September : ''}</td>
-                                                        <td>{at.October && at.October !== 0 ? at.October : ''}</td>
-                                                        <td>{at.November && at.November !== 0 ? at.November : ''}</td>
-                                                        <td>{at.December && at.December !== 0 ? at.December : ''}</td>
-                                                        <td>{at.January && at.January !== 0 ? at.January : ''}</td>
-                                                        <td>{at.Febrauary && at.Febrauary !== 0 ? at.Febrauary : ''}</td>
-                                                        <td>{at.March && at.March !== 0 ? at.March : ''}</td>
-                                                        <td>{at.April && at.April !== 0 ? at.April : ''}</td>
-                                                        <td>{at.May && at.May !== 0 ? at.May : ''}</td>
-                                                        <td><b>{at.TotalPresentDays || ''}</b></td>
-                                                        <td><b>{at.Total_Percentage || ''}</b></td>
+                                                        <td>{getMonthValue(at, 'jun')}</td>
+                                                        <td>{getMonthValue(at, 'jul')}</td>
+                                                        <td>{getMonthValue(at, 'aug')}</td>
+                                                        <td>{getMonthValue(at, 'sep')}</td>
+                                                        <td>{getMonthValue(at, 'oct')}</td>
+                                                        <td>{getMonthValue(at, 'nov')}</td>
+                                                        <td>{getMonthValue(at, 'dec')}</td>
+                                                        <td>{getMonthValue(at, 'jan')}</td>
+                                                        <td>{getMonthValue(at, 'feb')}</td>
+                                                        <td>{getMonthValue(at, 'mar')}</td>
+                                                        <td>{getMonthValue(at, 'apr')}</td>
+                                                        <td>{getMonthValue(at, 'may')}</td>
+                                                        <td><b>{getAttendanceTotal(at, report, 'present')}</b></td>
+                                                        <td><b>{getAttendancePercentage(at, report, 'present') ? getAttendancePercentage(at, report, 'present') + '%' : ''}</b></td>
                                                     </>
                                                 );
                                             })()}

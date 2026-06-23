@@ -64,14 +64,18 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Status' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Status' />
+        ),
         cell: ({ row }) => <div>{row.getValue('application_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Admission Status' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Admission Status' />
+        ),
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
         enableSorting: false,
         enableHiding: true
@@ -85,7 +89,9 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Form' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Form' />
+        ),
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -104,8 +110,8 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                 typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
-                                        ? ((data.data[0] as unknown as string) ?? null)
-                                        : null;
+                                      ? ((data.data[0] as unknown as string) ?? null)
+                                      : null;
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -146,9 +152,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                     e.preventDefault();
                                 }}>
                                 <DialogHeader className='p-0'>
-                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>
-                                        Pre Admission Application Form
-                                    </DialogTitle>
+                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>Pre Admission Application Form</DialogTitle>
                                 </DialogHeader>
                                 <div className='relative min-h-0 flex-1 overflow-hidden'>
                                     {/* Spinner while loading PDF */}
@@ -211,18 +215,19 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentApplicationForm(pasrId);
 
             useEffect(() => {
-                if (session?.data?.role === undefined) {
+                if (session?.status === 'authenticated' && session?.data?.role === undefined) {
                     window.location.reload();
                 }
-            }, [session?.data?.role]);
+            }, [session?.data?.role, session?.status]);
 
             // Trigger form open when applicationFormDetails is loaded
             useEffect(() => {
                 if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
                         const resp = applicationFormDetails.data;
-                        const student = resp?.student_details || resp || {};
-                        const normalizeGender = (sex: string | undefined | null) => {
+                        const result = resp?.result || resp;
+                        const student = result?.student_details || result || {};
+                        const _normalizeGender = (sex: string | undefined | null) => {
                             if (!sex) return undefined;
                             const s = sex.toUpperCase();
                             if (s === 'M' || s === 'MALE') return 'Male';
@@ -232,30 +237,73 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
 
                         const payload = {
                             ...student,
-                            pasR_Id: student.pasR_Id || student.pasr_id || resp.pasr_id || resp.pasR_Id,
+                            pasR_Id: student.pasR_Id || student.pasr_id || result.pasr_id || result.pasR_Id,
                             pasR_DOB: student.pasR_DOB ? new Date(student.pasR_DOB) : undefined,
-                            pasR_Sex: student.pasR_Sex || student.pasr_sex || resp.pasr_sex || resp.pasR_Sex || undefined,
-                            asmcL_Id: Number(student.asmcL_Id || resp.asmcL_Id || resp.pasR_AppliedClassId || student.asmcL_id || 0),
-                            caste_Id: Number(student.caste_Id || resp.caste_id || resp.ic_Id || student.caste_id || student.imC_Id || student.amC_Id || 0),
-                            religion_Id: Number(student.religion_Id || resp.religion_id || student.religion_id || 0),
-                            casteCategory_Id: Number(student.casteCategory_Id || resp.casteCategory_Id || student.imCC_Id || 0),
-                            pasR_Nationality: String(student.pasR_Nationality || student.nationality_id || resp.nationality_id || student.pasR_PerCountry || resp.pasR_PerCountry || ''),
-                            pasR_FatherNationality: String(student.pasR_FatherNationality || student.father_nationality_id || resp.father_nationality_id || student.pasR_ConCountry || resp.pasR_ConCountry || ''),
-                            pasR_MotherNationality: String(student.pasR_MotherNationality || student.mother_nationality_id || resp.mother_nationality_id || student.pasR_ConCountry || resp.pasR_ConCountry || ''),
-                            pasR_TransportReqdFlag: Number(student.pasR_TransportReqdFlag ?? resp.pasR_TransportReqdFlag ?? 0),
-                            pasR_ConState: Number(student.pasR_ConState || resp.pasR_ConState || student.pasr_constate || resp.pasr_constate || 0),
-                            pasR_PerState: Number(student.pasR_PerState || resp.pasR_PerState || student.pasr_perstate || resp.pasr_perstate || 0),
-                            pasR_ConCountry: String(student.pasR_ConCountry || resp.pasR_ConCountry || student.pasr_concountry || resp.pasr_concountry || student.ivrmmC_Id || resp.ivrmmC_Id || ''),
-                            pasR_PerCountry: String(student.pasR_PerCountry || resp.pasR_PerCountry || student.pasr_percountry || resp.pasr_percountry || student.ivrmmC_Id || resp.ivrmmC_Id || ''),
-                            selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
+                            pasR_Sex: student.pasR_Sex || student.pasr_sex || result.pasr_sex || result.pasR_Sex || undefined,
+                            asmcL_Id: Number(student.asmcL_Id || result.asmcL_Id || result.pasR_AppliedClassId || student.asmcL_id || 0),
+                            caste_Id: Number(
+                                student.caste_Id || result.caste_id || result.ic_Id || student.caste_id || student.imC_Id || student.amC_Id || 0
+                            ),
+                            religion_Id: Number(student.religion_Id || result.religion_id || student.religion_id || 0),
+                            casteCategory_Id: Number(student.casteCategory_Id || result.casteCategory_Id || student.imCC_Id || 0),
+                            pasR_Nationality: String(
+                                student.pasR_Nationality ||
+                                    student.nationality_id ||
+                                    result.nationality_id ||
+                                    student.pasR_PerCountry ||
+                                    result.pasR_PerCountry ||
+                                    ''
+                            ),
+                            pasR_FatherNationality: String(
+                                student.pasR_FatherNationality ||
+                                    student.father_nationality_id ||
+                                    result.father_nationality_id ||
+                                    student.pasR_ConCountry ||
+                                    result.pasR_ConCountry ||
+                                    ''
+                            ),
+                            pasR_MotherNationality: String(
+                                student.pasR_MotherNationality ||
+                                    student.mother_nationality_id ||
+                                    result.mother_nationality_id ||
+                                    student.pasR_ConCountry ||
+                                    result.pasR_ConCountry ||
+                                    ''
+                            ),
+                            pasR_TransportReqdFlag: Number(student.pasR_TransportReqdFlag ?? result.pasR_TransportReqdFlag ?? 0),
+                            pasR_ConState: Number(
+                                student.pasR_ConState || result.pasR_ConState || student.pasr_constate || result.pasr_constate || 0
+                            ),
+                            pasR_PerState: Number(
+                                student.pasR_PerState || result.pasR_PerState || student.pasr_perstate || result.pasr_perstate || 0
+                            ),
+                            pasR_ConCountry: String(
+                                student.pasR_ConCountry ||
+                                    result.pasR_ConCountry ||
+                                    student.pasr_concountry ||
+                                    result.pasr_concountry ||
+                                    student.ivrmmC_Id ||
+                                    result.ivrmmC_Id ||
+                                    ''
+                            ),
+                            pasR_PerCountry: String(
+                                student.pasR_PerCountry ||
+                                    result.pasR_PerCountry ||
+                                    student.pasr_percountry ||
+                                    result.pasr_percountry ||
+                                    student.ivrmmC_Id ||
+                                    result.ivrmmC_Id ||
+                                    ''
+                            ),
+                            selectedSourceDetails: (result?.student_sources || result?.studentSource || []).map((s: any) => ({
                                 pamS_Id: String(s.pamS_Id)
                             })),
-                            selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
+                            selectedRefrenceDetails: (result?.student_refrences || result?.studentReference || []).map((r: any) => ({
                                 pamR_Id: String(r.pamR_Id)
                             })),
-                            siblingsDetails: resp?.student_siblings || [],
-                            previousSchoolDetails: resp?.previous_schools || [],
-                            selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
+                            siblingsDetails: result?.student_siblings || [],
+                            previousSchoolDetails: result?.previous_schools || [],
+                            selectedDocuments: (result?.student_documents || []).map((d: any) => ({
                                 pasrD_Id: d.pasrD_Id,
                                 pasR_Id: d.pasR_Id,
                                 amsmD_Id: d.amsmD_Id,

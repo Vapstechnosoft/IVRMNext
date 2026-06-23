@@ -13,6 +13,7 @@ import { masterSectionColumns } from './_components/columns';
 import ReorderSectionForm from './_components/reorder-form';
 import ToggleMasterSectionForm from './_components/toggle-form';
 import UpdateMasterSectionForm from './_components/update-form';
+import ViewDetailsDialog from './_components/view-details-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -61,7 +62,8 @@ function MasterSectionPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='flex justify-end'>
+                    <div className='mb-2 flex justify-end gap-2'>
+                        <ViewDetailsDialog />
                         <ReorderSectionForm />
                     </div>
                     <GenericDataTable<IMasterSectionList>

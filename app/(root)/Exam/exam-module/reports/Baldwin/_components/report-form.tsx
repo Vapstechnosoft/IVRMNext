@@ -7,11 +7,11 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type BaldwinReportSchema, baldwinReportSchema } from '@/schemas/exam/exam-module/reports';
-import { 
-    getBaldwinReportDetails, 
-    getBBHSFinalPromotionReportBBHS, 
-    getPromotionReportStdIX2021, 
-    getPromotionReportIX 
+import {
+    getBaldwinReportDetails,
+    getBBHSFinalPromotionReportBBHS,
+    getPromotionReportStdIX2021,
+    getPromotionReportIX
 } from '@/server/exam/exam-module/reports/Baldwin/BaldwinReports';
 import {
     getClassDropDownByAcademicYearlist,
@@ -173,17 +173,32 @@ export const ReportForm = ({ title, onReportGenerated, onReset, apiAction }: Rep
     };
 
     const onSubmit = async (values: BaldwinReportSchema) => {
+        onReset();
         try {
             const selectedStudentDetails = students.filter(s =>
                 values.selectedStudents.includes(String(s.amsT_Id))
             );
+            const selected_academicYear = academicYears.find((ay: any) => ay.asmaY_Id === Number(values.ASMAY_Id))?.asmaY_Year;
+            const selected_class = classes.find((c: any) => c.asmcL_Id === Number(values.ASMCL_Id))?.asmcL_ClassName;
+            const selected_section = sections.find((s: any) => s.asmS_Id === Number(values.ASMS_Id))?.asmC_SectionName;
 
+            console.log('values', values);
+            console.log('selectedStudentDetails', selectedStudentDetails);
+            console.log('selected_academicYear', selected_academicYear);
+            console.log('selected_class', selected_class);
+            console.log('selected_section', selected_section);
             const [result, institutionRes] = await Promise.all([
-                apiAction({ ...values, studentDetails: selectedStudentDetails }),
+                apiAction({ ...values, studentDetails: selectedStudentDetails, selected_academicYear, selected_class, selected_section }),
                 getMasterInstitution()
             ]);
             console.log("institutionRes", institutionRes?.data);
-            onReportGenerated({ ...result, institution: institutionRes?.data }, values);
+
+            if (result && result.success === false) {
+                toast.error(result.message || 'Failed to generate report');
+                return;
+            }
+
+            onReportGenerated({ ...result, selected_academicYear, selected_class, selected_section, institution: institutionRes?.data }, values);
         } catch (error) {
             console.error('Error generating report:', error);
             toast.error('Failed to generate report');

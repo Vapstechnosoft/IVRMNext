@@ -39,24 +39,24 @@ export interface IPlace {
 }
 
 export interface IPointsRecordReportData {
-    AMST_AdmNo: string;
-    AMST_Name: string;
-    ASMCL_ClassName: string;
-    ASMC_SectionName: string;
-    SPCCESTR_Points: number;
-    SPCCESTR_Rank: string;
-    SPCCE_StartDate: string;
-    SPCCMEV_EventVenue: string;
-    SPCCME_EventName: string;
-    SPCCMH_HouseName: string;
-    ASMCL_Id: number;
-    ASMS_Id: number;
-    SPCCME_Id: number;
-    AMST_Id: number;
-    SPCCMSCC_SportsCCName: string;
-    SPCCMSCC_Id: number;
-    ASMAY_Year: string;
-    SPCCESTR_Remarks: string;
+    amsT_AdmNo: string;
+    amsT_Name: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    spccestR_Points: number;
+    spccestR_Rank: string;
+    spccE_StartDate: string;
+    spccmeV_EventVenue: string;
+    spccmE_EventName: string;
+    spccmH_HouseName: string;
+    asmcL_Id: number;
+    asmS_Id: number;
+    spccmE_Id: number;
+    amsT_Id: number;
+    spccmscC_SportsCCName: string;
+    spccmscC_Id: number;
+    asmaY_Year: string;
+    spccestR_Remarks: string;
     // Fields used in SportPointsAndRecordReport grid
     amst_Id?: number;
     adm_no?: string;

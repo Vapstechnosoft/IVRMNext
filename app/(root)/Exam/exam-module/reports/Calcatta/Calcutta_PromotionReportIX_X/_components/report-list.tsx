@@ -1,11 +1,12 @@
 'use client';
 
-import { getCalcuttaPromotionReportIX_X } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report-ix-x';
+import { getCalcuttaPromotionReportI_IX } from '@/server/exam/exam-module/reports/Calcatta/calcutta-promotion-report-ix';
 import { Download, Loader2, Printer } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import CalcuttaPromotionReportForm from './report-form';
+import * as XLSX from 'xlsx';
+import { Button } from '@/components/ui/button';
 
 export default function CalcuttaPromotionReportIX_XList() {
     const [reportData, setReportData] = useState<any>(null);
@@ -16,7 +17,7 @@ export default function CalcuttaPromotionReportIX_XList() {
         try {
             setLoading(true);
             setPayload(data);
-            const result = await getCalcuttaPromotionReportIX_X(data);
+            const result = await getCalcuttaPromotionReportI_IX(data);
             setReportData(result);
         } catch (error) {
             console.error('Failed to generate report', error);
@@ -29,10 +30,6 @@ export default function CalcuttaPromotionReportIX_XList() {
         window.print();
     };
 
-    const handleExport = () => {
-        // Implement excel export if needed
-    };
-
     // Helper to format Date
     const formatDate = (date: any) => {
         if (!date) return '';
@@ -40,114 +37,571 @@ export default function CalcuttaPromotionReportIX_XList() {
         return d.toLocaleDateString('en-GB'); // dd/MM/yyyy
     };
 
+    // Helper to get semester marks for a single subject
+    const getSubjectSemesterMarks = (student: any, subjId: number, grpName: string) => {
+        const rec = student.studentmarks?.find((m: any) => {
+            const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+            const mEmeId = m.EME_Id ?? m.emE_Id;
+            const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
+            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && mGrp === grpName.trim().toUpperCase();
+        });
+
+        if (rec) {
+            const passFail = rec.PassFailFlag ?? rec.passFailFlag;
+            const isAbsent = ['AB', 'M', 'L'].includes(passFail);
+            return {
+                obtained: isAbsent ? passFail : Number(rec.ObtainedMarks ?? rec.obtainedMarks ?? 0),
+                max: Number(rec.maxMarks ?? rec.maxmarks ?? rec.EMPS_MaxMarks ?? 100)
+            };
+        }
+
+        // Fallback: calculate by summing exams in groupwiseexamlist for this group
+        const grpExams = reportData.groupwiseexamlist?.filter((e: any) => 
+            (e.EMPG_DistplayName ?? e.empg_DistplayName ?? '').trim().toUpperCase() === grpName.trim().toUpperCase() &&
+            Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012
+        ) || [];
+
+        let totalObt = 0;
+        let totalMax = 0;
+        let allAbsent = true;
+        let hasMarks = false;
+
+        grpExams.forEach((exam: any) => {
+            const markRec = student.studentmarks?.find((mrks: any) => {
+                const mSubjId = mrks.ISMS_Id ?? mrks.ismS_Id;
+                const mEmeId = mrks.EME_Id ?? mrks.emE_Id;
+                const mGrpName = (mrks.EMPSG_DisplayName ?? mrks.empsG_DisplayName ?? mrks.EMPSG_GroupName ?? mrks.empG_GroupName ?? '')?.trim().toUpperCase();
+                return Number(mSubjId) === Number(subjId) && Number(mEmeId) === Number(exam.EME_Id) && mGrpName === grpName.trim().toUpperCase();
+            });
+
+            if (markRec) {
+                hasMarks = true;
+                const passFail = markRec.PassFailFlag ?? markRec.passFailFlag;
+                const isAbsent = ['AB', 'M', 'L'].includes(passFail);
+                if (!isAbsent) {
+                    allAbsent = false;
+                    totalObt += Number(markRec.ObtainedMarks ?? markRec.obtainedMarks ?? 0);
+                }
+                totalMax += Number(markRec.maxMarks ?? markRec.maxmarks ?? exam.EMPSGE_ForMaxMarkrs ?? 0);
+            } else {
+                totalMax += Number(exam.EMPSGE_ForMaxMarkrs ?? 0);
+            }
+        });
+
+        return hasMarks ? {
+            obtained: allAbsent ? 'AB' : totalObt,
+            max: totalMax
+        } : null;
+    };
+
+    // Helper to get semester total for a group (Average of subjects in group)
+    const getSemesterGroupTotal = (student: any, groupMap: any, subj: any, grpName: string) => {
+        const isSubjGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+            subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+        const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+
+        if (isSubjGrouped && groupName) {
+            const subjsInGroup = groupMap[groupName.trim()] || [];
+            let sumObt = 0;
+            let sumMax = 0;
+            let count = 0;
+            let allAbsent = true;
+
+            subjsInGroup.forEach((s: any) => {
+                const sId = s.ISMS_Id ?? s.ismS_Id;
+                const marks = getSubjectSemesterMarks(student, sId, grpName);
+                if (marks) {
+                    if (typeof marks.obtained === 'number') {
+                        sumObt += marks.obtained;
+                        allAbsent = false;
+                    }
+                    sumMax += marks.max;
+                    count++;
+                }
+            });
+
+            if (count === 0) return { obtained: null, max: 0 };
+            return {
+                obtained: allAbsent ? 'AB' : Math.round(sumObt / count),
+                max: Math.round(sumMax / count)
+            };
+        } else {
+            const sId = subj.ISMS_Id ?? subj.ismS_Id;
+            const marks = getSubjectSemesterMarks(student, sId, grpName);
+            return {
+                obtained: marks?.obtained ?? null,
+                max: marks?.max ?? 0
+            };
+        }
+    };
+
+    const getSubjectSemesterGrade = (student: any, subjId: number, grpName: string) => {
+        const rec = student.studentmarks?.find((m: any) => {
+            const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+            const mEmeId = m.EME_Id ?? m.emE_Id;
+            const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
+            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && mGrp === grpName.trim().toUpperCase();
+        });
+        return rec?.obtainedGrade ?? rec?.ObtainedGrade ?? '-';
+    };
+
+    const handleExport = () => {
+        if (!reportData || !reportData.studentdetails || reportData.studentdetails.length === 0) return;
+
+        const rows: any[] = [];
+
+        reportData.studentdetails.forEach((student: any) => {
+            const studentId = student.AMST_Id || student.amsT_Id;
+            const remarksObj = reportData.getpromotionremarksdetails?.find(
+                (d: any) => Number(d.AMST_Id || d.amsT_Id) === Number(studentId)
+            );
+            const remarks = remarksObj?.eprD_Remarks ?? student.remarks ?? '';
+            const conduct = remarksObj?.eprD_PromotionName ?? '';
+
+            // Add Student Info Header
+            rows.push({
+                'Student Name': (student.studentname || `${student.amsT_FirstName || ''} ${student.amsT_MiddleName || ''} ${student.amsT_LastName || ''}`).toUpperCase(),
+                'Class': (student.classname || student.asmcL_ClassName || '').toUpperCase(),
+                'Section': (student.sectionname || student.asmC_SectionName || '').toUpperCase(),
+                'Roll No': student.rollno || student.amaY_RollNo || '',
+                'Scholar No': student.admno || student.amsT_AdmNo || '',
+                'Subject': '',
+                'SEMESTER I [100]': '',
+                'Total [100] (SEM I)': '',
+                'SEMESTER II [100]': '',
+                'Total [100] (SEM II)': '',
+                'Grand Total [200]': '',
+                'Yearly Avg': ''
+            });
+
+            const applicableSubjects = (student.studentsubjects || []).filter((subj: any) => {
+                const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
+                return appToResult === true || appToResult === 'true';
+            });
+
+            // Group map for subjects
+            const groupMap: { [key: string]: any[] } = {};
+            applicableSubjects.forEach((subj: any) => {
+                const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                if (isGrouped && groupName) {
+                    const trimmed = groupName.trim();
+                    if (!groupMap[trimmed]) {
+                        groupMap[trimmed] = [];
+                    }
+                    groupMap[trimmed].push(subj);
+                }
+            });
+
+            const subjRowSpanMap = new Map<number, number>();
+            applicableSubjects.forEach((subj: any) => {
+                const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                const currentSubjId = subj.ISMS_Id ?? subj.ismS_Id;
+
+                if (isGrouped && groupName) {
+                    const trimmed = groupName.trim();
+                    const groupSubjs = groupMap[trimmed];
+                    groupSubjs.sort((a, b) => (a.grporder ?? 0) - (b.grporder ?? 0));
+                    const firstSubj = groupSubjs[0];
+                    const firstSubjId = firstSubj.ISMS_Id ?? firstSubj.ismS_Id;
+
+                    if (Number(currentSubjId) === Number(firstSubjId)) {
+                        subjRowSpanMap.set(currentSubjId, groupSubjs.length);
+                    } else {
+                        subjRowSpanMap.set(currentSubjId, -1);
+                    }
+                } else {
+                    subjRowSpanMap.set(currentSubjId, 1);
+                }
+            });
+
+            applicableSubjects.forEach((subj: any) => {
+                const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true) &&
+                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true);
+
+                const sem1MarksObj = getSubjectSemesterMarks(student, subjId, 'SEMESTER 1');
+                const sem1GroupObj = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 1');
+                const sem2MarksObj = getSubjectSemesterMarks(student, subjId, 'SEMESTER 2');
+                const sem2GroupObj = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 2');
+
+                let grandObt: number | string | null = null;
+                let grandMax = 0;
+                if (sem1GroupObj.obtained !== null || sem2GroupObj.obtained !== null) {
+                    if (typeof sem1GroupObj.obtained === 'number' || typeof sem2GroupObj.obtained === 'number') {
+                        grandObt = (Number(sem1GroupObj.obtained) || 0) + (Number(sem2GroupObj.obtained) || 0);
+                    } else if (sem1GroupObj.obtained === 'AB' && sem2GroupObj.obtained === 'AB') {
+                        grandObt = 'AB';
+                    }
+                    grandMax = sem1GroupObj.max + sem2GroupObj.max;
+                }
+
+                let yearlyAvgObt: number | string | null = null;
+                if (grandObt !== null) {
+                    if (typeof grandObt === 'number') {
+                        const val = grandObt / 2;
+                        yearlyAvgObt = val % 1 === 0 ? val : Number(val.toFixed(1));
+                    } else {
+                        yearlyAvgObt = grandObt;
+                    }
+                }
+
+                rows.push({
+                    'Student Name': '',
+                    'Class': '',
+                    'Section': '',
+                    'Roll No': '',
+                    'Scholar No': '',
+                    'Subject': subj.ISMS_SubjectName || subj.ismS_SubjectName,
+                    'SEMESTER I [100]': isGradeOnly ? '-' : (sem1MarksObj?.obtained ?? '-'),
+                    'Total [100] (SEM I)': isGradeOnly ? getSubjectSemesterGrade(student, subjId, 'SEMESTER 1') : (sem1GroupObj.obtained ?? '-'),
+                    'SEMESTER II [100]': isGradeOnly ? '-' : (sem2MarksObj?.obtained ?? '-'),
+                    'Total [100] (SEM II)': isGradeOnly ? getSubjectSemesterGrade(student, subjId, 'SEMESTER 2') : (sem2GroupObj.obtained ?? '-'),
+                    'Grand Total [200]': isGradeOnly ? '-' : (grandObt ?? '-'),
+                    'Yearly Avg': isGradeOnly ? '-' : (yearlyAvgObt ?? '-')
+                });
+            });
+
+            // Scholastic calculations
+            const scholasticSubjects = applicableSubjects.filter((subj: any) => {
+                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true) &&
+                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true);
+                return !isGradeOnly;
+            });
+
+            let sem1TotalObt = 0;
+            let sem1TotalMax = 0;
+            let sem2TotalObt = 0;
+            let sem2TotalMax = 0;
+
+            scholasticSubjects.forEach((subj: any) => {
+                const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                const rowSpan = subjRowSpanMap.get(subjId);
+                if (rowSpan !== undefined && rowSpan === -1) return;
+
+                const sem1Group = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 1');
+                if (sem1Group && typeof sem1Group.obtained === 'number') {
+                    sem1TotalObt += sem1Group.obtained;
+                    sem1TotalMax += sem1Group.max;
+                }
+
+                const sem2Group = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 2');
+                if (sem2Group && typeof sem2Group.obtained === 'number') {
+                    sem2TotalObt += sem2Group.obtained;
+                    sem2TotalMax += sem2Group.max;
+                }
+            });
+
+            const grandTotalObt = sem1TotalObt + sem2TotalObt;
+            const grandTotalMax = sem1TotalMax + sem2TotalMax;
+            const yearlyAvgObtSum = Math.round(grandTotalObt / 2);
+            const yearlyAvgMaxSum = Math.round(grandTotalMax / 2);
+
+            const sem1Percentage = sem1TotalMax > 0 ? Math.round((sem1TotalObt / sem1TotalMax) * 100) : 0;
+            const sem2Percentage = sem2TotalMax > 0 ? Math.round((sem2TotalObt / sem2TotalMax) * 100) : 0;
+            const grandPercentage = grandTotalMax > 0 ? Math.round((grandTotalObt / grandTotalMax) * 100) : 0;
+            const yearlyPercentage = yearlyAvgMaxSum > 0 ? Math.round((yearlyAvgObtSum / yearlyAvgMaxSum) * 100) : 0;
+
+            // Total row
+            rows.push({
+                'Student Name': '',
+                'Class': '',
+                'Section': '',
+                'Roll No': '',
+                'Scholar No': '',
+                'Subject': 'TOTAL',
+                'SEMESTER I [100]': '',
+                'Total [100] (SEM I)': `${sem1TotalObt}/${sem1TotalMax}`,
+                'SEMESTER II [100]': '',
+                'Total [100] (SEM II)': `${sem2TotalObt}/${sem2TotalMax}`,
+                'Grand Total [200]': `${grandTotalObt}/${grandTotalMax}`,
+                'Yearly Avg': `${yearlyAvgObtSum}/${yearlyAvgMaxSum}`
+            });
+
+            // Percentage row
+            rows.push({
+                'Student Name': '',
+                'Class': '',
+                'Section': '',
+                'Roll No': '',
+                'Scholar No': '',
+                'Subject': 'PERCENTAGE',
+                'SEMESTER I [100]': '',
+                'Total [100] (SEM I)': `${sem1Percentage}%`,
+                'SEMESTER II [100]': '',
+                'Total [100] (SEM II)': `${sem2Percentage}%`,
+                'Grand Total [200]': `${grandPercentage}%`,
+                'Yearly Avg': `${yearlyPercentage}%`
+            });
+
+            // Attendance row
+            const att1 = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'SEMESTER 1');
+            const att2 = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'SEMESTER 2');
+            const attAvg = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'ATT_AVERAGE');
+
+            rows.push({
+                'Student Name': '',
+                'Class': '',
+                'Section': '',
+                'Roll No': '',
+                'Scholar No': '',
+                'Subject': 'ATTENDANCE',
+                'SEMESTER I [100]': '',
+                'Total [100] (SEM I)': att1?.percentage ? `${att1.percentage}%` : '',
+                'SEMESTER II [100]': '',
+                'Total [100] (SEM II)': att2?.percentage ? `${att2.percentage}%` : '',
+                'Grand Total [200]': attAvg?.percentage ? `${attAvg.percentage}%` : '',
+                'Yearly Avg': attAvg?.percentage ? `${attAvg.percentage}%` : ''
+            });
+
+            // Remarks row
+            rows.push({
+                'Student Name': `Remarks: ${remarks}`,
+                'Class': `Conduct: ${conduct}`,
+                'Section': '',
+                'Roll No': '',
+                'Scholar No': '',
+                'Subject': '',
+                'SEMESTER I [100]': '',
+                'Total [100] (SEM I)': '',
+                'SEMESTER II [100]': '',
+                'Total [100] (SEM II)': '',
+                'Grand Total [200]': '',
+                'Yearly Avg': ''
+            });
+
+            // Empty spacer row
+            rows.push({});
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Promotion Report');
+        XLSX.writeFile(workbook, `Calcutta_PromotionReport_IX_X.xlsx`);
+    };
+
     return (
         <div className="flex flex-col gap-4">
-            <div className="print:hidden">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media print {
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif !important;
+                        visibility: hidden;
+                    }
+                    #printable-area, #printable-area * {
+                        visibility: visible;
+                    }
+                    #printable-area {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .page-break {
+                        page-break-after: always !important;
+                    }
+                    table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        font-family: system-ui, -apple-system, sans-serif !important;
+                    }
+                    th, td {
+                        border: 0.5px solid black !important;
+                        padding: 4px !important;
+                    }
+                    .text-center { text-align: center !important; }
+                    .text-left { text-align: left !important; }
+                    .text-right { text-align: right !important; }
+                    .bg-gray { background-color: #d1d5db !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+                    .font-bold { font-weight: bold !important; }
+                }
+            `}} />
+
+            <div className="no-print">
                 <CalcuttaPromotionReportForm onSuccess={handleGenerate} />
             </div>
 
             {loading && (
-                <div className="flex h-64 items-center justify-center rounded-md border bg-card print:hidden">
+                <div className="flex h-64 items-center justify-center rounded-md border bg-card no-print">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             )}
 
             {!loading && reportData && reportData.studentdetails?.length > 0 && (
                 <div className="rounded-md border bg-card p-4 print:border-none print:bg-transparent print:p-0">
-                    <div className="mb-4 flex items-center justify-end gap-2 print:hidden">
-                        <button
+                    <div className="mb-4 flex items-center justify-end gap-2 no-print">
+                        <Button
                             onClick={handleExport}
-                            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
+                            variant="outline"
+                            className="inline-flex items-center gap-2"
                         >
                             <Download className="h-4 w-4" />
                             Export Excel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handlePrint}
-                            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+                            className="inline-flex items-center gap-2 bg-primary text-white"
                         >
                             <Printer className="h-4 w-4" />
                             Print
-                        </button>
+                        </Button>
                     </div>
 
-                    <div className="print-content text-black">
-                        <style dangerouslySetInnerHTML={{
-                            __html: `
-                            @media print {
-                                body {
-                                    font-family: system-ui, -apple-system, sans-serif !important;
-                                }
-                                .page-break {
-                                    page-break-after: always !important;
-                                }
-                                table {
-                                    width: 100% !important;
-                                    border-collapse: collapse !important;
-                                    font-family: system-ui, -apple-system, sans-serif !important;
-                                }
-                                th, td {
-                                    border: 0.5px solid black !important;
-                                    padding: 4px !important;
-                                }
-                                .text-center { text-align: center !important; }
-                                .text-left { text-align: left !important; }
-                                .text-right { text-align: right !important; }
-                                .bg-gray { background-color: #d1d5db !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-                                .font-bold { font-weight: bold !important; }
-                            }
-                        `}} />
+                    <div id="printable-area" className="printable-content text-black">
+                        {reportData.studentdetails.map((student: any, index: number) => {
+                            const studentId = student.AMST_Id || student.amsT_Id;
+                            const remarksObj = reportData.getpromotionremarksdetails?.find(
+                                (d: any) => Number(d.AMST_Id || d.amsT_Id) === Number(studentId)
+                            );
+                            const remarks = remarksObj?.eprD_Remarks ?? student.remarks ?? '';
+                            const conduct = remarksObj?.eprD_PromotionName ?? '';
 
-                        {reportData.studentdetails.map((report: any, index: number) => {
-                            const studentRemarks = report.studentRemarks?.[0];
+                            const applicableSubjects = (student.studentsubjects || []).filter((subj: any) => {
+                                const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
+                                return appToResult === true || appToResult === 'true';
+                            });
+
+                            // Group subjects by esG_SubjectGroupName
+                            const groupMap: { [key: string]: any[] } = {};
+                            applicableSubjects.forEach((subj: any) => {
+                                const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                if (isGrouped && groupName) {
+                                    const trimmed = groupName.trim();
+                                    if (!groupMap[trimmed]) {
+                                        groupMap[trimmed] = [];
+                                    }
+                                    groupMap[trimmed].push(subj);
+                                }
+                            });
+
+                            // Map subject IDs to their rowSpan and group size
+                            const subjRowSpanMap = new Map<number, number>();
+                            applicableSubjects.forEach((subj: any) => {
+                                const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                                const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                                    subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+                                const currentSubjId = subj.ISMS_Id ?? subj.ismS_Id;
+
+                                if (isGrouped && groupName) {
+                                    const trimmed = groupName.trim();
+                                    const groupSubjs = groupMap[trimmed];
+                                    groupSubjs.sort((a, b) => (a.grporder ?? 0) - (b.grporder ?? 0));
+                                    const firstSubj = groupSubjs[0];
+                                    const firstSubjId = firstSubj.ISMS_Id ?? firstSubj.ismS_Id;
+
+                                    if (Number(currentSubjId) === Number(firstSubjId)) {
+                                        subjRowSpanMap.set(currentSubjId, groupSubjs.length);
+                                    } else {
+                                        subjRowSpanMap.set(currentSubjId, -1);
+                                    }
+                                } else {
+                                    subjRowSpanMap.set(currentSubjId, 1);
+                                }
+                            });
+
+                            // Scholastic Calculations for TOTAL row
+                            const scholasticSubjects = applicableSubjects.filter((subj: any) => {
+                                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true) &&
+                                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true);
+                                return !isGradeOnly;
+                            });
+
+                            let sem1TotalObt = 0;
+                            let sem1TotalMax = 0;
+                            let sem2TotalObt = 0;
+                            let sem2TotalMax = 0;
+
+                            scholasticSubjects.forEach((subj: any) => {
+                                const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                                const rowSpan = subjRowSpanMap.get(subjId);
+                                if (rowSpan !== undefined && rowSpan === -1) {
+                                    return; // Skip non-first grouped subjects to avoid double-counting
+                                }
+
+                                const sem1Group = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 1');
+                                if (sem1Group && typeof sem1Group.obtained === 'number') {
+                                    sem1TotalObt += sem1Group.obtained;
+                                    sem1TotalMax += sem1Group.max;
+                                }
+
+                                const sem2Group = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 2');
+                                if (sem2Group && typeof sem2Group.obtained === 'number') {
+                                    sem2TotalObt += sem2Group.obtained;
+                                    sem2TotalMax += sem2Group.max;
+                                }
+                            });
+
+                            const grandTotalObt = sem1TotalObt + sem2TotalObt;
+                            const grandTotalMax = sem1TotalMax + sem2TotalMax;
+
+                            const yearlyAvgObtSum = Math.round(grandTotalObt / 2);
+                            const yearlyAvgMaxSum = Math.round(grandTotalMax / 2);
+
+                            const sem1Percentage = sem1TotalMax > 0 ? Math.round((sem1TotalObt / sem1TotalMax) * 100) : 0;
+                            const sem2Percentage = sem2TotalMax > 0 ? Math.round((sem2TotalObt / sem2TotalMax) * 100) : 0;
+                            const grandPercentage = grandTotalMax > 0 ? Math.round((grandTotalObt / grandTotalMax) * 100) : 0;
+                            const yearlyPercentage = yearlyAvgMaxSum > 0 ? Math.round((yearlyAvgObtSum / yearlyAvgMaxSum) * 100) : 0;
 
                             return (
-                                <div key={index} className="page-break mb-8 print:mb-0">
-                                    {/* Header / Banner (Margin top equivalent if needed) */}
-                                    <div className="pt-[100px] print:pt-[150px]"></div>
+                                <div key={index} className={`max-w-[1000px] mx-auto bg-white p-4 font-sans ${index < reportData.studentdetails.length - 1 ? 'page-break mb-8' : ''}`}>
+                                    {/* Header Spacer */}
+                                    <div className="pt-24 print:pt-36"></div>
 
+                                    {/* Academic Session */}
+                                    <div className="mb-2 flex justify-center">
+                                        <div className="border border-black bg-white px-8 py-1">
+                                            <h2 className="font-bold text-[20px] tracking-wider uppercase">
+                                                ACADEMIC SESSION {payload?.ASMAY_Year || student.asmaY_Year || reportData.getinstitution?.[0]?.asmaY_Year || ''}
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    {/* Student Info Block */}
                                     <table className="mb-2 w-full table-fixed border-collapse border border-black" style={{ fontFamily: 'system-ui' }}>
-                                        <caption className="relative top-4 text-center caption-top">
-                                            <span className="border border-black bg-white px-8 py-1 text-[23px] font-semibold tracking-wide">
-                                                ACADEMIC SESSION {payload?.ASMAY_Id ? reportData.getinstitution?.[0]?.asmaY_Year || '2023-2024' : ''}
-                                            </span>
-                                        </caption>
                                         <tbody>
                                             <tr>
                                                 <td className="w-full border border-black p-4">
                                                     <div className="flex w-full">
                                                         <div className="flex-1 space-y-2">
-                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2">
-                                                                <div className="font-bold">Student's Name</div>
-                                                                <div>: {report.amsT_FirstName} {report.amsT_MiddleName} {report.amsT_LastName}</div>
+                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]">
+                                                                <div className="font-bold text-left">Student's Name</div>
+                                                                <div className="uppercase text-left">: {student.studentname || `${student.amsT_FirstName || ''} ${student.amsT_MiddleName || ''} ${student.amsT_LastName || ''}`.trim()}</div>
                                                             </div>
-                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2">
-                                                                <div className="font-bold">Scholar No.</div>
-                                                                <div>: {report.amsT_AdmNo}</div>
+                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]">
+                                                                <div className="font-bold text-left">Scholar No.</div>
+                                                                <div className="text-left">: {student.admno || student.amsT_AdmNo || ''}</div>
                                                             </div>
-                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2">
-                                                                <div className="font-bold">Total Students</div>
-                                                                <div>: {reportData.studentdetails.length}</div>
+                                                            <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]">
+                                                                <div className="font-bold text-left">Total Students</div>
+                                                                <div className="text-left">: {reportData.studentdetails.length}</div>
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-1">
                                                             <div className="flex-1 space-y-2">
-                                                                <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                                    <div className="font-bold">Class & Sec</div>
-                                                                    <div>: {report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                                                <div className="grid grid-cols-[80px_1fr] items-center gap-2 text-[14px]">
+                                                                    <div className="font-bold text-left">Class & Sec</div>
+                                                                    <div className="uppercase text-left">: {student.classname || student.asmcL_ClassName || ''} - {student.sectionname || student.asmC_SectionName || ''}</div>
                                                                 </div>
-                                                                <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-                                                                    <div className="font-bold">Roll No</div>
-                                                                    <div>: {report.amaY_RollNo}</div>
+                                                                <div className="grid grid-cols-[80px_1fr] items-center gap-2 text-[14px]">
+                                                                    <div className="font-bold text-left">Roll No</div>
+                                                                    <div className="text-left">: {student.rollno || student.amaY_RollNo || ''}</div>
                                                                 </div>
                                                             </div>
                                                             <div className="flex w-[100px] items-center justify-center text-right">
-                                                                {report.amsT_Photoname && (
+                                                                {student.amsT_Photoname || student.AMST_Photoname ? (
                                                                     <div className="relative h-[100px] w-[100px] border border-gray-300">
-                                                                        <Image src={report.amsT_Photoname} alt="Student Photo" fill className="object-contain" />
+                                                                        <img src={student.amsT_Photoname || student.AMST_Photoname} alt="Student Photo" className="h-full w-full object-contain" />
                                                                     </div>
-                                                                )}
-                                                                {!report.amsT_Photoname && (
+                                                                ) : (
                                                                     <div className="flex h-[100px] w-[100px] items-center justify-center border border-gray-300 bg-gray-100 text-xs text-gray-400">
                                                                         Photo
                                                                     </div>
@@ -165,254 +619,198 @@ export default function CalcuttaPromotionReportIX_XList() {
                                         <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
                                             <thead>
                                                 <tr>
-                                                    <td rowSpan={2} className="w-[300px] border border-black p-1 text-center font-bold break-words">
+                                                    <td rowSpan={2} className="w-[300px] border border-black p-1 text-center font-bold break-words bg-[#d1d5db] print:bg-[#d1d5db]">
                                                         SUBJECTS
                                                     </td>
-                                                    {reportData.getgroupdetails.map((grp: any, gIdx: number) => (
-                                                        <td key={gIdx} colSpan={grp.groupewiseexam.length} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db]">
-                                                            {grp.empG_DistplayName}
-                                                        </td>
-                                                    ))}
-                                                    <td colSpan={2} className="border border-black bg-[#d1d5db] p-1 print:bg-[#d1d5db]">&nbsp;</td>
+                                                    <td colSpan={2} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                        SEMESTER 1
+                                                    </td>
+                                                    <td colSpan={2} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                        SEMESTER 2
+                                                    </td>
+                                                    <td rowSpan={2} className="border border-black bg-[#d1d5db] p-1 print:bg-[#d1d5db] text-center font-bold w-[100px]">Grand Total<br />[200]</td>
+                                                    <td rowSpan={2} className="border border-black bg-[#d1d5db] p-1 print:bg-[#d1d5db] text-center font-bold w-[150px]">Yearly Avg</td>
                                                 </tr>
                                                 <tr>
-                                                    {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                        <th key={eIdx} className="w-[150px] border border-black p-1 text-center break-words font-bold">
-                                                            {grpexam.examnamedisplay} <br />
-                                                            {grpexam.examnamedisplay !== 'Highest in Class' && (
-                                                                <span>[{grpexam.EMPSGE_ForMaxMarkrs}]</span>
-                                                            )}
-                                                        </th>
-                                                    ))}
-                                                    <th className="w-[100px] border border-black p-1 text-center font-bold">Grand Total<br />[200]</th>
-                                                    <th className="w-[150px] border border-black p-1 text-center font-bold">Yearly Avg</th>
+                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                        SEMESTER I <br /> [100]
+                                                    </th>
+                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                        Total <br /> [100]
+                                                    </th>
+                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                        SEMESTER II <br /> [100]
+                                                    </th>
+                                                    <th className="w-[150px] border border-black p-1 text-center break-words font-bold bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                        Total <br /> [100]
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {/* Applicable Subjects */}
-                                                {report.studentsubjects.map((subj: any, sIdx: number) => {
-                                                    if (!subj.EMPS_AppToResultFlg && !subj.empS_AppToResultFlg) return null;
+                                                {applicableSubjects.map((subj: any, sIdx: number) => {
+                                                    const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                                                    const isSubjGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
+                                                        subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
+
+                                                    const rowSpanVal = subjRowSpanMap.get(subjId) ?? 1;
+                                                    const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true) &&
+                                                        !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true);
+
+                                                    const sem1MarksObj = getSubjectSemesterMarks(student, subjId, 'SEMESTER 1');
+                                                    const sem1GroupObj = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 1');
+                                                    const sem2MarksObj = getSubjectSemesterMarks(student, subjId, 'SEMESTER 2');
+                                                    const sem2GroupObj = getSemesterGroupTotal(student, groupMap, subj, 'SEMESTER 2');
+
+                                                    let grandObt: number | string | null = null;
+                                                    let grandMax = 0;
+                                                    if (sem1GroupObj.obtained !== null || sem2GroupObj.obtained !== null) {
+                                                        if (typeof sem1GroupObj.obtained === 'number' || typeof sem2GroupObj.obtained === 'number') {
+                                                            grandObt = (Number(sem1GroupObj.obtained) || 0) + (Number(sem2GroupObj.obtained) || 0);
+                                                        } else if (sem1GroupObj.obtained === 'AB' && sem2GroupObj.obtained === 'AB') {
+                                                            grandObt = 'AB';
+                                                        }
+                                                        grandMax = sem1GroupObj.max + sem2GroupObj.max;
+                                                    }
+
+                                                    let yearlyAvgObt: number | string | null = null;
+                                                    if (grandObt !== null) {
+                                                        if (typeof grandObt === 'number') {
+                                                            const val = grandObt / 2;
+                                                            yearlyAvgObt = val % 1 === 0 ? val : Number(val.toFixed(1));
+                                                        } else {
+                                                            yearlyAvgObt = grandObt;
+                                                        }
+                                                    }
+
                                                     return (
                                                         <tr key={sIdx}>
-                                                            <td className="border border-black p-1 text-left break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
+                                                            {/* Column 1: Subject Name */}
+                                                            <td className="border border-black p-1 text-left font-bold break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
 
-                                                            {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => {
-                                                                const isGrouped = subj.GropuFlag || subj.gropuFlag;
-                                                                if (isGrouped && grpexam.EME_Id === 9800000 && subj.colspan === -1) return null;
+                                                            {/* Column 2: SEMESTER I Subject Total */}
+                                                            <td className="border border-black p-1 text-center">
+                                                                {isGradeOnly ? '-' : (sem1MarksObj?.obtained ?? '-')}
+                                                            </td>
 
-                                                                const rs = (subj.colspan > 1 && isGrouped && grpexam.EME_Id !== 98000012 && grpexam.EME_Id === 9800000) ? subj.colspan : 1;
-
-                                                                return (
-                                                                    <td key={eIdx} rowSpan={rs} className="border border-black p-1 text-center">
-                                                                        {report.studentmarks.map((mrks: any, mIdx: number) => {
-                                                                            if (
-                                                                                (mrks.ISMS_Id === subj.ISMS_Id || mrks.ismS_Id === subj.ismS_Id) &&
-                                                                                (mrks.EME_Id === grpexam.EME_Id || mrks.emE_Id === grpexam.EME_Id) &&
-                                                                                (mrks.EMPSG_DisplayName === grpexam.EMPG_DistplayName || mrks.empsG_DisplayName === grpexam.EMPG_DistplayName)
-                                                                            ) {
-                                                                                const passFail = mrks.PassFailFlag || mrks.passFailFlag;
-                                                                                const isAbsent = ['AB', 'M', 'L'].includes(passFail);
-                                                                                const isGroup = mrks.GropuFlag || mrks.gropuFlag;
-                                                                                const isGradeExam = grpexam.EME_ExamName === 'Grade';
-                                                                                const isHighestExam = grpexam.EME_ExamName === 'Highest in Class';
-                                                                                const displayMarks = mrks.EYCES_MarksDisplayFlg || mrks.eyceS_MarksDisplayFlg;
-                                                                                const displayGrade = mrks.EYCES_GradeDisplayFlg || mrks.eyceS_GradeDisplayFlg;
-                                                                                const subjCode = mrks.ISMS_SubjectCode || mrks.ismS_SubjectCode;
-                                                                                const obtained = mrks.ObtainedMarks || mrks.obtainedMarks || 0;
-                                                                                const maxMarks = mrks.maxmarks || mrks.EMPS_MaxMarks || 0;
-
-                                                                                if (isAbsent) {
-                                                                                    if (!isGroup && !isGradeExam && displayMarks && obtained > 0) {
-                                                                                        return <span key={mIdx}>{passFail} ({obtained})</span>;
-                                                                                    }
-                                                                                    if (grpexam.EME_Id !== 98000012 && grpexam.EME_Id !== 9800000) {
-                                                                                        if (displayGrade && subjCode === 'ME') return <span key={mIdx}>-</span>;
-                                                                                        if (subjCode !== 'ME') return <span key={mIdx}>{passFail}</span>;
-                                                                                    }
-                                                                                }
-
-                                                                                if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id !== 9800000) {
-                                                                                    return <span key={mIdx}>{obtained} {subjCode === 'SE' && `/ ${maxMarks}`}</span>;
-                                                                                }
-
-                                                                                if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayMarks && grpexam.EME_Id === 9800000) {
-                                                                                    if (obtained !== 0) {
-                                                                                        return <span key={mIdx}>{obtained} {subjCode === 'SE' && `/ ${maxMarks}`}</span>;
-                                                                                    } else if (subjCode === 'SE' && obtained === 0) {
-                                                                                        return <span key={mIdx}>AB</span>;
-                                                                                    }
-                                                                                }
-
-                                                                                if (!isAbsent && isHighestExam && displayMarks) {
-                                                                                    return <span key={mIdx}>{mrks.ESTMPPS_ClassHighest || mrks.estmppS_ClassHighest}</span>;
-                                                                                }
-
-                                                                                if (!isAbsent && isGroup && !isGradeExam && !isHighestExam && mrks.GroupMarks > 0) {
-                                                                                    return <span key={mIdx}>{mrks.GroupMarks}</span>;
-                                                                                }
-
-                                                                                if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id !== 9800000) {
-                                                                                    return <span key={mIdx}>-</span>;
-                                                                                }
-
-                                                                                if (!isAbsent && !isGroup && !isGradeExam && !isHighestExam && displayGrade && grpexam.EME_Id === 9800000) {
-                                                                                    return <span key={mIdx}>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>;
-                                                                                }
-
-                                                                                if (!isAbsent && !isGroup && isGradeExam && displayGrade && grpexam.EME_Id === 98000012) {
-                                                                                    return <span key={mIdx}>{mrks.ESTMPPS_ObtainedGrade || mrks.estmppS_ObtainedGrade}</span>;
-                                                                                }
-                                                                            }
-                                                                            return null;
-                                                                        })}
-                                                                    </td>
-                                                                );
-                                                            })}
-
-                                                            {/* Grand Total Column */}
-                                                            {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
-                                                                <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                    {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarks}</span>}
-                                                                    {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg) && (
-                                                                        <span>
-                                                                            {subj.ESTMPPSG_GroupObtMarks || subj.estmppsG_GroupObtMarks} {(subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'SE' && `/ ${subj.EMPS_MaxMarks || subj.empS_MaxMarks}`}
-                                                                        </span>
-                                                                    )}
-                                                                    {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
+                                                            {/* Column 3: SEMESTER I Group Total */}
+                                                            {(!isSubjGrouped || rowSpanVal > 0) && (
+                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                    {isGradeOnly ? getSubjectSemesterGrade(student, subjId, 'SEMESTER 1') : (sem1GroupObj.obtained ?? '-')}
                                                                 </td>
                                                             )}
 
-                                                            {/* Yearly Avg Column */}
-                                                            {(!subj.GropuFlag && !subj.gropuFlag || subj.colspan !== -1) && (
-                                                                <td rowSpan={(subj.colspan > 1 && (subj.GropuFlag || subj.gropuFlag)) ? subj.colspan : 1} className="border border-black p-1 text-center">
-                                                                    {(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.GroupMarksnew}</span>}
-                                                                    {!(subj.GropuFlag || subj.gropuFlag) && !(subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>{subj.YeralyGroupObtMarks || subj.yeralyGroupObtMarks}</span>}
-                                                                    {!(subj.GropuFlag || subj.gropuFlag) && (subj.ISMS_SubjectCode || subj.ismS_SubjectCode) === 'ME' && (subj.EYCES_GradeDisplayFlg || subj.eyceS_GradeDisplayFlg) && <span>-</span>}
+                                                            {/* Column 4: SEMESTER II Subject Total */}
+                                                            <td className="border border-black p-1 text-center">
+                                                                {isGradeOnly ? '-' : (sem2MarksObj?.obtained ?? '-')}
+                                                            </td>
+
+                                                            {/* Column 5: SEMESTER II Group Total */}
+                                                            {(!isSubjGrouped || rowSpanVal > 0) && (
+                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                    {isGradeOnly ? getSubjectSemesterGrade(student, subjId, 'SEMESTER 2') : (sem2GroupObj.obtained ?? '-')}
+                                                                </td>
+                                                            )}
+
+                                                            {/* Column 6: Grand Total */}
+                                                            {(!isSubjGrouped || rowSpanVal > 0) && (
+                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                    {isGradeOnly ? '-' : (grandObt ?? '-')}
+                                                                </td>
+                                                            )}
+
+                                                            {/* Column 7: Yearly Avg */}
+                                                            {(!isSubjGrouped || rowSpanVal > 0) && (
+                                                                <td rowSpan={rowSpanVal > 0 ? rowSpanVal : 1} className="border border-black p-1 text-center font-bold">
+                                                                    {isGradeOnly ? '-' : (yearlyAvgObt ?? '-')}
                                                                 </td>
                                                             )}
                                                         </tr>
                                                     );
                                                 })}
 
-                                                {/* Totals Row */}
+                                                {/* Non-Applicable Subjects */}
+                                                {student.studentsubjects.map((subj: any, sIdx: number) => {
+                                                    const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
+                                                    if (appToResult === true || appToResult === 'true') return null;
+
+                                                    const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                                                    const sem1Marks = getSubjectSemesterMarks(student, subjId, 'SEMESTER 1');
+                                                    const sem2Marks = getSubjectSemesterMarks(student, subjId, 'SEMESTER 2');
+
+                                                    return (
+                                                        <tr key={`non-app-${sIdx}`}>
+                                                            <td className="border border-black p-1 text-left font-bold break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
+                                                            <td className="border border-black p-1 text-center">{sem1Marks?.obtained ?? '-'}</td>
+                                                            <td className="border border-black p-1 text-center">-</td>
+                                                            <td className="border border-black p-1 text-center">{sem2Marks?.obtained ?? '-'}</td>
+                                                            <td className="border border-black p-1 text-center">-</td>
+                                                            <td className="border border-black p-1 text-center">-</td>
+                                                            <td className="border border-black p-1 text-center">-</td>
+                                                        </tr>
+                                                    );
+                                                })}
+
+                                                {/* TOTAL Row */}
                                                 <tr>
-                                                    <td className="border border-black p-1 text-left font-bold">TOTAL</td>
-                                                    {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                        <td key={eIdx} className="border border-black p-1 text-center font-bold">
-                                                            {report.student_marks.map((mrks: any, mIdx: number) => {
-                                                                if ((mrks.EME_Id === grpexam.EME_Id || mrks.emE_Id === grpexam.EME_Id) && (mrks.EMPSG_DisplayName === grpexam.EMPG_DistplayName || mrks.empsG_DisplayName === grpexam.EMPG_DistplayName)) {
-                                                                    if (grpexam.EME_Id === 9800000) {
-                                                                        return <span key={mIdx}>{mrks.ObtainedMarks || mrks.obtainedMarks} / {mrks.maxmarks || mrks.EMPS_MaxMarks}</span>;
-                                                                    }
-                                                                    if (grpexam.EME_Id === 9800001) {
-                                                                        return <span key={mIdx}>{mrks.EMGD_Name || mrks.emgD_Name}</span>;
-                                                                    }
-                                                                }
-                                                                return null;
-                                                            })}
-                                                        </td>
-                                                    ))}
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${Math.round(dd.GroupMarks_Total)}/${dd.maxmarks}`).join(', ')}
-                                                    </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${Math.round(dd.YearlyMarks_Total1 || dd.YearlyMarks_Total)}/${dd.maxmarks / 2}`).join(', ')}
-                                                    </td>
+                                                    <td className="border border-black p-1 text-left font-bold uppercase">TOTAL</td>
+                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
+                                                    <td className="border border-black p-1 text-center font-bold">{sem1TotalObt}/{sem1TotalMax}</td>
+                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
+                                                    <td className="border border-black p-1 text-center font-bold">{sem2TotalObt}/{sem2TotalMax}</td>
+                                                    <td className="border border-black p-1 text-center font-bold">{grandTotalObt}/{grandTotalMax}</td>
+                                                    <td className="border border-black p-1 text-center font-bold">{yearlyAvgObtSum}/{yearlyAvgMaxSum}</td>
                                                 </tr>
 
-                                                {/* Percentage Row */}
+                                                {/* PERCENTAGE Row */}
                                                 <tr>
-                                                    <td className="border border-black p-1 text-left font-bold">PERCENTAGE</td>
-                                                    {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                        <td key={eIdx} className="border border-black p-1 text-center font-bold">
-                                                            {report.student_marks.map((mrks: any, mIdx: number) => {
-                                                                if ((mrks.EME_Id === grpexam.EME_Id || mrks.emE_Id === grpexam.EME_Id) && (mrks.EMPSG_DisplayName === grpexam.EMPG_DistplayName || mrks.empsG_DisplayName === grpexam.EMPG_DistplayName) && grpexam.EME_Id === 9800000) {
-                                                                    return <span key={mIdx}>{mrks.TotalPercentage || mrks.totalPercentage}%</span>;
-                                                                }
-                                                                return null;
-                                                            })}
-                                                        </td>
-                                                    ))}
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${dd.GroupMarks_PER}%`).join(', ')}
-                                                    </td>
-                                                    <td className="border border-black p-1 text-center font-bold">
-                                                        {reportData.getgradelist.filter((d: any) => d.AMST_Id === report.amsT_Id).map((dd: any) => `${dd.GroupMarks_PER || dd.YearlyMarks_PER}%`).join(', ')}
-                                                    </td>
+                                                    <td className="border border-black p-1 text-left font-bold uppercase">PERCENTAGE</td>
+                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
+                                                    <td className="border border-black p-1 text-center font-bold">{sem1Percentage}%</td>
+                                                    <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
+                                                    <td className="border border-black p-1 text-center font-bold">{sem2Percentage}%</td>
+                                                    <td className="border border-black p-1 text-center font-bold">{grandPercentage}%</td>
+                                                    <td className="border border-black p-1 text-center font-bold">{yearlyPercentage}%</td>
                                                 </tr>
 
                                                 {/* Attendance Row */}
                                                 <tr>
                                                     <td className="border border-black p-1 text-left font-bold">Attendance</td>
-                                                    {reportData.getgroupdetails.map((grp: any, gIdx: number) => (
-                                                        <td key={gIdx} colSpan={grp.groupewiseexam.length} className="border border-black p-1 text-center font-bold">
-                                                            {report.attendance.filter((att: any) => att.term === grp.empG_DistplayName).map((att: any, aIdx: number) => (
-                                                                <span key={aIdx}>{att.percentage}%</span>
-                                                            ))}
-                                                        </td>
-                                                    ))}
                                                     <td colSpan={2} className="border border-black p-1 text-center font-bold">
-                                                        {report.attendance.filter((att: any) => att.term === 'Att_Average').map((att: any, aIdx: number) => (
-                                                            <span key={aIdx}>{att.percentage}%</span>
-                                                        ))}
+                                                        {(() => {
+                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'SEMESTER 1');
+                                                            return att?.percentage ? `${att.percentage}%` : '';
+                                                        })()}
+                                                    </td>
+                                                    <td colSpan={2} className="border border-black p-1 text-center font-bold">
+                                                        {(() => {
+                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'SEMESTER 2');
+                                                            return att?.percentage ? `${att.percentage}%` : '';
+                                                        })()}
+                                                    </td>
+                                                    <td colSpan={2} className="border border-black p-1 text-center font-bold">
+                                                        {(() => {
+                                                            const att = student.attendance?.find((a: any) => a.term?.trim().toUpperCase() === 'ATT_AVERAGE');
+                                                            return att?.percentage ? `${att.percentage}%` : '';
+                                                        })()}
                                                     </td>
                                                 </tr>
-
-                                                {/* Non-Applicable Subjects */}
-                                                {report.studentsubjects.map((subj: any, sIdx: number) => {
-                                                    if (subj.EMPS_AppToResultFlg || subj.empS_AppToResultFlg) return null;
-                                                    return (
-                                                        <tr key={`non-app-${sIdx}`}>
-                                                            <td className="border border-black p-1 text-left font-bold break-words">{subj.ISMS_SubjectName || subj.ismS_SubjectName}</td>
-                                                            {reportData.groupwiseexamlist.map((grpexam: any, eIdx: number) => (
-                                                                <td key={eIdx} className="border border-black p-1 text-center">
-                                                                    {report.studentmarks.map((mrks: any, mIdx: number) => {
-                                                                        if (
-                                                                            (mrks.ISMS_Id === subj.ISMS_Id || mrks.ismS_Id === subj.ismS_Id) &&
-                                                                            (mrks.EME_Id === grpexam.EME_Id || mrks.emE_Id === grpexam.EME_Id) &&
-                                                                            (mrks.EMPSG_DisplayName === grpexam.EMPG_DistplayName || mrks.empsG_DisplayName === grpexam.EMPG_DistplayName)
-                                                                        ) {
-                                                                            const passFail = mrks.PassFailFlag || mrks.passFailFlag;
-                                                                            const isAbsent = ['AB', 'M', 'L'].includes(passFail);
-                                                                            const isGradeExam = grpexam.EME_ExamName === 'Grade';
-                                                                            const obtained = mrks.ObtainedMarks || mrks.obtainedMarks || 0;
-
-                                                                            if (isAbsent) {
-                                                                                return <span key={mIdx}>{passFail} {!isGradeExam && obtained > 0 ? `(${obtained})` : ''}</span>;
-                                                                            }
-                                                                            if (!isAbsent && !isGradeExam) {
-                                                                                return <span key={mIdx}>{obtained}</span>;
-                                                                            }
-                                                                            if (!isAbsent && isGradeExam) {
-                                                                                return <span key={mIdx}>{mrks.ObtainedGrade || mrks.obtainedGrade}</span>;
-                                                                            }
-                                                                        }
-                                                                        return null;
-                                                                    })}
-                                                                </td>
-                                                            ))}
-                                                            {/* Pad missing columns */}
-                                                            <td className="border border-black p-1 text-center"></td>
-                                                            <td className="border border-black p-1 text-center"></td>
-                                                        </tr>
-                                                    );
-                                                })}
                                             </tbody>
                                         </table>
                                     </div>
 
                                     {/* Suggestion Section */}
                                     <div className="pt-2">
-                                        <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                        <table className="w-full border-collapse border-[0.5px] border-black text-sm">
                                             <tbody>
-                                                <tr>
-                                                    <th className="border border-black bg-gray-500 p-2 text-center font-bold text-white print:bg-gray-500">
+                                                <tr className="border-[0.5px] border-black bg-gray-300">
+                                                    <th className="p-2 text-center font-bold text-black uppercase">
                                                         Assessment - II
                                                     </th>
                                                 </tr>
                                                 <tr>
-                                                    <td className="border border-black p-2 text-left">
-                                                        <b>Suggestion :</b> <b>{studentRemarks?.ECTERE_Remarks || studentRemarks?.ecterE_Remarks || ''}</b>
+                                                    <td className="border-[0.5px] border-black p-2 text-left min-h-[40px]">
+                                                        <b>Suggestion : </b> <b>{remarks}</b>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -420,25 +818,25 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     </div>
 
                                     <div className="flex w-full pt-2">
-                                        <div className="w-full font-bold text-[14px]">
-                                            Conduct : <span className="font-normal">{studentRemarks?.ECTERE_Conduct || studentRemarks?.ecterE_Conduct || ''}</span>
+                                        <div className="w-full font-bold text-sm text-left">
+                                            Conduct : <span className="font-normal">{conduct}</span>
                                         </div>
                                     </div>
 
                                     {/* Graph Analysis Box */}
                                     <div className="pt-2">
-                                        <table className="mb-4 w-full border-collapse border border-black text-[12px] font-bold">
+                                        <table className="mb-4 w-full border-collapse border-[0.5px] border-black text-xs font-bold">
                                             <tbody>
-                                                <tr>
-                                                    <td colSpan={3} className="border border-black bg-[#d1d5db] p-1 text-center uppercase print:bg-[#d1d5db]">
+                                                <tr className="border-[0.5px] border-black bg-gray-300">
+                                                    <td colSpan={3} className="p-2 text-center uppercase font-bold text-black">
                                                         GRAPHICAL ANALYSIS
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td colSpan={3} className="border border-black p-2">
+                                                    <td colSpan={3} className="border-[0.5px] border-black p-2">
                                                         <div className="mx-auto h-[250px] w-[98%]">
                                                             <ResponsiveContainer width="100%" height="100%">
-                                                                <BarChart data={report.chartData} margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
+                                                                <BarChart data={student.chartData} margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
                                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                                     <XAxis dataKey="subject" tick={{ fontSize: 9 }} tickLine={false} axisLine={true} interval={0} angle={-15} textAnchor="end" />
                                                                     <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={true} />
@@ -450,9 +848,9 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                                <tr>
-                                                    <td className="border border-black p-2 text-center w-1/3"><span className="mr-2 inline-block h-3 w-3 bg-[#3f51b5]"></span> Highest Marks</td>
-                                                    <td className="border border-black p-2 text-center w-1/3"><span className="mr-2 inline-block h-3 w-3 bg-[#ff5722]"></span> Average Marks</td>
+                                                <tr className="border-[0.5px] border-black">
+                                                    <td className="p-2 text-center w-1/3"><span className="mr-2 inline-block h-3 w-3 bg-[#3f51b5]"></span> Highest Marks</td>
+                                                    <td className="p-2 text-center w-1/3"><span className="mr-2 inline-block h-3 w-3 bg-[#ff5722]"></span> Average Marks</td>
                                                     <td className="p-2 text-center w-1/3"><span className="mr-2 inline-block h-3 w-3 bg-[#00ff00]"></span> Obtained Marks</td>
                                                 </tr>
                                             </tbody>
@@ -460,13 +858,13 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     </div>
 
                                     {/* Signatures */}
-                                    <div className="mt-8 print:mt-[50px]">
-                                        <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                    <div className="mt-16">
+                                        <table className="w-full border-collapse border-[0.5px] border-black text-sm">
                                             <tbody>
-                                                <tr>
-                                                    <th className="border border-black p-2 text-center font-bold w-1/3">Principal's Signature</th>
-                                                    <th className="border border-black p-2 text-center font-bold w-1/3">Class Teacher's Signature</th>
-                                                    <th className="border border-black p-2 text-center font-bold w-1/3">Parent's Signature</th>
+                                                <tr className="border-[0.5px] border-black">
+                                                    <th className="p-2 text-center font-bold w-1/3 border-[0.5px] border-black">Principal's Signature</th>
+                                                    <th className="p-2 text-center font-bold w-1/3 border-[0.5px] border-black">Class Teacher's Signature</th>
+                                                    <th className="p-2 text-center font-bold w-1/3 border-[0.5px] border-black">Parent's Signature</th>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -474,14 +872,14 @@ export default function CalcuttaPromotionReportIX_XList() {
 
                                     {/* Dates */}
                                     <div className="pt-4">
-                                        <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                        <table className="w-full border-collapse border-[0.5px] border-black text-sm">
                                             <tbody>
-                                                <tr>
-                                                    <td className="border border-black p-2 text-left">
+                                                <tr className="border-[0.5px] border-black">
+                                                    <td className="p-2 text-left border-[0.5px] border-black">
                                                         <b>Date of Issue: </b> &nbsp;{formatDate(payload?.issueDate)}<br />
                                                         <b>New Academic Session Commences on: </b> &nbsp;{formatDate(payload?.academicDate)}
                                                     </td>
-                                                    <td className="border border-black p-2 text-right align-top">
+                                                    <td className="p-2 text-right align-top border-[0.5px] border-black">
                                                         <b>Report Card Printed On : {formatDate(payload?.reportPrintedDate)}</b> <br />
                                                     </td>
                                                 </tr>

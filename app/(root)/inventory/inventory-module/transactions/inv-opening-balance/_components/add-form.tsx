@@ -34,8 +34,19 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
     const itemDetailMutation = useInvOpeningBalanceItemDetails();
     const obDetailsMutation = useInvOpeningBalanceDetails();
 
-    const [stores, setStores] = useState<any[]>(initialStoreList || []);
-    const [items, setItems] = useState<any[]>(initialItemList || []);
+    const [stores, setStores] = useState<any[]>(() => {
+        const list = initialStoreList || [];
+        return list.filter((store: any, index: number, self: any[]) =>
+            index === self.findIndex((s) => s.invmsT_Id === store.invmsT_Id)
+        );
+    });
+
+    const [items, setItems] = useState<any[]>(() => {
+        const list = initialItemList || [];
+        return list.filter((item: any, index: number, self: any[]) =>
+            index === self.findIndex((t) => (t.invmI_Id || t.invmi_Id) === (item.invmI_Id || item.invmi_Id))
+        );
+    });
 
     const form = useForm<TInvOpeningBalance>({
         resolver: zodResolver(invOpeningBalanceSchema),
@@ -106,7 +117,13 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                     } else if (data?.get_item) {
                         extractedItems = Array.isArray(data.get_item) ? data.get_item : (data.get_item?.$values || []);
                     }
-                    setItems(extractedItems);
+                    // Deduplicate items based on ID to avoid duplicate key errors in Select
+                    const uniqueItems = extractedItems.filter((item: any, index: number, self: any[]) =>
+                        index === self.findIndex((t) => (
+                            (t.invmI_Id || t.invmi_Id) === (item.invmI_Id || item.invmi_Id)
+                        ))
+                    );
+                    setItems(uniqueItems);
                 }
             });
         }

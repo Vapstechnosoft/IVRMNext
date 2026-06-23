@@ -21,7 +21,7 @@ import { z } from 'zod';
 const schema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
     asmcL_Id: z.number().min(1, 'Select Class'),
-    asmS_Id:  z.number().min(1, 'Select Section'),
+    asmS_Id: z.number().min(1, 'Select Section'),
     studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
 });
 type Schema = z.infer<typeof schema>;
@@ -35,7 +35,7 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
     const { control, handleSubmit, reset, setValue, formState: { isSubmitting } } = methods;
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
-    const [classes, setClasses]   = useState<any[]>([]);
+    const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [loadingCls, setLoadingCls] = useState(false);
@@ -43,8 +43,8 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
     const [loadingStu, setLoadingStu] = useState(false);
 
     const { data: academicData } = useAcademicYearDropdown();
-    const selectedYear    = useWatch({ control, name: 'asmaY_Id' });
-    const selectedClass   = useWatch({ control, name: 'asmcL_Id' });
+    const selectedYear = useWatch({ control, name: 'asmaY_Id' });
+    const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSection = useWatch({ control, name: 'asmS_Id' });
     const selectedStudentsList = useWatch({ control, name: 'studentList' });
 
@@ -94,10 +94,11 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
             const payload = {
                 asmaY_Id: data.asmaY_Id,
                 asmcL_Id: data.asmcL_Id,
-                asmS_Id:  data.asmS_Id,
+                asmS_Id: data.asmS_Id,
                 temp_AmstIds: data.studentList,
             };
             const response: any = await getNDS9ProgressCardReport(payload);
+            console.log('nds9 progressCardReport', response);
             if (response?.success && response?.data) {
                 if (onSuccess) onSuccess({ apiData: response.data, payload });
             } else {
@@ -178,21 +179,21 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
                                                 <div className='flex max-h-[280px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
                                                     {loadingStu ? <span className='text-muted-foreground text-sm'>Loading...</span>
                                                         : students.length === 0 ? <span className='text-muted-foreground text-sm'>No Students found</span>
-                                                        : students.map((e) => {
-                                                            const isChecked = field.value?.some((v) => v.amsT_Id === e.amsT_Id) || false;
-                                                            return (
-                                                                <div key={e.amsT_Id} className='flex items-center space-x-2'>
-                                                                    <Checkbox id={`nds9-stu-${e.amsT_Id}`} checked={isChecked}
-                                                                        onCheckedChange={(checked) => {
-                                                                            if (checked) field.onChange([...(field.value || []), { amsT_Id: e.amsT_Id }]);
-                                                                            else field.onChange((field.value || []).filter((v) => v.amsT_Id !== e.amsT_Id));
-                                                                        }} />
-                                                                    <Label htmlFor={`nds9-stu-${e.amsT_Id}`} className='text-sm leading-none'>
-                                                                        {e.studentName}{e.amsT_AdmNo ? ` / ${e.amsT_AdmNo}` : ''}
-                                                                    </Label>
-                                                                </div>
-                                                            );
-                                                        })}
+                                                            : students.map((e) => {
+                                                                const isChecked = field.value?.some((v) => v.amsT_Id === e.amsT_Id) || false;
+                                                                return (
+                                                                    <div key={e.amsT_Id} className='flex items-center space-x-2'>
+                                                                        <Checkbox id={`nds9-stu-${e.amsT_Id}`} checked={isChecked}
+                                                                            onCheckedChange={(checked) => {
+                                                                                if (checked) field.onChange([...(field.value || []), { amsT_Id: e.amsT_Id }]);
+                                                                                else field.onChange((field.value || []).filter((v) => v.amsT_Id !== e.amsT_Id));
+                                                                            }} />
+                                                                        <Label htmlFor={`nds9-stu-${e.amsT_Id}`} className='text-sm leading-none'>
+                                                                            {e.studentName}{e.amsT_AdmNo ? ` / ${e.amsT_AdmNo}` : ''}
+                                                                        </Label>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                 </div>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>

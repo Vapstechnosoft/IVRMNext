@@ -29,8 +29,7 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
 
     if (!data) return null;
 
-    const { viewadmission } = data;
-    const student = viewadmission?.[0] || {};
+    const student = data?.viewadmission?.[0] || (Array.isArray(data) ? data[0] : data) || {};
 
     const infoRows = [
         { label: 'APPLICATION NO', value: student.PASR_RegistrationNo },
@@ -74,8 +73,80 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
                     </div>
                 </DialogHeader>
 
-                <div ref={componentRef} className="p-8 font-serif text-[14px] print:p-0 print:text-[12px] leading-relaxed">
-                    <div className="space-y-6">
+                <div ref={componentRef} className="p-8 font-serif text-[14px] print:p-0 print:text-[12px] leading-relaxed admission-modal-print">
+                    <style type="text/css" dangerouslySetInnerHTML={{ __html: `
+                        @media print {
+                            @page { size: A4; margin: 8mm 12mm; }
+                            body {
+                                visibility: hidden !important;
+                            }
+                            .admission-modal-print,
+                            .admission-modal-print * {
+                                visibility: visible !important;
+                            }
+                            .admission-modal-print {
+                                position: absolute !important;
+                                left: 0 !important;
+                                top: 0 !important;
+                                width: 100% !important;
+                                height: auto !important;
+                                z-index: 99999 !important;
+                                background: white !important;
+                                color: black !important;
+                                font-size: 11px !important;
+                                line-height: 1.2 !important;
+                            }
+                            .admission-modal-print img {
+                                height: 50px !important;
+                                margin-bottom: 2px !important;
+                            }
+                            .admission-modal-print h1 {
+                                font-size: 14px !important;
+                                padding-bottom: 2px !important;
+                                margin-top: 2px !important;
+                                margin-bottom: 2px !important;
+                            }
+                            .admission-modal-print .main-container {
+                                gap: 6px !important;
+                            }
+                            .admission-modal-print .info-list {
+                                gap: 1px !important;
+                                padding-top: 2px !important;
+                            }
+                            .admission-modal-print .info-row {
+                                gap: 2px !important;
+                                font-size: 9.5px !important;
+                                grid-template-cols: 240px 1fr !important;
+                            }
+                            .admission-modal-print .info-row-label {
+                                font-size: 9.5px !important;
+                            }
+                            .admission-modal-print .declaration-section {
+                                padding-top: 4px !important;
+                                gap: 4px !important;
+                            }
+                            .admission-modal-print .declaration-section h4 {
+                                font-size: 11px !important;
+                                margin-bottom: 1px !important;
+                            }
+                            .admission-modal-print .declaration-section p {
+                                font-size: 9.5px !important;
+                                margin-bottom: 2px !important;
+                                text-align: justify !important;
+                                line-height: 1.25 !important;
+                                text-indent: 1.5rem !important;
+                            }
+                            .admission-modal-print .signature-row {
+                                margin-top: 10px !important;
+                                padding-top: 6px !important;
+                                gap: 8px !important;
+                            }
+                            .admission-modal-print .signature-row .text-\\[12px\\] {
+                                font-size: 9.5px !important;
+                            }
+                        }
+                    ` }} />
+                    <div className="space-y-6 main-container">
                         {/* Header */}
                         <div className="text-center">
                             {logo && <img src={logo} alt="Logo" className="h-24 mx-auto mb-4 object-contain" />}
@@ -85,10 +156,10 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
                             ADMISSION FORM
                         </h1>
 
-                        <div className="space-y-3 pt-4">
+                        <div className="space-y-3 pt-4 info-list">
                             {infoRows.map((row, idx) => (
-                                <div key={idx} className="grid grid-cols-[300px_1fr] items-start gap-2">
-                                    <div className="font-bold uppercase text-[12px]">{row.label}</div>
+                                <div key={idx} className="grid grid-cols-[300px_1fr] items-start gap-2 info-row">
+                                    <div className="font-bold uppercase text-[12px] info-row-label">{row.label}</div>
                                     <div className="flex gap-2">
                                         <span>:</span>
                                         <span className="font-medium">{row.value || 'N/A'}</span>
@@ -97,7 +168,7 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
                             ))}
                         </div>
 
-                        <div className="space-y-6 pt-6">
+                        <div className="space-y-6 pt-6 declaration-section">
                             <h4 className="font-bold text-center underline italic text-lg">Declaration</h4>
                             
                             <p className="text-justify indent-8">
@@ -108,7 +179,7 @@ export default function AdmissionFormModal({ isOpen, onClose, data, logo }: Admi
                                 I shall be responsible for my ward’s behaviour and academic progress in the school. I have read and understood the rules and regulations of the school and am aware of the disciplinary practices existing in the school (which may change from time to time) in all matters. I hereby state that I shall cooperate with the school management in all matters and support its efforts to run the school efficiently.
                             </p>
 
-                            <div className="grid grid-cols-3 gap-8 pt-12 text-center">
+                            <div className="grid grid-cols-3 gap-8 pt-12 text-center signature-row">
                                 <div className="space-y-2">
                                     <div className="border-b border-dotted border-black h-4 mx-4"></div>
                                     <div className="text-[12px] font-bold">Father's Signature</div>

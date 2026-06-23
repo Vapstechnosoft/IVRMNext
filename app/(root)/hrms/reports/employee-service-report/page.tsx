@@ -9,145 +9,33 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
+import {
+    useReportGroupTypes,
+    useReportDepartments,
+    useReportDesignations,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useEmployeeOfferAndExperienceReport
+} from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Printer, RefreshCw, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as z from 'zod';
+
 
 import { EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
+import { RadioItem } from '@radix-ui/react-dropdown-menu';
 
-// Define the form schema and types
 
-
-const mockEmployees = [
-    { key: '1208', value: 'ANUSHA T' },
-    { key: 'EMP002', value: 'KIRAN KUMAR' },
-    { key: 'EMP003', value: 'PALLAVI C' },
-    { key: 'EMP004', value: 'RAFIQ' },
-    { key: 'EMP005', value: 'NATARAJA' }
-];
-
-const mockletter = [
-    //   { key: "1", value: "Teaching Staff Offer Letter" },
-    //   { key: "2", value: "Non Teaching Staff Offer Letter" },
-    { key: '3', value: 'Experience Certificate' }
-    //   { key: "4", value: "Service Certificate" },
-    //   { key: "5", value: "Teaching Staff Appointment Letter" },
-    //   { key: "6", value: "Non Teaching Staff Appointment Letter" },
-    //   { key: "7", value: "Confirmation Letter" },
-    //   { key: "8", value: "Termination Letter" },
-    //   { key: "9", value: "Relieving Letter" },
-    //   { key: "10", value: "Account Opening" },
-];
-const mockApiResponse = {
-    institutionDetails: {
-        mI_Name: 'Vidya Vikasa Vidya Samsthe (R)',
-        mI_Address1: 'Basaveshwara Talkies rd',
-        mI_Address2: 'Gayatri circle',
-        mI_Address3: 'karantaka',
-        mI_Pincode: 577501,
-        mI_ContactDetails: 'Ph No: 8194220904 Email Id : vvvsoffice@gmail.com'
-    },
-    currentemployeeDetails: {
-        hrmE_EmployeeFirstName: 'ANUSHA ',
-        hrmE_EmployeeLastName: 'T',
-        hrmE_EmployeeCode: 'VVS015'
-    },
-    designationName: 'Asst. Teacher',
-    employeeSalaryslipDetails: [
-        {
-            HRMED_EarnDedFlag: 'Earning',
-            HRMED_Name: 'BASIC PAY',
-            Amount: 7020.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Earning',
-            HRMED_Name: 'HRA',
-            Amount: 1404.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Earning',
-            HRMED_Name: 'DA',
-            Amount: 2808.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Earning',
-            HRMED_Name: 'OTHER ALLOWANCE',
-            Amount: 2268.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Deduction',
-            HRMED_Name: 'PF CONT',
-            Amount: 1179.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Deduction',
-            HRMED_Name: 'ESIC CONT',
-            Amount: 0.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Deduction',
-            HRMED_Name: 'PT',
-            Amount: 0.0
-        },
-        {
-            HRMED_EarnDedFlag: 'Deduction',
-            HRMED_Name: 'TDS',
-            Amount: 0.0
-        }
-    ]
-};
 
 export default function SalaryCertificatePage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
     const [currentDate, setCurrentDate] = useState<string>('');
-    const [joiningDate, setJoiningDate] = useState<string>('');
-    const [interviewDate, setInterviewDate] = useState<string>('');
-    const [responseDate, setResponseDate] = useState<string>('');
-    const [dueDate, setDueDate] = useState<string>('');
-    const [workingDay, setWorkingDay] = useState<string>('');
-    const [probationDate, setProbationDate] = useState<string>('');
-    const [resignationDate, setResignationDate] = useState<string>('');
+    const [fullName, setFullName] = useState<string>('');
 
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-    const MockLetterOptions =
-        mockletter.map((emp) => ({
-            value: emp.key,
-            label: emp.value
-        })) || [];
-
-    const DepartmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const EmployeeOptions = mockEmployees.map((emp) => ({
-        value: emp.key,
-        label: emp.value
-    }));
 
     const {
         control,
@@ -169,20 +57,128 @@ export default function SalaryCertificatePage() {
         mode: 'onChange'
     });
 
-    const selectedMockLetter = watch('mockLetter');
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+    const watchedDesignation = watch('designation');
+    const watchEmployee = watch('employee');
+
+    // Mapped ID arrays for hook dependencies
+    const groupTypeIds = useMemo(
+        () => [watchedGroupType].map(Number).filter(Boolean),
+        [watchedGroupType],
+    );
+    const deptIds = useMemo(
+        () => [watchedDepartment].map(Number).filter(Boolean),
+        [watchedDepartment],
+    );
+    const desigIds = useMemo(
+        () => [watchedDesignation].map(Number).filter(Boolean),
+        [watchedDesignation],
+    );
+
+    // Data Hooks
+    const { data: groupTypesData, isLoading: groupTypesLoading, error: groupTypesError, isError: groupTypesisError } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: departmentsLoading, error: departmentsError, isError: departmentsisError } = useReportDepartments(
+        groupTypeIds.toString(),
+    );
+    const { data: designationsData, isLoading: designationsLoading, error: designationsError, isError: designationsisError } = useReportDesignations(
+        groupTypeIds.toString(),
+        deptIds.toString(),
+    );
+    const { data: employeesData, isLoading: employeesLoading, error: employeesError, isError: employeesisError } =
+        useReportEmployeesByGroupTypeDeptAndDesignation(
+            groupTypeIds,
+            deptIds,
+            desigIds,
+        );
+
+    const { mutateAsync: generateReport } = useEmployeeOfferAndExperienceReport();
+
+    //   console.log("employeesData", watchedEmployee);
+
+
+    // Transforms
+    const groupTypesDataTransformed = useMemo(() => {
+        return (
+            groupTypesData?.data?.map((gt: any) => ({
+                id: gt.key || gt.hrmgT_Id,
+                name: gt.value || gt.hrmgT_EmployeeGroupType,
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [groupTypesData]);
+
+
+    const departmentsDataTransformed = useMemo(() => {
+        return (
+            departmentsData?.data?.map((d: any) => ({
+                id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
+                name:
+                    d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name,
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [departmentsData]);
+
+    const designationsDataTransformed = useMemo(() => {
+        return (
+            designationsData?.data?.map((d: any) => ({
+                id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
+                name:
+                    d.hrmdeS_DesignationName ||
+                    d.hrmdes_designationName ||
+                    d.value ||
+                    d.name,
+            })) || []
+        ).filter((d: any) => d.id != null);
+    }, [designationsData]);
+
+    const employeesDataTransformed = useMemo(() => {
+        const list = employeesData?.data?.employeeNames || employeesData;
+        if (!list || !Array.isArray(list)) return [];
+
+        return list
+            .map((emp: any) => {
+                const id = emp.hrmE_Id || emp.id;
+                if (!id) return null;
+
+                return {
+                    id: Number(id),
+                    employeeName: emp.employeeFullName || "Unknown Employee",
+                    employeeCode: emp.hrmE_EmployeeCode || id.toString(),
+                };
+            })
+            .filter(Boolean);
+    }, [employeesData]);
 
     useEffect(() => {
         const today = new Date().toISOString();
         setCurrentDate(today);
     }, []);
 
-    const onSearch = async () => {
+    const onSearch = async (data: any) => {
         setIsSearching(true);
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            toast.success('Salary certificate generated successfully!');
-            setReportData(mockApiResponse);
+            const payload = {
+                HRME_Id: Number(data?.employee),
+                HRMGT_Id: Number(data?.groupType),
+                HRMD_Id: Number(data?.department),
+                HRMDES_Id: Number(data?.designation),
+            };
+            console.log("payload", payload);
+            const response = await generateReport(payload);
+            console.log("response", response);
+            if (response.success) {
+                toast.success(response.message || 'Report generated successfully!');
+                const name = response.data.currentemployeeDetails;
+                const nameParts = [
+                    name?.hrmE_EmployeeFirstName,
+                    name?.hrmE_EmployeeMiddleName,
+                    name?.hrmE_EmployeeLastName
+                ].map(s => s?.trim()).filter(Boolean);
+                setFullName(nameParts.join(' '));
+                setReportData(response.data);
+            } else {
+                toast.error(response.message || 'Failed to generate report');
+            }
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate certificate');
         } finally {
@@ -209,14 +205,14 @@ export default function SalaryCertificatePage() {
     };
 
     const calculateGrossEarning = () => {
-        if (!reportData) return 0;
+        if (!reportData || !reportData.employeeSalaryslipDetails) return 0;
         return reportData.employeeSalaryslipDetails
             .filter((item: any) => item.HRMED_EarnDedFlag === 'Earning')
             .reduce((sum: number, item: any) => sum + item.Amount, 0);
     };
 
     const calculateTotalDeductions = () => {
-        if (!reportData) return 0;
+        if (!reportData || !reportData.employeeSalaryslipDetails) return 0;
         return reportData.employeeSalaryslipDetails
             .filter((item: any) => item.HRMED_EarnDedFlag === 'Deduction')
             .reduce((sum: number, item: any) => sum + item.Amount, 0);
@@ -239,6 +235,8 @@ export default function SalaryCertificatePage() {
     const totalDeductions = calculateTotalDeductions();
     const netSalary = calculateNetSalary();
 
+    const certificateHandler = () =>{}
+
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>
@@ -250,7 +248,7 @@ export default function SalaryCertificatePage() {
                     className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='space-y-6'>
                         <div className=''>
-                            <div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3'>
+                            <div className='grid gap-6 sm:grid-cols-2 md:grid-cols-2'>
                                 <div className=''>
                                     <div className='space-y-2'>
                                         <Label htmlFor='groupType' className='font-medium text-sm text-white-900'>
@@ -261,25 +259,17 @@ export default function SalaryCertificatePage() {
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select GroupType' />
+                                                    <SelectTrigger className='w-full' disabled={groupTypesLoading}>
+                                                        <SelectValue placeholder={groupTypesLoading ? "Loading..." : "Select GroupType"} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {masterGroupTypesLoading ? (
-                                                            <SelectItem value='loading' disabled>
-                                                                Loading...
+
+                                                        {groupTypesDataTransformed?.map((opt: any) => (
+                                                            <SelectItem key={opt.id} value={String(opt.id)}>
+                                                                {opt.name}
                                                             </SelectItem>
-                                                        ) : masterGroupTypesError ? (
-                                                            <SelectItem value='error' disabled>
-                                                                Error loading data
-                                                            </SelectItem>
-                                                        ) : (
-                                                            groupTypeOptions?.map((opt: any) => (
-                                                                <SelectItem key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
+                                                        ))}
+
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -296,25 +286,15 @@ export default function SalaryCertificatePage() {
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select department' />
+                                                    <SelectTrigger className='w-full' disabled={!watchedGroupType || departmentsLoading}>
+                                                        <SelectValue placeholder={departmentsLoading ? "Loading..." : "Select department"} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {masterDepartmentsLoading ? (
-                                                            <SelectItem value='loading' disabled>
-                                                                Loading...
+                                                        {departmentsDataTransformed?.map((opt: any) => (
+                                                            <SelectItem key={opt.id} value={String(opt.id)}>
+                                                                {opt.name}
                                                             </SelectItem>
-                                                        ) : masterDepartmentsError ? (
-                                                            <SelectItem value='error' disabled>
-                                                                Error loading data
-                                                            </SelectItem>
-                                                        ) : (
-                                                            DepartmentsOptions?.map((opt: any) => (
-                                                                <SelectItem key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -330,25 +310,15 @@ export default function SalaryCertificatePage() {
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select designation' />
+                                                    <SelectTrigger className='w-full' disabled={!watchedDepartment || designationsLoading}>
+                                                        <SelectValue placeholder={designationsLoading ? "Loading..." : "Select designation"} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {masterDesignationsLoading ? (
-                                                            <SelectItem value='loading' disabled>
-                                                                Loading...
+                                                        {designationsDataTransformed?.map((opt: any) => (
+                                                            <SelectItem key={opt.id} value={String(opt.id)}>
+                                                                {opt.name}
                                                             </SelectItem>
-                                                        ) : masterDesignationsError ? (
-                                                            <SelectItem value='error' disabled>
-                                                                Error loading data
-                                                            </SelectItem>
-                                                        ) : (
-                                                            DesignationOptions?.map((opt: any) => (
-                                                                <SelectItem key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </SelectItem>
-                                                            ))
-                                                        )}
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -365,13 +335,13 @@ export default function SalaryCertificatePage() {
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Employee' />
+                                                    <SelectTrigger className='w-full' disabled={!watchedDepartment || employeesLoading}>
+                                                        <SelectValue placeholder={employeesLoading ? "Loading..." : "Select Employee"} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {EmployeeOptions.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
+                                                        {employeesDataTransformed?.map((opt: any) => (
+                                                            <SelectItem key={opt.id} value={String(opt.id)}>
+                                                                {opt.employeeName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -399,8 +369,8 @@ export default function SalaryCertificatePage() {
                                     </div>
                                 </div>
 
-                                <div className='grid grid-cols-1 gap-4'>
-                                    <div>
+                                <div className='space-y-6'>
+                                    <div className='space-y-3'>
                                         <Label className='font-medium text-sm text-white-900'>
                                             Current Date<span className='text-red-600'>*</span>
                                         </Label>
@@ -430,7 +400,13 @@ export default function SalaryCertificatePage() {
                                             </PopoverContent>
                                         </Popover>
                                     </div>
-                                    {selectedMockLetter !== '3' &&
+                                    <div className="flex flex-row items-center gap-4">
+                                        <input type="radio" name="reportType" className="w-5 h-5" id="experienceCertificate" checked onChange={certificateHandler} />
+                                        <Label className='font-medium text-sm text-white-900' htmlFor='experienceCertificate'>
+                                            Experience Certificate<span className='text-red-600'>*</span>
+                                        </Label>
+                                    </div>
+                                    {/* {selectedMockLetter !== '3' &&
                                         selectedMockLetter !== '4' &&
                                         selectedMockLetter !== '10' &&
                                         selectedMockLetter !== '9' && (
@@ -700,9 +676,9 @@ export default function SalaryCertificatePage() {
                                     )}
                                     {selectedMockLetter === '10' && (
                                         <InputText label='Enter Bank Address' required id='bankAddress' placeholder='Bank Adress' />
-                                    )}
+                                    )} */}
                                 </div>
-                                <div className=''>
+                                {/* <div className=''>
                                     {masterGroupTypesLoading ? (
                                         <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
                                     ) : MockLetterOptions.length === 0 ? (
@@ -739,7 +715,7 @@ export default function SalaryCertificatePage() {
                                             {errors.mockLetter && <FormError>{errors.mockLetter.message}</FormError>}
                                         </>
                                     )}
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 
@@ -773,7 +749,7 @@ export default function SalaryCertificatePage() {
                     </div>
                 </CollapsibleSection>
 
-                {reportData && (
+                {/* {reportData && (
                     <CollapsibleSection
                         title='Salary Certificate'
                         defaultOpen={true}
@@ -797,7 +773,7 @@ export default function SalaryCertificatePage() {
                                 </p>
                             </div>
 
-                            {/* Salary Table */}
+                            
                             <div className='overflow-x-auto rounded-lg border'>
                                 <table className='w-full border-collapse'>
                                     <thead>
@@ -897,7 +873,7 @@ export default function SalaryCertificatePage() {
                                 </div>
                             </div>
 
-                            {/* Action Buttons at Bottom */}
+                            
                             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
                                 <Button
                                     type='button'
@@ -916,7 +892,36 @@ export default function SalaryCertificatePage() {
                             </div>
                         </div>
                     </CollapsibleSection>
-                )}
+                )} */}
+
+                {
+                    reportData && (
+
+                        <CollapsibleSection
+                            title="Employee service Report"
+                            defaultOpen={true}
+                        >
+                            <div className='flex justify-end gap-2 text-sm mt-20'>
+                                <p className='font-semibold text-gray-600'>Date : {getTodayDate()}</p>
+                            </div>
+                            <div className='flex justify-center flex-col mt-8'>
+                                <p className='text-center text-lg font-semibold leading-relaxed text-blue-900'>
+                                    TO WHOMSOEVER IT MAY CONCERN
+                                </p>
+                                <p className='text-center mt-6 text-base leading-relaxed'>
+                                    This is to certify that {reportData.empgender === 'Female' ? (reportData.maritalstate === 'Married' ? 'Mrs. ' : 'Ms. ') : 'Mr. '} <span className='text-md font-semibold'>{fullName}</span> is a Permanent/Probationary employee of <br />
+
+                                    Our Institution working as a <span className='text-md font-semibold'>{reportData.designationName}</span> since {reportData?.currentemployeeDetails?.hrmE_DOJ?.split('T')[0]}.
+                                </p>
+                            </div>
+                            <div className='flex justify-between mt-20'>
+                                <p>{ }</p>
+                                <p>MANAGER</p>
+                            </div>
+
+                        </CollapsibleSection>
+                    )
+                }
             </div>
         </div>
     );

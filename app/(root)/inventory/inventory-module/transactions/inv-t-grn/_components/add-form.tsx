@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label, FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -277,7 +278,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         <SelectValue placeholder='Select Supplier' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_supplier.map((s: any) => (
+                                        {loadData?.data?.get_supplier?.map((s: any) => (
                                             <SelectItem key={s.invmS_Id} value={s.invmS_Id.toString()}>
                                                 {s.invmS_SupplierName}
                                             </SelectItem>
@@ -300,7 +301,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         <SelectValue placeholder='Select Store' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_Store.map((s: any) => (
+                                        {loadData?.data?.get_Store?.map((s: any) => (
                                             <SelectItem key={s.invmsT_Id} value={s.invmsT_Id.toString()}>
                                                 {s.invmS_StoreName}
                                             </SelectItem>
@@ -401,7 +402,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                                         <SelectValue placeholder='Select Item' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadData?.data?.get_item.map((i: any) => (
+                                                        {loadData?.data?.get_item?.map((i: any) => (
                                                             <SelectItem key={i.invmI_Id} value={i.invmI_Id.toString()}>
                                                                 {i.invmI_ItemName}
                                                             </SelectItem>
@@ -414,14 +415,14 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <div className='h-8 flex items-center justify-center bg-muted/30 rounded text-[11px] font-semibold text-muted-foreground border border-dashed'>
-                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
+                                            {watch(`GRNItem.${index}.invmuoM_UOMName`) || loadData?.data?.get_item?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName || '-'}
                                         </div>
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`GRNItem.${index}.invtgrN_BatchNo`)} className='h-8 text-xs' />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_BatchNo`)} className='h-8 text-xs' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_Qty`, {
                                                 valueAsNumber: true,
                                                 onChange: (e) => {
@@ -432,7 +433,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_PurchaseRate`, {
                                                 valueAsNumber: true,
                                                 onChange: (e) => {
@@ -443,13 +444,13 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                         />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`GRNItem.${index}.invtgrN_MRP`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_MRP`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`GRNItem.${index}.invtgrN_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
+                                        <Input {...register(`GRNItem.${index}.invtgrN_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right font-mono' />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText
+                                        <Input
                                             {...register(`GRNItem.${index}.invtgrN_DiscountAmt`, {
                                                 valueAsNumber: true,
                                                 onChange: (e) => {

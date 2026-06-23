@@ -1,4 +1,4 @@
-'use client';
+'use client'; 
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
@@ -99,20 +99,7 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             label='Class Category Name'
                             required
                             id='fmcC_ClassCategoryName'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('fmcC_ClassCategoryName', {
-                                required: 'Class Category Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('fmcC_ClassCategoryName')}
                             error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -121,20 +108,7 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             label='Class Category Code'
                             required
                             id='fmcC_ClassCategoryCode'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('fmcC_ClassCategoryCode', {
-                                required: 'Class Category Code is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('fmcC_ClassCategoryCode')}
                             error={errors.fmcC_ClassCategoryCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

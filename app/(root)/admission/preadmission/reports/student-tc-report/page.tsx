@@ -216,20 +216,7 @@ export default function StudentTcReportPage(props: {
     };
 
     const handleReset = () => {
-        setAcademicYearId(0);
-        setClassId(0);
-        setSectionId(0);
-        setCategoryId(0);
-        setViewMode(1);
-        setTcType(1);
-        setShowTable(false);
-        setValue('TempararyArrayheadList', [], { shouldValidate: true });
-        handleResetSelection();
-
-        // Reset URL params
-        router.replace(pathname);
-
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {

@@ -255,7 +255,6 @@ function EmployeeInOutReportPageContent({
                                     showViewOptions={false}
                                     isSearchRequired={false}
                                     isPaginationRequired={false}
-                                    manualPagination={true}
                                     scrollable
                                 />
                             </div>

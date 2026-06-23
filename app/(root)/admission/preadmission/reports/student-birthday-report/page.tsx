@@ -127,7 +127,7 @@ export default function StudentBirthdayReportPage() {
             'Adm. No.': row.admno,
             'Class': row.classname,
             'Section': row.sectionname,
-            'Date of Birth': row.amst_dob ? format(new Date(row.amst_dob), 'dd/MMM/yyyy') : '',
+            'Date of Birth': row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : '',
             'Address': row.stdaddress
         })));
 

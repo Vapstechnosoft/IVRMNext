@@ -10,7 +10,7 @@ import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { useAcademicYearDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { cn } from '@/lib/utils';
 import { masterStudentCountReportSchema } from '@/schemas/admission/preadmission/reports';
-import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
+import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -38,6 +38,8 @@ export default function AddStudentCountReportForm({
     onFilterChange
 }: AddStudentCountReportFormProps) {
     const [results, setResults] = useState<Array<any>>([]);
+    const [isFromDateOpen, setIsFromDateOpen] = useState(false);
+    const [isToDateOpen, setIsToDateOpen] = useState(false);
     const queryClient = useQueryClient();
 
     const {
@@ -91,7 +93,13 @@ export default function AddStudentCountReportForm({
             };
 
             toast.loading('Searching...', { id: 'search-loading' });
-            const response = await addOrUpdateStudentCountReport(payload, searchParams);
+            
+            const [response, dashboardResponse] = await Promise.all([
+                addOrUpdateStudentCountReport(payload, searchParams),
+                getParentDashboardDetails(payload.asmay_id)
+            ]);
+
+            console.log('Dashboard details fetched:', dashboardResponse);
 
             // Update parent state with the current filter payload
             if (onFilterChange) {
@@ -238,7 +246,7 @@ export default function AddStudentCountReportForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className="flex flex-col gap-1 w-full">
-                                                    <Popover>
+                                                    <Popover open={isFromDateOpen} onOpenChange={setIsFromDateOpen}>
                                                         <PopoverTrigger asChild>
                                                             <Button
                                                                 type='button'
@@ -255,7 +263,10 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) => {
+                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    setIsFromDateOpen(false);
+                                                                }}
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}
@@ -272,7 +283,7 @@ export default function AddStudentCountReportForm({
                                             control={control}
                                             render={({ field }) => (
                                                 <div className="flex flex-col gap-1 w-full">
-                                                    <Popover>
+                                                    <Popover open={isToDateOpen} onOpenChange={setIsToDateOpen}>
                                                         <PopoverTrigger asChild>
                                                             <Button
                                                                 type='button'
@@ -289,7 +300,10 @@ export default function AddStudentCountReportForm({
                                                             <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
+                                                                onSelect={(date: Date | undefined) => {
+                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    setIsToDateOpen(false);
+                                                                }}
                                                                 captionLayout='dropdown'
                                                                 fromYear={2000}
                                                                 toYear={2050}
@@ -378,11 +392,14 @@ export default function AddStudentCountReportForm({
                                                                 Error loading Class
                                                             </SelectItem>
                                                         ) : (
-                                                            masterClass?.data?.map((item) => (
-                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                    {item.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))
+                                                            <>
+                                                                <SelectItem value='0'>All</SelectItem>
+                                                                {masterClass?.data?.map((item) => (
+                                                                    <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                        {item.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </>
                                                         )}
                                                     </SelectContent>
                                                 </Select>

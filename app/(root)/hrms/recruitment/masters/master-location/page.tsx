@@ -263,7 +263,6 @@ export default function MasterLocationPage() {
                                 isLoading={masterLocationDataLoading}
                                 totalItems={gridData?.length || 0}
                                 showViewOptions={false}
-                                manualSorting={false}
                             />
                         ) : (
                             <div className='flex items-center justify-center py-10'>

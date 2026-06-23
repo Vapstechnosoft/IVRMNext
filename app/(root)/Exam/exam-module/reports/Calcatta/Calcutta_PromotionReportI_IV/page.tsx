@@ -13,7 +13,7 @@ export default function CalcuttaPromotionReportItoIVPage() {
         try {
             const res = await getCalcuttaPromotionReportI_IV(payload);
             console.log('calcutta promotion report i to iv', res);
-            setReportData({ ...res, EMPG_GroupName: payload.EMPG_GroupName });
+            setReportData({ ...res, EMPG_GroupName: payload.empG_GroupName || payload.EMPG_GroupName });
             toast.success('Report generated successfully');
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');

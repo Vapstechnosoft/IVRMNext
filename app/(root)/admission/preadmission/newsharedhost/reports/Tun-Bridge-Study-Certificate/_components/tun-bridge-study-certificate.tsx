@@ -35,11 +35,10 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
     const fatherName = (student?.fathername ?? student?.fatherName ?? '').toString();
     const motherName = (student?.mothername ?? student?.motherName ?? '').toString();
 
-    // Mapping based on the provided JSON: using 'class' as presentClass and 'acadamicyear' as presentYear
-    const admitedClass = student?.admitedclass ?? student?.class ?? '';
-    const presentClass = student?.class ?? student?.PresentClass ?? student?.presentClass ?? '';
-    const admitedYear = student?.admitedyear ?? student?.acadamicyear ?? '';
-    const presentYear = student?.acadamicyear ?? student?.PresentYear ?? student?.presentYear ?? '';
+    const admitedClass = student?.admitedclass ?? '';
+    const presentClass = student?.presentclass ?? student?.class ?? '';
+    const admitedYear = student?.admitedyear ?? '';
+    const presentYear = student?.presentyear ?? student?.acadamicyear ?? '';
 
     const dob = student?.dob ? new Date(student.dob) : null;
     const dobWords = (student?.dobwords ?? student?.dobWords ?? '').toString();
@@ -48,6 +47,7 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
     const casteName = (student?.caste_name ?? student?.caste_Name ?? '').toString();
     const stuMT = (student?.stumt ?? student?.stuMT ?? '').toString();
 
+    const addressd1 = (student?.addressd1 ?? '').toString();
     const street = (student?.street ?? '').toString();
     const area = (student?.area ?? '').toString();
     const city = (student?.city ?? '').toString();
@@ -230,7 +230,7 @@ const TunBridgeStudyCertificatePrint = React.forwardRef<HTMLDivElement, Props>((
                     <tbody>
                         <tr>
                             <td className="tbhs-td tbhs-dot">
-                                ({`${street}  ${area}  ${city}${pincode ? `  ${pincode}` : ''}`.trim()})
+                                ({addressd1 ? addressd1 : `${street}  ${area}  ${city}${pincode ? `  ${pincode}` : ''}`.trim()})
                             </td>
                         </tr>
                     </tbody>

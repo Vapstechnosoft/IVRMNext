@@ -191,9 +191,9 @@ function EmployeeProfileReportContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='font-bold text-2xl tracking-tight'>Employee Profile Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection defaultOpen={true} title='Report Criteria' variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -313,7 +313,7 @@ function EmployeeProfileReportContent() {
 
             {/* ... other imports ... */}
 
-            {reportData && (
+            {reportData && reportData?.length > 0 && (
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}

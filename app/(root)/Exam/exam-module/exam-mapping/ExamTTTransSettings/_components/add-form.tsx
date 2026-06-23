@@ -18,7 +18,8 @@ import {
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IExamTTTransSettings } from '@/types/exam/exam-module/exam-mapping';
-import { Loader2 } from 'lucide-react';
+import { examTTTransSettingsSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { Loader2, Save, X } from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -87,7 +88,12 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 setAsmcl(String(editData.asmcL_Id));
 
                 // // Load sections
+                console.log("editData.asmcL_Id", editData.asmcL_Id);
+                console.log("editData.asmaY_Id", editData.asmaY_Id);
                 const secRes = await getSectionsDropDownByAcademicYearandClasslist(editData.asmaY_Id, editData.asmcL_Id);
+                console.log("editData.asmcL_Id", editData.asmcL_Id);
+                console.log("editData.asmaY_Id", editData.asmaY_Id);
+                console.log("secRes", secRes);
                 setSections(secRes?.data ?? []);
                 setAsms(String(editData.asmS_Id));
 
@@ -203,7 +209,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
             setLoadingCascade(true);
             try {
                 const res = await getSectionsDropDownByAcademicYearandClasslist(Number(asmay), Number(asmcl));
-                console.log('sections response', res);
+                console.log("sections response", res);
                 setSections(res?.data ?? []);
             } catch {
                 toast.error('Failed to load sections');
@@ -266,26 +272,80 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
     }, [emg, asms, asmcl, asmay, eme, isEditMode]);
 
     function updateRow(idx: number, field: keyof SubjectRow, value: any) {
-        setMainList((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+        setMainList(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+        if (field === 'check_save') {
+            setErrors(prev => {
+                const next = { ...prev };
+                delete next[`row_${idx}_date`];
+                delete next[`row_${idx}_timeSlot`];
+                return next;
+            });
+        }
     }
 
     function validate() {
-        const errs: Record<string, string> = {};
-        if (!asmay) errs.asmay = 'Academic Year is required';
-        if (!asmcl) errs.asmcl = 'Class is required';
-        if (!asms) errs.asms = 'Section is required';
-        if (!eme) errs.eme = 'Exam is required';
-        if (!emg) errs.emg = 'Subject Group is required';
-        if (!fromDate) errs.fromDate = 'From Date is required';
-        if (!toDate) errs.toDate = 'To Date is required';
-        const checked = mainList.filter((r) => r.check_save);
-        if (!checked.length) errs.mainList = 'Select at least one subject row';
-        setErrors(errs);
-        return Object.keys(errs).length === 0;
+        const checkedRowsWithIndices = mainList
+            .map((row, index) => ({ row, index }))
+            .filter(item => item.row.check_save === 1);
+
+        const payloadToValidate = {
+            ASMAY_Id: Number(asmay) || 0,
+            ASMCL_Id: Number(asmcl) || 0,
+            ASMS_Id: asms === '' ? -1 : Number(asms),
+            EMG_Id: Number(emg) || 0,
+            EME_Id: Number(eme) || 0,
+            EXTT_FromDate: fromDate,
+            EXTT_EndDate: toDate,
+            TempararyArrayList: checkedRowsWithIndices.map(item => ({
+                ISMS_Id: Number(item.row.ismS_Id),
+                ISMS_SubjectName: item.row.ismS_SubjectName,
+                check_save: 1 as const,
+                EXTTS_Date: item.row.exttS_Date,
+                ETTS_Id: Number(item.row.ettS_Id) || 0
+            }))
+        };
+
+        const result = examTTTransSettingsSchema.addOrUpdate.safeParse(payloadToValidate);
+        if (!result.success) {
+            const errs: Record<string, string> = {};
+            result.error.issues.forEach(issue => {
+                const path = issue.path;
+                if (path.length === 1) {
+                    const field = path[0];
+                    if (field === 'ASMAY_Id') errs.asmay = issue.message;
+                    else if (field === 'ASMCL_Id') errs.asmcl = issue.message;
+                    else if (field === 'ASMS_Id') errs.asms = issue.message;
+                    else if (field === 'EMG_Id') errs.emg = issue.message;
+                    else if (field === 'EME_Id') errs.eme = issue.message;
+                    else if (field === 'EXTT_FromDate') errs.fromDate = issue.message;
+                    else if (field === 'EXTT_EndDate') errs.toDate = issue.message;
+                    else if (field === 'TempararyArrayList') errs.mainList = issue.message;
+                } else if (path[0] === 'TempararyArrayList' && path.length > 1) {
+                    const checkedIndex = Number(path[1]);
+                    const fieldName = path[2];
+                    const originalIndex = checkedRowsWithIndices[checkedIndex]?.index;
+                    if (originalIndex !== undefined) {
+                        if (fieldName === 'EXTTS_Date') {
+                            errs[`row_${originalIndex}_date`] = issue.message;
+                        } else if (fieldName === 'ETTS_Id') {
+                            errs[`row_${originalIndex}_timeSlot`] = issue.message;
+                        }
+                    }
+                }
+            });
+            setErrors(errs);
+            const firstErrorMsg = result.error.issues[0]?.message || 'Please fill in all mandatory fields';
+            toast.error(firstErrorMsg);
+            return false;
+        }
+
+        setErrors({});
+        return true;
     }
 
     function handleSave() {
-        const checkedRows = mainList.filter((r) => r.check_save);
+        if (!validate()) return;
+        const checkedRows = mainList.filter(r => r.check_save);
 
         startTransition(async () => {
             try {
@@ -358,13 +418,12 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     {/* Left Column */}
                     <div className='flex flex-col gap-4'>
                         <div>
-                            <Label>
-                                Academic Year <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={asmay} onValueChange={handleAcademicYearChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Academic Year' />
-                                </SelectTrigger>
+                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Select
+                                key={asmay}
+                                value={asmay || undefined}
+                                onValueChange={handleAcademicYearChange}>
+                                <SelectTrigger><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
                                 <SelectContent>
                                     {acYearLoading ? (
                                         <SelectItem value='_' disabled>
@@ -383,13 +442,9 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                         </div>
 
                         <div>
-                            <Label>
-                                Class <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={asmcl} onValueChange={handleClassChange} disabled={!asmay || loadingCascade}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Class'} />
-                                </SelectTrigger>
+                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Select key={asmcl} value={asmcl || undefined} onValueChange={handleClassChange} disabled={!asmay || loadingCascade}>
+                                <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Class'} /></SelectTrigger>
                                 <SelectContent>
                                     {classes.map((c: any) => (
                                         <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -402,13 +457,9 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                         </div>
 
                         <div>
-                            <Label>
-                                Section <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={asms} onValueChange={handleSectionChange} disabled={!asmcl || loadingCascade}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Section'} />
-                                </SelectTrigger>
+                            <Label>Section <span className='text-red-500'>*</span></Label>
+                            <Select key={asms} value={asms || undefined} onValueChange={handleSectionChange} disabled={!asmcl || loadingCascade}>
+                                <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Section'} /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value='0'>All</SelectItem>
                                     {sections.map((s: any) => (
@@ -425,13 +476,10 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     {/* Right Column */}
                     <div className='flex flex-col gap-4'>
                         <div>
-                            <Label>
-                                Subject Group <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={emg} onValueChange={handleSubjectGroupChange} disabled={!asms || loadingCascade}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Subject Group'} />
-                                </SelectTrigger>
+                            <Label>Subject Group <span className='text-red-500'>*</span></Label>
+                            <Select key={emg} value={emg || undefined} onValueChange={handleSubjectGroupChange} disabled={!asms || loadingCascade}>
+
+                                <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Subject Group'} /></SelectTrigger>
                                 <SelectContent>
                                     {subjectGroups.map((g: any) => (
                                         <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
@@ -444,13 +492,9 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                         </div>
 
                         <div>
-                            <Label>
-                                Exam Name <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={eme} onValueChange={setEme} disabled={!asms}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Exam' />
-                                </SelectTrigger>
+                            <Label>Exam Name <span className='text-red-500'>*</span></Label>
+                            <Select key={eme} value={eme || undefined} onValueChange={setEme} disabled={!asms}>
+                                <SelectTrigger><SelectValue placeholder='Select Exam' /></SelectTrigger>
                                 <SelectContent>
                                     {exams.map((e: any) => (
                                         <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
@@ -529,11 +573,13 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                                         onChange={(e) => updateRow(idx, 'exttS_Date', e.target.value)}
                                                         className='w-full max-w-[200px]'
                                                     />
+                                                    {errors[`row_${idx}_date`] && <FormError>{errors[`row_${idx}_date`]}</FormError>}
                                                 </td>
                                                 <td className='px-3 py-2'>
                                                     <Select
-                                                        value={row.ettS_Id}
-                                                        onValueChange={(v) => updateRow(idx, 'ettS_Id', v)}
+                                                        key={row.ettS_Id}
+                                                        value={row.ettS_Id || undefined}
+                                                        onValueChange={v => updateRow(idx, 'ettS_Id', v)}
                                                         disabled={!row.check_save}>
                                                         <SelectTrigger className='w-full max-w-[250px]'>
                                                             <SelectValue placeholder='--Select Time Slot--' />
@@ -546,6 +592,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
+                                                    {errors[`row_${idx}_timeSlot`] && <FormError>{errors[`row_${idx}_timeSlot`]}</FormError>}
                                                 </td>
                                             </tr>
                                         ))}

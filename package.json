@@ -31,6 +31,10 @@
         "shared-beta": "env-cmd -f .env.shared-beta next dev",
         "vidhya-beta": "env-cmd -f .env.vidhya-beta next dev",
         "calcutta-beta": "env-cmd -f .env.calcutta-beta next dev",
+        "madhuvanvatika-beta": "env-cmd -f .env.madhuvanvatika-beta next dev",
+        "eliteshared-beta": "env-cmd -f .env.eliteshared-beta next dev",
+        "satyasai-beta": "env-cmd -f .env.satyasai-beta next dev",
+        "kusuma-beta": "env-cmd -f .env.kusuma-beta next dev",
         "build-local": "next build",
         "build-dev": "cp .env.dev .env.local && next build",
         "build-qa": "cp .env.qa .env.local && next build",
@@ -53,6 +57,10 @@
         "build-baldwin-beta1": "cp .env.baldwin-beta1 .env.local && next build",
         "build-shared-beta": "cp .env.shared-beta .env.local && next build",
         "build-vidhya-beta": "cp .env.vidhya-beta .env.local && next build",
+        "build-kusuma-beta": "cp .env.kusuma-beta .env.local && next build",
+        "build-satyasai-beta": "cp .env.satyasai-beta .env.local && next build",
+        "build-eliteshared-beta": "cp .env.eliteshared-beta .env.local && next build",
+        "build-madhuvanvatika-beta": "cp .env.madhuvanvatika-beta .env.local && next build",
         "test:production": "next build && next start -p 3001",
         "test:build": "next build",
         "lint-fix": "biome check --fix --unsafe",
@@ -137,6 +145,7 @@
         "react-hook-form": "^7.54.2",
         "react-is": "18.3.1",
         "react-phone-input-2": "^2.15.1",
+        "react-quill-new": "^3.8.3",
         "react-to-print": "^3.3.0",
         "react-webcam": "^7.2.0",
         "recharts": "^2.15.1",
@@ -170,6 +179,8 @@
         "typescript": "^5.7.2"
     },
     "lint-staged": {
-        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": ["biome check --write --no-errors-on-unmatched"]
+        "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+            "biome check --write --no-errors-on-unmatched"
+        ]
     }
 }

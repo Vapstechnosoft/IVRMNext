@@ -26,6 +26,7 @@ export default function StJamesProgressCardPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const response = await getStJamesExamReport(payload);
+            console.log("response", response);
             if (response?.data && response.success) {
                 setReportData(response.data);
                 setReportType(payload.reporttype);

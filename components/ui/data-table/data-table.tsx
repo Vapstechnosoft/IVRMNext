@@ -14,6 +14,7 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
+    getSortedRowModel,
     useReactTable
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon, RotateCcw } from 'lucide-react';
@@ -37,9 +38,6 @@ interface DataTableProps<TData, TValue> {
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
-    manualPagination?: boolean;
-    manualFiltering?: boolean;
-    manualSorting?: boolean;
     scrollable?: boolean;
     maxHeight?: string;
     getRowId?: (originalRow: TData, index: number) => string;
@@ -67,9 +65,6 @@ function DataTableInner<TData, TValue>(
         maxSelectableRows = 0,
         onRowSelectionChange,
         showSearchColumns = false,
-        manualPagination = true,
-        manualFiltering = true,
-        manualSorting = true,
         scrollable = false,
         maxHeight = '600px',
         getRowId,
@@ -102,9 +97,16 @@ function DataTableInner<TData, TValue>(
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
+    const currentSorting = sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [];
+
     const onSortingChange = (updaterOrValue: any) => {
         const newSortingState =
-            typeof updaterOrValue === 'function' ? updaterOrValue([{ id: sortBy, desc: order === 'desc' }]) : updaterOrValue;
+            typeof updaterOrValue === 'function' ? updaterOrValue(currentSorting) : updaterOrValue;
+
+        const hasChanged = JSON.stringify(newSortingState) !== JSON.stringify(currentSorting);
+        if (!hasChanged) {
+            return;
+        }
 
         if (newSortingState && newSortingState.length > 0) {
             setSortBy(newSortingState[0].id);
@@ -129,13 +131,22 @@ function DataTableInner<TData, TValue>(
     }, [rowSelection]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
-    // In client-side mode (manualPagination=false), TanStack Table handles slicing,
+    // TanStack Table handles slicing for client-side pagination,
     // but we still want to show the correct page count based on the data length.
-    const effectiveTotal = manualPagination ? totalItems : data.length;
-    const pageCount = Math.ceil(effectiveTotal / pageSize);
+    const effectiveTotal = totalItems;
+    const pageCount = Math.max(1, Math.ceil(effectiveTotal / pageSize));
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
+
+        if (effectiveTotal === 0) {
+            return;
+        }
+
+        if (pagination.pageIndex === paginationState.pageIndex && pagination.pageSize === paginationState.pageSize) {
+            return;
+        }
+
         setCurrentPage(pagination.pageIndex + 1);
         setPageSize(pagination.pageSize);
 
@@ -150,18 +161,34 @@ function DataTableInner<TData, TValue>(
         }
     };
 
+    const [searchColumnsQuery] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
     const table = useReactTable({
         data,
         columns,
         pageCount,
+        getRowId,
         state: {
             pagination: paginationState,
-            sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
+            sorting: currentSorting,
             globalFilter: searchQuery,
             rowSelection
         },
         onPaginationChange: handlePaginationChange,
         onSortingChange: onSortingChange,
+
+        globalFilterFn: (row, columnId, filterValue) => {
+            const searchCols = searchColumnsQuery ? searchColumnsQuery.split(',') : [];
+            if (searchCols.length > 0 && !searchCols.includes(columnId)) {
+                return false;
+            }
+            const value = row.getValue(columnId);
+            if (value == null) return false;
+            return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+        },
 
         // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
@@ -190,9 +217,10 @@ function DataTableInner<TData, TValue>(
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        manualPagination: manualPagination,
-        manualSorting: manualSorting,
-        manualFiltering: manualFiltering,
+        getSortedRowModel: getSortedRowModel(),
+        manualPagination: true,
+        manualSorting: true,
+        manualFiltering: true,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }
@@ -238,10 +266,10 @@ function DataTableInner<TData, TValue>(
                         style={
                             scrollable
                                 ? {
-                                      maxHeight: maxHeight,
-                                      overflowY: 'auto',
-                                      position: 'relative'
-                                  }
+                                    maxHeight: maxHeight,
+                                    overflowY: 'auto',
+                                    position: 'relative'
+                                }
                                 : undefined
                         }>
                         <Table>
