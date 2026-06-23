@@ -67,7 +67,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTSession }) {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}
-                toggleConditionKey='ETTS_Activeflag'
+                toggleConditionKey='eTTS_Activeflag'
             />
         </div>
     );
