@@ -94,7 +94,7 @@ export function MasterTimeSettingForm({ editingData, onSubmit, onCancel }: Maste
                     <Controller
                         name='fomtS_IHalfLoginTime'
                         control={control}
-                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IHalfLoginTime' required />}
+                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IHalfLoginTime' required showPeriod={false} />}
                     />
                     {errors.fomtS_IHalfLoginTime && <FormError>{errors.fomtS_IHalfLoginTime.message}</FormError>}
                 </div>
@@ -106,7 +106,7 @@ export function MasterTimeSettingForm({ editingData, onSubmit, onCancel }: Maste
                     <Controller
                         name='fomtS_IhalfLogoutTime'
                         control={control}
-                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IhalfLogoutTime' required />}
+                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IhalfLogoutTime' required showPeriod={false} />}
                     />
                     {errors.fomtS_IhalfLogoutTime && <FormError>{errors.fomtS_IhalfLogoutTime.message}</FormError>}
                 </div>
@@ -131,7 +131,7 @@ export function MasterTimeSettingForm({ editingData, onSubmit, onCancel }: Maste
                     <Controller
                         name='fomtS_IIHalfLoginTime'
                         control={control}
-                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IIHalfLoginTime' required />}
+                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IIHalfLoginTime' required showPeriod={false} />}
                     />
                     {errors.fomtS_IIHalfLoginTime && <FormError>{errors.fomtS_IIHalfLoginTime.message}</FormError>}
                 </div>
@@ -143,7 +143,7 @@ export function MasterTimeSettingForm({ editingData, onSubmit, onCancel }: Maste
                     <Controller
                         name='fomtS_IIHalfLogoutTime'
                         control={control}
-                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IIHalfLogoutTime' required />}
+                        render={({ field }) => <TimePicker12Hour value={field.value} onChange={field.onChange} name='fomtS_IIHalfLogoutTime' required showPeriod={false} />}
                     />
                     {errors.fomtS_IIHalfLogoutTime && <FormError>{errors.fomtS_IIHalfLogoutTime.message}</FormError>}
                 </div>
