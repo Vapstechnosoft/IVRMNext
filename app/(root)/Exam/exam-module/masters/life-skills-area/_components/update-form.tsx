@@ -128,6 +128,7 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
                                     <InputText
                                         label='Skill Area Name'
                                         required
+                                        placeholder='Enter Skill Area Name'
                                         {...register(`subexamDTO.${index}.ecsA_SkillArea` as const)}
                                         error={errors.subexamDTO?.[index]?.ecsA_SkillArea?.message}
                                     />
@@ -138,6 +139,7 @@ export default function UpdateLifeSkillAreaForm({ selectedRow, onSuccess, classN
                                         label='Skill Area Order'
                                         type='number'
                                         required
+                                        placeholder='Enter Skill Area Order'
                                         {...register(`subexamDTO.${index}.ecsA_SkillOrder` as const, {
                                             valueAsNumber: true
                                         })}

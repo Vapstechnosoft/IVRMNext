@@ -275,7 +275,7 @@ export default function StudentBirthdayReportPage() {
             }
             item['Class'] = row.classname || '';
             item['Section'] = row.sectionname || '';
-            item['Date of Birth'] = row.amst_dob ? format(new Date(row.amst_dob), 'dd/MMM/yyyy') : '';
+            item['Date of Birth'] = row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : '';
             item['Address'] = row.stdaddress || '';
             return item;
         });
@@ -300,7 +300,7 @@ export default function StudentBirthdayReportPage() {
     const formatDateOfBirth = (dateString: string) => {
         if (!dateString) return '';
         try {
-            return format(new Date(dateString), 'dd/MMM/yyyy');
+            return format(new Date(dateString), 'dd-MM-yyyy');
         } catch (e) {
             return dateString;
         }

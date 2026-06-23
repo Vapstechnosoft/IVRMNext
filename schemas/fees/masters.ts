@@ -157,8 +157,8 @@ export const masterClassCategorySchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().optional(),
 
-        fmcC_ClassCategoryName: createStringOnlySchema('Class Category Name', 3, 100),
-        fmcC_ClassCategoryCode: createStringOnlySchema('Class Category Code', 3, 20),
+        fmcC_ClassCategoryName: createStringSchemaNotAllowNumbersOnly('Class Category Name', 3, 100),
+        fmcC_ClassCategoryCode: createStringSchemaNotAllowNumbersOnly('Class Category Code', 3, 20),
 
         mI_Id: z.number().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
@@ -267,7 +267,7 @@ export const masterGroupSchema = {
         fmG_Id: z.number().int().optional(),
         //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
         //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
-        fmG_GroupName: createStringOnlySchema('Fee Group', 3, 200),
+        fmG_GroupName: createStringSchemaNotAllowNumbersOnly('Fee Group', 3, 200),
         fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
         transportHostelType: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim() === '') return undefined;

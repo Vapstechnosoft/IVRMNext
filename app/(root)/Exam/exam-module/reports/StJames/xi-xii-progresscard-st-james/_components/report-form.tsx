@@ -135,8 +135,10 @@ export default function StJamesXI_XIIDataForm({
 
     // on submit
     const onSubmit = async (data: StJamesIX_XReportSchema) => {
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
+            asmaY_Year: selectedYearObj?.asmaY_Year || '',
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             reporttype: data.reporttype === 'groupwise' ? 'promotion' : 'indi',
@@ -170,13 +172,13 @@ export default function StJamesXI_XIIDataForm({
                                         <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-8'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='indi' id='r1' />
-                                                <Label htmlFor='r1' className='font-normal cursor-pointer'>
+                                                <Label htmlFor='r1' className='cursor-pointer font-normal'>
                                                     Individual
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='groupwise' id='r2' />
-                                                <Label htmlFor='r2' className='font-normal cursor-pointer'>
+                                                <Label htmlFor='r2' className='cursor-pointer font-normal'>
                                                     Promotion
                                                 </Label>
                                             </div>
@@ -315,13 +317,15 @@ export default function StJamesXI_XIIDataForm({
                                             <Checkbox id='displayAttendance' checked={field.value} onCheckedChange={field.onChange} />
                                         )}
                                     />
-                                    <Label htmlFor='displayAttendance' className='cursor-pointer'>Display Attendance</Label>
+                                    <Label htmlFor='displayAttendance' className='cursor-pointer'>
+                                        Display Attendance
+                                    </Label>
                                 </div>
                             </div>
 
                             <div className='space-y-6'>
                                 <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                    <Label className='flex items-center gap-2 font-medium text-sm sm:w-32 pt-1'>
+                                    <Label className='flex items-center gap-2 pt-1 font-medium text-sm sm:w-32'>
                                         <Checkbox
                                             checked={selectedExams?.length === exams.length && exams.length > 0}
                                             onCheckedChange={(checked) => {
@@ -376,7 +380,7 @@ export default function StJamesXI_XIIDataForm({
                                                                             />
                                                                             <Label
                                                                                 htmlFor={`exam-${e.emE_Id}`}
-                                                                                className='font-medium text-sm leading-none cursor-pointer'>
+                                                                                className='cursor-pointer font-medium text-sm leading-none'>
                                                                                 {e.emE_ExamName}
                                                                             </Label>
                                                                         </div>

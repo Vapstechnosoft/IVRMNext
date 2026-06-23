@@ -67,6 +67,7 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
                         <InputText
                             label='Co-Scholastic Area Name'
                             required
+                            placeholder='Enter Co-Scholastic Area Name'
                             {...register('ecactA_SkillArea')}
                             error={errors.ecactA_SkillArea?.message}
                             onInput={(e) => {
@@ -77,6 +78,7 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
                         <InputText
                             label='Co-Scholastic Area Order'
                             required
+                            placeholder='Enter Co-Scholastic Area Order'
                             {...register('ecactA_SkillOrder')}
                             error={errors.ecactA_SkillOrder?.message}
                             onInput={(e) => {

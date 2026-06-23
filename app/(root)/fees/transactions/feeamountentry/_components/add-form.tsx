@@ -59,6 +59,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [feeGridData, setFeeGridData] = useState<any[]>([]);
+    const [resetKey, setResetKey] = useState(0);
 
     const [isFineSlabModalOpen, setIsFineSlabModalOpen] = useState(false);
     const [currentHeadId, setCurrentHeadId] = useState<number | null>(null);
@@ -311,6 +312,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         setSelectedFeeGroup(null);
         setSelectedCategoryId(null);
         setFeeGridData([]);
+        setResetKey(prev => prev + 1);
     };
 
     return (
@@ -327,7 +329,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    key={field.value || 'empty'}
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -375,6 +377,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -417,6 +420,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);

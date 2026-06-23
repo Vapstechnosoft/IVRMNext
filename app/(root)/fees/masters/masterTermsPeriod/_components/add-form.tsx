@@ -41,6 +41,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
     const [isSplitLoading, setIsSplitLoading] = useState(false);
 
     const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
+    const [resetKey, setResetKey] = useState(0);
 
     const [filterType, setFilterType] = useState<string>('');
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -103,6 +104,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
             to_Month: '',
             filterType: ''
         });
+        setResetKey((prev) => prev + 1);
         refetchAll();
         refetchterms();
         refetchMasterHeads();
@@ -184,7 +186,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    key={field.value || 'empty'}
+                                    key={`academic-${resetKey}`}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -230,7 +232,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    key={field.value || 'empty'}
+                                    key={`term-${resetKey}`}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -276,7 +278,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    key={field.value || 'empty'}
+                                    key={`year-${resetKey}`}
                                     onValueChange={(val) => {
                                         field.onChange(val);
                                         setSelectedSplitYear(val);
@@ -385,7 +387,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             name='from_Month'
                             control={control}
                             render={({ field }) => (
-                                <Select value={field.value || ''} onValueChange={field.onChange}>
+                                <Select key={`from-${resetKey}`} value={field.value || ''} onValueChange={field.onChange}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Month--' />
                                     </SelectTrigger>
@@ -414,7 +416,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                             name='to_Month'
                             control={control}
                             render={({ field }) => (
-                                <Select value={field.value || ''} onValueChange={field.onChange} disabled={!fromMonth}>
+                                <Select key={`to-${resetKey}`} value={field.value || ''} onValueChange={field.onChange} disabled={!fromMonth}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Month--' />
                                     </SelectTrigger>

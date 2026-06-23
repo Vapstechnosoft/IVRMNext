@@ -21,9 +21,10 @@ interface BirthdayFormProps {
     onSubmit: (values: IBirthdayFormValues) => void;
     onCancel: () => void;
     isLoading: boolean;
+    totalRecords?: number;
 }
 
-export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading }: BirthdayFormProps) {
+export default function BirthdayForm({ initialData, onTypeChange, onChannelChange, onSubmit, onCancel, isLoading, totalRecords = 0 }: BirthdayFormProps) {
     const form = useForm<IBirthdayFormValues>({
         resolver: zodResolver(birthdayFormSchema),
         defaultValues: {
@@ -144,7 +145,7 @@ export default function BirthdayForm({ initialData, onTypeChange, onChannelChang
                                 <Button 
                                     type='submit' 
                                     size='lg' 
-                                    disabled={isLoading} 
+                                    disabled={isLoading || initialData == undefined || totalRecords === 0} 
                                     className='h-14 px-12 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20'
                                 >
                                     {isLoading ? 'Sending...' : <><Send className='mr-3 h-4 w-4' /> Send Wishes</>}

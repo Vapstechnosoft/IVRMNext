@@ -71,31 +71,26 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            const submerchants = data.submerchantIds
+                ?.filter((item) => item.id.trim() !== '')
+                .map((item) => item.id) ?? [];
+
             const payload = {
-                // user_id: 20612,
-                // mi_id: 30,
-                fpgD_SaltKey: data.fpgD_SaltKey,
+                fpgD_Id: 0,
+                mI_Id: 0,
+                user_id: 0,
                 fpgD_MerchantId: data.fpgD_MerchantId,
-                fpgD_Image: data.fpgD_Image,
-                fpgD_URL: data.fpgD_URL,
-                fpgD_AccNo: data.fpgD_AccNo,
-                // submerchantIds: submerchantIds
-                //     .filter((item) => item.id.trim() !== '')
-                //     .map((item) => ({
-                //         fpgD_SubMerchantId: item.id
-                //     })),
-                // submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
-
-                // submerchantIds: submerchantIds
-                //   .filter(({ id }) => id.trim())
-                //   .map(({ id }) => String(id)),
-
-                submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [],
-
+                fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_AuthorisationKey: data.fpgD_MerchantKey,
-
+                fpgD_URL: data.fpgD_URL,
+                fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : "",
                 impG_Id: data.impG_Id,
-                fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
+                fpgD_Image: data.fpgD_Image,
+                fpgD_PGName: "",
+                fmpG_PGName: "",
+                fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag,
+                fpgD_AccNo: data.fpgD_AccNo,
+                submerchantIds: submerchants
             };
 
             console.log('Payload to be sent:', JSON.stringify(payload));
@@ -104,7 +99,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                refetchAll();
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -114,6 +109,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         }
     };
 
+    const [resetKey, setResetKey] = useState(0);
+
     const handleReset = () => {
         reset({
             fpgD_MerchantId: '',
@@ -122,11 +119,12 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
             fpgD_URL: '',
             fpgD_AccNo: '',
             fpgD_MerchantKey: '',
-            impG_Id: 0,
+            impG_Id: '' as any,
             fpgD_MobileActiveFlag: false
         });
 
         replace([{ id: '' }]);
+        setResetKey((prev) => prev + 1);
     };
 
     const [submerchantIds, setSubmerchantIds] = useState([{ id: '' }]);
@@ -166,6 +164,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             label='Merchant Id'
                             required
                             id='fpgD_MerchantId'
+                            placeholder='Enter Merchant Id'
                             {...register('fpgD_MerchantId')}
                             error={errors.fpgD_MerchantId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -192,6 +191,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 label='Salt Key'
                                 required
                                 id='fpgD_SaltKey'
+                                placeholder='Enter Salt Key'
                                 {...register('fpgD_SaltKey')}
                                 error={errors.fpgD_SaltKey?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -244,6 +244,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 label='Image'
                                 required
                                 id='fpgD_Image'
+                                placeholder='Enter Image'
                                 {...register('fpgD_Image', {
                                     required: 'Image URL is required',
                                     validate: (value) =>
@@ -261,6 +262,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 label='URL'
                                 required
                                 id='fpgD_URL'
+                                placeholder='Enter URL'
                                 {...register('fpgD_URL', {
                                     required: 'URL is required',
                                     validate: (value) =>
@@ -306,6 +308,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             label='Account Number'
                             required
                             id='fpgD_AccNo'
+                            placeholder='Enter Account Number'
                             {...register('fpgD_AccNo')}
                             error={errors.fpgD_AccNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -330,6 +333,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             label='Merchant Key'
                             required
                             id='fpgD_MerchantKey'
+                            placeholder='Enter Merchant Key'
                             {...register('fpgD_MerchantKey')}
                             error={errors.fpgD_MerchantKey?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -363,6 +367,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
                                 render={({ field }) => (
                                     <Select
+                                        key={resetKey}
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                         }}
@@ -448,10 +453,10 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                         <input
                                             id={`submerchantIds.${index}.id`}
                                             type='text'
+                                            placeholder='Enter Sub Merchant Id'
                                             {...register(`submerchantIds.${index}.id`)}
-                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${
-                                                errors.submerchantIds?.[index]?.id ? '' : ''
-                                            }`}
+                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${errors.submerchantIds?.[index]?.id ? '' : ''
+                                                }`}
                                             onKeyDown={(e) => {
                                                 // Block minus, plus, special chars used in number inputs
                                                 if (['-', '+', ' '].includes(e.key)) {
@@ -538,8 +543,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save Payment GatewayDetails
+                            Save Payment  <Save className='ml-2 h-4 w-4' />
+                            {/* Details */}
                         </div>
                     </Button>
                 </div>

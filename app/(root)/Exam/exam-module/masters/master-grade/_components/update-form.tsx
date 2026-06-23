@@ -267,7 +267,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>
             {/* Grade Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText label='Grade Name' required placeholder='Enter Grade Name' {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>
@@ -316,7 +316,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Name` as const)}
-                                            placeholder='Enter grade name'
+                                            placeholder='Enter Grade Name'
                                             error={errors.grade_list?.[index]?.emgD_Name?.message}
                                         />
                                     </td>
@@ -342,7 +342,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
+                                            placeholder='Enter From'
                                             error={errors.grade_list?.[index]?.emgD_From?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -382,7 +382,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
+                                            placeholder='Enter To'
                                             error={errors.grade_list?.[index]?.emgD_To?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -422,7 +422,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder='0-10'
+                                            placeholder='Enter Grade Points'
                                             error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -445,7 +445,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Remarks` as const)}
-                                            placeholder='Remarks'
+                                            placeholder='Enter Remarks'
                                             error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                         />
                                     </td>
