@@ -578,51 +578,58 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         refetchDropdowns();
     };
 
-    // const handleReset = () => {
-    //     reset({
-    //         pasR_FirstName: '',
-    //         pasR_MiddleName: '',
-    //         pasR_LastName: '',
-    //         asmcL_Id: 0,
-    //         pasR_emailId: '',
-    //         pasR_DOB: undefined,
-    //         pasR_MobileNo: '',
-    //         pasA_WillingToContributeFlg: 0,
-    //         pasR_UndertakingFlag: 0,
-    //         previousSchoolDetails: [
-    //             {
-    //                 pasrpS_PrvSchoolName: '',
-    //                 pasrpS_PreviousClass: '',
-    //                 pasrpS_Board: '',
-    //                 pasrpS_LeftYear: '',
-    //                 pasrpS_LeftReason: '',
-    //                 pasrpS_Address: ''
-    //             }
-    //         ],
-    //         siblingsDetails: []
-    //     });
-    //     setCurrentStep(1);
-    //     setSelectedSourceItems([]);
-    //     setSelectedReferenceItems([]);
-    //     setSameAsResidential(false);
-    //     setUploadedDocuments([]);
-    //     setFilteredClasses([]);
-    //     setIsClassDisabled(true);
-    //     setStudentPhoto(null);
-    //     setStudentPhotoError(null);
-    //     setFatherPhoto(null);
-    //     setFatherPhotoError(null);
-    //     setMotherPhoto(null);
-    //     setMotherPhotoError(null);
-    //     setDocumentErrors({});
-    //     setPhoneValues({});
-    //     setPhoneExpectedInfo({});
-    //     clearErrors();
-    // };
-
     const handleReset = () => {
-        window.location.href = '/admission/preadmission/stthomas/Preadmission-form/stthomas';
+        reset({
+            pasR_FirstName: '',
+            pasR_MiddleName: '',
+            pasR_LastName: '',
+            asmcL_Id: 0,
+            pasR_emailId: '',
+            pasR_DOB: undefined,
+            pasR_MobileNo: '',
+            pasA_WillingToContributeFlg: 0,
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: [],
+            pasR_MotherTongue: '',
+            pasR_LastPlayGrndAttnd: '',
+            pasR_ExtraActivity: '',
+            PASR_Churchname: '',
+            pasR_Languagespeaking: '',
+            pasR_BirthPlace: '',
+            PASR_ChurchAddress: ''
+        });
+        setCurrentStep(1);
+        setSelectedSourceItems([]);
+        setSelectedReferenceItems([]);
+        setSameAsResidential(false);
+        setUploadedDocuments([]);
+        setFilteredClasses([]);
+        setIsClassDisabled(true);
+        setStudentPhoto(null);
+        setStudentPhotoError(null);
+        setFatherPhoto(null);
+        setFatherPhotoError(null);
+        setMotherPhoto(null);
+        setMotherPhotoError(null);
+        setDocumentErrors({});
+        setPhoneValues({});
+        setPhoneExpectedInfo({});
+        clearErrors();
     };
+
+    // const handleReset = () => {
+    //     window.location.href = '/admission/preadmission/stthomas/Preadmission-form/stthomas';
+    // };
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -926,11 +933,19 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Add this handler where other form handlers are defined
     const handleDOBChange = (date: Date | undefined) => {
+        console.log('handleDOBChange');
         if (!date || !masterConfig?.data) {
+
+            if (masterConfig?.data == null) {
+                console.log(masterConfig?.data)
+                console.log('Master Config data is null');
+            }
+            console.log(masterConfig?.data)
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
             return;
+
         }
 
         const allClasses = preadmissionClass?.data || [];
@@ -940,12 +955,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
         allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
             const validation = validateAgeForClass(date, classItem, masterConfig.data);
+
             if (validation.isValid) {
                 validClasses.push(classItem);
             } else {
                 invalidClasses.push(classItem);
             }
         });
+
+
         setFilteredClasses(validClasses);
 
         if (validClasses.length === 0) {
@@ -961,9 +979,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Reactively validate classes when DOB or config/master data changes
     useEffect(() => {
+        console.log('inside useeffect');
         const dob = getValues('pasR_DOB');
+        console.log('dob', dob);
         if (dob) {
             handleDOBChange(dob);
+            console.log('handleDOBChange');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watch('pasR_DOB'), masterConfig, preadmissionClass]);
