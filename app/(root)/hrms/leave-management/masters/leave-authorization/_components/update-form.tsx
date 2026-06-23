@@ -32,7 +32,7 @@ export default function UpdateLeaveAuthorizationForm({
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
     const { data: institutionsData, isLoading: isLoadingInstitutions } = useInstitutionsByLoginBased();
-
+    console.log("edit row", row);
     // Extract institution options from API
     const institutionOptions = useMemo(() => {
         if (!institutionsData?.data || !Array.isArray(institutionsData.data)) {
@@ -130,13 +130,12 @@ export default function UpdateLeaveAuthorizationForm({
             hrmL_LeaveName: String((dataToUse as any).hrmL_Id || (dataToUse as any).leaveTypeId || (dataToUse as any).HRML_Id || ''),
             hrlaoN_SanctionLevelNo: String(dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || (dataToUse as any).HRLAON_SanctionLevelNo || ''),
             hrmE_EmployeeFirstName: String((dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || (dataToUse as any).HRME_Id || ''),
-            finalFlag: !!dataToUse.finalFlag
+            finalFlag: dataToUse.hrlaoN_FinalFlg
         };
-
-        console.log('🚀 [UpdateForm] Resetting form with:', formValues);
         reset(formValues);
     }, [editData, reset, institutionOptions]);
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
+        console.log("update", data);
         updateLeaveAuthorization(
             {
                 ...data,

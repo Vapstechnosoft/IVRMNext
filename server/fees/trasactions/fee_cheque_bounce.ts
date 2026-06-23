@@ -16,9 +16,9 @@ import type {
  * Initial load data
  * GET: FeeChequeBounce/getalldetails/{pageId}
  */
-export async function getFeeChequeBounceInitialData(pageId: number) {
-    const url = `FeeChequeBounce/getalldetails/${pageId}`;
-    return await api.get<IFeeChequeBounceDropdowns>('fees', url);
+export async function getFeeChequeBounceInitialData() {
+    const url = `FeeChequeBounceFacade/getalldetails`;
+    return await api.get<any>('fees', url);
 }
 
 //Get academic year for dropdown

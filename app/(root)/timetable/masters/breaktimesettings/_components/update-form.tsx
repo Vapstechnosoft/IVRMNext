@@ -358,7 +358,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText label='Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
+                            <InputText label='Break Name' placeholder='Enter Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
                         </div>
 
                         <div className='space-y-2'>
@@ -451,6 +451,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         <div className='space-y-2'>
                             <InputText
                                 label='After Period'
+                                placeholder='Enter After Period'
                                 required
                                 {...register('ttmB_AfterPeriod')}
                                 error={errors.ttmB_AfterPeriod?.message}
