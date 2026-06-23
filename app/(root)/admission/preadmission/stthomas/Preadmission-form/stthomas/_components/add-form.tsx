@@ -1167,8 +1167,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1217,8 +1217,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1278,22 +1278,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 disabled
                                             />
 
-
-
                                             {/* Student Photo Upload - Mandatory */}
                                             <div className='col-span-full w-fit'>
-
-
-
-
                                                 <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                     <div className='mb-1'>
                                                         <Label htmlFor='student_photo'>
                                                             Student Photo <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
                                                     </div>
-
-
 
                                                     {!studentPhoto?.pasR_Student_Pic_Path ? (
                                                         <label
@@ -1418,46 +1410,29 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 </div>
 
                                                 <div className='rounded-lg border border-blue-200 bg-blue-50 p-2'>
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                id="usercreation"
-                                                                name="usercreation"
-                                                            />
-                                                            <Label htmlFor="usercreation">
-                                                                Create User
-                                                            </Label>
+                                                    <div className='flex items-center gap-6'>
+                                                        <div className='flex items-center gap-2'>
+                                                            <input type='checkbox' id='usercreation' name='usercreation' />
+                                                            <Label htmlFor='usercreation'>Create User</Label>
                                                         </div>
 
-                                                        <div className="flex flex-col">
-                                                            <div className="flex items-center gap-2">
+                                                        <div className='flex flex-col'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <input type='checkbox' id='admcheck' name='admcheck' />
+                                                                <Label htmlFor='admcheck'>Application No.</Label>
                                                                 <input
-                                                                    type="checkbox"
-                                                                    id="admcheck"
-                                                                    name="admcheck"
-                                                                />
-                                                                <Label htmlFor="admcheck">
-                                                                    Application No.
-                                                                </Label>
-                                                                <input
-                                                                    type="text"
-                                                                    id="appNo"
-                                                                    name="appNo"
-                                                                    placeholder="Enter Application No."
-                                                                    className="rounded-md border px-3 py-2"
+                                                                    type='text'
+                                                                    id='appNo'
+                                                                    name='appNo'
+                                                                    placeholder='Enter Application No.'
+                                                                    className='rounded-md border px-3 py-2'
                                                                 />
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
-
                                             </div>
                                         </div>
-
-
-
 
                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                             <InputText
@@ -1555,7 +1530,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 inputProps={{
                                                                     id: 'pasR_MobileNo',
                                                                     name: 'pasR_MobileNo',
-                                                                    maxLength: 25,
+                                                                    maxLength: 15,
                                                                     required: false,
                                                                     style: {
                                                                         width: '87%',
@@ -1577,8 +1552,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -2144,15 +2120,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2334,15 +2310,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2670,9 +2646,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3110,9 +3087,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -4248,8 +4226,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
