@@ -58,6 +58,7 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this record?')) {
+            
             deleteIncrement(id);
         }
     };
@@ -121,7 +122,7 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
                         <div className='flex items-center gap-4'>
                             <span>Employee Increment List</span>
                             <Badge variant='secondary' className='bg-primary/10 text-primary border-primary/20 font-bold'>
-                                Total Records: {gridData?.length}
+                                Total Records: {tableProps.totalItems}
                             </Badge>
                         </div>
                     }
@@ -135,6 +136,7 @@ export default function EmployeeIncrementSalaryPage(props: { searchParams: Searc
                             columns={columns}
                             isLoading={isGridLoading || isDeleting}
                             showViewOptions={false}
+                            isPaginationRequired={true}
                         />
                     </div>
                 </CollapsibleSection>
