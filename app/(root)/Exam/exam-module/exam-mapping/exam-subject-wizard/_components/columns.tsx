@@ -61,11 +61,6 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     },
 
     {
-        accessorKey: 'eycE_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
-        cell: ({ row }) => (row.getValue('eycE_ActiveFlg') ? 'Active' : 'Inactive')
-    },
-    {
         accessorKey: 'subject_order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Order' />,
         cell: ({ row }) => {
