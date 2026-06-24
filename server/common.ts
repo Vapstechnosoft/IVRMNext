@@ -6852,7 +6852,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
                                             url: '/timetable/reports/class-section-report',
-                                            title: 'Staff Replacement For Class And Section',
+                                            title: 'Class Section Timetable Replacement',
                                             description: 'View and generate class-wise timetable grids'
                                         },
                                         {
