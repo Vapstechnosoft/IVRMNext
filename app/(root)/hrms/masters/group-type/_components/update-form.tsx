@@ -125,7 +125,7 @@ export default function UpdateGroupTypeForm({ onSuccess, className = '', selecte
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Group Type
+                            Update Group Type
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
