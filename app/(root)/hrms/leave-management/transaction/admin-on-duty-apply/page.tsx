@@ -47,7 +47,7 @@ function AdminOnDutyApplyPageContent() {
         sortColumn,
         sortDirection
     });
-
+    console.log("adminOnDutyList", adminOnDutyList)
     const [viewLeaveId, setViewLeaveId] = useState<number | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [showForm, setShowForm] = useState(false);

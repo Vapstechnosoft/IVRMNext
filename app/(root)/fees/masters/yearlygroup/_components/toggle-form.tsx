@@ -67,6 +67,8 @@ export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearCol
                     console.warn('Failed to refetch after toggle:', e);
                 }
                 closeDialog();
+            } else {
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error) {
             console.error('ToggleYearColumnForm error:', error);
