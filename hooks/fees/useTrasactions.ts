@@ -1215,15 +1215,14 @@ export const useFeeChequeBounceStudent = (data: any) => {
     };
 };
 
-export const useFeeChequeBounceInitialData = (pageId: number) => {
+export const useFeeChequeBounceInitialData = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS, pageId],
-            queryFn: async () => getFeeChequeBounceInitialData(pageId),
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS],
+            queryFn: async () => getFeeChequeBounceInitialData(),
             staleTime: 0,
-            enabled: !!pageId
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1232,6 +1231,7 @@ export const useFeeChequeBounceInitialData = (pageId: number) => {
         }
     };
 };
+
 
 export const useFeeChequeBounceClasses = (asmaY_Id: number) => {
     const queryClient = useQueryClient();

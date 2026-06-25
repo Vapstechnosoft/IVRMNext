@@ -60,7 +60,6 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
         cell: ({ row }) => getStatusBadge((row.getValue('eycE_SubSubjectFlg') as boolean) === true ? 'yes' : 'no')
     },
 
-
     {
         accessorKey: 'subject_order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Order' />,

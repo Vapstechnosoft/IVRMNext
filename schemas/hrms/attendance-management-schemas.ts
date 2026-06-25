@@ -649,16 +649,16 @@ export const employeeAbsentReportFilterSchema = z
  */
 export const masterTimeSettingSchema = {
     addOrUpdate: z.object({
-        fomtS_IHalfLoginTime: z.string().min(1, 'Morning Login Time is required'),
-        fomtS_IhalfLogoutTime: z.string().min(1, 'Morning Logout Time is required'),
-        fomtS_FDWHrMin: z.string().min(1, 'Total working hours per shift is required'),
-        fomtS_IIHalfLoginTime: z.string().min(1, 'Afternoon Login Time is required'),
-        fomtS_IIHalfLogoutTime: z.string().min(1, 'Afternoon Logout Time is required'),
-        fomtS_HDWHrMin: z.string().min(1, 'Half day working hours per shift is required'),
-        fomtS_FixTimings: z.string().min(1, 'Min Time Between Two Punching is required'),
-        fomtS_DelayPerShiftHrMin: z.string().min(1, 'Daily per shift is required'),
-        fomtS_EarlyPerShiftHrMin: z.string().min(1, 'Early per shift is required'),
-        fomtS_LunchHoursDuration: z.string().min(1, 'Lunch Hours is required'),
+        fomtS_IHalfLoginTime: z.string().min(1, 'Morning Login Time is required').refine(val => val !== '00:00', 'Morning Login Time is required'),
+        fomtS_IhalfLogoutTime: z.string().min(1, 'Morning Logout Time is required').refine(val => val !== '00:00', 'Morning Logout Time is required'),
+        fomtS_FDWHrMin: z.string().min(1, 'Total working hours per shift is required').refine(val => val !== '00:00', 'Total working hours per shift is required'),
+        fomtS_IIHalfLoginTime: z.string().min(1, 'Afternoon Login Time is required').refine(val => val !== '00:00', 'Afternoon Login Time is required'),
+        fomtS_IIHalfLogoutTime: z.string().min(1, 'Afternoon Logout Time is required').refine(val => val !== '00:00', 'Afternoon Logout Time is required'),
+        fomtS_HDWHrMin: z.string().min(1, 'Half day working hours per shift is required').refine(val => val !== '00:00', 'Half day working hours per shift is required'),
+        fomtS_FixTimings: z.string().min(1, 'Min Time Between Two Punching is required').refine(val => val !== '00:00', 'Min Time Between Two Punching is required'),
+        fomtS_DelayPerShiftHrMin: z.string().min(1, 'Daily per shift is required').refine(val => val !== '00:00', 'Daily per shift is required'),
+        fomtS_EarlyPerShiftHrMin: z.string().min(1, 'Early per shift is required').refine(val => val !== '00:00', 'Early per shift is required'),
+        fomtS_LunchHoursDuration: z.string().min(1, 'Lunch Hours is required').refine(val => val !== '00:00', 'Lunch Hours is required'),
         fomtS_BlockAttendance: z.string().optional(),
         fomhwD_ActiveFlg: z.boolean().optional()
     })

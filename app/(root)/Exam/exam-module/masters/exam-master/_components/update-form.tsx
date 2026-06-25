@@ -126,8 +126,8 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
                     <InputText label='IVRS Exam Name' required placeholder='Enter IVRS Exam Name' {...register('emE_IVRSExamName')} error={errors.emE_IVRSExamName?.message} />
                     <InputText
                         label='Exam Description'
-                        required
                         placeholder='Enter Exam Description'
+                        required
                         {...register('emE_ExamDescription')}
                         error={errors.emE_ExamDescription?.message}
                     />

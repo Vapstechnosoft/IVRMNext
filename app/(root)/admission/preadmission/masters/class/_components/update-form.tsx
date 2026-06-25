@@ -96,7 +96,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 reset();
                 refetchAll();
                 onSuccess?.();
-                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
