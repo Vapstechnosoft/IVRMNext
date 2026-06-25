@@ -5,6 +5,7 @@ import { DateField } from '@/components/ui/dateField';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { format } from 'date-fns';
 import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -63,8 +64,8 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
             const payload = {
                 hrmlY_Id: 0,
                 hrmlY_LeaveYear: data.hrmlY_LeaveYear?.trim() || '',
-                hrmlY_FromDate: data.hrmlY_FromDate,
-                hrmlY_ToDate: data.hrmlY_ToDate,
+                hrmlY_FromDate: data.hrmlY_FromDate ? format(new Date(data.hrmlY_FromDate), 'yyyy-MM-dd') : null,
+                hrmlY_ToDate: data.hrmlY_ToDate ? format(new Date(data.hrmlY_ToDate), 'yyyy-MM-dd') : null,
                 hrmlY_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLeaveYear(payload);
