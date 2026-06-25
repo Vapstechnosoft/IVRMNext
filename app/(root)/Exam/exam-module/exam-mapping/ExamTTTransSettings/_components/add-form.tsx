@@ -8,13 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useExamTTTransSettings } from '@/hooks/exam/exammodule/exam-mapping';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
-    getExamTTTransEditDetails,
     getExamTTTransViewRecords,
     getSubjectGroupsAndExamsBySection,
     getSubjectListAndTimeSlots,
     saveExamTTTransSettings
 } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/cumulative-report';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import type { IExamTTTransSettings } from '@/types/exam/exam-module/exam-mapping';
 import { examTTTransSettingsSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { Loader2, Save, X } from 'lucide-react';
@@ -64,7 +66,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
         if (!editData) return;
         (async () => {
             try {
-                console.log("editData", editData);
+                console.log('editData', editData);
                 setAsmay(String(editData.asmaY_Id));
                 setAsmcl(String(editData.asmcL_Id));
                 setAsms(String(editData.asmS_Id));
@@ -113,20 +115,24 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     EMG_Id: editData.emG_Id,
                     EME_Id: editData.emE_Id
                 });
-                const { data: listedit } = await getExamTTTransViewRecords(
-                    editData.extT_Id
-                );
+                const { data: listedit } = await getExamTTTransViewRecords(editData.extT_Id);
 
-                console.log("listedit", listedit);
-                console.log("subRes?.data?.time_slot", subRes?.data?.time_slot);
-                console.log("subRes?.data?.subject_name", subRes?.data?.subject_name);
+                console.log('listedit', listedit);
+                console.log('subRes?.data?.time_slot', subRes?.data?.time_slot);
+                console.log('subRes?.data?.subject_name', subRes?.data?.subject_name);
                 setTimeSlots(subRes?.data?.time_slot ?? []);
 
                 const subjects: any[] = subRes?.data?.subject_name ?? [];
                 const merged: SubjectRow[] = subjects.map((s: any) => {
                     const match = listedit.find((e: any) => e.ismS_Id === s.ismS_Id);
                     return match
-                        ? { ismS_Id: s.ismS_Id, ismS_SubjectName: s.ismS_SubjectName, check_save: 1, exttS_Date: match.slotdate?.split('T')[0] ?? '', ettS_Id: String(match.ettS_Id) }
+                        ? {
+                              ismS_Id: s.ismS_Id,
+                              ismS_SubjectName: s.ismS_SubjectName,
+                              check_save: 1,
+                              exttS_Date: match.slotdate?.split('T')[0] ?? '',
+                              ettS_Id: String(match.ettS_Id)
+                          }
                         : { ismS_Id: s.ismS_Id, ismS_SubjectName: s.ismS_SubjectName, check_save: 0, exttS_Date: '', ettS_Id: '' };
                 });
                 setMainList(merged);
@@ -140,23 +146,40 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
     // Handle explicit resets on change
     function handleAcademicYearChange(val: string) {
         setAsmay(val);
-        setAsmcl(''); setAsms(''); setEme(''); setEmg('');
-        setClasses([]); setSections([]); setSubjectGroups([]); setExams([]);
+        setAsmcl('');
+        setAsms('');
+        setEme('');
+        setEmg('');
+        setClasses([]);
+        setSections([]);
+        setSubjectGroups([]);
+        setExams([]);
         setMainList([]);
     }
 
     function handleClassChange(val: string) {
-        setAsmcl(val); setAsms(''); setEme(''); setEmg('');
-        setSections([]); setSubjectGroups([]); setExams([]); setMainList([]);
+        setAsmcl(val);
+        setAsms('');
+        setEme('');
+        setEmg('');
+        setSections([]);
+        setSubjectGroups([]);
+        setExams([]);
+        setMainList([]);
     }
 
     function handleSectionChange(val: string) {
-        setAsms(val); setEme(''); setEmg('');
-        setSubjectGroups([]); setExams([]); setMainList([]);
+        setAsms(val);
+        setEme('');
+        setEmg('');
+        setSubjectGroups([]);
+        setExams([]);
+        setMainList([]);
     }
 
     function handleSubjectGroupChange(val: string) {
-        setEmg(val); setMainList([]);
+        setEmg(val);
+        setMainList([]);
     }
 
     const isEditMode = !!editData;
@@ -168,10 +191,13 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
             setLoadingCascade(true);
             try {
                 const res = await getClassDropDownByAcademicYearlist(Number(asmay));
-                console.log("classes response", res);
+                console.log('classes response', res);
                 setClasses(res?.data ?? []);
-            } catch { toast.error('Failed to load classes'); }
-            finally { setLoadingCascade(false); }
+            } catch {
+                toast.error('Failed to load classes');
+            } finally {
+                setLoadingCascade(false);
+            }
         }
         fetchClasses();
     }, [asmay, isEditMode]);
@@ -185,8 +211,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 const res = await getSectionsDropDownByAcademicYearandClasslist(Number(asmay), Number(asmcl));
                 console.log("sections response", res);
                 setSections(res?.data ?? []);
-            } catch { toast.error('Failed to load sections'); }
-            finally { setLoadingCascade(false); }
+            } catch {
+                toast.error('Failed to load sections');
+            } finally {
+                setLoadingCascade(false);
+            }
         }
         fetchSections();
     }, [asmay, asmcl, isEditMode]);
@@ -200,8 +229,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 const res = await getSubjectGroupsAndExamsBySection(Number(asms), Number(asmcl), Number(asmay));
                 setSubjectGroups(res?.data?.subject_group ?? []);
                 setExams(res?.data?.examlist ?? []);
-            } catch { toast.error('Failed to load subject groups'); }
-            finally { setLoadingCascade(false); }
+            } catch {
+                toast.error('Failed to load subject groups');
+            } finally {
+                setLoadingCascade(false);
+            }
         }
         fetchSubjectGroups();
     }, [asmay, asmcl, asms, isEditMode]);
@@ -221,15 +253,20 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 });
                 setTimeSlots(res?.data?.time_slot ?? []);
                 const subjects: any[] = res?.data?.subject_name ?? [];
-                setMainList(subjects.map((s: any) => ({
-                    ismS_Id: s.ismS_Id,
-                    ismS_SubjectName: s.ismS_SubjectName,
-                    check_save: s.check_save ?? 0,
-                    exttS_Date: s.exttS_Date ? new Date(s.exttS_Date).toISOString().split('T')[0] : '',
-                    ettS_Id: String(s.ettS_Id ?? '')
-                })));
-            } catch { toast.error('Failed to load subjects'); }
-            finally { setLoadingCascade(false); }
+                setMainList(
+                    subjects.map((s: any) => ({
+                        ismS_Id: s.ismS_Id,
+                        ismS_SubjectName: s.ismS_SubjectName,
+                        check_save: s.check_save ?? 0,
+                        exttS_Date: s.exttS_Date ? new Date(s.exttS_Date).toISOString().split('T')[0] : '',
+                        ettS_Id: String(s.ettS_Id ?? '')
+                    }))
+                );
+            } catch {
+                toast.error('Failed to load subjects');
+            } finally {
+                setLoadingCascade(false);
+            }
         }
         fetchSubjects();
     }, [emg, asms, asmcl, asmay, eme, isEditMode]);
@@ -312,7 +349,6 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
         startTransition(async () => {
             try {
-
                 const payload = {
                     ASMS_Id: Number(asms) || 0,
                     ASMCL_Id: Number(asmcl),
@@ -321,35 +357,29 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     EMG_Id: Number(emg),
 
                     // ✅ FIXED DATE FORMAT (ISO for .NET 8)
-                    EXTT_FromDate: fromDate
-                        ? new Date(fromDate).toISOString()
-                        : null,
+                    EXTT_FromDate: fromDate ? new Date(fromDate).toISOString() : null,
 
-                    EXTT_EndDate: toDate
-                        ? new Date(toDate).toISOString()
-                        : null,
+                    EXTT_EndDate: toDate ? new Date(toDate).toISOString() : null,
 
                     EXTT_Id: Number(exttId) || 0,
 
-                    TempararyArrayList: checkedRows.map(r => ({
-                        ISMS_Id: Number(r.ismS_Id),   // ✅ corrected casing
+                    TempararyArrayList: checkedRows.map((r) => ({
+                        ISMS_Id: Number(r.ismS_Id), // ✅ corrected casing
                         check_save: '1',
 
-                        EXTTS_Date: r.exttS_Date
-                            ? new Date(r.exttS_Date).toISOString()
-                            : null,
+                        EXTTS_Date: r.exttS_Date ? new Date(r.exttS_Date).toISOString() : null,
 
-                        ETTS_Id: Number(r.ettS_Id),   // ✅ corrected casing
+                        ETTS_Id: Number(r.ettS_Id), // ✅ corrected casing
                         ISMS_SubjectName: r.ismS_SubjectName
                     }))
                 };
 
-                console.log("Exam TT Settings payload:", payload);
+                console.log('Exam TT Settings payload:', payload);
 
                 const res = await saveExamTTTransSettings(payload);
 
                 if (res?.success === true) {
-                    toast.success("Saved successfully");
+                    toast.success('Saved successfully');
                     refetchAll?.();
                     onSuccess?.();
                 }
@@ -357,19 +387,28 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     toast.error(res?.message);
                     return;
                 }
-
             } catch (err) {
                 console.error(err);
-                toast.error("Failed to save");
+                toast.error('Failed to save');
             }
         });
     }
 
     function handleReset() {
-        setAsmay(''); setAsmcl(''); setAsms(''); setEme(''); setEmg('');
-        setFromDate(''); setToDate('');
-        setClasses([]); setSections([]); setSubjectGroups([]); setExams([]);
-        setMainList([]); setExttId(0); setErrors({});
+        setAsmay('');
+        setAsmcl('');
+        setAsms('');
+        setEme('');
+        setEmg('');
+        setFromDate('');
+        setToDate('');
+        setClasses([]);
+        setSections([]);
+        setSubjectGroups([]);
+        setExams([]);
+        setMainList([]);
+        setExttId(0);
+        setErrors({});
     }
 
     return (
@@ -386,11 +425,17 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                 onValueChange={handleAcademicYearChange}>
                                 <SelectTrigger><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
                                 <SelectContent>
-                                    {acYearLoading
-                                        ? <SelectItem value='_' disabled>Loading...</SelectItem>
-                                        : acYearData?.data?.map((y: any) => (
-                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
-                                        ))}
+                                    {acYearLoading ? (
+                                        <SelectItem value='_' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : (
+                                        acYearData?.data?.map((y: any) => (
+                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                {y.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.asmay && <FormError>{errors.asmay}</FormError>}
@@ -401,7 +446,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                             <Select key={asmcl} value={asmcl || undefined} onValueChange={handleClassChange} disabled={!asmay || loadingCascade}>
                                 <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Class'} /></SelectTrigger>
                                 <SelectContent>
-                                    {classes.map((c: any) => <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>)}
+                                    {classes.map((c: any) => (
+                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                            {c.asmcL_ClassName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.asmcl && <FormError>{errors.asmcl}</FormError>}
@@ -413,7 +462,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                 <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Section'} /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value='0'>All</SelectItem>
-                                    {sections.map((s: any) => <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>)}
+                                    {sections.map((s: any) => (
+                                        <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                            {s.asmC_SectionName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.asms && <FormError>{errors.asms}</FormError>}
@@ -428,7 +481,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
                                 <SelectTrigger><SelectValue placeholder={loadingCascade ? 'Loading...' : 'Select Subject Group'} /></SelectTrigger>
                                 <SelectContent>
-                                    {subjectGroups.map((g: any) => <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>{g.emG_GroupName}</SelectItem>)}
+                                    {subjectGroups.map((g: any) => (
+                                        <SelectItem key={g.emG_Id} value={String(g.emG_Id)}>
+                                            {g.emG_GroupName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.emg && <FormError>{errors.emg}</FormError>}
@@ -439,7 +496,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                             <Select key={eme} value={eme || undefined} onValueChange={setEme} disabled={!asms}>
                                 <SelectTrigger><SelectValue placeholder='Select Exam' /></SelectTrigger>
                                 <SelectContent>
-                                    {exams.map((e: any) => <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>)}
+                                    {exams.map((e: any) => (
+                                        <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                            {e.emE_ExamName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.eme && <FormError>{errors.eme}</FormError>}
@@ -447,14 +508,24 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
                         <div className='flex w-full flex-row gap-4'>
                             <div className='flex-1'>
-                                <Label>From Date <span className='text-red-500'>*</span></Label>
-                                <Input type='date' value={fromDate} onChange={e => setFromDate(e.target.value)} className='w-full' />
+                                <Label>
+                                    From Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} className='w-full' />
                                 {errors.fromDate && <FormError>{errors.fromDate}</FormError>}
                             </div>
 
                             <div className='flex-1'>
-                                <Label>To Date <span className='text-red-500'>*</span></Label>
-                                <Input type='date' value={toDate} min={fromDate} onChange={e => setToDate(e.target.value)} className='w-full' />
+                                <Label>
+                                    To Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input
+                                    type='date'
+                                    value={toDate}
+                                    min={fromDate}
+                                    onChange={(e) => setToDate(e.target.value)}
+                                    className='w-full'
+                                />
                                 {errors.toDate && <FormError>{errors.toDate}</FormError>}
                             </div>
                         </div>
@@ -472,7 +543,9 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                 <table className='w-full border-separate border-spacing-0'>
                                     <thead>
                                         <tr className='border-gray-300 border-b bg-gray-50 text-left font-normal text-[#78716C]'>
-                                            <th className='border-gray-300 border-r px-3 py-2 font-normal first:rounded-tl-xl w-[80px] text-center'>Select</th>
+                                            <th className='w-[80px] border-gray-300 border-r px-3 py-2 text-center font-normal first:rounded-tl-xl'>
+                                                Select
+                                            </th>
                                             <th className='border-gray-300 border-r px-3 py-2 font-normal'>Subject</th>
                                             <th className='border-gray-300 border-r px-3 py-2 font-normal'>Exam Date</th>
                                             <th className='px-3 py-2 font-normal last:rounded-tr-xl'>Time Slot</th>
@@ -480,11 +553,13 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                     </thead>
                                     <tbody>
                                         {mainList.map((row, idx) => (
-                                            <tr key={row.ismS_Id} className='border-gray-300 border-t text-sm transition-colors duration-200 hover:bg-accent/90 [&>*]:px-2 [&>*]:py-1'>
+                                            <tr
+                                                key={row.ismS_Id}
+                                                className='border-gray-300 border-t text-sm transition-colors duration-200 hover:bg-accent/90 [&>*]:px-2 [&>*]:py-1'>
                                                 <td className='border-gray-300 border-r px-3 text-center'>
                                                     <Checkbox
                                                         checked={!!row.check_save}
-                                                        onCheckedChange={c => updateRow(idx, 'check_save', c ? 1 : 0)}
+                                                        onCheckedChange={(c) => updateRow(idx, 'check_save', c ? 1 : 0)}
                                                     />
                                                 </td>
                                                 <td className='border-gray-300 border-r px-3 font-medium'>{row.ismS_SubjectName}</td>
@@ -495,7 +570,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                                         min={fromDate}
                                                         max={toDate}
                                                         disabled={!row.check_save}
-                                                        onChange={e => updateRow(idx, 'exttS_Date', e.target.value)}
+                                                        onChange={(e) => updateRow(idx, 'exttS_Date', e.target.value)}
                                                         className='w-full max-w-[200px]'
                                                     />
                                                     {errors[`row_${idx}_date`] && <FormError>{errors[`row_${idx}_date`]}</FormError>}
@@ -531,7 +606,14 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 {/* Buttons */}
                 <div className='mt-6 flex w-fit gap-4'>
                     <Button type='button' onClick={handleSave} disabled={isPending} className='w-fit'>
-                        {isPending ? <><Loader2 className='mr-2 h-4 w-4 animate-spin' />Saving...</> : 'Save'}
+                        {isPending ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                Saving...
+                            </>
+                        ) : (
+                            'Save'
+                        )}
                     </Button>
                     <Button type='button' variant='outline' onClick={handleReset} className='w-fit'>
                         Reset
