@@ -603,7 +603,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText label='Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
+                            <InputText label='Break Name' placeholder='Enter Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
                         </div>
 
                         <div className='space-y-2'>
@@ -811,6 +811,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                 render={({ field }) => (
                                     <InputNumber
                                         {...field}
+                                        placeholder='Enter After Period'
                                         onChange={(value) => {
                                             field.onChange(value);
                                         }}

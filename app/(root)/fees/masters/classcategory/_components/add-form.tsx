@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
@@ -85,6 +85,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
 
                         <InputText
                             label='Class Category Code'
+                            placeholder='Class Category Code'
                             required
                             id='fmcC_ClassCategoryCode'
                             {...register('fmcC_ClassCategoryCode')}

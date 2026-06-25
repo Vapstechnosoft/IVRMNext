@@ -227,11 +227,11 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         }
 
         // Resolve numeric IDs from the selected dropdown values
-        const gradeId     = Number(dd.grades?.find((g: any) => g.value == data.hrmG_GradeName)?.value || 0);
+        const gradeId = Number(dd.grades?.find((g: any) => g.value == data.hrmG_GradeName)?.value || 0);
         const groupTypeId = Number(dd.groupTypes?.find((g: any) => g.value == data.hrmgT_EmployeeGroupType)?.value || 0);
-        const deptId      = Number(dd.departments?.find((d: any) => d.value == data.hrmD_DepartmentName)?.value || 0);
-        const desigId     = Number(dd.designations?.find((d: any) => d.value == data.hrmdeS_DesignationName)?.value || 0);
-        const leaveId     = Number(dd.leaveTypes?.find((l: any) => l.value == data.hrmL_LeaveName)?.value || 0);
+        const deptId = Number(dd.departments?.find((d: any) => d.value == data.hrmD_DepartmentName)?.value || 0);
+        const desigId = Number(dd.designations?.find((d: any) => d.value == data.hrmdeS_DesignationName)?.value || 0);
+        const leaveId = Number(dd.leaveTypes?.find((l: any) => l.value == data.hrmL_LeaveName)?.value || 0);
 
         // Build ONE payload with all cart items as approvalUser[]
         const payload = {
@@ -559,8 +559,8 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     {hasFinalFlag
                                                         ? 'Final flag set – no more orders'
                                                         : nextAvailableOrder === null
-                                                          ? 'All 4 orders used'
-                                                          : `Select order ${nextAvailableOrder}`}
+                                                            ? 'All 4 orders used'
+                                                            : `Select order ${nextAvailableOrder}`}
                                                 </div>
                                             )}
                                         </SelectContent>
@@ -652,18 +652,18 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                         </div>
 
                     </div>
-                        {/* Add To Cart Button */}
-                        <div className='pt-1'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleAddToCart}
-                                disabled={hasFinalFlag || nextAvailableOrder === null || mastersLoading}
-                                className='w-fit border-dashed border-primary text-primary hover:bg-primary/5'>
-                                <Plus className='mr-2 h-4 w-4' />
-                                Add To Cart
-                            </Button>
-                        </div>
+                    {/* Add To Cart Button */}
+                    <div className='pt-1'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleAddToCart}
+                            disabled={hasFinalFlag || nextAvailableOrder === null || mastersLoading}
+                            className='w-fit border-dashed border-primary text-primary hover:bg-primary/5'>
+                            <Plus className='mr-2 h-4 w-4' />
+                            Add To Cart
+                        </Button>
+                    </div>
                 </div>
 
                 {/* ── Cart Table ── */}

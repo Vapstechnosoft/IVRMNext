@@ -125,7 +125,17 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         }
     };
     const handleReset = () => {
-        window.location.reload();
+        reset({
+            userId: 1,
+            eycG_Id: 0,
+            asmaY_Id: undefined,
+            emcA_Id: undefined,
+            emG_Id: undefined,
+            subjects_list: [],
+            eyC_BasedOnPaperTypeFlg: false
+        });
+        setCategories([]);
+        setSubjects([]);
     };
 
     return (

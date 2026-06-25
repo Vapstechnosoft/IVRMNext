@@ -377,24 +377,21 @@ export const lifeSkillAreaMappingSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
         mI_Id: z.number().optional(),
-        ecS_SkillName: createExamCustomStringSchema('Skill Name', 1, 100),
-        ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
+        ecS_SkillName: z.string().optional(),
+        ecS_SkillCode: z.string().optional(),
 
         subexamDTO: z
             .array(
                 z.object({
                     ecsA_Id: z.number().default(0),
                     ecsA_SkillOrder: z
-                        .number({
-                            required_error: 'Skill Area Order is required',
-                            invalid_type_error: 'Skill Area Order must be a number'
-                        })
+                        .number()
                         .int()
-                        .min(1, { message: 'Skill Area Order must be at least 1' }),
-                    ecsA_SkillArea: createExamCustomStringSchema('Skill Area Name', 1, 100)
+                        .optional(),
+                    ecsA_SkillArea: z.string().optional()
                 })
             )
-            .min(1, { message: 'At least one Skill Area entry is required' }),
+            .optional(),
 
         mappingDTO: z
             .array(

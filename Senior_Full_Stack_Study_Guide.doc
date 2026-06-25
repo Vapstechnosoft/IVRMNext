@@ -1,0 +1,700 @@
+<p>﻿# Senior Full Stack Developer Study Guide - Part 1: Core Frameworks</p>
+<p>This document covers <strong>Section 1 (React Fundamentals)</strong>, <strong>Section 2 (Next.js Complete Architecture)</strong>, and <strong>Section 8 (State Management)</strong> with a focus on enterprise-level production standards.</p>
+<hr>
+<h1>SECTION 1 - REACT FUNDAMENTALS</h1>
+<h2>1. Virtual DOM &amp; Reconciliation</h2>
+<ul>
+<li><strong>Concept Explanation:</strong> The Virtual DOM is a lightweight JavaScript representation of the actual DOM. When state changes, React creates a new Virtual DOM, compares it with the previous one (Diffing Algorithm), and calculates the most efficient way to update the real DOM.</li>
+<li><strong>Why it is needed:</strong> Direct DOM manipulation is extremely slow and resource-intensive. The Virtual DOM batches updates and applies them efficiently.</li>
+<li><strong>Where it is used:</strong> Every single React component rendering process.</li>
+<li><strong>Mistakes Developers Make:</strong> Using array indices as <code>key</code> props in mapped lists. This breaks the diffing algorithm during reconciliation, causing unnecessary re-renders or state mismatches.</li>
+</ul>
+<h2>2. React Lifecycle (Hooks Era)</h2>
+<ul>
+<li><strong>Concept Explanation:</strong> The lifecycle of a component includes Mounting, Updating, and Unmounting. In functional components, this is entirely managed via the <code>useEffect</code> hook.</li>
+<li><strong>Why it is needed:</strong> To execute side effects like fetching data when a component loads, reacting to state changes, or cleaning up event listeners when a component unmounts.</li>
+<li><strong>Production Code Example:</strong></li>
+</ul>
+<pre><code class="language-tsx">import { useEffect, useState } from &#39;react&#39;;
+
+export function ExamTimer({ durationInMinutes }: { durationInMinutes: number }) {
+    const [timeLeft, setTimeLeft] = useState(durationInMinutes * 60);
+
+    useEffect(() =&gt; {
+        // MOUNTING: Start the timer
+        const timerId = setInterval(() =&gt; {
+            setTimeLeft((prev) =&gt; prev - 1);
+        }, 1000);
+
+        // UNMOUNTING: Cleanup to prevent memory leaks
+        return () =&gt; clearInterval(timerId);
+    }, []); // Empty dependency array = runs once on mount
+
+    return &lt;div&gt;Time Left: {Math.floor(timeLeft / 60)}:{timeLeft % 60}&lt;/div&gt;;
+}
+</code></pre>
+<h2>3. Hooks (<code>useState</code>, <code>useEffect</code>, <code>useMemo</code>, <code>useCallback</code>, <code>useRef</code>)</h2>
+<ul>
+<li><strong><code>useState</code>:</strong> Manages local component state.</li>
+<li><strong><code>useEffect</code>:</strong> Handles side effects (API calls, DOM manipulation).</li>
+<li><strong><code>useMemo</code>:</strong> Memoizes an expensive calculation so it doesn&#39;t re-run on every render unless its dependencies change.</li>
+<li><strong><code>useCallback</code>:</strong> Memoizes a function definition so it doesn&#39;t get recreated on every render (crucial when passing callbacks to optimized child components).</li>
+<li><strong><code>useRef</code>:</strong> Stores a mutable value that does <em>not</em> cause a re-render when updated, or accesses DOM elements directly.</li>
+</ul>
+<blockquote>
+<p>[!TIP]
+<strong>Performance Consideration:</strong> Never overuse <code>useMemo</code> and <code>useCallback</code>. The cost of memoization (comparing dependencies) can sometimes be higher than just recreating the function or value. Only use them for expensive calculations or when passing props to deeply nested/memoized children.</p>
+</blockquote>
+<h2>4. Props vs State</h2>
+<ul>
+<li><strong>Props:</strong> Immutable data passed from a parent to a child.</li>
+<li><strong>State:</strong> Mutable data managed internally by the component itself.</li>
+</ul>
+<h2>5. Controlled vs Uncontrolled Components</h2>
+<ul>
+<li><strong>Controlled:</strong> Form data is handled by React state. Every keystroke updates the state.</li>
+<li><strong>Uncontrolled:</strong> Form data is handled by the DOM itself. You read the values using <code>useRef</code> only when needed (e.g., on submit).</li>
+<li><strong>Senior Answer:</strong> Use Controlled components for dynamic forms requiring validation on-the-fly (like matching passwords). Use Uncontrolled components using libraries like <code>react-hook-form</code> to drastically improve performance in massive enterprise forms (like a 50-field student admission form).</li>
+</ul>
+<hr>
+<h1>SECTION 2 - NEXT JS COMPLETE ARCHITECTURE</h1>
+<h2>1. Why Next.js over React?</h2>
+<p>React is a library; Next.js is a framework. Next.js provides built-in routing, Server-Side Rendering (SSR), Static Site Generation (SSG), Image Optimization, SEO capabilities, and API Routes out of the box, which are required for enterprise-grade applications.</p>
+<h2>2. App Router vs Pages Router</h2>
+<ul>
+<li><strong>Pages Router (<code>pages/</code>):</strong> The legacy routing system based on file structure. Relies heavily on <code>getServerSideProps</code> and <code>getStaticProps</code>.</li>
+<li><strong>App Router (<code>app/</code>):</strong> The modern, default routing system based on React Server Components. It introduces layouts, streaming, and simplifies data fetching.</li>
+</ul>
+<h2>3. Layouts, Nested Layouts &amp; Route Groups</h2>
+<ul>
+<li><strong>Layouts (<code>layout.tsx</code>):</strong> UI that is shared between multiple routes. State is preserved on navigation.</li>
+<li><strong>Nested Layouts:</strong> Layouts can be nested. A <code>dashboard/layout.tsx</code> sits inside the root <code>layout.tsx</code>.</li>
+<li><strong>Route Groups (<code>(folder)</code>):</strong> Allows grouping routes logically without affecting the URL. E.g., <code>app/(auth)/login</code> resolves to <code>/login</code>.</li>
+</ul>
+<h2>4. Rendering Strategies</h2>
+<ul>
+<li><strong>CSR (Client-Side Rendering):</strong> HTML is empty; JS renders the UI in the browser. Best for highly interactive dashboards.</li>
+<li><strong>SSR (Server-Side Rendering):</strong> HTML is generated on the server per request. Best for dynamic SEO data.</li>
+<li><strong>SSG (Static Site Generation):</strong> HTML is generated at build time. Best for blogs or marketing pages.</li>
+<li><strong>ISR (Incremental Static Regeneration):</strong> Static pages that rebuild in the background after a certain time interval.</li>
+</ul>
+<h2>5. Server Components vs Client Components</h2>
+<ul>
+<li><strong>Server Components (Default):</strong> Render on the server, send zero JS to the client. Secure (can query DB directly), fast, and SEO friendly.</li>
+<li><strong>Client Components (<code>&#39;use client&#39;</code>):</strong> Render on the client. Required for interactivity (onClick), React Hooks (<code>useState</code>), or browser APIs (<code>window</code>).</li>
+</ul>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>Architecture Rule:</strong> Push Client Components as far down the tree as possible. If a page needs a button, make <em>only the button</em> a Client Component, leaving the rest of the page as a Server Component.</p>
+</blockquote>
+<h2>Architecture Diagram (Next.js Request Flow)</h2>
+<pre><code class="language-ascii">[ User Browser ]
+       |
+       v (HTTP Request)
+[ Next.js Edge / Node Server ]
+       |
+       +--&gt; Middleware (Check JWT / Role Auth)
+       |      |-- Fail -&gt; Redirect to /login
+       |      |-- Pass -&gt; Continue
+       v
+[ App Router (Server Components) ]
+       |
+       +--&gt; Fetch Data (SQL Server via Web API / EF Core)
+       +--&gt; Render Initial HTML + Server State
+       |
+       v (Send HTML to Browser)
+[ Browser ] -&gt; Renders HTML instantly (Fast FCP)
+       |
+       v (Download JS Bundles)
+[ Hydration ] -&gt; React attaches Event Listeners to Client Components
+</code></pre>
+<hr>
+<h1>SECTION 8 - STATE MANAGEMENT</h1>
+<p>In an enterprise Exam Module, state management must be highly structured.</p>
+<h2>1. Context API</h2>
+<ul>
+<li><strong>Concept:</strong> Built-in React tool to pass data through the component tree without prop drilling.</li>
+<li><strong>When to use:</strong> Global themes (Light/Dark mode), user authentication state, localization.</li>
+<li><strong>Mistakes:</strong> Do not use Context for frequently changing data. Whenever a Context value changes, <em>every</em> component consuming that context re-renders.</li>
+</ul>
+<h2>2. Redux Toolkit (RTK)</h2>
+<ul>
+<li><strong>Concept:</strong> Predictable state container. RTK is the modern, boilerplate-free version of Redux.</li>
+<li><strong>When to use:</strong> Massive applications with complex, highly interconnected global state (e.g., caching hundreds of exam questions, offline syncing).</li>
+<li><strong>Architecture Note:</strong> With Next.js Server Components and React Query / SWR handling server state caching, the need for Redux has drastically decreased.</li>
+</ul>
+<h2>3. Zustand</h2>
+<ul>
+<li><strong>Concept:</strong> A small, fast, and scalable bearbones state-management solution using simplified flux principles.</li>
+<li><strong>When to use:</strong> When you need global state but want to avoid the heavy boilerplate of Redux. It solves the performance issues of Context API because components only re-render if the specific slice of state they subscribe to changes.</li>
+</ul>
+<h2>Production Example: Zustand in Exam Module</h2>
+<pre><code class="language-typescript">import { create } from &#39;zustand&#39;;
+
+// 1. Define Types
+interface ExamState {
+    examId: number | null;
+    currentQuestionIndex: number;
+    answers: Record&lt;number, string&gt;; // QuestionId -&gt; Answer
+    setExam: (id: number) =&gt; void;
+    setAnswer: (questionId: number, answer: string) =&gt; void;
+    nextQuestion: () =&gt; void;
+}
+
+// 2. Create Store
+export const useExamStore = create&lt;ExamState&gt;((set) =&gt; ({
+    examId: null,
+    currentQuestionIndex: 0,
+    answers: {},
+    
+    setExam: (id) =&gt; set({ examId: id, currentQuestionIndex: 0, answers: {} }),
+    
+    setAnswer: (questionId, answer) =&gt; 
+        set((state) =&gt; ({
+            answers: { ...state.answers, [questionId]: answer }
+        })),
+        
+    nextQuestion: () =&gt; 
+        set((state) =&gt; ({ currentQuestionIndex: state.currentQuestionIndex + 1 }))
+}));
+
+// 3. Usage in Component
+function QuestionViewer({ questionId }: { questionId: number }) {
+    // Component ONLY re-renders if the answer for THIS specific question changes!
+    const answer = useExamStore((state) =&gt; state.answers[questionId]);
+    const setAnswer = useExamStore((state) =&gt; state.setAnswer);
+
+    return (
+        &lt;input 
+            value={answer || &#39;&#39;} 
+            onChange={(e) =&gt; setAnswer(questionId, e.target.value)} 
+        /&gt;
+    );
+}
+</code></pre>
+<h1>Senior Full Stack Developer Study Guide - Part 2: Security &amp; Architecture</h1>
+<p>This document covers <strong>Section 3 (Login Implementation)</strong>, <strong>Section 4 (Enterprise Project Structure)</strong>, and <strong>Section 7 (API Integration)</strong>.</p>
+<hr>
+<h1>SECTION 3 - LOGIN IMPLEMENTATION &amp; AUTHENTICATION</h1>
+<h2>1. Authentication vs Authorization</h2>
+<ul>
+<li><strong>Authentication (AuthN):</strong> Verifying <em>who</em> the user is (Login, JWT, Sessions).</li>
+<li><strong>Authorization (AuthZ):</strong> Verifying <em>what</em> the user is allowed to do (Role-Based Access Control).</li>
+</ul>
+<h2>2. JWT &amp; Token Flow</h2>
+<ul>
+<li><strong>Access Token:</strong> Short-lived token (e.g., 15 minutes) used to access protected APIs.</li>
+<li><strong>Refresh Token:</strong> Long-lived token (e.g., 7 days) stored securely (HttpOnly Cookie) used to request a new Access Token without forcing the user to log in again.</li>
+</ul>
+<h2>3. Login Architecture Diagram</h2>
+<pre><code class="language-ascii">[ Next.js Client ]                           [ .NET Core Web API ]
+       |                                              |
+       |-- 1. POST /api/login (User/Pass) -----------&gt;| Validate DB
+       |&lt;-- 2. Returns JWT Access &amp; Refresh Token ----|
+       |                                              |
+       |-- 3. Save Access Token in Memory/AuthStore   |
+       |-- 4. Save Refresh Token in HttpOnly Cookie   |
+       |                                              |
+       |-- 5. Request Protected Route (Header Auth) -&gt;|
+       |&lt;-- 6. 401 Unauthorized (Token Expired) ------|
+       |                                              |
+       |-- 7. POST /api/refresh (Send HttpOnly) -----&gt;| Validate Token
+       |&lt;-- 8. Returns NEW Access Token --------------|
+       |                                              |
+       |-- 9. Retry Original Request (Step 5) -------&gt;|
+</code></pre>
+<h2>4. Next.js Middleware Implementation</h2>
+<p>Middleware intercepts all requests <em>before</em> they complete. This prevents unauthorized users from even loading a protected page.</p>
+<pre><code class="language-typescript">// middleware.ts
+import { NextResponse } from &#39;next/server&#39;;
+import type { NextRequest } from &#39;next/server&#39;;
+
+export function middleware(request: NextRequest) {
+    const token = request.cookies.get(&#39;ivrm_access_token&#39;)?.value;
+    const { pathname } = request.nextUrl;
+
+    const publicRoutes = [&#39;/login&#39;, &#39;/forgot-password&#39;];
+    
+    // 1. If trying to access a protected route without a token
+    if (!token &amp;&amp; !publicRoutes.includes(pathname)) {
+        return NextResponse.redirect(new URL(&#39;/login&#39;, request.url));
+    }
+
+    // 2. If logged in and trying to access login page
+    if (token &amp;&amp; publicRoutes.includes(pathname)) {
+        return NextResponse.redirect(new URL(&#39;/dashboard&#39;, request.url));
+    }
+
+    return NextResponse.next();
+}
+
+export const config = {
+    matcher: [&#39;/((?!api|_next/static|_next/image|favicon.ico).*)&#39;],
+};
+</code></pre>
+<hr>
+<h1>SECTION 4 - ENTERPRISE PROJECT STRUCTURE</h1>
+<p>A poorly structured project becomes unmaintainable within 6 months. For an enterprise Next.js App Router project, feature-driven architecture is highly recommended.</p>
+<h2>1. Folder Structure</h2>
+<pre><code class="language-text">src/
+â”œâ”€â”€ app/                    # Next.js App Router (Pages &amp; Layouts)
+â”‚   â”œâ”€â”€ (auth)/             # Route Group: login, register
+â”‚   â”œâ”€â”€ (dashboard)/        # Route Group: layout.tsx wrapping dashboard
+â”‚   â”‚   â”œâ”€â”€ exam/           # Exam Module Entry
+â”‚   â”‚   â””â”€â”€ reports/        # Reports Module Entry
+â”‚   â”œâ”€â”€ layout.tsx          # Root Layout (Providers, Fonts)
+â”‚   â””â”€â”€ globals.css         # Global Tailwind CSS
+â”‚
+â”œâ”€â”€ components/             # Centralized UI Components (Atomic Design)
+â”‚   â”œâ”€â”€ ui/                 # Reusable (Button, Input, GenericDataTable)
+â”‚   â”œâ”€â”€ layout/             # Sidebar, Header, Breadcrumbs
+â”‚   â””â”€â”€ forms/              # Form wrappers, React Hook Form setup
+â”‚
+â”œâ”€â”€ features/               # FEATURE-DRIVEN MODULES (Domain Logic)
+â”‚   â”œâ”€â”€ exam/               # Everything related exclusively to Exams
+â”‚   â”‚   â”œâ”€â”€ components/     # Exam-specific UI (MarksGrid.tsx)
+â”‚   â”‚   â”œâ”€â”€ hooks/          # useExamData.ts
+â”‚   â”‚   â”œâ”€â”€ services/       # examApi.ts
+â”‚   â”‚   â””â”€â”€ types/          # IExam, IMarks
+â”‚   â””â”€â”€ admission/          # Admission Module
+â”‚
+â”œâ”€â”€ lib/                    # Core configs &amp; heavy utilities
+â”‚   â”œâ”€â”€ axios.ts            # Axios Interceptors Configuration
+â”‚   â”œâ”€â”€ auth.ts             # NextAuth / JWT Helpers
+â”‚   â””â”€â”€ utils.ts            # ClassName mergers (tailwind-merge)
+â”‚
+â”œâ”€â”€ hooks/                  # Global Hooks (useDebounce, useWindowSize)
+â”œâ”€â”€ store/                  # Global State (Zustand/Redux slices)
+â”œâ”€â”€ types/                  # Global TypeScript Interfaces
+â””â”€â”€ middleware.ts           # Edge Middleware for Route Protection
+</code></pre>
+<h3>Why this structure?</h3>
+<ul>
+<li><strong>Feature Folders:</strong> Putting all exam-related hooks, types, and APIs inside <code>features/exam/</code> ensures that if you delete the Exam module, you don&#39;t leave orphaned code scattered across <code>src/hooks</code>, <code>src/types</code>, and <code>src/services</code>.</li>
+<li><strong>Atomic UI:</strong> <code>components/ui</code> strictly holds pure UI elements that have <em>no business logic</em>. A <code>Button</code> shouldn&#39;t know what an &quot;Exam&quot; is.</li>
+</ul>
+<hr>
+<h1>SECTION 7 - API INTEGRATION</h1>
+<p>Enterprise API integration requires centralized logic for Tokens, Error Handling, and Retries.</p>
+<h2>1. Axios Instance with Interceptors &amp; Token Refresh</h2>
+<pre><code class="language-typescript">// lib/axios.ts
+import axios from &#39;axios&#39;;
+import { getCookie, setCookie, deleteCookie } from &#39;./cookieUtils&#39;; // Custom helper
+
+const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    timeout: 10000, // 10 seconds
+    headers: { &#39;Content-Type&#39;: &#39;application/json&#39; }
+});
+
+// Request Interceptor: Attach Access Token
+api.interceptors.request.use(
+    (config) =&gt; {
+        const token = getCookie(&#39;ivrm_access_token&#39;);
+        if (token &amp;&amp; config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) =&gt; Promise.reject(error)
+);
+
+// Response Interceptor: Global Error Handling &amp; Token Refresh
+api.interceptors.response.use(
+    (response) =&gt; response, // Success, pass it through
+    async (error) =&gt; {
+        const originalRequest = error.config;
+
+        // Prevent infinite loops using a custom flag _retry
+        if (error.response?.status === 401 &amp;&amp; !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // 1. Attempt to get a new token using HttpOnly Refresh Cookie
+                // Assuming backend reads the refresh token from the cookie securely
+                const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`, {}, {
+                    withCredentials: true 
+                });
+
+                // 2. Save the new access token
+                setCookie(&#39;ivrm_access_token&#39;, data.accessToken);
+
+                // 3. Update the original request header and retry it
+                originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+                return api(originalRequest);
+            } catch (refreshError) {
+                // 4. Refresh failed. Log user out.
+                deleteCookie(&#39;ivrm_access_token&#39;);
+                window.location.href = &#39;/login&#39;;
+                return Promise.reject(refreshError);
+            }
+        }
+
+        // Global Exception Handling (Toasts)
+        if (error.response?.status &gt;= 500) {
+            console.error(&#39;Server Error: &#39;, error.response.data.message);
+            // Optionally dispatch a global Toast notification here
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export default api;
+</code></pre>
+<h2>2. API Design Considerations</h2>
+<ul>
+<li><strong>Avoid prop-drilling API logic:</strong> Call APIs within feature-specific hooks (e.g., <code>useQuery</code> from React Query combined with your Axios instance).</li>
+<li><strong>Security:</strong> Never store JWT Access Tokens in <code>localStorage</code> due to XSS (Cross-Site Scripting) vulnerabilities. Use HttpOnly cookies whenever possible, or store the Access Token in JavaScript memory while the Refresh Token sits in an HttpOnly cookie.</li>
+</ul>
+<h1>Senior Full Stack Developer Study Guide - Part 3: UI &amp; Navigation</h1>
+<p>This document covers <strong>Section 5 (Centralized Components)</strong> and <strong>Section 9 (Navigation Flow)</strong>.</p>
+<hr>
+<h1>SECTION 5 - CENTRALIZED COMPONENTS</h1>
+<p>Enterprise applications require a central UI library. This prevents redundant code, maintains design consistency, and makes the application easily themeable.</p>
+<h2>1. Why Centralized Components?</h2>
+<ul>
+<li><strong>Single Source of Truth:</strong> If the client wants rounded buttons instead of square buttons, you change one file (<code>components/ui/Button.tsx</code>) instead of 500 files.</li>
+<li><strong>Accessibility:</strong> Ensure ARIA roles and tab indices are implemented correctly once.</li>
+<li><strong>Variants:</strong> Using libraries like <code>class-variance-authority</code> (CVA) allows you to define standard variants (primary, secondary, outline, destructive).</li>
+</ul>
+<h2>2. Reusable Button Component (Production Example)</h2>
+<pre><code class="language-tsx">import { ButtonHTMLAttributes, forwardRef } from &#39;react&#39;;
+import { cva, type VariantProps } from &#39;class-variance-authority&#39;;
+import { cn } from &#39;@/lib/utils&#39;; // tailwind-merge utility
+import { Loader2 } from &#39;lucide-react&#39;;
+
+// Define standardized variants
+const buttonVariants = cva(
+  &#39;inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50&#39;,
+  {
+    variants: {
+      variant: {
+        default: &#39;bg-primary text-primary-foreground hover:bg-primary/90&#39;,
+        destructive: &#39;bg-red-500 text-white hover:bg-red-600&#39;,
+        outline: &#39;border border-input bg-transparent hover:bg-accent&#39;,
+        ghost: &#39;hover:bg-accent hover:text-accent-foreground&#39;,
+      },
+      size: {
+        default: &#39;h-10 px-4 py-2&#39;,
+        sm: &#39;h-9 rounded-md px-3&#39;,
+        lg: &#39;h-11 rounded-md px-8&#39;,
+        icon: &#39;h-10 w-10&#39;,
+      },
+    },
+    defaultVariants: {
+      variant: &#39;default&#39;,
+      size: &#39;default&#39;,
+    },
+  }
+);
+
+interface ButtonProps extends ButtonHTMLAttributes&lt;HTMLButtonElement&gt;, VariantProps&lt;typeof buttonVariants&gt; {
+  isLoading?: boolean;
+}
+
+export const Button = forwardRef&lt;HTMLButtonElement, ButtonProps&gt;(
+  ({ className, variant, size, isLoading, children, ...props }, ref) =&gt; {
+    return (
+      &lt;button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        disabled={isLoading || props.disabled}
+        {...props}
+      &gt;
+        {isLoading &amp;&amp; &lt;Loader2 className=&quot;mr-2 h-4 w-4 animate-spin&quot; /&gt;}
+        {children}
+      &lt;/button&gt;
+    );
+  }
+);
+Button.displayName = &#39;Button&#39;;
+</code></pre>
+<h2>3. Reusable Input Component (Production Example)</h2>
+<p>Handles standard inputs, integrates well with <code>react-hook-form</code>.</p>
+<pre><code class="language-tsx">import { forwardRef, InputHTMLAttributes } from &#39;react&#39;;
+import { cn } from &#39;@/lib/utils&#39;;
+
+export interface InputProps extends InputHTMLAttributes&lt;HTMLInputElement&gt; {
+  error?: string;
+}
+
+export const Input = forwardRef&lt;HTMLInputElement, InputProps&gt;(
+  ({ className, type, error, ...props }, ref) =&gt; {
+    return (
+      &lt;div className=&quot;w-full&quot;&gt;
+        &lt;input
+          type={type}
+          className={cn(
+            &#39;flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50&#39;,
+            error &amp;&amp; &#39;border-red-500 focus-visible:ring-red-500&#39;,
+            className
+          )}
+          ref={ref}
+          {...props}
+        /&gt;
+        {error &amp;&amp; &lt;p className=&quot;mt-1 text-xs text-red-500&quot;&gt;{error}&lt;/p&gt;}
+      &lt;/div&gt;
+    );
+  }
+);
+Input.displayName = &#39;Input&#39;;
+</code></pre>
+<h2>4. Generic Data Table Architecture</h2>
+<p>A generic table is the most critical component in an ERP. It must handle columns, data, sorting, and pagination generically.</p>
+<p><strong>Where it is used:</strong> Exam List, Student List, Fee Defaulters.</p>
+<p><strong>Implementation Concept:</strong></p>
+<ul>
+<li>Pass <code>columns</code> (using <code>@tanstack/react-table</code> column definitions).</li>
+<li>Pass <code>data</code>.</li>
+<li>Keep table state (pagination, sorting) synced with the URL using <code>nuqs</code> (Next Use Query State) so URLs are shareable.</li>
+</ul>
+<hr>
+<h1>SECTION 9 - NAVIGATION FLOW</h1>
+<p>Enterprise navigation requires dynamic sidebar menus based on Role Permissions (AuthZ) and Breadcrumbs to prevent users from getting lost.</p>
+<h2>1. Page Navigation Flow</h2>
+<pre><code class="language-ascii">[ Login Page ]
+      |
+      v (JWT Authenticated)
+[ Dashboard (Overview) ]
+      |
+      +--&gt; [ Exam Module ] 
+      |          |--&gt; [ Exam Master ] -&gt; CRUD Exams
+      |          |--&gt; [ Marks Entry ] -&gt; Enter marks for Students
+      |          |--&gt; [ Reports ]     -&gt; Generate Report Cards
+      |
+      +--&gt; [ Admission Module ]
+</code></pre>
+<h2>2. Dynamic Sidebar Menu Implementation</h2>
+<p>In Next.js, the Sidebar is usually a Server Component that reads the user&#39;s role from the session and fetches the allowed menu items from the database.</p>
+<pre><code class="language-tsx">// components/layout/Sidebar.tsx
+import { auth } from &#39;@/lib/auth&#39;; // Custom auth helper
+import { getMenuForRole } from &#39;@/services/menuService&#39;;
+import Link from &#39;next/link&#39;;
+
+export async function Sidebar() {
+    const session = await auth();
+    
+    // Server-side fetching of menu items based on role (Admin, Teacher, etc.)
+    const menuItems = await getMenuForRole(session.user.role);
+
+    return (
+        &lt;aside className=&quot;w-64 bg-gray-900 text-white min-h-screen p-4&quot;&gt;
+            &lt;div className=&quot;text-xl font-bold mb-6&quot;&gt;School ERP&lt;/div&gt;
+            &lt;nav className=&quot;flex flex-col space-y-2&quot;&gt;
+                {menuItems.map((item) =&gt; (
+                    &lt;Link key={item.id} href={item.url} className=&quot;p-2 hover:bg-gray-800 rounded&quot;&gt;
+                        {item.icon &amp;&amp; &lt;item.icon className=&quot;mr-2 inline&quot; /&gt;}
+                        {item.name}
+                    &lt;/Link&gt;
+                ))}
+            &lt;/nav&gt;
+        &lt;/aside&gt;
+    );
+}
+</code></pre>
+<h2>3. Dynamic Breadcrumbs</h2>
+<p>Breadcrumbs improve UX significantly. In Next.js App Router, we can parse the <code>usePathname</code> to generate breadcrumbs dynamically.</p>
+<pre><code class="language-tsx">// components/layout/Breadcrumbs.tsx
+&#39;use client&#39;;
+
+import { usePathname } from &#39;next/navigation&#39;;
+import Link from &#39;next/link&#39;;
+
+export function Breadcrumbs() {
+    const pathname = usePathname();
+    const paths = pathname.split(&#39;/&#39;).filter(Boolean);
+
+    return (
+        &lt;nav aria-label=&quot;breadcrumb&quot;&gt;
+            &lt;ol className=&quot;flex space-x-2 text-sm text-gray-500&quot;&gt;
+                &lt;li&gt;&lt;Link href=&quot;/dashboard&quot; className=&quot;hover:underline&quot;&gt;Home&lt;/Link&gt;&lt;/li&gt;
+                {paths.map((path, index) =&gt; {
+                    const href = &#39;/&#39; + paths.slice(0, index + 1).join(&#39;/&#39;);
+                    const isLast = index === paths.length - 1;
+                    const label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, &#39; &#39;);
+
+                    return (
+                        &lt;li key={href} className=&quot;flex items-center&quot;&gt;
+                            &lt;span className=&quot;mx-2&quot;&gt;/&lt;/span&gt;
+                            {isLast ? (
+                                &lt;span className=&quot;text-gray-900 font-semibold&quot;&gt;{label}&lt;/span&gt;
+                            ) : (
+                                &lt;Link href={href} className=&quot;hover:underline&quot;&gt;{label}&lt;/Link&gt;
+                            )}
+                        &lt;/li&gt;
+                    );
+                })}
+            &lt;/ol&gt;
+        &lt;/nav&gt;
+    );
+}
+</code></pre>
+<h1>Senior Full Stack Developer Study Guide - Part 4: Domain &amp; System Design</h1>
+<p>This document covers <strong>Section 6 (Exam Module Architecture)</strong> and <strong>Section 11 (System Design)</strong>.</p>
+<hr>
+<h1>SECTION 6 - EXAM MODULE ARCHITECTURE</h1>
+<p>Building an Enterprise Exam Management Module requires careful entity relationship mapping and a robust data flow.</p>
+<h2>1. Complete Flow (Login to Marks Publishing)</h2>
+<ol>
+<li><strong>Admin Login:</strong> Admin creates <code>Exam Categories</code> (e.g., Formative, Summative) and <code>Exam Groups</code>.</li>
+<li><strong>Setup Schedule:</strong> Admin creates <code>Exam Schedules</code> linking Subjects to Dates and Time Slots.</li>
+<li><strong>Teacher Login:</strong> Subject Teacher logs in. The system checks <code>Subject Allocation</code> tables.</li>
+<li><strong>Marks Entry:</strong> Teacher selects a Class, Section, and Exam. Enters marks. Data is saved as a Draft.</li>
+<li><strong>Finalization:</strong> Teacher marks the entry as &quot;Final&quot;.</li>
+<li><strong>Grade Calculation:</strong> A background job (or Azure Function) triggers to calculate Totals, Percentages, and Grades based on predefined rubrics.</li>
+<li><strong>Publishing:</strong> Principal reviews and clicks &quot;Publish&quot;.</li>
+<li><strong>Notification:</strong> Parents and Students receive an SMS/Email (via Azure Service Bus or Notification microservice).</li>
+<li><strong>Report Cards:</strong> Parents log in and download PDF Report Cards.</li>
+</ol>
+<h2>2. Database Design (SQL Server - Simplified ERD)</h2>
+<pre><code class="language-sql">-- Core Tables
+CREATE TABLE MasterExam (
+    ExamId INT PRIMARY KEY IDENTITY(1,1),
+    ExamName VARCHAR(100), -- e.g., &#39;Mid Term 1&#39;
+    ExamCategoryId INT FOREIGN KEY REFERENCES ExamCategory(CategoryId)
+);
+
+CREATE TABLE ExamSchedule (
+    ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+    ExamId INT FOREIGN KEY REFERENCES MasterExam(ExamId),
+    ClassId INT,
+    SubjectId INT,
+    ExamDate DATE,
+    MaxMarks DECIMAL(5,2),
+    MinMarks DECIMAL(5,2)
+);
+
+CREATE TABLE StudentMarks (
+    MarkId BIGINT PRIMARY KEY IDENTITY(1,1),
+    ScheduleId INT FOREIGN KEY REFERENCES ExamSchedule(ScheduleId),
+    StudentId BIGINT,
+    MarksObtained DECIMAL(5,2),
+    Grade VARCHAR(5),
+    IsAbsent BIT DEFAULT 0,
+    EnteredBy INT -- TeacherId
+);
+</code></pre>
+<h2>3. Component Architecture (React/Next.js)</h2>
+<p>For the <strong>Marks Entry</strong> screen, performance is critical. A grid with 50 students and 10 subjects requires 500 input boxes.</p>
+<p><strong>Optimized Component Structure:</strong></p>
+<ul>
+<li><code>MarksEntryPage</code> (Server Component) -&gt; Fetches students and subjects.<ul>
+<li><code>MarksEntryGrid</code> (Client Component) -&gt; Renders the table.<ul>
+<li><code>MarksInputCell</code> (Memoized Client Component) -&gt; Handles individual input changes using local state and debouncing before updating global <code>Zustand</code> store.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h1>SECTION 11 - SYSTEM DESIGN</h1>
+<p>A Senior .NET Full Stack Developer must understand how to scale the application when 50,000 students log in to check their results simultaneously.</p>
+<h2>1. High-Level Architecture Diagram (Azure)</h2>
+<pre><code class="language-ascii">                     [ Internet ]
+                          |
+                  [ Azure Traffic Manager ]
+                          |
+             [ Azure Front Door / CDN (Caches Static Assets) ]
+                          |
+                [ Azure API Gateway ] ------------------+
+                          |                             |
+      +-------------------+-------------------+         | (Async Events)
+      |                   |                   |         v
+[ Auth Service ]  [ Exam Service ]  [ Student Service ] [ Azure Service Bus ]
+ (.NET Web API)    (.NET Web API)    (.NET Web API)             |
+      |                   |                   |                 v
+   [ Redis ]           [ Redis ]           [ Redis ]    [ Notification Function ]
+      |                   |                   |         (Sends SMS / Email)
+      +-------------------+-------------------+
+                          |
+              [ Azure SQL Database (Primary) ]
+                          |
+            [ Azure SQL Database (Read-Replica) ]
+</code></pre>
+<h2>2. Microservices Justification</h2>
+<ul>
+<li><strong>Auth Service:</strong> Handles JWT generation.</li>
+<li><strong>Exam Service:</strong> Handles marks entry and grade calculation. Heaviest load during exam season.</li>
+<li><strong>Student Service:</strong> Handles profiles, attendance.</li>
+<li><strong>Notification Service (Worker):</strong> Consumes messages from Azure Service Bus to send SMS/Emails without blocking the main API.</li>
+</ul>
+<h2>3. Caching Strategy (Redis)</h2>
+<p><strong>Why Redis?</strong> Relational databases bottleneck under heavy read load.</p>
+<ul>
+<li><strong>What to cache:</strong> Master tables (Classes, Sections, Subjects, Exam Categories). These rarely change.</li>
+<li><strong>What NOT to cache:</strong> Highly volatile data (Marks being actively entered).</li>
+<li><strong>Read-Heavy caching:</strong> When results are published, cache the finalized Report Card JSON for each student. When 5,000 parents hit the &quot;View Report Card&quot; button, the data is served from Redis in 5ms instead of querying SQL Server.</li>
+</ul>
+<h2>4. Scalability (Azure)</h2>
+<ul>
+<li><strong>Azure App Service (or AKS):</strong> Configure auto-scaling rules. &quot;If CPU &gt; 70% for 5 minutes, spin up 2 more instances.&quot;</li>
+<li><strong>Azure SQL Read Replicas:</strong> Route all <code>SELECT</code> queries (like generating reports) to the Read Replica, leaving the Primary database completely free to handle <code>INSERT/UPDATE</code> queries (like teachers entering marks).</li>
+</ul>
+<h2>5. Report Card Generation</h2>
+<p><strong>Challenge:</strong> Generating 5,000 PDFs synchronously will crash the server.
+<strong>Solution:</strong></p>
+<ol>
+<li>User clicks &quot;Generate All Reports&quot;.</li>
+<li>API puts a message <code>{&quot;action&quot;: &quot;generate_reports&quot;, &quot;classId&quot;: 10}</code> on <strong>Azure Service Bus</strong>.</li>
+<li>API returns HTTP 202 Accepted (&quot;Processing started&quot;).</li>
+<li>A background <strong>Azure Function</strong> picks up the message, generates PDFs, stores them in <strong>Azure Blob Storage</strong>, and updates a status table.</li>
+<li>The frontend polls the status API or receives a SignalR WebSocket push notification when the PDFs are ready to download.</li>
+</ol>
+<h1>Senior Full Stack Developer Study Guide - Part 5: Interview Masterclass</h1>
+<p>This document covers <strong>Sections 10 &amp; 12 (Highly Curated Interview Questions)</strong>. It contains the most critical, heavily-tested questions for a Senior .NET Full Stack role focusing on Next.js, React, and Architecture. Each question provides a structured progression of answers.</p>
+<hr>
+<h2>CATEGORY 1: NEXT.JS &amp; RENDERING ARCHITECTURE</h2>
+<h3>Q1: Explain the difference between SSR, CSR, SSG, and ISR in Next.js.</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> CSR renders HTML in the browser. SSR renders it on the server per request. SSG renders it once at build time. ISR updates static pages in the background.</li>
+<li><strong>Mid-Level Answer:</strong> In App Router, we use Server Components for SSR/SSG. If we need SEO, we use SSR/SSG. If we have a dashboard with a lot of user interaction, we use Client Components (CSR). ISR allows us to cache a page but revalidate it every <code>X</code> seconds using <code>revalidate</code>.</li>
+<li><strong>Senior-Level Answer:</strong> In an enterprise ERP, SSR is expensive if heavily trafficked. We reserve SSR for highly dynamic public pages. For the Exam Module Dashboard, we predominantly use Client Components with React Query for CSR data fetching, because the data is highly specific to the logged-in user and caching HTML isn&#39;t beneficial. We use ISR for public-facing Notice Boards so the database isn&#39;t hit for every request, drastically improving performance.</li>
+</ul>
+<h3>Q2: How does Routing work in the Next.js App Router compared to the Pages Router?</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> App Router uses folders instead of files. You have to name the file <code>page.tsx</code> for it to be a route.</li>
+<li><strong>Mid-Level Answer:</strong> App Router allows nested layouts (<code>layout.tsx</code>) which preserve state across navigations, unlike Pages router where <code>_app.tsx</code> handled everything. It also defaults to Server Components.</li>
+<li><strong>Senior-Level Answer:</strong> App Router fundamentally changes architecture. We use Route Groups <code>(auth)</code> to organize code without affecting URLs. It supports advanced routing patterns like Intercepting Routes and Parallel Routes, which are perfect for rendering Modals (like a quick &quot;Edit Marks&quot; modal) while keeping the background URL intact and preserving shareability.</li>
+</ul>
+<hr>
+<h2>CATEGORY 2: REACT HOOKS &amp; PERFORMANCE</h2>
+<h3>Q3: When should you use <code>useMemo</code> and <code>useCallback</code>?</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> <code>useMemo</code> caches a value, <code>useCallback</code> caches a function. They make the app faster.</li>
+<li><strong>Mid-Level Answer:</strong> They prevent unnecessary re-renders. If I pass a function to a child component, the child will re-render every time the parent renders because functions are re-created. Wrapping it in <code>useCallback</code> fixes this.</li>
+<li><strong>Senior-Level Answer:</strong> Premature optimization is the root of all evil. The cost of comparing dependencies in <code>useMemo</code> can exceed the cost of re-calculating a simple array. I <em>only</em> use them for computationally expensive operations (like sorting a grid of 5,000 student marks) OR when providing referential equality for props passed to deeply nested <code>React.memo</code> components to prevent massive sub-tree renders.</li>
+</ul>
+<h3>Q4: Explain the Virtual DOM and Reconciliation.</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> It&#39;s a copy of the real DOM. React updates the Virtual DOM first, sees what changed, and then updates the real DOM.</li>
+<li><strong>Mid-Level Answer:</strong> Direct DOM manipulation is slow. React uses a Diffing algorithm to compare the new V-DOM tree with the old one. The <code>key</code> prop helps React identify which items in a list changed, were added, or were removed.</li>
+<li><strong>Senior-Level Answer:</strong> Under the hood, Reconciliation is powered by React Fiber, which allows React to pause, abort, or prioritize rendering work. If a user is typing in a search box, React can prioritize the input render over a heavy table render. Using stable <code>keys</code> (like Database IDs, not array indexes) is mathematically critical for the Diffing algorithm; using indexes forces React to mutate the DOM rather than moving elements, which destroys local state and kills performance.</li>
+</ul>
+<hr>
+<h2>CATEGORY 3: AUTHENTICATION &amp; SECURITY</h2>
+<h3>Q5: How do you secure a Next.js application using JWT?</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> Save the JWT in <code>localStorage</code> and send it in the header of Axios requests. Protect routes by checking if the token exists.</li>
+<li><strong>Mid-Level Answer:</strong> <code>localStorage</code> is vulnerable to XSS. It&#39;s better to store the Access Token in memory and the Refresh Token in an HttpOnly cookie. We use Next.js Middleware to check cookies before letting a user see a page.</li>
+<li><strong>Senior-Level Answer:</strong> In our ERP, we use an HttpOnly, Secure, SameSite=Strict cookie for the Refresh Token to prevent XSS and CSRF attacks. Next.js Middleware intercepts requests at the Edge, parses the JWT payload (without querying the DB), checks the role claims (e.g., <code>Role: Teacher</code>), and issues a rewrite or redirect. For API calls, Axios interceptors handle 401 Unauthorized responses by pausing all pending requests, silently acquiring a new Access Token using the HttpOnly cookie, and retrying the queued requests without interrupting the user&#39;s workflow.</li>
+</ul>
+<hr>
+<h2>CATEGORY 4: ENTERPRISE ARCHITECTURE &amp; SYSTEM DESIGN</h2>
+<h3>Q6: If an API call is taking 5 seconds to load the Exam Dashboard, how do you fix it?</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> I would add a loading spinner so the user knows it&#39;s loading. I&#39;d also check if the DB query is slow.</li>
+<li><strong>Mid-Level Answer:</strong> I would look at the SQL Server execution plan and add indexes. On the frontend, I would use Pagination so we only load 10 records at a time instead of all of them.</li>
+<li><strong>Senior-Level Answer:</strong> 5 seconds indicates an architectural bottleneck. <ol>
+<li><strong>DB Level:</strong> Ensure covering indexes exist. Avoid N+1 query problems in Entity Framework Core.</li>
+<li><strong>API Level:</strong> Implement Redis caching for master data (Subjects, Classes) so we don&#39;t query SQL Server. </li>
+<li><strong>Frontend Level:</strong> In Next.js, I would implement <code>React Suspense</code> with a Skeleton Loader. Instead of fetching all dashboard widgets in one giant API call, I would break them into parallel micro-requests (<code>Promise.all</code> or separate components) so the fast widgets load instantly, and only the heavy widget shows a spinner.</li>
+</ol>
+</li>
+</ul>
+<h3>Q7: Why did you choose Zustand/Redux over the Context API for state management?</h3>
+<ul>
+<li><strong>Beginner Answer:</strong> Context API is for small things, Redux is for big things.</li>
+<li><strong>Mid-Level Answer:</strong> Context API causes performance issues because any state change re-renders all components consuming the context. Redux or Zustand fix this by using selectors.</li>
+<li><strong>Senior-Level Answer:</strong> Context API is a Dependency Injection mechanism, not a State Manager. In an Exam Module where 500 marks are being entered rapidly, putting that state in Context would force the entire grid to re-render on every keystroke. We use Zustand because it allows atomic updates. Component A can subscribe to <code>state.marks[0]</code> and Component B to <code>state.marks[1]</code>. When <code>marks[0]</code> changes, ONLY Component A re-renders. We pair this with React Query for server-state caching, leaving Zustand strictly for client UI state.</li>
+</ul>

@@ -16,6 +16,7 @@ export default function DeleteAdminOnDutyForm({ rowData, onClose }: DeleteAdminO
     const { mutate: deleteLeave, isPending: isSubmitting } = useDeleteLeaveById();
     const [error, setError] = useState<string | null>(null);
 
+    console.log("rowData", rowData)
     const handleDelete = () => {
         try {
             setError(null);

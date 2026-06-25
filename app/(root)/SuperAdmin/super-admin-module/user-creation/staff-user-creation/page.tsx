@@ -243,6 +243,7 @@ export default function StaffUserCreationPage() {
                 console.info(`📡 [CLIENT] Fetching modules for MI_Id: ${watchInstitution}`);
                 setIsModulesLoading(true);
                 const moduleResult = await getModuleDropdownByInstitution(Number(watchInstitution));
+                console.log("moduleResult", moduleResult)
                 if (moduleResult.success && moduleResult.data) {
                     setModules(moduleResult.data);
                 }
@@ -834,10 +835,10 @@ export default function StaffUserCreationPage() {
                     <FormProvider {...methods}>
                         <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-8'>
                             <SelectionForm
-                                roleTypes={roleTypes}
-                                trusts={trusts}
-                                institutions={institutions}
-                                staffList={staffList}
+                                roleTypes={roleTypes.filter((v, i, a) => a.findIndex(t => (t.ivrmrT_Id === v.ivrmrT_Id)) === i)}
+                                trusts={trusts.filter((v, i, a) => a.findIndex(t => (t.mO_Id === v.mO_Id)) === i)}
+                                institutions={institutions.filter((v, i, a) => a.findIndex(t => (t.mI_Id === v.mI_Id)) === i)}
+                                staffList={staffList.filter((v, i, a) => a.findIndex(t => (t.hrmE_Id === v.hrmE_Id)) === i)}
                                 isOnloadLoading={isOnloadLoading}
                                 isStaffListLoading={isStaffListLoading}
                                 isStaffDataLoading={isStaffDataLoading}

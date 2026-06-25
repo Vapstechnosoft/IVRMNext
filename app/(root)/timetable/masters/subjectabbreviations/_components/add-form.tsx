@@ -115,6 +115,7 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                             <div className='w-full'>
                                 <InputText
                                     label='Subject Abbreviation'
+                                    placeholder='Enter Subject Abbreviation'
                                     required
                                     id='ttmsuaB_Abbreviation'
                                     {...register('ttmsuaB_Abbreviation')}
