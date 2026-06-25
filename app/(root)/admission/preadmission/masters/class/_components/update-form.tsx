@@ -107,6 +107,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const handleReset = () => {
         reset();
+        window.location.href = window.location.pathname;
     };
 
     return (
@@ -130,14 +131,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             id='asmcl_classname'
                             //placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
-                            onKeyDown={(e) => {
-                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
-                                if (e.key.length > 1) return;
-                                // Allow only letters and spaces, block numbers and special characters
-                                if (!/^[A-Za-z\s]$/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
+
                             defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -322,7 +316,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 aria-label='Preadmission Class'
                                 htmlFor='asmcl_preadmflag'
                                 className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                Preadmission Class
                             </Label>
                         </div>
                         {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}

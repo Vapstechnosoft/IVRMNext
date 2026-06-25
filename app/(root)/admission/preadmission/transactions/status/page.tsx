@@ -36,7 +36,7 @@ export default function PreadmissionStatusPage() {
     // Form State
     const [statusType, setStatusType] = useState('Appsts');
     const [asmayId, setAsmayId] = useState<number>(0);
-    const [asmclId, setAsmclId] = useState<number>(0);
+    const [asmclId, setAsmclId] = useState<number | ''>('');
     const [pamstId, setPamstId] = useState<number>(0);
 
     // Grid Data (Combined to avoid double renders)
@@ -149,7 +149,7 @@ export default function PreadmissionStatusPage() {
 
     const handleSearch = async () => {
         if (!asmayId) return toast.error('Please select Academic Year');
-        if (!asmclId) return toast.error('Please select Class');
+        if (asmclId === undefined || asmclId === null || asmclId.toString() === '') return toast.error('Please select Class');
         if (!pamstId) return toast.error('Please select Status');
         setSelectedStudents([]);
         try {
