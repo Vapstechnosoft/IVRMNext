@@ -14,7 +14,7 @@ export async function toggleMasterfeeInstallment(id: number) {
 }
 
 export async function getfeeInstallment(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmI_Name,fmI_No_Of_Installments');
     const url = `/fee_installment/getdata?${urlParams}`;
     return await api.get<IMasterFeesInstallmentList[]>('fees', url);
 }
