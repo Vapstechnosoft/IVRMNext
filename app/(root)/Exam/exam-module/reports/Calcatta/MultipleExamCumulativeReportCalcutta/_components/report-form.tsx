@@ -167,6 +167,7 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
 
 
     const onSubmit = (values: MultipleExamCumulativeReportCalcuttaValues) => {
+        setReportData(null);
         startTransition(async () => {
             try {
 
@@ -401,7 +402,16 @@ const MultipleExamCumulativeReportCalcuttaForm = ({
                 </form>
             </Form>
 
-            {reportData && (
+            {isPending && (
+                <div className="flex flex-col items-center justify-center p-12 space-y-4 bg-white rounded-lg border border-sky-100 shadow-sm min-h-[200px]">
+                    <Loader2 className="h-10 w-10 animate-spin text-sky-800" />
+                    <p className="text-sm text-slate-500 font-medium animate-pulse">
+                        Generating cumulative report, please wait...
+                    </p>
+                </div>
+            )}
+
+            {!isPending && reportData && (
                 <MultipleExamCumulativeReportCalcuttaList data={reportData} />
             )}
         </div>

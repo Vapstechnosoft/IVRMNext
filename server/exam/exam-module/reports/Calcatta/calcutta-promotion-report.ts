@@ -502,7 +502,7 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
-    console.log("=== CALCUTTA CUMULATIVE REPORT API RESPONSE ===");
+    console.log("=== CALCUTTA CUMULATIVE REPORT API RESPONSE === :", response);
     console.log("Response Keys:", Object.keys(response));
 
     // 1. Get raw arrays from response (supporting both casings and unwrapping $values wrapper)
