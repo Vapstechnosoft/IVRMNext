@@ -92,7 +92,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success('Record Updated Successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
@@ -106,6 +106,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const handleReset = () => {
         reset();
+        window.location.href = window.location.pathname;
     };
 
     return (
@@ -129,14 +130,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             id='asmcl_classname'
                             //placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
-                            onKeyDown={(e) => {
-                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
-                                if (e.key.length > 1) return;
-                                // Allow only letters and spaces, block numbers and special characters
-                                if (!/^[A-Za-z\s]$/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
+
                             defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -321,7 +315,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 aria-label='Preadmission Class'
                                 htmlFor='asmcl_preadmflag'
                                 className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                Preadmission Class
                             </Label>
                         </div>
                         {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}
@@ -346,10 +340,10 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Update Master Class
                         </div>
                     </Button>
                 </div>

@@ -277,20 +277,11 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset();
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedClassItems([]);
-        setSelectedSectionItems([]);
-        tableRef.current?.resetSelection();
-        router.push(window.location.pathname, { scroll: false });
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {

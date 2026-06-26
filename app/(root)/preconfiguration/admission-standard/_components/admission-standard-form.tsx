@@ -26,21 +26,28 @@ const admissionStandardSchema = z.object({
     ASC_ParentsMonthlyIncome_Flag: z.boolean().default(false),
     ASC_ParentsAnnualIncome_Flag: z.boolean().default(false),
     ASC_Att_DefaultEntry_Type: z.enum(['P', 'A'], {
-        required_error: 'Select Attendance Entry Type'
+        required_error: 'Select Attendance Entry Type',
+        invalid_type_error: 'Select Attendance Entry Type'
     }),
     ASC_Default_Gender: z.enum(['M', 'F', 'Ot'], {
-        required_error: 'Select Gender'
+        required_error: 'Select Gender',
+        invalid_type_error: 'Select Gender'
     }),
     ASC_School_Address: z.boolean().default(false),
     ASC_Category_Address: z.boolean().default(false),
     ASC_DefaultPhotoUpload: z.enum(['1', '2', '0']).default('0'),
     ASC_DefaultSMS_Flag: z.enum(['F', 'M', 'S', 'B'], {
-        required_error: 'Select Default sms/email receiver'
+        required_error: 'Select Default sms/email receiver',
+        invalid_type_error: 'Select Default sms/email receiver'
     }),
     ASC_Att_Scheduler_Flag: z.enum(['Periodwise', 'EOD'], {
-        required_error: 'Select Attendance Scheduler Absent SMS'
+        required_error: 'Select Attendance Scheduler Absent SMS',
+        invalid_type_error: 'Select Attendance Scheduler Absent SMS'
     }),
-    ASC_Att_Default_OrderFlag: z.string().min(1, 'Select Default Order'),
+    ASC_Att_Default_OrderFlag: z.string({
+        required_error: 'Select Default Order',
+        invalid_type_error: 'Select Default Order'
+    }).min(1, 'Select Default Order'),
     ASC_Logo_Path: z.string().nullable().default(null)
 });
 
@@ -139,6 +146,10 @@ export default function AdmissionStandardForm() {
         });
     };
 
+    const onError = () => {
+        toast.error('Please fill all required fields correctly.');
+    };
+
     if (isLoading) return <div>Loading configuration...</div>;
 
     return (
@@ -148,7 +159,7 @@ export default function AdmissionStandardForm() {
             </CardHeader>
             <CardContent className='p-6'>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                    <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-6'>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                             {/* Left Column */}
                             <div className='space-y-6'>

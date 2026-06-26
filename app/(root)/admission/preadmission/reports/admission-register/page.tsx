@@ -319,30 +319,11 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            academicYear: 0,
-            status: 0,
-            selectedClasses: [],
-            selectedFields: []
-        });
-        setClassSearch('');
-        setFieldSearch('');
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-
-        // Clear URL parameters
-        router.push(window.location.pathname, { scroll: false });
-
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const handlePrintRequest = useReactToPrint({

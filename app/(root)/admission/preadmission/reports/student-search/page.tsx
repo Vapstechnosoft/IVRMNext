@@ -101,6 +101,7 @@ export default function StudentSearchPage(props: {
     const {
         data: response,
         isLoading,
+        isFetching,
         error,
         refetch: refetchStudentSearch
     } = useStudentSearch(
@@ -111,6 +112,15 @@ export default function StudentSearchPage(props: {
         searchQuery?.condition || '',
         searchParams
     );
+
+    React.useEffect(() => {
+        if (!isFetching && showReport && response) {
+            const results = (response?.data as any)?.searchResult;
+            if (!results || results.length === 0) {
+                toast.error('Data Not Found');
+            }
+        }
+    }, [isFetching, showReport, response]);
 
     const tableProps = useDataTableProps({
         ...response,
@@ -137,12 +147,7 @@ export default function StudentSearchPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            status: 'all',
-            criteria: [{ field: '', operator: '', value: '', condition: '' }]
-        });
-        setShowReport(false);
-        setSearchQuery(null);
+        window.location.reload();
     };
 
     const printRef = useRef<HTMLDivElement>(null);
