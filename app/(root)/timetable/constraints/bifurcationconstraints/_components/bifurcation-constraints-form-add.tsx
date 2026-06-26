@@ -17,7 +17,7 @@ import {
     useTimeTableCategoryDropDownData
 } from '@/hooks/timetable/useMasters';
 import { bifurcationConstraintsSchema, combinationTempSchema } from '@/schemas/timetable/constraints/bifurcationconstraints';
-import { getClassDetails, saveBifurcationConstraintsDetail } from '@/server/timetable/constraints/bifurcationconstraints';
+import { getClassDetails, saveBifurcationConstraintsDetail, getBifurcationConstraintsEditDetails } from '@/server/timetable/constraints/bifurcationconstraints';
 import type { ClassDropdownDataTTBifurcation } from '@/types/timetable/constraints/bifurcationconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash } from 'lucide-react';
@@ -27,13 +27,14 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 
 interface BifurcationConstraintsFormProps {
+    selectedRow?: any;
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
 type FormFields = z.infer<typeof bifurcationConstraintsSchema.save>;
 
-export default function BifurcationConstraintsForm({ onSuccess }: BifurcationConstraintsFormProps) {
+export default function BifurcationConstraintsForm({ onSuccess, selectedRow, onCancel }: BifurcationConstraintsFormProps) {
     const { data: response, isLoading, error, refetchAll } = useBifurcationConstraints();
     // Local state for dropdowns
     const [classList, setClassList] = useState<ClassDropdownDataTTBifurcation[]>([]);
@@ -120,6 +121,51 @@ export default function BifurcationConstraintsForm({ onSuccess }: BifurcationCon
         control,
         name: 'combinationlist'
     });
+
+    useEffect(() => {
+        const fetchEditData = async () => {
+            if (selectedRow?.ttB_Id) {
+                try {
+                    const res = await getBifurcationConstraintsEditDetails(selectedRow.ttB_Id);
+                    const editDataObj = res?.data || res;
+                    const data = editDataObj?.length > 0 ? editDataObj[0] : editDataObj;
+
+                    if (data) {
+                        reset({
+                            TTB_ID: data.ttB_Id || selectedRow.ttB_Id,
+                            ASMAY_Id: data.asmaY_Id || 0,
+                            TTMC_Id: data.ttmC_Id || 0,
+                            TTB_BifurcationName: data.ttB_BifurcationName || '',
+                            TTB_NoOfPeriods: data.ttB_NoOfPeriods || 0,
+                            TTB_BefAftApplFlag: data.ttB_BefAftApplFlag || false,
+                            TTB_BefAftFalg: data.ttB_BefAftFalg || '',
+                            TTMP_Id: data.ttmP_Id || 0,
+                            TTB_ConsecutiveFlag: data.ttB_ConsecutiveFlag || false,
+                            TTB_NoOfConPeriods: data.ttB_NoOfConPeriods || 0,
+                            TTB_NoOfConDays: data.ttB_NoOfConDays || 0,
+                            combinationlist: (editDataObj?.bifurcationlist || editDataObj?.data?.bifurcationlist || editDataObj?.viewdata || []).map((item: any) => ({
+                                ASMCL_Id: item.asmcL_Id,
+                                ASMS_Id: item.asmS_Id,
+                                HRME_Id: item.hrmE_Id,
+                                ISMS_Id: item.ismS_Id,
+                                className: item.className || item.asmcL_ClassName,
+                                sectioname: item.sectioname || item.asmC_SectionName,
+                                staffname: item.staffname || item.staffName || item.hrmE_EmployeeName,
+                                subjectname: item.subjectname || item.ismS_SubjectName
+                            })),
+                            ASMCL_Id_temp: 0,
+                            ASMS_Id_temp: 0,
+                            HRME_Id_temp: 0,
+                            ISMS_Id_temp: 0
+                        });
+                    }
+                } catch (error) {
+                    console.error("Failed to load edit details", error);
+                }
+            }
+        };
+        fetchEditData();
+    }, [selectedRow, reset]);
 
     // Watchers
     const watchedAcademicYear = watch('ASMAY_Id');
