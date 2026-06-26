@@ -335,7 +335,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     value={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -362,7 +362,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
+                                <FormLabel>Day <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString()} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -383,7 +383,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     value={field.value?.toString()}
                                     onValueChange={(v) => {
@@ -431,7 +431,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedClass?.toString()} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -450,7 +450,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedSection?.toString()} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -465,7 +465,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={selectedSubject?.toString()} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
                                     <SelectContent>
@@ -480,7 +480,7 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods</FormLabel>
+                                <FormLabel>Periods <span className='text-red-500'>*</span></FormLabel>
                                 <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
@@ -502,3 +502,4 @@ export default function DayStaffUpdate({ academicList, dayList, staffList, selec
         </Form>
     );
 }
+
