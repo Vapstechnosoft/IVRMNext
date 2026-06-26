@@ -28,7 +28,7 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     { accessorKey: 'asmaY_Year', header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' /> },
     { accessorKey: 'emcA_CategoryName', header: ({ column }) => <DataTableColumnHeader column={column} title='Category' /> },
     { accessorKey: 'emE_ExamName', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' /> },
-    { accessorKey: 'emE_ExamCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' /> },
+
     { accessorKey: 'emgR_GradeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' /> },
     {
         accessorKey: 'eycE_BestOfApplicableFlg',
@@ -60,11 +60,6 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
         cell: ({ row }) => getStatusBadge((row.getValue('eycE_SubSubjectFlg') as boolean) === true ? 'yes' : 'no')
     },
 
-    {
-        accessorKey: 'eycE_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
-        cell: ({ row }) => (row.getValue('eycE_ActiveFlg') ? 'Active' : 'Inactive')
-    },
     {
         accessorKey: 'subject_order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Order' />,

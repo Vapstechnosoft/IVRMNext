@@ -876,3 +876,67 @@ export const studentSubjectMappingSchema = z.object({
 });
 
 export type StudentSubjectMappingSchema = z.infer<typeof studentSubjectMappingSchema>;
+
+export const examTTTransSettingsSchema = {
+    addOrUpdate: z
+        .object({
+            ASMAY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, 'Select Academic Year'),
+            ASMCL_Id: z.number({ required_error: 'Class is required' }).min(1, 'Select Class'),
+            ASMS_Id: z.number({ required_error: 'Section is required' }).min(0, 'Select Section'),
+            EMG_Id: z.number({ required_error: 'Subject Group is required' }).min(1, 'Select Subject Group'),
+            EME_Id: z.number({ required_error: 'Exam is required' }).min(1, 'Select Exam'),
+            EXTT_FromDate: z.string().min(1, 'From Date is required'),
+            EXTT_EndDate: z.string().min(1, 'To Date is required'),
+            TempararyArrayList: z
+                .array(
+                    z.object({
+                        ISMS_Id: z.number(),
+                        ISMS_SubjectName: z.string(),
+                        check_save: z.literal(1),
+                        EXTTS_Date: z.string().min(1, 'Exam Date is required'),
+                        ETTS_Id: z.number({ required_error: 'Time Slot is required' }).min(1, 'Select Time Slot')
+                    })
+                )
+                .min(1, 'Select at least one subject row')
+        })
+        .superRefine((data, ctx) => {
+            if (!data.EXTT_FromDate || !data.EXTT_EndDate) return;
+            const from = new Date(data.EXTT_FromDate);
+            const to = new Date(data.EXTT_EndDate);
+
+            if (from > to) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'From Date cannot be after To Date',
+                    path: ['EXTT_EndDate']
+                });
+            }
+
+            data.TempararyArrayList.forEach((item, index) => {
+                if (!item.EXTTS_Date) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: `Exam Date is required for subject ${item.ISMS_SubjectName}`,
+                        path: ['TempararyArrayList', index, 'EXTTS_Date']
+                    });
+                } else {
+                    const itemDate = new Date(item.EXTTS_Date);
+                    if (itemDate < from || itemDate > to) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: `Exam Date for ${item.ISMS_SubjectName} must be between From Date and To Date`,
+                            path: ['TempararyArrayList', index, 'EXTTS_Date']
+                        });
+                    }
+                }
+
+                if (!item.ETTS_Id || item.ETTS_Id === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: `Time Slot is required for subject ${item.ISMS_SubjectName}`,
+                        path: ['TempararyArrayList', index, 'ETTS_Id']
+                    });
+                }
+            });
+        })
+};

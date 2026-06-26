@@ -152,20 +152,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     };
 
     const handleClear = () => {
-        setAcademicYearId(0);
-        setClassId(0);
-        setSectionId(0);
-        setAmst_sol('S');
-        setValue('asmaY_Id', 0);
-        setValue('asmcL_Id', 0);
-        setValue('asmS_Id', 0);
-        setValue('amsT_SOL', 'S' as any);
-        setSelectedStudents(new Set());
-        setStudentData(new Map());
-        
-        if (tableRef.current) {
-            tableRef.current.resetRowSelection();
-        }
+        window.location.reload();
     };
 
     const handleSave = async () => {

@@ -77,15 +77,15 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                         <InputText label='Exam Name' required placeholder='Enter Exam Name' {...register('emE_ExamName')} error={errors.emE_ExamName?.message} />
                         <InputText
                             label='IVRS Exam Name'
-                            required
                             placeholder='Enter IVRS Exam Name'
+                            required
                             {...register('emE_IVRSExamName')}
                             error={errors.emE_IVRSExamName?.message}
                         />
                         <InputText
                             label='Exam Description'
-                            required
                             placeholder='Enter Exam Description'
+                            required
                             {...register('emE_ExamDescription')}
                             error={errors.emE_ExamDescription?.message}
                         />

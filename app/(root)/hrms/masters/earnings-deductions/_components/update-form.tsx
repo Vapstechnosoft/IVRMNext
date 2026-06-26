@@ -581,10 +581,10 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Earning/Deduction
+                            Update Earning/Deduction
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

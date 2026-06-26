@@ -1,5 +1,6 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     SalaryIncrementDeleteRequest,
     SalaryIncrementDeleteResponse,
@@ -136,8 +137,12 @@ export async function deleteSalaryIncrement(id: number): Promise<ApiResponse<Sal
  * Get employee increment grid details
  * GET /api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid
  */
-export async function getEmployeeIncrementGrid(): Promise<ApiResponse<any[]>> {
-    const url = '/api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid';
+export async function getEmployeeIncrementGrid(searchParams?: ApiSearchparams): Promise<ApiResponse<any[]>> {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'hrmE_EmployeeFirstName,hrmE_EmployeeCode,hrmeD_Name'
+    );
+    const url = `/api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid?${urlParams}`;
     try {
         const response = await api.get<any[]>('hrms', url);
         return response;

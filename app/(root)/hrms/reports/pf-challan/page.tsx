@@ -301,7 +301,10 @@ function PFChallanContent() {
             </CollapsibleSection>
 
             {reportData && (
-                <CollapsibleSection defaultOpen={true} title="PF Challan" variant='outline' className='shadow-sm no-print'
+                <CollapsibleSection defaultOpen={true} title="PF Challan" variant='outline' 
+                className='shadow-sm print:border-none print:shadow-none'
+                headerClassName='print:hidden'
+                contentClassName='print:p-0'
                 rightElement={
                     <div className="no-print flex justify-end gap-2">
                         <Button variant='outline' size='sm' onClick={handleExport} className='gap-2 rounded-xl w-fit'>
@@ -315,7 +318,7 @@ function PFChallanContent() {
                     </div>
                 }
                 >
-                <div className="space-y-4">
+                <div className="space-y-4 print:space-y-0 printable-content">
                     
 
                     <div className="bg-white text-black p-6 rounded-none shadow-md  mx-auto print-full-width">

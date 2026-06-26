@@ -74,7 +74,15 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
     const [resetKey, setResetKey] = useState(0);
 
     const handleReset = () => {
-        reset();
+        reset({
+            fmH_FeeName: '', // preserve Fee Head
+            fmH_Flag: '',
+            fmH_Order: 0,
+            fmH_RefundFlag: false,
+            fmH_PDAFlag: false,
+            fmH_SpecialFeeFlag: false
+        });
+
         setResetKey((prev) => prev + 1);
     };
 

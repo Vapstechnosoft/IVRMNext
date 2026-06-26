@@ -48,7 +48,7 @@ export async function getUserAccessibleModules() {
 
     let response: ApiResponse<IUserAccessibleModules[]>;
 
-    if (session?.role.toUpperCase() === 'ADMIN') {
+    if (session?.role.toUpperCase() === 'ADMIN' || session?.role.toUpperCase() === 'COORDINATOR') {
         response = {
             success: true,
             message: 'Data fetched successfully!!',
@@ -6852,7 +6852,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Class Section Timetable Replacement',
                                             icon: 'Clock',
                                             url: '/timetable/reports/class-section-report',
-                                            title: 'Class Section Timetable Replacement',
+                                            title: 'Staff Replacement For Class And Section',
                                             description: 'View and generate class-wise timetable grids'
                                         },
                                         {
