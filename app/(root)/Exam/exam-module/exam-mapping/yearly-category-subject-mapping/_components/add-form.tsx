@@ -44,6 +44,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
+    const [resetKey, setResetKey] = useState(0);
     useEffect(() => {
         reset({
             userId: 1,
@@ -115,6 +116,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             if (res?.success) {
                 toast.success('Yearly category dates mapping saved successfully');
                 reset();
+                setResetKey((prev) => prev + 1);
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -136,6 +138,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         });
         setCategories([]);
         setSubjects([]);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -280,6 +283,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         isSearchRequired={true}
                                         error={errors.subjects_list?.message}
                                         isRequired={true}
+                                        resetKey={resetKey}
                                     />
                                 )}
                             />
