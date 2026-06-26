@@ -181,7 +181,8 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             };
 
             const response = await getGmvpsPromotionReportCard(payload);
-            console.log("report data", response?.data);
+
+            console.log("report data", response);
             const academicYear = years.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
 
             if (response?.success && response.data) {
