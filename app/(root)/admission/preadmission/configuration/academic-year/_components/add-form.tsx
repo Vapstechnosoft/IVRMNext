@@ -621,6 +621,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -710,6 +716,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
