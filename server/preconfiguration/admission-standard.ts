@@ -5,8 +5,7 @@ import type { IAdmissionStandard, IAdmissionStandardPayload } from '@/types/prec
 
 export async function getAdmissionStandardData() {
     const url = '/AdmissionStandard/loaddata';
-    // Original angular passed data=2.
-    return await api.post<IAdmissionStandard[]>('preadmission', url, 2);
+    return await api.get<IAdmissionStandard[]>('preadmission', url);
 }
 
 export async function saveAdmissionStandardData(data: IAdmissionStandardPayload) {

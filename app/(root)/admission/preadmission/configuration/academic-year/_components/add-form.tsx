@@ -58,6 +58,13 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
     const academicFromYear = useWatch({ control, name: 'academicFromYear' });
     const academicToYear = useWatch({ control, name: 'academicToYear' });
 
+    // Auto-select first institution if available
+    useEffect(() => {
+        if (institutionList && institutionList.length > 0) {
+            setValue('mI_Id', institutionList[0].mI_Id, { shouldValidate: true });
+        }
+    }, [institutionList, setValue]);
+
     // Auto-increment logic: when From Year changes, set To Year to From Year + 1 if From Year is a valid number
     useEffect(() => {
         if (academicFromYear && academicFromYear.length === 4 && !Number.isNaN(Number(academicFromYear))) {

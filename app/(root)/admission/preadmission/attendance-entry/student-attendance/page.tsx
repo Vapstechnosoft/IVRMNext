@@ -8,97 +8,299 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useDeleteAttendance,
-    useSaveStudentAttendance,
-    useStudentAttendanceSearch,
-    useViewAttendanceDetails
-} from '@/hooks/admission/preadmission/attendance-entry/useStudentAttendance';
-import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
+    useStudentAttendanceInitialData,
+    useGetStudentData,
+    useGetMonthClassHeld,
+    useGetDateWiseAttendance,
+    useGetBatchList,
+    useGetStdListPeriod,
+    useSaveAttendance,
+    useViewAttendance,
+    useDeleteAttendanceRecordWise
+} from '@/hooks/admission/preadmission/transactions/useStudentAttendanceEntry';
+import { useMasterMonthDropDownList } from '@/hooks/admission/preadmission/useMasters';
 import type {
     StudentAttendanceDetail,
     StudentAttendanceStudent
 } from '@/server/admission/preadmission/attendance-entry/student_attendance';
 import { Eye, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { AttendanceDetailsModal } from './_components/AttendanceDetailsModal';
-import { studentAttendanceColumns } from './_components/columns';
+import { getStudentAttendanceColumns } from './_components/columns';
 
 export default function StudentAttendancePage() {
-    // Phase control logic
-    // Phase 1: Academic Year + Class selected
-    // Phase 2: Section + Date selected (Daily Once default)
-    // Phase 3: Search clicked -> Table shown
+    // Initial Data
+    const { data: initialDataRes } = useStudentAttendanceInitialData();
+    const initialData = initialDataRes?.data;
+    const { data: monthRes } = useMasterMonthDropDownList();
+    const monthList: any[] = Array.isArray(monthRes?.data) ? monthRes?.data : (monthRes?.data as any)?.monthList || [];
 
-    // State for selections
+    // Form States
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [selectedClass, setSelectedClass] = useState<string>('');
     const [selectedSection, setSelectedSection] = useState<string>('');
-    const [attendanceType, setAttendanceType] = useState<string>('DailyOnce');
-    const [doe, setDoe] = useState<string>(new Date().toISOString().slice(0, 10)); // Default to today
+    const [attendanceType, setAttendanceType] = useState<string>('Dailyonce');
+    const [doe, setDoe] = useState<string>(new Date().toISOString().slice(0, 10));
+
+    // Monthly States
+    const [selectedMonth, setSelectedMonth] = useState<string>('');
+    const [fromDate, setFromDate] = useState<string>('');
+    const [toDate, setToDate] = useState<string>('');
+    const [totalClassHeld, setTotalClassHeld] = useState<number>(0);
+
+    // Period Wise States
+    const [selectedSubject, setSelectedSubject] = useState<string>('');
+    const [selectedPeriod, setSelectedPeriod] = useState<string>('');
+    const [selectedBatch, setSelectedBatch] = useState<string>('');
+    const [regularExtra, setRegularExtra] = useState<string>('Regular');
+
+    // Dynamic List States for Period/Batch
+    const [batchList, setBatchList] = useState<any[]>([]);
+    const [periodList, setPeriodList] = useState<any[]>([]);
 
     const [searched, setSearched] = useState(false);
     const [students, setStudents] = useState<StudentAttendanceStudent[]>([]);
     const [filteredStudents, setFilteredStudents] = useState<StudentAttendanceStudent[]>([]);
     const [noDataMessage, setNoDataMessage] = useState<string>('');
+    const [attendanceEntryMsg, setAttendanceEntryMsg] = useState<string>('');
 
-    // View Period Wise Modal State
+    // Modal State
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [viewData, setViewData] = useState<StudentAttendanceDetail[]>([]);
 
-    // Selection state
-    const [selectedRows, setSelectedRows] = useState<StudentAttendanceStudent[]>([]);
-
-    // Fetch Masters
-    const { data: academicYears } = useAcademicYearDropdown();
-    const { data: classes } = useMasterClassDropdown();
-    const { data: sections } = useMasterSectionDropdown();
-
     // API Hooks
-    const searchMutation = useStudentAttendanceSearch();
-    const viewMutation = useViewAttendanceDetails();
-    const deleteMutation = useDeleteAttendance();
-    const saveMutation = useSaveStudentAttendance();
+    const getStudentData = useGetStudentData();
+    const getMonthClassHeld = useGetMonthClassHeld();
+    const getDateWiseAttendance = useGetDateWiseAttendance();
+    const getBatchListApi = useGetBatchList();
+    const getStdListPeriod = useGetStdListPeriod();
+    const saveMutation = useSaveAttendance();
+    const viewMutation = useViewAttendance();
+    const deleteMutation = useDeleteAttendanceRecordWise();
 
+    // Default Academic Year Selection
+    useEffect(() => {
+        if (initialData?.currentYear?.length > 0 && !selectedYear) {
+            setSelectedYear(initialData.currentYear[0].asmaY_Id.toString());
+        }
+    }, [initialData, selectedYear]);
+
+    // Handle Class Selection -> Fetch Student Data (Determines Attendance Type)
+    const handleClassChange = (classId: string) => {
+        setSelectedClass(classId);
+        setSelectedSection('');
+        setSearched(false);
+        setStudents([]);
+
+        if (!selectedYear || !classId) return;
+
+        getStudentData.mutate(
+            {
+                asmaY_Id: Number(selectedYear),
+                asmcL_Id: Number(classId),
+                asmS_Id: 0,
+                asa_FromDate: doe,
+                monthflag: '',
+                monthflag1: '',
+                classsecflag: '1',
+                checksubject: '0',
+                monthid: 0,
+                ismS_Id: 0,
+                ttmP_Id: 0
+            },
+            {
+                onSuccess: (res) => {
+                    if (res?.data) {
+                        const type = res.data.asA_Att_EntryType;
+                        if (type === 'D') setAttendanceType('Dailyonce');
+                        else if (type === 'H') setAttendanceType('Dailytwice');
+                        else if (type === 'M') setAttendanceType('monthly');
+                        else if (type === 'P') setAttendanceType('period');
+                    } else {
+                        toast.error('No Records Found');
+                    }
+                }
+            }
+        );
+    };
+
+    // Generic Student Fetch Handler (Search)
     const handleSearch = () => {
-        if (!selectedYear || !selectedClass || !selectedSection || !doe) {
-            // Basic client side validation could be added here
+        if (!selectedYear || !selectedClass || !selectedSection) {
+            toast.error('Please select Academic Year, Class, and Section');
             return;
         }
 
-        const payload = {
-            ASMAY_Id: Number(selectedYear),
-            ASMCL_Id: Number(selectedClass),
-            ASMS_Id: Number(selectedSection),
-            ClassSecFlag: 0,
-            ASA_FromDate: doe,
-            MonthFlag1:
-                attendanceType === 'DailyOnce' ? 'D' : attendanceType === 'DailyTwice' ? 'T' : attendanceType === 'Monthly' ? 'M' : 'P'
-        };
+        let entryFlag = 'D';
+        if (attendanceType === 'Dailytwice') entryFlag = 'H';
+        else if (attendanceType === 'monthly') entryFlag = 'M';
+        else if (attendanceType === 'period') entryFlag = 'P';
 
-        setSearched(true);
-        setStudents([]);
-        setFilteredStudents([]);
-        setNoDataMessage('');
-
-        searchMutation.mutate(payload, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const list = response.data.studentList || [];
-                    if (list.length === 0) {
-                        setNoDataMessage('No Student Found');
-                    }
-                    setStudents(list);
-                    setFilteredStudents(list);
-                } else {
-                    setNoDataMessage(response.message || 'No Data Available');
-                }
-            },
-            onError: (error) => {
-                console.error('Search error:', error);
-                setNoDataMessage('An error occurred while fetching data.');
+        if (attendanceType === 'period') {
+            if (!selectedSubject || !selectedPeriod) {
+                toast.error('Please select Subject and Period');
+                return;
             }
-        });
+            // Period Wise Search
+            getStdListPeriod.mutate(
+                {
+                    asmay_Id: Number(selectedYear),
+                    asmcl_Id: Number(selectedClass),
+                    asmS_Id: Number(selectedSection),
+                    ismS_Id: Number(selectedSubject),
+                    ttmP_Id: Number(selectedPeriod),
+                    monthflag: entryFlag,
+                    monthflag1: attendanceType,
+                    att_entry_type: attendanceType,
+                    asasB_Id: Number(selectedBatch) || 0
+                },
+                {
+                    onSuccess: handleStudentResponse
+                }
+            );
+            return;
+        }
+
+        // Default Search for Daily/Monthly
+        getStudentData.mutate(
+            {
+                asmaY_Id: Number(selectedYear),
+                asmcL_Id: Number(selectedClass),
+                asmS_Id: Number(selectedSection),
+                asa_FromDate: doe,
+                monthflag: entryFlag,
+                monthflag1: attendanceType,
+                classsecflag: '0',
+                checksubject: '1',
+                monthid: Number(selectedMonth) || 0,
+                ismS_Id: 0,
+                ttmP_Id: 0
+            },
+            {
+                onSuccess: handleStudentResponse
+            }
+        );
+    };
+
+    const handleStudentResponse = (res: any) => {
+        if (res?.data?.studentList?.length > 0) {
+            let processedStudents = res.data.studentList;
+
+            // Format data based on response
+            const type = attendanceType?.toLowerCase() || '';
+            if (type === 'dailytwice') {
+                processedStudents = processedStudents.map((s: any) => {
+                    let first = false, second = false;
+                    if (s.pdays === 0.5) {
+                        first = s.asA_Dailytwice_Flag === 'firsthalf';
+                        second = s.asA_Dailytwice_Flag === 'Secondhalf';
+                    } else if (s.pdays === 1) {
+                        first = true;
+                        second = true;
+                    }
+                    if (res.data.attendanceentryflag === 'A') { // Absent mapping
+                        if (s.pdays === 0) { first = true; second = true; }
+                        else if (s.pdays === 0.5) {
+                            if (s.asA_Dailytwice_Flag === 'firsthalf') { first = false; second = true; }
+                            else { first = true; second = false; }
+                        } else { first = false; second = false; }
+                    }
+                    return { ...s, firstHalfflag: first, secondHalfflag: second };
+                });
+            } else if (type === 'dailyonce' || type === 'period') {
+                processedStudents = processedStudents.map((s: any) => ({
+                    ...s,
+                    selected: res.data.attendanceentryflag === 'A' ? s.pdays === 0 : s.pdays > 0
+                }));
+            }
+
+            setStudents(processedStudents);
+            setFilteredStudents(processedStudents);
+            setSearched(true);
+
+            const flagMsg = res.data.attendanceentryflag === 'A' ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present';
+            setAttendanceEntryMsg(flagMsg);
+            setNoDataMessage('');
+        } else {
+            toast.error('No Records Found');
+            setStudents([]);
+            setFilteredStudents([]);
+            setSearched(false);
+        }
+    };
+
+    const handleMonthChange = (monthId: string) => {
+        setSelectedMonth(monthId);
+        if (!selectedYear || !selectedClass || !selectedSection || !monthId) return;
+
+        getMonthClassHeld.mutate(
+            {
+                asmay_Id: Number(selectedYear),
+                asmcl_Id: Number(selectedClass),
+                asmS_Id: Number(selectedSection),
+                monthid: Number(monthId),
+                monthflag: 'M',
+                monthflag1: 'monthly',
+                asamdM_Entry_DateTime: doe
+            },
+            {
+                onSuccess: (res) => {
+                    if (res?.data) {
+                        setTotalClassHeld(res.data.countclass || 0);
+                        if (res.data.startdate) setFromDate(res.data.startdate.split('T')[0]);
+                        if (res.data.enddate) setToDate(res.data.enddate.split('T')[0]);
+
+                        if (res.data.studentList?.length > 0) {
+                            setStudents(res.data.studentList);
+                            setFilteredStudents(res.data.studentList);
+                            setSearched(true);
+                        } else {
+                            toast.error('No Students Found for this month');
+                            setSearched(false);
+                        }
+                    } else {
+                        toast.error('Please Enter Number Of Class Held In Class Held Master For This Class.');
+                        setSearched(false);
+                    }
+                }
+            }
+        );
+    };
+
+    const handleSubjectChange = (subjectId: string) => {
+        setSelectedSubject(subjectId);
+        setSelectedBatch('');
+        if (!selectedYear || !selectedClass || !selectedSection || !subjectId) return;
+
+        getBatchListApi.mutate(
+            {
+                ASMAY_Id: Number(selectedYear),
+                ASMCL_Id: Number(selectedClass),
+                ASMS_Id: Number(selectedSection),
+                ismS_Id: Number(subjectId)
+            },
+            {
+                onSuccess: (res) => {
+                    setBatchList(res?.data?.batchList || []);
+                }
+            }
+        );
+
+        getStdListPeriod.mutate(
+            {
+                asmaY_Id: Number(selectedYear),
+                asmcL_Id: Number(selectedClass),
+                asmS_Id: Number(selectedSection),
+                asa_FromDate: doe,
+                ismS_Id: Number(subjectId)
+            },
+            {
+                onSuccess: (res) => {
+                    setPeriodList(res?.data?.periodlist || res?.data?.periodList || []);
+                }
+            }
+        );
     };
 
     const handleTextSearch = (query: string) => {
@@ -109,189 +311,143 @@ export default function StudentAttendancePage() {
         const lowerQuery = query.toLowerCase();
         const filtered = students.filter(
             (student) =>
-                student.studentName.toLowerCase().includes(lowerQuery) ||
+                student.studentname.toLowerCase().includes(lowerQuery) ||
                 student.amsT_AdmNo.toLowerCase().includes(lowerQuery) ||
-                student.amaY_RollNo.toString().includes(lowerQuery)
+                student.amaY_RollNo?.toString().includes(lowerQuery)
         );
         setFilteredStudents(filtered);
     };
 
+    const updateStudentState = (amsT_Id: number, field: string, value: any) => {
+        setStudents((prev) => {
+            const newStudents = prev.map((s) => (s.amsT_Id === amsT_Id ? { ...s, [field]: value } : s));
+            // Sync with filtered list if search is active
+            setFilteredStudents(newStudents);
+            return newStudents;
+        });
+    };
+
+    // Prepare custom columns
+    const columns = getStudentAttendanceColumns(attendanceType, updateStudentState);
+
     const handleViewPeriodWise = () => {
-        // Requirement: "pass this from all the field" -> ASMAY_Id, ASMCL_Id, ASMS_Id, att_entry_type
-        if (!selectedYear || !selectedClass) {
-            toast.error('Please select Academic Year and Class');
+        if (!selectedYear || !selectedClass || !selectedSection) {
+            toast.error('Please select Year, Class, and Section');
             return;
         }
-
-        // Section is optional in some logic, but usually required. The user curl has ASMS_Id.
-        if (!selectedSection) {
-            toast.error('Please select Section');
-            return;
-        }
-
-        const payload = {
-            ASMAY_Id: Number(selectedYear),
-            ASMCL_Id: Number(selectedClass),
-            ASMS_Id: Number(selectedSection),
-            att_entry_type: 'Daily' // The user curl shows 'Daily' or 'Dailyonce'.
-        };
-
-        // Use `attendanceType`.
-        const finalPayload = {
-            ...payload,
-            att_entry_type: attendanceType
-        };
 
         setViewModalOpen(true);
-
-        viewMutation.mutate(finalPayload, {
-            onSuccess: (response) => {
-                if (response?.success && response?.data) {
-                    setViewData(response.data.attendanceDetails || []);
-                    if ((response.data.attendanceDetails || []).length === 0) {
+        viewMutation.mutate(
+            {
+                ASMAY_Id: Number(selectedYear),
+                ASMCL_Id: Number(selectedClass),
+                ASMS_Id: Number(selectedSection),
+                att_entry_type: attendanceType
+            },
+            {
+                onSuccess: (res) => {
+                    setViewData(res?.data?.viewStudentPeriodWiseAttDetails || []);
+                    if (!res?.data?.viewStudentPeriodWiseAttDetails?.length) {
                         toast.info('No attendance records found');
                     }
-                } else {
-                    setViewData([]);
-                    // User requirements: "and if respond something like this then on popup show no data found"
-                    toast.info(response?.message || 'No Data Found');
                 }
-            },
-            onError: (error) => {
-                console.error('View error:', error);
-                setViewData([]);
-                toast.error('Failed to fetch attendance details');
             }
-        });
+        );
     };
 
     const handleDeleteRecord = (id: number) => {
-        deleteMutation.mutate(id, {
-            onSuccess: (response) => {
-                if (response?.success) {
-                    toast.success('Record deleted successfully');
-                    // Remove from local state
-                    setViewData((prev) => prev.filter((item) => item.asA_Id !== id));
-                } else {
-                    toast.error(response?.message || 'Failed to delete record');
+        deleteMutation.mutate(
+            { ASA_Id: id },
+            {
+                onSuccess: (res) => {
+                    if (res?.data?.returnval) {
+                        toast.success('Record deleted successfully');
+                        setViewData((prev) => prev.filter((item) => item.asA_Id !== id));
+                        handleSearch(); // Refresh list
+                    } else {
+                        toast.error('Failed to delete record');
+                    }
                 }
-            },
-            onError: (error) => {
-                console.error('Delete error:', error);
-                toast.error('Error deleting record');
             }
-        });
+        );
     };
 
     const handleSave = () => {
-        if (!selectedYear || !selectedClass || !selectedSection || !doe) {
-            toast.error('Please ensure all fields (Year, Class, Section, Date) are selected.');
+        if (!selectedYear || !selectedClass || !selectedSection) {
+            toast.error('Please ensure all required fields are selected.');
             return;
         }
 
-        if (students.length === 0) {
-            toast.error('No students to save.');
-            return;
+        let asA_ClassHeld = 1;
+        let asasB_Id = 0;
+        let fDate = new Date(doe).toDateString();
+        let tDate = new Date(doe).toDateString();
+
+        if (attendanceType === 'monthly') {
+            asA_ClassHeld = totalClassHeld;
+            fDate = new Date(fromDate).toDateString();
+            tDate = new Date(toDate).toDateString();
+
+            // Validate pdays against class held
+            for (const s of students) {
+                if (s.pdays !== null && s.pdays !== undefined && s.pdays > totalClassHeld) {
+                    toast.error(`Present Days for ${s.studentname} is more than Class Held`);
+                    return;
+                }
+            }
+        } else if (attendanceType === 'period') {
+            asasB_Id = Number(selectedBatch) || 0;
         }
 
-        // Identify Present (selected) vs Absent (not selected)
-        // Note: selectedRows contains the students that are CHECKED in the table.
-        // We assume Checked = Present (pdays: 1), Unchecked = Absent (pdays: 0).
-
-        const selectedIds = new Set(selectedRows.map((s) => s.amsT_Id));
-
-        const stdList = selectedRows.map((s) => ({
-            ...s,
-            asaS_Id: s.asaS_Id || 0,
-            asA_Id: s.asA_Id || 0,
-            selected: true,
-            firstHalfflag: true,
-            secondHalfflag: true,
-            pdays: 1
-        }));
-
-        // Find students present in the main 'students' list but not in 'selectedRows'
-        const apsentStdList = students
-            .filter((s) => !selectedIds.has(s.amsT_Id))
-            .map((s) => ({
-                ...s,
-                asaS_Id: s.asaS_Id || 0,
-                asA_Id: s.asA_Id || 0,
-                selected: true,
-                firstHalfflag: false,
-                secondHalfflag: false,
-                pdays: 0
-            }));
 
         const payload = {
             username: '',
-            asmaY_Id: Number(selectedYear),
-            asmcL_Id: Number(selectedClass),
-            asmS_Id: Number(selectedSection),
-            asA_Att_Type: attendanceType === 'DailyOnce' ? 'Dailyonce' : attendanceType,
-            asA_Entry_DateTime: new Date().toISOString(),
-            asA_FromDate: new Date(doe).toISOString(),
-            asA_ToDate: new Date(doe).toISOString(),
-            asA_ClassHeld: 1, // Default value as per curl
-            asA_Network_IP: '::1', // Default IP
-            asA_Regular_Extra: 'Regular',
-            ttmP_Id: 0,
-            ismS_Id: 0,
-            asasB_Id: 0,
-            asA_Id: 0,
-            ismP_Id: 0,
-            pamS_Id: 0,
-            stdList: stdList,
-            apsentStdList: apsentStdList
+            ASMAY_Id: Number(selectedYear),
+            ASMCL_Id: Number(selectedClass),
+            ASMS_Id: Number(selectedSection),
+            ASA_Att_Type: attendanceType,
+            ASA_Entry_DateTime: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
+            ASA_FromDate: fDate,
+            ASA_ToDate: tDate,
+            ASA_ClassHeld: asA_ClassHeld,
+            ASA_Regular_Extra: regularExtra,
+            TTMP_Id: Number(selectedPeriod) || 0,
+            ismS_Id: Number(selectedSubject) || 0,
+            asasB_Id: asasB_Id,
+            ASA_Id: students[0]?.asA_Id || 0,
+            stdList: students
         };
 
         saveMutation.mutate(payload, {
-            onSuccess: (response) => {
-                // Adjust success check based on API response structure
-                if (response?.success || response?.returnval === true) {
-                    toast.success('Attendance saved successfully');
+            onSuccess: (res) => {
+                if (res?.data?.returnval) {
+                    toast.success('Record Saved Successfully!');
+                    handleSearch();
                 } else {
-                    toast.error(response?.message || 'Failed to save attendance');
+                    toast.error(res?.data?.message || 'Failed to save attendance');
                 }
-            },
-            onError: (error) => {
-                console.error('Save error:', error);
-                toast.error('An error occurred while saving attendance.');
             }
         });
     };
-
-    const tableProps = {
-        data: filteredStudents,
-        totalItems: filteredStudents.length,
-        isLoading: searchMutation.isPending,
-        error: null,
-        success: true
-    };
-
-    // Phase 1 is always active.
-    // Phase 2 triggers when Class is selected.
-    const showPhase2 = !!selectedClass;
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection title='ATTENDANCE ENTRY' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <div className='grid grid-cols-1 gap-6 p-4'>
-                        {/* -------------------- PHASE 1 & 2 Inputs -------------------- */}
                         <div className='space-y-6'>
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                                 {/* Academic Year */}
                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                    <Label htmlFor='academic-year' className='text-left font-medium text-sm md:text-right'>
+                                    <Label className='text-left font-medium text-sm md:text-right'>
                                         Academic Year: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                                        <SelectTrigger id='academic-year' className='border-blue-400'>
+                                        <SelectTrigger className='border-blue-400'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears?.data?.map((year) => (
+                                            {initialData?.academicYearList?.map((year: any) => (
                                                 <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                                     {year.asmaY_Year}
                                                 </SelectItem>
@@ -302,15 +458,15 @@ export default function StudentAttendancePage() {
 
                                 {/* Class */}
                                 <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                    <Label htmlFor='class-select' className='text-left font-medium text-sm md:text-right'>
+                                    <Label className='text-left font-medium text-sm md:text-right'>
                                         Class: <span className='text-red-500'>*</span>
                                     </Label>
-                                    <Select value={selectedClass} onValueChange={setSelectedClass}>
-                                        <SelectTrigger id='class-select' className='border-purple-600'>
+                                    <Select value={selectedClass} onValueChange={handleClassChange}>
+                                        <SelectTrigger className='border-purple-600'>
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {classes?.data?.map((cls) => (
+                                            {initialData?.classList?.map((cls: any) => (
                                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                                                     {cls.asmcL_ClassName}
                                                 </SelectItem>
@@ -321,38 +477,34 @@ export default function StudentAttendancePage() {
                             </div>
 
                             {/* Phase 2: Show only if Class is selected */}
-                            {showPhase2 && (
+                            {!!selectedClass && (
                                 <div className='rounded-md border border-gray-200 bg-white p-4 shadow-sm'>
                                     <div className='mb-4 flex items-center justify-between border-b pb-2'>
-                                        <h3 className='font-bold text-blue-900 text-lg uppercase'>DAILY ONCE</h3>
-                                        <div className='flex gap-2'>
-                                            <Button
-                                                variant='default'
-                                                size='sm'
-                                                className='bg-primary/90 hover:bg-primary'
-                                                onClick={handleViewPeriodWise}>
-                                                <Eye className='mr-2 h-4 w-4' /> View Period Wise Attendance
-                                            </Button>
-                                        </div>
+                                        <h3 className='font-bold text-blue-900 text-lg uppercase'>
+                                            {attendanceType.replace('once', ' Once').replace('twice', ' Twice').replace('period', 'Period Wise')}
+                                        </h3>
+                                        <Button size='sm' onClick={handleViewPeriodWise}>
+                                            <Eye className='mr-2 h-4 w-4' /> View Attendance Details
+                                        </Button>
                                     </div>
 
-                                    {/* Attendance Type Radios */}
+                                    {/* Attendance Type Radios (Disabled, controlled by API) */}
                                     <div className='flex justify-center pb-6'>
-                                        <RadioGroup value={attendanceType} onValueChange={setAttendanceType} className='flex gap-6'>
+                                        <RadioGroup value={attendanceType} onValueChange={(value) => { setAttendanceType(value); setSearched(false); }} className='flex gap-6' disabled>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='DailyOnce' id='r1' />
+                                                <RadioGroupItem value='Dailyonce' id='r1' />
                                                 <Label htmlFor='r1'>Daily Once</Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='DailyTwice' id='r2' />
+                                                <RadioGroupItem value='Dailytwice' id='r2' />
                                                 <Label htmlFor='r2'>Daily Twice</Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='Monthly' id='r3' />
+                                                <RadioGroupItem value='monthly' id='r3' />
                                                 <Label htmlFor='r3'>Monthly</Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='PeriodWise' id='r4' />
+                                                <RadioGroupItem value='period' id='r4' />
                                                 <Label htmlFor='r4'>Period Wise</Label>
                                             </div>
                                         </RadioGroup>
@@ -361,15 +513,15 @@ export default function StudentAttendancePage() {
                                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                                         {/* Section */}
                                         <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                            <Label htmlFor='section-select' className='text-left font-medium text-sm md:text-right'>
+                                            <Label className='text-left font-medium text-sm md:text-right'>
                                                 Section: <span className='text-red-500'>*</span>
                                             </Label>
-                                            <Select value={selectedSection} onValueChange={setSelectedSection}>
-                                                <SelectTrigger id='section-select' className='border-blue-400'>
+                                            <Select value={selectedSection} onValueChange={(v) => { setSelectedSection(v); setSearched(false); }}>
+                                                <SelectTrigger className='border-blue-400'>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sections?.data?.map((sec) => (
+                                                    {initialData?.sectionList?.map((sec: any) => (
                                                         <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
                                                             {sec.asmC_SectionName}
                                                         </SelectItem>
@@ -378,47 +530,167 @@ export default function StudentAttendancePage() {
                                             </Select>
                                         </div>
 
-                                        {/* Date of Entry */}
-                                        <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
-                                            <Label htmlFor='doe' className='text-left font-medium text-sm md:text-right'>
-                                                DOE: <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <input
-                                                type='date'
-                                                id='doe'
-                                                value={doe}
-                                                onChange={(e) => setDoe(e.target.value)}
-                                                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                            />
-                                        </div>
+                                        {/* Specific Fields per Mode */}
+                                        {attendanceType === 'monthly' && (
+                                            <>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Month: <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                    <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Month' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {monthList.map((m: any) => (
+                                                                <SelectItem key={m.ivrM_Month_Id} value={m.ivrM_Month_Id.toString()}>
+                                                                    {m.ivrM_Month_Name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Attendance Date:
+                                                    </Label>
+                                                    <Input type='date' value={fromDate} disabled />
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Total Class Held:
+                                                    </Label>
+                                                    <div className="font-bold">{totalClassHeld}</div>
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        To Date:
+                                                    </Label>
+                                                    <Input type='date' value={toDate} disabled />
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {attendanceType === 'period' && (
+                                            <>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        DOE: <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                    <Input
+                                                        type='date'
+                                                        value={doe}
+                                                        onChange={(e) => setDoe(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Subject: <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                    <Select value={selectedSubject} onValueChange={handleSubjectChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Subject' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {initialData?.subjectList?.map((sbj: any) => (
+                                                                <SelectItem key={sbj.ismS_Id} value={sbj.ismS_Id.toString()}>
+                                                                    {sbj.ismS_SubjectName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Batch:
+                                                    </Label>
+                                                    <Select value={selectedBatch} onValueChange={setSelectedBatch} disabled={batchList.length === 0}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Batch' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {batchList.map((b: any) => (
+                                                                <SelectItem key={b.asasB_Id} value={b.asasB_Id.toString()}>
+                                                                    {b.asasB_BatchName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'>
+                                                        Period: <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                    <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Period' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {(periodList.length > 0 ? periodList : Array.from({ length: 8 }, (_, i) => ({ ttmP_Id: i + 1, ttmP_PeriodName: (i + 1).toString() }))).map((p: any) => (
+                                                                <SelectItem key={p.ttmP_Id} value={p.ttmP_Id.toString()}>
+                                                                    {p.ttmP_PeriodName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                    <Label className='text-left font-medium text-sm md:text-right'></Label>
+                                                    <RadioGroup value={regularExtra} onValueChange={setRegularExtra} className='flex gap-4'>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <RadioGroupItem value='Regular' id='reg' />
+                                                            <Label htmlFor='reg'>Regular</Label>
+                                                        </div>
+                                                        <div className='flex items-center space-x-2'>
+                                                            <RadioGroupItem value='Extra Period' id='ext' />
+                                                            <Label htmlFor='ext'>Extra Period</Label>
+                                                        </div>
+                                                    </RadioGroup>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Date of Entry (Always visible except disabled partly in Monthly, and handled uniquely in period) */}
+                                        {attendanceType !== 'period' && (
+                                            <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                                <Label className='text-left font-medium text-sm md:text-right'>
+                                                    DOE: <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Input
+                                                    type='date'
+                                                    value={doe}
+                                                    onChange={(e) => setDoe(e.target.value)}
+                                                    disabled={attendanceType === 'monthly'}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className='flex justify-end pt-4'>
+                                        <Button onClick={handleSearch} className='bg-orange-600 text-white hover:bg-orange-700'>
+                                            <Search className='mr-2 h-4 w-4' /> Search
+                                        </Button>
                                     </div>
                                 </div>
                             )}
-
-                            <div className='flex justify-end pt-2'>
-                                <Button onClick={handleSearch} className='bg-orange-600 text-white hover:bg-orange-700'>
-                                    <Search className='mr-2 h-4 w-4' /> Search
-                                </Button>
-                            </div>
                         </div>
                     </div>
                 </CollapsibleSection>
 
-                {/* -------------------- PHASE 3: Student List -------------------- */}
+                {/* Phase 3: Student List */}
                 {searched && (
                     <CollapsibleSection title='STUDENT DETAILS' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                        {/* Status Message or Search Filter */}
                         <div className='mb-4 flex flex-col gap-4 p-4 md:flex-row md:justify-between'>
                             <h3 className='font-bold text-blue-600 text-lg'>
-                                {noDataMessage ? noDataMessage : 'Attendance Entry Type Is Absent'}
+                                {attendanceEntryMsg || 'Attendance Entry'}
                             </h3>
-                            {!noDataMessage && students.length > 0 && (
+                            {students.length > 0 && (
                                 <div className='w-full md:w-1/3'>
                                     <div className='relative'>
                                         <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground' />
                                         <Input
                                             placeholder='Search Student Name, Adm No, Roll No...'
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextSearch(e.target.value)}
+                                            onChange={(e) => handleTextSearch(e.target.value)}
                                             className='pl-8'
                                         />
                                     </div>
@@ -426,16 +698,24 @@ export default function StudentAttendancePage() {
                             )}
                         </div>
 
-                        {!noDataMessage && students.length > 0 && (
+                        {students.length > 0 ? (
                             <>
                                 <GenericDataTable<StudentAttendanceStudent>
-                                    {...tableProps}
-                                    columns={studentAttendanceColumns}
-                                    isLoading={searchMutation.isPending}
+                                    data={filteredStudents}
+                                    totalItems={filteredStudents.length}
+                                    columns={columns}
+                                    isLoading={false}
                                     showViewOptions={false}
-                                    loadingMessage='Loading students...'
-                                    noDataTitle='No Students Found'
-                                    onRowSelectionChange={setSelectedRows}
+                                    onRowSelectionChange={(rows) => {
+                                        if (attendanceType === 'Dailyonce' || attendanceType === 'period') {
+                                            // Handle GenericDataTable selection
+                                            const selectedIds = new Set(rows.map(r => r.amsT_Id));
+                                            setStudents(prev => prev.map(s => ({
+                                                ...s,
+                                                selected: selectedIds.has(s.amsT_Id)
+                                            })));
+                                        }
+                                    }}
                                 />
                                 <div className='flex justify-end gap-4 p-4'>
                                     <Button
@@ -444,28 +724,19 @@ export default function StudentAttendancePage() {
                                         disabled={saveMutation.isPending}>
                                         {saveMutation.isPending ? 'Saving...' : 'Save'}
                                     </Button>
-                                    <Button
-                                        variant='destructive'
-                                        onClick={() => {
-                                            setSearched(false);
-                                            setStudents([]);
-                                            setSelectedYear('');
-                                            setSelectedClass('');
-                                            setSelectedSection('');
-                                            setDoe(new Date().toISOString().slice(0, 10));
-                                        }}>
+                                    <Button variant='destructive' onClick={() => setSearched(false)}>
                                         Cancel
                                     </Button>
                                 </div>
                             </>
-                        )}
-                        {noDataMessage && students.length === 0 && (
-                            <div className='p-8 text-center text-muted-foreground'>{noDataMessage}</div>
+                        ) : (
+                            <div className='p-8 text-center text-muted-foreground'>
+                                {noDataMessage || 'No Data Available'}
+                            </div>
                         )}
                     </CollapsibleSection>
                 )}
 
-                {/* View Period Wise Modal */}
                 <AttendanceDetailsModal
                     isOpen={viewModalOpen}
                     onClose={() => setViewModalOpen(false)}

@@ -460,127 +460,127 @@ function mapIcon(icon: string | null): string {
         .join('');
 }
 
-export async function getUserAccessibleModules() {
-    try {
-        const session = await auth(); // Still useful for logging or future role checks
+// export async function getUserAccessibleModules() {
+//     try {
+//         const session = await auth(); // Still useful for logging or future role checks
 
-        // Fetch data from APIs
-        const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
-            api.get<any>('preadmission', '/configuration/get_main_module_list'),
-            api.get<any>('preadmission', '/configuration/get_submodule_list'),
-            api.get<any>('preadmission', '/configuration/get_page_list')
-        ]);
+//         // Fetch data from APIs
+//         const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
+//             api.get<any>('preadmission', '/configuration/get_main_module_list'),
+//             api.get<any>('preadmission', '/configuration/get_submodule_list'),
+//             api.get<any>('preadmission', '/configuration/get_page_list')
+//         ]);
 
-        const mainModules = mainModulesRes.data || [];
-        const subModules = subModulesRes.data || [];
-        const pages = pageListRes.data || [];
+//         const mainModules = mainModulesRes.data || [];
+//         const subModules = subModulesRes.data || [];
+//         const pages = pageListRes.data || [];
 
-        console.log('main Modules', mainModules);
-        console.log('subModules', subModules);
-        console.log('pages', pages);
+//         console.log('main Modules', mainModules);
+//         console.log('subModules', subModules);
+//         console.log('pages', pages);
 
-        // Build maps for quick lookup
-        const subByParent = new Map<number, any[]>();
-        subModules.forEach((sub: any) => {
-            const parentId = sub.parentId;
-            if (!subByParent.has(parentId)) {
-                subByParent.set(parentId, []);
-            }
-            subByParent.get(parentId)!.push(sub);
-        });
+//         // Build maps for quick lookup
+//         const subByParent = new Map<number, any[]>();
+//         subModules.forEach((sub: any) => {
+//             const parentId = sub.parentId;
+//             if (!subByParent.has(parentId)) {
+//                 subByParent.set(parentId, []);
+//             }
+//             subByParent.get(parentId)!.push(sub);
+//         });
 
-        // Filter pages: only keep those whose URL starts with "app."
-        const pagesByMenuId = new Map<number, any[]>();
-        pages.forEach((page: any) => {
-            const url = page.ivrmP_PageURL || '';
-            if (!url.startsWith('app.')) {
-                const menuId = page.menuId;
-                if (!pagesByMenuId.has(menuId)) {
-                    pagesByMenuId.set(menuId, []);
-                }
-                pagesByMenuId.get(menuId)!.push({
-                    id: page.pageId,
-                    name: page.ivrmmP_PageName,
-                    icon: 'Settings',
-                    url: page.ivrmP_PageURL,
-                    title: page.ivrmmP_PageName,
-                    description: page.ivrmmP_PageName
-                });
-            }
-        });
+//         // Filter pages: only keep those whose URL starts with "app."
+//         const pagesByMenuId = new Map<number, any[]>();
+//         pages.forEach((page: any) => {
+//             const url = page.ivrmP_PageURL || '';
+//             if (!url.startsWith('app.')) {
+//                 const menuId = page.menuId;
+//                 if (!pagesByMenuId.has(menuId)) {
+//                     pagesByMenuId.set(menuId, []);
+//                 }
+//                 pagesByMenuId.get(menuId)!.push({
+//                     id: page.pageId,
+//                     name: page.ivrmmP_PageName,
+//                     icon: 'Settings',
+//                     url: page.ivrmP_PageURL,
+//                     title: page.ivrmmP_PageName,
+//                     description: page.ivrmmP_PageName
+//                 });
+//             }
+//         });
 
-        // Sort helper
-        const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
+//         // Sort helper
+//         const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
 
-        // Recursive function to build submenu structure, returns only non-empty submenus
-        function buildSubMenu(parentId: number): any[] {
-            const children = (subByParent.get(parentId) || []).sort(sortByOrder);
-            const validChildren: any[] = [];
+//         // Recursive function to build submenu structure, returns only non-empty submenus
+//         function buildSubMenu(parentId: number): any[] {
+//             const children = (subByParent.get(parentId) || []).sort(sortByOrder);
+//             const validChildren: any[] = [];
 
-            for (const sub of children) {
-                const hasGrandChildren = subByParent.has(sub.menuId);
-                const itemPages = pagesByMenuId.get(sub.menuId) || [];
+//             for (const sub of children) {
+//                 const hasGrandChildren = subByParent.has(sub.menuId);
+//                 const itemPages = pagesByMenuId.get(sub.menuId) || [];
 
-                let subMenuItems: any[] = [];
-                if (hasGrandChildren) {
-                    subMenuItems = buildSubMenu(sub.menuId);
-                }
+//                 let subMenuItems: any[] = [];
+//                 if (hasGrandChildren) {
+//                     subMenuItems = buildSubMenu(sub.menuId);
+//                 }
 
-                // Include this submenu only if it has pages (directly) OR has non-empty submenus
-                if (itemPages.length > 0 || subMenuItems.length > 0) {
-                    const menuItem: any = {
-                        id: sub.menuId,
-                        name: sub.ivrmM_ModuleName,
-                        icon: mapIcon(sub.ivrmmmI_Icon),
-                        sub_menu: subMenuItems,
-                        pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
-                    };
-                    validChildren.push(menuItem);
-                }
-            }
-            return validChildren;
-        }
+//                 // Include this submenu only if it has pages (directly) OR has non-empty submenus
+//                 if (itemPages.length > 0 || subMenuItems.length > 0) {
+//                     const menuItem: any = {
+//                         id: sub.menuId,
+//                         name: sub.ivrmM_ModuleName,
+//                         icon: mapIcon(sub.ivrmmmI_Icon),
+//                         sub_menu: subMenuItems,
+//                         pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
+//                     };
+//                     validChildren.push(menuItem);
+//                 }
+//             }
+//             return validChildren;
+//         }
 
-        // Build top-level modules (parentId === 0)
-        const topModules = mainModules
-            .filter((m: any) => m.parentId === 0)
-            .sort(sortByOrder)
-            .map((m: any) => {
-                const subMenuStructure = buildSubMenu(m.menuId);
-                // Only include the top module if it has at least one valid submenu (with pages)
-                if (subMenuStructure.length === 0) {
-                    return null;
-                }
-                return {
-                    id: m.menuId,
-                    name: m.ivrmM_ModuleName,
-                    icon: mapIcon(m.ivrmmmI_Icon),
-                    menu: [
-                        {
-                            id: 1,
-                            name: m.ivrmM_ModuleName,
-                            icon: mapIcon(m.ivrmmmI_Icon),
-                            sub_menu: subMenuStructure
-                        }
-                    ]
-                };
-            })
-            .filter((module: any) => module !== null);
+//         // Build top-level modules (parentId === 0)
+//         const topModules = mainModules
+//             .filter((m: any) => m.parentId === 0)
+//             .sort(sortByOrder)
+//             .map((m: any) => {
+//                 const subMenuStructure = buildSubMenu(m.menuId);
+//                 // Only include the top module if it has at least one valid submenu (with pages)
+//                 if (subMenuStructure.length === 0) {
+//                     return null;
+//                 }
+//                 return {
+//                     id: m.menuId,
+//                     name: m.ivrmM_ModuleName,
+//                     icon: mapIcon(m.ivrmmmI_Icon),
+//                     menu: [
+//                         {
+//                             id: 1,
+//                             name: m.ivrmM_ModuleName,
+//                             icon: mapIcon(m.ivrmmmI_Icon),
+//                             sub_menu: subMenuStructure
+//                         }
+//                     ]
+//                 };
+//             })
+//             .filter((module: any) => module !== null);
 
-        return {
-            success: true,
-            message: 'Data fetched successfully!!',
-            data: topModules
-        } as ApiResponse<IUserAccessibleModules[]>;
-    } catch (error) {
-        console.error('Error fetching user accessible modules:', error);
-        return {
-            success: false,
-            message: 'Failed to fetch modules',
-            data: []
-        } as ApiResponse<IUserAccessibleModules[]>;
-    }
-}
+//         return {
+//             success: true,
+//             message: 'Data fetched successfully!!',
+//             data: topModules
+//         } as ApiResponse<IUserAccessibleModules[]>;
+//     } catch (error) {
+//         console.error('Error fetching user accessible modules:', error);
+//         return {
+//             success: false,
+//             message: 'Failed to fetch modules',
+//             data: []
+//         } as ApiResponse<IUserAccessibleModules[]>;
+//     }
+// }
 
 // Other functions remain unchanged...
 export async function getCommonDropdown(name: string) {
@@ -621,10 +621,10 @@ export async function markReadUserNotification(id: number) {
 export async function markAllReadUserNotification() {
     const url = '/v1/user_notification/mark_all_read';
     return await api.put<any>('default', url);
-<<<<<<< HEAD
+
 }
-=======
-}
+
+
 
 export async function getUserAccessibleModules() {
     const session = await auth();
@@ -1193,13 +1193,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Admission Form',
                                     icon: 'Settings',
                                     pages: [
+                                        // {
+                                        //     id: 28,
+                                        //     name: 'Admission Form',
+                                        //     icon: 'Settings',
+                                        //     url: '/admission/preadmission/admission-form',
+                                        //     title: 'Admission Form',
+                                        //     description: 'Apply For Admission'
+                                        // }
+
                                         {
-                                            id: 28,
+                                            id: 61,
                                             name: 'Admission Form',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/admission-form',
+                                            url: '/admission/preadmission/stthomas/admission-form',
                                             title: 'Admission Form',
-                                            description: 'Apply For Admission'
+                                            description: 'Admission Form'
                                         }
                                     ]
                                 },
@@ -1563,6 +1572,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Class Teacher Report'
                                         },
                                         {
+                                            id: 15,
+                                            name: 'Master Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/masters/category',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
                                             id: 61,
                                             name: 'NDA Transfer Certificate',
                                             icon: 'Settings',
@@ -1705,6 +1722,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Sophia',
                                     icon: 'Settings',
                                     pages: [
+                                        {
+                                            id: 1979,
+                                            name: 'Master Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/nda/masters/category',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
                                         {
                                             id: 590,
                                             name: 'Smart Card Details',
@@ -10978,4 +11003,3 @@ export async function getUserAccessibleModules() {
 
     return response;
 }
->>>>>>> d2e8b6a153919551097fda081e15d90e9fa78896
