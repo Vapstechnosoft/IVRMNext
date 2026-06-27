@@ -51,20 +51,20 @@ function LoginPrivilegePageContent() {
         try {
             if (initialData) {
                 const rawData = (initialData as any)?.data || initialData;
-                
+
                 // Extract grid data
                 let data: any[] = [];
                 let total = 0;
-                
+
                 const candidate = rawData.loginPrivileges || rawData.loginPData;
                 if (Array.isArray(candidate)) {
                     data = candidate;
                 } else if (Array.isArray(rawData)) {
                     data = rawData;
                 }
-                
+
                 total = rawData.total || rawData.count || data.length;
-                
+
                 setTableData(data);
                 setTotalItems(total);
                 // Grid will only show when onSearchSuccess is called
@@ -219,10 +219,10 @@ function PrivilegeForm({
             if (selectedRow) {
                 if (selectedRow.asmaY_Id) setSelectedYearId(String(selectedRow.asmaY_Id));
                 if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
-                
+
                 const entryType = (selectedRow as any).asalU_EntryTypeFlag || 2;
                 setRole(String(entryType));
-                
+
                 try {
                     const response: any = await fetchEditData({
                         asalU_Id: selectedRow.asalU_Id,
@@ -236,7 +236,7 @@ function PrivilegeForm({
                         const eId = result.asalU_EntryTypeFlag || (selectedRow as any).asalU_EntryTypeFlag || 2;
                         const yId = result.asmaY_Id || selectedRow.asmaY_Id;
                         const sId = result.hrmE_Id || selectedRow.hrmE_Id || (result as any).ivrmuL_Id;
-                        
+
                         setRole(String(eId));
                         if (yId) setSelectedYearId(String(yId));
                         if (sId) setSelectedStaffId(String(sId));
@@ -306,7 +306,7 @@ function PrivilegeForm({
 
             if (result) {
                 const rawClassList = result.classSectionList || result.data?.classSectionList || result.classsectionList || result.data?.classsectionList || [];
-                
+
                 const seenIds = new Set();
                 const csList = rawClassList.reduce((acc: any[], item: any) => {
                     const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
@@ -320,9 +320,9 @@ function PrivilegeForm({
                     }
                     return acc;
                 }, []);
-                
+
                 setMappingClassSections(csList);
-                
+
                 const subList = result.subjectList || result.data?.subjectList || [];
                 setMappingSubjects(subList);
 
@@ -564,8 +564,8 @@ function PrivilegeForm({
                                 User/ Staff:<span className='text-destructive ml-1'>*</span>
                             </Label>
                             <div className='w-2/3'>
-                                <Select 
-                                    value={selectedStaffId} 
+                                <Select
+                                    value={selectedStaffId}
                                     onValueChange={(val) => {
                                         setSelectedStaffId(val);
                                         // Auto-search if year is also selected
@@ -593,7 +593,7 @@ function PrivilegeForm({
             {/* Mapping Section */}
             {showMapping && (
                 <CollapsibleSection
-                    title='CLASS-SECTION & SUBJECT MAPPING'
+                    title='CLASS-SECTION MAPPING'
                     defaultOpen={true}
                     variant='outline'
                     size='md'

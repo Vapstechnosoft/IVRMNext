@@ -222,8 +222,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     };
 
     const handleReset = () => {
-        reset();
-        setSelectedPaymentMode('');
+        reset({
+            studentType: 'other',
+            academicYearId: undefined,
+            studentId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined,
+            amount: undefined,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: format(new Date(), 'yyyy-MM-dd'),
+            chequeNo: '',
+            fyP_Receipt_No: ''
+        });
+
+        // clear validation errors too
+        setTimeout(() => reset(), 0);
     };
 
     return (
@@ -267,22 +284,20 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='academicYearId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'} // 👈 add this
+                                value={field.value?.toString() ?? ''}
+                                onValueChange={(value) => field.onChange(Number(value))}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    {academicYearLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
+                                    {academicYear?.data?.map((item) => (
+                                        <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                            {item.asmaY_Year}
                                         </SelectItem>
-                                    ) : (
-                                        academicYear?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))
-                                    )}
+                                    ))}
                                 </SelectContent>
                             </Select>
                         )}

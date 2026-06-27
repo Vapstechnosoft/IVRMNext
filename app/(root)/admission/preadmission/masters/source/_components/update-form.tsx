@@ -81,6 +81,7 @@ export default function UpdateMasterSourceForm({ onSuccess, className = '', sele
                             label='Source Name'
                             required
                             id='pamS_SourceName'
+                            placeholder='Enter Source Name'
                             {...register('pamS_SourceName')}
                             error={errors.pamS_SourceName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

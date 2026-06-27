@@ -14,7 +14,7 @@ import DeleteFeeChequeBounceForm from './components/delete-form';
 import SearchFeeChequeBounceForm from './components/search-form';
 
 export default function FeeChequeBouncePage() {
-    const { data: response, isLoading, error } = useFeeChequeBounceInitialData(2);
+    const { data: response, isLoading, error } = useFeeChequeBounceInitialData();
 
     return (
         <FormProvider<IFeeChequeBounceGrid>>
@@ -37,22 +37,24 @@ function FeeChequeBouncePageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<IFeeChequeBounceGrid>();
-    const [tableData, setTableData] = useState<IFeeChequeBounceGrid[]>([]);
+    const [tableData, setTableData] = useState<any[]>([]);
 
     useEffect(() => {
-        const alldata = response?.alldata || response?.data?.alldata;
-        if (Array.isArray(alldata)) {
-            setTableData(alldata);
+        // Feed the year array from API response to the grid
+        const yearData = response?.data?.year || response?.year || [];
+        if (Array.isArray(yearData)) {
+            setTableData(yearData);
         }
     }, [response]);
 
-    const handleSearchResults = (results: IFeeChequeBounceGrid[]) => {
+    const handleSearchResults = (results: any[]) => {
         setTableData(results);
     };
 
-    const tableProps = useDataTableProps({ alldata: tableData });
+    const tableProps = useDataTableProps(tableData);
 
-    const asmayId = response?.fillyear?.[0]?.asmaY_Id || response?.data?.fillyear?.[0]?.asmaY_Id || 0;
+    // Extract asmayId from the year array in the API response
+    const asmayId = response?.data?.year?.[0]?.asmaY_Id || response?.data?.fillyear?.[0]?.asmaY_Id || 0;
 
     return (
         <div className='min-h-screen'>
@@ -78,7 +80,7 @@ function FeeChequeBouncePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IFeeChequeBounceGrid>
+                    <GenericDataTable<any>
                         {...tableProps}
                         columns={feeChequeBounceColumns}
                         isLoading={isLoading}
