@@ -46,7 +46,7 @@ export default function BankCashReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
     const [institution, setInstitution] = useState<any>(null);
     const [selectedPaymentType, setSelectedPaymentType] = useState<string>('Bank');
-
+    const [resetKey, setResetKey] = useState(0);
     const {
         control,
         handleSubmit,
@@ -119,6 +119,7 @@ export default function BankCashReportPage() {
     const handleReset = () => {
         reset();
         setReportData([]);
+        setResetKey((prev) => prev + 1);
     };
 
     const handlePrint = () => {
@@ -203,9 +204,9 @@ export default function BankCashReportPage() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='font-bold text-2xl tracking-tight'>Bank / Cash Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
@@ -217,9 +218,9 @@ export default function BankCashReportPage() {
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({ 
-                                            label: String(gt.value || ''), 
-                                            value: String(gt.key ?? '') 
+                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({
+                                            label: String(gt.value || ''),
+                                            value: String(gt.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -238,9 +239,9 @@ export default function BankCashReportPage() {
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmD_DepartmentName || d.value || ''), 
-                                            value: String(d.hrmD_Id ?? d.key ?? '') 
+                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmD_DepartmentName || d.value || ''),
+                                            value: String(d.hrmD_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -259,9 +260,9 @@ export default function BankCashReportPage() {
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmdeS_DesignationName || d.value || ''), 
-                                            value: String(d.hrmdeS_Id ?? d.key ?? '') 
+                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmdeS_DesignationName || d.value || ''),
+                                            value: String(d.hrmdeS_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -276,6 +277,7 @@ export default function BankCashReportPage() {
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
@@ -299,6 +301,7 @@ export default function BankCashReportPage() {
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='month'
                                 control={control}
                                 render={({ field }) => (

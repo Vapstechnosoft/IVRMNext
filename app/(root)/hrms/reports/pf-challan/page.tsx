@@ -240,7 +240,7 @@ function PFChallanContent() {
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
                             <Controller name='year' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select Year" />
                                     </SelectTrigger>
@@ -258,7 +258,7 @@ function PFChallanContent() {
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
                             <Controller name='month' control={control} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select Month" />
                                     </SelectTrigger>
