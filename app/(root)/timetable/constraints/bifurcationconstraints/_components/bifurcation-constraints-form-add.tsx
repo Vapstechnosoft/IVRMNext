@@ -128,22 +128,22 @@ export default function BifurcationConstraintsForm({ onSuccess, selectedRow, onC
                 try {
                     const res = await getBifurcationConstraintsEditDetails(selectedRow.ttB_Id);
                     const editDataObj = res?.data || res;
-                    const data = editDataObj?.length > 0 ? editDataObj[0] : editDataObj;
+                    const data = editDataObj?.editdetailslist?.[0] || selectedRow;
 
                     if (data) {
                         reset({
-                            TTB_ID: data.ttB_Id || selectedRow.ttB_Id,
-                            ASMAY_Id: data.asmaY_Id || 0,
-                            TTMC_Id: data.ttmC_Id || 0,
-                            TTB_BifurcationName: data.ttB_BifurcationName || '',
-                            TTB_NoOfPeriods: data.ttB_NoOfPeriods || 0,
-                            TTB_BefAftApplFlag: data.ttB_BefAftApplFlag || false,
-                            TTB_BefAftFalg: data.ttB_BefAftFalg || '',
-                            TTMP_Id: data.ttmP_Id || 0,
-                            TTB_ConsecutiveFlag: data.ttB_ConsecutiveFlag || false,
-                            TTB_NoOfConPeriods: data.ttB_NoOfConPeriods || 0,
-                            TTB_NoOfConDays: data.ttB_NoOfConDays || 0,
-                            combinationlist: (editDataObj?.bifurcationlist || editDataObj?.data?.bifurcationlist || editDataObj?.viewdata || []).map((item: any) => ({
+                            TTB_ID: data.ttB_Id || data.ttB_ID || selectedRow?.ttB_Id || 0,
+                            ASMAY_Id: data.asmaY_Id || selectedRow?.asmaY_Id || 0,
+                            TTMC_Id: data.ttmC_Id || selectedRow?.ttmC_Id || 0,
+                            TTB_BifurcationName: data.ttB_BifurcationName || selectedRow?.ttB_BifurcationName || '',
+                            TTB_NoOfPeriods: data.ttB_NoOfPeriods || selectedRow?.ttB_NoOfPeriods || 0,
+                            TTB_BefAftApplFlag: data.ttB_BefAftApplFlag ?? selectedRow?.ttB_BefAftApplFlag ?? false,
+                            TTB_BefAftFalg: data.ttB_BefAftFalg || selectedRow?.ttB_BefAftFalg || '',
+                            TTMP_Id: data.ttmP_Id || selectedRow?.ttmP_Id || 0,
+                            TTB_ConsecutiveFlag: data.ttB_ConsecutiveFlag ?? selectedRow?.ttB_ConsecutiveFlag ?? false,
+                            TTB_NoOfConPeriods: data.ttB_NoOfConPeriods || selectedRow?.ttB_NoOfConPeriods || 0,
+                            TTB_NoOfConDays: data.ttB_NoOfConDays || selectedRow?.ttB_NoOfConDays || 0,
+                            combinationlist: (editDataObj?.detailslist || editDataObj?.bifurcationlist || editDataObj?.data?.bifurcationlist || editDataObj?.viewdata || []).map((item: any) => ({
                                 ASMCL_Id: item.asmcL_Id,
                                 ASMS_Id: item.asmS_Id,
                                 HRME_Id: item.hrmE_Id,
