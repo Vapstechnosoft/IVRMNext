@@ -31,11 +31,52 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
     // 1. Group wise exam list construction
     const groupwiseexamlist = [];
 
-    for (const dd of getgroupdetails) {
+    // Normalize group details to handle casing inconsistencies
+    const normalizedGroupDetails = (getgroupdetails || []).map((dd: any) => {
+        const displayName = dd.empG_DistplayName ?? dd.empg_DistplayName ?? dd.empG_DisplayName ?? dd.empg_DisplayName ?? '';
+        const groupName = dd.empG_GroupName ?? dd.empg_GroupName ?? '';
+        return {
+            ...dd,
+            empG_DistplayName: displayName,
+            empg_DistplayName: displayName,
+            empG_GroupName: groupName,
+            empg_GroupName: groupName
+        };
+    });
+
+    // Normalize group exam details to handle casing inconsistencies
+    const normalizedGroupExamDetails = (getgroupexamdetails || []).map((d: any) => {
+        const displayName = d.empG_DistplayName ?? d.empg_DistplayName ?? d.empG_DisplayName ?? d.empg_DisplayName ?? '';
+        const groupName = d.empG_GroupName ?? d.empg_GroupName ?? '';
+        const examId = d.emE_Id ?? d.eme_Id ?? 0;
+        const examName = d.emE_ExamName ?? d.eme_ExamName ?? '';
+        const examOrder = d.emE_ExamOrder ?? d.eme_ExamOrder ?? 0;
+        const maxMarks = d.empsgE_ForMaxMarkrs ?? d.empsge_ForMaxMarkrs ?? 0;
+        const examCode = d.emE_ExamCode ?? d.eme_ExamCode ?? '';
+        return {
+            ...d,
+            empG_DistplayName: displayName,
+            empg_DistplayName: displayName,
+            empG_GroupName: groupName,
+            empg_GroupName: groupName,
+            emE_Id: examId,
+            eme_Id: examId,
+            emE_ExamName: examName,
+            eme_ExamName: examName,
+            emE_ExamOrder: examOrder,
+            eme_ExamOrder: examOrder,
+            empsgE_ForMaxMarkrs: maxMarks,
+            empsge_ForMaxMarkrs: maxMarks,
+            emE_ExamCode: examCode,
+            eme_ExamCode: examCode
+        };
+    });
+
+    for (const dd of normalizedGroupDetails) {
         let counttotal = 0;
         const groupewiseexamTemp = [];
 
-        for (const d of getgroupexamdetails) {
+        for (const d of normalizedGroupExamDetails) {
             if (dd.empG_DistplayName === d.empG_DistplayName) {
                 counttotal += d.empsgE_ForMaxMarkrs || 0;
 
@@ -126,26 +167,30 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         });
 
         // Remarks
-        const promotionRemarks = getpromotionremarksdetails.find((d: any) => {
-            const dId = d.amsT_Id || d.AMST_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
+        const promotionRemarksObj = (getpromotionremarksdetails || []).find((d: any) => {
+            const dId = d.amsT_Id ?? d.AMST_Id ?? d.amst_id ?? d.AMST_ID ?? 0;
+            const stuId = stu.amsT_Id ?? stu.AMST_Id ?? stu.amst_id ?? stu.AMST_ID ?? 0;
             return dId && stuId && Number(dId) === Number(stuId);
         });
-        const remarks = promotionRemarks?.eprD_Remarks || '';
-        const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
+        const remarks = promotionRemarksObj?.eprD_Remarks ?? promotionRemarksObj?.eprd_Remarks ?? promotionRemarksObj?.eprd_remarks ?? promotionRemarksObj?.EPRD_Remarks ?? promotionRemarksObj?.remarks ?? promotionRemarksObj?.Remarks ?? '-';
+        const promotedclass = promotionRemarksObj?.eprD_ClassPromoted ?? promotionRemarksObj?.eprd_ClassPromoted ?? promotionRemarksObj?.eprd_classpromoted ?? '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
         const attendance = getstudentwiseattendancedetails.filter((d: any) => {
             const dId = d.AMST_Id || d.amsT_Id;
             const stuId = stu.amsT_Id || stu.AMST_Id;
             return dId && stuId && Number(dId) === Number(stuId);
-        }).map((d: any) => ({
-            classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
-            emE_Id: d.EME_Id || d.emE_Id,
-            classatt: d.PRESENTDAYS || d.presentdays,
-            percentage: d.TOTALAttendancePercentage || d.attendancepercentage,
-            term: d.EMPSG_DisplayName || d.empsG_DisplayName
-        }));
+        }).map((d: any) => {
+            const termName = d.EMPSG_DisplayName ?? d.empsG_DisplayName ?? d.empsg_DisplayName ?? d.EMPSG_GroupName ?? d.empg_GroupName ?? d.empsg_GroupName ?? '';
+            const percentageVal = d.TOTALAttendancePercentage ?? d.totalAttendancePercentage ?? d.TotalAttendancePercentage ?? d.attendancepercentage ?? d.attendancePercentage ?? d.ATTENDANCEPERCENTAGE ?? d.Percentage ?? d.percentage ?? null;
+            return {
+                classheld: d.TOTALWORKINGDAYS ?? d.totalworkingdays ?? d.TotalWorkingDays ?? 0,
+                emE_Id: d.EME_Id ?? d.emE_Id ?? d.eme_Id ?? 0,
+                classatt: d.PRESENTDAYS ?? d.presentdays ?? d.PresentDays ?? 0,
+                percentage: percentageVal !== null && percentageVal !== undefined ? Number(percentageVal) : null,
+                term: termName
+            };
+        });
 
         // Exam wise total details
         const examwisetotal = getexamwisetotaldetails.filter((t: any) => {
@@ -258,7 +303,7 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
 
     return {
         getinstitution,
-        getgroupdetails,
+        getgroupdetails: normalizedGroupDetails,
         groupwiseexamlist,
         gettermdetails,
         skilllist_temp,
@@ -267,5 +312,6 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         getpromotionremarksdetails,
         examwiseremarkstemp,
         studentdetails: studentListDetails,
+        getstudentwiseattendancedetails,
     };
 }

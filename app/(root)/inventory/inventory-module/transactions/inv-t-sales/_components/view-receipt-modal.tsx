@@ -99,11 +99,12 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
     return (
         <AdaptiveDialog title={`Receipt Details: ${rowData.invmsL_SalesNo}`} isOpen={true} onClose={onClose} size="2xl">
             <AdaptiveBody className="flex flex-col gap-4">
-                {isLoading ? (
+                {isLoading && (
                     <div className="flex h-64 items-center justify-center">
                         <div className="text-lg text-muted-foreground">Loading receipt details...</div>
                     </div>
-                ) : (
+                )}
+                <div className={isLoading ? 'hidden' : 'block'}>
                     <ScrollArea className="max-h-[80vh]">
                         <div ref={contentRef} className="p-8 bg-white text-black print:p-0">
                             {/* Header Section with Logo and Title */}
@@ -188,10 +189,10 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
                             </div>
                         </div>
                     </ScrollArea>
-                )}
+                </div>
             </AdaptiveBody>
             <AdaptiveFooter>
-                <Button onClick={() => handlePrint && handlePrint()} variant="default">
+                <Button onClick={handlePrint} variant="default">
                     <Printer className="w-4 h-4 mr-2" />
                     Print
                 </Button>

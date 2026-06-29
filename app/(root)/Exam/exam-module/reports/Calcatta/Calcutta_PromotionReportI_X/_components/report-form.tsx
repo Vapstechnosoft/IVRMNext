@@ -180,6 +180,9 @@ export default function CalcuttaPromotionReportForm({
 
     // on submit
     const onSubmit = async (data: CalcuttaPromotionReportItoVSchema) => {
+        const selectedYearObj = academicYears.find(y => Number(y.asmaY_Id) === Number(data.asmaY_Id));
+        const academicYearStr = selectedYearObj ? selectedYearObj.asmaY_Year : '';
+
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,
@@ -189,7 +192,8 @@ export default function CalcuttaPromotionReportForm({
             flag: "4",
             academicDate: data.academicDate,
             issueDate: data.issueDate,
-            reportPrintedDate: data.reportPrintedDate
+            reportPrintedDate: data.reportPrintedDate,
+            academicYearStr: academicYearStr
         };
 
         if (onSuccess) {

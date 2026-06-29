@@ -83,6 +83,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
                                             value={field.value?.toString() || undefined}
                                         >
@@ -113,6 +114,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
                                             value={field.value?.toString() || undefined}
                                         >
@@ -143,6 +145,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value}
                                             onValueChange={(value) => field.onChange(value || '')}
                                             value={field.value?.toString() || undefined}
                                         >

@@ -85,6 +85,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nop, setNop] = useState<string>('');
+    const [gridErrors, setGridErrors] = useState<any>({});
 
     const form = useForm<FixingPeriodStaffSchema>({
         resolver: zodResolver(fixingPeriodStaffSchema),
@@ -163,10 +164,20 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedSubject || !nop) {
-            toast.warning('Please select all fields');
+        const errs: any = {};
+        if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+        if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+        if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+        if (!nop || Number(nop) <= 0) errs.nop = 'Days is required';
+
+        if (Object.keys(errs).length > 0) {
+            setGridErrors(errs);
+            toast.warning('Please select all required fields');
             return;
         }
+        setGridErrors({});
+
+        if (!selectedClass || !selectedSection || !selectedSubject || !nop) return;
 
         const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
@@ -215,6 +226,13 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
             if (!data.ttfpS_SUbSelcFlag) {
                 data.tempararyArrayList = [];
             } else if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
+                const errs: any = {};
+                if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+                if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+                if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+                if (!nop || Number(nop) <= 0) errs.nop = 'Days is required';
+                setGridErrors(errs);
+                
                 toast.warning('Please add at least one Class-Section details');
                 return;
             }
@@ -245,7 +263,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -269,7 +287,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>Period <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -293,7 +311,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                                 <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
                                     <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -335,7 +353,7 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
@@ -356,9 +374,10 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         )}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.class && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.class}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -375,9 +394,10 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.section && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.section}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedSubject?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedSubject(Number(v))}
@@ -394,10 +414,12 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.subject && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.subject}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>No Of Days</FormLabel>
+                                <FormLabel>No Of Days <span className='text-red-500'>*</span></FormLabel>
                                 <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
+                                {gridErrors.nop && <p className='text-[0.8rem] font-medium text-destructive mt-1'>{gridErrors.nop}</p>}
                             </div>
                         </div>
                         <Button type='button' onClick={addToGrid}>
@@ -419,3 +441,4 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         </Form>
     );
 }
+
