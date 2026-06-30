@@ -9,7 +9,7 @@ export const getDeputationReportLoadData = async () => {
 };
 
 export const getDeputationReportDetails = async (data: any) => {
-    const url = '/ClassWiseTTFacade/GetDeputaionReport';
+    const url = '/DeputationReportFacade/DeputationReport';
     return await api.post<any>('timetable', url, data);
 };
 
