@@ -122,7 +122,7 @@ export default function BankCopyReportForm({
                         name="ASMAY_Id"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => {
+                            <Select key={field.value || 'empty'} onValueChange={(val) => {
                                 field.onChange(val);
                                 setValue('ASMAY_Year', ''); // Reset year when academic year changes
                             }} value={field.value || undefined}>
@@ -151,7 +151,7 @@ export default function BankCopyReportForm({
                         name="IVRM_Month_Id"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                            <Select key={field.value || 'empty'} onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger className='w-full h-9 text-xs'>
                                     <SelectValue placeholder='Select Month' />
                                 </SelectTrigger>
@@ -177,7 +177,7 @@ export default function BankCopyReportForm({
                         name="ASMAY_Year"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                            <Select key={field.value || 'empty'} onValueChange={field.onChange} value={field.value || undefined}>
                                 <SelectTrigger className='w-full h-9 text-xs'>
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
