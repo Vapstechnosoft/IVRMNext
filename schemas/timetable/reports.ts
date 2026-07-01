@@ -106,8 +106,14 @@ export const staffWiseWorkingHoursReportSchema = {
 
 export const ttMonthEndReportSchema = {
     search: z.object({
-        asmaY_Id: z.coerce.number().min(1, 'Academic Year is required'),
-        month: z.coerce.number().min(1, 'Month is required'),
+        asmaY_Id: z.coerce.number({
+            required_error: 'Please enter academic year',
+            invalid_type_error: 'Please enter academic year'
+        }).min(1, 'Please enter academic year'),
+        month: z.coerce.number({
+            required_error: 'Please enter month',
+            invalid_type_error: 'Please enter month'
+        }).min(1, 'Please enter month'),
         name: z.string().optional()
     })
 };
