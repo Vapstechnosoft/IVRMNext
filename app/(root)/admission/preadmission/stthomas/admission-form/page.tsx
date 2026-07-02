@@ -50,6 +50,10 @@ function StudentApplicationPageContent({
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
+    
+    if (response?.data?.studentList) {
+        tableProps.data = response.data.studentList;
+    }
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
