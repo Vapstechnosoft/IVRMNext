@@ -440,9 +440,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     emgD_Id: 0,
                                                     emgR_Id: 0,
                                                     emgD_Name: '',
-                                                    emgD_From: null,
-                                                    emgD_To: null,
-                                                    emgD_GradePoints: null,
+                                                    emgD_From: '' as any,
+                                                    emgD_To: '' as any,
+                                                    emgD_GradePoints: '' as any,
                                                     emgD_Remarks: '',
                                                     emgD_ActiveFlag: true
                                                 });
