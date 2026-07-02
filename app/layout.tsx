@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
                         <>
                             <Chatbot />
                             <StudentChatbot />
-                            <FloatingSchoolBot />
+                            {/* <FloatingSchoolBot /> */}
                         </>
                     )}
                     <Toaster
