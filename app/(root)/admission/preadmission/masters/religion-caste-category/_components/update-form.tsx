@@ -206,7 +206,7 @@ export default function UpdateMasterReligionCasteCategoryForm({
                         loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update
+                            Update Religion Caste Category
                         </div>
                     </Button>
                 </div>

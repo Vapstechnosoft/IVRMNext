@@ -217,7 +217,7 @@ const CalcuttaPromotionReportItoIXView = ({ data, dateInfo, institution }: Calcu
                                                 );
                                                 if (mr) {
                                                     const p = mr.TotalPercentage ?? mr.totalPercentage ?? mr.ESTMPS_Percentage ?? mr.estmpS_Percentage;
-                                                    percValue = p !== undefined && p !== null ? `${Number(p).toFixed(2)}%` : '';
+                                                    percValue = p !== undefined && p !== null ? `${Math.round(Number(p))}%` : '';
                                                 }
                                                 return <td key={eIdx} className='border-black border-[0.5px] p-2 text-center font-bold'>{percValue}</td>;
                                             })}

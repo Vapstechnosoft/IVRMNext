@@ -456,8 +456,9 @@ export const masterConcessionDetailsSchema = {
     addOrUpdate: z
         .object({
             fmccD_Id: z.number().int().optional(),
-            fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
-            fmccD_PerOrAmtFlag: z.string({
+            // fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+            fmcC_Id: z.number().min(1, 'Concession Category Type is required'),
+            fmccD_PerOrAmtFlag: z.string().min(1, {
                 message: 'Amount or Percentage is required'
             }),
 

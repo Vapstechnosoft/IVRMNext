@@ -23,7 +23,7 @@ export async function saveOralTestSchedule(data: any) {
 }
 
 export async function deleteOralTestSchedule(id: number) {
-    const response = await api.delete<any>('preadmission', `/OralTestSchedule/OralTestSchedule_DeletesData?PAOTS_Id=${id}`);
+    const response = await api.post<any>('preadmission', `/OralTestSchedule/OralTestSchedule_DeletesData?PAOTS_Id=${id}`);
     return response.data;
 }
 
