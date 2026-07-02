@@ -43,6 +43,7 @@ type FormFields = z.infer<typeof HeadWiseReportSchema>;
 export default function HeadWiseReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
     const [institution, setInstitution] = useState<any>(null);
+    const [resetKey, setResetKey] = useState<number>(0);
 
     const {
         control,
@@ -112,6 +113,7 @@ export default function HeadWiseReportPage() {
     const handleReset = () => {
         reset();
         setReportData([]);
+        setResetKey((prev) => prev + 1);
     };
 
     const handlePrint = () => {
@@ -265,6 +267,7 @@ export default function HeadWiseReportPage() {
                         <div className='space-y-2'>
                             <Label>Year <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
@@ -288,6 +291,7 @@ export default function HeadWiseReportPage() {
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
                             <Controller
+                                key={resetKey}
                                 name='month'
                                 control={control}
                                 render={({ field }) => (

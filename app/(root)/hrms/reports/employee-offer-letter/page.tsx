@@ -94,11 +94,11 @@ function EmployeeOfferLetterContent() {
     const watchedLetterType = watch('letterType');
 
     // Queries
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(watchedGroupType);
-    const { data: designationsData } = useReportDesignations(watchedGroupType, watchedDepartment);
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(watchedGroupType);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(watchedGroupType, watchedDepartment);
 
-    const { data: employeesData } = useReportEmployees(
+    const { data: employeesData, isLoading: isLoadingEmployees } = useReportEmployees(
         Number(watchedDesignation),
         Number(watchedDepartment),
         Number(watchedGroupType)
@@ -155,8 +155,8 @@ function EmployeeOfferLetterContent() {
                                 <div className='space-y-2'>
                                     <Label>Type <span className='text-destructive'>*</span></Label>
                                     <Controller name='groupTypeId' control={control} key={resetKey} rules={{ required: 'Select Type' }} render={({ field }) => (
-                                        <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value}>
-                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                        <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value} disabled={isLoadingGroupTypes}>
+                                            <SelectTrigger><SelectValue placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select'} /></SelectTrigger>
                                             <SelectContent>
                                                 {groupTypesData?.data?.map((gt: any) => (
                                                     <SelectItem key={gt.key} value={gt.key.toString()}>{gt.value}</SelectItem>
