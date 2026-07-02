@@ -144,6 +144,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                         <InputText
                             //label='Term Name'
                             required
+                            placeholder='Term Name'
                             id='fmT_Name'
                             {...register('fmT_Name')}
                             error={errors.fmT_Name?.message}
