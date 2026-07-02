@@ -194,9 +194,9 @@ export default function HeadWiseReportPage() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='font-bold text-2xl tracking-tight'>Head wise Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
@@ -349,7 +349,7 @@ export default function HeadWiseReportPage() {
                             <p className='text-muted-foreground'>
                                 {institution?.mI_Address1}, {institution?.ivrmmcT_Name} - {institution?.mI_Pincode}
                             </p>
-                            <p className='font-semibold italic underline decoration-1 underline-offset-4 decoration-primary/30'>
+                            <p className='font-semibold decoration-1 underline-offset-4 decoration-primary/30'>
                                 HEAD WISE REPORT FOR {(MONTH_LIST.find(m => String(m.id ?? '') === String(watch('month') ?? ''))?.name || '').toUpperCase()} {(yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(watch('year') ?? ''))?.hrmlY_LeaveYear}
                             </p>
                         </div>
