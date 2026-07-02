@@ -26,8 +26,6 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
     const [isLoading, setIsLoading] = useState(true);
     const { refetchAll } = useMasterGrade();
 
-    console.log("selected row", gradeData)
-
     const {
         control,
         register,
@@ -58,13 +56,20 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-    //  Fetch and populate grade details
+    // Scroll helpers
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    const scrollToBottom = () => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }
+    };
+
+    // Fetch and populate grade details
     useEffect(() => {
         async function fetchGradeDetails() {
             setIsLoading(true);
             try {
                 const result = await getGradeDetailsById(gradeData.emgR_Id);
-                console.log(result, "result")
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
@@ -76,7 +81,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                             emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
                             emgD_Remarks: g.emgD_Remarks || '',
                             emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                            emgR_MarksPerFlag:g.emgR_MarksPerFlag
+                            emgR_MarksPerFlag: g.emgR_MarksPerFlag
                         }))
                         : [];
 
@@ -100,12 +105,10 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         }
                     );
 
-                    //  Replace field array to keep reactivity
                     replace(data);
                     scrollToBottom();
                     await trigger();
 
-                    // Trigger validation after loading
                     setTimeout(() => trigger(), 0);
                 } else {
                     toast.error('Failed to fetch grade details');
@@ -119,16 +122,18 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
 
         fetchGradeDetails();
     }, [gradeData.emgR_Id, reset, replace, trigger, gradeData]);
-  
 
-    // ✅ Submit handler
+    // Submit handler
     const onSubmit: SubmitHandler<z.infer<typeof masterGradeSchema.addOrUpdate>> = async (data) => {
-        // Validation: Check for duplicates and overlapping ranges
         const names = new Set<string>();
         const ranges: { from: number; to: number; name: string }[] = [];
 
         for (const row of data.grade_list) {
             // Check duplicate Name
+            if (!row.emgD_Name || row.emgD_Name.trim() === '') {
+                toast.error('Please enter a Grade Name');
+                return;
+            }
             const normalizedName = row.emgD_Name.trim().toLowerCase();
             if (names.has(normalizedName)) {
                 toast.error(`Duplicate grade name found in details: ${row.emgD_Name}`);
@@ -137,6 +142,21 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             names.add(normalizedName);
 
             // Validate Range
+            if (row.emgD_From === null || row.emgD_From === undefined || (row.emgD_From as any) === '') {
+                toast.error(`Please enter the 'From' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_To === null || row.emgD_To === undefined || (row.emgD_To as any) === '') {
+                toast.error(`Please enter the 'To' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_GradePoints === null || row.emgD_GradePoints === undefined || (row.emgD_GradePoints as any) === '') {
+                toast.error(`Please enter Grade Points for grade: ${row.emgD_Name}`);
+                return;
+            }
+
             const from = Number(row.emgD_From);
             const to = Number(row.emgD_To);
 
@@ -186,8 +206,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         }
     };
 
-    const tableRef = useRef<HTMLDivElement | null>(null);
-    // ⬇️ Reset Form To Original Data (Fetched Grade + Grade_List Rows)
+    // Reset Form To Original Data (Fetched Grade + Grade_List Rows)
     const handleReset = async () => {
         try {
             setIsLoading(true);
@@ -203,14 +222,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
                         emgD_Remarks: g.emgD_Remarks || '',
                         emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                        emgR_MarksPerFlag:g.emgR_MarksPerFlag
+                        emgR_MarksPerFlag: g.emgR_MarksPerFlag
                     }))
                     : [];
 
                 const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
                 const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
 
-                // ⬅ Reset form with original values
                 reset({
                     emgR_Id: gradeData.emgR_Id,
                     mI_Id: gradeData.mI_Id ?? 0,
@@ -220,8 +238,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                     grade_list: restoredRows
                 });
 
-                replace(restoredRows); // restore array rows
-                await trigger(); // re-validate after reset
+                replace(restoredRows);
+                await trigger();
                 toast.info('Form reset to original data.');
             } else {
                 toast.error('No data found to reset.');
@@ -239,20 +257,6 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             setTimeout(scrollToBottom, 50);
         }
     }, [fields.length]);
-
-    const scrollToBottom = () => {
-        if (tableRef.current) {
-            tableRef.current.scrollTop = tableRef.current.scrollHeight;
-        }
-    };
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [gradeData]);
 
     if (isLoading) {
         return (
@@ -324,18 +328,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* From Marks */}
                                     <td className='border'>
                                         <InputText
-                                            type='number'
-                                            step='any'
-                                            min='0'
-                                            max={marksPerFlag === 'P' ? '100' : undefined}
+                                            type='text'
                                             {...register(`grade_list.${index}.emgD_From`, {
-                                                setValueAs: (v) => {
-                                                    if (v === '' || v === null) return null;
-                                                    const num = Number(v);
-                                                    return Number.isNaN(num) ? null : num;
-                                                },
                                                 onChange: (e) => {
-                                                    // Allow only numbers and decimal point
                                                     const value = e.target.value;
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
@@ -345,14 +340,12 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             placeholder='Enter From'
                                             error={errors.grade_list?.[index]?.emgD_From?.message}
                                             onKeyPress={(e) => {
-                                                // Prevent non-numeric characters except decimal point
                                                 const char = String.fromCharCode(e.which);
                                                 if (!/[\d.]/.test(char)) {
                                                     e.preventDefault();
                                                 }
                                             }}
                                             onPaste={(e) => {
-                                                // Prevent paste of non-numeric content
                                                 const pasteData = e.clipboardData.getData('text');
                                                 if (!/^[\d.]*$/.test(pasteData)) {
                                                     e.preventDefault();
@@ -364,18 +357,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* To Marks */}
                                     <td className='border'>
                                         <InputText
-                                            type='number'
-                                            step='any'
-                                            min='0'
-                                            max={marksPerFlag === 'P' ? '100' : undefined}
+                                            type='text'
                                             {...register(`grade_list.${index}.emgD_To`, {
-                                                setValueAs: (v) => {
-                                                    if (v === '' || v === null) return null;
-                                                    const num = Number(v);
-                                                    return Number.isNaN(num) ? null : num;
-                                                },
                                                 onChange: (e) => {
-                                                    // Allow only numbers and decimal point
                                                     const value = e.target.value;
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
@@ -385,14 +369,12 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             placeholder='Enter To'
                                             error={errors.grade_list?.[index]?.emgD_To?.message}
                                             onKeyPress={(e) => {
-                                                // Prevent non-numeric characters except decimal point
                                                 const char = String.fromCharCode(e.which);
                                                 if (!/[\d.]/.test(char)) {
                                                     e.preventDefault();
                                                 }
                                             }}
                                             onPaste={(e) => {
-                                                // Prevent paste of non-numeric content
                                                 const pasteData = e.clipboardData.getData('text');
                                                 if (!/^[\d.]*$/.test(pasteData)) {
                                                     e.preventDefault();
@@ -404,18 +386,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* Grade Points */}
                                     <td className='border'>
                                         <InputText
-                                            type='number'
-                                            step='any'
-                                            min='0'
-                                            max='10'
+                                            type='text'
                                             {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                setValueAs: (v) => {
-                                                    if (v === '' || v === null) return null;
-                                                    const num = Number(v);
-                                                    return Number.isNaN(num) ? null : num;
-                                                },
                                                 onChange: (e) => {
-                                                    // Allow only numbers and decimal point
                                                     const value = e.target.value;
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
@@ -425,14 +398,12 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             placeholder='Enter Grade Points'
                                             error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                             onKeyPress={(e) => {
-                                                // Prevent non-numeric characters except decimal point
                                                 const char = String.fromCharCode(e.which);
                                                 if (!/[\d.]/.test(char)) {
                                                     e.preventDefault();
                                                 }
                                             }}
                                             onPaste={(e) => {
-                                                // Prevent paste of non-numeric content
                                                 const pasteData = e.clipboardData.getData('text');
                                                 if (!/^[\d.]*$/.test(pasteData)) {
                                                     e.preventDefault();
@@ -455,13 +426,11 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             size='sm'
                                             onClick={() => {
                                                 const last = watch('grade_list')[index];
-                                                console.info(last);
                                                 if (
                                                     last.emgD_Name.trim() === '' ||
                                                     last.emgD_From === null ||
                                                     last.emgD_To === null ||
-                                                    last.emgD_GradePoints === null ||
-                                                    last.emgD_Remarks?.trim() === ''
+                                                    last.emgD_GradePoints === null
                                                 ) {
                                                     toast.error('Please fill the current row before adding a new one.');
                                                     return;

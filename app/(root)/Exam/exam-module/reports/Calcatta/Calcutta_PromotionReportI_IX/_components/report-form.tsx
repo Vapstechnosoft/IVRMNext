@@ -176,8 +176,10 @@ export default function CalcuttaPromotionReportItoIXForm({
 
     // on submit
     const onSubmit = async (data: CalcuttaPromotionReportItoIXSchema) => {
+        const selectedYearObj = academicYears.find(y => Number(y.asmaY_Id) === Number(data.asmaY_Id));
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
+            ASMAY_Year: selectedYearObj?.asmaY_Year || '',
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
             Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),

@@ -42,7 +42,6 @@ export async function markAllReadUserNotification() {
     const url = '/v1/user_notification/mark_all_read';
     return await api.put<any>('default', url);
 }
-<<<<<<< HEAD
 
 export async function getUserAccessibleModules() {
     const session = await auth();
@@ -10396,5 +10395,3 @@ export async function getUserAccessibleModules() {
 
     return response;
 }
-=======
->>>>>>> 4757090fa7b9f6da9ca389cafa8244c982090636
