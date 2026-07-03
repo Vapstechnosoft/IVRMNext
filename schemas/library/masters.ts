@@ -93,28 +93,33 @@ export const masterPublisherSchema = {
             .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
 
         lmP_MobileNo: z
-            .string({ required_error: 'Mobile Number is required' })
-            .trim()
-            .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
-
-        lmP_Address: z
-            .string({ required_error: 'Address is required' })
-            .trim()
-            .min(3, 'Address must be at least 3 characters')
-            .max(200, 'Address cannot exceed 200 characters')
-            .regex(/^[A-Za-z0-9\s,.-]+$/, 'Only letters, numbers, spaces, and basic punctuation allowed'),
-
-        lmP_EMailId: z
-            .string({ required_error: 'Email is required' })
-            .trim()
-            .min(5, 'Email must be at least 5 characters')
-            .email('Invalid email address'),
-
-        lmP_PhoneNo: z
             .string()
             .trim()
             .optional()
+            .nullable()
             .or(z.literal(''))
+            .refine((val) => !val || /^\d{10}$/.test(val), 'Mobile Number must be exactly 10 digits'),
+
+        lmP_Address: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine(
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be at least 3 characters, max 200 characters, and can only contain letters, numbers, spaces, and basic punctuation'
+            ),
+
+        lmP_EMailId: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmP_PhoneNo: z.string().trim().optional().or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')
