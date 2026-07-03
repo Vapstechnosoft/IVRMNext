@@ -56,7 +56,7 @@ export async function saveBifurcationConstraintsDetail(data: any) {
 
 // Get Details for Edit
 export async function getBifurcationConstraintsEditDetails(id: number) {
-    const url = `/Bifurcation/getdetails/${id}`;
+    const url = `/BifurcationFacade/GetEditDetails/${id}`;
     return await api.get<any>('timetable', url);
 }
 

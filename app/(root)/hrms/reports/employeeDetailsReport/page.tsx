@@ -933,6 +933,7 @@ function EmployeeDetailsReportContent() {
               showSearchColumns={false}
               showExportOptions={false}
               maxSelectableRows={0}
+              isPaginationRequired={false}
               scrollable
             />
           </div>

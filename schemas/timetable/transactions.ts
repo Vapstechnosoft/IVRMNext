@@ -24,11 +24,11 @@ export type ManualPeriodInsertionValues = z.infer<typeof ManualPeriodInsertionSc
 export const StaffRepacementExistingToNewSchema = z.object({
     asmaY_Id: z.string().optional(), //Academic Year
     ttmC_Id: z.string().min(1, 'Please Provide Category'), //category
-    asmcL_Id: z.string().optional(), //Class
-    asms_Id: z.string().optional(), //Section
+    asmcL_Id: z.string().min(1, 'Please Select Class'), //Class
+    asms_Id: z.string().min(1, 'Please Select Section'), //Section
     hrmE_Id_From: z.string().min(1, 'Replace Staff From is required'), //staff from
     hrmE_Id_To: z.string().min(1, 'Replace Staff To is required'), //staff to
-    ismS_Id: z.string().optional() //Subject
+    ismS_Id: z.string().min(1, 'Please Select Subject') //Subject
 });
 export type StaffReplacementExistingToNewValues = z.infer<typeof StaffRepacementExistingToNewSchema>;
 
