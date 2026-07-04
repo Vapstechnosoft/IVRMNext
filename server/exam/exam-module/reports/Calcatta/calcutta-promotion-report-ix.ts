@@ -71,13 +71,17 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
             eme_ExamCode: examCode
         };
     });
-
     for (const dd of normalizedGroupDetails) {
         let counttotal = 0;
         const groupewiseexamTemp = [];
 
         for (const d of normalizedGroupExamDetails) {
-            if (dd.empG_DistplayName === d.empG_DistplayName) {
+            const ddName = (dd.empG_DistplayName ?? '').trim().toUpperCase();
+            const dName = (d.empG_DistplayName ?? '').trim().toUpperCase();
+            if (ddName === dName) {
+                if (Number(d.emE_Id) === 9800000 || Number(d.emE_Id) === 98000012) {
+                    continue;
+                }
                 counttotal += d.empsgE_ForMaxMarkrs || 0;
 
                 const examMap = {
@@ -145,35 +149,34 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
 
     // 2. Map all related data to student details
     const studentListDetails = getstudentdetails.map((stu: any) => {
+        const stuId = stu.amsT_Id || stu.AMST_Id;
+
         // Subjects
         const studentSubjects = getstudentwisesubjectlist.filter((s: any) => {
             const sId = s.AMST_Id || s.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
             return sId && stuId && Number(sId) === Number(stuId);
         });
 
         // Marks
         const studentMarks = getstudentmarksdetails.filter((m: any) => {
             const mId = m.AMST_Id || m.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
             return mId && stuId && Number(mId) === Number(stuId);
         });
 
         // Exam wise total marks
         const studentExamMarks = getstudent_examwisemarks.filter((m: any) => {
             const mId = m.AMST_Id || m.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
             return mId && stuId && Number(mId) === Number(stuId);
         });
 
         // Remarks
         const promotionRemarksObj = (getpromotionremarksdetails || []).find((d: any) => {
             const dId = d.amsT_Id ?? d.AMST_Id ?? d.amst_id ?? d.AMST_ID ?? 0;
-            const stuId = stu.amsT_Id ?? stu.AMST_Id ?? stu.amst_id ?? stu.AMST_ID ?? 0;
             return dId && stuId && Number(dId) === Number(stuId);
         });
-        const remarks = promotionRemarksObj?.eprD_Remarks ?? promotionRemarksObj?.eprd_Remarks ?? promotionRemarksObj?.eprd_remarks ?? promotionRemarksObj?.EPRD_Remarks ?? promotionRemarksObj?.remarks ?? promotionRemarksObj?.Remarks ?? '-';
+        const remarks = promotionRemarksObj?.eprD_Remarks ?? promotionRemarksObj?.eprd_Remarks ?? promotionRemarksObj?.eprd_remarks ?? promotionRemarksObj?.EPRD_Remarks ?? promotionRemarksObj?.remarks ?? promotionRemarksObj?.Remarks ?? '';
         const promotedclass = promotionRemarksObj?.eprD_ClassPromoted ?? promotionRemarksObj?.eprd_ClassPromoted ?? promotionRemarksObj?.eprd_classpromoted ?? '';
+        const conduct = promotionRemarksObj?.eprD_PromotionName ?? promotionRemarksObj?.eprd_PromotionName ?? '';
 
         // Attendance (I-IX logic mapsTOTALAttendancePercentage)
         const attendance = getstudentwiseattendancedetails.filter((d: any) => {
@@ -202,9 +205,16 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
         // Skills for the specific student
         const studentSkills = getstudentwiseskillslist.filter((s: any) => {
             const sId = s.AMST_Id || s.amsT_Id;
-            const stuId = stu.amsT_Id || stu.AMST_Id;
             return sId && stuId && Number(sId) === Number(stuId);
         });
+
+        // Suggestions (optional)
+        const suggestions = (examwiseremarks || [])
+            .filter((s: any) => {
+                const sId = s.AMST_Id || s.amsT_Id;
+                return sId && stuId && Number(sId) === Number(stuId);
+            })
+            .map((s: any) => s.ecterE_Remarks || s.eprD_Remarks || s.eprd_Remarks || s.eprd_remarks || '');
 
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
@@ -256,13 +266,17 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
 
         return {
             ...stu,
+            asmcL_ClassName: stu.classname ?? stu.asmcL_ClassName ?? stu.ASMCL_ClassName ?? '',
+            asmC_SectionName: stu.sectionname ?? stu.asmC_SectionName ?? stu.ASMC_SectionName ?? '',
             studentsubjects: studentSubjects,
             studentmarks: studentMarks,
             student_marks: studentExamMarks,
             examwisetotal,
             remarks,
             promotedclass,
+            conduct,
             attendance,
+            suggestions,
             studentSkills,
             chartData
         };

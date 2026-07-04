@@ -177,7 +177,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                                         .filter((type) => type && type.HRMLN_Id !== undefined && type.HRMLN_Id !== null)
                                         .map((loanType) => (
                                             <SelectItem key={`loan-${loanType.HRMLN_Id}`} value={loanType.HRMLN_Id.toString()}>
-                                                {`${loanType.HRML_LoanType} (Max: ₹${loanType.HRML_Max?.toLocaleString() || 0})`}
+                                                {`${loanType.HRML_LoanType} `}
                                             </SelectItem>
                                         ))
                                 ) : (

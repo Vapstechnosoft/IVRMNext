@@ -22,7 +22,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -207,65 +207,31 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         return undefined;
     };
 
-    // Consolidated row data binding
+    const [isBinding, setIsBinding] = useState(true);
+
+    // Wait until all dropdown APIs have completed their initial fetch
+    const isReady = !isLoadingEarningsDeductionsTypes && !isLoadingRoundingTypes && !isLoadingAmountOrPercentage && !isLoadingSalaryComponentType;
+
     useEffect(() => {
-        if (row && reset) {
+        if (row && isReady) {
             reset({
                 HRMED_Id: row.hrmeD_Id,
                 MI_Id: row.mI_Id || 0,
                 HRMED_Name: row.hrmeD_Name || '',
-                HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag),
-                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag),
-                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag),
+                HRMED_EDTypeFlag: findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag) ?? (row.hrmeD_EDTypeFlag != null ? String(row.hrmeD_EDTypeFlag) : undefined),
+                HRMED_EarnDedFlag: findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag) ?? (row.hrmeD_EarnDedFlag != null ? String(row.hrmeD_EarnDedFlag) : undefined),
+                HRMED_AmountPercentFlag: findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag) ?? (row.hrmeD_AmountPercentFlag != null ? String(row.hrmeD_AmountPercentFlag) : undefined),
                 HRMED_AmountPercent: String(row.hrmeD_AmountPercent ?? ''),
                 HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
-                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag),
+                HRMED_RoundOffFlag: findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag) ?? (row.hrmeD_RoundOffFlag != null ? String(row.hrmeD_RoundOffFlag) : undefined),
                 HRMED_Order: row.hrmeD_Order,
                 HRMED_ReviseFlg: row.hrmeD_ReviseFlg
-            }, { keepDefaultValues: false });
+            });
+            setIsBinding(false);
         }
-    }, [row, reset]); // Trigger when row changes
-
-    // Robust synchronization as dropdown data arrives
-    useEffect(() => {
-        if (row && earningsDeductionsTypeDropdown.length > 0) {
-            const target = findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag);
-            const current = getValues('HRMED_EDTypeFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_EDTypeFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [earningsDeductionsTypeDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && salaryComponentTypeDropdown.length > 0) {
-            const target = findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag);
-            const current = getValues('HRMED_EarnDedFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_EarnDedFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [salaryComponentTypeDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && amountOrPercentageDropdown.length > 0) {
-            const target = findKey(amountOrPercentageDropdown, row.hrmeD_AmountPercentFlag);
-            const current = getValues('HRMED_AmountPercentFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_AmountPercentFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [amountOrPercentageDropdown, row, setValue, getValues]);
-
-    useEffect(() => {
-        if (row && roundingTypeDropdown.length > 0) {
-            const target = findKey(roundingTypeDropdown, row.hrmeD_RoundOffFlag);
-            const current = getValues('HRMED_RoundOffFlag');
-            if (target !== undefined && target !== current) {
-                setValue('HRMED_RoundOffFlag', target, { shouldDirty: false, shouldValidate: true });
-            }
-        }
-    }, [roundingTypeDropdown, row, setValue, getValues]);
+        // Intentionally omitting dropdown arrays to prevent wiping user input during background refetches
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [row, reset, isReady]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
@@ -301,10 +267,16 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     };
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} />
-                    <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
+            {isBinding ? (
+                <div className='flex h-48 flex-col items-center justify-center space-y-4'>
+                    <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                    <p className='text-sm text-muted-foreground'>Binding data...</p>
+                </div>
+            ) : (
+                <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} />
+                        <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_Name'>
                             Name <span className='text-destructive'>*</span>
@@ -590,6 +562,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                 </div>
             </form>
+            )}
         </div>
     );
 }

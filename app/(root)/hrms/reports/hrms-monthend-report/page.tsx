@@ -307,9 +307,9 @@ export default function HRMSMonthEndReportPage() {
 
     return (
         <div className='container min-h-screen space-y-6 p-4 max-w-7xl mx-auto'>
-            <div className='flex items-center justify-between print:hidden'>
+            {/* <div className='flex items-center justify-between print:hidden'>
                 <h2 className='text-3xl font-bold tracking-tight'>HRMS Month End Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-md border-primary/20 bg-card/50 backdrop-blur-sm print:hidden'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
@@ -387,9 +387,9 @@ export default function HRMSMonthEndReportPage() {
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={yearsLoading}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Year' />
+                                            <SelectValue placeholder={yearsLoading ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(yearsData?.data || []).filter(Boolean).map((y: any) => (
@@ -411,9 +411,9 @@ export default function HRMSMonthEndReportPage() {
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={yearsLoading}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Month' />
+                                            <SelectValue placeholder={yearsLoading ? 'Loading...' : 'Select Month'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MONTH_LIST.map((m) => (

@@ -3970,6 +3970,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='Address'
                                                                 required
                                                                 id='contactAddress'
+                                                                placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
                                                                 error={errors.contactAddress?.message as string}
@@ -3978,6 +3979,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='Area'
                                                                 required
                                                                 id='contactArea'
+                                                                placeholder='Enter area name'
                                                                 {...register('contactArea')}
                                                                 error={errors.contactArea?.message as string}
                                                             />
@@ -4101,6 +4103,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='City'
                                                                 required
                                                                 id='contactCity'
+                                                                placeholder='Enter city name'
                                                                 {...register('contactCity')}
                                                                 error={errors.contactCity?.message as string}
                                                             />
@@ -4108,6 +4111,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='Pincode'
                                                                 required
                                                                 id='contactPincode'
+                                                                placeholder='Enter 6-digit pincode'
                                                                 maxLength={10}
                                                                 onKeyDown={(e) => {
                                                                     const controlKeys = [
@@ -4165,6 +4169,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='Address'
                                                                 required
                                                                 id='permanentAddress'
+                                                                placeholder='Flat/House No, Building name, Street'
                                                                 maxLength={100}
                                                                 {...register('permanentAddress')}
                                                                 error={errors.permanentAddress?.message as string}
@@ -4174,6 +4179,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 label='Area'
                                                                 required
                                                                 id='permanentArea'
+                                                                placeholder='Enter area name'
                                                                 {...register('permanentArea')}
                                                                 error={errors.permanentArea?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
@@ -4282,6 +4288,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             <InputText
                                                                 label='City'
                                                                 id='permanentCity'
+                                                                placeholder='Enter city name'
                                                                 {...register('permanentCity')}
                                                                 error={errors.permanentCity?.message as string}
                                                                 disabled={sameAsCommunicationAddress}
@@ -4289,6 +4296,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             <InputText
                                                                 label='Pincode'
                                                                 id='permanentPincode'
+                                                                placeholder='Enter 6-digit pincode'
                                                                 maxLength={10}
                                                                 onKeyDown={(e) => {
                                                                     const controlKeys = [
