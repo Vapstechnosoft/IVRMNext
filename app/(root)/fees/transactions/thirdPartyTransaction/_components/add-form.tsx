@@ -373,7 +373,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='groupId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(value) => field.onChange(Number(value))}
+                                value={field.value !== undefined ? String(field.value) : ''}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Group' />
                                 </SelectTrigger>
@@ -404,7 +407,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='headId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(value) => field.onChange(Number(value))}
+                                value={field.value !== undefined ? String(field.value) : ''}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Head' />
                                 </SelectTrigger>
@@ -549,7 +555,12 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                 name='bankId'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                    <Select
+                                        key={field.value ?? 'empty'}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        // value={field.value?.toString()}
+                                        value={field.value !== undefined ? String(field.value) : ''}
+                                    >
                                         <SelectTrigger className='min-w-[400px]'>
                                             <SelectValue placeholder='Select Bank' />
                                         </SelectTrigger>

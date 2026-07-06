@@ -360,7 +360,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Category
+                            Update Master Category
                         </div>
                     </Button>
                 </div>

@@ -17,8 +17,8 @@ export interface StudentAttendanceStudent {
     amaY_RollNo: number;
     amsT_AdmNo: string;
     amsT_Id: number;
-    studentName: string;
-    pDays: number | null;
+    studentname: string;
+    pdays: number | null;
     selected: boolean | null;
     asaS_Id: number | null;
     firstHalfflag: boolean | null;

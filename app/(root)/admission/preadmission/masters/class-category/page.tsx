@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassCategoryForm from './_components/add-form';
 import { masterClassCategoryColumns } from './_components/columns';
+import ViewDetailModal from './_components/section-columns';
 import ToggleMasterClassCategoryForm from './_components/toggle-form';
 import UpdateMasterClassCategoryForm from './_components/update-form';
 
@@ -84,10 +85,12 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDetailsViewOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDetailsView,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterClassCategoryList>();
@@ -146,6 +149,11 @@ function FormSections() {
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterClassCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* View Detail Modal */}
+            {isDetailsViewOpen && selectedRow && (
+                <ViewDetailModal rowData={selectedRow} isOpen={isDetailsViewOpen} onClose={closeDetailsView} />
+            )}
         </>
     );
 }

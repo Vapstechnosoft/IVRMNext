@@ -498,15 +498,15 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_StaffConcessionCheck'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={(checked) => field.onChange}
                                                 id='FMC_StaffConcessionCheck'
                                             />
-                                            <Label htmlFor='Categorywise block online Payment'>Categorywise block online Payment</Label>
+                                            <Label htmlFor='FMC_StaffConcessionCheck'>Categorywise block online Payment</Label>
                                         </div>
                                     )}
                                 />
@@ -517,15 +517,15 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_ShowPreviousFeeFisrtFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_ShowPreviousFeeFisrtFlg'
                                             />
-                                            <Label htmlFor='Display Pending/OB Term initially'>Display Pending/OB Term initially</Label>
+                                            <Label htmlFor='FMC_ShowPreviousFeeFisrtFlg'>Display Pending/OB Term initially</Label>
                                         </div>
                                     )}
                                 />
@@ -537,14 +537,10 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_MakerCheckerReqdFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                                id='FMC_MakerCheckerReqdFlg'
-                                            />
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='FMC_MakerCheckerReqdFlg' />
                                             <Label htmlFor='Display Pending/OB Term initially'>Enable Maker And Checker</Label>
                                         </div>
                                     )}
@@ -557,15 +553,11 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_RebateAplicableFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                                id='FMC_RebateAplicableFlg'
-                                            />
-                                            <Label htmlFor='Rebate Applicable'>Rebate Applicable</Label>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='FMC_RebateAplicableFlg' />
+                                            <Label htmlFor='FMC_RebateAplicableFlg'>Rebate Applicable</Label>
                                         </div>
                                     )}
                                 />
@@ -577,15 +569,15 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_RebateAgainstFullPaymentFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_RebateAgainstFullPaymentFlg'
                                             />
-                                            <Label htmlFor='Rebate Applicable For Full Payment'>Rebate Applicable For Full Payment</Label>
+                                            <Label htmlFor='FMC_RebateAgainstFullPaymentFlg'>Rebate Applicable For Full Payment</Label>
                                         </div>
                                     )}
                                 />
@@ -597,12 +589,12 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 <Controller
                                     name='FMC_RebateAgainstPartialPaymentFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_RebateAgainstPartialPaymentFlg'
                                             />
                                             <Label htmlFor='Rebate Applicable For Partial Payment'>

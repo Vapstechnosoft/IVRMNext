@@ -83,7 +83,6 @@ export default function UpdateMasterReligionForm({ onSuccess, className = '', se
                             placeholder='Enter Religion Name'
                             required
                             id='ivrmmR_Name'
-                            placeholder='Enter Religion Name'
                             {...register('ivrmmR_Name')}
                             defaultValue={row.ivrmmR_Name}
                             error={errors.ivrmmR_Name?.message}
@@ -113,7 +112,7 @@ export default function UpdateMasterReligionForm({ onSuccess, className = '', se
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Update Master Religion
                         </div>
                     </Button>
                 </div>

@@ -56,9 +56,9 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTSession }) {
     return (
         <div className='flex justify-center gap-2'>
             {/*  View button */}
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
+            {/* <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
                 <Eye className='h-4 w-4 text-blue-600' />
-            </button>
+            </button> */}
 
             {/*  Edit,  Toggle,  Delete buttons */}
             <ActionButtons

@@ -112,6 +112,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                     label='Fees Group Name'
                                     required
                                     id='fmgG_GroupName'
+                                    placeholder='Fees Group Name'
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.fmgG_GroupName?.message}
@@ -153,6 +154,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                     label='Groups Code'
                                     required
                                     id='fmgG_GroupCode'
+                                    placeholder='Gorup Code'
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.fmgG_GroupCode?.message}

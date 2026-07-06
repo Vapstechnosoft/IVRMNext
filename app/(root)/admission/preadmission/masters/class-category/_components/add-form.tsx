@@ -132,7 +132,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='ml-1 text-red-500'>*</span></FormLabel>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger disabled={!academicYears}>
@@ -160,7 +160,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='amC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Category</FormLabel>
+                                <FormLabel>Category <span className='ml-1 text-red-500'>*</span></FormLabel>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
@@ -190,7 +190,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_classes'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Classes</FormLabel>
+                                <FormLabel>Select Classes <span className='ml-1 text-red-500'>*</span></FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={classOptions}
@@ -217,7 +217,7 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_class_sections'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Sections</FormLabel>
+                                <FormLabel>Select Sections <span className='ml-1 text-red-500'>*</span></FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={sectionOptions}
