@@ -3,13 +3,13 @@
 import { api } from '@/lib/apiService';
 
 export async function getStudentSmartCardLogInitialDetails() {
-    const url = `/StudentSmartCardLogReports/getalldetails/1`;
+    const url = `/StudentSmartCardLogReport/loaddata`;
     return await api.get<any>('admission', url);
 }
 
 export async function getStudentSmartCardLogNameRegNo(data: any) {
-    const url = `/StudentSmartCardLogReports/getnameregno`;
-    return await api.post<any>('admission', url, data);
+    const url = `/StudentSmartCardLogReport/getregnoname?regornamedetails=${data.regornamedetails}`;
+    return await api.get<any>('admission', url);
 }
 
 export async function getStudentSmartCardLogReport(data: any) {

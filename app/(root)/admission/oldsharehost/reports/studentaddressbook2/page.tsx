@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { Search, Loader2, Printer, X, FileSpreadsheet } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
@@ -19,7 +19,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     useStudentAddressBook2InitialData,
     useStudentAddressBook2SectionChange,
-    useStudentAddressBook2Report
+    useStudentAddressBook2Report,
+    useStudentAddressBook2YearChange
 } from '@/hooks/admission/oldsharehost/reports/useStudentAddressBook2';
 
 const formSchema = z.object({
@@ -50,12 +51,16 @@ type FormValues = z.infer<typeof formSchema>;
 export default function StudentAddressBook2Page() {
     const { data: initialData, isLoading: isInitialLoading } = useStudentAddressBook2InitialData();
     const sectionChangeMutation = useStudentAddressBook2SectionChange();
+    const yearChangeMutation = useStudentAddressBook2YearChange();
     const reportMutation = useStudentAddressBook2Report();
 
     const [items, setItems] = useState<any[]>([]);
     const [studentDropdown, setStudentDropdown] = useState<any[]>([]);
+    const [logoPath, setLogoPath] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState(false);
     
+    const printRef = useRef<HTMLDivElement>(null);
+
     const [viewOptions, setViewOptions] = useState({
         email: false,
         dob: false,
@@ -88,19 +93,32 @@ export default function StudentAddressBook2Page() {
     const watchFlag = form.watch('flag');
 
     useEffect(() => {
-        if (watchSall === '0' && watchYear && watchClass && watchSection) {
-            sectionChangeMutation.mutateAsync({
-                ASMAY_Id: Number(watchYear),
-                ASMCL_Id: Number(watchClass),
-                ASMC_Id: Number(watchSection),
-                flag: watchFlag
-            }).then(res => {
-                if (res?.data?.studentlist) {
-                    setStudentDropdown(res.data.studentlist);
-                }
-            }).catch(() => {
-                toast.error('Failed to fetch students');
-            });
+        if (watchSall === '0') {
+            if (watchYear && watchClass && watchSection) {
+                sectionChangeMutation.mutateAsync({
+                    ASMAY_Id: Number(watchYear),
+                    ASMCL_Id: Number(watchClass),
+                    ASMS_Id: Number(watchSection), // Passes as ASMS_Id
+                    flag: watchFlag
+                }).then(res => {
+                    if (res?.data?.studentlist) {
+                        setStudentDropdown(res.data.studentlist);
+                    }
+                }).catch(() => {
+                    toast.error('Failed to fetch students');
+                });
+            } else if (watchYear && watchFlag) {
+                yearChangeMutation.mutateAsync({
+                    ASMAY_Id: Number(watchYear),
+                    flag: watchFlag
+                }).then(res => {
+                    if (res?.data?.studentlist) {
+                        setStudentDropdown(res.data.studentlist);
+                    }
+                }).catch(() => {
+                    toast.error('Failed to fetch students');
+                });
+            }
         }
     }, [watchYear, watchClass, watchSection, watchFlag, watchSall]);
 
@@ -108,10 +126,10 @@ export default function StudentAddressBook2Page() {
         try {
             setIsGenerating(true);
             const payload = {
-                asmaY_Id: Number(data.asmaY_Id),
-                asmcL_Id: Number(data.asmcL_Id),
-                asmC_Id: Number(data.asmC_Id),
-                amsT_Id: data.sall === '0' ? Number(data.amsT_Id) : 0,
+                ASMAY_Id: Number(data.asmaY_Id),
+                ASMCL_Id: Number(data.asmcL_Id),
+                ASMS_Id: Number(data.asmC_Id),
+                AMST_Id: data.sall === '0' ? Number(data.amsT_Id) : 0,
                 flag: data.flag,
                 sall: data.sall
             };
@@ -119,13 +137,17 @@ export default function StudentAddressBook2Page() {
             const res = await reportMutation.mutateAsync(payload);
             const resultData = res?.data;
 
-            if (!resultData?.getdetails || resultData.getdetails.length === 0) {
+            if (!resultData?.result || resultData.result.length === 0) {
                 toast.info('No Records Found!');
                 setItems([]);
                 return;
             }
 
-            setItems(resultData.getdetails);
+            setItems(resultData.result);
+            if (resultData.masterCompany && resultData.masterCompany.length > 0) {
+                setLogoPath(resultData.masterCompany[0].logo);
+            }
+
             setViewOptions({
                 email: data.email,
                 dob: data.dob,
@@ -142,25 +164,43 @@ export default function StudentAddressBook2Page() {
     };
 
     const handleClear = () => {
-        form.reset({
-            sall: '1',
-            flag: 'S',
-            asmaY_Id: '',
-            asmcL_Id: '',
-            asmC_Id: '',
-            amsT_Id: '',
-            email: false,
-            dob: false,
-            ph: false,
-            tc: false,
-            per: '1'
-        });
-        setItems([]);
-        setStudentDropdown([]);
+        window.location.reload();
     };
 
     const handlePrint = () => {
-        window.print();
+        if (!printRef.current) {
+            toast.error("Nothing to print");
+            return;
+        }
+
+        const printContent = printRef.current.innerHTML;
+        const printWindow = window.open('', '_blank', 'width=1000,height=800');
+        
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Student Address Book</title>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <style>
+                            @media print {
+                                @page { size: auto; margin: 10mm; }
+                                body { padding: 0; margin: 0; font-family: Arial, sans-serif; -webkit-print-color-adjust: exact; }
+                            }
+                        </style>
+                    </head>
+                    <body onload="setTimeout(function() { window.print(); window.close(); }, 1000);">
+                        ${logoPath ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoPath}" alt="School Logo" style="max-height: 100px; margin: 0 auto;" /></div>` : ''}
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            ${printContent}
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        } else {
+            toast.error("Please allow popups to print");
+        }
     };
 
     const handleExportExcel = () => {
@@ -503,102 +543,103 @@ export default function StudentAddressBook2Page() {
 
             {/* Print Section */}
             {items.length > 0 && (
-                <div className="print:block space-y-8 mt-6">
+                <div ref={printRef} className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 print:grid-cols-2 print:gap-4 print:text-xs">
                     {items.map((user, idx) => (
-                        <div key={idx} className="bg-white p-6 rounded-lg shadow-md print:shadow-none border border-gray-200 break-inside-avoid">
-                            <h3 className="text-center font-bold text-lg border-b pb-2 mb-4">
-                                {user.AMST_FirstName} Address Book
+                        <div key={idx} className="bg-white p-4 border-t-2 border-b-2 border-blue-800 break-inside-avoid flex flex-col min-h-[300px]">
+                            <h3 className="font-bold text-blue-800 border-b border-yellow-500 pb-2 mb-3 uppercase text-sm">
+                                {user.AMST_FirstName} ADDRESS BOOK
                             </h3>
-                            <div className="flex flex-col md:flex-row gap-6">
-                                <div className="flex-1 space-y-2 text-sm">
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Student Name</span>
-                                        <span className="col-span-2">: {user.AMST_FirstName}</span>
+                            <div className="flex gap-4">
+                                <div className="flex-1 space-y-1.5 text-sm print:text-xs">
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Student Name</span>
+                                        <span>: {user.AMST_FirstName}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Admission No</span>
-                                        <span className="col-span-2">: {user.AMST_AdmNo}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Admission No</span>
+                                        <span>: {user.AMST_AdmNo}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Reg No</span>
-                                        <span className="col-span-2">: {user.AMST_RegistrationNo}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Reg No</span>
+                                        <span>: {user.AMST_RegistrationNo}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">DOA</span>
-                                        <span className="col-span-2">: {user.AMST_Date ? format(new Date(user.AMST_Date), 'dd-MM-yyyy') : ''}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">DOA</span>
+                                        <span>: {user.AMST_Date ? format(new Date(user.AMST_Date), 'dd-MM-yyyy') : ''}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Class Name</span>
-                                        <span className="col-span-2">: {user.ASMCL_ClassName} - {user.ASMC_SectionName}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Class Name</span>
+                                        <span>: {user.ASMCL_ClassName} - {user.ASMC_SectionName}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Gender</span>
-                                        <span className="col-span-2">: {user.AMST_Sex}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Gender</span>
+                                        <span>: {user.AMST_Sex}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Blood Group</span>
-                                        <span className="col-span-2">: {user.AMST_BloodGroup}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Blood Group</span>
+                                        <span>: {user.AMST_BloodGroup || 'Not Available'}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Father Name</span>
-                                        <span className="col-span-2">: {user.AMST_FatherName}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Father Name</span>
+                                        <span>: {user.AMST_FatherName}</span>
                                     </div>
-                                    <div className="grid grid-cols-3">
-                                        <span className="font-semibold col-span-1">Mother Name</span>
-                                        <span className="col-span-2">: {user.AMST_MotherName}</span>
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                        <span className="font-semibold text-gray-700">Mother Name</span>
+                                        <span>: {user.AMST_MotherName}</span>
                                     </div>
 
                                     {viewOptions.dob && (
-                                        <div className="grid grid-cols-3">
-                                            <span className="font-semibold col-span-1">DOB</span>
-                                            <span className="col-span-2">: {user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd-MM-yyyy') : ''}</span>
+                                        <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                            <span className="font-semibold text-gray-700">DOB</span>
+                                            <span>: {user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd-MM-yyyy') : ''}</span>
                                         </div>
                                     )}
                                     {viewOptions.email && (
-                                        <div className="grid grid-cols-3">
-                                            <span className="font-semibold col-span-1">Email</span>
-                                            <span className="col-span-2 break-all">: {user.AMST_emailId}</span>
+                                        <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                            <span className="font-semibold text-gray-700">Email</span>
+                                            <span className="break-all">: {user.AMST_emailId}</span>
                                         </div>
                                     )}
                                     {viewOptions.ph && (
-                                        <div className="grid grid-cols-3">
-                                            <span className="font-semibold col-span-1">Phone No.</span>
-                                            <span className="col-span-2">: {user.AMST_MobileNo}</span>
+                                        <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                            <span className="font-semibold text-gray-700">Phone No.</span>
+                                            <span>: {user.AMST_MobileNo}</span>
                                         </div>
                                     )}
                                     {viewOptions.tc && (
-                                        <div className="grid grid-cols-3">
-                                            <span className="font-semibold col-span-1">School TC Submited</span>
-                                            <span className="col-span-2 font-bold">: {user.AMST_SOL === 'L' ? 'Yes' : 'No'}</span>
+                                        <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto]">
+                                            <span className="font-semibold text-gray-700">School TC Submited</span>
+                                            <span className="font-bold">: {user.AMST_SOL === 'L' ? 'Yes' : 'No'}</span>
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-3 mt-4">
-                                        <span className="font-semibold col-span-1">
-                                            {viewOptions.per === '1' ? 'Permanent Address :' : 'Temporary Address :'}
+                                    <div className="grid grid-cols-[140px_auto] print:grid-cols-[120px_auto] mt-2">
+                                        <span className="font-semibold text-gray-700">
+                                            {viewOptions.per === '1' ? 'Permanent Address' : 'Temporary Address'}
                                         </span>
-                                        <span className="col-span-2">
-                                            {viewOptions.per === '1' 
-                                                ? `${user.AMST_PerStreet || ''}, ${user.AMST_PerArea || ''}, ${user.AMST_PerCity || ''}`
-                                                : `${user.AMST_ConStreet || ''}, ${user.AMST_ConArea || ''}, ${user.AMST_ConCity || ''}`
+                                        <span className="break-words">
+                                            : {viewOptions.per === '1' 
+                                                ? [user.AMST_PerStreet, user.AMST_PerArea, user.AMST_PerCity].filter(Boolean).join(', ')
+                                                : [user.AMST_ConStreet, user.AMST_ConArea, user.AMST_ConCity].filter(Boolean).join(', ')
                                             }
                                         </span>
                                     </div>
                                 </div>
-                                <div className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 border p-1 rounded">
+                                <div className="w-24 h-28 print:w-20 print:h-24 flex-shrink-0 border border-blue-200 p-0.5 mt-1">
                                     {user.AMST_Photoname ? (
-                                        <img src={user.AMST_Photoname} alt={user.AMST_FirstName} className="w-full h-full object-cover" />
+                                        <img src={user.AMST_Photoname} alt="Student" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm text-center p-2">
-                                            Image not available
+                                        <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center text-[10px] text-gray-500 text-center p-1">
+                                            <span>{user.AMST_FirstName}</span>
+                                            <span className="mt-1">Image not available</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
                             
-                            <div className="flex justify-between mt-12 px-8">
-                                <span className="font-semibold border-t border-black pt-1 px-4">Class Teacher's Sign</span>
-                                <span className="font-semibold border-t border-black pt-1 px-4">Parent's Sign</span>
+                            <div className="flex justify-between mt-auto pt-8 px-2 text-sm print:text-xs">
+                                <span className="font-semibold border-t border-black pt-1">Class Teacher's Sign</span>
+                                <span className="font-semibold border-t border-black pt-1">Parent's Sign</span>
                             </div>
                         </div>
                     ))}

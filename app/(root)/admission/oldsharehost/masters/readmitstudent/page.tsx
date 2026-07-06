@@ -33,9 +33,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ReadmitStudentPage() {
-    const pageId = 2;
-    const { data: initialData, isLoading: isInitialLoading } = useReadmitStudentDetails(pageId);
-    
+    const { data: initialData, isLoading: isInitialLoading } = useReadmitStudentDetails();
+
     const studentListMutation = useStudentListByYearAndClass();
     const newJoinListMutation = useNewJoinList();
     const saveMutation = useSaveReadmitStudent();
@@ -126,13 +125,12 @@ export default function ReadmitStudentPage() {
         try {
             setIsSaving(true);
             const payload = {
-                AMAY_ID_OLD: Number(data.AMAY_ID_OLD),
-                AMCL_ID_OLD: Number(data.ASMCL_Id),
-                AMCL_Id_New: Number(data.ASMCL_Id_New),
-                AMAY_Id_New: Number(data.AMAY_Id_New),
-                AMST_Id_New: Number(data.AMST_Id_New),
-                AMST_Id: Number(data.AMST_Id),
-                resultData: [] // Based on original HTML, no multiselect arrays are bound.
+                amsT_Id: Number(data.AMST_Id),
+                amcL_ID_OLD: Number(data.ASMCL_Id),
+                amaY_ID_OLD: Number(data.AMAY_ID_OLD),
+                amcL_Id_New: Number(data.ASMCL_Id_New),
+                amaY_Id_New: Number(data.AMAY_Id_New),
+                amsT_Id_New: Number(data.AMST_Id_New)
             };
 
             const res = await saveMutation.mutateAsync(payload);
@@ -186,7 +184,7 @@ export default function ReadmitStudentPage() {
                             {/* Left Side */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-indigo-700 border-b pb-2">Left Details</h3>
-                                
+
                                 <div className="space-y-2">
                                     <Label className="text-sm font-bold">Left Academic Year:<span className="text-red-500">*</span></Label>
                                     <Controller
@@ -283,7 +281,7 @@ export default function ReadmitStudentPage() {
                             {/* Right Side */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-green-700 border-b pb-2">New Details</h3>
-                                
+
                                 <div className="space-y-2">
                                     <Label className="text-sm font-bold">New Academic Year:<span className="text-red-500">*</span></Label>
                                     <Controller
@@ -387,7 +385,7 @@ export default function ReadmitStudentPage() {
                                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 Save
                             </Button>
-                            
+
                             <Button
                                 type="button"
                                 onClick={handleClear}

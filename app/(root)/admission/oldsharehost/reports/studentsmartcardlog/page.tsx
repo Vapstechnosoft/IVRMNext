@@ -115,11 +115,21 @@ export default function StudentSmartCardLogPage() {
         }
     }, [watchAllOrIndiv, watchRegOrName]);
 
+    useEffect(() => {
+        if (initialData?.data) {
+            setStudentList(initialData.data);
+        }
+    }, [initialData]);
+
     const fetchStudentList = async (regorname: string) => {
         try {
             const res = await nameRegNoMutation.mutateAsync({ regornamedetails: regorname });
-            if (res?.data?.studentlist) {
+            if (res?.data?.data) {
+                setStudentList(res.data.data);
+            } else if (res?.data?.studentlist) {
                 setStudentList(res.data.studentlist);
+            } else if (Array.isArray(res?.data)) {
+                setStudentList(res.data);
             }
         } catch (error) {
             toast.error('Failed to fetch student list');
@@ -367,11 +377,15 @@ export default function StudentSmartCardLogPage() {
                                                             <SelectValue placeholder="Select Student" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {studentList?.map((item: any) => (
-                                                                <SelectItem key={item.amst_Id} value={item.amst_Id.toString()}>
-                                                                    {item.amsT_FirstName} {item.amsT_MiddleName} {item.amsT_LastName}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {studentList?.map((item: any) => {
+                                                                const id = item.Amst_id || item.amst_Id;
+                                                                const displayName = item.name ? item.name : `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim();
+                                                                return (
+                                                                    <SelectItem key={id} value={id?.toString()}>
+                                                                        {displayName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                         </SelectContent>
                                                     </Select>
                                                 )}

@@ -6,10 +6,10 @@ import {
     saveReadmitStudent
 } from "@/server/admission/oldsharehost/masters/readmitstudent";
 
-export const useReadmitStudentDetails = (pageId: number) => {
+export const useReadmitStudentDetails = () => {
     return useQuery({
-        queryKey: ["readmitStudentDetails", pageId],
-        queryFn: () => getReadmitStudentDetails(pageId),
+        queryKey: ["readmitStudentDetails"],
+        queryFn: () => getReadmitStudentDetails(),
     });
 };
 
