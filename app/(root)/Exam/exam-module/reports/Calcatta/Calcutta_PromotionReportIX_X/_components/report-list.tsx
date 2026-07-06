@@ -18,6 +18,7 @@ export default function CalcuttaPromotionReportIX_XList() {
             setLoading(true);
             setPayload(data);
             const result = await getCalcuttaPromotionReportI_IX(data);
+            console.log('Calcutta Promotion Report IX_X response:', result);
             setReportData(result);
         } catch (error) {
             console.error('Failed to generate report', error);
@@ -649,12 +650,12 @@ export default function CalcuttaPromotionReportIX_XList() {
                             };
 
                             const scholasticSubjects = applicableSubjects.filter((subj: any) => {
-                                const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
-                                    !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
-                                return !isGradeOnly;
+                                const marksDisplay = subj.eyceS_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true';
+                                const gradeEntry = (subj.eyceS_MarksEntryDesc ?? subj.EYCES_MarksEntryDesc ?? '')?.trim().toUpperCase() === 'GRADE';
+                                return marksDisplay && !gradeEntry;
                             });
 
-                            const localChartData = scholasticSubjects.map((subj: any) => {
+                            const localChartData = (student.chartData && student.chartData.length > 0) ? student.chartData : scholasticSubjects.map((subj: any) => {
                                 const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                                 const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
 
@@ -766,16 +767,52 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 }
                             });
 
-                            const grandTotalObt = sem1TotalObt + sem2TotalObt;
-                            const grandTotalMax = sem1TotalMax + sem2TotalMax;
+                            const matchTermName = (termA: string, termB: string) => {
+                                const a = (termA ?? '').trim().toUpperCase();
+                                const b = (termB ?? '').trim().toUpperCase();
+                                if (a === b) return true;
+                                if (a === 'SEMESTER 1' && (b === 'SEMESTER I' || b === 'SEMESTER-I' || b === 'SEMESTER_I')) return true;
+                                if (a === 'SEMESTER 2' && (b === 'SEMESTER II' || b === 'SEMESTER-II' || b === 'SEMESTER_II')) return true;
+                                if (a === 'SEMESTER I' && (b === 'SEMESTER 1' || b === 'SEMESTER-1' || b === 'SEMESTER_1')) return true;
+                                if (a === 'SEMESTER II' && (b === 'SEMESTER 2' || b === 'SEMESTER-2' || b === 'SEMESTER_2')) return true;
+                                return false;
+                            };
 
-                            const yearlyAvgObtSum = Math.round(grandTotalObt / 2);
-                            const yearlyAvgMaxSum = Math.round(grandTotalMax / 2);
+                            const getSemesterTotalFromExamWise = (semName: string) => {
+                                const rec = student.student_marks?.find((m: any) => {
+                                    const mEmeId = m.EME_Id ?? m.emE_Id;
+                                    const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
+                                    return Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
+                                });
+                                if (rec) {
+                                    return {
+                                        obtained: rec.obtainedMarks ?? rec.ObtainedMarks ?? 0,
+                                        max: rec.maxmarks ?? rec.maxMarks ?? rec.Maxmarks ?? 0,
+                                        percentage: rec.totalPercentage ?? rec.TotalPercentage ?? 0
+                                    };
+                                }
+                                return null;
+                            };
 
-                            const sem1Percentage = sem1TotalMax > 0 ? Math.round((sem1TotalObt / sem1TotalMax) * 100) : 0;
-                            const sem2Percentage = sem2TotalMax > 0 ? Math.round((sem2TotalObt / sem2TotalMax) * 100) : 0;
-                            const grandPercentage = grandTotalMax > 0 ? Math.round((grandTotalObt / grandTotalMax) * 100) : 0;
-                            const yearlyPercentage = yearlyAvgMaxSum > 0 ? Math.round((yearlyAvgObtSum / yearlyAvgMaxSum) * 100) : 0;
+                            const sem1ExamTotal = getSemesterTotalFromExamWise(sem1Name);
+                            const sem2ExamTotal = getSemesterTotalFromExamWise(sem2Name);
+
+                            const sem1TotalObtVal = sem1TotalObt;
+                            const sem1TotalMaxVal = sem1TotalMax;
+
+                            const sem2TotalObtVal = sem2TotalObt;
+                            const sem2TotalMaxVal = sem2TotalMax;
+
+                            const sem1PercentageVal = sem1TotalMaxVal > 0 ? Math.round((sem1TotalObtVal / sem1TotalMaxVal) * 100) : 0;
+                            const sem2PercentageVal = sem2TotalMaxVal > 0 ? Math.round((sem2TotalObtVal / sem2TotalMaxVal) * 100) : 0;
+
+                            const grandTotalObtVal = sem1TotalObtVal + sem2TotalObtVal;
+                            const grandTotalMaxVal = sem1TotalMaxVal + sem2TotalMaxVal;
+                            const grandPercentageVal = grandTotalMaxVal > 0 ? Math.round((grandTotalObtVal / grandTotalMaxVal) * 100) : 0;
+
+                            const yearlyAvgObtVal = Math.round(grandTotalObtVal / 2);
+                            const yearlyAvgMaxVal = Math.round(grandTotalMaxVal / 2);
+                            const yearlyPercentageVal = yearlyAvgMaxVal > 0 ? Math.round((yearlyAvgObtVal / yearlyAvgMaxVal) * 100) : 0;
 
                             return (
                                 <div key={index} className={`page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans ${index < reportData.studentdetails.length - 1 ? 'mb-8' : ''}`}>
@@ -968,17 +1005,17 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                     <td className="border border-black p-1 text-left font-bold uppercase">TOTAL</td>
                                                     <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {sem1TotalMax > 0 ? `${sem1TotalObt}/${sem1TotalMax}` : '-'}
+                                                        {sem1TotalMaxVal > 0 ? `${Math.round(sem1TotalObtVal)}/${sem1TotalMaxVal}` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {sem2TotalMax > 0 ? `${sem2TotalObt}/${sem2TotalMax}` : '-'}
+                                                        {sem2TotalMaxVal > 0 ? `${Math.round(sem2TotalObtVal)}/${sem2TotalMaxVal}` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {grandTotalMax > 0 ? `${grandTotalObt}/${grandTotalMax}` : '-'}
+                                                        {grandTotalMaxVal > 0 ? `${Math.round(grandTotalObtVal).toLocaleString('en-US')}/${grandTotalMaxVal}` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {yearlyAvgMaxSum > 0 ? `${yearlyAvgObtSum}/${yearlyAvgMaxSum}` : '-'}
+                                                        {yearlyAvgMaxVal > 0 ? `${Math.round(yearlyAvgObtVal)}/ ${Math.round(yearlyAvgMaxVal)}` : '-'}
                                                     </td>
                                                 </tr>
 
@@ -987,17 +1024,17 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                     <td className="border border-black p-1 text-left font-bold uppercase">PERCENTAGE</td>
                                                     <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {sem1TotalMax > 0 ? `${sem1Percentage}%` : '-'}
+                                                        {sem1TotalMaxVal > 0 ? `${Math.round(sem1PercentageVal)} %` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold bg-gray-50"></td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {sem2TotalMax > 0 ? `${sem2Percentage}%` : '-'}
+                                                        {sem2TotalMaxVal > 0 ? `${Math.round(sem2PercentageVal)} %` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {grandTotalMax > 0 ? `${grandPercentage}%` : '-'}
+                                                        {grandTotalMaxVal > 0 ? `${Math.round(grandPercentageVal)}%` : '-'}
                                                     </td>
                                                     <td className="border border-black p-1 text-center font-bold">
-                                                        {yearlyAvgMaxSum > 0 ? `${yearlyPercentage}%` : '-'}
+                                                        {yearlyAvgMaxVal > 0 ? `${Math.round(yearlyPercentageVal)}%` : '-'}
                                                     </td>
                                                 </tr>
 
@@ -1027,23 +1064,25 @@ export default function CalcuttaPromotionReportIX_XList() {
                                         </table>
                                     </div>
 
-                                    {/* Promotion Status Section */}
+                                    {/* Suggestion Box */}
                                     <div className="padding-top-5">
-                                        <table className="table table-bordered" style={{ fontFamily: 'system-ui', width: '100%' }}>
+                                        <table className="table table-bordered w-full border-collapse border-[1.5px] border-black text-[12px] font-bold" style={{ fontFamily: 'system-ui' }}>
                                             <tbody>
-                                                <tr style={{ border: '0.5px solid' }}>
-                                                    <th className="text-center font-bold" style={{ backgroundColor: 'gray', color: 'white' }}>
+                                                <tr style={{ border: '0.5px solid black' }}>
+                                                    <td className="border-black border-b p-1 text-center uppercase text-white font-bold" style={{ backgroundColor: 'gray' }}>
                                                         PROMOTION STATUS
-                                                    </th>
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td className="text-left">
-                                                        <b>{remarks || '-'}</b>
+                                                    <td className="p-2 uppercase text-left font-bold border border-black">
+                                                        Suggestion : {student.suggestions?.[0] || ''}
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
+
+
 
                                     {conduct && (
                                         <div className="flex w-full pt-2 print:my-0">
