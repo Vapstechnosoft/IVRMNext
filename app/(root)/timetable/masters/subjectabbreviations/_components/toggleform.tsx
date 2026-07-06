@@ -43,7 +43,11 @@ export default function ToggleSubjectAbbreviationForm({ rowData, onClose }: Togg
             const response = await ToggleSubjectAbbreviation(Number(rowData.ttmsuaB_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                if (isActive) {
+                    toast.error('Record Deactivated Successfully');
+                } else {
+                    toast.success('Record Activated Successfully');
+                }
                 refetchAll();
                 closeDialog();
             } else {

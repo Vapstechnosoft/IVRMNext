@@ -124,13 +124,13 @@ function ContributionReportContent() {
   // const { data: masterGroupTypes } = useMasterGroupTypes();
   // const { data: masterDepartments } = useMasterDepartments();
   // const { data: masterDesignations } = useMasterDesignations();
-  const { data: masterGroupTypes } = useReportGroupTypes();
+  const { data: masterGroupTypes, isLoading: groupTypeLoading } = useReportGroupTypes();
 
   const groupTypeIds = watchedGroupType?.join(",") || "";
-  const { data: masterDepartments } = useReportDepartments(groupTypeIds);
+  const { data: masterDepartments, isLoading:departmentLoading } = useReportDepartments(groupTypeIds);
 
   const deptIds = watchedDepartment?.join(",") || "";
-  const { data: masterDesignations } = useReportDesignations(
+  const { data: masterDesignations, isLoading:designationLoading } = useReportDesignations(
     groupTypeIds,
     deptIds,
   );
@@ -639,7 +639,8 @@ function ContributionReportContent() {
                       options={groupTypeOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Group Types"
+                      placeholder={groupTypeLoading ? "Loading..." : "Select Group Types"}
+                      disabled={groupTypeLoading}
                     />
                   )}
                 />
@@ -660,7 +661,8 @@ function ContributionReportContent() {
                       options={departmentsOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Departments"
+                      placeholder={departmentLoading ? "Loading..." : "Select Departments"}
+                      disabled={departmentLoading || watchedGroupType.length === 0}
                     />
                   )}
                 />
@@ -681,7 +683,8 @@ function ContributionReportContent() {
                       options={designationsOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Designations"
+                      placeholder={designationLoading ? "Loading..." : "Select Designations"}
+                      disabled={designationLoading || watchedDepartment.length === 0} 
                     />
                   )}
                 />

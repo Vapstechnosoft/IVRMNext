@@ -81,6 +81,7 @@ export default function ReportForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value ?? 'empty-year'}
                                         onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger id='asmaY_Id' className='w-full'>
@@ -109,6 +110,7 @@ export default function ReportForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value ?? 'empty-month'}
                                         onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger id='month' className='w-full'>

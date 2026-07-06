@@ -58,7 +58,7 @@ export default function DepartmentSalaryReportPage() {
 
     // Data Fetching
     const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
-    const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     // Cascading Filter Logic
     const activeGroupIds = useMemo(() => {
@@ -69,7 +69,7 @@ export default function DepartmentSalaryReportPage() {
         return watchedGroupType.join(',');
     }, [watchedGroupType, groupTypesData]);
 
-    const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(activeGroupIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(activeGroupIds);
 
     const activeDeptIds = useMemo(() => {
         if (!watchedDepartment || watchedDepartment.length === 0) return '';
@@ -79,7 +79,7 @@ export default function DepartmentSalaryReportPage() {
         return watchedDepartment.join(',');
     }, [watchedDepartment, departmentsData]);
 
-    const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(activeGroupIds, activeDeptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(activeGroupIds, activeDeptIds);
 
     // Report Query
     const { mutate: fetchReport, isPending: isLoadingReport, data: reportResult } = useDepartmentSalaryReport();

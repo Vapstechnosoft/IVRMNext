@@ -38,9 +38,15 @@ function MasterBoardPageContent() {
 
     const fetchData = () => {
         setIsLoading(true);
-        getMasterBoardData({}).then(res => {
+        getMasterBoardData().then(res => {
             if (res.success) {
-                setData(res.data || []);
+                if (res.data && Array.isArray(res.data.boardList)) {
+                    setData(res.data.boardList);
+                } else if (Array.isArray(res.data)) {
+                    setData(res.data);
+                } else {
+                    setData([]);
+                }
             } else {
                 setData([]);
             }
@@ -116,11 +122,11 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
         try {
             const res = await deleteMasterBoard(selectedRow.ivrmmB_Id);
             if (res.success || res.returnval === true || res.returnval === "true") {
-                toast.success('Record deleted successfully');
+                toast.success(res.message || 'Record deleted successfully');
                 closeDeleteForm();
                 onRefresh();
             } else if (res.returnval === "mapped") {
-                toast.error("Sorry.....You can not delete this record. Because it is mapped to student");
+                toast.error(res.message || "Sorry.....You can not delete this record. Because it is mapped to student");
                 closeDeleteForm();
             } else {
                 toast.error(res.message || 'Failed to delete record');

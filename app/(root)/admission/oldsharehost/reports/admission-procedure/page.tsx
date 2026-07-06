@@ -102,10 +102,7 @@ export default function AdmissionProcedureReportPage() {
     };
 
     const handleCancel = () => {
-        setAcademicYearId(initialData?.data?.academicListdefault?.[0]?.asmaY_Id?.toString() || null);
-        setCategoryId('0');
-        setReportType('1');
-        setStudents([]);
+        window.location.reload();
     };
 
     const handleViewDetails = async (student: IAdmissionProcedureReport, type: 'procedure' | 'form') => {

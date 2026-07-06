@@ -43,7 +43,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
             //  MI_Id: 30,
             FMC_GroupOrTermFlg: row.fmC_GroupOrTermFlg ? String(row.fmC_GroupOrTermFlg) : 'T',
             FMC_StudentwiseJVFlag: row.fmC_StudentwiseJVFlag ? String(row.fmC_StudentwiseJVFlag) : 'S',
-
+            FMC_ArrearAfterFlag: row.fmC_ArrearAfterFlag ? String(row.fmC_ArrearAfterFlag) : '0',
             FMC_Areawise_FeeFlg: String(row.fmC_Areawise_FeeFlg ?? '0'),
             FMC_TransportFeeAreaFlag: String(row.fmC_TransportFeeAreaFlag ?? '0'),
             FMC_TransportFeeZoneFlag: String(row.fmC_TransportFeeZoneFlag ?? '0'),
@@ -72,17 +72,17 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
             FMC_Fine_Column: String(row.fmC_Fine_Column ?? '0'),
             FMC_ArrearColumn: String(row.fmC_ArrearColumn ?? '0'),
             FMC_AutoReceiptFeeGroupFlag: String(row.fmC_AutoReceiptFeeGroupFlag ?? '0'),
-            FMC_Receipt_Format: String(row.fmC_Receipt_Format ?? '0'),
+            FMC_Receipt_Format: row.fmC_Receipt_Format ? String(row.fmC_Receipt_Format ?? '0') : '0',
             FMC_EableStaffTrans: String(row.fmC_EableStaffTrans ?? '0'),
             FMC_EableOtherStudentTrans: String(row.fmC_EableOtherStudentTrans ?? '0'),
             FMC_FineEnableDisable: String(row.fmC_FineEnableDisable ?? '0'),
             FMC_USER_PREVILEDGE: String(row.fmC_USER_PREVILEDGE ?? '0'),
-            FMC_StaffConcessionCheck: String(row.fmC_StaffConcessionCheck ?? '0'),
-            FMC_ShowPreviousFeeFisrtFlg: String(row.fmC_ShowPreviousFeeFisrtFlg ?? '0'),
-            FMC_MakerCheckerReqdFlg: String(row.fmC_MakerCheckerReqdFlg ?? '0'),
-            FMC_RebateAplicableFlg: String(row.fmC_RebateAplicableFlg ?? '0'),
-            FMC_RebateAgainstFullPaymentFlg: String(row.fmC_RebateAgainstFullPaymentFlg ?? '0'),
-            FMC_RebateAgainstPartialPaymentFlg: String(row.fmC_RebateAgainstPartialPaymentFlg ?? '0'),
+            FMC_StaffConcessionCheck: row.fmC_StaffConcessionCheck,
+            FMC_ShowPreviousFeeFisrtFlg: row.fmC_ShowPreviousFeeFisrtFlg,
+            FMC_MakerCheckerReqdFlg: row.fmC_MakerCheckerReqdFlg,
+            FMC_RebateAplicableFlg: row.fmC_RebateAplicableFlg,
+            FMC_RebateAgainstFullPaymentFlg: row.fmC_RebateAgainstFullPaymentFlg,
+            FMC_RebateAgainstPartialPaymentFlg: row.fmC_RebateAgainstPartialPaymentFlg,
             FMC_RConcessionFlag: String(row.fmC_RConcessionFlag ?? '0'),
             FMC_Receipt_Signatory: String(row.fmC_Receipt_Signatory),
             FMC_No_Receipt: String(row.fmC_No_Receipt),
@@ -145,17 +145,17 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 FMC_RFeeGroupFeeHeadFlag: toStr(row.fmC_RFeeGroupFeeHeadFlag),
                 FMC_RSplFeeHeadFlag: toStr(row.fmC_RSplFeeHeadFlag),
                 FMC_AutoReceiptFeeGroupFlag: toStr(row.fmC_AutoReceiptFeeGroupFlag),
-                FMC_ShowPreviousFeeFisrtFlg: toStr(row.fmC_ShowPreviousFeeFisrtFlg),
-                FMC_StaffConcessionCheck: toStr(row.fmC_StaffConcessionCheck),
+                FMC_ShowPreviousFeeFisrtFlg: row.fmC_ShowPreviousFeeFisrtFlg,
+                FMC_StaffConcessionCheck: row.fmC_StaffConcessionCheck,
                 FMC_Receipt_Format: toStr(row.fmC_Receipt_Format),
                 FMC_EableStaffTrans: toStr(row.fmC_EableStaffTrans),
                 FMC_EableOtherStudentTrans: toStr(row.fmC_EableOtherStudentTrans),
                 FMC_FineEnableDisable: toStr(row.fmC_FineEnableDisable),
                 FMC_USER_PREVILEDGE: toStr(row.fmC_USER_PREVILEDGE),
-                FMC_MakerCheckerReqdFlg: toStr(row.fmC_MakerCheckerReqdFlg),
-                FMC_RebateAplicableFlg: toStr(row.fmC_RebateAplicableFlg),
-                FMC_RebateAgainstFullPaymentFlg: toStr(row.fmC_RebateAgainstFullPaymentFlg),
-                FMC_RebateAgainstPartialPaymentFlg: toStr(row.fmC_RebateAgainstPartialPaymentFlg),
+                FMC_MakerCheckerReqdFlg: row.fmC_MakerCheckerReqdFlg,
+                FMC_RebateAplicableFlg: row.fmC_RebateAplicableFlg,
+                FMC_RebateAgainstFullPaymentFlg: row.fmC_RebateAgainstFullPaymentFlg,
+                FMC_RebateAgainstPartialPaymentFlg: row.fmC_RebateAgainstPartialPaymentFlg,
                 FMC_ChallanOptionFlag: toStr(row.fmC_ChallanOptionFlag),
                 FMC_Receipt_Signatory: toStr(row.fmC_Receipt_Signatory),
                 FMC_No_Receipt: toStr(row.fmC_No_Receipt),
@@ -204,7 +204,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 FMC_GroupRemarksFlag: defaultNumber(data.FMC_GroupRemarksFlag),
                 FMC_AutoReceiptFeeGroupFlag: defaultNumber(data.FMC_AutoReceiptFeeGroupFlag),
                 FMC_Receipt_Format: defaultString(data.FMC_Receipt_Format),
-                FMC_EableStaffTrans: defaultNumber(''), // Empty string will be converted to 0
+                FMC_EableStaffTrans: defaultNumber(data.FMC_EableStaffTrans), // Empty string will be converted to 0
                 FMC_EableOtherStudentTrans: defaultNumber(data.FMC_EableOtherStudentTrans),
                 FMC_USER_PREVILEDGE: defaultNumber(data.FMC_USER_PREVILEDGE),
                 FMC_StaffConcessionCheck: Boolean(data.FMC_StaffConcessionCheck) || false,
@@ -638,15 +638,15 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_StaffConcessionCheck'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_StaffConcessionCheck'
                                             />
-                                            <Label htmlFor='Categorywise block online Payment'>Categorywise block online Payment</Label>
+                                            <Label htmlFor='FMC_StaffConcessionCheck'>Categorywise block online Payment</Label>
                                         </div>
                                     )}
                                 />
@@ -657,15 +657,15 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_ShowPreviousFeeFisrtFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_ShowPreviousFeeFisrtFlg'
                                             />
-                                            <Label htmlFor='Display Pending/OB Term initially'>Display Pending/OB Term initially</Label>
+                                            <Label htmlFor='FMC_ShowPreviousFeeFisrtFlg'>Display Pending/OB Term initially</Label>
                                         </div>
                                     )}
                                 />
@@ -677,15 +677,11 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_MakerCheckerReqdFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                                id='FMC_MakerCheckerReqdFlg'
-                                            />
-                                            <Label htmlFor='Display Pending/OB Term initially'>Enable Maker And Checker</Label>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='FMC_MakerCheckerReqdFlg' />
+                                            <Label htmlFor='FMC_MakerCheckerReqdFlg'>Enable Maker And Checker</Label>
                                         </div>
                                     )}
                                 />
@@ -697,15 +693,11 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_RebateAplicableFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                                id='FMC_RebateAplicableFlg'
-                                            />
-                                            <Label htmlFor='Rebate Applicable'>Rebate Applicable</Label>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='FMC_RebateAplicableFlg' />
+                                            <Label htmlFor='FMC_RebateAplicableFlg'>Rebate Applicable</Label>
                                         </div>
                                     )}
                                 />
@@ -717,15 +709,15 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_RebateAgainstFullPaymentFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_RebateAgainstFullPaymentFlg'
                                             />
-                                            <Label htmlFor='Rebate Applicable For Full Payment'>Rebate Applicable For Full Payment</Label>
+                                            <Label htmlFor='FMC_RebateAgainstFullPaymentFlg'>Rebate Applicable For Full Payment</Label>
                                         </div>
                                     )}
                                 />
@@ -737,15 +729,15 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                 <Controller
                                     name='FMC_RebateAgainstPartialPaymentFlg'
                                     control={control}
-                                    defaultValue='0'
+                                    defaultValue={false}
                                     render={({ field }) => (
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                                 id='FMC_RebateAgainstPartialPaymentFlg'
                                             />
-                                            <Label htmlFor='Rebate Applicable For Partial Payment'>
+                                            <Label htmlFor='FMC_RebateAgainstPartialPaymentFlg'>
                                                 Rebate Applicable For Partial Payment
                                             </Label>
                                         </div>

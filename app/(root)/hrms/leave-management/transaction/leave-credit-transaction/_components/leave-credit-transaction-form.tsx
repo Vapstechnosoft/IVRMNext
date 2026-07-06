@@ -206,9 +206,7 @@ export function LeaveCreditTransactionForm({
                 {/* Type Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Type:</Label>
-                    {isLoadingTypes ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
-                    ) : (
+                     
                         <Controller
                             control={control}
                             name="selectedTypeIds"
@@ -221,22 +219,20 @@ export function LeaveCreditTransactionForm({
                                         setValue('employeeId', 0); // Reset employee selection
                                     }}
                                     defaultValue={field.value}
-                                    placeholder='Select Types'
+                                    placeholder={isLoadingTypes ? 'Loading...' : 'Select Types'}
                                     className='w-full'
                                     maxHeight={200}
                                 />
                             )}
                         />
 
-                    )}
+                
 
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Department:</Label>
-                    {isLoadingDepartments ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
-                    ) : (
+                    
                         <Controller
                             control={control}
                             name="selectedDeptIds"
@@ -249,20 +245,19 @@ export function LeaveCreditTransactionForm({
                                         setValue('employeeId', 0); // Reset employee selection
                                     }}
                                     defaultValue={field.value}
-                                    placeholder='Select Departments'
+                                    placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
                                     className='w-full'
                                     maxHeight={200}
+                                    disabled={isLoadingDepartments || departments?.length === 0}
                                 />
                             )}
                         />
-                    )}
+                    
                 </div>
                 {/* Designation Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Filter by Designation:</Label>
-                    {isLoadingDesignations ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
-                    ) : (
+                    
                         <Controller
                             control={control}
                             name="selectedDesignationIds"
@@ -275,13 +270,14 @@ export function LeaveCreditTransactionForm({
                                         setValue('employeeId', 0); // Reset employee selection
                                     }}
                                     defaultValue={field.value}
-                                    placeholder='Select Designations'
+                                    placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
                                     className='w-full'
                                     maxHeight={200}
+                                    disabled={isLoadingDesignations || designations.length === 0}
                                 />
                             )}
                         />
-                    )}
+                    
                 </div>
             </div>
 
@@ -291,17 +287,15 @@ export function LeaveCreditTransactionForm({
                     <Label className='font-medium text-sm'>
                         Employee <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoadingEmployees ? (
-                        <div className="h-10 w-full animate-pulse rounded-md border bg-muted" />
-                    ) : (
+                    
                         <Controller
                             name='employeeId'
                             control={control}
                             rules={{ required: 'Employee is required', min: { value: 1, message: 'Employee is required' } }}
                             render={({ field }) => (
                                 <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger className={errors.employeeId ? 'border-red-500' : ''}>
-                                        <SelectValue placeholder='Select employee' />
+                                    <SelectTrigger className={errors.employeeId ? 'border-red-500' : ''} disabled={isLoadingEmployees || employees.length === 0}>
+                                        <SelectValue placeholder={isLoadingEmployees ? 'Loading...' : 'Select employee'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employees.length > 0 ? (
@@ -317,7 +311,7 @@ export function LeaveCreditTransactionForm({
                                 </Select>
                             )}
                         />
-                    )}
+                
                     {errors.employeeId && <FormError>{errors.employeeId.message}</FormError>}
                 </div>
 
