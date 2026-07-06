@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { Search, Loader2, Printer, X, FileSpreadsheet } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
@@ -71,6 +71,8 @@ export default function StudentEmployeeSmartCardPage() {
     // For print layout
     const [std, setStd] = useState(false);
     const [emp, setEmp] = useState(false);
+    
+    const printRef = useRef<HTMLDivElement>(null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -98,7 +100,7 @@ export default function StudentEmployeeSmartCardPage() {
             const res = await reportMutation.mutateAsync(payload);
             const resultData = res?.data;
 
-            if (!resultData?.getdetails || resultData.getdetails.length === 0) {
+            if (!resultData?.result || resultData.result.length === 0) {
                 toast.info('No Records Found!');
                 setItems([]);
                 setStd(false);
@@ -106,8 +108,8 @@ export default function StudentEmployeeSmartCardPage() {
                 return;
             }
 
-            setItems(resultData.getdetails);
-            setTotalStrength(resultData.getdetails.length);
+            setItems(resultData.result);
+            setTotalStrength(resultData.result.length);
             setSchoolDetails(resultData.schooldetails || []);
 
             if (data.flag1 === 'Std') {
@@ -144,19 +146,46 @@ export default function StudentEmployeeSmartCardPage() {
     };
 
     const handleClear = () => {
-        form.reset({
-            flag1: 'Std',
-            asmaY_Id: '',
-            asmcL_Id: '',
-            asmC_Id: ''
-        });
-        setItems([]);
-        setStd(false);
-        setEmp(false);
+        window.location.reload();
     };
 
     const handlePrint = () => {
-        window.print();
+        if (!printRef.current) {
+            toast.error("Nothing to print");
+            return;
+        }
+
+        const printContent = printRef.current.innerHTML;
+        const printWindow = window.open('', '_blank', 'width=1000,height=800');
+        
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Student/Employee Smart Card</title>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <style>
+                            @media print {
+                                @page { size: auto; margin: 10mm; }
+                                body { padding: 0; margin: 0; font-family: Arial, sans-serif; -webkit-print-color-adjust: exact; }
+                                .print\\:shadow-none { box-shadow: none !important; }
+                                .print\\:p-0 { padding: 0 !important; }
+                                .print\\:border-indigo-400 { border-color: #818cf8 !important; }
+                                .print\\:border-green-400 { border-color: #4ade80 !important; }
+                                .print\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+                                .print\\:gap-4 { gap: 1rem !important; }
+                            }
+                        </style>
+                    </head>
+                    <body onload="setTimeout(function() { window.print(); window.close(); }, 1000);">
+                        ${printContent}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        } else {
+            toast.error("Please allow popups to print");
+        }
     };
 
     const handleExportExcel = () => {
@@ -165,25 +194,25 @@ export default function StudentEmployeeSmartCardPage() {
         let ws: XLSX.WorkSheet;
         if (std) {
             const dataToExport = items.map((item) => ({
-                'Name': item.AMST_FirstName,
-                'Father Name': item.AMST_FatherName,
-                'Adm No': item.AMST_AdmNo,
-                'DOB': item.AMST_DOB ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy') : '',
+                'Name': item.name || item.AMST_FirstName,
+                'Father Name': item.fathername || item.AMST_FatherName,
+                'Adm No': item.admno || item.AMST_AdmNo,
+                'DOB': item.dob ? format(new Date(item.dob), 'dd/MM/yyyy') : (item.AMST_DOB ? format(new Date(item.AMST_DOB), 'dd/MM/yyyy') : ''),
                 'Address': item.address,
-                'Phone No': item.AMST_MobileNo,
-                'Mobile No': item.AMST_MobileNo,
-                'Email ID': item.AMST_emailId,
-                'Blood Group': item.AMST_BloodGroup
+                'Phone No': item.mobileno || item.AMST_MobileNo,
+                'Mobile No': item.mobileno || item.AMST_MobileNo,
+                'Email ID': item.email || item.AMST_emailId,
+                'Blood Group': item.bloodgroup || item.AMST_BloodGroup
             }));
             ws = XLSX.utils.json_to_sheet(dataToExport);
         } else {
             const dataToExport = items.map((item) => ({
-                'Name': item.hrme_employeefirstname,
-                'Emp Code': item.ecode,
-                'Joining Date': item.HRME_DOJ ? format(new Date(item.HRME_DOJ), 'dd-MM-yyyy') : '',
-                'DOB': item.hrme_DOB ? format(new Date(item.hrme_DOB), 'dd-MM-yyyy') : '',
+                'Name': item.name || item.hrme_employeefirstname,
+                'Emp Code': item.employeecode || item.ecode,
+                'Joining Date': item.doj ? format(new Date(item.doj), 'dd-MM-yyyy') : (item.HRME_DOJ ? format(new Date(item.HRME_DOJ), 'dd-MM-yyyy') : ''),
+                'DOB': item.dob ? format(new Date(item.dob), 'dd-MM-yyyy') : (item.hrme_DOB ? format(new Date(item.hrme_DOB), 'dd-MM-yyyy') : ''),
                 'Address': item.address,
-                'Blood Group': item.HRME_BloodGroup
+                'Blood Group': item.bloodgroup || item.HRME_BloodGroup
             }));
             ws = XLSX.utils.json_to_sheet(dataToExport);
         }
@@ -386,7 +415,7 @@ export default function StudentEmployeeSmartCardPage() {
 
             {/* Print Section */}
             {items.length > 0 && (
-                <div className="bg-white p-6 rounded-lg shadow-md print:shadow-none print:p-0">
+                <div ref={printRef} className="bg-white p-6 rounded-lg shadow-md print:shadow-none print:p-0">
                     <div className="text-center mb-6">
                         {logoUrl && (
                             <img src={logoUrl} alt="School Logo" className="mx-auto h-24 object-contain" />
@@ -408,19 +437,19 @@ export default function StudentEmployeeSmartCardPage() {
                                             <tbody>
                                                 <tr>
                                                     <td className="font-bold w-1/3 py-1">NAME</td>
-                                                    <td>: {user.AMST_FirstName}</td>
+                                                    <td>: {user.name || user.AMST_FirstName}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">FATHER NAME</td>
-                                                    <td>: {user.AMST_FatherName}</td>
+                                                    <td>: {user.fathername || user.AMST_FatherName}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">ADM.NO</td>
-                                                    <td>: {user.AMST_AdmNo}</td>
+                                                    <td>: {user.admno || user.AMST_AdmNo}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">DOB</td>
-                                                    <td>: {user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy') : ''}</td>
+                                                    <td>: {user.dob ? format(new Date(user.dob), 'dd/MM/yyyy') : (user.AMST_DOB ? format(new Date(user.AMST_DOB), 'dd/MM/yyyy') : '')}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1 align-top">ADDRESS</td>
@@ -428,19 +457,19 @@ export default function StudentEmployeeSmartCardPage() {
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">PHONE NO.</td>
-                                                    <td>: {user.AMST_MobileNo}</td>
+                                                    <td>: {user.mobileno || user.AMST_MobileNo}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">MOBILE NO.</td>
-                                                    <td>: {user.AMST_MobileNo}</td>
+                                                    <td>: {user.mobileno || user.AMST_MobileNo}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">EMAIL ID</td>
-                                                    <td className="break-all">: {user.AMST_emailId}</td>
+                                                    <td className="break-all">: {user.email || user.AMST_emailId}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">BLOOD GROUP</td>
-                                                    <td>: {user.AMST_BloodGroup}</td>
+                                                    <td>: {user.bloodgroup || user.AMST_BloodGroup}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -463,19 +492,19 @@ export default function StudentEmployeeSmartCardPage() {
                                             <tbody>
                                                 <tr>
                                                     <td className="font-bold w-1/3 py-1">NAME</td>
-                                                    <td>: {user.hrme_employeefirstname}</td>
+                                                    <td>: {user.name || user.hrme_employeefirstname}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">EMP CODE</td>
-                                                    <td>: {user.ecode}</td>
+                                                    <td>: {user.employeecode || user.ecode}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">JOINING DATE</td>
-                                                    <td>: {user.HRME_DOJ ? format(new Date(user.HRME_DOJ), 'dd-MM-yyyy') : ''}</td>
+                                                    <td>: {user.doj ? format(new Date(user.doj), 'dd-MM-yyyy') : (user.HRME_DOJ ? format(new Date(user.HRME_DOJ), 'dd-MM-yyyy') : '')}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">DOB</td>
-                                                    <td>: {user.hrme_DOB ? format(new Date(user.hrme_DOB), 'dd-MM-yyyy') : ''}</td>
+                                                    <td>: {user.dob ? format(new Date(user.dob), 'dd-MM-yyyy') : (user.hrme_DOB ? format(new Date(user.hrme_DOB), 'dd-MM-yyyy') : '')}</td>
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1 align-top">ADDRESS</td>
@@ -483,7 +512,7 @@ export default function StudentEmployeeSmartCardPage() {
                                                 </tr>
                                                 <tr>
                                                     <td className="font-bold py-1">BLOOD GROUP</td>
-                                                    <td>: {user.HRME_BloodGroup}</td>
+                                                    <td>: {user.bloodgroup || user.HRME_BloodGroup}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
