@@ -294,6 +294,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         control={control}
                                         render={({ field }) => (
                                             <UISelect
+                                                key={`class-${academicYearId}`}
                                                 onValueChange={handleClassChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={academicYearId === 0}>
@@ -332,6 +333,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                         control={control}
                                         render={({ field }) => (
                                             <UISelect
+                                                key={`section-${classId}`}
                                                 onValueChange={handleSectionChange}
                                                 value={field.value > 0 ? field.value.toString() : ''}
                                                 disabled={classId === 0}>

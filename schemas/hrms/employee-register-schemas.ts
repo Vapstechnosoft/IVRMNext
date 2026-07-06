@@ -219,9 +219,9 @@ export const payrollItemSchema = z.object({
 // Base employee register object schema (without refinements)
 const baseEmployeeRegisterSchema = z.object({
     // Employee tab fields
-    firstName: createStringOnlySchema('Name of the Employee', 1, 50),
+    firstName: createStringOnlySchema('First Name', 1, 50),
     middleName: z.string().max(50, 'Middle Name must not exceed 50 characters').optional(),
-    lastName: z.string().max(50, 'Last Name must not exceed 50 characters').optional(),
+    lastName: createStringOnlySchema('Last Name', 1, 50),
     employeeCode: z.string().min(1, 'Employee Code Required').max(20, 'Employee Code must not exceed 20 characters'),
     typeOfEmployment: z.string().min(1, 'Type of Employment Required'),
     employeeGroup: z.string().min(1, 'Employee Group Required'),

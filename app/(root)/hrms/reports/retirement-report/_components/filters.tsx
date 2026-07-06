@@ -30,7 +30,7 @@ export interface RetirementFilters {
 }
 interface RetirementReportFiltersProps {
     filters: RetirementFilters;
-    employeeTypes?: Array<{ HRMET_Id: number; HRMET_EmployeeType: string; [key: string]: any }>;
+    employeeTypes?: Array<{ HRMET_Id: number; HRMET_EmployeeType: string;[key: string]: any }>;
     employees?: Array<{
         HRME_Id: number;
         HRME_EmployeeCode: string;
@@ -40,9 +40,9 @@ interface RetirementReportFiltersProps {
         [key: string]: any;
     }>;
     // Format 2 dropdowns
-    groupTypes?: Array<{ hrmgT_Id: number; HRMGT_GroupTypeName: string; [key: string]: any }>;
-    departments?: Array<{ hrmD_Id: number; HRMD_DepartmentName: string; [key: string]: any }>;
-    designations?: Array<{ hrmdeS_Id: number; HRMDES_DesignationName: string; [key: string]: any }>;
+    groupTypes?: Array<{ hrmgT_Id: number; HRMGT_GroupTypeName: string;[key: string]: any }>;
+    departments?: Array<{ hrmD_Id: number; HRMD_DepartmentName: string;[key: string]: any }>;
+    designations?: Array<{ hrmdeS_Id: number; HRMDES_DesignationName: string;[key: string]: any }>;
     onFilterChange: (key: keyof RetirementFilters, value: any) => void;
     onHeaderChange: (header: string, checked: boolean) => void;
     onHeaderSelectAll: (checked: boolean) => void;
@@ -220,6 +220,7 @@ export function RetirementReportFilters({
                                         mode='single'
                                         selected={filters.toDate}
                                         onDayClick={(day) => onDateChange('toDate', day)}
+                                        disabled={filters.fromDate ? { before: new Date(new Date(filters.fromDate).setHours(0, 0, 0, 0)) } : undefined}
                                         initialFocus
                                     />
                                 </PopoverContent>
