@@ -17,7 +17,7 @@ export default function CalcuttaPromotionReportItoIVPage() {
             setReportData(null);
             const res = await getCalcuttaPromotionReportI_IV(payload);
             console.log('calcutta promotion report i to iv', res);
-            setReportData({ ...res, EMPG_GroupName: payload.empG_GroupName || payload.EMPG_GroupName });
+            setReportData({ ...res, EMPG_GroupName: payload.empG_GroupName || payload.EMPG_GroupName, ASMAY_Year: payload.ASMAY_Year || '' });
             toast.success('Report generated successfully');
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
@@ -40,6 +40,7 @@ export default function CalcuttaPromotionReportItoIVPage() {
                     <CalcuttaPromotionReportView
                         data={reportData}
                         institution={reportData?.getinstitution?.[0] || null}
+                        examwisetotal={reportData?.examwisetotal}
                     />
                 )}
             </div>

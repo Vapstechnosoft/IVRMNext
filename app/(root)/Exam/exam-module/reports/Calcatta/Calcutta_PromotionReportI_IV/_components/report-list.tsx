@@ -9,9 +9,10 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, LabelL
 interface CalcuttaPromotionReportViewProps {
     data: any;
     institution: IMasterInstitution | Institution | null;
+    examwisetotal?: any[]; // Array of highest in class records
 }
 
-const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionReportViewProps) => {
+const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: CalcuttaPromotionReportViewProps) => {
     const handlePrint = () => {
         window.print();
     };
@@ -297,7 +298,7 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                         return true;
                     });
 
-                    const localChartData = scholasticSubjects.map((subj: any) => {
+                    const localChartData = (student.chartData && student.chartData.length > 0) ? student.chartData : scholasticSubjects.map((subj: any) => {
                         const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                         const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
 
@@ -409,18 +410,19 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                 return mr.ESTMPPS_ObtainedGrade ?? mr.estmppS_ObtainedGrade ?? mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
                             }
 
-                            // Directly fetch the highest record for this subject and term
-                            const highestRec = student.studentmarks?.find((m: any) => {
-                                const mSubjId = m.ISMS_Id ?? m.ismS_Id;
-                                const mEmeId = m.EME_Id ?? m.emE_Id;
-                                const mGrpName = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '').trim().toUpperCase();
-                                const targetGrpName = (EMPG_GroupName ?? '').trim().toUpperCase();
-                                return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 98000012 && matchTermName(mGrpName, targetGrpName);
-                            });
-                            if (highestRec) {
-                                const hVal = highestRec.ESTMPPS_ClassHighest ?? highestRec.estmppS_ClassHighest ?? highestRec.ESTMPS_ClassHighest ?? highestRec.estmpS_ClassHighest;
-                                if (hVal !== undefined && hVal !== null && !isNaN(Number(hVal))) {
-                                    return Number(hVal);
+                            // Use examwisetotal prop to get highest value
+                            if (student.examwisetotal && Array.isArray(student.examwisetotal)) {
+                                const highestRec = student.examwisetotal.find((rec: any) => {
+                                    const recSubjId = rec.ismS_Id;
+                                    const recExamId = rec.emE_Id ?? rec.EME_Id;
+                                    const recGrpName = rec.empsG_GroupName ?? '';
+                                    return Number(recSubjId) === Number(subjId) && Number(recExamId) === 98000012 && matchTermName(recGrpName, grpName);
+                                });
+                                if (highestRec) {
+                                    const hVal = highestRec.estmppS_ClassHighest;
+                                    if (hVal !== undefined && hVal !== null && !isNaN(Number(hVal))) {
+                                        return Number(hVal);
+                                    }
                                 }
                             }
                             // Fallback to existing calculation if not found
@@ -432,37 +434,59 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                     };
 
                     return (
-                        <div key={student.amsT_Id || index} className="page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans text-black">
-                            {/* Academic Session Badge */}
-                            <div className='mb-2 flex justify-center'>
-                                <div className='border-2 border-black bg-white px-8 py-1'>
-                                    <h2 className='font-bold text-[16px] tracking-wider uppercase'>ACADEMIC SESSION {student.asmaY_Year}</h2>
-                                </div>
-                            </div>
-
-                            {/* Student Info Box */}
-                            <div className='mb-2 flex border-[1.5px] border-black p-1'>
-                                <div className='flex-1 pr-2'>
-                                    <div className='grid grid-cols-[120px_10px_1fr] gap-y-1 font-bold text-[13px]'>
-                                        <div>Student's Name</div><div>:</div><div className='uppercase'>{student.amsT_FirstName || student.studentname}</div>
-                                        <div>Scholar No.</div><div>:</div><div>{student.amsT_AdmNo || student.admno}</div>
-                                        <div>Total Students</div><div>:</div><div>{studentdetails.length}</div>
-                                    </div>
-                                </div>
-                                <div className='flex-1 px-2'>
-                                    <div className='grid grid-cols-[100px_10px_1fr] gap-y-1 font-bold text-[13px]'>
-                                        <div>Class & sec</div><div>:</div><div className='uppercase'>{student.asmcL_ClassName} - {student.asmC_SectionName}</div>
-                                        <div>Roll No</div><div>:</div><div>{student.amaY_RollNo || student.rollno || 1}</div>
-                                    </div>
-                                </div>
-                                <div className='flex h-[80px] w-[80px] items-center justify-center border border-black ml-auto mr-1'>
-                                    {student.amsT_Photoname || student.student_photo ? (
-                                        <img src={student.amsT_Photoname || student.student_photo} alt="Student" className="h-full w-full object-contain" />
-                                    ) : (
-                                        <span className="text-gray-400 text-xs">Photo</span>
-                                    )}
-                                </div>
-                            </div>
+                        <div key={student.amsT_Id || index} className="page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 pt-16 font-sans text-black">
+                            <table className="mb-2 w-full table-fixed border-collapse border border-black" style={{ fontFamily: 'system-ui' }}>
+                                <caption className="relative top-4 text-center caption-top">
+                                    <span className="border border-black bg-white px-8 py-1 text-[23px] font-semibold tracking-wide uppercase">
+                                        ACADEMIC SESSION {student.asmaY_Year || data.ASMAY_Year || (institution as any)?.asmaY_Year || data.getinstitution?.[0]?.asmaY_Year || ''}
+                                    </span>
+                                </caption>
+                                <tbody>
+                                    <tr>
+                                        <td className="w-full border border-black p-4">
+                                            <div className="flex w-full">
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px] pt-6">
+                                                        <div className="font-bold">Student's Name</div>
+                                                        <div className="uppercase">: {student.amsT_FirstName || student.studentname || ''}</div>
+                                                    </div>
+                                                    <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]">
+                                                        <div className="font-bold">Scholar No.</div>
+                                                        <div>: {student.amsT_AdmNo || student.admno || ''}</div>
+                                                    </div>
+                                                    <div className="grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]">
+                                                        <div className="font-bold">Total Students</div>
+                                                        <div>: {studentdetails.length}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-1">
+                                                    <div className="flex-1 space-y-2">
+                                                        <div className="grid grid-cols-[80px_1fr] items-center gap-2 text-[14px] pt-6">
+                                                            <div className="font-bold">Class & Sec</div>
+                                                            <div className="uppercase">: {student.classname || student.asmcL_ClassName || ''} - {student.sectionname || student.asmC_SectionName || ''}</div>
+                                                        </div>
+                                                        <div className="grid grid-cols-[80px_1fr] items-center gap-2 text-[14px]">
+                                                            <div className="font-bold">Roll No</div>
+                                                            <div>: {student.amaY_RollNo || student.rollno || 1}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex w-[100px] items-center justify-center text-right ml-auto">
+                                                        {(student.amsT_Photoname || student.student_photo) ? (
+                                                            <div className="relative h-[100px] w-[100px] border border-gray-300">
+                                                                <img src={student.amsT_Photoname || student.student_photo} alt="Student Photo" className="h-full w-full object-contain" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex h-[100px] w-[100px] items-center justify-center border border-gray-300 bg-gray-100 text-xs text-gray-400">
+                                                                Photo
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
                             {/* Main Split Table */}
                             <table className='mb-2 w-full border-collapse border-[1.5px] border-black text-[12px]'>
@@ -505,9 +529,8 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                                                     const isHighestCol = examId === 98000012;
 
                                                                     if (isSubjGrouped && isTotalCol && rowSpanVal === -1) return null;
-                                                                    if (isSubjGrouped && isHighestCol && rowSpanVal === -1) return null;
 
-                                                                    const rs = (isSubjGrouped && (isTotalCol || isHighestCol)) ? rowSpanVal : 1;
+                                                                    const rs = (isSubjGrouped && isTotalCol) ? rowSpanVal : 1;
                                                                     const cellValue = getCellValue(subj, exam);
 
                                                                     return (
@@ -654,7 +677,7 @@ const CalcuttaPromotionReportView = ({ data, institution }: CalcuttaPromotionRep
                                     </tr>
                                     <tr>
                                         <td className='p-2 uppercase text-left'>
-                                            Suggestion : {student.remarks?.toUpperCase() || ''}
+                                            Suggestion : {student.suggestions[0] || ''}
                                         </td>
                                     </tr>
                                 </tbody>

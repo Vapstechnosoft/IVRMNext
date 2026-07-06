@@ -382,9 +382,9 @@ function StudentSubjectMappingContent() {
                 setPayload(null);
 
                 // Reset the table if ref is available
-                if (tableRef.current) {
-                    tableRef.current.reset();
-                }
+                // if (tableRef.current) {
+                //     tableRef.current.reset();
+                // }
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }

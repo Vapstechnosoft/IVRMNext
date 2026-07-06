@@ -530,11 +530,11 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                                 Add another row
                             </Button>
                             <Button
-                                className='w-24'
-                                variant='success'
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                                // variant='success'
                                 size='sm'
                                 onClick={handleSubmit(saveRows)}
-                                type='button'
+                                type='submit'
                                 disabled={isSubmitting}>
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
