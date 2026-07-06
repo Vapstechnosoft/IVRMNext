@@ -55,7 +55,7 @@ export default function TogglePreAdmissionAcademicYearForm({ rowData, onClose }:
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred');
         }
     };
 

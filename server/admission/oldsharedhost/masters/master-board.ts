@@ -39,7 +39,7 @@ export async function saveMasterBoard(data: any) {
     try {
         const response = await api.post('admission', url, data);
         if (response.success) {
-            revalidatePath('/admission/oldsharehost/masters/master-board');
+            revalidatePath('/admission/oldsharehost/masters/masterboard');
         }
         return response as any;
     } catch (error) {
@@ -81,7 +81,7 @@ export async function deleteMasterBoard(id: number) {
     try {
         const response = await api.post('admission', url, {});
         if (response.success || response.returnval === true || response.returnval === "true") {
-            revalidatePath('/admission/oldsharehost/masters/master-board');
+            revalidatePath('/admission/oldsharehost/masters/masterboard');
         }
         return response as any;
     } catch (error) {

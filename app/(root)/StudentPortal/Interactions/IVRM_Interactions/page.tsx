@@ -3,6 +3,8 @@ import { getInitialInteractions } from '@/server/staff-portal/interactions';
 import { InteractionContainer } from './_components/interaction-container';
 import { Card, CardContent } from '@/components/ui/card';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
     title: 'Interactions | Student Portal',
     description: 'Manage and view interactions between students and staff.',

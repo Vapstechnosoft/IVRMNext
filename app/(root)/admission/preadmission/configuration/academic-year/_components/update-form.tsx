@@ -80,10 +80,10 @@ export default function UpdateMasterAcademicYearForm({
                 asmaY_Order: Number(row.asmaY_Order),
                 asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag),
                 asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date,
-                asmaY_Pre_ActiveFlag: row.asmaY_Pre_ActiveFlag === 1,
-                asmaY_ReggularFlg: Boolean(row.asmaY_ReggularFlg),
-                asmaY_NewFlg: Boolean(row.asmaY_NewFlg),
-                asmaY_NewAdmissionFlg: Boolean(row.asmaY_NewAdmissionFlg),
+                asmaY_Pre_ActiveFlag: Number(row.asmaY_Pre_ActiveFlag) === 1 || String(row.asmaY_Pre_ActiveFlag).toLowerCase() === 'true',
+                asmaY_ReggularFlg: Number(row.asmaY_ReggularFlg) === 1 || row.asmaY_ReggularFlg === true || String(row.asmaY_ReggularFlg).toLowerCase() === 'true',
+                asmaY_NewFlg: Number(row.asmaY_NewFlg) === 1 || row.asmaY_NewFlg === true || String(row.asmaY_NewFlg).toLowerCase() === 'true',
+                asmaY_NewAdmissionFlg: Number(row.asmaY_NewAdmissionFlg) === 1 || row.asmaY_NewAdmissionFlg === true || String(row.asmaY_NewAdmissionFlg).toLowerCase() === 'true',
                 asmaY_TransportSDate: row.asmaY_TransportSDate,
                 asmaY_TransportEDate: row.asmaY_TransportEDate,
                 asmaY_ReferenceDate: row.asmaY_ReferenceDate,
@@ -136,7 +136,7 @@ export default function UpdateMasterAcademicYearForm({
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred');
         }
     };
 
@@ -764,7 +764,7 @@ export default function UpdateMasterAcademicYearForm({
                                     name='asmaY_NewAdmissionFlg'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox id='asmaY_NewAdmissionFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                        <Checkbox id='asmaY_NewAdmissionFlg' checked={!!field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='asmaY_NewAdmissionFlg' className='cursor-pointer'>
@@ -776,7 +776,7 @@ export default function UpdateMasterAcademicYearForm({
                                     name='asmaY_ReggularFlg'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox id='asmaY_ReggularFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                        <Checkbox id='asmaY_ReggularFlg' checked={!!field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='asmaY_ReggularFlg' className='cursor-pointer'>
@@ -788,7 +788,7 @@ export default function UpdateMasterAcademicYearForm({
                                     name='asmaY_NewFlg'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox id='asmaY_NewFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                        <Checkbox id='asmaY_NewFlg' checked={!!field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='asmaY_NewFlg' className='cursor-pointer'>
@@ -800,7 +800,7 @@ export default function UpdateMasterAcademicYearForm({
                                     name='asmaY_Pre_ActiveFlag'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox id='asmaY_Pre_ActiveFlag' checked={field.value} onCheckedChange={field.onChange} />
+                                        <Checkbox id='asmaY_Pre_ActiveFlag' checked={!!field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='asmaY_Pre_ActiveFlag' className='cursor-pointer'>
