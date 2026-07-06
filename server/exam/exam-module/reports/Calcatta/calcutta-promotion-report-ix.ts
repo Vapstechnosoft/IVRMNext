@@ -218,50 +218,28 @@ export async function getCalcuttaPromotionReportI_IX(data: any) {
 
         // Generate Chart Data (Highest vs Average vs Obtained)
         const chartData = [];
-        for (const subj of studentSubjects) {
-            if (subj.EYCES_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg || subj.eyceS_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === 'true') {
-                const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
-                const subjId = subj.ISMS_Id || subj.ismS_Id;
+        const studentChartSubjects = studentSubjects.filter(
+            (s: any) => s.EYCES_MarksDisplayFlg === true || s.EYCES_MarksDisplayFlg === 'true' || s.eyceS_MarksDisplayFlg === true || s.eyceS_MarksDisplayFlg === 'true'
+        );
 
-                // Find stats from student's examwisetotal
-                const stats = examwisetotal.find((t: any) =>
+        for (const subj of studentChartSubjects) {
+            const subjectName = subj.ISMS_SubjectName || subj.ismS_SubjectName;
+            const subjId = subj.ISMS_Id || subj.ismS_Id;
+
+            const examTotal = examwisetotal.find(
+                (t: any) =>
                     (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
                     (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
                     t.ISMS_SubjectName === subjectName ||
                     t.ismS_SubjectName === subjectName
-                );
+            );
 
-                // Find stats from global getexamwisetotaldetails (if student-specific filter is empty or missing average)
-                const globalStats = getexamwisetotaldetails.find((t: any) =>
-                    (t.ISMS_Id && subjId && Number(t.ISMS_Id) === Number(subjId)) ||
-                    (t.ismS_Id && subjId && Number(t.ismS_Id) === Number(subjId)) ||
-                    t.ISMS_SubjectName === subjectName ||
-                    t.ismS_SubjectName === subjectName
-                );
-
-                // Find obtained marks directly from studentmarks (more reliable)
-                const obtainedEntry = studentMarks.find((m: any) =>
-                    (Number(m.ISMS_Id || m.ismS_Id) === Number(subjId)) &&
-                    (Number(m.EME_Id || m.emE_Id) === 9800000)
-                );
-
-                // Find highest marks directly from studentmarks (more reliable)
-                const highestEntry = studentMarks.find((m: any) =>
-                    (Number(m.ISMS_Id || m.ismS_Id) === Number(subjId)) &&
-                    (Number(m.EME_Id || m.emE_Id) === 98000012)
-                );
-
-                const obtained = obtainedEntry?.groupMarks ?? obtainedEntry?.obtainedMarks ?? stats?.ObtainedMarks ?? stats?.obtainedMarks ?? 0;
-                const highest = highestEntry?.estmppS_ClassHighest ?? highestEntry?.ESTMPPS_ClassHighest ?? stats?.ESTMPPS_ClassHighest ?? stats?.estmppS_ClassHighest ?? globalStats?.ESTMPPS_ClassHighest ?? globalStats?.estmppS_ClassHighest ?? 0;
-                const average = stats?.ESTMPPS_SectionAverage ?? stats?.estmppS_SectionAverage ?? globalStats?.ESTMPPS_SectionAverage ?? globalStats?.estmppS_SectionAverage ?? 0;
-
-                chartData.push({
-                    subject: subjectName,
-                    highest: Number(highest) || 0,
-                    average: Number(average) || 0,
-                    obtained: Number(obtained) || 0
-                });
-            }
+            chartData.push({
+                subject: subjectName,
+                highest: Number(examTotal?.ESTMPPS_ClassHighest || examTotal?.estmppS_ClassHighest || 0),
+                average: Number(examTotal?.ESTMPPS_SectionAverage || examTotal?.estmppS_SectionAverage || 0),
+                obtained: Number(examTotal?.ObtainedMarks || examTotal?.obtainedMarks || 0)
+            });
         }
 
         return {

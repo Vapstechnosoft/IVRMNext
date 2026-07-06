@@ -391,7 +391,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                                         <SelectContent>
                                             <SelectItem value="0">All</SelectItem>
                                             {details?.classlist
-                                                ?.filter((cls: any) => cls.asmcL_PreadmFlag === 1)
+                                                ?.filter((cls: any) => cls.asmcL_ActiveFlag === true)
                                                 ?.map((cls: any) => (
                                                     <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
                                                         {cls.asmcL_ClassName}
