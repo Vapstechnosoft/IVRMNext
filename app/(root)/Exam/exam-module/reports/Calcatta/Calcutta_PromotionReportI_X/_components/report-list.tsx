@@ -770,7 +770,14 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                     if (!mr) return '-';
                                                     return mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
                                                 }
-                                                
+                                                if (mr) {
+                                                    const oVal = mr.ObtainedMarks ?? mr.obtainedMarks;
+                                                    if (oVal !== undefined && oVal !== null && oVal !== '') {
+                                                        const maxVal = mr.maxmarks ?? mr.maxMarks ?? mr.max_marks;
+                                                        return isSE && maxVal ? `${oVal} / ${maxVal}` : oVal;
+                                                    }
+                                                }
+
                                                 const grp = reportData?.getgroupdetails?.find((g: any) =>
                                                     matchTermName(g.empG_DistplayName ?? g.EMPG_DistplayName ?? '', grpName)
                                                 );
@@ -786,6 +793,28 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                 if (isGradeOnly) {
                                                     if (!mr) return '-';
                                                     return mr.ESTMPPS_ObtainedGrade ?? mr.estmppS_ObtainedGrade ?? mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
+                                                }
+                                                if (mr) {
+                                                    const hVal = mr.ESTMPPS_ClassHighest ?? mr.estmppS_ClassHighest;
+                                                    if (hVal !== undefined && hVal !== null && hVal !== '') {
+                                                        return hVal;
+                                                    }
+                                                }
+                                                if (report.examwisetotal && Array.isArray(report.examwisetotal)) {
+                                                    const highestRec = report.examwisetotal.find((rec: any) => {
+                                                        const recSubjId = rec.ismS_Id ?? rec.ISMS_Id;
+                                                        const recExamId = rec.emE_Id ?? rec.EME_Id;
+                                                        const recGrpName = rec.empsG_GroupName ?? rec.EMPSG_GroupName ?? '';
+                                                        return Number(recSubjId) === Number(subjId) &&
+                                                            (Number(recExamId) === 98000012 || Number(recExamId) === 9800000) &&
+                                                            (!recGrpName || matchTermName(recGrpName, grpName));
+                                                    });
+                                                    if (highestRec) {
+                                                        const hVal = highestRec.estmppS_ClassHighest ?? highestRec.ESTMPPS_ClassHighest;
+                                                        if (hVal !== undefined && hVal !== null && hVal !== '') {
+                                                            return hVal;
+                                                        }
+                                                    }
                                                 }
 
                                                 const grp = reportData?.getgroupdetails?.find((g: any) =>
@@ -1015,6 +1044,34 @@ export default function CalcuttaPromotionReportI_IXList() {
                                         const grandPercentage = grandTotalSumMax > 0 ? Math.round((grandTotalSumObt / grandTotalSumMax) * 100) : 0;
                                         const yearlyPercentage = yearlyAvgMaxSum > 0 ? Math.round((yearlyAvgObtSum / yearlyAvgMaxSum) * 100) : 0;
 
+                                        const getSemesterTotalFromExamWise = (semName: string) => {
+                                            const rec = report.student_marks?.find((m: any) => {
+                                                const mEmeId = m.EME_Id ?? m.emE_Id;
+                                                const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '')?.trim().toUpperCase();
+                                                return Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
+                                            });
+                                            if (rec) {
+                                                return {
+                                                    obtained: rec.obtainedMarks ?? rec.ObtainedMarks ?? 0,
+                                                    max: rec.maxmarks ?? rec.maxMarks ?? rec.Maxmarks ?? 0,
+                                                    percentage: rec.totalPercentage ?? rec.TotalPercentage ?? 0
+                                                };
+                                            }
+                                            return null;
+                                        };
+
+                                        const sem1ExamTotal = getSemesterTotalFromExamWise(sem1Name);
+                                        const sem2ExamTotal = getSemesterTotalFromExamWise(sem2Name);
+
+                                        const sem1TotalObtVal = sem1ExamTotal ? Number(sem1ExamTotal.obtained) : (sem1Sum?.obtained ?? 0);
+                                        const sem1TotalMaxVal = sem1ExamTotal ? Number(sem1ExamTotal.max) : (sem1Sum?.max ?? 0);
+
+                                        const sem2TotalObtVal = sem2ExamTotal ? Number(sem2ExamTotal.obtained) : (sem2Sum?.obtained ?? 0);
+                                        const sem2TotalMaxVal = sem2ExamTotal ? Number(sem2ExamTotal.max) : (sem2Sum?.max ?? 0);
+
+                                        const sem1PercentageVal = sem1ExamTotal ? Number(sem1ExamTotal.percentage) : sem1Percentage;
+                                        const sem2PercentageVal = sem2ExamTotal ? Number(sem2ExamTotal.percentage) : sem2Percentage;
+
                                         // Helper to get Obtained, Highest, and Average marks for a subject in a given semester
                                         const getSubjectSemesterStats = (stu: any, subjId: number, semName: string) => {
                                             const currentStudentId = stu.AMST_Id ?? stu.amsT_Id;
@@ -1131,12 +1188,12 @@ export default function CalcuttaPromotionReportI_IXList() {
                                         };
 
                                         const scholasticSubjects = applicableSubjects.filter((subj: any) => {
-                                            const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
-                                                !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
-                                            return !isGradeOnly;
+                                            const marksDisplay = subj.eyceS_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true';
+                                            const gradeEntry = (subj.eyceS_MarksEntryDesc ?? subj.EYCES_MarksEntryDesc ?? '')?.trim().toUpperCase() === 'GRADE';
+                                            return marksDisplay && !gradeEntry;
                                         });
 
-                                        const localChartData = scholasticSubjects.map((subj: any) => {
+                                        const localChartData = (report.chartData && report.chartData.length > 0) ? report.chartData : scholasticSubjects.map((subj: any) => {
                                             const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                                             const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
 
@@ -1243,18 +1300,20 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                                     const marksDisplay = subj.EYCES_MarksDisplayFlg === 1 || subj.EYCES_MarksDisplayFlg === '1' || subj.EYCES_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 1 || subj.eyceS_MarksDisplayFlg === '1' || subj.eyceS_MarksDisplayFlg === true;
                                                                                     const subCode = subj.ISMS_SubjectCode || subj.ismS_SubjectCode || '';
 
-                                                                                    if (gFlag && !gradeDisplay) {
-                                                                                        return subj.GroupMarks ?? subj.groupMarks ?? '-';
-                                                                                    }
-                                                                                    if (!gFlag && !gradeDisplay && marksDisplay) {
-                                                                                        const obt = subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? '';
-                                                                                        if (obt === '') return '-';
-                                                                                        return subCode === 'SE' ? `${obt} / ${subj.EMPS_MaxMarks ?? 200}` : obt;
-                                                                                    }
-                                                                                    if (!gFlag && subCode === 'ME' && gradeDisplay) {
+                                                                                    if (gradeDisplay && !marksDisplay) {
                                                                                         return '-';
                                                                                     }
-                                                                                    return '-';
+
+                                                                                    if (gFlag) {
+                                                                                        const val = subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? subj.GroupMarks ?? subj.groupMarks ?? getGrandTotal(subj).obtained;
+                                                                                        return val !== null && val !== undefined && val !== '' ? val : '-';
+                                                                                    } else {
+                                                                                        const val = subj.ESTMPPSG_GroupObtMarks ?? subj.estmppsG_GroupObtMarks ?? getGrandTotal(subj).obtained;
+                                                                                        if (val === null || val === undefined || val === '') return '-';
+                                                                                        if (val === 'AB') return 'AB';
+                                                                                        const maxVal = subj.EMPS_MaxMarks ?? subj.emps_MaxMarks ?? getGrandTotal(subj).max ?? 200;
+                                                                                        return subCode === 'SE' ? `${val} / ${maxVal}` : val;
+                                                                                    }
                                                                                 })()}
                                                                             </td>
                                                                         )}
@@ -1264,18 +1323,20 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                                 {(() => {
                                                                                     const gFlag = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true;
                                                                                     const gradeDisplay = subj.EYCES_GradeDisplayFlg === 1 || subj.EYCES_GradeDisplayFlg === '1' || subj.EYCES_GradeDisplayFlg === true || subj.eyceS_GradeDisplayFlg === 1 || subj.eyceS_GradeDisplayFlg === '1' || subj.eyceS_GradeDisplayFlg === true;
+                                                                                    const marksDisplay = subj.EYCES_MarksDisplayFlg === 1 || subj.EYCES_MarksDisplayFlg === '1' || subj.EYCES_MarksDisplayFlg === true || subj.eyceS_MarksDisplayFlg === 1 || subj.eyceS_MarksDisplayFlg === '1' || subj.eyceS_MarksDisplayFlg === true;
                                                                                     const subCode = subj.ISMS_SubjectCode || subj.ismS_SubjectCode || '';
 
-                                                                                    if (gFlag && !gradeDisplay) {
-                                                                                        return subj.GroupMarksnew ?? subj.groupMarksnew ?? '-';
-                                                                                    }
-                                                                                    if (!gFlag && !gradeDisplay) {
-                                                                                        return subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks ?? subj.yearlyGroupObtMarks ?? subj.YearlyGroupObtMarks ?? '-';
-                                                                                    }
-                                                                                    if (!gFlag && subCode === 'ME' && gradeDisplay) {
+                                                                                    if (gradeDisplay && !marksDisplay) {
                                                                                         return '-';
                                                                                     }
-                                                                                    return '-';
+
+                                                                                    if (gFlag) {
+                                                                                        const val = subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks ?? subj.yearlyGroupObtMarks ?? subj.YearlyGroupObtMarks ?? subj.GroupMarksnew ?? subj.groupMarksnew ?? getYearlyAvg(subj).obtained;
+                                                                                        return val !== null && val !== undefined && val !== '' ? val : '-';
+                                                                                    } else {
+                                                                                        const val = subj.YeralyGroupObtMarks ?? subj.yeralyGroupObtMarks ?? subj.yearlyGroupObtMarks ?? subj.YearlyGroupObtMarks ?? getYearlyAvg(subj).obtained;
+                                                                                        return val !== null && val !== undefined && val !== '' ? val : '-';
+                                                                                    }
                                                                                 })()}
                                                                             </td>
                                                                         )}
@@ -1318,11 +1379,12 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                         const grpName = grpexam.EMPG_DistplayName ?? grpexam.empG_DistplayName;
                                                                         const isSem1 = matchTermName(grpName, sem1Name);
                                                                         const isSem2 = matchTermName(grpName, sem2Name);
-                                                                        const sum = isSem1 ? sem1Sum : (isSem2 ? sem2Sum : null);
-                                                                        if (!sum) return <td key={eIdx} className="border border-black p-1 text-center font-bold">-</td>;
+                                                                        const valObt = isSem1 ? sem1TotalObtVal : (isSem2 ? sem2TotalObtVal : null);
+                                                                        const valMax = isSem1 ? sem1TotalMaxVal : (isSem2 ? sem2TotalMaxVal : null);
+                                                                        if (valObt === null || valMax === null || valMax === 0) return <td key={eIdx} className="border border-black p-1 text-center font-bold">-</td>;
                                                                         return (
                                                                             <td key={eIdx} className="border border-black p-1 text-center font-bold">
-                                                                                {sum.obtained} / {sum.max}
+                                                                                {Math.round(valObt)} / {valMax}
                                                                             </td>
                                                                         );
                                                                     }
@@ -1330,21 +1392,21 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                 })}
                                                                 {(() => {
                                                                     const gradeRow = getStudentGradeListRow(report.AMST_Id || report.amsT_Id);
-                                                                    const groupTotal = gradeRow?.GroupMarks_Total ?? gradeRow?.groupMarks_Total ?? '';
-                                                                    const maxMarks = gradeRow?.maxmarks ?? gradeRow?.maxMarks ?? '';
+                                                                    const groupTotal = gradeRow?.GroupMarks_Total ?? gradeRow?.groupMarks_Total ?? (grandTotalSumObt || '');
+                                                                    const maxMarks = gradeRow?.maxmarks ?? gradeRow?.maxMarks ?? (grandTotalSumMax || '');
                                                                     if (groupTotal === '' || maxMarks === '') {
                                                                         return <td className="border border-black p-1 text-center font-bold">-</td>;
                                                                     }
                                                                     return (
                                                                         <td className="border border-black p-1 text-center font-bold">
-                                                                            {Math.round(Number(groupTotal))} / {maxMarks}
+                                                                            {Math.round(Number(groupTotal)).toLocaleString('en-US')} / {maxMarks}
                                                                         </td>
                                                                     );
                                                                 })()}
                                                                 {(() => {
                                                                     const gradeRow = getStudentGradeListRow(report.AMST_Id || report.amsT_Id);
-                                                                    const yearlyTotal = gradeRow?.YearlyMarks_Total ?? gradeRow?.yearlyMarks_Total ?? '';
-                                                                    const maxMarks = gradeRow?.maxmarks ?? gradeRow?.maxMarks ?? '';
+                                                                    const yearlyTotal = gradeRow?.YearlyMarks_Total ?? gradeRow?.yearlyMarks_Total ?? (yearlyAvgObtSum || '');
+                                                                    const maxMarks = gradeRow?.maxmarks ?? gradeRow?.maxMarks ?? (grandTotalSumMax || '');
                                                                     if (yearlyTotal === '' || maxMarks === '') {
                                                                         return <td className="border border-black p-1 text-center font-bold">-</td>;
                                                                     }
@@ -1365,12 +1427,11 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                         const grpName = grpexam.EMPG_DistplayName ?? grpexam.empG_DistplayName;
                                                                         const isSem1 = matchTermName(grpName, sem1Name);
                                                                         const isSem2 = matchTermName(grpName, sem2Name);
-                                                                        const sum = isSem1 ? sem1Sum : (isSem2 ? sem2Sum : null);
-                                                                        if (!sum || sum.max === 0) return <td key={eIdx} className="border border-black p-1 text-center font-bold">-</td>;
-                                                                        const pct = (sum.obtained / sum.max) * 100;
+                                                                        const valPct = isSem1 ? sem1PercentageVal : (isSem2 ? sem2PercentageVal : null);
+                                                                        if (valPct === null) return <td key={eIdx} className="border border-black p-1 text-center font-bold">-</td>;
                                                                         return (
                                                                             <td key={eIdx} className="border border-black p-1 text-center font-bold">
-                                                                                {pct.toFixed(2)}%
+                                                                                {Math.round(valPct)}%
                                                                             </td>
                                                                         );
                                                                     }
@@ -1379,7 +1440,13 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                 {(() => {
                                                                     const gradeRow = getStudentGradeListRow(report.AMST_Id || report.amsT_Id);
                                                                     const groupPer = gradeRow?.GroupMarks_PER ?? gradeRow?.groupMarks_PER ?? '';
-                                                                    if (groupPer === '') return <td className="border border-black p-1 text-center font-bold">-</td>;
+                                                                    if (groupPer === '') {
+                                                                        if (grandTotalSumMax > 0) {
+                                                                            const calcPct = (grandTotalSumObt / grandTotalSumMax) * 100;
+                                                                            return <td className="border border-black p-1 text-center font-bold">{Math.round(calcPct)}%</td>;
+                                                                        }
+                                                                        return <td className="border border-black p-1 text-center font-bold">-</td>;
+                                                                    }
                                                                     return (
                                                                         <td className="border border-black p-1 text-center font-bold">
                                                                             {Math.round(Number(groupPer))}%
@@ -1389,7 +1456,13 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                                 {(() => {
                                                                     const gradeRow = getStudentGradeListRow(report.AMST_Id || report.amsT_Id);
                                                                     const yearlyPer = gradeRow?.YearlyMarks_PER ?? gradeRow?.yearlyMarks_PER ?? '';
-                                                                    if (yearlyPer === '') return <td className="border border-black p-1 text-center font-bold">-</td>;
+                                                                    if (yearlyPer === '') {
+                                                                        if (yearlyAvgMaxSum > 0) {
+                                                                            const calcPct = (yearlyAvgObtSum / yearlyAvgMaxSum) * 100;
+                                                                            return <td className="border border-black p-1 text-center font-bold">{Math.round(calcPct)}%</td>;
+                                                                        }
+                                                                        return <td className="border border-black p-1 text-center font-bold">-</td>;
+                                                                    }
                                                                     return (
                                                                         <td className="border border-black p-1 text-center font-bold">
                                                                             {Math.round(Number(yearlyPer))}%
@@ -1420,6 +1493,71 @@ export default function CalcuttaPromotionReportI_IXList() {
                                                         </tbody>
                                                     </table>
                                                 </div>
+
+                                                {/* Skills (Social / Work Habits) Section */}
+                                                {reportData.skilllist_temp && reportData.skilllist_temp.length > 0 && (
+                                                    <div className="flex flex-row flex-wrap gap-6 pt-6 print:my-0 w-full mb-4">
+                                                        {(() => {
+                                                            const getSkillGrade = (termId: number, activityId: number) => {
+                                                                const skillRecord = report.studentSkills?.find((gs: any) => {
+                                                                    const gsTermId = gs.ecT_Id ?? gs.ECT_Id;
+                                                                    const gsActivityId = gs.ecsA_Id ?? gs.ECSA_Id;
+                                                                    return Number(gsTermId) === Number(termId) && Number(gsActivityId) === Number(activityId);
+                                                                });
+                                                                return skillRecord?.emgD_Name_F4 ?? skillRecord?.EMGD_Name_F4 ?? skillRecord?.emgD_Name ?? skillRecord?.EMGD_Name ?? '';
+                                                            };
+
+                                                            return reportData.skilllist_temp.map((skill: any, skIdx: number) => {
+                                                                const skillId = skill.ECS_Id ?? skill.ecS_Id;
+                                                                const skillName = skill.ECS_SkillName ?? skill.ecS_SkillName;
+                                                                const activities = reportData.activitylist_temp?.filter(
+                                                                    (act: any) => Number(act.ECS_Id ?? act.ecS_Id) === Number(skillId)
+                                                                ) || [];
+
+                                                                return (
+                                                                    <div key={skIdx} className="flex-1 min-w-[300px]">
+                                                                        <table className="table table-bordered w-full border-collapse border border-black text-xs" style={{ fontFamily: 'system-ui' }}>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th className="border border-black p-1.5 text-left font-bold uppercase bg-[#d1d5db] print:bg-[#d1d5db]">
+                                                                                        {skillName}
+                                                                                    </th>
+                                                                                    {reportData.gettermdetails?.map((term: any, tIdx: number) => (
+                                                                                        <th key={tIdx} className="border border-black p-1.5 text-center font-bold bg-gray-500 text-white w-24">
+                                                                                            {term.ecT_TermName}
+                                                                                        </th>
+                                                                                    ))}
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {activities.map((act: any, aIdx: number) => {
+                                                                                    const actId = act.ECSA_Id ?? act.ecsA_Id;
+                                                                                    const actName = act.ECSA_SkillArea ?? act.ecsA_SkillArea;
+                                                                                    return (
+                                                                                        <tr key={aIdx}>
+                                                                                            <td className="border border-black p-1.5 text-left font-medium">
+                                                                                                {actName}
+                                                                                            </td>
+                                                                                            {reportData.gettermdetails?.map((term: any, tIdx: number) => {
+                                                                                                const termId = term.ecT_Id ?? term.ECT_Id;
+                                                                                                const grade = getSkillGrade(termId, actId);
+                                                                                                return (
+                                                                                                    <td key={tIdx} className="border border-black p-1.5 text-center font-bold">
+                                                                                                        {grade || '-'}
+                                                                                                    </td>
+                                                                                                );
+                                                                                            })}
+                                                                                        </tr>
+                                                                                    );
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                );
+                                                            });
+                                                        })()}
+                                                    </div>
+                                                )}
 
                                                 {/* Promotion Status Section */}
                                                 <div className="padding-top-5">
