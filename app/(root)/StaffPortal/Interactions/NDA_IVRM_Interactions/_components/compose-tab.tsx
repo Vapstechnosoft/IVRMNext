@@ -60,7 +60,7 @@ interface ComposeTabProps {
     onCancel: () => void;
     onSuccess: () => void;
 }
-
+export const dynamic = 'force-dynamic';
 export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps) {
     const [userFlag, setUserFlag] = useState<string>('');
     const [recipients, setRecipients] = useState<IRecipient[]>([]);

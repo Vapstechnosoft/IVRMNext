@@ -10,7 +10,10 @@ import { Plus, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterBoardForm from './_components/add-form';
+import UpdateMasterBoardForm from './_components/update-form';
 import { columns } from './_components/columns';
+import { useQueryState, parseAsString } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,9 +35,23 @@ export default function MasterBoardPage() {
 }
 
 function MasterBoardPageContent() {
-    const { openAddForm, isAddFormOpen } = useFormContext<IMasterBoard>();
+    const { openAddForm, isAddFormOpen, isEditFormOpen, closeEditForm, editFormRef, selectedRow, closeAddForm, isDeleteFormOpen, closeDeleteForm, addFormRef } = useFormContext<IMasterBoard>();
     const [data, setData] = useState<IMasterBoard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
+    const filteredData = data.filter((item) => {
+        if (!searchQuery) return true;
+        const lowerQuery = searchQuery.toLowerCase();
+        const nameMatch = item.ivrmmB_Name?.toLowerCase().includes(lowerQuery) || false;
+        const descMatch = item.ivrmmB_Description?.toLowerCase().includes(lowerQuery) || false;
+        return nameMatch || descMatch;
+    });
 
     const fetchData = () => {
         setIsLoading(true);
@@ -62,58 +79,9 @@ function MasterBoardPageContent() {
         fetchData();
     };
 
-    return (
-        <div className='container space-y-4 p-1'>
-            {/* Header with Add Button - Only show if form is NOT open */}
-            {!isAddFormOpen && (
-                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
-                        Add Master Board
-                    </Button>
-                </div>
-            )}
-
-            <FormSections onRefresh={refreshData} />
-
-            <CollapsibleSection
-                title='Master Board List'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'
-            >
-                <div className='p-4'>
-                    <GenericDataTable
-                        data={data}
-                        columns={columns}
-                        isLoading={isLoading}
-                        totalItems={data.length}
-                    />
-                </div>
-            </CollapsibleSection>
-        </div>
-    );
-}
-
-function FormSections({ onRefresh }: { onRefresh: () => void }) {
-    const {
-        isAddFormOpen,
-        isDeleteFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeDeleteForm,
-        addFormRef
-    } = useFormContext<IMasterBoard>();
-
-    const [isDeleting, setIsDeleting] = useState(false);
-
     const handleSuccess = () => {
         closeAddForm();
-        onRefresh();
+        refreshData();
     };
 
     const handleDelete = async () => {
@@ -124,7 +92,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
             if (res.success || res.returnval === true || res.returnval === "true") {
                 toast.success(res.message || 'Record deleted successfully');
                 closeDeleteForm();
-                onRefresh();
+                refreshData();
             } else if (res.returnval === "mapped") {
                 toast.error(res.message || "Sorry.....You can not delete this record. Because it is mapped to student");
                 closeDeleteForm();
@@ -141,11 +109,25 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
     };
 
     return (
-        <>
-            {isAddFormOpen && (
+        <div className='container space-y-4 p-1'>
+            {/* Header with Add Button - Only show if form is NOT open */}
+            {!isAddFormOpen && (
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4 mr-2' />
+                        Add Master Board
+                    </Button>
+                </div>
+            )}
+
+            {/* Add Form Section Above Table */}
+            {isAddFormOpen && !selectedRow && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title={selectedRow ? 'Edit Master Board' : 'Add Master Board'}
+                        title={<span className="font-bold">Add Master Board</span>}
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
@@ -155,12 +137,58 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
-                                variant='ghost'
+                                variant='outline'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
+                                className='-top-[3.6rem] absolute right-12 w-fit rounded-full border-red-500 text-red-500 hover:bg-red-50 px-4'>
+                                <X className='h-4 w-4 mr-1 text-red-500' /> Close
                             </Button>
                             <AddMasterBoardForm onSuccess={handleSuccess} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            <CollapsibleSection
+                title={<span className="font-bold absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">Master Board List</span>}
+                headerClassName="relative"
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg'
+            >
+                <div className='p-4'>
+                    <GenericDataTable
+                        data={filteredData}
+                        columns={columns}
+                        isLoading={isLoading}
+                        totalItems={filteredData.length}
+                    />
+                </div>
+            </CollapsibleSection>
+
+            {/* Edit Form Section Below Table */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title={<span className="font-bold">Edit Master Board</span>}
+                        defaultOpen={true}
+                        variant='outline'
+                        size='lg'
+                        className='shadow-lg animate-in slide-in-from-bottom-2 mt-4'
+                    >
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='outline'
+                                size='sm'
+                                className='-top-[3.6rem] absolute right-12 w-fit rounded-full border-red-500 text-red-500 hover:bg-red-50 px-4'>
+                                <X className='h-4 w-4 mr-1 text-red-500' /> Close
+                            </Button>
+                            <UpdateMasterBoardForm onSuccess={() => {
+                                closeEditForm();
+                                refreshData();
+                            }} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -183,6 +211,6 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 }

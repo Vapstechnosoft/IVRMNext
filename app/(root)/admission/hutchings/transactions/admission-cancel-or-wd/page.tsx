@@ -12,10 +12,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { 
-  on_load_admission_cancel, 
-  on_change_admission_cancel_year, 
-  on_change_admission_cancel_student, 
+import {
+  on_load_admission_cancel,
+  on_change_admission_cancel_year,
+  on_change_admission_cancel_student,
   save_admission_cancel_student,
   edit_admission_cancel_student
 } from "@/server/admission/hutchings/transactions/admission-cancel-or-wd";
@@ -38,7 +38,7 @@ export default function AdmissionCancelOrWDPage() {
   const [studentDetails, setStudentDetails] = useState<any>(null);
   const [withdrawnStudents, setWithdrawnStudents] = useState<any[]>([]);
   const [editId, setEditId] = useState<number | null>(null);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,8 +62,9 @@ export default function AdmissionCancelOrWDPage() {
     try {
       const res = await on_load_admission_cancel();
       if (res?.success) {
+        if (res.message) toast.success(res.message);
         setAcademicYears(res.data.academicYearOnLoad || []);
-        
+
         if (res.data.allAcademicYear && res.data.allAcademicYear.length > 0) {
           form.setValue("ASMAY_Id", res.data.allAcademicYear[0].asmaY_Id.toString());
         }
@@ -72,37 +73,34 @@ export default function AdmissionCancelOrWDPage() {
           setStudentsList(res.data.getstudentdetailslist);
         }
         setWithdrawnStudents(res.data.getwdstudentdetails || []);
+      } else {
+        if (res?.message) toast.error(res.message);
       }
     } catch (error) {
       toast.error("Failed to load initial data");
     }
   };
 
-  useEffect(() => {
-    if (watchYear) {
-      handleYearChange(watchYear);
-    }
-  }, [watchYear]);
+
 
   const handleYearChange = async (yearId: string) => {
     try {
       const res = await on_change_admission_cancel_year({ ASMAY_Id: Number(yearId) });
       if (res?.success) {
+        if (res.message) toast.success(res.message);
         setStudentsList(res.data.getstudentdetailslist || []);
         setWithdrawnStudents(res.data.getwdstudentdetails || []);
         form.setValue("AMST_Id", "");
         setStudentDetails(null);
+      } else {
+        if (res?.message) toast.error(res.message);
       }
     } catch (error) {
       toast.error("Failed to load students for selected year");
     }
   };
 
-  useEffect(() => {
-    if (watchYear && watchStudent) {
-      handleStudentChange(watchYear, watchStudent);
-    }
-  }, [watchStudent]);
+
 
   const handleStudentChange = async (yearId: string, studentId: string) => {
     try {
@@ -110,10 +108,15 @@ export default function AdmissionCancelOrWDPage() {
         ASMAY_Id: Number(yearId),
         AMST_Id: Number(studentId),
       });
-      if (res?.success && res.data.getstudentdetails?.length > 0) {
-        setStudentDetails(res.data.getstudentdetails[0]);
+      if (res?.success) {
+        if (res.message) toast.success(res.message);
+        if (res.data.getstudentdetails?.length > 0) {
+          setStudentDetails(res.data.getstudentdetails[0]);
+        } else {
+          setStudentDetails(null);
+        }
       } else {
-        setStudentDetails(null);
+        if (res?.message) toast.error(res.message);
       }
     } catch (error) {
       toast.error("Failed to load student details");
@@ -134,14 +137,14 @@ export default function AdmissionCancelOrWDPage() {
 
       const res = await save_admission_cancel_student(payload);
 
-      if (res?.success && res.data.returnval) {
-        toast.success("Record Saved/Updated Successfully");
+      if (res?.success) {
+        toast.success(res.message || "Record Saved/Updated Successfully");
         form.reset();
         setStudentDetails(null);
         setEditId(null);
-        if (watchYear) handleYearChange(watchYear);
+        loadInitialData();
       } else {
-        toast.error("Failed To Save/Update");
+        toast.error(res?.message || "Failed To Save/Update");
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -164,11 +167,13 @@ export default function AdmissionCancelOrWDPage() {
       });
 
       if (res?.success) {
-        if (res.data.getstudentdetails?.length > 0) {
+        if (res.message) toast.success(res.message);
+
+        if (res.data?.getstudentdetails?.length > 0) {
           setStudentDetails(res.data.getstudentdetails[0]);
         }
-        
-        if (res.data.geteditdetails?.length > 0) {
+
+        if (res.data?.geteditdetails?.length > 0) {
           const editData = res.data.geteditdetails[0];
           setEditId(editData.aacA_Id);
           form.setValue("ASMAY_Id", editData.asmaY_Id.toString());
@@ -178,16 +183,18 @@ export default function AdmissionCancelOrWDPage() {
           form.setValue("AACA_ToRefundAmount", editData.aacA_ToRefundAmount?.toString() || "");
           form.setValue("AACA_ACReason", editData.aacA_ACReason || "");
         } else {
-           // Fallback in case geteditdetails is empty
-           setEditId(student.aacA_Id || student.AACA_Id);
-           form.setValue("ASMAY_Id", (student.asmaY_Id || student.ASMAY_Id).toString());
-           form.setValue("AMST_Id", (student.amsT_Id || student.AMST_Id).toString());
-           if(student.aacA_ACDate) form.setValue("AACA_ACDate", new Date(student.aacA_ACDate));
-           form.setValue("AACA_CancellationFee", student.aacA_CancellationFee?.toString() || "");
-           form.setValue("AACA_ToRefundAmount", student.aacA_ToRefundAmount?.toString() || "");
-           form.setValue("AACA_ACReason", student.aacA_ACReason || "");
+          // Fallback in case geteditdetails is empty
+          setEditId(student.aacA_Id || student.AACA_Id);
+          form.setValue("ASMAY_Id", (student.asmaY_Id || student.ASMAY_Id).toString());
+          form.setValue("AMST_Id", (student.amsT_Id || student.AMST_Id).toString());
+          if (student.aacA_ACDate) form.setValue("AACA_ACDate", new Date(student.aacA_ACDate));
+          form.setValue("AACA_CancellationFee", student.aacA_CancellationFee?.toString() || "");
+          form.setValue("AACA_ToRefundAmount", student.aacA_ToRefundAmount?.toString() || "");
+          form.setValue("AACA_ACReason", student.aacA_ACReason || "");
         }
         window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        if (res?.message) toast.error(res.message);
       }
     } catch (error) {
       toast.error("Failed to load edit details");
@@ -209,7 +216,13 @@ export default function AdmissionCancelOrWDPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Academic Year <span className="text-destructive">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        handleYearChange(val);
+                      }} 
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Year" />
@@ -234,7 +247,14 @@ export default function AdmissionCancelOrWDPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Student Name <span className="text-destructive">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!watchYear}>
+                    <Select 
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        handleStudentChange(watchYear, val);
+                      }} 
+                      value={field.value} 
+                      disabled={!watchYear}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Student" />
@@ -347,11 +367,11 @@ export default function AdmissionCancelOrWDPage() {
                 <div className="md:col-span-2 flex justify-end">
                   <div className="w-[120px] h-[120px] border border-blue-400 rounded-md overflow-hidden flex items-center justify-center bg-muted/20">
                     {studentDetails.photoName ? (
-                      <Image 
-                        src={studentDetails.photoName} 
-                        alt="Student Photo" 
-                        width={120} 
-                        height={120} 
+                      <Image
+                        src={studentDetails.photoName}
+                        alt="Student Photo"
+                        width={120}
+                        height={120}
                         className="object-cover w-full h-full"
                       />
                     ) : (
@@ -374,53 +394,59 @@ export default function AdmissionCancelOrWDPage() {
         </form>
       </Form>
 
-      {withdrawnStudents.length > 0 && (
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle>STUDENT'S CANCEL OR WITH DRAW DETAILS</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 overflow-x-auto">
-            <table className="w-full text-sm text-left border-collapse border">
-              <thead className="text-xs uppercase bg-muted/50">
-                <tr>
-                  <th className="border p-2 text-center">Sl.No</th>
-                  <th className="border p-2">Year</th>
-                  <th className="border p-2">Student Name</th>
-                  <th className="border p-2">Admno</th>
-                  <th className="border p-2 text-center">Class</th>
-                  <th className="border p-2">Section</th>
-                  <th className="border p-2">Date</th>
-                  <th className="border p-2">Reason</th>
-                  <th className="border p-2">Cancelled Fee</th>
-                  <th className="border p-2">Refund Amount</th>
-                  <th className="border p-2 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {withdrawnStudents.map((student, index) => (
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>STUDENT'S CANCEL OR WITH DRAW DETAILS</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6 overflow-x-auto">
+          <table className="w-full text-sm text-left border-collapse border">
+            <thead className="text-xs uppercase bg-muted/50">
+              <tr>
+                <th className="border p-2 text-center">Sl.No</th>
+                <th className="border p-2">Year</th>
+                <th className="border p-2">Student Name</th>
+                <th className="border p-2">Admno</th>
+                <th className="border p-2 text-center">Class</th>
+                <th className="border p-2">Section</th>
+                <th className="border p-2">Date</th>
+                <th className="border p-2">Reason</th>
+                <th className="border p-2">Cancelled Fee</th>
+                <th className="border p-2">Refund Amount</th>
+                {/* <th className="border p-2 text-center">Action</th> */}
+              </tr>
+            </thead>
+            <tbody>
+              {withdrawnStudents.length > 0 ? (
+                withdrawnStudents.map((student, index) => (
                   <tr key={index} className="border-b hover:bg-muted/20 transition-colors">
                     <td className="border p-2 text-center">{index + 1}</td>
                     <td className="border p-2">{student.asmaY_Year}</td>
                     <td className="border p-2">{student.studentname}</td>
-                    <td className="border p-2">{student.amsT_AdmNo}</td>
-                    <td className="border p-2 text-center">{student.asmcL_ClassName}</td>
-                    <td className="border p-2">{student.asmC_SectionName}</td>
+                    <td className="border p-2">{student.amsT_AdmNo || student.AMST_AdmNo || student.amst_AdmNo || student.amstAdmNo || ''}</td>
+                    <td className="border p-2 text-center">{student.asmcL_ClassName || student.ASMCL_ClassName || student.asmcl_ClassName || ''}</td>
+                    <td className="border p-2">{student.asmC_SectionName || student.ASMC_SectionName || student.asmc_SectionName || ''}</td>
                     <td className="border p-2">{student.aacA_ACDate ? format(new Date(student.aacA_ACDate), 'dd-MM-yyyy') : ''}</td>
                     <td className="border p-2">{student.aacA_ACReason}</td>
                     <td className="border p-2">{student.aacA_CancellationFee}</td>
                     <td className="border p-2">{student.aacA_ToRefundAmount}</td>
-                    <td className="border p-2 text-center">
+                    {/* <td className="border p-2 text-center">
                       <Button type="button" variant="ghost" size="icon" onClick={() => handleEdit(student)}>
                         <Pencil className="h-4 w-4 text-blue-500" />
                       </Button>
-                    </td>
+                    </td> */}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={10} className="border p-4 text-center text-muted-foreground">
+                    No records found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

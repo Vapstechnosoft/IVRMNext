@@ -2,27 +2,20 @@
 
 import { api } from '@/lib/apiService';
 
-/**
- * Fetches the initial details (Academic Year List) for the School Tpin Generation.
- */
+
 export async function getSchoolTpinGenerationInitialDetails() {
-    const url = '/SchoolTpinGenreation/loaddata/1';
+    const url = '/SchoolTpinGenreation/loaddata';
     return await api.get<any>('admission', url);
 }
 
-/**
- * Searches for Tpin generated and not generated student lists.
- */
+
 export async function searchSchoolTpinGeneration(data: {
     ASMAY_Id: number;
 }) {
-    const url = `/SchoolTpinGenreation/search`;
-    return await api.post<any>('admission', url, data);
+    const url = `/SchoolTpinGenreation/search?ASMAY_Id=${data.ASMAY_Id}`;
+    return await api.post<any>('admission', url);
 }
 
-/**
- * Generates Tpin for the selected Academic Year.
- */
 export async function generateSchoolTpin(data: {
     ASMAY_Id: number;
 }) {

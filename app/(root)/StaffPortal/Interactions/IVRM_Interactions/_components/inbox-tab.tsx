@@ -37,7 +37,7 @@ interface InboxTabProps {
     onRefresh: () => void;
     roleFlg: string;
 }
-
+export const dynamic = 'force-dynamic';
 export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
