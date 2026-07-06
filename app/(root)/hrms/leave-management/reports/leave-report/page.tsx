@@ -2,7 +2,7 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useMasterLeaveDropdown } from '@/hooks/hrms/useMasters';
-import { usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { useLeaveReport, usePeriodLeaveReportEmployees, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
 import { useMemo, useState } from 'react';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
@@ -22,6 +22,7 @@ export default function LeaveReportPage() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isGenerating, setIsGenerating] = useState(false);
+    const leaveReportMutation = useLeaveReport();
 
     // Fetch cascading dropdown data using the same hooks as salary calculation
     const { data: groupTypesData } = useReportGroupTypes();
@@ -165,24 +166,64 @@ export default function LeaveReportPage() {
 
         setErrors({});
         setIsGenerating(true);
+        var payload ;
 
-        // TODO: Implement actual report generation with API call
-        setTimeout(() => {
-            setRows(
-                Array.from({ length: 12 }).map((_, i) => ({
-                    slNo: i + 1,
-                    employeeCode: '69',
-                    employeeName: 'R Siddesh Kumar',
-                    leaveName: 'Casual Leave',
-                    fromDate: '2025-01-01',
-                    toDate: '2025-01-02',
-                    appliedDays: 8,
-                    leaveStatus: 'Approved' as const,
-                    leaveBalance: 8
-                }))
-            );
-            setIsGenerating(false);
-        }, 1000);
+        let selectedLeave = filters.leave;
+        if (filters.leave === '999') {
+            selectedLeave = leavesDataTransformed.map(l => l.id).join(',');
+        }
+
+        let selectedEmployee = '';
+        if (!filters.isIndividual) {
+            selectedEmployee = employeesDataTransformed.map(e => e.id).join(',');
+        } else if (filters.selectedEmployeeId) {
+            selectedEmployee = filters.selectedEmployeeId.toString();
+        }
+        if(filters.showEmployeeLeaveBalance === false) {
+            payload = {
+            selectedLeave,
+            selectedEmployee,
+            hreltD_FromDate: filters.fromDate
+                ? new Date(filters.fromDate).toISOString().split('T')[0]
+                : '',
+            hrelT_ToDate: filters.toDate
+                ? new Date(filters.toDate).toISOString().split('T')[0]
+                : '',
+            edit_flag: filters.showEmployeeLeaveBalance
+        };
+        }else{
+            payload = {
+                selectedEmployee: employeesDataTransformed.map(e => e.id).join(','),
+                edit_flag: filters.showEmployeeLeaveBalance
+            }
+        }
+         
+
+        leaveReportMutation.mutate(payload, {
+            onSuccess: (response) => {
+                setIsGenerating(false);
+                if (response?.success && response?.data) {
+                    const mappedRows = response.data.map((item: any, index: number) => ({
+                        slNo: index + 1,
+                        employeeCode: item.hrmE_EmployeeCode || item.employeeCode || '',
+                        employeeName: item.hrmE_EmployeeFirstName || item.employeeName || '',
+                        leaveName: item.hrmL_LeaveName || item.leaveName || '',
+                        fromDate: item.hreltD_FromDate || item.fromDate || '',
+                        toDate: item.hrelT_ToDate || item.toDate || '',
+                        appliedDays: item.hreltD_TotDays || item.appliedDays || 0,
+                        leaveStatus: item.hreltD_LeaveStatus || item.leaveStatus || 'Pending',
+                        leaveBalance: item.leaveBalance || 0
+                    }));
+                    setRows(mappedRows);
+                } else {
+                    setRows([]);
+                }
+            },
+            onError: () => {
+                setIsGenerating(false);
+                setRows([]);
+            }
+        });
     };
 
     const handleClear = () => {
