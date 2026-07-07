@@ -169,7 +169,11 @@ export const masterAuthorSchema = {
 export const masterLanguageSchema = {
     addOrUpdate: z.object({
         lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100)
+        lmL_LanguageName: z
+            .string({ message: 'Language Name is required' })
+            .min(2)
+            .max(100)
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed')
     }),
     delete: z.object({
         lmL_Id: deleteIdSchema('lmL_Id')

@@ -71,7 +71,11 @@ export default function AddMasterLanguageForm({ onSuccess, className = '' }: Add
                             required
                             id='lmL_Id'
                             placeholder='Enter language name'
-                            {...register('lmL_LanguageName')}
+                            {...register('lmL_LanguageName', {
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                                }
+                            })}
                             error={errors.lmL_LanguageName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
