@@ -146,7 +146,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 toast.error(response.message || 'Failed to save academic year.');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An unexpected error occurred.');
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred.');
         }
     };
 
