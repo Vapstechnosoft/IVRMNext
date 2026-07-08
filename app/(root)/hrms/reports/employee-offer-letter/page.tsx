@@ -92,6 +92,7 @@ function EmployeeOfferLetterContent() {
     const watchedDepartment = watch('departmentId');
     const watchedDesignation = watch('designationId');
     const watchedLetterType = watch('letterType');
+    const watchedDOJ = watch('hrmE_DOJ');
 
     // Queries
     const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
@@ -233,14 +234,14 @@ function EmployeeOfferLetterContent() {
                                 <div className='space-y-2'>
                                     <Label>Date Of Interview <span className='text-destructive'>*</span></Label>
                                     <Controller name='hrmeR_DOI' control={control} key={resetKey} rules={{ required: 'Select Date Of Interview' }} render={({ field }) => (
-                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                        <DatePicker date={field.value} setDate={field.onChange} disabled={watchedDOJ ? { after: watchedDOJ } : undefined} />
                                     )} />
                                     {errors.hrmeR_DOI && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOI.message}</span>}
                                 </div>
                                 <div className='space-y-2'>
                                     <Label>Date Of Response <span className='text-destructive'>*</span></Label>
                                     <Controller name='hrmeR_DOR' control={control} key={resetKey} rules={{ required: 'Select Date Of Response' }} render={({ field }) => (
-                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                        <DatePicker date={field.value} setDate={field.onChange} disabled={watchedDOJ ? { after: watchedDOJ } : undefined} />
                                     )} />
                                     {errors.hrmeR_DOR && <span className="text-red-500 text-xs font-medium block">{errors.hrmeR_DOR.message}</span>}
                                 </div>

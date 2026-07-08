@@ -6,6 +6,10 @@ import { useLeaveReport, usePeriodLeaveReportEmployees, useReportDepartments, us
 import { useMemo, useState } from 'react';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
+import { Button } from '@/components/ui/button';
+import { Printer, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
@@ -203,7 +207,9 @@ export default function LeaveReportPage() {
             onSuccess: (response) => {
                 setIsGenerating(false);
                 if (response?.success && response?.data) {
-                    const mappedRows = response.data.map((item: any, index: number) => ({
+                    console.log('🔍 [DEBUG] Raw response data:', response.data);
+
+                    const mappedRows = response.data?.LeaveReport?.map((item: any, index: number) => ({
                         slNo: index + 1,
                         employeeCode: item.hrmE_EmployeeCode || item.employeeCode || '',
                         employeeName: item.hrmE_EmployeeFirstName || item.employeeName || '',
@@ -242,6 +248,31 @@ export default function LeaveReportPage() {
         setRows([]);
     };
 
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const handleExport = () => {
+        if (rows.length === 0) return;
+
+        const exportData = rows.map((item) => ({
+            'SL.No.': item.slNo,
+            'Employee Code': item.employeeCode,
+            'Employee Name': item.employeeName,
+            'Leave Name': item.leaveName,
+            'From Date': item.fromDate ? format(new Date(item.fromDate), 'dd/MM/yyyy') : '',
+            'To Date': item.toDate ? format(new Date(item.toDate), 'dd/MM/yyyy') : '',
+            'Applied Days': item.appliedDays,
+            'Leave Status': item.leaveStatus,
+            'Leave Balance': item.leaveBalance
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Leave Report');
+        XLSX.writeFile(wb, `Leave_Report_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+    };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -265,13 +296,81 @@ export default function LeaveReportPage() {
                 />
                 {rows.length > 0 && (
                     <CollapsibleSection
+                    rightElement={
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handlePrint}
+                                className="gap-2 text-primary border-primary hover:bg-primary hover:text-white"
+                            >
+                                <Printer className="h-4 w-4" />
+                                Print
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleExport}
+                                className="gap-2 text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
+                            >
+                                <FileSpreadsheet className="h-4 w-4" />
+                                Export Excel
+                            </Button>
+                        </div>
+                    }
                         title='Leave Report'
                         description=''
                         defaultOpen={rows.length > 0}
                         variant='default'
                         size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl '>
+                        <div className="print:hidden">
+                            <GenericDataTable
+                                data={rows}
+                                columns={leaveReportColumns}
+                                totalItems={rows.length}
+                                isLoading={false}
+                            />
+                        </div>
+
+                        {/* Print View Table */}
+                        <div className="hidden print:block printable-content p-8">
+                            <h2 className="text-2xl font-bold text-center mb-6">Leave Report</h2>
+                            <table className="w-full border-collapse border border-gray-300 text-sm">
+                                <thead>
+                                    <tr className="bg-gray-100 italic">
+                                        <th className="border border-gray-300 p-2 text-xs">SL.No.</th>
+                                        <th className="border border-gray-300 p-2 text-left text-xs">Employee Code</th>
+                                        <th className="border border-gray-300 p-2 text-left text-xs">Employee Name</th>
+                                        <th className="border border-gray-300 p-2 text-left text-xs">Leave Name</th>
+                                        <th className="border border-gray-300 p-2 text-xs">From Date</th>
+                                        <th className="border border-gray-300 p-2 text-xs">To Date</th>
+                                        <th className="border border-gray-300 p-2 text-xs text-right">Applied Days</th>
+                                        <th className="border border-gray-300 p-2 text-left text-xs">Leave Status</th>
+                                        <th className="border border-gray-300 p-2 text-xs text-right">Leave Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rows.map((item, index) => (
+                                        <tr key={index} className="hover:bg-gray-50">
+                                            <td className="border border-gray-300 p-2 text-center text-xs">{item.slNo}</td>
+                                            <td className="border border-gray-300 p-2 text-xs">{item.employeeCode}</td>
+                                            <td className="border border-gray-300 p-2 text-xs">{item.employeeName}</td>
+                                            <td className="border border-gray-300 p-2 text-xs">{item.leaveName}</td>
+                                            <td className="border border-gray-300 p-2 text-center text-xs">
+                                                {item.fromDate ? format(new Date(item.fromDate), 'dd/MM/yyyy') : '-'}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-center text-xs">
+                                                {item.toDate ? format(new Date(item.toDate), 'dd/MM/yyyy') : '-'}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-right text-xs">{item.appliedDays}</td>
+                                            <td className="border border-gray-300 p-2 text-xs">{item.leaveStatus}</td>
+                                            <td className="border border-gray-300 p-2 text-right text-xs">{item.leaveBalance}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </CollapsibleSection>
                 )}
             </div>
