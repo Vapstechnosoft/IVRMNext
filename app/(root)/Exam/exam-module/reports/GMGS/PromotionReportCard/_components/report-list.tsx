@@ -9,6 +9,17 @@ import { format } from 'date-fns';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
+const getGradeFromPercentage = (pct: number) => {
+    if (pct >= 91) return 'A1';
+    if (pct >= 81) return 'A2';
+    if (pct >= 71) return 'B1';
+    if (pct >= 61) return 'B2';
+    if (pct >= 51) return 'C1';
+    if (pct >= 41) return 'C2';
+    if (pct >= 33) return 'D';
+    return 'E';
+};
+
 interface ReportListProps {
     data: any;
     academicYear: string;
@@ -22,18 +33,213 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
         window.print();
     };
 
-    // --- Data Processing (Optimized Binding) ---
-    const studentDetails = useMemo(() => data.getstudentdetails || [], [data]);
-    const studentWiseSubjects = useMemo(() => data.getstudentwisesubjectlist || [], [data]);
-    const termDetails = useMemo(() => data.gettermdetails || [], [data]);
-    const groupDetails = useMemo(() => data.getgroupdetails || [], [data]);
-    const groupExamDetails = useMemo(() => data.getgroupexamdetails || [], [data]);
-    const studentMarksDetails = useMemo(() => data.getstudentmarksdetails || data.savelist || [], [data]);
-    const promotionRemarks = useMemo(() => data.getpromotionremarksdetails || [], [data]);
+    // --- Data Processing (Optimized Binding with GMGS compatibility) ---
+    const groupDetails = useMemo(() => {
+        if (data.getgroupdetails && data.getgroupdetails.length > 0) {
+            return data.getgroupdetails;
+        }
+        if (data.studentMarks) {
+            const groupsMap = new Map();
+            data.studentMarks.forEach((m: any) => {
+                const name = m.empsG_GroupName || m.empsG_DisplayName || m.EMPG_GroupName || m.EMPG_DistplayName;
+                const order = m.empsG_Order ?? m.EMPG_Order ?? 0;
+                const id = m.empsG_Id ?? m.EMPG_Id;
+                if (name && !groupsMap.has(name)) {
+                    groupsMap.set(name, {
+                        empG_GroupName: name,
+                        empG_DistplayName: name,
+                        empG_Order: order,
+                        EMPG_GroupName: name,
+                        EMPG_DistplayName: name,
+                        EMPG_Order: order,
+                        empG_Id: id,
+                        EMPG_Id: id
+                    });
+                }
+            });
+            return Array.from(groupsMap.values()).sort((a: any, b: any) => a.empG_Order - b.empG_Order);
+        }
+        return [];
+    }, [data]);
+
+    const groupExamDetails = useMemo(() => {
+        if (data.getgroupexamdetails && data.getgroupexamdetails.length > 0) {
+            return data.getgroupexamdetails;
+        }
+        if (data.studentMarks) {
+            const examsMap = new Map();
+            data.studentMarks.forEach((m: any) => {
+                const groupName = m.empsG_GroupName || m.empsG_DisplayName || m.EMPG_GroupName || m.EMPG_DistplayName;
+                const examName = m.emE_ExamName || m.EME_ExamName;
+                const examId = m.emE_Id ?? m.EME_Id;
+                const examOrder = m.emE_ExamOrder ?? m.EME_ExamOrder ?? 0;
+                const maxMarks = m.empS_ConvertForMarks ?? m.EMPSGE_ForMaxMarkrs ?? 0;
+                if (examId !== 9800000 && examId !== 9800001 && examId && groupName) {
+                    const key = `${groupName}_${examId}`;
+                    if (!examsMap.has(key)) {
+                        examsMap.set(key, {
+                            empG_GroupName: groupName,
+                            empG_DistplayName: groupName,
+                            EMPG_GroupName: groupName,
+                            EMPG_DistplayName: groupName,
+                            emE_Id: examId,
+                            EME_Id: examId,
+                            emE_ExamName: examName,
+                            EME_ExamName: examName,
+                            emE_ExamOrder: examOrder,
+                            EME_ExamOrder: examOrder,
+                            empsgE_ForMaxMarkrs: maxMarks,
+                            EMPSGE_ForMaxMarkrs: maxMarks
+                        });
+                    }
+                }
+            });
+            return Array.from(examsMap.values()).sort((a: any, b: any) => a.emE_ExamOrder - b.emE_ExamOrder);
+        }
+        return [];
+    }, [data]);
+
+    const studentDetails = useMemo(() => {
+        if (data.getstudentdetails && data.getstudentdetails.length > 0) {
+            return data.getstudentdetails;
+        }
+        if (data.studentSubjects) {
+            const studentsMap = new Map();
+            data.studentSubjects.forEach((subj: any) => {
+                if (subj.amsT_Id && !studentsMap.has(subj.amsT_Id)) {
+                    const populatedRow = data.studentSubjects.find((s: any) => s.amsT_Id === subj.amsT_Id && s.studentName) || subj;
+                    studentsMap.set(subj.amsT_Id, {
+                        amsT_Id: populatedRow.amsT_Id,
+                        studentName: populatedRow.studentName || populatedRow.studentname,
+                        admissionNo: populatedRow.admissionNo || populatedRow.admNo || populatedRow.admno,
+                        className: populatedRow.className || populatedRow.classname,
+                        sectionName: populatedRow.sectionName || populatedRow.sectionname,
+                        dob: populatedRow.dob,
+                        fatherName: populatedRow.fatherName || populatedRow.fathername,
+                        motherName: populatedRow.motherName || populatedRow.mothername,
+                        photo: populatedRow.photo,
+                        height: populatedRow.height,
+                        weight: populatedRow.weight,
+                        bloodGroup: populatedRow.bloodGroup,
+                        dentalHygiene: populatedRow.dentalHygiene,
+                        visionHygiene: populatedRow.visionHygiene,
+                        overallResult: populatedRow.overallResult || populatedRow.overallresult || populatedRow.overallResultFlg,
+                        classRank: populatedRow.classRank,
+                        sectionRank: populatedRow.sectionRank,
+                        grandTotal: populatedRow.grandTotal,
+                        totalPercentage: populatedRow.totalPercentage,
+                        presentDays: populatedRow.presentDays,
+                        totalWorkingDays: populatedRow.totalWorkingDays,
+                        attendancePercentage: populatedRow.attendancePercentage
+                    });
+                }
+            });
+            return Array.from(studentsMap.values());
+        }
+        return [];
+    }, [data]);
+
+    console.log('studentdetails', studentDetails);
+
+    const studentWiseSubjects = useMemo(() => {
+        if (data.studentSubjects) {
+            return data.studentSubjects.map((s: any) => ({
+                ...s,
+                AMST_Id: s.amsT_Id,
+                ISMS_SubjectName: s.subjectName,
+                ismS_SubjectName: s.subjectName,
+                ismS_Id: s.ismS_Id ?? (data.studentMarks || []).find((m: any) => m.ismS_SubjectName === s.subjectName)?.ismS_Id,
+                ISMS_Id: s.ismS_Id ?? (data.studentMarks || []).find((m: any) => m.ismS_SubjectName === s.subjectName)?.ismS_Id,
+                empS_AppToResultFlg: s.appToResultFlg === "true" || s.appToResultFlg === true,
+                EMPS_AppToResultFlg: s.appToResultFlg === "true" || s.appToResultFlg === true,
+            }));
+        }
+        return data.getstudentwisesubjectlist || [];
+    }, [data]);
+
+    const termDetails = useMemo(() => {
+        if (data.gettermdetails && data.gettermdetails.length > 0) {
+            return data.gettermdetails;
+        }
+        return (groupDetails || []).map((g: any) => ({
+            ecT_Id: g.empG_GroupName || g.EMPG_GroupName,
+            ect_Id: g.empG_GroupName || g.EMPG_GroupName,
+            ECT_Id: g.empG_GroupName || g.EMPG_GroupName,
+            ecT_TermName: g.empG_GroupName || g.EMPG_GroupName
+        }));
+    }, [data, groupDetails]);
+
+    const studentMarksDetails = useMemo(() => {
+        return data.studentMarks || data.getstudentmarksdetails || data.savelist || [];
+    }, [data]);
+
+    const promotionRemarks = useMemo(() => {
+        if (data.getpromotionremarksdetails && data.getpromotionremarksdetails.length > 0) {
+            return data.getpromotionremarksdetails;
+        }
+        if (data.studentSubjects) {
+            const map = new Map();
+            data.studentSubjects.forEach((s: any) => {
+                if (s.amsT_Id && !map.has(s.amsT_Id)) {
+                    map.set(s.amsT_Id, {
+                        amsT_Id: s.amsT_Id,
+                        eprD_Remarks: s.overallResult || s.overallResultFlg || 'pass'
+                    });
+                }
+            });
+            return Array.from(map.values());
+        }
+        return [];
+    }, [data]);
+
     const activityMainListArea = useMemo(() => data.getstudentwiseactiviteslist || [], [data]);
 
-    const workAttendence = useMemo(() => data.work_attendence || [], [data]);
-    const presentAttendence = useMemo(() => data.present_attendence || [], [data]);
+    const workAttendence = useMemo(() => {
+        if (data.work_attendence && data.work_attendence.length > 0) {
+            return data.work_attendence;
+        }
+        if (data.studentSubjects) {
+            const map = new Map();
+            data.studentSubjects.forEach((s: any) => {
+                if (s.amsT_Id && !map.has(s.amsT_Id)) {
+                    map.set(s.amsT_Id, {
+                        amsT_Id: s.amsT_Id,
+                        TotalWorkingDays: s.totalWorkingDays,
+                        totalWorkingDays: s.totalWorkingDays,
+                        TotalSchoolDays: s.totalWorkingDays,
+                        totalSchoolDays: s.totalWorkingDays
+                    });
+                }
+            });
+            return Array.from(map.values());
+        }
+        return [];
+    }, [data]);
+
+    const presentAttendence = useMemo(() => {
+        if (data.present_attendence && data.present_attendence.length > 0) {
+            return data.present_attendence;
+        }
+        if (data.studentSubjects) {
+            const map = new Map();
+            data.studentSubjects.forEach((s: any) => {
+                if (s.amsT_Id && !map.has(s.amsT_Id)) {
+                    map.set(s.amsT_Id, {
+                        amsT_Id: s.amsT_Id,
+                        TotalPresentDays: s.presentDays,
+                        totalPresentDays: s.presentDays,
+                        presentDays: s.presentDays,
+                        TotalPercentage: s.attendancePercentage,
+                        totalPercentage: s.attendancePercentage,
+                        Total_Percentage: s.attendancePercentage,
+                        total_Percentage: s.attendancePercentage
+                    });
+                }
+            });
+            return Array.from(map.values());
+        }
+        return [];
+    }, [data]);
 
     const institutionDetails = useMemo(() => data.getinstitution || [], [data]);
     const classTeacherName = useMemo(() => data.clstchname || [], [data]);
@@ -66,7 +272,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
     }, [groupDetails, groupExamDetails]);
 
     return (
-        <div className='printable-content space-y-6'>
+        <div className='printable-content space-y-6 print:space-y-0'>
             <div className='no-print flex justify-end'>
                 <Button onClick={handlePrint} className='flex w-fit items-center gap-2'>
                     <Printer className='h-4 w-4' /> Print Report
@@ -157,39 +363,49 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
 
                         // Attendance details
                         const workAtt = workAttendence.find((a: any) => (a.amsT_Id || a.AMST_Id) === studentID) || {};
-                        const presentAtt = presentAttendence.find((a: any) => (a.amsT_Id || a.AMST_Id) === studentID) || {};
+                        const presentAtt = presentAttendence.find((a: any) => (a.studentId) === studentID) || {};
 
                         // Remarks
                         const remarkObj = promotionRemarks.find((r: any) => (r.amsT_Id || r.AMST_Id) === studentID);
-
+                        console.log('remarkObj', remarkObj);
                         // Graph data for Class Average vs Student Score
                         const graphSubjects = studentSubjects.filter((s: any) => s.EMPS_AppToResultFlg || s.empS_AppToResultFlg || s.subjectName);
-                        const graphLabels = graphSubjects.map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName || s.subjectName);
-                        
+                        const graphLabels = data.graph1_Labels || graphSubjects.map((s: any) => s.ISMS_SubjectName || s.ismS_SubjectName || s.subjectName);
+
                         // Default to GMVPS logic if properties exist on subject
-                        const graphScores = graphSubjects.map((s: any) => {
+                        const graphScores = (data.graph1_Scores && studentDetails.length === 1) ? data.graph1_Scores : graphSubjects.map((s: any) => {
                             const subjScore = s.subjectObtainedMarks ?? s.subjectPercentage ?? s.ESTMPPS_ObtainedMarks;
                             if (subjScore !== undefined) return Number(subjScore);
-                            
+
                             // Otherwise calculate sum of marks across all groups
                             let total = 0;
                             groupWiseExamList.filter(e => e.isTotal).forEach((groupTotalExam: any) => {
                                 const groupExams = groupWiseExamList.filter(e => !e.isTotal && !e.isGrade && (e.EMPG_DistplayName || e.empG_DistplayName) === (groupTotalExam.EMPG_DistplayName || groupTotalExam.empG_DistplayName));
                                 groupExams.forEach(ge => {
-                                    const mark = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id) && (m.EME_Id || m.emE_Id) === ge.EME_Id);
+                                    const mark = studentMarks.find((m: any) => {
+                                        const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (s.ISMS_Id || s.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
+                                        const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (s.subjectName || s.ISMS_SubjectName) &&
+                                            (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (s.subjectName || s.ISMS_SubjectName).toLowerCase();
+                                        return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === ge.EME_Id;
+                                    });
                                     if (mark) total += (mark.ObtainedMarks || mark.obtainedMarks || 0);
                                 });
                             });
                             return total;
                         });
 
-                        const graphClassAverages = graphSubjects.map((s: any) => {
+                        const graphClassAverages = (data.graph1_Averages && studentDetails.length === 1) ? data.graph1_Averages : graphSubjects.map((s: any) => {
                             const subjAvg = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
                             if (subjAvg !== undefined) return Number(subjAvg);
-                            
+
                             // If missing, look for it in studentMarks
                             let avg = 0;
-                            const markWithAvg = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id) && (m.ESTMPPS_ClassAverage || m.estmpps_ClassAverage || m.classAverage));
+                            const markWithAvg = studentMarks.find((m: any) => {
+                                const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (s.ISMS_Id || s.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
+                                const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (s.subjectName || s.ISMS_SubjectName) &&
+                                    (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (s.subjectName || s.ISMS_SubjectName).toLowerCase();
+                                return (ismsMatch || nameMatch) && (m.ESTMPPS_ClassAverage || m.estmpps_ClassAverage || m.classAverage);
+                            });
                             if (markWithAvg) avg = markWithAvg.ESTMPPS_ClassAverage || markWithAvg.estmpps_ClassAverage || markWithAvg.classAverage;
                             return avg;
                         });
@@ -202,7 +418,12 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                 const examsInGroup = groupExamDetails.filter((ge: any) => (ge.EMPG_DistplayName || ge.empG_DistplayName) === groupName);
                                 let groupTotal = 0;
                                 examsInGroup.forEach((exam: any) => {
-                                    const mark = studentMarks.find((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) === (exam.EME_Id || exam.emE_Id));
+                                    const mark = studentMarks.find((m: any) => {
+                                        const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (subj.ISMS_Id || subj.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id);
+                                        const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (subj.subjectName || subj.ISMS_SubjectName) &&
+                                            (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                        return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === (exam.EME_Id || exam.emE_Id);
+                                    });
                                     if (mark) groupTotal += (mark.ObtainedMarks || mark.obtainedMarks || 0);
                                 });
                                 subjObj.terms[groupName] = groupTotal;
@@ -213,28 +434,32 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                         const graph2Labels = groupedMarksBySubject.map((item: any) => item.subject);
                         const allTerms = groupDetails.map((g: any) => g.EMPG_DistplayName || g.empG_DistplayName);
                         const termColors: any = { "TERM I": "#1cc405", "TERM II": "#770396" };
-                        const graph2Datasets = allTerms.map((term: any, idx: number) => ({
+                        const graph2Datasets = ((data.graph2_Datasets && studentDetails.length === 1) ? data.graph2_Datasets : allTerms.map((term: any, idx: number) => ({
                             label: term as string,
                             data: groupedMarksBySubject.map((subject: any) => subject.terms[term] || 0),
                             backgroundColor: termColors[term as string] || (idx === 0 ? '#1cc405' : '#770396'),
                             borderColor: 'black',
                             borderWidth: 1,
+                        }))).map((dataset: any) => ({
+                            ...dataset,
+                            barPercentage: 0.2,
+                            categoryPercentage: 0.5,
                         }));
 
-                        console.log(`Student ${studentID} API DATA:`, {
-                            studentSubjects,
-                            studentMarks,
-                            graph1_Labels: graphLabels,
-                            graph1_Scores: graphScores,
-                            graph1_Averages: graphClassAverages,
-                            graph2_GroupedMarks: groupedMarksBySubject,
-                            graph2_Datasets: graph2Datasets
-                        });
+                        // console.log(`Student ${studentID} API DATA:`, {
+                        //     studentSubjects,
+                        //     studentMarks,
+                        //     graph1_Labels: graphLabels,
+                        //     graph1_Scores: graphScores,
+                        //     graph1_Averages: graphClassAverages,
+                        //     graph2_GroupedMarks: groupedMarksBySubject,
+                        //     graph2_Datasets: graph2Datasets
+                        // });
 
                         return (
                             <div
                                 key={index}
-                                className={`mx-auto mb-8 w-[90%] max-w-[90%] bg-white p-2 shadow-sm border border-gray-300 ${index > 0 ? 'page-break-before-always' : ''}`}
+                                className={`mx-auto mb-8 w-[90%] max-w-[90%] bg-white p-2 shadow-sm border border-gray-300 print:w-full print:max-w-full print:mx-0 print:border-none print:p-0 print:shadow-none ${index > 0 ? 'page-break-before-always' : ''}`}
                                 style={{ fontFamily: "'Source Sans Pro', sans-serif" }}>
 
                                 <div className='mb-4 w-full flex justify-center'>
@@ -316,39 +541,49 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                 <tr key={sIdx}>
                                                     <td className='border border-gray-400 p-2 text-left break-words'>{subj.ISMS_SubjectName || subj.ismS_SubjectName || subj.subjectName}</td>
                                                     {groupWiseExamList.map((exam: any, eIdx: number) => {
-                                                        const mark = studentMarks.find((m: any) =>
-                                                            (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) &&
-                                                            (m.EME_Id || m.emE_Id) === exam.EME_Id
-                                                        );
+                                                        const mark = studentMarks.find((m: any) => {
+                                                            const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (subj.ISMS_Id || subj.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id);
+                                                            const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (subj.subjectName || subj.ISMS_SubjectName) &&
+                                                                (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                                            return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === exam.EME_Id;
+                                                        });
 
                                                         let displayValue = '';
 
                                                         if (exam.isTotal) {
                                                             const totalMarks = studentMarks
-                                                                .filter((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001)
+                                                                .filter((m: any) => {
+                                                                    const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (subj.ISMS_Id || subj.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id);
+                                                                    const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (subj.subjectName || subj.ISMS_SubjectName) &&
+                                                                        (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                                                    return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001;
+                                                                })
                                                                 .reduce((acc: number, curr: any) => acc + (curr.ObtainedMarks || curr.obtainedMarks || 0), 0);
-                                                            displayValue = totalMarks > 0 ? totalMarks.toString() : '';
+                                                            displayValue = totalMarks > 0 ? totalMarks.toString() : (subj.subjectObtainedMarks ? subj.subjectObtainedMarks.toString() : '');
                                                         } else if (exam.isGrade) {
-                                                            const totalMarks = studentMarks
-                                                                .filter((m: any) => (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001)
-                                                                .reduce((acc: number, curr: any) => acc + (curr.ObtainedMarks || curr.obtainedMarks || 0), 0);
-
-                                                            if (totalMarks > 0) {
-                                                                if (totalMarks >= 91) displayValue = 'A1';
-                                                                else if (totalMarks >= 81) displayValue = 'A2';
-                                                                else if (totalMarks >= 71) displayValue = 'B1';
-                                                                else if (totalMarks >= 61) displayValue = 'B2';
-                                                                else if (totalMarks >= 51) displayValue = 'C1';
-                                                                else if (totalMarks >= 41) displayValue = 'C2';
-                                                                else if (totalMarks >= 33) displayValue = 'D';
-                                                                else displayValue = 'E';
+                                                            if (subj.subjectGrade) {
+                                                                displayValue = subj.subjectGrade;
+                                                            } else {
+                                                                const maxMarks = subj.subjectMaxMarks || 200;
+                                                                const totalMarks = studentMarks
+                                                                    .filter((m: any) => {
+                                                                        const ismsMatch = (m.ISMS_Id || m.ismS_Id) && (subj.ISMS_Id || subj.ismS_Id) && (m.ISMS_Id || m.ismS_Id) === (subj.ISMS_Id || subj.ismS_Id);
+                                                                        const nameMatch = (m.ismS_SubjectName || m.ISMS_SubjectName) && (subj.subjectName || subj.ISMS_SubjectName) &&
+                                                                            (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() === (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                                                        return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) !== 9800000 && (m.EME_Id || m.emE_Id) !== 9800001;
+                                                                    })
+                                                                    .reduce((acc: number, curr: any) => acc + (curr.ObtainedMarks || curr.obtainedMarks || 0), 0);
+                                                                const pct = (totalMarks / maxMarks) * 100;
+                                                                if (totalMarks > 0) {
+                                                                    displayValue = getGradeFromPercentage(pct);
+                                                                }
                                                             }
                                                         } else if (mark) {
                                                             const pfFlag = mark.PassFailFlag || mark.passFailFlag;
                                                             if (pfFlag === 'AB' || pfFlag === 'M' || pfFlag === 'L') {
                                                                 displayValue = pfFlag;
                                                             } else {
-                                                                displayValue = mark.ObtainedMarks ?? mark.obtainedMarks ?? '';
+                                                                displayValue = (mark.ObtainedMarks ?? mark.obtainedMarks ?? '').toString();
                                                             }
                                                         }
 
@@ -499,8 +734,6 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                         y: { beginAtZero: true },
                                                         x: {
                                                             ticks: { minRotation: 40, maxRotation: 40 },
-                                                            barPercentage: 0.2,
-                                                            categoryPercentage: 0.5,
                                                         }
                                                     }
                                                 }}
@@ -525,7 +758,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.height || report.SPCCSHW_Height || report.AMST_height || report.AMST_Height || ''}</td>
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.weight || report.SPCCSHW_Weight || report.AMST_Weight || ''}</td>
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.bloodGroup || report.AMST_BloodGroup || ''}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.dentalHygiene || report.HMDNHY_DentalHygiene || ''}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.dentalHygiene || report.HMDNHY_DentalHygiene || '-'}</td>
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.visionHygiene || report.HMVSN_VisionHygiene || ''}</td>
                                             </tr>
                                         </tbody>
@@ -540,15 +773,15 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Total number of <br /> working days</th>
                                                 <td className='border border-gray-400 p-2 w-1/6 font-bold'>
-                                                    {report.totalSchoolDays ?? workAtt.TotalSchoolDays ?? workAtt.totalSchoolDays ?? workAtt.TotalSchool_Days ?? workAtt.totalSchool_Days ?? workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? ''}
+                                                    {presentAtt.totalSchoolDays ?? ''}
                                                 </td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Number of days <br /> attended</th>
                                                 <td className='border border-gray-400 p-2 w-1/6 font-bold'>
-                                                    {report.totalPresentDays ?? presentAtt.TotalWorkingDays ?? presentAtt.totalWorkingDays ?? presentAtt.TotalPresentDays ?? presentAtt.totalPresentDays ?? presentAtt.TotalPresent_Days ?? presentAtt.totalPresent_Days ?? presentAtt.presentDays ?? presentAtt.present_days ?? ''}
+                                                    {presentAtt.totalWorkingDays ?? ''}
                                                 </td>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-1/6'>Attendance <br /> Percentage</th>
                                                 <td className='border border-gray-400 p-2 w-1/6 font-bold'>
-                                                    {presentAtt.Total_Percentage ?? presentAtt.total_Percentage ?? presentAtt.TotalPercentage ?? presentAtt.totalPercentage ?? ''}
+                                                    {presentAtt.total_Percentage ?? ''}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -573,40 +806,41 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-32 text-left uppercase'>RESULT</th>
-                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>{report.ESTMP_Result || report.estmP_Result || ''}</th>
+                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>{remarkObj.eprD_PromotionName || report.estmP_Result || '-'}</th>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {/* Signatures */}
-                                <div className='mt-12 px-8 flex flex-col space-y-4'>
-                                    <div className='flex w-full items-center justify-between'>
-                                        <div className='w-1/3 text-left'>
-                                        </div>
-                                        <div className='w-1/3 text-center flex justify-center'>
-                                            <img src="https://vapsclg.blob.core.windows.net/files/50/managersign/ebca00dc-ae10-43fe-a6ea-99658b662e07.jpg"
-                                                style={{ width: '100px' }} alt="Manager Sign" />
-                                        </div>
-                                        <div className='w-1/3 text-right'>
-                                            &nbsp;
-                                        </div>
+                                <div className='mt-12 px-8 flex w-full justify-between items-end font-bold' style={{ fontFamily: 'sans-serif' }}>
+                                    {/* Principal Column */}
+                                    <div className='w-1/3 text-left flex flex-col items-start justify-end h-[140px]'>
+                                        <div className='flex-1'></div> {/* Spacer */}
+                                        <span>Principal’s Signature</span>
                                     </div>
 
-                                    <div className='flex w-full justify-between font-bold' style={{ fontFamily: 'sans-serif' }}>
-                                        <div className='w-1/3 text-left'>
-                                            Principal’s Signature
+                                    {/* Institution Seal Column */}
+                                    <div className='w-1/3 flex flex-col items-center justify-end h-[140px]'>
+                                        <div className='flex-1 flex items-center justify-center mb-2'>
+                                            <img
+                                                src="https://vapsclg.blob.core.windows.net/files/50/managersign/ebca00dc-ae10-43fe-a6ea-99658b662e07.jpg"
+                                                style={{ width: '100px', height: '100px', objectFit: 'contain' }}
+                                                alt="Manager Sign"
+                                            />
                                         </div>
-                                        <div className='w-1/3 text-center'>
-                                            Institution Seal
-                                        </div>
-                                        <div className='w-1/3 text-right flex flex-col items-end'>
+                                        <span>Institution Seal</span>
+                                    </div>
+
+                                    {/* Class Teacher Column */}
+                                    <div className='w-1/3 text-right flex flex-col items-end justify-end h-[140px]'>
+                                        <div className='flex-1 flex flex-col justify-end items-end mb-2'>
                                             {classTeacherName.length > 0 && (
                                                 <span className='uppercase'>{classTeacherName[0].hrmE_EmployeeFirstName}</span>
                                             )}
-                                            <span>Class Teacher’s Signature</span>
-                                            <span>Date: {generatedDate ? format(generatedDate, 'dd/MM/yyyy') : ''}</span>
                                         </div>
+                                        <span>Class Teacher’s Signature</span>
+                                        <span className='text-sm font-normal'>Date: {generatedDate ? format(generatedDate, 'dd/MM/yyyy') : ''}</span>
                                     </div>
                                 </div>
                             </div>
@@ -619,10 +853,60 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
 
             <style jsx global>{`
                 @media print {
-                    .no-print { display: none !important; }
-                    body { background: white !important; -webkit-print-color-adjust: exact; }
-                    .page-break-before-always { page-break-before: always !important; }
-                    @page { size: A4 portrait; margin: 10mm; }
+                    /* Completely hide non-printed elements so they occupy 0px space */
+                    header, footer, nav, form, section:has(form),
+                    [class*="navigation"], [class*="navbar"], [class*="footer"], 
+                    [class*="stability"], [class*="chatbot"], [class*="Toaster"],
+                    .no-print { 
+                        display: none !important; 
+                    }
+                    
+                    body { 
+                        background: white !important; 
+                        -webkit-print-color-adjust: exact;
+                        visibility: hidden !important;
+                    }
+                    
+                    /* Reset flex and layout wrapper margins/paddings on print */
+                    html, body, main, 
+                    body :has(.printable-content),
+                    div[class*="flex"], 
+                    div[class*="min-h-screen"],
+                    .flex-1 {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        position: static !important;
+                        overflow: visible !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        box-shadow: none !important;
+                        transform: none !important;
+                        gap: 0 !important;
+                    }
+                    
+                    .printable-content,
+                    .printable-content * {
+                        visibility: visible !important;
+                    }
+                    
+                    .printable-content {
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    
+                    .page-break-before-always { 
+                        page-break-before: always !important; 
+                        break-before: page !important;
+                    }
+                    
+                    @page { 
+                        size: A4 portrait; 
+                        margin: 15mm 10mm 15mm 10mm; 
+                    }
                 }
                 .print-area table { border-color: #000 !important; }
                 .print-area th, .print-area td { border-color: #000 !important; }
