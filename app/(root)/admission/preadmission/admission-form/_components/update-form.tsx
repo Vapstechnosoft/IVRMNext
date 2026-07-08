@@ -2412,45 +2412,62 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // First, trigger schema validation
             // We don't clearErrors here as it might clear manual errors from onBlur (like duplicate checks)
             //clearErrors();
-            let isValid: boolean;
+            let isValid = true;
             if (currentStep === 1) {
-                // For Step 1, validate ALL fields to show all errors at once
-                isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : undefined);
+                const step1Sequence = [
+                    'amsT_MobileNo',
+                    'amsT_FirstName',
+                    'amsT_RegistrationNo',
+                    'amsT_AdmissionNo',
+                    'asmcL_Id',
+                    'asmS_Id',
+                    'amsT_Date',
+                    'amsT_DOB',
+                    'amsT_ReligionId',
+                    'imC_Id',
+                    'amsT_Sex',
+                    'feeConcessionType',
+                    'amsT_Nationality',
+                    'asmcC_Id',
+                    'studentCategoryId'
+                ];
 
-                // Log validation result and errors after trigger
-                console.log('[DEBUG] trigger() result:', isValid);
-                console.log('[DEBUG] Errors after trigger():', Object.keys(errors));
-                console.log('[DEBUG] Full errors object:', errors);
-            } else {
-                // For other steps, validate only specific fields
-                if (fieldsToValidate.length > 0) {
-                    isValid = await trigger(fieldsToValidate);
-                } else {
-                    // If no fields to validate (e.g. Step 3), consider it valid
-                    isValid = true;
-                    clearErrors(); // Ensure no leftover errors block submission
-                }
-            }
-
-            // For Step 1, perform custom validations AFTER schema validation
-            // This ensures all schema errors are already in the errors object
-            if (currentStep === 1) {
-                // Student photo check is skipped on update form — photo already exists on the record
-
-                // Check EMIS/BPL if checkbox is checked
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    const emis = String(getValues('amsT_BPLCardNo') ?? '').trim();
-                    if (!emis) {
-                        setError('amsT_BPLCardNo', {
-                            type: 'manual',
-                            message: 'EMIS / BPL / STS No. is required'
-                        });
+                    step1Sequence.push('amsT_BPLCardNo');
+                }
+                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
+                    step1Sequence.push(
+                        'asecS_AccountNo',
+                        'asecS_AccountHolderName',
+                        'asecS_BankName',
+                        'asecS_AccountType',
+                        'asecS_MICRNo',
+                        'asecS_Branch'
+                    );
+                }
+
+                const activeSequence = step1Sequence.filter(f => fieldsToValidate.includes(f));
+                for (const f of fieldsToValidate) {
+                    if (!activeSequence.includes(f)) {
+                        activeSequence.push(f);
                     }
                 }
 
-                // Check ECS bank details if ECS flag is checked
-                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
-                    const requiredEcsFields = [
+                let firstInvalidField: string | null = null;
+                for (const field of activeSequence) {
+                    if (field === 'amsT_BPLCardNo' && Number(getValues('isEmisBpl') ?? 0) === 1) {
+                        const emis = String(getValues('amsT_BPLCardNo') ?? '').trim();
+                        if (!emis) {
+                            setError('amsT_BPLCardNo', {
+                                type: 'manual',
+                                message: 'EMIS / BPL / STS No. is required'
+                            });
+                            firstInvalidField = 'amsT_BPLCardNo';
+                            break;
+                        }
+                    }
+
+                    const ecsFields = [
                         { field: 'asecS_AccountNo', label: 'Account Number' },
                         { field: 'asecS_AccountHolderName', label: 'Account Holder Name' },
                         { field: 'asecS_BankName', label: 'Bank Name' },
@@ -2458,17 +2475,53 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         { field: 'asecS_MICRNo', label: 'MICR No' },
                         { field: 'asecS_Branch', label: 'Branch Name' }
                     ];
-
-                    const missingEcsFields = requiredEcsFields.filter(({ field }) => !String(getValues(field as any) ?? '').trim());
-
-                    if (missingEcsFields.length > 0) {
-                        missingEcsFields.forEach(({ field, label }) => {
+                    const ecsMatch = ecsFields.find(e => e.field === field);
+                    if (ecsMatch && Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
+                        const val = String(getValues(field as any) ?? '').trim();
+                        if (!val) {
                             setError(field as any, {
                                 type: 'manual',
-                                message: `${label} is required`
+                                message: `${ecsMatch.label} is required`
                             });
-                        });
+                            firstInvalidField = field;
+                            break;
+                        }
                     }
+
+                    const isFieldValid = await trigger(field as any);
+                    if (!isFieldValid) {
+                        firstInvalidField = field;
+                        break;
+                    }
+                }
+
+                if (firstInvalidField) {
+                    const fieldsToClear = fieldsToValidate.filter(f => f !== firstInvalidField);
+                    clearErrors(fieldsToClear as any);
+                    isValid = false;
+                } else {
+                    isValid = true;
+                }
+            } else {
+                if (fieldsToValidate.length > 0) {
+                    let firstInvalidField: string | null = null;
+                    for (const field of fieldsToValidate) {
+                        const isFieldValid = await trigger(field as any);
+                        if (!isFieldValid) {
+                            firstInvalidField = field;
+                            break;
+                        }
+                    }
+
+                    if (firstInvalidField) {
+                        const fieldsToClear = fieldsToValidate.filter(f => f !== firstInvalidField);
+                        clearErrors(fieldsToClear as any);
+                        isValid = false;
+                    } else {
+                        isValid = true;
+                    }
+                } else {
+                    isValid = true;
                 }
             }
 
@@ -2504,7 +2557,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
 
             // Reinforce duplication check explicitly for Step 1
-            if (currentStep === 1) {
+            if (isValid && currentStep === 1) {
                 const regNo = getValues('amsT_RegistrationNo');
                 const isDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
                 if (isDuplicate) {
