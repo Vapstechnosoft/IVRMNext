@@ -61,7 +61,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [_loadingSections, setLoadingSections] = useState(false);
     const { refetchAll } = useMasterCategoryClassMapping();
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
@@ -166,8 +166,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 const classSections = Array.isArray(classSectionsRes)
                     ? classSectionsRes
                     : Array.isArray(classSectionsRes?.data)
-                        ? classSectionsRes.data
-                        : [];
+                      ? classSectionsRes.data
+                      : [];
 
                 // fetch category mapped sections (the server mapping for the given year+category+class)
                 const catMappedRes = await getCategoryMappedSections(selectedRow.asmaY_Id, selectedRow.emcA_Id, selectedRow.asmcL_Id);
@@ -259,8 +259,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     const classSections = Array.isArray(classSectionsRes)
                         ? classSectionsRes
                         : Array.isArray(classSectionsRes?.data)
-                            ? classSectionsRes.data
-                            : [];
+                          ? classSectionsRes.data
+                          : [];
 
                     // build section objects for form and mappingList rows
                     const _sectionOptions: SectionItem[] = classSections.map((s: any) => ({
@@ -411,7 +411,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         setMappingList((prev) => prev.filter((_, i) => i !== index));
         if (editIndex === index) setEditIndex(null);
         toast.success('Mapping removed');
-        window.location.reload();
     };
 
     // Final submit: build payload exactly as you showed
@@ -452,7 +451,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const safeSections = Array.isArray(sections) ? sections : [];
     const safeMappingList = Array.isArray(mappingList) ? mappingList : [];
 
-    if (isLoading || safeMappingList.length === 0) {
+    if (isLoading) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
@@ -473,7 +472,10 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select key={`year-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
+                            <Select
+                                key={`year-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -508,7 +510,10 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='emcA_Id'
                         render={({ field }) => (
-                            <Select key={`category-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
+                            <Select
+                                key={`category-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
