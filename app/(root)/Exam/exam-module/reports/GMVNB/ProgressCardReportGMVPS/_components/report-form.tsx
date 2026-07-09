@@ -7,15 +7,27 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { gmvpsPromotionReportCardSchema, type GmvpsPromotionReportCardSchema } from '@/schemas/exam/exam-module/reports';
+import { z } from 'zod';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamAcademicYearDropdown,
-    getGmvpsPromotionReportCard,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist
-} from '@/server/exam/exam-module/reports/GMVPS/gmvps-promotion-report';
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist,
+    getExamReportCard
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+const formSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    EME_Id: z.string().min(1, 'Exam is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    date: z.coerce.date().optional()
+});
+
+type FormSchema = z.infer<typeof formSchema>;
 import { Loader2, RefreshCcw, FileText, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -35,19 +47,24 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
     const [years, setYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
 
     const [loading, setLoading] = useState(true);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
 
-    const methods = useForm<GmvpsPromotionReportCardSchema>({
-        resolver: zodResolver(gmvpsPromotionReportCardSchema),
+    const methods = useForm<FormSchema>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
+            ASMAY_Id: '',
+            ASMCL_Id: '',
+            ASMS_Id: '',
+            EME_Id: '',
             selectedStudents: [],
-            performanceanalysis: true,
             date: new Date()
         }
     });
@@ -58,6 +75,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
     const watchSection = useWatch({ control, name: 'ASMS_Id' });
+    const watchExam = useWatch({ control, name: 'EME_Id' });
     const watchSelectedStudents = useWatch({ control, name: 'selectedStudents' }) || [];
 
     useEffect(() => {
@@ -67,26 +85,18 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
     }, [isSubmitting, loading, onLoading]);
 
     useEffect(() => {
-        // Clear the generated report if any selection changes
         onReset();
-    }, [watchYear, watchClass, watchSection, watchSelectedStudents, onReset]);
+    }, [watchYear, watchClass, watchSection, watchExam, watchSelectedStudents, onReset]);
 
     // Load Initial Data
+    const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
+
     useEffect(() => {
-        (async () => {
-            try {
-                const response = await getExamAcademicYearDropdown();
-                if (response?.success && Array.isArray(response.data)) {
-                    setYears(response.data);
-                }
-            } catch (err) {
-                console.error(err);
-                toast.error('Failed to load initial details');
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
+        if (academicData?.data && Array.isArray(academicData.data)) {
+            setYears(academicData.data);
+            setLoading(false);
+        }
+    }, [academicData]);
 
     // Load Classes on Year Change
     useEffect(() => {
@@ -94,10 +104,8 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             (async () => {
                 try {
                     setLoadingClasses(true);
-                    const response = await getClassDropDownByAcademicYearlist(Number(watchYear));
-                    if (response?.success && Array.isArray(response.data)) {
-                        setClasses(response.data);
-                    }
+                    const { data } = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                    setClasses(data || []);
                 } catch (err) {
                     console.error(err);
                     toast.error('Failed to load classes');
@@ -107,6 +115,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             })();
             setValue('ASMCL_Id', '');
             setValue('ASMS_Id', '');
+            setValue('EME_Id', '');
             setValue('selectedStudents', []);
         } else {
             setClasses([]);
@@ -119,13 +128,11 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             (async () => {
                 try {
                     setLoadingSections(true);
-                    const response = await getSectionsDropDownByAcademicYearandClasslist(
-                        Number(watchClass),
-                        Number(watchYear)
+                    const { data } = await getSectionsDropDownByAcademicYearandClasslist(
+                        Number(watchYear),
+                        Number(watchClass)
                     );
-                    if (response?.success && Array.isArray(response.data)) {
-                        setSections(response.data);
-                    }
+                    setSections(data || []);
                 } catch (err) {
                     console.error(err);
                     toast.error('Failed to load sections');
@@ -134,29 +141,59 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                 }
             })();
             setValue('ASMS_Id', '');
+            setValue('EME_Id', '');
             setValue('selectedStudents', []);
         } else {
             setSections([]);
         }
     }, [watchYear, watchClass, setValue]);
 
-    // Load Students on Section Change
+    // Load Exams on Section Change
     useEffect(() => {
         if (watchYear && watchClass && watchSection) {
             (async () => {
                 try {
-                    setLoadingStudents(true);
-                    const response = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    setLoadingExams(true);
+                    const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(
                         Number(watchYear),
                         Number(watchClass),
                         Number(watchSection)
                     );
-                    const studentList = response?.success && Array.isArray(response.data) ? response.data : [];
-                    setStudents(studentList);
+                    setExams(data || []);
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to load exams');
+                } finally {
+                    setLoadingExams(false);
+                }
+            })();
+            setValue('EME_Id', '');
+            setValue('selectedStudents', []);
+        } else {
+            setExams([]);
+        }
+    }, [watchYear, watchClass, watchSection, setValue]);
 
-                    // Auto-select all students
-                    if (Array.isArray(studentList)) {
-                        setValue('selectedStudents', studentList.map((s: any) => String(s.amsT_Id)));
+    // Load Students on Exam Selection
+    useEffect(() => {
+        if (watchYear && watchClass && watchSection && watchExam) {
+            (async () => {
+                try {
+                    setLoadingStudents(true);
+                    const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                        Number(watchYear),
+                        Number(watchClass),
+                        Number(watchSection)
+                    );
+                    const mapped = (data || []).map((s: any) => ({
+                        amsT_Id: s.amsT_Id,
+                        amsT_AdmNo: s.amsT_AdmNo,
+                        studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_AdmNo || ''}`.trim()
+                    }));
+                    setStudents(mapped);
+
+                    if (Array.isArray(mapped)) {
+                        setValue('selectedStudents', mapped.map((s: any) => String(s.amsT_Id)));
                     }
                 } catch (err) {
                     console.error(err);
@@ -169,31 +206,45 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
             setStudents([]);
             setValue('selectedStudents', []);
         }
-    }, [watchYear, watchClass, watchSection, setValue]);
+    }, [watchYear, watchClass, watchSection, watchExam, setValue]);
 
-    const onSubmit = async (data: GmvpsPromotionReportCardSchema) => {
+    const onSubmit = async (data: FormSchema) => {
         try {
-            const payload = {
-                "ASMAY_Id": Number(data.ASMAY_Id),
-                "ASMCL_Id": Number(data.ASMCL_Id),
-                "ASMS_Id": Number(data.ASMS_Id),
-                "Temp_AmstIds": data.selectedStudents.map((id) => ({ AMST_Id: Number(id) }))
+            const selectedYearObj = years.find((y: any) => String(y.asmaY_Id) === String(data.ASMAY_Id));
+            const selectedExamObj = exams.find((e: any) => String(e.emE_Id) === String(data.EME_Id));
+            const studentIdsArray = data.selectedStudents.map(Number);
+
+            const payload: any = {
+                ASMAY_Id: Number(data.ASMAY_Id),
+                ASMCL_Id: Number(data.ASMCL_Id),
+                ASMS_Id: Number(data.ASMS_Id),
+                EME_Id: Number(data.EME_Id),
+                AMST_Ids: studentIdsArray.join(','),
+                yearName: selectedYearObj?.asmaY_Year || '',
+                examName: selectedExamObj?.emE_ExamName || '',
+                examCode: selectedExamObj?.emE_ExamCode || '',
+                fromDate: new Date().toISOString(),
+                toDate: new Date().toISOString()
             };
 
-            const response = await getGmvpsPromotionReportCard(payload);
+            const response = await getExamReportCard(payload);
+            console.log("GMVNB ProgressCardReportGMVPS response:", response);
 
-            console.log("report data", response);
-            const academicYear = years.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year || '';
+            const flatRows = response?.data?.list || (Array.isArray(response?.data) ? response.data : []);
 
-            if (response?.success && response.data) {
+            if (flatRows && flatRows.length > 0) {
                 onReportGenerated(
-                    response.data,
-                    academicYear,
+                    {
+                        savelist: flatRows,
+                        examName: payload.examName,
+                        examCode: payload.examCode
+                    },
+                    payload.yearName,
                     data.date
                 );
                 toast.success('Report generated successfully');
             } else {
-                toast.error(response?.message || 'No data found for the selected criteria');
+                toast.error('No record Found');
             }
         } catch (error) {
             console.error('Error generating report:', error);
@@ -341,6 +392,42 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                 />
                             </div>
 
+                            {/* Exam Name */}
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                    Exam Name <span className="text-red-500">*</span>
+                                </Label>
+                                <Controller
+                                    control={control}
+                                    name="EME_Id"
+                                    render={({ field, fieldState }) => (
+                                        <>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchSection || loadingExams}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    {loadingExams ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                                    ) : (
+                                                        <SelectValue placeholder="--Select--" />
+                                                    )}
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {exams.map((exm) => (
+                                                        <SelectItem key={exm.emE_Id} value={String(exm.emE_Id)}>
+                                                            {exm.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </>
+                                    )}
+                                />
+                            </div>
+ 
                             {/* Date Picker */}
                             <div className="pt-4">
                                 <Controller
@@ -357,7 +444,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                 />
                             </div>
                         </div>
-
+ 
                         {/* Right Column: Student Selection */}
                         <div className="space-y-3 border rounded-lg p-4 bg-slate-50/50">
                             <div className="flex items-center justify-between">
@@ -382,7 +469,7 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                     />
                                 </div>
                             </div>
-
+ 
                             <ScrollArea className="h-[200px] w-full border rounded-md bg-white shadow-inner">
                                 <div className="p-2 space-y-1">
                                     {loadingStudents ? (
@@ -390,8 +477,12 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                             <Loader2 className="h-6 w-6 animate-spin mb-2" />
                                             <span className="text-xs">Loading students...</span>
                                         </div>
-                                    ) : filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student) => (
+                                    ) : students.length > 0 ? (
+                                        students.filter(s =>
+                                            (s.studentname || s.studentName || s.amsT_FirstName || '')
+                                                .toLowerCase()
+                                                .includes(searchQuery.toLowerCase())
+                                        ).map((student) => (
                                             <div key={student.amsT_Id} className="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-sm transition-colors">
                                                 <Controller
                                                     control={control}
@@ -414,13 +505,13 @@ export const ReportForm = ({ onReportGenerated, onReset, onLoading }: ReportForm
                                                     htmlFor={`student-${student.amsT_Id}`}
                                                     className="text-xs font-medium cursor-pointer flex-1 py-1"
                                                 >
-                                                    {student.studentname || student.studentName}
+                                                    {student.studentname || student.studentName || student.amsT_FirstName || 'Unknown'} {student.amsT_AdmNo ? `/ ${student.amsT_AdmNo}` : ''}
                                                 </Label>
                                             </div>
                                         ))
                                     ) : (
                                         <div className="flex items-center justify-center h-[180px] text-muted-foreground text-xs italic">
-                                            {watchSection ? "No students found" : "Select Section to load students"}
+                                            {watchExam ? "No students found" : "Select Exam to load students"}
                                         </div>
                                     )}
                                 </div>
