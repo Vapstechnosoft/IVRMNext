@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createStringSchema, deleteIdSchema, createOptionalStringSchema } from '../validationSchemas';
+import { createOptionalStringSchema, createStringSchema, deleteIdSchema } from '../validationSchemas';
 
 export const bookRegisterSchema = {
     addOrUpdate: z.object({
@@ -13,7 +13,7 @@ export const bookRegisterSchema = {
         lmD_Id: z.number({ required_error: 'Department is required' }).min(1),
         binding_Type: z.string().optional(),
         lmB_Edition: z.string().optional(),
-        lmB_PublishedYear: z.union([z.string(), z.number()]).refine(val => !!val, 'Published Year is required'),
+        lmB_PublishedYear: z.union([z.string(), z.number()]).refine((val) => !!val, 'Published Year is required'),
         lmB_EntryDate: z.union([z.date(), z.string()]),
         mB_Call_No: z.string().optional(),
         lmB_ISBNNo: createOptionalStringSchema('ISBN No', 1, 50),
@@ -39,8 +39,8 @@ export const bookRegisterSchema = {
         mB_Keywords: z.string().optional(),
         lmP_Id: z.number().optional(),
         mB_Remarks: z.string().optional(),
-        bibliography_Page: z.string().optional(),
-        index_Page: z.string().optional(),
+        bibliography_Page: z.union([z.boolean(), z.string()]).optional(),
+        index_Page: z.union([z.boolean(), z.string()]).optional(),
 
         lmAU_Id: z.number().optional(),
         lmB_AuthorFirstName: z.string().optional(),
