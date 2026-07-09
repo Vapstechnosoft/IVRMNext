@@ -1,0 +1,48 @@
+'use server';
+
+import { api } from '@/lib/apiService';
+
+export async function getReportProspectusInitialData() {
+  try {
+    const response = await api.get<any>('preadmission', '/ReportProspectus/get_intial_data/2');
+    return response.data || response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch initial data');
+  }
+}
+
+export async function getReportProspectusDetails(data: any) {
+  try {
+    const response = await api.post<any>('preadmission', '/ReportProspectus/Getdetails', data);
+    return response.data || response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch prospectus details');
+  }
+}
+
+export async function searchReportProspectus(data: any) {
+  try {
+    const response = await api.post<any>('preadmission', '/ReportProspectus/searchprospectus', data);
+    return response.data || response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to search prospectus details');
+  }
+}
+
+export async function sendSms(data: any) {
+  try {
+    const response = await api.post<any>('preadmission', '/ReportProspectus/SendSms', data);
+    return response.data || response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to send SMS');
+  }
+}
+
+export async function sendMail(data: any) {
+  try {
+    const response = await api.post<any>('preadmission', '/ReportProspectus/SendMail', data);
+    return response.data || response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to send Mail');
+  }
+}

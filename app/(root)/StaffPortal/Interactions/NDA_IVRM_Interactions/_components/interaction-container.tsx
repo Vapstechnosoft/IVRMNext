@@ -15,7 +15,7 @@ import { Loader2, Inbox, Users, User, Send } from 'lucide-react';
 interface InteractionContainerProps {
     initialData: IInteractionsInitialData;
 }
-
+export const dynamic = 'force-dynamic';
 export function InteractionContainer({ initialData }: InteractionContainerProps) {
     const [activeTab, setActiveTab] = useState('inbox');
     const [interactionsData, setInteractionsData] = useState(initialData);
@@ -80,22 +80,22 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                 <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                     <div className="bg-[#f8fafc] border-b">
                         <TabsList className="h-10 w-full justify-start gap-0 bg-transparent p-0 rounded-none">
-                            <TabsTrigger 
+                            <TabsTrigger
                                 value="inbox"
                                 className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500"
                             >
                                 Inbox
                             </TabsTrigger>
-                            
+
                             {!isStudent ? (
                                 <>
-                                    <TabsTrigger 
+                                    <TabsTrigger
                                         value="group"
                                         className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500"
                                     >
                                         Group
                                     </TabsTrigger>
-                                    <TabsTrigger 
+                                    <TabsTrigger
                                         value="individual"
                                         className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500"
                                     >
@@ -103,7 +103,7 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                                     </TabsTrigger>
                                 </>
                             ) : (
-                                <TabsTrigger 
+                                <TabsTrigger
                                     value="individual"
                                     className="h-10 px-8 text-[11px] font-black uppercase tracking-tight data-[state=active]:bg-[#1e40af] data-[state=active]:text-white rounded-none border-r text-slate-500"
                                 >
@@ -160,9 +160,9 @@ export function InteractionContainer({ initialData }: InteractionContainerProps)
                     isOpen={showFeedback}
                     onClose={() => setShowFeedback(false)}
                     questions={feedbackData.questions}
-                    options={feedbackData.options} 
-                    roleFlg={roleFlg} 
-                    userhrmE_Id={initialData.userhrmE_Id ?? 0} 
+                    options={feedbackData.options}
+                    roleFlg={roleFlg}
+                    userhrmE_Id={initialData.userhrmE_Id ?? 0}
                 />
             )}
         </Card>
