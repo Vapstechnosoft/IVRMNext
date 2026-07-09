@@ -61,7 +61,9 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <InputText
                         label='Sub Exam Name'
+                        placeholder='Enter Sub Exam Name'
                         required
+                        placeholder='Enter Sub Exam Name'
                         id='emsE_SubExamName'
                         {...register('emsE_SubExamName')}
                         error={errors.emsE_SubExamName?.message}
@@ -69,7 +71,9 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
 
                     <InputText
                         label='Sub Exam Code'
+                        placeholder='Enter Sub Exam Code'
                         required
+                        placeholder='Enter Sub Exam Code'
                         id='emsE_SubExamCode'
                         {...register('emsE_SubExamCode')}
                         error={errors.emsE_SubExamCode?.message}

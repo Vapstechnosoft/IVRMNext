@@ -146,6 +146,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
+        console.log('getstudentwiseattendancedetails', getstudentwiseattendancedetails);
         const attendance = getstudentwiseattendancedetails
             .filter((d: any) => {
                 const dId = d.AMST_Id || d.amsT_Id;
@@ -155,8 +156,9 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
                 classheld: d.TOTALWORKINGDAYS || d.totalworkingdays,
                 emE_Id: d.EME_Id || d.emE_Id,
                 classatt: d.PRESENTDAYS || d.presentdays,
-                percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
-                term: d.EMPSG_DisplayName || d.empsG_DisplayName
+                percentage: d.totalAttendancePercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName,
+                extra_filed: d.totalAttendancePercentage
             }));
 
         // Suggestions
@@ -213,6 +215,8 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
 
         return {
             ...stu,
+            asmcL_ClassName: stu.classname ?? stu.asmcL_ClassName ?? stu.ASMCL_ClassName ?? '',
+            asmC_SectionName: stu.sectionname ?? stu.asmC_SectionName ?? stu.ASMC_SectionName ?? '',
             studentsubjects: studentSubjects,
             studentmarks: studentMarks,
             student_marks: studentExamMarks,
@@ -450,6 +454,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
 
         return {
             ...stu,
+            asmcL_ClassName: stu.classname ?? stu.asmcL_ClassName ?? stu.ASMCL_ClassName ?? '',
+            asmC_SectionName: stu.sectionname ?? stu.asmC_SectionName ?? stu.ASMC_SectionName ?? '',
             studentsubjects: studentSubjects,
             studentmarks: studentMarks,
             student_marks: studentExamMarks,
@@ -502,7 +508,7 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
-    console.log("=== CALCUTTA CUMULATIVE REPORT API RESPONSE ===");
+    console.log("=== CALCUTTA CUMULATIVE REPORT API RESPONSE === :", response);
     console.log("Response Keys:", Object.keys(response));
 
     // 1. Get raw arrays from response (supporting both casings and unwrapping $values wrapper)

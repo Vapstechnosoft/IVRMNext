@@ -42,18 +42,16 @@ function getProp(obj: any, snake: string, camel: string) {
 export async function getBCEHSFinalPromotionReport(data: any) {
     const url = '/Baldwin_All_Reports/Baldwin_Final_P_Report_card';
 
-    // const payload = {
-    //     asmaY_Id: Number(data.ASMAY_Id),
-    //     asmcL_Id: Number(data.ASMCL_Id),
-    //     asmS_Id: Number(data.ASMS_Id),
-    //     temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) })),
-    //     ASMAY_Id: Number(data.ASMAY_Id),
-    //     ASMCL_Id: Number(data.ASMCL_Id),
-    //     ASMS_Id: Number(data.ASMS_Id),
-    //     Temp_AmstIds: (data.selectedStudents || []).map((id: any) => ({ amsT_Id: Number(id) }))
-    // };
+    const payload = {
+        ASMAY_Id: Number(data.ASMAY_Id),
+        ASMCL_Id: Number(data.ASMCL_Id),
+        ASMS_Id: Number(data.ASMS_Id),
+        Temp_AmstIds: (data.Temp_AmstIds || data.temp_AmstIds || []).map((item: any) => ({
+            AMST_Id: Number(item.AMST_Id || item.amsT_Id)
+        }))
+    };
 
-    const response = await api.post<any>('exam', url, data);
+    const response = await api.post<any>('exam', url, payload);
     console.log('getBCEHSFinalPromotionReport response success:', response?.success);
 
     const actualData = response?.data || response;
@@ -475,7 +473,6 @@ export async function transformReportData(promise: any, ASMAY_Id: number, ASMCL_
         promotion_mainmarks,
         promotion_main_marks: promotion_mainmarks, // For BBHS
         classteacher,
-        total_max_sub_marks,
         Class_Teacher_Name, // For BBHS
         Class_Name, // For BBHS
         Section_Name, // For BBHS

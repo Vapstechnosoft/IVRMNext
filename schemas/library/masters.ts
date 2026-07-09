@@ -170,9 +170,10 @@ export const masterLanguageSchema = {
     addOrUpdate: z.object({
         lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
         lmL_LanguageName: z
-            .string({ message: 'Language Name is required' })
-            .min(2)
-            .max(100)
+            .string({ required_error: 'Language Name is required' })
+            .trim()
+            .min(2, 'Language Name must be at least 2 characters')
+            .max(100, 'Language Name cannot exceed 100 characters')
             .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed')
     }),
     delete: z.object({
@@ -269,7 +270,10 @@ export const masterClassCategorySchema = {
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
-        lmS_ParentId: z.coerce.number().min(1, 'Please Select Parent Subject'),
+        lmS_ParentId: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z.number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' }).min(1, 'Please Select Parent Subject')
+        ),
         lmS_Level: z
             .string()
             .regex(/^\d{0,25}$/, 'Enter only numeric value')

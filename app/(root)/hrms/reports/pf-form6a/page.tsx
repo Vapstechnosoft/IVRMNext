@@ -49,12 +49,14 @@ function PFForm6AContent() {
         };
         fetchInstitution();
     }, []);
-    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
+    const { control, handleSubmit, reset, watch } = useForm<FilterFormValues>({
         defaultValues: {
             fromDate: undefined,
             toDate: undefined
         }
     });
+
+    const watchedFromDate = watch('fromDate');
 
     const handleCancel = () => {
         reset();
@@ -90,12 +92,14 @@ function PFForm6AContent() {
     };
 
     const handlePrint = () => {
-        if (!reportData || reportData.length === 0) {
-            toast.error('No data to print');
-            return;
-        }
+        // if (!reportData || reportData.length === 0) {
+        //     toast.error('No data to print');
+        //     return;
+        // }
 
-        printPFForm6A(reportData, fullReportData, institution, fromDateStr, toDateStr);
+        // printPFForm6A(reportData, fullReportData, institution, fromDateStr, toDateStr);
+
+        window.print();
     };
 
     const columns = [
@@ -163,7 +167,29 @@ function PFForm6AContent() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            
+            <style>{`
+                @media print {
+                    body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .print-full-width {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                    }
+                    @page {
+                        size: A4 portrait;
+                        margin: 8mm 12mm;
+                    }
+                }
+            `}</style>
 
             <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -186,6 +212,7 @@ function PFForm6AContent() {
                                     date={field.value}
                                     setDate={field.onChange}
                                     placeholder="Select To Date"
+                                    disabled={watchedFromDate ? { before: watchedFromDate } : undefined}
                                 />
                             )} />
                         </div>
@@ -212,7 +239,7 @@ function PFForm6AContent() {
             {reportData && (
                 <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
                     rightElement={
-                        <div className='flex gap-2'>
+                        <div className='flex gap-2 no-print'>
                             <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
                                 <Printer className='h-4 w-4' />
                                 Print
@@ -220,6 +247,7 @@ function PFForm6AContent() {
                         </div>
                     }
                 >
+                    <div className="space-y-4 print:space-y-0 printable-content">
                     <div className="text-right">
                         <h4 className="font-semibold text-lg">Form 6A</h4>
                     </div>
@@ -313,6 +341,7 @@ function PFForm6AContent() {
                                 <label className="clearfix border-t border-black pt-2 px-8 font-medium">Signature of the employer with Official Seal</label>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </CollapsibleSection>
             )}

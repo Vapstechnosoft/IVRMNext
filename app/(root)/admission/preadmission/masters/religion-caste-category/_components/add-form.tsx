@@ -153,7 +153,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                                         }}
                                         defaultValue={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
                                         value={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
-                                        placeholder='Select Classes'
+                                        placeholder='Select Caste Category'
                                         variant='inverted'
                                         disabled={unmappedCasteCategoryLoading}
                                     />

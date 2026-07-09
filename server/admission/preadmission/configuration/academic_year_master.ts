@@ -13,6 +13,11 @@ export async function getPreAdmissionYear(searchParams?: ApiSearchparams) {
     return await api.get<IMasterAcademicYearMasterList[]>('preadmission', url);
 }
 
+export async function getPreAdmissionYearEditData(id: number) {
+    const url = `/configuration/editdata?ASMAY_Id=${id}`;
+    return await api.post<any>('preadmission', url);
+}
+
 export async function getPreAdmissionSetOrder() {
     const url = '/configuration/academic_year_set_order_list';
     return await api.get<IMasterSetOrderList[]>('preadmission', url);

@@ -21,6 +21,7 @@ export default function ElectiveReportExcel({ students, groupList, showMobile, s
         const headers = [
             'SL.No',
             'Student Name',
+            'Admission No',
             ...(showMobile ? ['Mobile No'] : []),
             ...(showEmail ? ['Email-Id'] : []),
             'Class',
@@ -32,6 +33,7 @@ export default function ElectiveReportExcel({ students, groupList, showMobile, s
             const row: any[] = [
                 idx + 1,
                 stud.amsT_FirstName || '',
+                stud.amsT_AdmNo || '',
                 ...(showMobile ? [stud.amsT_MobileNo || 0] : []),
                 ...(showEmail ? [stud.amsT_emailId || ''] : []),
                 stud.asmcL_ClassName || '',

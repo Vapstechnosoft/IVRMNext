@@ -144,17 +144,22 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
          console.log("Replacement Payload:", payload);
 
         doReplace(payload, {
-            
             onSuccess: (response: any) => {
                 if (response.data?.returnval_cls_notfree) {
+                    toast.error("Replacement Failed: Class is not free.");
                     console.log("Class not free response", response.data);
-                } else if (response.data?.returnval) {
+                } else if (response.data?.returnval === true) {
+                    toast.success("Staff replacement saved successfully!");
                     handleClear();
                     refetch();
-                    console.log("Class not free response", response.data);
                 } else {
-                    console.log("Class not free response", response.data);
+                    toast.error("Failed to save staff replacement.");
+                    console.log("Replacement error response", response.data);
                 }
+            },
+            onError: (error: any) => {
+                toast.error("An error occurred while saving the replacement.");
+                console.error("Replacement error", error);
             }
         });
     };

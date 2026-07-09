@@ -15,7 +15,7 @@ import { Save, X } from 'lucide-react';
 
 import { masterBoardSchema, MasterBoardFormValues } from '@/schemas/admission/oldsharedhost/masters/master-board';
 import { IMasterBoard } from '@/types/admission/oldsharedhost/masters/master-board';
-import { saveMasterBoard } from '@/server/admission/oldsharedhost/masters/master-board';
+import { saveMasterBoard, getMasterBoardDetails } from '@/server/admission/oldsharedhost/masters/master-board';
 
 export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => void }) {
     const { selectedRow, closeAddForm } = useFormContext<IMasterBoard>();
@@ -32,10 +32,22 @@ export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => voi
 
     useEffect(() => {
         if (selectedRow) {
+            // Pre-fill with selected row data instantly
             form.reset({
                 ivrmmB_Id: selectedRow.ivrmmB_Id,
                 ivrmmB_Name: selectedRow.ivrmmB_Name,
                 ivrmmB_Description: selectedRow.ivrmmB_Description,
+            });
+            // Fetch fresh data from backend to ensure it's up to date
+            getMasterBoardDetails(selectedRow.ivrmmB_Id).then(res => {
+                if (res.success && res.data && res.data.boardList && res.data.boardList.length > 0) {
+                    const apiData = res.data.boardList[0];
+                    form.reset({
+                        ivrmmB_Id: apiData.ivrmmB_Id || selectedRow.ivrmmB_Id,
+                        ivrmmB_Name: apiData.ivrmmB_Name || '',
+                        ivrmmB_Description: apiData.ivrmmB_Description || '',
+                    });
+                }
             });
         } else {
             form.reset({

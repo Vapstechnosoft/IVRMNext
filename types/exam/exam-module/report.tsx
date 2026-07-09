@@ -145,6 +145,8 @@ export interface StudentRow {
     asmcL_ClassName: string;
     asmC_SectionName: string;
     sub_list: StudentSubject[];
+    asmcL_Order?: number | null;
+    asmS_Order?: number | null;
 }
 
 // Add these interfaces at the top of your types file

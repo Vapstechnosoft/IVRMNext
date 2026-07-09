@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { ThirdPartyTrasactionfeeReceiptNoflg, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -41,11 +41,10 @@ interface UpdateThirdPartyFormProps {
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
     const { refetchAll } = useFeeThirdParty();
 
-    const receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
-
     const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
     const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
+
     const {
         control,
         register,
@@ -56,11 +55,25 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(thirdPartyTransactionSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            studentType: 'other',
+            academicYearId: undefined,
+            studentId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined, // ✅ Will be validated as required
+            amount: 0,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: '',
+            chequeNo: ''
+        }
     });
 
     const watchPaymentMode = watch('paymentMode');
-
     const watchAcademicYearId = watch('academicYearId');
     const studentType = watch('studentType');
 
@@ -83,26 +96,21 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         enabled: !!row?.fyP_Id
     });
 
-    useEffect(() => {
-        const fetchReceiptFlag = async () => {
-            try {
-                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+    // Fetch receipt flag on mount
+    // useEffect(() => {
+    //     const fetchReceiptFlag = async () => {
+    //         try {
+    //             const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+    //             setReceiptnoflgdata(!!res?.data?.length);
+    //         } catch (error) {
+    //             console.error('Error fetching receipt flag', error);
+    //             setReceiptnoflgdata(false);
+    //         }
+    //     };
+    //     fetchReceiptFlag();
+    // }, []);
 
-                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
-                if (res?.data?.length) {
-                    //setReceiptnoflgdata(res.data);
-                    setReceiptnoflgdata(true);
-                } else {
-                    setReceiptnoflgdata(false);
-                }
-            } catch (error) {
-                console.error('Error fetching receipt flag', error);
-            }
-        };
-
-        fetchReceiptFlag();
-    }, []);
-
+    // Load edit data
     useEffect(() => {
         if (!row?.fyP_Id) return;
 
@@ -111,33 +119,31 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         refetchEditData()
             .then(() => {
                 const editeddata = editDataResponse?.data?.[0];
-
                 console.log('Edited Data:', editeddata);
+
                 if (editeddata) {
                     const matchedBank = bankdata?.data?.find((b) => b.fmbanK_BankName === editeddata.fyP_Bank_Name);
+
                     reset({
                         studentType: editeddata.amsT_Id ? 'student' : 'other',
                         academicYearId: editeddata.asmaY_Id,
                         studentId: editeddata.amsT_Id || undefined,
                         studentName: editeddata.fyptP_Name || '',
                         groupId: editeddata.fmG_Id,
-                        headId: editeddata.fmH_Id,
+                        headId: editeddata.fmH_Id, // ✅ This should be a number
                         amount: editeddata.fyP_Tot_Amount,
-                        towards: editeddata.fyP_Remarks,
-                        fyP_Receipt_No: editeddata.fyP_Receipt_No,
-                        date: editeddata.fyP_Date ? format(new Date(editeddata.fyP_Date), 'yyyy-MM-dd') : '',
+                        towards: editeddata.fyP_Remarks || '',
+                        fyP_Receipt_No: editeddata.fyP_Receipt_No || '',
+                        date: editeddata.fyP_Date ? format(new Date(editeddata.fyP_Date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
                         chequeDate: editeddata.fyP_DD_Cheque_Date ? format(new Date(editeddata.fyP_DD_Cheque_Date), 'yyyy-MM-dd') : '',
                         chequeNo: editeddata.fyP_DD_Cheque_No || '',
-                        paymentMode: editeddata.fyP_Bank_Or_Cash as 'B' | 'C' | 'R' | 'S',
-                        //bankName: editeddata.fyP_Bank_Name,
+                        paymentMode: (editeddata.fyP_Bank_Or_Cash as 'B' | 'C' | 'R' | 'S') || 'B',
                         bankId: matchedBank?.fmbanK_Id ?? undefined
                     });
-                    // editeddata
-                    // setSelectedPaymentMode(data.fyP_Bank_Or_Cash ?? "B");
                 }
             })
             .finally(() => setLoading(false));
-    }, [row, refetchEditData, reset, editDataResponse]);
+    }, [row, refetchEditData, reset, editDataResponse, bankdata]);
 
     // Re-fetch students when academic year/studentType changes
     useEffect(() => {
@@ -145,35 +151,34 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             fetchStudents();
             setValue('studentId', undefined);
         }
-    }, [watchAcademicYearId, studentType]);
+    }, [watchAcademicYearId, studentType, fetchStudents, setValue]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            // ✅ Manual validation for headId
+            if (!data.headId) {
+                toast.error('Please select Head Name');
+                return;
+            }
+
             const bankName = bankdata?.data?.find((x) => x.fmbanK_Id === data.bankId)?.fmbanK_BankName || '';
 
             const payload = {
-                // mI_Id: 30,
                 fyptP_Name: data.studentName,
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
                 fmH_Id: Number(data.headId),
-
                 fyP_Bank_Name: bankName,
                 fyP_Tot_Amount: Number(data.amount),
-
                 fyP_DD_Cheque_Date: data.chequeDate ? format(new Date(data.chequeDate), 'yyyy-MM-dd') : null,
-
                 fyP_DD_Cheque_No: data.chequeNo || '',
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
-                //FYP_Receipt_No: row.fyP_Receipt_No,
-                fyP_Remarks: data.towards,
-                //user_id: 21602,
+                fyP_Remarks: data.towards || '',
                 FYP_Bank_Or_Cash: data.paymentMode,
                 fyP_Id: row.fyP_Id
             };
 
-            const payloaddata = JSON.stringify(payload);
-            console.log('Payload to be sent:', payloaddata);
+            console.log('Payload to be sent:', JSON.stringify(payload));
 
             const response = await saveorUpdateThirdPartyTrasaction(payload);
 
@@ -194,7 +199,21 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
     }
 
     const handleReset = () => {
-        reset();
+        reset({
+            studentType: 'other',
+            academicYearId: undefined,
+            studentId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined,
+            amount: 0,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: '',
+            chequeNo: ''
+        });
     };
 
     return (
@@ -215,7 +234,10 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                         type='radio'
                                         value={opt.value}
                                         checked={field.value === opt.value}
-                                        onChange={() => field.onChange(opt.value)}
+                                        onChange={() => {
+                                            field.onChange(opt.value);
+                                            setValue('studentName', '');
+                                        }}
                                     />
                                     <span>{opt.label}</span>
                                 </label>
@@ -234,7 +256,14 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     name='academicYearId'
                     control={control}
                     render={({ field }) => (
-                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                        <Select
+                            onValueChange={(v) => {
+                                field.onChange(Number(v));
+                                if (studentType === 'student') {
+                                    setValue('studentName', '');
+                                }
+                            }}
+                            value={field.value?.toString()}>
                             <SelectTrigger className='min-w-[400px]'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
@@ -248,6 +277,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         </Select>
                     )}
                 />
+                {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
             </div>
 
             {/* Student */}
@@ -267,8 +297,8 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                         <SelectItem value='loading' disabled>
                                             Loading students...
                                         </SelectItem>
-                                    ) : studentdata ? (
-                                        studentdata.data?.map((std) => (
+                                    ) : studentdata?.data?.length ? (
+                                        studentdata.data.map((std) => (
                                             <SelectItem key={std.amsT_Id} value={String(std.amsT_FirstName)}>
                                                 {std.amsT_FirstName}
                                             </SelectItem>
@@ -282,13 +312,15 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             </Select>
                         )}
                     />
+                    {errors.studentName && <FormError>{errors.studentName.message}</FormError>}
                 </div>
             ) : (
                 <div className='flex items-center gap-4'>
                     <Label className='min-w-[150px] text-right'>
                         Student Name<span className='text-red-500'>*</span>
                     </Label>
-                    <InputText {...register('studentName')} className='min-w-[400px]' />
+                    <InputText {...register('studentName')} className='min-w-[400px]' error={errors.studentName?.message} />
+                    {errors.studentName && <FormError>{errors.studentName.message}</FormError>}
                 </div>
             )}
 
@@ -315,31 +347,44 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         </Select>
                     )}
                 />
+                {errors.groupId && <FormError>{errors.groupId.message}</FormError>}
             </div>
 
-            {/* Head */}
+            {/* Head - FIXED */}
             <div className='flex items-center gap-4'>
                 <Label className='min-w-[150px] text-right'>
-                    Head<span className='text-red-500'>*</span>
+                    Head Name <span className='text-red-500'>*</span>
                 </Label>
                 <Controller
                     name='headId'
                     control={control}
-                    render={({ field }) => (
-                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                            <SelectTrigger className='min-w-[400px]'>
-                                <SelectValue placeholder='Select Head' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {headdata?.data?.map((h) => (
-                                    <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
-                                        {h.fmH_FeeName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
+                    render={({ field }) => {
+                        // ✅ Ensure the value is properly handled
+                        const value = field.value;
+                        return (
+                            <Select
+                                onValueChange={(val) => {
+                                    const numVal = Number(val);
+                                    field.onChange(numVal);
+                                    console.log('Head ID selected:', numVal);
+                                }}
+                                value={value ? String(value) : undefined}>
+                                <SelectTrigger className='min-w-[400px]'>
+                                    <SelectValue placeholder='Select Head' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {headdata?.data?.map((h) => (
+                                        <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
+                                            {h.fmH_FeeName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        );
+                    }}
                 />
+                {/* ✅ Display error message for headId */}
+                {errors.headId && <FormError>{errors.headId.message}</FormError>}
             </div>
 
             {/* Amount */}
@@ -352,8 +397,10 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     control={control}
                     render={({ field }) => <InputNumber value={field.value ?? 0} onChange={(v) => field.onChange(Number(v))} />}
                 />
+                {errors.amount && <FormError>{errors.amount.message}</FormError>}
             </div>
 
+            {/* Receipt No */}
             {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && receiptnoflgdata && (
                 <div className='flex items-center gap-4'>
                     <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
@@ -366,6 +413,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         error={errors.fyP_Receipt_No?.message}
                         className='min-w-[400px]'
                     />
+                    {errors.fyP_Receipt_No && <FormError>{errors.fyP_Receipt_No.message}</FormError>}
                 </div>
             )}
 
@@ -375,15 +423,14 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 <InputText {...register('towards')} className='min-w-[400px]' />
             </div>
 
+            {/* Date */}
             <div className='flex items-center gap-4'>
                 <Label className='min-w-[150px] text-right'>
                     Date <span className='text-red-500'>*</span>
                 </Label>
-
                 <Controller
                     name='date'
                     control={control}
-                    defaultValue={format(new Date(), 'yyyy-MM-dd')}
                     render={({ field }) => {
                         const selectedDate = field.value ? new Date(field.value) : new Date();
                         return (
@@ -408,6 +455,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         );
                     }}
                 />
+                {errors.date && <FormError>{errors.date.message}</FormError>}
             </div>
 
             {/* Payment Mode */}
@@ -435,33 +483,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         </div>
                     )}
                 />
-
-                {/* <Controller
-          control={control}
-          name="paymentMode"
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-4">
-              {[
-                { label: "Bank", value: "B" },
-                { label: "Cash", value: "C" },
-                { label: "RTGS/NEFT", value: "R" },
-                { label: "Card", value: "S" },
-              ].map((option) => (
-                <label key={option.value} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={field.value === option.value}
-                    onChange={() => {
-                      field.onChange(option.value);
-                      setSelectedPaymentMode(option.value);
-                    }}
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          )}
-        /> */}
+                {errors.paymentMode && <FormError>{errors.paymentMode.message}</FormError>}
             </div>
 
             {/* Bank & Cheque */}
@@ -479,7 +501,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                     <SelectTrigger className='min-w-[400px]'>
                                         <SelectValue placeholder='Select Bank' />
                                     </SelectTrigger>
-
                                     <SelectContent>
                                         {bankdata?.data?.map((b) => (
                                             <SelectItem key={b.fmbanK_Id} value={String(b.fmbanK_Id)}>
@@ -490,6 +511,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                 </Select>
                             )}
                         />
+                        {errors.bankId && <FormError>{errors.bankId.message}</FormError>}
                     </div>
 
                     <div className='flex items-center gap-4'>
@@ -520,6 +542,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                 );
                             }}
                         />
+                        {errors.chequeDate && <FormError>{errors.chequeDate.message}</FormError>}
                     </div>
 
                     <div className='flex items-center gap-4'>
@@ -527,6 +550,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             Cheque No<span className='text-red-500'>*</span>
                         </Label>
                         <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
+                        {errors.chequeNo && <FormError>{errors.chequeNo.message}</FormError>}
                     </div>
                 </>
             )}
@@ -561,35 +585,20 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                                 );
                             }}
                         />
+                        {errors.chequeDate && <FormError>{errors.chequeDate.message}</FormError>}
                     </div>
 
-                    {/* Card No */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right'>
                             Card No <span className='text-red-500'>*</span>
                         </Label>
-                        {/* <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} /> */}
-                        <InputText
-                            {...register('chequeNo', {
-                                onChange: (e) => {
-                                    const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
-                                    e.target.value = onlyNumbers; // force update input
-                                }
-                            })}
-                            placeholder='Enter Card Number'
-                            error={errors.chequeNo?.message}
-                        />
+                        <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} />
+                        {errors.chequeNo && <FormError>{errors.chequeNo.message}</FormError>}
                     </div>
                 </>
             )}
 
-            {/* Submit Button */}
-            {/* <div className='flex gap-3 border-t pt-4'>
-                <Button type='submit' disabled={isSubmitting}>
-                    <Save className='mr-2 h-4 w-4' /> Update Third Party Transaction
-                </Button>
-            </div> */}
-
+            {/* Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                 <Button
                     type='button'
