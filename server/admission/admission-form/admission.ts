@@ -87,7 +87,10 @@ export async function getAllAdmissionLists(searchParams?: ApiSearchparams) {
         searchParams ?? {},
         'studentName,amst_Id,className,sectionName,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
     );
-    const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}` : ''}`;
+
+    const asmayId = searchParams?.asmay_id || 0;
+    const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}&MI_Id=0&ASMAY_Id=${asmayId}` : `?MI_Id=0&ASMAY_Id=${asmayId}`}`;
+
     return await api.get<[IadmissionStudentApplicationList]>('admission', url);
 }
 
