@@ -2,39 +2,44 @@
 
 import { api } from '@/lib/apiService';
 
-export async function getCasteBirthCertificateInitialData(pageId: number) {
-    try {
-        const response = await api.post<any>('admission', '/StudyCertificate/getdata', { pageid: pageId });
-        return { success: true, data: response };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Failed to fetch initial data' };
-    }
+export async function getCasteBirthCertificateInitialData() {
+    return await api.get<any>('admission', '/StudyCertificate/get_loaddata');
 }
 
-export async function searchCasteBirthStudent(data: any) {
-    try {
-        const response = await api.post<any>('admission', '/StudyCertificate/searchfilter', data);
-        return { success: true, data: response };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Failed to search students' };
-    }
+
+export async function searchCasteBirthStudent(data: {
+    searchfilter: string;
+    ASMAY_Id: number;
+    AMST_SOL: string;
+    ASMCL_Id: number;
+    ASMC_Id: number;
+    allorindid: string;
+}) {
+    const url = `/StudyCertificate/searchfilter?ASMAY_Id=${data.ASMAY_Id}&AMST_SOL=${data.AMST_SOL}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&searchfilter=${data.searchfilter}&allorindid=${data.allorindid}`;
+    return await api.post<any>('admission', url, {});
 }
 
-export async function getCasteBirthStudentReport(data: any) {
-    try {
-        const response = await api.post<any>('admission', '/StudyCertificate/StuddetailsReport', data);
-        return { success: true, data: response };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Failed to generate report' };
-    }
+export async function getCasteBirthStudentReport(data: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMC_Id: number;
+    AMST_Id: number;
+    save_flag: boolean;
+}) {
+    const url = `/StudyCertificate/Studdetailsconduct?ASMAY_Id=${data.ASMAY_Id}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}&AMC_Id=0&save_flag=${data.save_flag}`;
+    return await api.post<any>('admission', url, {});
 }
 
-export async function generateCasteBirthQRCode(data: any) {
-    try {
-        const response = await api.post<any>('admission', '/QRcodeStudentCertificate/QRCODECertificates', data);
-        return { success: true, data: response };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Failed to generate QR Code' };
-    }
+export async function generateCasteBirthQRCode(data: {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMC_Id: number;
+    AMST_Id: number;
+    CertificateDate: Date;
+    ASCISS_HtmlTemplate: string;
+    ASCISS_CertificateFlg: string;
+    ASCISS_QRCode: string;
+}) {
+    return await api.post<any>('admission', '/QRcodeStudentCertificate/QRCODECertificates', data);
 }
 
