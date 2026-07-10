@@ -1090,7 +1090,86 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fieldsToValidate = ['amsT_Distirct', 'amsT_Taluk', 'amsT_Town', 'amsT_Village', 'achievements', 'amsT_OtherInformations'];
             }
 
-            const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
+            let isValid = true;
+            if (currentStep === 1) {
+                const step1Sequence = [
+                    'amsT_MobileNo',
+                    'amsT_FirstName',
+                    'amsT_RegistrationNo',
+                    'amsT_AdmissionNo',
+                    'asmcL_Id',
+                    'asmS_Id',
+                    'amsT_Date',
+                    'amsT_DOB',
+                    'amsT_ReligionId',
+                    'imC_Id',
+                    'amsT_Sex',
+                    'feeConcessionType',
+                    'amsT_Nationality',
+                    'asmcC_Id',
+                    'studentCategoryId'
+                ];
+
+                if (Number(getValues('isEmisBpl') ?? 0) === 1) {
+                    step1Sequence.push('amsT_BPLCardNo');
+                }
+                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
+                    step1Sequence.push(
+                        'asecS_AccountNo',
+                        'asecS_AccountHolderName',
+                        'asecS_BankName',
+                        'asecS_AccountType',
+                        'asecS_MICRNo',
+                        'asecS_Branch'
+                    );
+                }
+
+                const activeSequence = step1Sequence.filter(f => fieldsToValidate.includes(f));
+                for (const f of fieldsToValidate) {
+                    if (!activeSequence.includes(f)) {
+                        activeSequence.push(f);
+                    }
+                }
+
+                let firstInvalidField: string | null = null;
+                for (const field of activeSequence) {
+                    const isFieldValid = await trigger(field as any);
+                    if (!isFieldValid) {
+                        firstInvalidField = field;
+                        break;
+                    }
+                }
+
+                if (firstInvalidField) {
+                    const fieldsToClear = fieldsToValidate.filter(f => f !== firstInvalidField);
+                    clearErrors(fieldsToClear as any);
+                    isValid = false;
+                } else {
+                    isValid = true;
+                }
+            } else {
+                if (fieldsToValidate.length > 0) {
+                    let firstInvalidField: string | null = null;
+                    for (const field of fieldsToValidate) {
+                        const isFieldValid = await trigger(field as any);
+                        if (!isFieldValid) {
+                            firstInvalidField = field;
+                            break;
+                        }
+                    }
+
+                    if (firstInvalidField) {
+                        const fieldsToClear = fieldsToValidate.filter(f => f !== firstInvalidField);
+                        clearErrors(fieldsToClear as any);
+                        isValid = false;
+                    } else {
+                        isValid = true;
+                    }
+                } else {
+                    isValid = true;
+                }
+            }
+
             console.info('Validation Result:', isValid);
             console.info('Fields Validated:', fieldsToValidate);
             console.info('Validation Errors:', errors);
@@ -1110,7 +1189,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             }
 
             // Reinforce duplication check explicitly for Step 1
-            if (currentStep === 1) {
+            if (isValid && currentStep === 1) {
                 const regNo = getValues('amsT_RegistrationNo');
                 const isRegDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
                 if (isRegDuplicate) {
