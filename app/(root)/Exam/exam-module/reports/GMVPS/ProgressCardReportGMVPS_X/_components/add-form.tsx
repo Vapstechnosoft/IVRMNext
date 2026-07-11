@@ -144,13 +144,14 @@ export default function ProgressCardReportForm({
 
         const selectedYearObj = academicYears.find(y => String(y.asmaY_Id) === String(data.asmaY_Id));
         const selectedExamObj = exams.find(e => String(e.emE_Id) === String(data.emE_Id));
+        const studentIdsArray = data.studentList.map((s: any) => Number(s.amsT_Id));
 
         const payload: any = {
-            asmaY_Id: Number(data.asmaY_Id),
-            asmcL_Id: Number(data.asmcL_Id),
-            asmS_Id: Number(data.asmS_Id),
-            emE_Id: Number(data.emE_Id),
-            amsT_Ids: data.studentList.map((s: any) => s.amsT_Id).join(','),
+            ASMAY_Id: Number(data.asmaY_Id),
+            ASMCL_Id: Number(data.asmcL_Id),
+            ASMS_Id: Number(data.asmS_Id),
+            EME_Id: Number(data.emE_Id),
+            AMST_Ids: studentIdsArray.join(','),
             yearName: selectedYearObj?.asmaY_Year || '',
             examName: selectedExamObj?.emE_ExamName || '',
             examCode: selectedExamObj?.emE_ExamCode || '',
