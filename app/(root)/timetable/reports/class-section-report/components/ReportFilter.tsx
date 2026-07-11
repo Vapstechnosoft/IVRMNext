@@ -67,7 +67,7 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
 
     return (
         <div className='mx-auto max-w-7xl space-y-4'>
-            <CollapsibleSection title='Staff Replacement For Class And Section' defaultOpen>
+            <CollapsibleSection title='Class Section Report' defaultOpen>
                 <div className='rounded-xl border border-purple-100 bg-white p-6 shadow-md'>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 gap-5 md:grid-cols-3'>
