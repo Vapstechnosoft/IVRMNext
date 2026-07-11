@@ -137,11 +137,11 @@ function LeaveDetailsPageContent() {
     }), [pageNumber, pageSize, searchQuery]);
 
     // Data Fetching
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(typeIds.toString());
-    const { data: designationsData } = useReportDesignations(typeIds.toString(), deptIds.toString());
-    const { data: gradeData } = useGradeDropdown();
-    const { data: leaveData } = useMasterLeaveCodeDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(typeIds.toString());
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(typeIds.toString(), deptIds.toString());
+    const { data: gradeData, isLoading: isLoadingGrade } = useGradeDropdown();
+    const { data: leaveData, isLoading: isLoadingLeave } = useMasterLeaveCodeDropdown();
     const { data: gridData, isLoading: isGridLoading } = useLeaveDetailsGrid(apiParams);
     const saveMutation = useSaveLeaveDetails();
 
@@ -260,7 +260,8 @@ function LeaveDetailsPageContent() {
                                         options={groupTypesOptions}
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        placeholder="Select Type"
+                                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Type'}
+                                        disabled={isLoadingGroupTypes || groupTypesOptions.length === 0}
                                     />
                                 )}
                             />
@@ -277,7 +278,8 @@ function LeaveDetailsPageContent() {
                                         options={departmentOptions}
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        placeholder="Select Department"
+                                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Department'}
+                                        disabled={isLoadingDepartments || departmentOptions.length === 0}
                                     />
                                 )}
                             />
@@ -294,7 +296,8 @@ function LeaveDetailsPageContent() {
                                         options={designationOptions}
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        placeholder="Select Designation"
+                                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designation'}
+                                        disabled={isLoadingDesignations || designationOptions.length === 0}
                                     />
                                 )}
                             />
@@ -311,7 +314,8 @@ function LeaveDetailsPageContent() {
                                         options={gradeOptions}
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        placeholder="Select Grade"
+                                        placeholder={isLoadingGrade ? 'Loading...' : 'Select Grade'}
+                                        disabled={isLoadingGrade || gradeOptions?.length === 0}
                                     />
                                 )}
                             />
@@ -336,7 +340,7 @@ function LeaveDetailsPageContent() {
                                             control={control}
                                             rules={{ required: true }}
                                             render={({ field }) => (
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={leavesDataTransformed.length === 0}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="--Select--" />
                                                     </SelectTrigger>
@@ -399,6 +403,7 @@ function LeaveDetailsPageContent() {
                                                 defaultValue={field.value}
                                                 placeholder="Select Month"
                                                 className="w-full"
+                                                disabled={creditMonthOptions.length === 0}
                                             />
                                         )}
                                     />
@@ -473,6 +478,7 @@ function LeaveDetailsPageContent() {
                                                 defaultValue={field.value}
                                                 placeholder="Select Month"
                                                 className="w-full"
+                                                disabled={creditMonthOptions.length === 0}
                                             />
                                         )}
                                     />
