@@ -522,7 +522,7 @@ export function StudentInfoSection({
                             <Select
                                 value={field.value?.toString() || ''}
                                 onValueChange={(val) => field.onChange(Number(val))}
-                                disabled={!categoryByClass || categoryByClass.length === 0}
+                                disabled
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder={!categoryByClass || categoryByClass.length === 0 ? "No category found" : "Select Category"} />

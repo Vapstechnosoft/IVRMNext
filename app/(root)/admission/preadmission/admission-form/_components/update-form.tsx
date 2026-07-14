@@ -20,7 +20,8 @@ import { Spinner } from '@/components/ui/spinner';
 import {
     useMasterSectionHeld,
     useStudentCategoryByClass,
-    useConcessionDropdown
+    useConcessionDropdown,
+    useMasterDocument
 } from '@/hooks/admission/preadmission/useMasters';
 import { useAdmissionFormDetails, useOnChangeClass, useOnChangeStream, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
 import { useDistrictDropdown, useActivePreadmissionDetails, useStateDropdown, useCountryDropdown } from '@/hooks/admission/preadmission/useTransactions';
@@ -204,6 +205,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         return { data: fromHook.length > 0 ? fromHook : fromDetails };
     }, [admissionDetails, concessionDropdown]);
     const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.academicYearOnLoad || (admissionDetails as any)?.allAcademicYear || (admissionDetails as any)?.allAcademicYearList || [] }), [admissionDetails]);
+
+    const { data: masterDocsData } = useMasterDocument();
+    const masterDocuments = (masterDocsData?.data || []).filter((doc: any) => doc.amsmD_ActiveFlag);
 
     // Missing variables for state and loading aliases
     const [conStateId, setConStateId] = useState<number | string>('');
@@ -5340,7 +5344,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         setValue('asmcC_Id', val);
                                                                         setValue('studentCategoryId', val);
                                                                     }}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select category' />
                                                                     </SelectTrigger>
@@ -8939,84 +8944,117 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             </div>
 
                                             {/* Document uploads: users can add files which will be submitted with final form */}
-                                            <div>
-                                                <div className='mb-2 text-gray-600 text-sm'>
-                                                    Add documents required by you. Files are stored locally and sent on final submit.
-                                                </div>
-
-                                                {uploadedDocuments.length > 0 && (
-                                                    <div className='mt-4 space-y-2'>
-                                                        {uploadedDocuments.map((d) => (
-                                                            <div
-                                                                key={d.amsmD_Id}
-                                                                className='flex items-center justify-between rounded-lg border p-3'>
-                                                                <div className='flex items-center gap-3'>
-                                                                    {/(?:jpe?g|png|)$/i.test(String(d.document_Path || '')) ? (
-                                                                        <img
-                                                                            src={d.document_Path}
-                                                                            alt={d.documentName}
-                                                                            className='h-12 w-12 rounded object-cover'
-                                                                        />
-                                                                    ) : (
-                                                                        <div className='flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-gray-600'>
-                                                                            <svg
-                                                                                className='h-5 w-5'
-                                                                                viewBox='0 0 24 24'
-                                                                                fill='none'
-                                                                                stroke='currentColor'>
-                                                                                <path
-                                                                                    d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'
-                                                                                    strokeWidth='1.5'
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                />
-                                                                                <path
-                                                                                    d='M14 2v6h6'
-                                                                                    strokeWidth='1.5'
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                />
-                                                                            </svg>
+                                            {/* Dynamic Master Documents Table */}
+                                            <div className='overflow-hidden rounded-lg border'>
+                                                <table className='w-full table-fixed'>
+                                                    <thead>
+                                                        <tr className='bg-gray-50'>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/3'>Document Name</th>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/4'>Status</th>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm w-1/4'>Upload</th>
+                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm w-auto'>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {masterDocuments.map((masterDoc: any) => {
+                                                            const doc = uploadedDocuments.find((d) => d.amsmD_Id === masterDoc.amsmD_Id);
+                                                            const isMandatory = masterDoc.amsmD_FLAG;
+                                                            return (
+                                                                <tr key={masterDoc.amsmD_Id} className={`border-t ${doc?.document_Path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                                    <td className='px-4 py-4'>
+                                                                        <div className='flex flex-col'>
+                                                                            <span className='font-medium'>
+                                                                                {masterDoc.amsmD_DocumentName}
+                                                                                {isMandatory && <span className='text-red-500 ml-1'>*</span>}
+                                                                            </span>
+                                                                            {masterDoc.amsmD_Description && (
+                                                                                <span className='text-xs text-gray-500'>{masterDoc.amsmD_Description}</span>
+                                                                            )}
                                                                         </div>
-                                                                    )}
-
-                                                                    <div>
-                                                                        <div className='font-medium text-sm'>{d.documentName}</div>
-                                                                        <div className='text-gray-500 text-xs'>
-                                                                            {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                                    </td>
+                                                                    <td className='px-4 py-4'>
+                                                                        {doc?.isUploading ? (
+                                                                            <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                                <Spinner size='sm' />
+                                                                                Uploading...
+                                                                            </span>
+                                                                        ) : doc?.document_Path ? (
+                                                                            <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                                <svg className='h-4 w-4 text-green-700' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                                                                                    <path d='M20 6L9 17l-5-5' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
+                                                                                </svg>
+                                                                                Uploaded
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className='px-4 py-4'>
+                                                                        {!doc || doc.isUploading ? (
+                                                                            <label className='flex h-12 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                                <div className='flex flex-col items-center justify-center'>
+                                                                                    <span className='text-gray-600 text-xs'>Click to upload</span>
+                                                                                </div>
+                                                                                <input
+                                                                                    id={`doc_${masterDoc.amsmD_Id}`}
+                                                                                    type='file'
+                                                                                    className='hidden'
+                                                                                    accept='.pdf,.jpg,.jpeg,.png'
+                                                                                    disabled={doc?.isUploading || isSubmitting}
+                                                                                    onChange={(e) => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (file) {
+                                                                                            if (file.size > 5 * 1024 * 1024) {
+                                                                                                toast.error('File size must be less than 5MB');
+                                                                                                e.target.value = '';
+                                                                                                return;
+                                                                                                }
+                                                                                                _handleDocumentUpload(masterDoc.amsmD_Id, file, masterDoc.amsmD_DocumentName);
+                                                                                                e.target.value = '';
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </label>
+                                                                        ) : (
+                                                                            <span className='text-sm text-gray-500'>File selected</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className='px-4 py-4'>
+                                                                        <div className='flex gap-2'>
+                                                                            {doc?.document_Path && (
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    size='sm'
+                                                                                    variant='ghost'
+                                                                                    onClick={() => window.open(doc.document_Path, '_blank')}
+                                                                                    aria-label={`View ${masterDoc.amsmD_DocumentName}`}>
+                                                                                    <Eye className='h-4 w-4' />
+                                                                                </Button>
+                                                                            )}
+                                                                            {doc?.document_Path && (
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    size='sm'
+                                                                                    variant='destructive'
+                                                                                    onClick={() => handleDocumentDelete(masterDoc.amsmD_Id, doc.document_Path, masterDoc.amsmD_DocumentName)}
+                                                                                    aria-label={`Delete ${masterDoc.amsmD_DocumentName}`}>
+                                                                                    <Trash className='h-4 w-4' />
+                                                                                </Button>
+                                                                            )}
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className='flex gap-2'>
-                                                                    {d.document_Path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(d.document_Path, '_blank')}
-                                                                            aria-label={`View ${d.documentName}`}>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='destructive'
-                                                                        onClick={() =>
-                                                                            handleDocumentDelete(
-                                                                                d.amsmD_Id,
-                                                                                d.document_Path,
-                                                                                d.documentName || 'Document'
-                                                                            )
-                                                                        }
-                                                                        aria-label={`Delete ${d.documentName}`}>
-                                                                        <Trash className='h-4 w-4' />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        {masterDocuments.length === 0 && (
+                                                            <tr>
+                                                                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                                                    No documents required.
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
                                             </div>
 
                                             {/* Parent photos & signatures (Step 6) - table style upload rows */}
