@@ -1,6 +1,6 @@
 'use client';
 
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import { Label } from '@/components/ui/extension/field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Eye, Trash, Upload, Check, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useMasterDocument } from '@/hooks/admission/preadmission/useMasters';
 
 interface DocumentInfo {
     path?: string;
@@ -18,6 +19,8 @@ interface DocumentInfo {
 }
 
 interface DocumentsSectionProps {
+    control: any;
+    isSubmitting: boolean;
     uploadedDocuments: DocumentInfo[];
     fatherPhoto: DocumentInfo | null;
     fatherSignature: DocumentInfo | null;
@@ -36,6 +39,8 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({
+    control,
+    isSubmitting,
     uploadedDocuments,
     fatherPhoto,
     fatherSignature,
@@ -52,10 +57,9 @@ export function DocumentsSection({
     handleMotherSignatureUpload,
     handleMotherSignatureDelete
 }: DocumentsSectionProps) {
-    const {
-        control,
-        formState: { isSubmitting }
-    } = useFormContext();
+
+    const { data: masterDocsData } = useMasterDocument();
+    const masterDocuments = (masterDocsData?.data || []).filter((doc: any) => doc.amsmD_ActiveFlag);
 
     const FileUploadRow = ({ 
         label, 
@@ -164,55 +168,42 @@ export function DocumentsSection({
             {/* General Documents */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">Additional Documents</h3>
-                     <label className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary/90 transition-all",
-                        isSubmitting && "opacity-50 cursor-not-allowed"
-                    )}>
-                        <Upload className="h-4 w-4" />
-                        <span>Upload Documents</span>
-                        <input
-                            type="file"
-                            accept=".pdf,image/*"
-                            className="hidden"
-                            multiple
-                            disabled={isSubmitting}
-                            onChange={(e) => {
-                                Array.from(e.target.files || []).forEach(file => {
-                                    const id = Number(Date.now() + Math.floor(Math.random() * 1000));
-                                    handleDocumentUpload(id, file, file.name);
-                                });
-                                e.target.value = '';
-                            }}
-                        />
-                    </label>
+                    <h3 className="text-lg font-semibold text-gray-800">Required Documents</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {uploadedDocuments.map(doc => (
-                        <div key={doc.amsmD_Id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 transition-colors">
-                            <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium text-gray-900 truncate">{doc.documentName}</span>
-                                {doc.file && <span className="text-xs text-gray-500">{(doc.file.size / 1024 / 1024).toFixed(2)} MB</span>}
-                                {doc.isUploading && <span className="text-[10px] text-blue-600">Uploading...</span>}
-                            </div>
-                            <div className="flex gap-2 shrink-0 ml-4">
-                                {doc.path && (
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => window.open(doc.path, '_blank')}>
-                                        <Eye className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                <Button variant="destructive" size="sm" className="h-8 w-8 p-0" onClick={() => handleDocumentDelete(doc.amsmD_Id!, doc.path, doc.documentName)}>
-                                    <Trash className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
-                    {uploadedDocuments.length === 0 && (
-                        <div className="col-span-full py-10 text-center border-2 border-dashed border-gray-200 rounded-xl">
-                            <p className="text-gray-500">No additional documents uploaded.</p>
-                        </div>
-                    )}
+                <div className="overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-gray-50 border-b">
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Document Name</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">File</th>
+                                <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {masterDocuments.map((masterDoc: any) => {
+                                const uploadedDoc = uploadedDocuments.find((d) => d.amsmD_Id === masterDoc.amsmD_Id);
+                                return (
+                                    <FileUploadRow
+                                        key={masterDoc.amsmD_Id}
+                                        label={masterDoc.amsmD_DocumentName}
+                                        doc={uploadedDoc || null}
+                                        onUpload={(file) => handleDocumentUpload(masterDoc.amsmD_Id, file, masterDoc.amsmD_DocumentName)}
+                                        onDelete={() => handleDocumentDelete(masterDoc.amsmD_Id, uploadedDoc?.path, masterDoc.amsmD_DocumentName)}
+                                        id={`doc_${masterDoc.amsmD_Id}`}
+                                    />
+                                );
+                            })}
+                            {masterDocuments.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
+                                        No master documents found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
