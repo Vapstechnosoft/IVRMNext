@@ -35,7 +35,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch group-specific subjects
-    const { data: groupSubjectsResponse, isLoading: loadingGroupSubjects } = useMasterSubjectGroupDetails(initialData.emG_Id);
+    const { data: groupSubjectsResponse, isLoading: loadingGroupSubjects, refetchAll: refetchDetails } = useMasterSubjectGroupDetails(initialData.emG_Id);
 
     // Fetch all available subjects
     const { data: allSubjectsResponse, isLoading: loadingAllSubjects } = useMasterGetAllSubjectGroupDetails();
@@ -116,6 +116,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                 toast.success(res.message || 'Saved successfully.');
                 reset();
                 refetchAll();
+                refetchDetails();
                 onSuccess?.();
             } else {
                 toast.error(res.message || 'Failed to save.');

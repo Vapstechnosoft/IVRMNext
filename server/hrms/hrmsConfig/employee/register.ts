@@ -476,7 +476,7 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
 
     // Define columns to search against if not already specified
     const searchColumns =
-        searchParams?.search_columns || 'HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmployeeCode';
+        searchParams?.search_columns || 'HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmployeeCode,HRME_EmployeeOrder';
 
     // Build query parameters carefully
     let queryUrl = `MI_Id=${MI_Id}`;

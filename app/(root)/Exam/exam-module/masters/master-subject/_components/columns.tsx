@@ -37,7 +37,7 @@ export const examSubjectColumns: ColumnDef<IMasterSubject>[] = [
     },
     {
         accessorKey: 'ismS_SubjectNameNew',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='New Subject Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectNameNew')}</div>
     },
     {

@@ -12,6 +12,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist,
     getExamsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
+import { getMultipleExamProgressReport } from '@/server/exam/exam-module/reports/Baldwin/multiple-exam-progress-card-report-2';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -31,12 +32,10 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
 
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingStudents, setLoadingStudents] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
 
     const methods = useForm({
@@ -44,7 +43,6 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
             ASMAY_Id: '',
             ASMCL_Id: '',
             ASMS_Id: '',
-            selectedStudents: [] as string[],
             selectedExams: [] as string[],
             Reopen_Date: new Date(),
             BG: 'BG1'
@@ -67,7 +65,6 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('ASMCL_Id', '');
                 setValue('ASMS_Id', '');
-                setValue('selectedStudents', []);
                 setValue('selectedExams', []);
             } catch {
                 toast.error('Failed to load classes');
@@ -85,7 +82,6 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(Number(watchYear), Number(watchClass));
                 setSections(Array.isArray(data) ? data : []);
                 setValue('ASMS_Id', '');
-                setValue('selectedStudents', []);
                 setValue('selectedExams', []);
             } catch {
                 toast.error('Failed to load sections');
@@ -99,136 +95,201 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
         if (!watchYear || !watchClass || !watchSection) return;
         (async () => {
             try {
-                setLoadingStudents(true);
                 setLoadingExams(true);
-                const [{ data: studentsData }, { data: examsData }] = await Promise.all([
-                    getStudentsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection)),
-                    getExamsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection))
-                ]);
-
-                const validStudents = Array.isArray(studentsData) ? studentsData.filter((s: any) => !!s?.amsT_Id) : [];
-                setStudents(validStudents.map((s: any) => ({
-                    amsT_Id: s.amsT_Id,
-                    amsT_AdmNo: s.amsT_AdmNo,
-                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                })));
-
-                setExams(Array.isArray(examsData) ? examsData : []);
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(watchYear), Number(watchClass), Number(watchSection));
+                setExams(Array.isArray(data) ? data : []);
             } catch {
-                toast.error('Failed to load students and exams');
+                toast.error('Failed to load exams');
             } finally {
-                setLoadingStudents(false);
                 setLoadingExams(false);
             }
         })();
     }, [watchYear, watchClass, watchSection, setValue]);
 
-    const generateMockData = (values: any, selectedStudentDetails: any[], selectedExamDetails: any[]) => {
-        const yearName = academicYears.find((y: any) => y.asmaY_Id === Number(values.ASMAY_Id))?.asmaY_Year || '2025-26';
-        const className = classes.find((c: any) => c.asmcL_Id === Number(values.ASMCL_Id))?.asmcL_ClassName || 'Class';
-        const sectionName = sections.find((s: any) => s.asmS_Id === Number(values.ASMS_Id))?.asmC_SectionName || 'Section';
-
-        const mockStudents = selectedStudentDetails.map((student, idx) => {
-            // Mock subjects
-            const subjects = [
-                {
-                    ISMS_Id: 1, ISMS_SubjectName: 'English', EYCES_AplResultFlg: true,
-                    subexam_list: [
-                        { EMSS_Id: 101, EMSS_SubSubjectName: 'Reading', EYCES_MarksDisplayFlg: true, EYCES_GradeDisplayFlg: false },
-                        { EMSS_Id: 102, EMSS_SubSubjectName: 'Writing', EYCES_MarksDisplayFlg: true, EYCES_GradeDisplayFlg: false },
-                        { EMSS_Id: 103, EMSS_SubSubjectName: 'Speaking', EYCES_MarksDisplayFlg: false, EYCES_GradeDisplayFlg: true }
-                    ]
-                },
-                {
-                    ISMS_Id: 2, ISMS_SubjectName: 'Mathematics', EYCES_AplResultFlg: true,
-                    subexam_list: [
-                        { EMSS_Id: 201, EMSS_SubSubjectName: 'Numbers', EYCES_MarksDisplayFlg: true, EYCES_GradeDisplayFlg: false },
-                        { EMSS_Id: 202, EMSS_SubSubjectName: 'Shapes', EYCES_MarksDisplayFlg: false, EYCES_GradeDisplayFlg: true }
-                    ]
-                }
-            ];
-
-            const obtaioned_subject_wisemarks: any[] = [];
-            selectedExamDetails.forEach(exam => {
-                subjects.forEach(subj => {
-                    subj.subexam_list.forEach(sub => {
-                        const marks = Math.floor(Math.random() * 20) + 80;
-                        obtaioned_subject_wisemarks.push({
-                            EME_id: exam.emE_Id,
-                            ISMS_Id: subj.ISMS_Id,
-                            EMSS_Id: sub.EMSS_Id,
-                            ESTMPSSS_PassFailFlg: 'P',
-                            ESTMPSSS_ObtainedMarks: marks,
-                            ESTMPSSS_ObtainedGrade: marks > 90 ? 'A+' : 'A'
-                        });
-                    });
-                });
-            });
-
-            return {
-                AMST_Id: student.amsT_Id,
-                studentname: student.studentName,
-                classname: className,
-                sectionname: sectionName,
-                admno: student.amsT_AdmNo || `ADM00${idx}`,
-                dob: new Date(2018, 5, 10).toISOString(),
-                fathername: 'John Doe',
-                mothername: 'Jane Doe',
-                AMST_BloodGroup: 'O+',
-                photoname: 'https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/6a4bad20-fd91-45ff-b0cd-b152f3d07edc.jpg',
-                subjects,
-                obtaioned_subject_wisemarks,
-                ECACTA_SkillArea_temp: [
-                    { ECACT_Id: 1, ECACTA_Id: 1, ECACTA_SkillArea: 'Drawing' },
-                    { ECACT_Id: 1, ECACTA_Id: 2, ECACTA_SkillArea: 'Painting' }
-                ],
-                activity_mian_stu_wise: selectedExamDetails.flatMap(exam => [
-                    { EME_Id: exam.emE_Id, ECACTA_Id: 1, ECSACTT_Score: 'A' },
-                    { EME_Id: exam.emE_Id, ECACTA_Id: 2, ECSACTT_Score: 'B' }
-                ]),
-                totalWorkingDays: 200,
-                totalPresentDays: 185,
-                SPCCSHW_Height: '120',
-                SPCCSHW_Weight: '25',
-                HMVSN_VisionHygiene: 'Normal',
-                HMDNHY_DentalHygiene: 'Good'
-            };
-        });
-
-        const activity_temp = [
-            { ECACT_Id: 1, ECACT_SkillName: 'Creative Arts' }
-        ];
-
-        return {
-            year: yearName,
-            Reopen_Date: values.Reopen_Date,
-            headerbg: values.BG === 'BG1' ? '#ffd3ac' : '#811414d4',
-            marksbg: values.BG === 'BG1' ? '#fdece9' : '#FAF9F6',
-            color: values.BG === 'BG1' ? 'black' : 'white',
-            examlist_new: selectedExamDetails,
-            getstudentdetails: mockStudents,
-            activity_temp
-        };
-    };
-
     const onSubmit = async (values: any) => {
-        if (!values.selectedStudents?.length || !values.selectedExams?.length) {
-            toast.error('Please select at least one student and one exam');
+        if (!values.selectedExams?.length) {
+            toast.error('Please select at least one exam');
             return;
         }
 
-        const selectedStudentDetails = students.filter(s => values.selectedStudents.includes(String(s.amsT_Id)));
-        const selectedExamDetails = exams.filter(e => values.selectedExams.includes(String(e.emE_Id)));
+        try {
+            const selectedExamsList = exams
+                .filter(e => values.selectedExams.includes(String(e.emE_Id)))
+                .map(e => ({ EME_Id: Number(e.emE_Id), EME_ExamName: e.emE_ExamName }));
 
-        const mockData = generateMockData(values, selectedStudentDetails, selectedExamDetails);
-        onReportGenerated(mockData, values);
+            const payload = {
+                ASMAY_Id: Number(values.ASMAY_Id),
+                ASMCL_Id: Number(values.ASMCL_Id),
+                ASMS_Id: Number(values.ASMS_Id),
+                examlist: selectedExamsList
+            };
+
+            const response = await getMultipleExamProgressReport(payload);
+
+            if (response && response.data) {
+                const apiData = response.data;
+                const {
+                    getstudentmarksdetails = [],
+                    getstudentwisesubjectlist = [],
+                    getstudentdetails = [],
+                    getexamdetails = [],
+                    getexamwisesubsubjectlist = [],
+                    getstudentwisesubjectlistnew = [],
+                    getstudentwiseattendancedetails = [],
+                    examwiseremarks = [],
+                    getstudentwiseactiviteslist = [],
+                } = apiData;
+
+                if (!getstudentmarksdetails || getstudentmarksdetails.length === 0) {
+                    toast.error('No record found for the selected criteria');
+                    return;
+                }
+
+                // 1. Unique exam details list
+                const examlist_new: any[] = [];
+                getexamdetails.forEach((exm: any) => {
+                    if (examlist_new.length === 0) {
+                        examlist_new.push(exm);
+                    } else {
+                        const exists = examlist_new.some(existingExm => existingExm.emE_Id === exm.emE_Id);
+                        if (!exists) {
+                            examlist_new.push(exm);
+                        }
+                    }
+                });
+
+                // Keep all students returned from getstudentdetails
+                const filteredStudents = getstudentdetails;
+
+                if (filteredStudents.length === 0) {
+                    toast.error('No student records found in API response');
+                    return;
+                }
+
+                // Transform each student object to append necessary nested arrays
+                const transformedStudents = filteredStudents.map((st: any) => {
+                    const studentId = st.AMST_Id ?? st.amsT_Id;
+
+                    // Obtained subject sub-exam marks
+                    const obtaioned_subject_wisemarks = getexamwisesubsubjectlist.filter((dev: any) => 
+                        (dev.AMST_Id ?? dev.amsT_Id) === studentId
+                    );
+
+                    // Student subjects
+                    const studentSubjects = getstudentwisesubjectlist.filter((sub: any) => 
+                        (sub.AMST_Id ?? sub.amsT_Id) === studentId
+                    );
+
+                    // Nested subexam_list under each subject
+                    const subjectsWithSubExams = studentSubjects.map((stu_sub: any) => {
+                        const subexam_list_for_this_subject: any[] = [];
+                        getexamwisesubsubjectlist.forEach((sub_exam: any) => {
+                            if (stu_sub.ISMS_Id === sub_exam.ISMS_Id) {
+                                const exists = subexam_list_for_this_subject.some(existingSubExam => 
+                                    existingSubExam.EMSS_Id === sub_exam.EMSS_Id
+                                );
+                                if (!exists) {
+                                    subexam_list_for_this_subject.push(sub_exam);
+                                }
+                            }
+                        });
+                        return {
+                            ...stu_sub,
+                            subexam_list: subexam_list_for_this_subject
+                        };
+                    });
+
+                    // Activity Skill areas
+                    const studentActivitiesMap = new Map();
+                    getstudentwiseactiviteslist.forEach((activity: any) => {
+                        if ((activity.AMST_Id ?? activity.amsT_Id) === studentId) {
+                            studentActivitiesMap.set(activity.ECACTA_SkillArea, activity);
+                        }
+                    });
+                    const ECACTA_SkillArea_temp = Array.from(studentActivitiesMap.values());
+
+                    // Main student-wise activities
+                    const activity_mian_stu_wise = getstudentwiseactiviteslist.filter((act: any) => 
+                        (act.AMST_Id ?? act.amsT_Id) === studentId
+                    );
+
+                    // Attendance sums
+                    let totalWorkingDays = 0;
+                    let totalPresentDays = 0;
+                    getstudentwiseattendancedetails.forEach((su: any) => {
+                        if ((su.AMST_Id ?? su.amsT_Id) === studentId) {
+                            totalWorkingDays += Number(su.TOTALWORKINGDAYS ?? su.totalWorkingDays ?? su.TotalWorkingDays ?? 0);
+                            totalPresentDays += Number(su.PRESENTDAYS ?? su.presentDays ?? su.PresentDays ?? 0);
+                        }
+                    });
+
+                    // Remarks
+                    const exam_wise_remarks = examwiseremarks.filter((atten: any) => 
+                        (atten.AMST_Id ?? atten.amsT_Id) === studentId
+                    );
+
+                    // Grades
+                    const obtgrade = getstudentwisesubjectlistnew.filter((su: any) => 
+                        (su.AMST_Id ?? su.amsT_Id) === studentId
+                    );
+
+                    // Marks
+                    const marks = getstudentmarksdetails.filter((su: any) => 
+                        (su.AMST_Id ?? su.amsT_Id) === studentId
+                    );
+
+                    return {
+                        ...st,
+                        AMST_Id: studentId,
+                        obtaioned_subject_wisemarks,
+                        subjects: subjectsWithSubExams,
+                        ECACTA_SkillArea_temp,
+                        activity_mian_stu_wise,
+                        totalWorkingDays,
+                        totalPresentDays,
+                        exam_wise_remarks,
+                        obtgrade,
+                        marks
+                    };
+                });
+
+                // Unique activities template
+                const uniqueActivitiesMap = new Map();
+                getstudentwiseactiviteslist.forEach((dev: any) => {
+                    uniqueActivitiesMap.set(dev.ECACT_Id, dev);
+                });
+                const activity_temp = Array.from(uniqueActivitiesMap.values());
+
+                // Year name
+                const selectedYearObj = academicYears.find((y: any) => y.asmaY_Id === Number(values.ASMAY_Id));
+                const yearName = selectedYearObj?.asmaY_Year || '';
+
+                const finalReportData = {
+                    year: yearName,
+                    Reopen_Date: values.Reopen_Date,
+                    headerbg: values.BG === 'BG1' ? '#ffd3ac' : '#811414d4',
+                    marksbg: values.BG === 'BG1' ? '#fdece9' : '#FAF9F6',
+                    color: values.BG === 'BG1' ? 'black' : 'white',
+                    examlist_new,
+                    getstudentdetails: transformedStudents,
+                    activity_temp
+                };
+
+                onReportGenerated(finalReportData, values);
+                toast.success('Report generated successfully');
+            } else {
+                toast.error('No record found for the selected criteria');
+            }
+        } catch (error: any) {
+            console.error('Submit report error:', error);
+            toast.error(error?.message || 'Failed to submit report');
+        }
     };
 
     const handleClear = () => {
         reset();
         setClasses([]);
         setSections([]);
-        setStudents([]);
         setExams([]);
         onReset();
     };
@@ -316,20 +377,6 @@ export const ReportForm = ({ title, onReportGenerated, onReset }: ReportFormProp
                                         value={field.value}
                                         placeholder='Select Exams'
                                         height='150px'
-                                        isSearchRequired
-                                        error={fieldState.error?.message}
-                                    />
-                                )} />
-                            </div>
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>Student <span className='text-red-500'>*</span></Label>
-                                <Controller control={control} name='selectedStudents' render={({ field, fieldState }) => (
-                                    <CustomMultiSelectBox
-                                        options={students.map((s) => ({ label: `${s.studentName} - ${s.amsT_AdmNo}`, value: String(s.amsT_Id) }))}
-                                        onChange={field.onChange}
-                                        value={field.value}
-                                        placeholder='Select Students'
-                                        height='200px'
                                         isSearchRequired
                                         error={fieldState.error?.message}
                                     />

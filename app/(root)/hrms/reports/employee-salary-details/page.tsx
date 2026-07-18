@@ -127,9 +127,9 @@ function EmployeeSalaryDetailsContent() {
                                     name='year'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Financial Year' />
+                                                <SelectValue placeholder={masterYearsLoading ? "Loading..." : "Select Financial Year"} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {masterYearsLoading ? (

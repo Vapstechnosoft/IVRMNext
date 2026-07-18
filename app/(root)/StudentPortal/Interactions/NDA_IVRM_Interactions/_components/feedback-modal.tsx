@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
     DialogTitle,
-    DialogFooter 
+    DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -26,7 +26,7 @@ interface FeedbackModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, userhrmE_Id }: FeedbackModalProps) {
     const [responses, setResponses] = useState<Record<number, { optionId: number; remark: string }>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,7 +71,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                 };
             });
 
-            const result = await saveFeedback({ 
+            const result = await saveFeedback({
                 savemodulefeedback,
                 Flag: roleFlg,
                 HRME_Id: userhrmE_Id
@@ -111,24 +111,24 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                             <div key={question.fmqE_Id} className="space-y-6 group">
                                 <div className="space-y-2">
                                     <h4 className="text-lg font-black tracking-tight group-hover:text-primary transition-colors">
-                                        <span className="text-primary/40 mr-2">0{index + 1}.</span> 
+                                        <span className="text-primary/40 mr-2">0{index + 1}.</span>
                                         {question.fmqE_FeedbackQuestions}
                                     </h4>
                                     <div className="h-1 w-12 bg-primary/10 rounded-full group-hover:w-20 transition-all duration-300" />
                                 </div>
-                                
-                                <RadioGroup 
+
+                                <RadioGroup
                                     className="flex flex-wrap gap-4"
                                     onValueChange={(val) => handleOptionChange(question.fmqE_Id, Number(val))}
                                 >
                                     {question.feedbackoptiondata?.map((option) => (
                                         <div key={option.fmoP_Id} className="flex items-center space-x-2">
-                                            <Label 
+                                            <Label
                                                 htmlFor={`q-${question.fmqE_Id}-o-${option.fmoP_Id}`}
                                                 className="flex cursor-pointer items-center gap-2 rounded-xl border-2 px-6 py-3 transition-all hover:bg-muted font-bold"
                                                 style={{
-                                                     borderColor: responses[question.fmqE_Id]?.optionId === option.fmoP_Id ? 'hsl(var(--primary))' : 'transparent',
-                                                     backgroundColor: responses[question.fmqE_Id]?.optionId === option.fmoP_Id ? 'hsl(var(--primary)/0.05)' : 'hsl(var(--muted)/0.3)'
+                                                    borderColor: responses[question.fmqE_Id]?.optionId === option.fmoP_Id ? 'hsl(var(--primary))' : 'transparent',
+                                                    backgroundColor: responses[question.fmqE_Id]?.optionId === option.fmoP_Id ? 'hsl(var(--primary)/0.05)' : 'hsl(var(--muted)/0.3)'
                                                 }}
                                             >
                                                 <RadioGroupItem value={option.fmoP_Id.toString()} id={`q-${question.fmqE_Id}-o-${option.fmoP_Id}`} className="sr-only" />
@@ -140,7 +140,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
 
                                 <div className="space-y-2">
                                     <Label className="text-[11px] font-black uppercase text-muted-foreground tracking-widest ml-1">Optional Remark</Label>
-                                    <Textarea 
+                                    <Textarea
                                         placeholder="Tell us more..."
                                         className="min-h-[100px] bg-muted/30 border-none rounded-2xl focus-visible:ring-primary/20 text-sm font-medium p-4"
                                         onChange={(e) => handleRemarkChange(question.fmqE_Id, e.target.value)}
@@ -155,7 +155,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                     <Button variant="ghost" onClick={onClose} disabled={isSubmitting} className="font-bold text-muted-foreground uppercase tracking-widest">
                         Remind Me Later
                     </Button>
-                    <Button 
+                    <Button
                         className="min-w-[180px] h-12 rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                         onClick={handleSubmit}
                         disabled={isSubmitting}

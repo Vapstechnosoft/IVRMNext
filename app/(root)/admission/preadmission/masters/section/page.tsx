@@ -21,11 +21,17 @@ export default function MasterSectionPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterSection(searchParams);
+    
+    // We omit search_query from backend parameters so that it fetches all data,
+    // allowing the client-side filter in MasterSectionPageContent to work properly.
+    const backendParams = { ...searchParams };
+    delete backendParams.search_query;
+
+    const { data: response, isLoading, error } = useMasterSection(backendParams);
 
     return (
         <FormProvider<IMasterSectionList>>
-            <MasterSectionPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterSectionPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
         </FormProvider>
     );
 }
@@ -33,14 +39,56 @@ export default function MasterSectionPage(props: {
 function MasterSectionPageContent({
     response,
     isLoading,
-    error
+    error,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    searchParams: any;
 }) {
     const { openAddForm } = useFormContext<IMasterSectionList>();
-    const tableProps = useDataTableProps(response);
+
+    // Client-side filtering to support searching numeric columns without backend errors
+    const searchQuery = searchParams?.search_query?.toString().toLowerCase() || '';
+    
+    // Normalize response so that data is always an array
+    let normalizedResponse = response;
+    if (response && response.data && !Array.isArray(response.data)) {
+        normalizedResponse = {
+            ...response,
+            data: response.data.list || []
+        };
+    }
+
+    let filteredResponse = normalizedResponse;
+    if (searchQuery && normalizedResponse && normalizedResponse.data) {
+        const dataArray = normalizedResponse.data;
+        const filteredData = dataArray.filter((item: any) => {
+            return (
+                String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_SectionName || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_Order || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_MaxCapacity || '').toLowerCase().includes(searchQuery)
+            );
+        });
+        filteredResponse = {
+            ...normalizedResponse,
+            data: filteredData,
+            total: filteredData.length
+        };
+    } else if (searchQuery && Array.isArray(normalizedResponse)) {
+        filteredResponse = normalizedResponse.filter((item: any) => {
+            return (
+                String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_SectionName || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_Order || '').toLowerCase().includes(searchQuery) ||
+                String(item.asmC_MaxCapacity || '').toLowerCase().includes(searchQuery)
+            );
+        });
+    }
+
+    const tableProps = useDataTableProps(filteredResponse);
 
     return (
         <div className='min-h-screen'>

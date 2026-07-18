@@ -47,7 +47,7 @@ interface ViewReplyModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id }: ViewReplyModalProps) {
     const [thread, setThread] = useState<any[]>([]);
     const [replyVisible, setReplyVisible] = useState(false);
@@ -196,10 +196,10 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 setXlsxPreviewData(jsonData as any[][]);
             };
             reader.readAsArrayBuffer(blob);
-            } else {
-                setXlsxPreviewData(null);
-                setDocxPreviewHtml(null);
-            }
+        } else {
+            setXlsxPreviewData(null);
+            setDocxPreviewHtml(null);
+        }
     };
 
     const handleDownload = async (url: string) => {

@@ -235,7 +235,7 @@ export const masterInstallmentSchema = {
         .object({
             fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
             fmI_Installment_Type: createStringOnlyOptionalSchema('Installment Type', 1, 30),
-            fmI_No_Of_Installments: z.number().optional(),
+            fmI_No_Of_Installments: z.number().max(365, { message: 'Maximum number of installments is 365' }).optional(),
             installments: z
                 .array(
                     z.object({
@@ -456,8 +456,9 @@ export const masterConcessionDetailsSchema = {
     addOrUpdate: z
         .object({
             fmccD_Id: z.number().int().optional(),
-            fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
-            fmccD_PerOrAmtFlag: z.string({
+            // fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+            fmcC_Id: z.number().min(1, 'Concession Category Type is required'),
+            fmccD_PerOrAmtFlag: z.string().min(1, {
                 message: 'Amount or Percentage is required'
             }),
 

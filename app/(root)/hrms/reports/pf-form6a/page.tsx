@@ -49,12 +49,14 @@ function PFForm6AContent() {
         };
         fetchInstitution();
     }, []);
-    const { control, handleSubmit, reset } = useForm<FilterFormValues>({
+    const { control, handleSubmit, reset, watch } = useForm<FilterFormValues>({
         defaultValues: {
             fromDate: undefined,
             toDate: undefined
         }
     });
+
+    const watchedFromDate = watch('fromDate');
 
     const handleCancel = () => {
         reset();
@@ -210,6 +212,7 @@ function PFForm6AContent() {
                                     date={field.value}
                                     setDate={field.onChange}
                                     placeholder="Select To Date"
+                                    disabled={watchedFromDate ? { before: watchedFromDate } : undefined}
                                 />
                             )} />
                         </div>

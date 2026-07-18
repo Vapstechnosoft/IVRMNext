@@ -29,21 +29,38 @@ const MultipleExamCumulativeReportCalcuttaList = ({ data }: MultipleExamCumulati
                             <style>
                                 @media print {
                                     @page { size: landscape; margin: 10mm; }
-                                    body { font-family: 'Times New Roman', serif; -webkit-print-color-adjust: exact !important; }
-                                    .table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; color: #212529; }
-                                    .table-bordered { border: 1px solid #dee2e6; }
-                                    .table-bordered th, .table-bordered td { border: 1px solid #000 !important; padding: 4px; font-size: 10px; }
-                                    .text-center { text-align: center; }
-                                    .text-left { text-align: left; }
+                                    body { font-family: 'Times New Roman', serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; color: #212529; border: 1px solid #000 !important; }
+                                    th, td { border: 1px solid #000 !important; padding: 4px !important; font-size: 10px !important; }
+                                    .text-center { text-align: center !important; }
+                                    .text-left { text-align: left !important; }
                                     .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
-                                    .font-bold { font-weight: bold; }
-                                    .uppercase { text-transform: uppercase; }
+                                    .font-bold { font-weight: bold !important; }
+                                    .uppercase { text-transform: uppercase !important; }
+                                    .bg-purple-800 { background-color: #6b21a8 !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    .bg-orange-100 { background-color: #ffedd5 !important; color: #581c87 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                    .text-white { color: white !important; }
+                                    .text-purple-800 { color: #6b21a8 !important; }
+                                    .text-purple-900 { color: #581c87 !important; }
+                                    .text-2xl { font-size: 20px !important; }
+                                    .text-lg { font-size: 14px !important; }
+                                    .text-sm { font-size: 11px !important; }
                                 }
-                                .table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; color: #212529; border: 1px solid #000; }
-                                .table th, .table td { border: 1px solid #000; padding: 4px; font-size: 10px; }
-                                .text-center { text-align: center; }
-                                .text-left { text-align: left; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; color: #212529; border: 1px solid #000 !important; }
+                                th, td { border: 1px solid #000 !important; padding: 4px !important; font-size: 10px !important; }
+                                .text-center { text-align: center !important; }
+                                .text-left { text-align: left !important; }
                                 .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); display: inline-block; white-space: nowrap; }
+                                .font-bold { font-weight: bold !important; }
+                                .uppercase { text-transform: uppercase !important; }
+                                .bg-purple-800 { background-color: #6b21a8 !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                .bg-orange-100 { background-color: #ffedd5 !important; color: #581c87 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                                .text-white { color: white !important; }
+                                .text-purple-800 { color: #6b21a8 !important; }
+                                .text-purple-900 { color: #581c87 !important; }
+                                .text-2xl { font-size: 20px !important; }
+                                .text-lg { font-size: 14px !important; }
+                                .text-sm { font-size: 11px !important; }
                             </style>
                         </head>
                         <body>

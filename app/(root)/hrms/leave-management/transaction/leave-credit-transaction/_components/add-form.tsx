@@ -54,9 +54,9 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
     const [selectedDesignationIds, setSelectedDesignationIds] = useState<number[]>([]);
 
     // Report Hooks
-    const { data: departmentsData } = useMasterDepartments();
-    const { data: designationsData } = useLeaveReportDesignations(selectedDepartmentIds);
-    const { data: employeesData } = usePeriodLeaveReportEmployees(selectedDepartmentIds, selectedDesignationIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useMasterDepartments();
+    const { data: designationsData, isLoading: isLoadingDesignations } = useLeaveReportDesignations(selectedDepartmentIds);
+    const { data: employeesData, isLoading: isLoadingEmployees } = usePeriodLeaveReportEmployees(selectedDepartmentIds, selectedDesignationIds);
 
     const departmentOptions = useMemo(() => {
         const raw = departmentsData?.data || departmentsData || [];

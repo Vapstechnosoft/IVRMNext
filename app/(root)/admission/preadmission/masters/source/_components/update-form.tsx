@@ -117,10 +117,10 @@ export default function UpdateMasterSourceForm({ onSuccess, className = '', sele
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Source
+                            Update Source
                         </div>
                     </Button>
                 </div>

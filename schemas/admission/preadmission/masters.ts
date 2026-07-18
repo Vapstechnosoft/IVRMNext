@@ -6,7 +6,8 @@ import {
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
-    deleteIdSchema
+    deleteIdSchema,
+    createCustomStringSchema
 } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
@@ -106,7 +107,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createOptionalAlphaNumericSchemaNotOptional('Religion Name', 1, 50)
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 50)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')

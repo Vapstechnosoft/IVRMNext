@@ -58,11 +58,11 @@ function EmployeeProfileReportContent() {
     const desigIds = useMemo(() => watchedDesignation.map(Number).filter(Boolean), [watchedDesignation]);
 
     // Data Hooks
-    const { data: groupTypesData } = useReportGroupTypes();
-    const { data: departmentsData } = useReportDepartments(groupTypeIds.toString());
-    const { data: designationsData } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds.toString());
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
     // const { data: employeesData } = useReportEmployeesByDeptAndDesignation(deptIds.toString(), desigIds.toString());
-    const { data: employeesData } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
+    const { data: employeesData, isLoading: isLoadingEmployees } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
     console.log('employeesData', employeesData);
     // Transforms
     const groupTypesDataTransformed = useMemo(() => {
@@ -215,7 +215,8 @@ function EmployeeProfileReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Group Types'
+                                        placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
+                                        disabled={isLoadingGroupTypes }
                                     />
                                 )}
                             />
@@ -237,7 +238,8 @@ function EmployeeProfileReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Departments'
+                                        placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
+                                        disabled={isLoadingDepartments || watchedGroupType?.length === 0}
                                     />
                                 )}
                             />
@@ -259,7 +261,8 @@ function EmployeeProfileReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Designations'
+                                        placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
+                                        disabled={isLoadingDesignations || watchedDepartment?.length === 0}
                                     />
                                 )}
                             />
@@ -281,7 +284,8 @@ function EmployeeProfileReportContent() {
                                         }
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
-                                        placeholder='Select Employees'
+                                        placeholder={isLoadingEmployees ? 'Loading...' : 'Select Employees'}
+                                        disabled={isLoadingEmployees || watchedDesignation?.length === 0}
                                     />
                                 )}
                             />

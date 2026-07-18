@@ -74,7 +74,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success('Record Saved Successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
