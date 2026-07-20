@@ -46,8 +46,8 @@ interface FormContextType<T = any> {
     closeAllForms: () => void;
 
     // Refs for scrolling
-    addFormRef: React.RefObject<HTMLDivElement>;
-    editFormRef: React.RefObject<HTMLDivElement>;
+    addFormRef: React.RefObject<HTMLDivElement | null>;
+    editFormRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const FormContext = createContext<FormContextType | null>(null);
@@ -79,11 +79,11 @@ export function FormProvider<T = any>({
     const [isCopyFormOpen, setIsCopyFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
-    const addFormRef = useRef<HTMLDivElement>(null);
-    const editFormRef = useRef<HTMLDivElement>(null);
+    const addFormRef = useRef<HTMLDivElement>(null!);
+    const editFormRef = useRef<HTMLDivElement>(null!);
 
     const scrollToElement = useCallback(
-        (ref: React.RefObject<HTMLDivElement>) => {
+        (ref: React.RefObject<HTMLDivElement | null>) => {
             if (scrollToForm) {
                 setTimeout(() => {
                     ref.current?.scrollIntoView({

@@ -334,13 +334,13 @@ export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: num
     };
 };
 
-export const usePreadmissionStatusCountReport = () => {
+export const usePreadmissionStatusCountReport = (payload?: any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT],
-            queryFn: async () => getPreadmissionStatusCountReport(),
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT, payload ?? {}],
+            queryFn: async () => getPreadmissionStatusCountReport(payload),
             staleTime: 0
         }),
         refetchAll: () => {

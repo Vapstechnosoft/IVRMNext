@@ -71,6 +71,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
     students.map(s => ({
       ...s,
       selected: false,
+      astc_Remarks: s.astc_Remarks || '',
       ASTC_TCApplicationDate: null,
       ASTC_TCDate: null,
     }))
@@ -79,13 +80,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
-  const [isApplyAllOpen, setIsApplyAllOpen] = useState(false);
-  const [applyAllData, setApplyAllData] = useState({
-    astc_Remarks: '',
-    astc_LeavingReason: '',
-    astc_Conduct: 'Good',
-    astc_Qual_PromotionFlag: 'No',
-  });
+  const [allRemarks, setAllRemarks] = useState('');
 
   const handleToggle = (id: number) => {
     setStudentList((prev) =>
@@ -97,6 +92,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
             selected,
             ASTC_TCApplicationDate: selected ? new Date() : null,
             ASTC_TCDate: selected ? new Date() : null,
+            astc_Remarks: selected ? s.astc_Remarks : '',
           };
         }
         return s;
@@ -111,8 +107,30 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
         selected: checked,
         ASTC_TCApplicationDate: checked ? new Date() : null,
         ASTC_TCDate: checked ? new Date() : null,
+        astc_Remarks: checked ? s.astc_Remarks : '',
       }))
     );
+  };
+
+  const handleApplyRemarksToAll = (val: string) => {
+    setAllRemarks(val);
+    if (!val) return;
+    
+    setStudentList(prev => prev.map(s => {
+      if (s.selected) {
+        return { ...s, astc_Remarks: val };
+      }
+      return s;
+    }));
+  };
+
+  const handleIndividualRemarkChange = (id: number, val: string) => {
+    setStudentList(prev => prev.map(s => {
+      if (s.AMST_Id === id) {
+        return { ...s, astc_Remarks: val };
+      }
+      return s;
+    }));
   };
 
   const openEditModal = (student: any) => {
@@ -127,27 +145,6 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
     );
     setIsModalOpen(false);
     toast.success(`TC details updated for ${editingStudent.StudentName}`);
-  };
-
-  const handleApplyAll = () => {
-    const selectedCount = studentList.filter(s => s.selected).length;
-    if (selectedCount === 0) {
-      toast.error('Please select students first');
-      return;
-    }
-
-    setStudentList(prev => prev.map(s => {
-      if (s.selected) {
-        return {
-          ...s,
-          ...applyAllData
-        };
-      }
-      return s;
-    }));
-    
-    setIsApplyAllOpen(false);
-    toast.success(`Applied common fields to ${selectedCount} students`);
   };
 
   const handleSave = () => {
@@ -183,7 +180,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             <Input
-              placeholder="Filter by name, admission ID, or class record..."
+              placeholder="Filter by name, admission ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-12 h-14 rounded-2xl border-slate-200 bg-white shadow-sm focus:ring-4 focus:ring-indigo-100 transition-all text-sm font-medium"
@@ -191,16 +188,23 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
           </div>
         </div>
 
-        <div className="flex gap-4">
-           <Button
-            variant="outline"
-            disabled={!isAnySelected}
-            onClick={() => setIsApplyAllOpen(true)}
-            className="h-14 px-8 rounded-2xl border-indigo-200 text-indigo-700 bg-white hover:bg-indigo-50 font-bold transition-all shadow-md active:scale-95"
-          >
-            <Settings2 className="mr-3 h-5 w-5" />
-            Apply to Selected
-          </Button>
+        <div className="w-full md:w-1/3 space-y-2">
+            <label className="text-xs font-black text-red-500 uppercase tracking-widest px-1">Remarks for All Selected</label>
+            <Select 
+                value={allRemarks} 
+                onValueChange={handleApplyRemarksToAll}
+                disabled={!isAnySelected}
+            >
+                <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-white shadow-sm focus:ring-4 focus:ring-indigo-100 transition-all font-bold">
+                    <SelectValue placeholder="-- Select --" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                    <SelectItem value="">-- Select --</SelectItem>
+                    {REMARKS_OPTIONS.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
       </div>
 
@@ -222,8 +226,8 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                 </TableHead>
                 <TableHead>Student Identity</TableHead>
                 <TableHead>Class & Section</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="w-48 text-center">Details</TableHead>
+                <TableHead className="w-64">Remarks</TableHead>
+                <TableHead className="w-32 text-center">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -258,40 +262,45 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-slate-600 text-sm whitespace-nowrap">
-                        Grade {student.ASMCL_ClassName}
+                         {student.ASMCL_ClassName}
                       </span>
                       <span className="text-slate-400 font-semibold text-xs mt-0.5">
-                        Section {student.ASMC_SectionName}
+                         {student.ASMC_SectionName}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
-                    {student.astc_Remarks ? (
-                      <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase ring-1 ring-emerald-200 animate-in fade-in zoom-in">
-                        <CheckCircle2 className="w-3 h-3 mr-1.5" />
-                        Details Saved
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase ring-1 ring-amber-200">
-                        <AlertCircle className="w-3 h-3 mr-1.5" />
-                        Pending
-                      </div>
-                    )}
+                  <TableCell>
+                    <Select 
+                        value={student.astc_Remarks || ''} 
+                        onValueChange={(val) => handleIndividualRemarkChange(student.AMST_Id, val)}
+                        disabled={!student.selected}
+                    >
+                        <SelectTrigger className={cn(
+                            "h-11 rounded-xl border-slate-200 bg-white transition-all",
+                            !student.astc_Remarks && student.selected && "border-amber-400 ring-2 ring-amber-50"
+                        )}>
+                            <SelectValue placeholder="-- Select --" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                             <SelectItem value="">-- Select --</SelectItem>
+                            {REMARKS_OPTIONS.map(opt => (
+                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
+                      size="icon"
                       disabled={!student.selected}
                       onClick={() => openEditModal(student)}
                       className={cn(
-                        "h-12 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-sm border",
-                        student.astc_Remarks 
-                          ? "bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50" 
-                          : "bg-indigo-600 text-white border-transparent hover:bg-slate-800"
+                        "h-11 w-11 rounded-xl transition-all shadow-sm border",
+                        student.selected ? "bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50" : "text-slate-300 border-transparent"
                       )}
                     >
-                      <FileEdit className="mr-2 h-4 w-4" />
-                      {student.astc_Remarks ? 'Modify' : 'Fill TC App'}
+                      <Settings2 className="h-5 w-5" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -312,7 +321,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
           ) : (
             <Save className="mr-3 h-7 w-7" />
           )}
-          Finalize & Submit Applications
+          Request
         </Button>
       </div>
 
@@ -325,7 +334,7 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                  <FileEdit className="w-8 h-8"/>
               </div>
               <div className="text-left">
-                <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight uppercase">TC Application Details</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-slate-800 tracking-tight uppercase">Extra TC Details</DialogTitle>
                 <p className="text-slate-400 font-bold text-xs mt-1 tracking-widest uppercase">Student: {editingStudent?.StudentName} • ID: {editingStudent?.AMST_AdmNo}</p>
               </div>
             </div>
@@ -396,23 +405,6 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 flex items-center gap-2">
                      <span className="w-5 h-px bg-amber-200"></span> Behavioral & Administration
                    </h4>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-600 ml-1">TC Remarks (Promotion)</label>
-                    <Select 
-                      value={editingStudent.astc_Remarks} 
-                      onValueChange={(val) => setEditingStudent({...editingStudent, astc_Remarks: val})}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl bg-white border-slate-200 focus:ring-2 focus:ring-indigo-500">
-                        <SelectValue placeholder="Select Promotion Remark" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {REMARKS_OPTIONS.map(opt => (
-                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-600 ml-1">Leaving Reason</label>
@@ -517,89 +509,15 @@ export function NdaStudentTcList({ students, onSave, isSaving }: NdaStudentTcLis
                 onClick={() => setIsModalOpen(false)}
                 className="h-12 px-8 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition-all"
               >
-                Discard Changes
+                Discard
               </Button>
               <Button
                 onClick={saveDetails}
                 className="h-12 px-12 rounded-xl bg-indigo-600 text-white hover:bg-slate-900 font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95"
               >
-                Apply Details
+                Sync Details
               </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Apply All Modal */}
-      <Dialog open={isApplyAllOpen} onOpenChange={setIsApplyAllOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-white">
-           <DialogHeader className="p-8 bg-indigo-600 text-white">
-              <DialogTitle className="text-2xl font-black tracking-tight uppercase">Bulk Update Selected</DialogTitle>
-              <p className="text-indigo-200 font-bold text-xs mt-1 tracking-widest uppercase italic opacity-80">Sync common fields across all active selections</p>
-           </DialogHeader>
-           
-           <div className="p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-tighter">Common Remarks</label>
-                  <Select 
-                    value={applyAllData.astc_Remarks} 
-                    onValueChange={(val) => setApplyAllData({...applyAllData, astc_Remarks: val})}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="All Remarks" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REMARKS_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-tighter">Common Leaving Reason</label>
-                  <Input 
-                    value={applyAllData.astc_LeavingReason} 
-                    onChange={(e) => setApplyAllData({...applyAllData, astc_LeavingReason: e.target.value})}
-                    placeholder="Apply to all selected..."
-                    className="h-12 rounded-xl border-slate-200"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-tighter">Common Conduct</label>
-                  <Select 
-                    value={applyAllData.astc_Conduct} 
-                    onValueChange={(val) => setApplyAllData({...applyAllData, astc_Conduct: val})}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="All Conduct" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CONDUCT_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-600 ml-1 uppercase tracking-tighter">Common Promotion Status</label>
-                  <Select 
-                    value={applyAllData.astc_Qual_PromotionFlag} 
-                    onValueChange={(val) => setApplyAllData({...applyAllData, astc_Qual_PromotionFlag: val})}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROMOTION_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-           </div>
-
-           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-             <Button variant="ghost" onClick={() => setIsApplyAllOpen(false)} className="font-bold text-slate-400">Cancel</Button>
-             <Button onClick={handleApplyAll} className="h-12 px-10 rounded-xl bg-indigo-600 hover:bg-slate-900 text-white font-bold transition-all shadow-lg shadow-indigo-100">Apply to {studentList.filter(s => s.selected).length} Students</Button>
-           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

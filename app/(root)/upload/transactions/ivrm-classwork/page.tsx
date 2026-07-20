@@ -208,16 +208,16 @@ export default function ClassWorkPage() {
                 {/* Legacy-style Header Bar */}
                 <div className=' px-8 py-5 flex items-center justify-between'>
                     <div className='flex items-center gap-6'>
-                        <h1 className='text-black font-black text-lg tracking-wider '>Classwork Details</h1>
+                        <h1 className='text-black text-lg tracking-wider '>Classwork Details</h1>
                         <div className='flex items-center bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30 shadow-inner'>
                             <span className='text-black/80 text-[10px] font-bold uppercase tracking-widest mr-2'>Total Records</span>
-                            <span className='text-black font-black text-sm'>{processedGrid.length}</span>
+                            <span className='text-black text-sm'>{processedGrid.length}</span>
                         </div>
                     </div>
 
                 </div>
 
-                <div className='p-1'>
+                <div className='p-1 [&_tbody_tr:hover_td]:!bg-blue-50/50 [&_tbody_tr]:cursor-pointer'>
                     <DataTable<IClassWorkDetails, any>
                         columns={columns}
                         data={processedGrid}

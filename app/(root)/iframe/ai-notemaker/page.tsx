@@ -81,7 +81,13 @@ export default function AINotemaker() {
             const data = await response.json();
             setResult(data);
             setActiveTab('preview');
-            toast.success('Notes generated successfully');
+            
+            let successMsg = 'Content generated successfully';
+            if (generateSummary && generateNotes) successMsg = 'Summary and Notes successfully generated';
+            else if (generateSummary) successMsg = 'Summary successfully generated';
+            else if (generateNotes) successMsg = 'Notes successfully generated';
+            
+            toast.success(successMsg);
         } catch (error: any) {
             console.error('Notemaker Error:', error);
             const displayMessage = error.message || 'Error generating notes. Please try again.';

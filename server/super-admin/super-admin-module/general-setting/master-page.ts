@@ -49,7 +49,12 @@ export async function saveMasterPage(data: any) {
 }
 
 export async function getMasterPages(searchParams: any) {
-    const query = getSearchParamsUrl(searchParams);
+    // If search_query is present but search_column is not, provide a default
+    const params = {
+        ...searchParams,
+        search_column: searchParams.search_column || (searchParams.search_query ? 'ivrmmP_PageName' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `MasterPageFacade/get_all_details_grid_master_page?${query}`;
 
     const response = await api.get<any>('sadmin', url);

@@ -29,9 +29,10 @@ function MobileNumberInput({
     requiredTooltip,
     ...props
 }: MobileNumberInputProps) {
-    const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.target.value = event.target.value.replace(/\D/g, '');
-        props.onChange?.(event);
+    const handleNumericInput = (event: React.FormEvent<HTMLInputElement>) => {
+        const target = event.currentTarget;
+        target.value = target.value.replace(/\D/g, '');
+        props.onChange?.(event as any);
     };
 
     return (
@@ -47,13 +48,13 @@ function MobileNumberInput({
             </Label>
             <FieldGroup className={cn('w-full', inputFieldClassName)}>
                 <Input
+                    {...props}
                     type='tel'
                     pattern='[0-9]*'
                     inputMode='numeric'
                     className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground disabled:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
                     onInput={handleNumericInput}
                     value={value ?? ''}
-                    {...props}
                 />
             </FieldGroup>
             {description && !error && <span className='text-[0.8rem] text-muted-foreground'>{description}</span>}

@@ -28,10 +28,10 @@ import {
 import { cn } from '@/lib/utils';
 import { GMthirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
 import {
-    ThirdPartyTrasactionfeeReceiptNoflg,
-    get_Receipt_number,
-    saveorUpdateThirdPartyTrasaction
-} from '@/server/fees/trasactions/thirdPartyTrasaction';
+    ThirdPartyTrasactionfeeReceiptNoflg_GM,
+    get_Receipt_number_GM,
+    saveorUpdateThirdPartyTrasaction_GM
+} from '@/server/fees/trasactions/thirdpartyTransaction_GM';
 
 type FormFields = z.infer<typeof GMthirdPartyTransactionSchema.addOrUpdate>;
 
@@ -87,7 +87,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     useEffect(() => {
         const fetchReceiptFlag = async () => {
             try {
-                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+                const res = await ThirdPartyTrasactionfeeReceiptNoflg_GM();
 
                 // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
                 if (res?.data?.length) {
@@ -105,7 +105,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     }, []);
 
     const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee_GM();
-
+    console.log('Academic Year Data:', academicYear?.data);
     const { data: groupData, isLoading: groupDataLoading } = useGroupdropdowndatathirdpartytransaction_GM();
 
     const { data: headdata, isLoading: headDataLoading } = useHeaddropdowndatathirdpartytransaction_GM();
@@ -121,13 +121,18 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
         const fetchReceipt = async () => {
             setReceiptDataLoading(true);
 
-            const response = await get_Receipt_number(); // returns ApiResponse<INumberGeneration[]>
+            const response = await get_Receipt_number_GM(); // returns ApiResponse<INumberGeneration[]>
             setReceiptnumberdata(response?.data ?? []); // ✅ use the actual array
             setReceiptDataLoading(false);
         };
 
         fetchReceipt();
     }, []);
+    const uniqueAcademicYears = Array.from(
+        new Map(
+            (academicYear?.data || [])?.map(item => [item.asmaY_Id, item])
+        ).values()
+    );
 
     const {
         data: studentdata,
@@ -210,7 +215,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
 
             console.log('FINAL PAYLOAD:', JSON.stringify(payload));
 
-            const response = await saveorUpdateThirdPartyTrasaction(payload);
+            const response = await saveorUpdateThirdPartyTrasaction_GM(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -277,15 +282,15 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
-                                        <SelectItem value='loading' disabled>
+                                        <SelectItem value="loading" disabled>
                                             Loading...
                                         </SelectItem>
                                     ) : (
-                                        academicYear?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))
+                                        uniqueAcademicYears.map((item, index) => (
+                                             <SelectItem key={`${item.asmaY_Id}-${index}`} value={String(item.asmaY_Id)}>
+                                                 {item.asmaY_Year}
+                                             </SelectItem>
+                                         ))
                                     )}
                                 </SelectContent>
                             </Select>
@@ -310,8 +315,17 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                         disabled={!watchAcademicYearId}
                                         // onValueChange={(value) => field.onChange(Number(value))}
                                         // value={field.value?.toString()}
-                                        onValueChange={(value) => field.onChange(value)} // keep string
-                                        value={field.value ?? ''}>
+                                        onValueChange={(val) => {
+                                            const idx = Number(val.split('-')[1]);
+                                            const std = studentdata?.data?.[idx];
+                                            field.onChange(std?.amsT_FirstName || '');
+                                            setValue('studentId', std?.amsT_Id);
+                                        }}
+                                        value={
+                                            (studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId')) ?? -1) !== -1
+                                                ? `std-${studentdata?.data?.findIndex((s) => s.amsT_FirstName === field.value && s.amsT_Id === watch('studentId'))}`
+                                                : ''
+                                        }>
                                         <SelectTrigger className='min-w-[400px]'>
                                             <SelectValue
                                                 placeholder={watchAcademicYearId ? 'Select Student' : 'Select Academic Year First'}
@@ -325,14 +339,13 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                                 </SelectItem>
                                             ) : studentdata ? (
                                                 studentdata.data?.map((std, index) => (
-                                                    <SelectItem
-                                                        key={std.amsT_Id}
-                                                        // key={`${std.amsT_Id ?? 'no-id'}-${index}`}
-                                                        value={String(std.amsT_FirstName)}
-                                                    >
-                                                        {std.amsT_FirstName}
-                                                    </SelectItem>
-                                                ))
+                                                     <SelectItem
+                                                         key={`${std.amsT_Id}-${index}`}
+                                                         value={`std-${index}`}
+                                                     >
+                                                         {std.amsT_FirstName}
+                                                     </SelectItem>
+                                                 ))
                                             ) : (
                                                 <SelectItem value='none' disabled>
                                                     No students found
