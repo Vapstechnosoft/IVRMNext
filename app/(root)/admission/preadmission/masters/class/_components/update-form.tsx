@@ -105,8 +105,22 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     };
 
     const handleReset = () => {
-        reset();
-        window.location.href = window.location.pathname;
+        if (row) {
+            reset({
+                asmcl_id: row.asmcL_Id,
+                asmcl_classcode: row.asmcL_ClassCode,
+                asmcl_classname: row.asmcL_ClassName,
+                asmcl_maxcapacity: row.asmcL_MaxCapacity,
+                asmcl_order: row.asmcL_Order,
+                asmcl_minageyear: row.asmcL_MinAgeYear,
+                asmcl_minagemonth: row.asmcL_MinAgeMonth,
+                asmcl_minagedays: row.asmcL_MinAgeDays,
+                asmcl_maxageyear: row.asmcL_MaxAgeYear,
+                asmcl_maxagemonth: row.asmcL_MaxAgeMonth,
+                asmcl_maxagedays: row.asmcL_MaxAgeDays,
+                asmcl_preadmflag: row.asmcL_PreadmFlag
+            });
+        }
     };
 
     return (
@@ -145,7 +159,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Capacity'
                                         required
                                         id='asmcl_maxcapacity'
-                                        defaultValue={row.asmcL_MaxCapacity}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
@@ -164,7 +178,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Class Order'
                                         required
                                         id='asmcl_order'
-                                        defaultValue={row.asmcL_Order}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
@@ -185,7 +199,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Year'
                                         required
                                         id='asmcl_minageyear'
-                                        defaultValue={row.asmcL_MinAgeYear}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
@@ -205,7 +219,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Month'
                                         required
                                         id='asmcl_minagemonth'
-                                        defaultValue={row.asmcL_MinAgeMonth}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
@@ -225,7 +239,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Days'
                                         required
                                         id='asmcl_minagedays'
-                                        defaultValue={row.asmcL_MinAgeDays}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
@@ -247,7 +261,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Year'
                                         required
                                         id='asmcl_maxageyear'
-                                        defaultValue={row.asmcL_MaxAgeYear}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
@@ -267,7 +281,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Month'
                                         required
                                         id='asmcl_maxagemonth'
-                                        defaultValue={row.asmcL_MaxAgeMonth}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
@@ -287,7 +301,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Days'
                                         required
                                         id='asmcl_maxagedays'
-                                        defaultValue={row.asmcL_MaxAgeDays}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
