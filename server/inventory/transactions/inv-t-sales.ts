@@ -4,7 +4,10 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
  
 export async function getInvTSalesLoadData(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'invmsL_Id,invmsL_SalesNo,invmsL_StuOtherFlg,invmsL_SalesDate,invmsL_SalesValue,invmsL_TotDiscount,invmsL_TotTaxAmt,invmsL_TotalAmount,invmsL_ActiveFlg'
+    );
     const url = `/INV_T_SalesFacade/loadSales?${urlParams}`;
     return await api.get<any>('inventory', url);
 }
