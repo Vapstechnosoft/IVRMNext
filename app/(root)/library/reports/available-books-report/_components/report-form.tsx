@@ -18,10 +18,16 @@ import { z } from 'zod';
 
 const reportFormSchema = z
     .object({
-        LMAL_Id: z.coerce.number().min(1, 'Library is required'),
+        LMAL_Id: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z.number({ required_error: 'Select Library', invalid_type_error: 'Select Library' }).min(1, 'Select Library')
+        ),
         Type: z.string().min(1, 'Book Type is required'),
         Type2: z.string().min(1, 'Source Type is required'),
-        LMD_Id: z.coerce.number().optional(), // 0 = ALL
+        LMD_Id: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z.number({ required_error: 'Select Department', invalid_type_error: 'Select Department' }).optional()
+        ),
         statuscount: z.boolean().default(false),
         IssueFromDate: z.date().optional(),
         IssueToDate: z.date().optional()

@@ -468,7 +468,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         name='fmI_Installment_Type'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select disabled={true} onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Installment Type' />
                                 </SelectTrigger>

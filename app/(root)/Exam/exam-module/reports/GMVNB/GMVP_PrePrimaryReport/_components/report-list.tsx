@@ -118,7 +118,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <tr key={j}>
                                                 <td className='pl-6'>{sub_sub.EMSS_SubSubjectName}</td>
                                                 {examList.map((exm: any) => {
-                                                    const mark = report.obtaioned_subject_wisemarks?.find((m: any) => m.EME_id === exm.emE_Id && m.ISMS_Id === subj.ISMS_Id && m.EMSS_Id === sub_sub.EMSS_Id);
+                                                    const mark = report.obtaioned_subject_wisemarks?.find((m: any) => (m.EME_id ?? m.EME_Id ?? m.eme_Id) === exm.emE_Id && (m.ISMS_Id ?? m.isms_Id) === (subj.ISMS_Id ?? subj.isms_Id) && (m.EMSS_Id ?? m.emss_Id) === (sub_sub.EMSS_Id ?? sub_sub.emss_Id));
                                                     let displayMark = '-';
                                                     if (mark) {
                                                         if (mark.ESTMPSSS_PassFailFlg === 'AB') {
@@ -143,7 +143,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <tr key={j}>
                                                 <td className='pl-6'>{act.ECACTA_SkillArea}</td>
                                                 {examList.map((exm: any) => {
-                                                    const score = report.activity_mian_stu_wise?.find((s: any) => s.EME_Id === exm.emE_Id && s.ECACTA_Id === act.ECACTA_Id)?.ECSACTT_Score || '-';
+                                                    const score = report.activity_mian_stu_wise?.find((s: any) => (s.EME_Id ?? s.EME_id ?? s.eme_Id) === exm.emE_Id && (s.ECACTA_Id ?? s.ecacta_Id) === (act.ECACTA_Id ?? act.ecacta_Id))?.ECSACTT_Score || '-';
                                                     return <td key={exm.emE_Id} className='text-center font-medium'>{score}</td>;
                                                 })}
                                             </tr>
@@ -217,7 +217,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                         {/* Footer */}
                         <div className='footer-grid margin-top-100'>
-                            <div className='text-left flex items-end gap-2'>
+                            <div className='text-left flex flex-col gap-1'>
                                 <img style={{ width: '150px' }} src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg" alt="Signature" />
                                 <strong>Principal’s Signature</strong>
                             </div>

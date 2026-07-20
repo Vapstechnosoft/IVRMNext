@@ -75,7 +75,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                         />
                         <InputText
                             label='Email Id'
-                            required
                             id='lmP_EMailId'
                             placeholder='e.g. contact@publisher.com'
                             {...register('lmP_EMailId')}
@@ -89,7 +88,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
-                            required
                             id='lmP_MobileNo'
                             placeholder='10-digit mobile number'
                             {...register('lmP_MobileNo')}
@@ -102,7 +100,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                 <div className='space-y-4'>
                     <InputTextarea
                         label='Address'
-                        required
                         id='lmP_Address'
                         placeholder='Enter the complete office address'
                         {...register('lmP_Address')}
