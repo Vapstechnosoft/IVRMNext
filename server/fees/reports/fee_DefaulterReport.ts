@@ -74,3 +74,9 @@ export async function mastersettinglist() {
     const url = '/FeesCommon/master-setting-list';
     return await api.get<any[]>('fees', url);
 }
+
+export async function getMonthlyFeeCollectionReport(payload: any) {
+    const url = '/MonthlyCollectionReportFacade/getreport';
+    console.info('MonthlyCollectionReportFacade url:', url);
+    return await api.post<any[]>('fees', url, payload);
+}
