@@ -17,17 +17,21 @@ export async function saveMasterPage(data: any) {
     }
 
     const payload = {
-        ...data,
-        ...validation.data,
+        createdDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
         ivrmP_Id: data.ivrmP_Id ?? 0,
-        ivrmP_PageURL: data.ivrmP_PageDesc,
+        ivrmmP_PageName: data.ivrmmP_PageName,
+        ivrmP_PageDesc: data.ivrmP_PageDesc,
+        ivrmP_PageURL: data.ivrmP_PageDesc, // Using PageDesc for URL based on previous pattern
         ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
+        ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
         ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "",
-        userid: data.userid ?? 1,
+        ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
+        userid: data.userid ?? 0,
+        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
     };
 
-    const response = await api.post<any>('sadmin', 'MasterPageFacade', payload);
+    const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
 
     if (response.success) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
@@ -72,20 +76,28 @@ export async function getMasterPages(searchParams: any) {
 }
 
 export async function deleteMasterPage(id: number) {
-    const response = await api.delete<any>('sadmin', `MasterPageFacade/delete_master_page/${id}`);
+    try {
+        const response = await api.delete<any>('sadmin', `MasterPageFacade/master_page_delete/${id}`);
 
-    if (response.success) {
-        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+        if (response.success) {
+            revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+            return {
+                success: true,
+                message: response.message || 'Record deleted successfully',
+            };
+        }
+
         return {
-            success: true,
-            message: response.message || 'Record deleted successfully',
+            success: false,
+            message: response.message || 'Failed to delete record',
+        };
+    } catch (error: any) {
+        console.error("Delete Error:", error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to delete record',
         };
     }
-
-    return {
-        success: false,
-        message: response.message || 'Failed to delete record',
-    };
 }
 
 export async function getMasterPageById(id: number) {
