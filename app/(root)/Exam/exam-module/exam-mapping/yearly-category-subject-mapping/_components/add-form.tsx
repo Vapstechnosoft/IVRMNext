@@ -44,6 +44,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
+    const [resetKey, setResetKey] = useState(0);
     useEffect(() => {
         reset({
             userId: 1,
@@ -115,6 +116,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             if (res?.success) {
                 toast.success('Yearly category dates mapping saved successfully');
                 reset();
+                setResetKey((prev) => prev + 1);
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -125,27 +127,18 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         }
     };
     const handleReset = () => {
-        reset(
-            {
-                userId: 1,
-                eycG_Id: 0,
-                // mI_Id: 30,
-                asmaY_Id: undefined,
-                emcA_Id: undefined,
-                emG_Id: undefined,
-                subjects_list: [],
-                eyC_BasedOnPaperTypeFlg: false
-            },
-            {
-                keepErrors: false,
-                keepDirty: false,
-                keepTouched: false,
-                keepIsSubmitted: false,
-                keepSubmitCount: false,
-                keepValues: false // ensures placeholders reappear
-            }
-        );
+        reset({
+            userId: 1,
+            eycG_Id: 0,
+            asmaY_Id: undefined,
+            emcA_Id: undefined,
+            emG_Id: undefined,
+            subjects_list: [],
+            eyC_BasedOnPaperTypeFlg: false
+        });
+        setCategories([]);
         setSubjects([]);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -290,6 +283,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         isSearchRequired={true}
                                         error={errors.subjects_list?.message}
                                         isRequired={true}
+                                        resetKey={resetKey}
                                     />
                                 )}
                             />

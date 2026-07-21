@@ -54,58 +54,47 @@ export default function UpdateMasterRackForm({
     useEffect(() => {
         if (row) {
             reset({
-                lmrA_Id: row.lmrA_Id,
-                lmraS_Id: row.lmraS_Id,
-                lmrA_BuildingName: row.lmrA_BuildingName,
-                lmrA_RackName: row.lmrA_RackName,
-                lmrA_DisplayColour: row.lmrA_DisplayColour,
-                lmrA_FloorName: row.lmrA_FloorName,
-                lmrA_Location: row.lmrA_Location,
-                lmS_Id: row.lmS_Id,
-                lmrA_ActiveFlag: row.lmrA_ActiveFlag
-            });
+                ...row,
+                lmS_Id: row.lmS_Id ? Number(row.lmS_Id) : undefined
+            } as any);
         }
     }, [row, reset]);
 
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload = {
-                ...data,
-                lmrA_Id: row.lmrA_Id // Ensure ID is preserved
-            };
+            const response: any = await addOrUpdateMasterRack(data);
 
-            const response = await addOrUpdateMasterRack(payload);
 
-            if (response.returnval) {
-                toast.success('Record Updated Successfully!!!');
-                reset(payload);
+            if (response.returnval || response.success) {
+                toast.success(response.message || 'Record Updated Successfully!!!');
+                reset(data);
                 refetchAll();
                 onSuccess?.();
             } else if (response.duplicate) {
-                toast.error('Record already exist');
+                toast.error(response.message || 'Record already exist');
             } else {
-                toast.error('Record Not Updated Successfully!!!');
+                toast.error(response.message || 'Record Not Updated Successfully!!!');
             }
+
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
     };
 
     const handleReset = () => {
-        if (row) {
-            reset({
-                lmrA_Id: row.lmrA_Id,
-                lmraS_Id: row.lmraS_Id,
-                lmrA_BuildingName: row.lmrA_BuildingName,
-                lmrA_RackName: row.lmrA_RackName,
-                lmrA_DisplayColour: row.lmrA_DisplayColour,
-                lmrA_FloorName: row.lmrA_FloorName,
-                lmrA_Location: row.lmrA_Location,
-                lmS_Id: row.lmS_Id,
-                lmrA_ActiveFlag: row.lmrA_ActiveFlag
-            });
-        }
+        reset({
+            lmrA_Id: row.lmrA_Id,
+            lmrA_BuildingName: '',
+            lmrA_RackName: '',
+            lmrA_DisplayColour: '',
+            lmrA_FloorName: '',
+            lmrA_Location: '',
+            lmS_Id: 0,
+            lmrA_ActiveFlag: row.lmrA_ActiveFlag
+        });
     };
+
 
     return (
         <div className={className}>
@@ -115,17 +104,20 @@ export default function UpdateMasterRackForm({
                         <InputText
                             label='Building Name'
                             required
+                            placeholder='Enter Building Name'
                             {...register('lmrA_BuildingName')}
                             error={errors.lmrA_BuildingName?.message}
                         />
                         <InputText
                             label='Rack Name'
                             required
+                            placeholder='Enter Rack Name'
                             {...register('lmrA_RackName')}
                             error={errors.lmrA_RackName?.message}
                         />
                         <InputText
                             label='Rack Color'
+                            placeholder='Enter Rack Color'
                             {...register('lmrA_DisplayColour')}
                             error={errors.lmrA_DisplayColour?.message}
                         />
@@ -158,6 +150,7 @@ export default function UpdateMasterRackForm({
                         <InputText
                             label='Floor Name'
                             required
+                            placeholder='Enter Floor Name'
                             {...register('lmrA_FloorName')}
                             error={errors.lmrA_FloorName?.message}
                         />
@@ -169,7 +162,7 @@ export default function UpdateMasterRackForm({
                             </label>
                             <textarea
                                 className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.lmrA_Location ? 'border-red-500' : ''}`}
-                                placeholder='Location'
+                                placeholder='Enter Location'
                                 {...register('lmrA_Location')}
                             />
                             {errors.lmrA_Location && <span className='text-sm text-red-500'>{errors.lmrA_Location.message}</span>}

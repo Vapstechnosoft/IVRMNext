@@ -26,7 +26,9 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
         setLoading(true);
         const res = await getItemTax(item.invmI_Id);
         if (res.success) {
-            setTaxData(res.get_itemTax);
+            const taxList = (res as any).get_itemTax;
+            const normalizedData = Array.isArray(taxList) ? taxList : (taxList?.$values ?? []);
+            setTaxData(normalizedData);
         } else {
             setTaxData([]);
             toast.error('Failed to fetch tax details');
@@ -43,7 +45,7 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
     const handleToggleTax = async (taxRecord: any) => {
         try {
             const res = await deactivateItemTax(taxRecord);
-            if (res.returnval || res.success) {
+            if ((res as any).returnval || res.success) {
                 toast.success('Tax status updated');
                 fetchItemTaxes();
             } else {

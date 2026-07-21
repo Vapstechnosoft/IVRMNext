@@ -17,16 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterHouseDesignationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterHouseDesignation(searchParams);
+    const { loadData, refetchAll } = useMasterHouseDesignation(searchParams);
 
     return (
         <FormProvider<IMasterHouseDesignation>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
                     <MasterHouseDesignationPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
+                        response={loadData.data}
+                        isLoading={loadData.isPending || loadData.isFetching}
+                        error={loadData.error}
                         refetchAll={refetchAll}
                     />
                 </div>
@@ -85,9 +85,6 @@ function MasterHouseDesignationPageContent({
                     columns={MasterHouseDesignationColumns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading master house designations...'

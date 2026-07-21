@@ -169,12 +169,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const motherCountryId = watch('motherNationality');
     const birthCountryId = watch('amsT_PlaceOfBirthCountry');
 
-    const { data: studentStates, isLoading: studentStatesLoading } = useStateDropdown(Number(studentCountryId) || 0);
-    const { data: resStates, isLoading: resStatesLoading } = useStateDropdown(Number(residentialCountryId) || 0);
-    const { data: perStates, isLoading: perStatesLoading } = useStateDropdown(Number(permanentCountryId) || 0);
-    const { data: fatherStates, isLoading: fatherStatesLoading } = useStateDropdown(Number(fatherCountryId) || 0);
-    const { data: motherStates, isLoading: motherStatesLoading } = useStateDropdown(Number(motherCountryId) || 0);
-    const { data: birthStates, isLoading: birthStatesLoading } = useStateDropdown(Number(birthCountryId) || 0);
+    // Rely exclusively on allState mapping instead of redundant state fetching
+    const studentStatesLoading = false;
+    const resStatesLoading = false;
+    const perStatesLoading = false;
+    const fatherStatesLoading = false;
+    const motherStatesLoading = false;
+    const birthStatesLoading = false;
 
 
     const admissionClass = useMemo(() => ({ data: (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || [] }), [admissionDetails]);
@@ -185,7 +186,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             (admissionDetails as any)?.AllReligion || []
     }), [admissionDetails]);
     const country = useMemo(() => ({ data: (admissionDetails as any)?.allCountry || (admissionDetails as any)?.allCountryList || (admissionDetails as any)?.AllCountry || [] }), [admissionDetails]);
-    const allState = useMemo(() => (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [], [admissionDetails]);
+    const allState = useMemo(() => (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || (admissionDetails as any)?.states || [], [admissionDetails]);
     const casteCategoryData = useMemo(() => ({
         data: (categoryByClass as any)?.data?.casteCategoryes ||
             (admissionDetails as any)?.casteCategoryes ||
@@ -334,52 +335,40 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     }, [allCaste, watch('motherReligionId')]);
 
     const conState = useMemo(() => {
-        const apiData = (resStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_ConCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, resStates, watch('amsT_ConCountry')]);
+    }, [allState, watch('amsT_ConCountry')]);
 
     const perState = useMemo(() => {
-        const apiData = (perStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_PerCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, perStates, watch('amsT_PerCountry')]);
+    }, [allState, watch('amsT_PerCountry')]);
 
     const studentState = useMemo(() => {
-        const apiData = (studentStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_Nationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, studentStates, watch('amsT_Nationality')]);
+    }, [allState, watch('amsT_Nationality')]);
 
     const fatherPresentState = useMemo(() => {
-        const apiData = (fatherStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('fatherNationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, fatherStates, watch('fatherNationality')]);
+    }, [allState, watch('fatherNationality')]);
 
     const motherPresentState = useMemo(() => {
-        const apiData = (motherStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('motherNationality');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, motherStates, watch('motherNationality')]);
+    }, [allState, watch('motherNationality')]);
 
     const birthState = useMemo(() => {
-        const apiData = (birthStates as any)?.data || [];
-        if (Array.isArray(apiData) && apiData.length > 0) return { data: apiData };
         const countryId = watch('amsT_PlaceOfBirthCountry');
         if (!countryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
-    }, [allState, birthStates, watch('amsT_PlaceOfBirthCountry')]);
+    }, [allState, watch('amsT_PlaceOfBirthCountry')]);
 
 
     // Backward compatibility aliases for refetching
@@ -639,6 +628,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         combined.amsT_Language_Spoken ??
                         '',
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
+                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
 
                     // Caste and Religion mapping
                     imC_Id:
@@ -2250,6 +2240,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+                amsT_ApparNo: formData.amsT_ApparNo ?? '',
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
@@ -3391,6 +3382,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             amsT_BankIFSCCode: '',
             amsT_BankBranch: '',
             amsT_AadharNo: '',
+            amsT_ApparNo: '',
             amsT_Sex: '',
             amsT_Date: null,
             amsT_Nationality: 0,
@@ -5295,8 +5287,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     />
                                                 </div>
 
-                                                {/* Aadhaar & Category */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* Aadhaar, APAAR ID & Category */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
                                                             name='amsT_AadharNo'
@@ -5316,6 +5308,25 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_ApparNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='APAAR ID'
+                                                                    placeholder='Enter APAAR ID'
+                                                                    id='amsT_ApparNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ApparNo && <FormError>{errors.amsT_ApparNo.message}</FormError>}
+                                                    </div>
+
+                                                    <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='asmcC_Id'>Student Category</Label>
                                                         <Controller
                                                             name='asmcC_Id'
@@ -5334,11 +5345,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         <SelectValue placeholder='Select category' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(categoryByClass as any)?.data?.studentCategory?.map((item: any) => (
+                                                                        {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || [])?.map((item: any) => (
                                                                             <SelectItem key={item.asmcC_Id} value={String(item.asmcC_Id)}>
-                                                                                {item.amC_Name}
+                                                                                {item.className || item.amC_Name || item.asmcC_CategoryName}
                                                                             </SelectItem>
                                                                         ))}
+                                                                        {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || []).length === 0 && (
+                                                                            <SelectItem value='none' disabled>No categories available</SelectItem>
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
@@ -5980,6 +5994,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             id='fatherAadharNo'
                                                             placeholder='Enter Aadhaar No.'
                                                             {...register('fatherAadharNo')}
+                                                            maxLength={12}
+                                                            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
                                                             error={errors.fatherAadharNo?.message}
                                                         />
                                                         <div className='flex flex-col gap-1.5'>
@@ -6038,7 +6054,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             inputProps={{
                                                                                 id: 'fatherMobileNumbers',
                                                                                 name: 'fatherMobileNumbers',
-                                                                                maxLength: 25,
+                                                                                maxLength: 15,
                                                                                 required: false,
                                                                                 style: {
                                                                                     width: '87%',
@@ -6054,7 +6070,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                             enableSearch
                                                                             disableCountryCode={false}
-                                                                            enableLongNumbers={true}
+                                                                            enableLongNumbers={false}
                                                                             isValid={true}
                                                                             preserveOrder={['country', 'nationalNumber']}
                                                                         />
@@ -6502,7 +6518,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                     inputProps={{
                                                                                         id: 'fatherOfficePhone',
                                                                                         name: 'fatherOfficePhone',
-                                                                                        maxLength: 25,
+                                                                                        maxLength: 15,
                                                                                         required: false,
                                                                                         style: {
                                                                                             width: '87%',
@@ -6518,7 +6534,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                     inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                     enableSearch
                                                                                     disableCountryCode={false}
-                                                                                    enableLongNumbers={true}
+                                                                                    enableLongNumbers={false}
                                                                                     isValid={true}
                                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                                 />
@@ -6771,6 +6787,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             id='motherAadharNo'
                                                             placeholder='Enter Aadhaar No'
                                                             {...register('motherAadharNo')}
+                                                            maxLength={12}
+                                                            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
                                                             error={errors.motherAadharNo?.message}
                                                         />
 
@@ -6829,7 +6847,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             inputProps={{
                                                                                 id: 'motherMobileNumbers',
                                                                                 name: 'motherMobileNumbers',
-                                                                                maxLength: 25,
+                                                                                maxLength: 15,
                                                                                 required: false,
                                                                                 style: {
                                                                                     width: '87%',
@@ -6845,7 +6863,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                             enableSearch
                                                                             disableCountryCode={false}
-                                                                            enableLongNumbers={true}
+                                                                            enableLongNumbers={false}
                                                                             isValid={true}
                                                                             preserveOrder={['country', 'nationalNumber']}
                                                                         />
@@ -7392,7 +7410,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                     inputProps={{
                                                                                         id: 'motherOfficePhone',
                                                                                         name: 'motherOfficePhone',
-                                                                                        maxLength: 25,
+                                                                                        maxLength: 15,
                                                                                         required: false,
                                                                                         style: {
                                                                                             width: '87%',
@@ -7408,7 +7426,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                     inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                     enableSearch
                                                                                     disableCountryCode={false}
-                                                                                    enableLongNumbers={true}
+                                                                                    enableLongNumbers={false}
                                                                                     isValid={true}
                                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                                 />
@@ -8023,7 +8041,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         inputProps={{
                                                                                             id: `guardianPhone_${idx}`,
                                                                                             name: `guardian.${idx}.guardianPhone`,
-                                                                                            maxLength: 25,
+                                                                                            maxLength: 15,
                                                                                             required: false,
                                                                                             style: {
                                                                                                 width: '87%',
@@ -8039,7 +8057,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                         enableSearch
                                                                                         disableCountryCode={false}
-                                                                                        enableLongNumbers={true}
+                                                                                        enableLongNumbers={false}
                                                                                         isValid={true}
                                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                                     />

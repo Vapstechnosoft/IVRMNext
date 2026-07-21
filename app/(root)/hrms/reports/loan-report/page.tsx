@@ -361,7 +361,8 @@ export default function LoanReportPage() {
                                                 options={groupTypeOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Group Types'
+                                                placeholder={masterGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
+                                                disabled={masterGroupTypesLoading}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -383,7 +384,8 @@ export default function LoanReportPage() {
                                                 options={DepartmentsOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Departments'
+                                                placeholder={masterDepartmentsLoading ? 'Loading...' : 'Select Departments'}
+                                                disabled={masterDepartmentsLoading || watchedGroupType?.length === 0}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -405,7 +407,8 @@ export default function LoanReportPage() {
                                                 options={DesignationOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Designations'
+                                                placeholder={masterDesignationsLoading ? 'Loading...' : 'Select Designations'}
+                                                disabled={masterDesignationsLoading || watchedDepartment?.length === 0}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -426,9 +429,9 @@ export default function LoanReportPage() {
                                                 name='month'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                    <Select onValueChange={field.onChange} value={field.value} disabled={masterMonthsLoading}>
                                                         <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Month' />
+                                                            <SelectValue placeholder={masterMonthsLoading ? 'Loading...' : 'Select Month'} />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {masterMonthsLoading ? (
@@ -461,9 +464,9 @@ export default function LoanReportPage() {
                                                 name='year'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                    <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                                                         <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Year' />
+                                                            <SelectValue placeholder={masterYearsLoading ? 'Loading...' : 'Select Year'} />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {masterYearsLoading ? (
@@ -499,9 +502,9 @@ export default function LoanReportPage() {
                                             name='employee'
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={isEmpLoading || watchedDesignation?.length === 0}>
                                                     <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Employee' />
+                                                        <SelectValue placeholder={isEmpLoading ? 'Loading...' : 'Select Employee'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {empOptions.map((opt: any) => (

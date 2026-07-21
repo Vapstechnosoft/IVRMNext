@@ -136,6 +136,8 @@ export interface IMasterSourceList {
 }
 export interface IMasterReligionCasteCategoryList {
     ircC_Id: number;
+    ivrmmR_Id: number;
+    imcC_Id: number;
     ivrmmR_Name: string;
     imcC_CategoryName: string;
     ircC_ActiveFlg: boolean;
@@ -285,4 +287,10 @@ export interface StudentData {
 export interface IConcessionDropDown {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
+}
+
+export interface IMasterActivityList {
+    amA_Id: number;
+    amA_Activity: string;
+    amA_Activity_Desc: string;
 }

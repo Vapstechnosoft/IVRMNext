@@ -27,7 +27,13 @@ export default function InvRMonthEndReportPage() {
     const [showReport, setShowReport] = useState(false);
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handleReportGenerated = async (data: IInvRMonthEndReportPayload, extraPayload: any) => {
+    const handleReportGenerated = async (data: IInvRMonthEndReportPayload | null, extraPayload: any) => {
+        if (data === null) {
+            setReportData(null);
+            setCurrentPayload(null);
+            setShowReport(false);
+            return;
+        }
         setIsLoading(true);
         const result = await getInvRMonthEndReport(data);
         if (result.success && result.data) {
@@ -112,7 +118,7 @@ export default function InvRMonthEndReportPage() {
     ] : [];
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-6 space-y-6">
             <Heading
                 title="Inventory Month End Report"
                 description="Generate Inventory Month End Report"
@@ -233,10 +239,10 @@ export default function InvRMonthEndReportPage() {
 
                         {/* Action Buttons */}
                         <div className="flex justify-center gap-4 mt-8 pt-8 border-t border-slate-100">
-                            <Button onClick={handlePrint} className="bg-slate-800 hover:bg-slate-900 text-white min-w-[120px]">
+                            <Button onClick={handlePrint} variant="secondary" className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg">
                                 <Printer className="mr-2 h-4 w-4" /> Print
                             </Button>
-                            <Button onClick={handleExport} variant="outline" className="border-green-600 text-green-700 hover:bg-green-50 min-w-[120px]">
+                            <Button onClick={handleExport} variant="outline" className="w-fit border-green-600 text-green-700 hover:bg-green-50 shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg">
                                 <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
                             </Button>
                         </div>

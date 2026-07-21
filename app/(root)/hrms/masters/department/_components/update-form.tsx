@@ -118,11 +118,12 @@ export default function UpdateDepartmentForm({ onSuccess, className = '', select
                             render={({ field }) => (
                                 <InputNumber
                                     label='Internal Training Min. Hours'
+                                    required
                                     id='hrmD_InternalTrainingMinimumHrs'
-                                    value={field.value}
+                                    value={field.value ?? undefined}
                                     maxDigits={3}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}
@@ -149,10 +150,10 @@ export default function UpdateDepartmentForm({ onSuccess, className = '', select
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Department
+                            Update Department
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

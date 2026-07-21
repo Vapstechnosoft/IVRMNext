@@ -98,6 +98,7 @@ import type {
     MassUpdationSearchRequest
 } from '@/types/hrms/mass-updation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ApiSearchparams } from '@/types';
 import { toast } from 'sonner';
 // ============================================================================
 // EMPLOYEE LOAN
@@ -583,15 +584,15 @@ export function useDeleteSalaryIncrement() {
         }
     });
 }
-export function useEmployeeIncrementGrid() {
-    return useQuery<any[], Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INCREMENT_GRID],
+export function useEmployeeIncrementGrid(searchParams?: ApiSearchparams) {
+    return useQuery<any, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INCREMENT_GRID, searchParams ?? {}],
         queryFn: async () => {
-            const res = await getEmployeeIncrementGrid();
+            const res = await getEmployeeIncrementGrid(searchParams);
             if (!res.success || !res.data) {
-                return [];
+                return { success: false, data: [], total: 0 };
             }
-            return res.data;
+            return res;
         },
         staleTime: 1000 * 60 * 5
     });

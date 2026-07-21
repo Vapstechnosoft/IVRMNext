@@ -13,9 +13,10 @@ import { toast } from 'sonner';
 
 interface AddInvMasterSupplierFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 
-export default function AddInvMasterSupplierForm({ onSuccess }: AddInvMasterSupplierFormProps) {
+export default function AddInvMasterSupplierForm({ onSuccess, onCancel }: AddInvMasterSupplierFormProps) {
     const { refetchAll } = useInvMasterSupplier();
 
     const {
@@ -191,6 +192,9 @@ export default function AddInvMasterSupplierForm({ onSuccess }: AddInvMasterSupp
             </div>
 
             <div className='flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>

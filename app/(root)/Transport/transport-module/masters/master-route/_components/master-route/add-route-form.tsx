@@ -43,6 +43,7 @@ export default function AddRouteForm({ onSuccess, className = '' }: AddRouteForm
 
 
         try {
+            console.log("master route payload", data);
             const response = await saveMasterRoute(data);
 
             if (response.success) {

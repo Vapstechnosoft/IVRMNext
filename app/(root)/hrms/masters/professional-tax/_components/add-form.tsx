@@ -8,6 +8,7 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterProfessionalTax } from '@/server/hrms/hrmsConfig/master/professional-tax';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -21,6 +22,7 @@ interface AddProfessionalTaxFormProps {
 
 export default function AddProfessionalTaxForm({ onSuccess, className = '' }: AddProfessionalTaxFormProps) {
     const { refetchAll } = useMasterProfessionalTax();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         handleSubmit,
@@ -30,6 +32,11 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.professionalTax.add),
+        defaultValues: {
+            hrmpT_SalaryFrom: undefined,
+            hrmpT_SalaryTo: undefined,
+            hrmpT_PTax: undefined
+        },
         mode: 'onChange'
     });
 
@@ -59,6 +66,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
 
     const handleReset = () => {
         reset();
+        setResetKey(prev => prev + 1);
     };
 
     return (
@@ -71,6 +79,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Salary From'
                                     required
                                     id='hrmpT_SalaryFrom'
@@ -83,6 +92,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                                     onBlur={field.onBlur}
                                     error={errors.hrmpT_SalaryFrom?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    placeholder='Enter the From salary'
                                 />
                             )}
                         />
@@ -92,6 +102,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Salary To'
                                     required
                                     id='hrmpT_SalaryTo'
@@ -104,6 +115,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                                     onBlur={field.onBlur}
                                     error={errors.hrmpT_SalaryTo?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    placeholder='Enter the To salary'
                                 />
                             )}
                         />
@@ -113,6 +125,7 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Professional Tax Amount'
                                     required
                                     id='hrmpT_PTax'
@@ -125,12 +138,13 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                                     onBlur={field.onBlur}
                                     error={errors.hrmpT_PTax?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    placeholder='Enter the Professional Tax Amount'
                                 />
                             )}
                         />
                     </div>
-                    {(errors.root || errors.hrmpT_SalaryTo) && (
-                        <FormError>{errors.hrmpT_SalaryTo?.message || errors.root?.message}</FormError>
+                    {errors.root && (
+                        <FormError>{errors.root.message}</FormError>
                     )}
                 </div>
 

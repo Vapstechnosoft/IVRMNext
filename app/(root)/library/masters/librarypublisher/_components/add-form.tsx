@@ -96,15 +96,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
-                            label='Phone No'
-                            required
-                            id='lmP_PhoneNo'
-                            placeholder='10-digit phone number'
-                            {...register('lmP_PhoneNo')}
-                            error={errors.lmP_PhoneNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
                 </div>
 

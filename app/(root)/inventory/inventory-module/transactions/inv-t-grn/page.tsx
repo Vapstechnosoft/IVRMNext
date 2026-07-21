@@ -35,12 +35,22 @@ export default function InvTGRNPage(props: { searchParams: SearchParams }) {
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
 
     const queryParams = {
         ...searchParams,
         page: currentPage,
         page_size: pageSize,
-        search_query: searchQuery
+        search_query: searchQuery,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
     };
 
     const { data: response, isLoading, error } = useInvTGRN(queryParams);
@@ -79,8 +89,8 @@ function InvTGRNPageContent({
         closeToggleForm
     } = useFormContext<IInvTGRN>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_GRN',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -101,8 +111,6 @@ function InvTGRNPageContent({
                     </Button>
                 </div>
 
-                <FormSections />
-
                 <CollapsibleSection
                     title='GRN List'
                     defaultOpen={true}
@@ -112,7 +120,7 @@ function InvTGRNPageContent({
                     icon={<ClipboardList className='h-5 w-5' />}>
                     <GenericDataTable<IInvTGRN>
                         {...tableProps}
-                        data={response?.data?.get_GRN || []}
+                        data={response?.data || []}
                         columns={invTGRNColumns}
                         isLoading={isLoading}
                         error={error}
@@ -124,6 +132,8 @@ function InvTGRNPageContent({
                         errorTitle='Error Loading GRN Data'
                     />
                 </CollapsibleSection>
+
+                <FormSections />
 
                 {isToggleFormOpen && selectedRow && (
                     <ToggleGRNModal rowData={selectedRow} onClose={closeToggleForm} />
@@ -170,7 +180,7 @@ function FormSections() {
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <AddGRNForm onSuccess={closeAddForm} />
@@ -194,7 +204,7 @@ function FormSections() {
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
+                                className='absolute top-[-3.5rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
                             <UpdateGRNForm selectedRow={selectedRow} onSuccess={closeEditForm} />

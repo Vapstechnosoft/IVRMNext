@@ -137,19 +137,7 @@ export default function TotalStrengthPage() {
     };
 
     const handleReset = () => {
-        reset({
-            reportType: 'All',
-            status: 'Present',
-            withTc: false,
-            withDeactive: false,
-            academicYear: 0,
-            class: '',
-            section: ''
-        });
-        setSelectAll(false);
-        setShowReport(false);
-        setClassId(0);
-        setReportParams(null);
+        window.location.reload();
     };
 
     const groupedData = () => {

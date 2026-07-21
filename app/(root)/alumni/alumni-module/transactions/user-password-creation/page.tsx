@@ -10,6 +10,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { userPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
+import { parseAsInteger, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 export default function UserPasswordCreationPage() {
     const [years, setYears] = useState<IYear[]>([]);
@@ -22,6 +24,18 @@ export default function UserPasswordCreationPage() {
     const [selectedStudents, setSelectedStudents] = useState<IStudent[]>([]);
     const [filterData, setFilterData] = useState<string>('');
     const [totalItems, setTotalItems] = useState<number>(0);
+
+    const [currentPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+
+    const paginatedStudents = students.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -107,13 +121,14 @@ export default function UserPasswordCreationPage() {
                 <CollapsibleSection title='Student List' defaultOpen={true}>
                     <div className='space-y-4'>
                         <GenericDataTable<IStudent>
-                            data={students}
+                            data={paginatedStudents}
                             columns={userPasswordCreationColumns}
                             isLoading={isTableLoading}
                             showExportOptions={true}
                             onRowSelectionChange={setSelectedStudents}
                             totalItems={totalItems}
-                        //manualPagination={false}
+                            isPaginationRequired={true}
+                            getRowId={(row) => row.amst_id.toString()}
                         />
 
                         {selectedStudents.length > 0 && (

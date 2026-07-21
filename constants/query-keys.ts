@@ -19,6 +19,7 @@ export const SUPER_ADMIN_QUERY_KEYS = {
 };
 
 export const ADMISSION_QUERY_KEYS = {
+    TRANSACTIONS: 'transactions',
     REPORTS: 'reports',
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
@@ -38,6 +39,7 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_DOCUMENT: 'master_document',
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
+    MASTER_ACTIVITY: 'master_activity',
     MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
     UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
     MASTER_CLASS_TEACHER: 'master_class_teacher',
@@ -152,7 +154,7 @@ export const FEES_QUERY_KEYS = {
     FEE_MASTER_TERMS: 'feemasterterms',
     FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
-    TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
+    TERM_DROP_DOWN_DATA_DROPDOWN: 'TERM_DROP_DOWN_DATA_DROPDOWN',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
@@ -163,11 +165,13 @@ export const FEES_QUERY_KEYS = {
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
     FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
     ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    ACADEMIC_DROPDOWN_FEES1: 'academic_dropdown_fees1',
     THIRD_PARTY_AUTORECEIPT_FLG: 'third_party_auto_receipt_flg',
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
     FEE_OPENING_ACADEMIC_YEAR_DROPDOWN: 'fee_opening_academic_year_dropdown',
+    FEE_OPENING_ACADEMIC_YEAR_DROPDOWN1: 'fee_opening_academic_year_dropdown1',
     FEE_OPENING_CATEGORY_DROPDOWN: 'fee_opening_category_dropdown',
     FEE_OPENING_CLASS_DROPDOWN: 'fee_opening_class_dropdown',
     FEE_OPENING_SECTION_DROPDOWN: 'fee_opening_section_dropdown',
@@ -179,6 +183,7 @@ export const FEES_QUERY_KEYS = {
     ROLES_DROPDOWN: 'roles_dropdown',
     FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
     FEE_THIRDPARTY_GROUPDROPDOWN: 'fee_thirdparty_groupdropdown',
+    FEE_THIRDPARTY_GROUPDROPDOWN1: 'fee_thirdparty_groupdropdown1',
     FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
@@ -490,7 +495,8 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_MONTH_REPORT: 'attendance_employee_month_report',
     // Leave Management Masters
     MASTER_LEAVE: 'leave_master_leave',
-    LEAVE_AUTHORIZATION: 'leave_leave_authorization',
+    LEAVE_AUTHORIZATIONS: 'leave_leave_authorization',
+    LEAVE_GETAUTHERIZATION: 'leave_get_authorization',
     // Leave Management Reports
     LEAVE_REPORT: 'leave_leave_report',
     OVERALL_REPORT: 'leave_overall_report',
@@ -651,7 +657,6 @@ export const TRANSPORT_QUERY_KEYS = {
     VECHILE_GRID_LIST: 'vechile_grid_list'
 };
 
-
 export const RECRUITMENT_QUERY_KEYS = {
     MASTER_INSTITUTION_BY_LOGIN: 'master_institution_by_login',
     MASTER_JOB_GRID: 'master_job_grid',
@@ -663,6 +668,9 @@ export const RECRUITMENT_QUERY_KEYS = {
     MASTER_POSITION_TYPE_GRID: 'master_position_type_grid',
     MASTER_PRIORITY_GRID: 'master_priority_grid',
     TRANSACTION_CANDIDATE_LIST: 'transaction_candidate_list',
-    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list'
-   
-}
+    TRANSACTION_CANDIDATE_INTERVIEW_LIST: 'transaction_candidate_interview_list',
+    TRANSACTION_INTERVIEW_FEEDBACK_LIST: 'transaction_interview_feedback_list',
+    CANDIDATE_DROPDOWN: 'candidate_dropdown',
+    TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
+};
+export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };

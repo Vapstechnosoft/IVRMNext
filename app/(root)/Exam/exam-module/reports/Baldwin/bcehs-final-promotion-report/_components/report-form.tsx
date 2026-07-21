@@ -35,9 +35,10 @@ type BCEHSFormValues = z.infer<typeof bcehsSchema>;
 
 interface ReportFormProps {
     onReportGenerated: (data: any, params: any) => void;
+    onReset: () => void;
 }
 
-export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
+export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const academicYears = academicData?.data ?? [];
 
@@ -154,6 +155,7 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
     };
 
     const onSubmit = async (formData: BCEHSFormValues) => {
+        onReset();
         const payload = {
             ASMAY_Id: Number(formData.ASMAY_Id),
             ASMCL_Id: Number(formData.ASMCL_Id),
@@ -168,17 +170,21 @@ export const ReportForm = ({ onReportGenerated }: ReportFormProps) => {
         try {
             const response = await getBCEHSFinalPromotionReport(payload);
             console.log('response', response);
-            const yearName = academicYears.find((y: any) => String(y.asmaY_Id) === formData.ASMAY_Id)?.asmaY_Year || '';
-            const className = classes.find((c: any) => String(c.asmcL_Id) === formData.ASMCL_Id)?.asmcL_ClassName || '';
-            const sectionName = sections.find((s: any) => String(s.asmS_Id) === formData.ASMS_Id)?.asmC_SectionName || '';
+            if (response && response.success && response.data) {
+                const yearName = academicYears.find((y: any) => String(y.asmaY_Id) === formData.ASMAY_Id)?.asmaY_Year || '';
+                const className = classes.find((c: any) => String(c.asmcL_Id) === formData.ASMCL_Id)?.asmcL_ClassName || '';
+                const sectionName = sections.find((s: any) => String(s.asmS_Id) === formData.ASMS_Id)?.asmC_SectionName || '';
 
-            onReportGenerated(response, {
-                ...formData,
-                yearName,
-                className,
-                sectionName
-            });
-            toast.success('Report generated successfully');
+                onReportGenerated(response.data, {
+                    ...formData,
+                    yearName,
+                    className,
+                    sectionName
+                });
+                toast.success('Report generated successfully');
+            } else {
+                toast.error(response?.message || 'No data found for the selected criteria');
+            }
         } catch (err) {
             console.error(err);
             toast.error('Error generating report');

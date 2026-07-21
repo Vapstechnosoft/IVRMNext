@@ -256,6 +256,14 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            // Validate End Time
+            const startMin = data.ttmB_BreakStartTime.getHours() * 60 + data.ttmB_BreakStartTime.getMinutes();
+            const endMin = data.ttmB_BreakEndTime.getHours() * 60 + data.ttmB_BreakEndTime.getMinutes();
+            if (endMin <= startMin) {
+                toast.error('End Time must be greater than Start Time');
+                return;
+            }
+
             const formatTime = (date: Date) => format(date, 'h:mm a');
 
             const payload = {
@@ -350,7 +358,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText label='Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
+                            <InputText label='Break Name' placeholder='Enter Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
                         </div>
 
                         <div className='space-y-2'>
@@ -443,6 +451,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         <div className='space-y-2'>
                             <InputText
                                 label='After Period'
+                                placeholder='Enter After Period'
                                 required
                                 {...register('ttmB_AfterPeriod')}
                                 error={errors.ttmB_AfterPeriod?.message}

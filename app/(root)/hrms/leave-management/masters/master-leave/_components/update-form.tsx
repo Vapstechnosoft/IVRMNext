@@ -56,12 +56,12 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                 hrmL_LeaveDetails: freshData.hrmL_LeaveDetails || '',
                 hrmL_LeaveCreditFlg: !!freshData.hrmL_LeaveCreditFlg,
                 hrmL_LateDeductFlag: !!freshData.hrmL_LateDeductFlag,
-                hrmL_ProbationNotApplicableFlg: !!freshData.hrmL_ProbationNotApplicableFlg,
-                hrmL_LeaveApplyCriteria: String(freshData.hrmL_LeaveApplyCriteria || ''),
-                hrmL_DaysForApplyCriteria: String(freshData.hrmL_DaysForApplyCriteria || ''),
-                hrmL_MaxDaysForApply: String(freshData.hrmL_MaxDaysForApply || ''),
-                hrmL_LateDeductOrder: Number(freshData.hrmL_LateDeductOrder || 0),
-                isActive: !!freshData.isActive
+                // hrmL_ProbationNotApplicableFlg: !!freshData.hrmL_ProbationNotApplicableFlg,
+                // hrmL_LeaveApplyCriteria: String(freshData.hrmL_LeaveApplyCriteria || ''),
+                // hrmL_DaysForApplyCriteria: String(freshData.hrmL_DaysForApplyCriteria || ''),
+                // hrmL_MaxDaysForApply: String(freshData.hrmL_MaxDaysForApply || ''),
+                // hrmL_LateDeductOrder: Number(freshData.hrmL_LateDeductOrder || 0),
+                // isActive: !!freshData.isActive
             });
         }
     }, [freshData, reset]);
@@ -182,16 +182,16 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                 Late Deduct
                             </label>
                         </div>
-                        <InputText
+                        {/* <InputText
                             label='Leave Order'
                             id='hrmL_LateDeductOrder'
                             type='number'
                             {...register('hrmL_LateDeductOrder', { valueAsNumber: true })}
                             error={errors.hrmL_LateDeductOrder?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        /> */}
                     </div>
-                    <div className='grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3'>
+                    {/* <div className='grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-3'>
                         <Controller
                             name='hrmL_LeaveApplyCriteria'
                             control={control}
@@ -239,7 +239,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                             placeholder='Enter max days'
                             type='number'
                         />
-                    </div>
+                    </div> */}
                 </div>
                 <div className='flex justify-end gap-2'>
                     {onCancel && (

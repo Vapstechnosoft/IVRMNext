@@ -190,7 +190,38 @@ export const studentApplicationFormSchema = {
         pasA_WillingToContributeFlg: z.number().int({ message: 'Willing to Contribute Flag' }),
 
         // Final
-        pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' })
+        pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' }),
+
+        // St. Thomas specific fields
+        PASR_Churchname: createOptionalStringSchema('Church Name', 1, 200),
+        PASR_ChurchBaptisedDate: z.date().optional(),
+        PASR_ChurchAddress: createOptionalStringSchema('Church Address', 1, 500),
+        PASR_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
+
+        PASR_FatherAliveFlag: z.union([z.string(), z.number()]).optional(),
+        PASR_FatherChurchAffiliation: createOptionalStringSchema('Father Church Affiliation', 1, 200),
+        PASR_FatherSelfEmployedFlg: z.union([z.string(), z.number()]).optional(),
+        PASR_FatherOfficePhNo: createOptionalStringSchema('Father Office Phone', 1, 50),
+        PASR_FatheremailId: z.string().optional(),
+        PASR_FatherAadharNo: createOptionalStringSchema('Father Aadhar No', 1, 50),
+        PASR_FatherPassingYear: z.union([z.string(), z.number()]).optional(),
+
+        PASR_MotherAliveFlag: z.union([z.string(), z.number()]).optional(),
+        PASR_MotherChurchAffiliation: createOptionalStringSchema('Mother Church Affiliation', 1, 200),
+        PASR_MotherSelfEmployedFlg: z.union([z.string(), z.number()]).optional(),
+        PASR_MotherOfficePhNo: createOptionalStringSchema('Mother Office Phone', 1, 50),
+        PASR_MotheremailId: z.string().optional(),
+        PASR_MotherAadharNo: createOptionalStringSchema('Mother Aadhar No', 1, 50),
+
+        PASRG_GuardianName: createOptionalStringSchema('Guardian Name', 1, 200),
+        PASRG_GuardianRelation: createOptionalStringSchema('Guardian Relation', 1, 100),
+        PASRG_Occupation: createOptionalStringSchema('Guardian Occupation', 1, 100),
+        PASRG_GuardianAddress: createOptionalStringSchema('Guardian Address', 1, 500),
+        PASRG_FeeUndertakeFlg: z.union([z.string(), z.number()]).optional(),
+
+        PASRPSLeftDate: z.date().optional(),
+        PASRPSTcIssueDate: z.date().optional(),
+        PASRPSTCProducingDate: z.date().optional()
     }),
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')
@@ -359,6 +390,37 @@ export const studentApplicationFormUpdateSchema = {
                     pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
                 })
             )
-            .optional()
+            .optional(),
+
+        // St. Thomas specific fields
+        PASR_Churchname: createOptionalStringSchema('Church Name', 1, 200),
+        PASR_ChurchBaptisedDate: z.date().optional(),
+        PASR_ChurchAddress: createOptionalStringSchema('Church Address', 1, 500),
+        PASR_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
+
+        PASR_FatherAliveFlag: z.union([z.string(), z.number()]).optional(),
+        PASR_FatherChurchAffiliation: createOptionalStringSchema('Father Church Affiliation', 1, 200),
+        PASR_FatherSelfEmployedFlg: z.union([z.string(), z.number()]).optional(),
+        PASR_FatherOfficePhNo: createOptionalStringSchema('Father Office Phone', 1, 50),
+        PASR_FatheremailId: z.string().optional(),
+        PASR_FatherAadharNo: createOptionalStringSchema('Father Aadhar No', 1, 50),
+        PASR_FatherPassingYear: z.union([z.string(), z.number()]).optional(),
+
+        PASR_MotherAliveFlag: z.union([z.string(), z.number()]).optional(),
+        PASR_MotherChurchAffiliation: createOptionalStringSchema('Mother Church Affiliation', 1, 200),
+        PASR_MotherSelfEmployedFlg: z.union([z.string(), z.number()]).optional(),
+        PASR_MotherOfficePhNo: createOptionalStringSchema('Mother Office Phone', 1, 50),
+        PASR_MotheremailId: z.string().optional(),
+        PASR_MotherAadharNo: createOptionalStringSchema('Mother Aadhar No', 1, 50),
+
+        PASRG_GuardianName: createOptionalStringSchema('Guardian Name', 1, 200),
+        PASRG_GuardianRelation: createOptionalStringSchema('Guardian Relation', 1, 100),
+        PASRG_Occupation: createOptionalStringSchema('Guardian Occupation', 1, 100),
+        PASRG_GuardianAddress: createOptionalStringSchema('Guardian Address', 1, 500),
+        PASRG_FeeUndertakeFlg: z.union([z.string(), z.number()]).optional(),
+
+        PASRPSLeftDate: z.date().optional(),
+        PASRPSTcIssueDate: z.date().optional(),
+        PASRPSTCProducingDate: z.date().optional()
     })
 };

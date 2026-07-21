@@ -182,8 +182,20 @@ export default function ReportForm({ onReportGenerated, isLoading }: ReportFormP
                 </div>
 
                 <div className="flex justify-center gap-4 p-4 border-t bg-muted/10">
-                    <Button type="submit" size="lg" className="w-32" isLoading={isLoading}><FileText className="mr-2 h-4 w-4" /> Report</Button>
-                    <Button type="button" variant="destructive" size="lg" className="w-32" onClick={handleCancel}><RefreshCcw className="mr-2 h-4 w-4" /> Reset</Button>
+                    <Button
+                        type="submit"
+                        variant="secondary"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        isLoading={isLoading}>
+                        <FileText className="mr-2 h-4 w-4" /> Report
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        onClick={handleCancel}>
+                        <RefreshCcw className="mr-2 h-4 w-4" /> Reset
+                    </Button>
                 </div>
             </CollapsibleSection>
         </form>

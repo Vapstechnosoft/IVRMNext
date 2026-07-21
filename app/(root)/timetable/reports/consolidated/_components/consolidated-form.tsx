@@ -95,41 +95,41 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
             .map((id) => {
                 const obj = { ...fullClassList.find((c: any) => c.asmcL_Id === id) };
                 if (obj) obj.claslis = true;
-                return obj;
+                return { ...obj, ASMCL_Id: id };
             })
-            .filter((o) => o.asmcL_Id);
+            .filter((o) => o.ASMCL_Id);
 
         const sectiondss = (data.sectionId || [])
             .map((id) => {
                 const obj = { ...fullSectionList.find((s: any) => s.asmS_Id === id) };
                 if (obj) obj.secs = true;
-                return obj;
+                return { ...obj, ASMS_Id: id };
             })
-            .filter((o) => o.asmS_Id);
+            .filter((o) => o.ASMS_Id);
 
         const stfidss = (data.staffId || [])
             .map((id) => {
                 const obj = { ...fullStaffList.find((s: any) => s.hrmE_Id === id) };
                 if (obj) obj.stf = true;
-                return obj;
+                return { ...obj, HRME_Id: id };
             })
-            .filter((o) => o.hrmE_Id);
+            .filter((o) => o.HRME_Id);
 
         const dayidss = (data.dayId || [])
             .map((id) => {
                 const obj = { ...fullDayList.find((d: any) => d.ttmD_Id === id) };
                 if (obj) obj.sayy = true;
-                return obj;
+                return { ...obj, TTMD_Id: id };
             })
-            .filter((o) => o.ttmD_Id);
+            .filter((o) => o.TTMD_Id);
 
         const periodidss = (data.periodId || [])
             .map((id) => {
                 const obj = { ...fullPeriodList.find((p: any) => p.ttmP_Id === id) };
                 if (obj) obj.ppr = true;
-                return obj;
+                return { ...obj, TTMP_Id: id };
             })
-            .filter((o) => o.ttmP_Id);
+            .filter((o) => o.TTMP_Id);
 
         let payload: any = {
             ASMAY_Id: String(data.asmaY_Id),
@@ -158,7 +158,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                 periodidss
             };
         } else if (data.type === 'RMR') {
-            payload.rpttyp = data.rpttyp;
+            // RMR uses minimal payload, no extra fields required
         } else if (data.type === 'STD') {
             payload = {
                 ...payload,
@@ -200,7 +200,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                     render={({ field }) => (
                         <RadioGroup
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
                             {mockReportTypes.map((type) => (
                                 <div key={type.id} className='flex items-center space-x-2'>
@@ -447,32 +447,7 @@ export default function ConsolidatedForm({ initialData, onSubmit }: Consolidated
                     </div>
                 )}
 
-                {watchedType === 'RMR' && (
-                    <div className='col-span-1 space-y-3 md:col-span-2'>
-                        <Label className='font-semibold'>Report Option</Label>
-                        <Controller
-                            control={control}
-                            name='rpttyp'
-                            render={({ field }) => (
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap gap-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='SAWC' id='SAWC' className='border-purple-600 text-purple-600' />
-                                        <Label htmlFor='SAWC' className='cursor-pointer'>
-                                            Subject Along With Class Details
-                                        </Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='SNWC' id='SNWC' className='border-purple-600 text-purple-600' />
-                                        <Label htmlFor='SNWC' className='cursor-pointer'>
-                                            Subject Without Class Details
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                        {errors.rpttyp && <span className='font-medium text-red-500 text-sm'>{errors.rpttyp.message}</span>}
-                    </div>
-                )}
+
             </div>
 
             <div className='flex justify-center gap-4 pt-4'>

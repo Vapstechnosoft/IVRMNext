@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterSportsCCGroupPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterSportsCCGroup(searchParams);
+    const { loadData, refetchAll } = useMasterSportsCCGroup(searchParams);
 
     return (
         <FormProvider<IMasterSportsCCGroup>>
-            <MasterSportsCCGroupPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterSportsCCGroupPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -87,9 +92,6 @@ function MasterSportsCCGroupPageContent({
                         columns={MasterSportsCCGroupColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master sports cc groups...'

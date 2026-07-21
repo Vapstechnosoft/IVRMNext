@@ -127,9 +127,9 @@ function EmployeeSalaryDetailsContent() {
                                     name='year'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Financial Year' />
+                                                <SelectValue placeholder={masterYearsLoading ? "Loading..." : "Select Financial Year"} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {masterYearsLoading ? (
@@ -171,9 +171,6 @@ function EmployeeSalaryDetailsContent() {
                                 isLoading={isYearLoading}
                                 showViewOptions={true}
                                 isSearchRequired={true}
-                                manualPagination={false}
-                                manualSorting={false}
-                                manualFiltering={false}
                                 columnPinning={{ right: ['viewDetails'] }}
                                 loadingMessage='Loading salary details...'
                                 noDataTitle='No Salary Data Found'

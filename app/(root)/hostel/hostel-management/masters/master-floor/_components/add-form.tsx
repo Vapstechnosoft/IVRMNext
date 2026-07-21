@@ -36,6 +36,7 @@ export default function AddMasterFloorForm({
         defaultValues: {
             hrmF_FloorName: '',
             hrmF_FloorDesc: '',
+            hrmF_TotalRooms: 0,
             hlmH_Id: '',
             selectedFacilityIds: []
         },
@@ -50,7 +51,6 @@ export default function AddMasterFloorForm({
         formState: { errors, isSubmitting }
     } = methods;
 
-    // Handle Edit Mode Binding
     // Handle Edit Mode Binding
     useEffect(() => {
         const fetchEditDetails = async () => {
@@ -71,6 +71,7 @@ export default function AddMasterFloorForm({
                     // Set other fields from initialData (rowData)
                     setValue('hrmF_FloorName', initialData.hrmF_FloorName);
                     setValue('hrmF_FloorDesc', initialData.hrmF_FloorDesc);
+                    setValue('hrmF_TotalRooms', initialData.hrmF_TotalRooms || 0);
                     // Ensure hlmH_Id is a string for the Select component
                     setValue('hlmH_Id', initialData.hlmH_Id?.toString() || '');
 
@@ -100,6 +101,7 @@ export default function AddMasterFloorForm({
                 hlmF_Id: initialData?.hlmF_Id || 0,
                 hrmF_FloorName: data.hrmF_FloorName,
                 hrmF_FloorDesc: data.hrmF_FloorDesc,
+                hrmF_TotalRooms: data.hrmF_TotalRooms,
                 hlmH_Id: Number(data.hlmH_Id),
                 selected_facilities: (data.selectedFacilityIds || []).map(id => ({
                     hlmftY_Id: Number(id),
@@ -162,6 +164,8 @@ export default function AddMasterFloorForm({
 
                             <FormInput control={control} name="hrmF_FloorName" label="Floor Name" required placeholder='Enter Floor Name' />
 
+                            <FormInput control={control} name="hrmF_TotalRooms" type="number" label="No of Room" required placeholder='Enter Number of Rooms' />
+
                             <div>
                                 <Label>Description</Label>
                                 <Controller
@@ -188,6 +192,7 @@ export default function AddMasterFloorForm({
                                         onChange={(vals) => field.onChange(vals)}
                                         error={errors.selectedFacilityIds?.message}
                                         isSearchRequired
+                                        isRequired
                                     />
                                 )}
                             />

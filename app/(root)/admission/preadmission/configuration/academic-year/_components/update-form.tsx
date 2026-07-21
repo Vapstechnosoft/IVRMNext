@@ -30,7 +30,12 @@ interface UpdateMasterAcademicYearFormProps {
     institutionList?: { mI_Id: number; mI_Name: string }[];
 }
 
-export default function UpdateMasterAcademicYearForm({ onSuccess, className = '', selectedRow: row, institutionList = [] }: UpdateMasterAcademicYearFormProps) {
+export default function UpdateMasterAcademicYearForm({
+    onSuccess,
+    className = '',
+    selectedRow: row,
+    institutionList = []
+}: UpdateMasterAcademicYearFormProps) {
     const { refetchAll } = usePreAdmissionAcademicYear();
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const {
@@ -52,6 +57,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
         control,
         name: 'asmaY_RegularFeeFDate'
     });
+    const academicFromYear = useWatch({ control, name: 'academicFromYear' });
+    const academicToYear = useWatch({ control, name: 'academicToYear' });
 
     useEffect(() => {
         if (row) {
@@ -135,6 +142,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
 
     const handleReset = () => {
         reset();
+        window.location.reload();
     };
     return (
         <div className={`${className}`}>
@@ -159,7 +167,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             placeholder='Enter Code'
                             {...register('asmaY_AcademicYearCode', {
                                 onChange: (e) => {
-                                    e.target.value = e.target.value.replace(/\D/g, '');
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9-]/g, '');
                                 }
                             })}
                             defaultValue={row.asmaY_AcademicYearCode}
@@ -252,7 +260,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -289,12 +298,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => {
-                                                        field.onChange(date?.toISOString());
-                                                        setOpenPopover(null);
-                                                    }}
+
+
+
                                                     fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : undefined}
-                                                    toDate={new Date(new Date().getFullYear() + 3, 11, 31)}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -334,11 +342,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => {
-                                                        field.onChange(date?.toISOString());
-                                                        setOpenPopover(null);
-                                                    }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -372,11 +377,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => {
-                                                        field.onChange(date?.toISOString());
-                                                        setOpenPopover(null);
-                                                    }}
+
+
+
                                                     fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : undefined}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -452,7 +457,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -492,6 +498,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -533,6 +541,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -569,7 +579,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+
+
+
                                                     fromDate={transportFromDate ? addDays(new Date(transportFromDate), 1) : undefined}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -611,6 +625,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -647,7 +663,11 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+
+
+
                                                     fromDate={regularFeeFromDate ? addDays(new Date(regularFeeFromDate), 1) : undefined}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -686,6 +706,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -722,6 +744,8 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    defaultMonth={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -816,3 +840,4 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
         </div>
     );
 }
+

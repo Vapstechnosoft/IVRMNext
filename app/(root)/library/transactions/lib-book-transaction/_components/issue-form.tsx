@@ -1,422 +1,279 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useAvailableBooks,
-    useBookIssueInitialData,
-    useCalculateDueDate,
-    useIssueBook,
-    useStaffDetails,
-    useStudentDetails
-} from '@/hooks/library/useBookIssue';
-import type { MemberType } from '@/types/library/transactions/book-transaction';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Building2, Loader2, User, UserPlus } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useBookIssueInitialData, useIssueBook } from '@/hooks/library/useBookIssue';
+import { Loader2, Save, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
-const issueFormSchema = z.object({
-    memberType: z.enum(['std', 'stf', 'dep', 'gst']),
-
-    // IDs
-    ASMAY_Id: z.coerce.number().optional(),
-    ASMCL_Id: z.coerce.number().optional(),
-    ASMS_Id: z.coerce.number().optional(),
-    AMST_Id: z.coerce.number().optional(),
-
-    HRMD_Id: z.coerce.number().optional(),
-    HRMDES_Id: z.coerce.number().optional(),
-    HRME_Id: z.coerce.number().optional(),
-
-    // Book
-    LMB_Id: z.coerce.number().min(1, 'Book is required'),
-    LMBANO_Id: z.coerce.number().min(1, 'Book is required'),
-
-    // Dates
-    issueDate: z.string().min(1, 'Issue Date is required'),
-    dueDate: z.string().min(1, 'Due Date is required'),
-    returnDate: z.string().optional(), // For logic, usually same as issue date initially or due date?
-
-    // Guest
-    LBTR_GuestName: z.string().optional(),
-    LBTR_GuestContactNo: z.string().optional(),
-    LBTR_GuestEmailId: z.string().email().optional()
-});
-
-type IssueFormValues = z.infer<typeof issueFormSchema>;
-
-interface IssueFormProps {
-    onSuccess: () => void;
-}
-
-export const IssueForm = ({ onSuccess }: IssueFormProps) => {
-    const [memberType, setMemberType] = useState<MemberType>('std');
-    const [availableBooks, setAvailableBooks] = useState<any[]>([]);
-
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<IssueFormValues>({
-        resolver: zodResolver(issueFormSchema),
-        defaultValues: {
-            memberType: 'std',
-            issueDate: new Date().toISOString().split('T')[0],
-            dueDate: new Date().toISOString().split('T')[0]
-        }
-    });
-
-    // Hooks
-    const { data: initialData } = useBookIssueInitialData({
+export const IssueForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+    const { data: initialDataWrapper, isLoading: isInitialLoading } = useBookIssueInitialData({
         booktype: 'issue',
-        issuertype: memberType,
+        issuertype: 'std',
         bookcat_type: 'book'
     });
-
-    const studentDetailsMutation = useStudentDetails();
-    const staffDetailsMutation = useStaffDetails();
+    const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
+    
     const issueBookMutation = useIssueBook();
-    const availableBooksMutation = useAvailableBooks();
-    const calculateDueDateMutation = useCalculateDueDate();
 
-    const watchMemberType = watch('memberType');
-    const watchYear = watch('ASMAY_Id');
-    const watchClass = watch('ASMCL_Id');
-    const watchSection = watch('ASMS_Id');
-    const watchStudent = watch('AMST_Id');
-    const watchStaff = watch('HRME_Id');
-    const watchIssueDate = watch('issueDate');
-
-    // Sync member type
-    useEffect(() => {
-        setMemberType(watchMemberType);
-        setValue('AMST_Id', undefined);
-        setValue('HRME_Id', undefined);
-        setValue('HRMD_Id', undefined);
-    }, [watchMemberType, setValue]);
-
-    // Fetch Student Details
-    useEffect(() => {
-        if (memberType === 'std' && watchStudent && watchYear) {
-            studentDetailsMutation.mutate({
-                AMST_Id: watchStudent,
-                ASMAY_Id: watchYear,
-                booktype: 'issue',
-                issuertype: 'std',
-                bookcat_type: 'book'
-            });
-            // Also load available books if needed, or maybe load them generally?
-            loadBooks();
+    const { control, handleSubmit, watch, reset, formState: { errors } } = useForm({
+        defaultValues: {
+            libraryName: '',
+            memberType: 'STUDENT',
+            materialType: 'BOOK',
+            transactionType: 'ISSUE',
+            academicYear: '',
+            class: '',
+            section: '',
+            barcode: '',
+            bookTitle: '',
+            studentName: '',
+            bookAvailability: false,
+            sendPushNotification: false
         }
-    }, [watchStudent, memberType]);
+    });
 
-    // Fetch Staff Details
-    useEffect(() => {
-        if (memberType === 'stf' && watchStaff) {
-            staffDetailsMutation.mutate({
-                HRME_Id: watchStaff,
-                booktype: 'issue',
-                issuertype: 'stf',
-                bookcat_type: 'book'
-            });
-            loadBooks();
-        }
-    }, [watchStaff, memberType]);
-
-    const loadBooks = () => {
-        availableBooksMutation.mutate(
-            {
-                // Pass necessary params to filter available books if needed
-            },
-            {
-                // onSuccess: (data) => {
-                //     setAvailableBooks(data.avilbooktitle || []);
-                // }
-            }
-        );
+    const onSubmit = (data: any) => {
+        // Handle issue submit logic here
+        console.log('Issue Book Form Data:', data);
     };
 
-    // Load books on mount or when logical for general availability
-    useEffect(() => {
-        loadBooks();
-    }, []);
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className='bg-white p-6'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+                
+                {/* Left Column */}
+                <div className='space-y-6'>
+                    {/* Library Name */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[120px]'>Library Name:<span className='text-red-500'>*</span></Label>
+                        <Controller
+                            control={control}
+                            name='libraryName'
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'>
+                                        <SelectValue placeholder='Library' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='Library'>Library</SelectItem>
+                                        {Array.isArray(initialData?.liblist) &&
+                                            initialData?.liblist?.map((item: any) => (
+                                                <SelectItem key={item.lmA_Id} value={item.lmA_Id.toString()}>{item.lmA_LibraryName}</SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
 
-    // Calculate Due Date
-    useEffect(() => {
-        if (watchIssueDate) {
-            // Logic to calculate due date.
-            // Typically depends on student/staff policy fetched in studentDetailsMutation/staffDetailsMutation
-            // For now, we can calculate based on default days or call server
-            // Assuming default 7 days if not configured
-            const date = new Date(watchIssueDate);
-            date.setDate(date.getDate() + 7);
-            setValue('dueDate', date.toISOString().split('T')[0]);
-        }
-    }, [watchIssueDate]);
-
-    const onSubmit = async (data: IssueFormValues) => {
-        const payload = {
-            ...data,
-            booktype: 'issue' as const,
-            issuertype: data.memberType,
-            bookcat_type: 'book' as const,
-            Issue_Date: data.issueDate,
-            Due_Date: data.dueDate,
-            Return_Date: data.issueDate, // Required by type but not relevant for issue? Or acts as transaction date
-            LMBANO_Id: data.LMBANO_Id,
-            LMB_Id: data.LMB_Id,
-            AMST_Id: data.AMST_Id || 0,
-            HRME_Id: data.HRME_Id || 0,
-            HRMD_Id: data.HRMD_Id || 0,
-            ASMAY_Id: data.ASMAY_Id || 0,
-            ASMCL_Id: data.ASMCL_Id || 0,
-            ASMS_Id: data.ASMS_Id || 0
-        };
-
-        //     issueBookMutation.mutate(payload, {
-        //         onSuccess: () => {
-        //             reset();
-        //             onSuccess();
-        //         }
-        //     });
-        // };
-
-        return (
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Member Type Selection similar to ReturnForm */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='text-lg'>Member Type</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <RadioGroup
-                            value={memberType}
-                            onValueChange={(value) => setValue('memberType', value as MemberType)}
-                            className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-                            <div className='flex cursor-pointer items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50'>
-                                <RadioGroupItem value='std' id='std_i' />
-                                <Label htmlFor='std_i' className='flex cursor-pointer items-center gap-2'>
-                                    <User className='h-4 w-4' /> Student
-                                </Label>
-                            </div>
-                            <div className='flex cursor-pointer items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50'>
-                                <RadioGroupItem value='stf' id='stf_i' />
-                                <Label htmlFor='stf_i' className='flex cursor-pointer items-center gap-2'>
-                                    <User className='h-4 w-4' /> Staff
-                                </Label>
-                            </div>
-                            <div className='flex cursor-pointer items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50'>
-                                <RadioGroupItem value='dep' id='dep_i' />
-                                <Label htmlFor='dep_i' className='flex cursor-pointer items-center gap-2'>
-                                    <Building2 className='h-4 w-4' /> Department
-                                </Label>
-                            </div>
-                            <div className='flex cursor-pointer items-center space-x-2 rounded-lg border p-3 hover:bg-accent/50'>
-                                <RadioGroupItem value='gst' id='gst_i' />
-                                <Label htmlFor='gst_i' className='flex cursor-pointer items-center gap-2'>
-                                    <UserPlus className='h-4 w-4' /> Guest
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </CardContent>
-                </Card>
-
-                {/* Member Details */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='text-lg'>Member Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                        {memberType === 'std' && (
-                            <>
-                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                    <div>
-                                        <Label>Academic Year</Label>
-                                        <Select onValueChange={(v) => setValue('ASMAY_Id', Number(v))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.isArray(initialData?.yearlist) &&
-                                                    initialData?.yearlist?.map((item) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    {/* Add Class/Section logic similar to ReturnForm if needed, or assume simple layout */}
-                                    <div>
-                                        <Label>Class</Label>
-                                        <Select onValueChange={(v) => setValue('ASMCL_Id', Number(v))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Class' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.isArray(initialData?.classlist) &&
-                                                    initialData?.classlist?.map((item) => (
-                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                            {item.asmcL_ClassName}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <Label>Section</Label>
-                                        <Select onValueChange={(v) => setValue('ASMS_Id', Number(v))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Section' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.isArray(initialData?.sectionlist) &&
-                                                    initialData?.sectionlist?.map((item) => (
-                                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
-                                                            {item.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label>Student</Label>
-                                    <Select onValueChange={(v) => setValue('AMST_Id', Number(v))}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Student' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Array.isArray(initialData?.studentlist) &&
-                                                initialData?.studentlist?.map((item) => (
-                                                    <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                        {item.amsT_FirstName} ({item.amsT_AdmNo})
-                                                    </SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </>
-                        )}
-
-                        {memberType === 'stf' && (
-                            <>
-                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <div>
-                                        <Label>Department</Label>
-                                        <Select onValueChange={(v) => setValue('HRMD_Id', Number(v))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Dept' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.isArray(initialData?.departmentlist) &&
-                                                    initialData?.departmentlist?.map((item) => (
-                                                        <SelectItem key={item.hrmD_Id} value={item.hrmD_Id.toString()}>
-                                                            {item.hrmD_DepartmentName}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div>
-                                        <Label>Designation</Label>
-                                        <Select onValueChange={(v) => setValue('HRMDES_Id', Number(v))}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Desg' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Array.isArray(initialData?.filldesignation) &&
-                                                    initialData?.filldesignation?.map((item) => (
-                                                        <SelectItem key={item.hrmdeS_Id} value={item.hrmdeS_Id.toString()}>
-                                                            {item.hrmdeS_DesignationName}
-                                                        </SelectItem>
-                                                    ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <Label>Staff</Label>
-                                    <Select onValueChange={(v) => setValue('HRME_Id', Number(v))}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Staff' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Array.isArray(initialData?.stafftlist) &&
-                                                initialData?.stafftlist?.map((item) => (
-                                                    <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                        {item.hrmE_EmployeeFirstName}
-                                                    </SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Book Selection */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='text-lg'>Book Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                        <div>
-                            <Label>Book</Label>
-                            <Select
-                                onValueChange={(v) => {
-                                    const book = availableBooks.find((b) => b.lmB_Id.toString() === v);
-                                    if (book) {
-                                        setValue('LMB_Id', book.lmB_Id);
-                                        setValue('LMBANO_Id', book.lmbanO_Id);
-                                    }
-                                }}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Available Book' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableBooks.map((book) => (
-                                        <SelectItem key={`${book.lmB_Id}-${book.lmbanO_Id}`} value={book.lmB_Id.toString()}>
-                                            {book.lmB_BookTitle} ({book.lmbanO_AccessionNo})
-                                        </SelectItem>
+                    {/* Radio Settings */}
+                    <div className='border rounded-md divide-y p-2 space-y-2 bg-slate-50/30'>
+                        <Controller
+                            control={control}
+                            name='memberType'
+                            render={({ field }) => (
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap justify-center gap-8 py-1'>
+                                    {['STUDENT', 'STAFF', 'DEPARTMENT', 'GUEST'].map((opt) => (
+                                        <div key={opt} className='flex items-center space-x-2'>
+                                            <RadioGroupItem value={opt} id={`m-${opt}`} />
+                                            <Label htmlFor={`m-${opt}`} className='text-xs font-semibold cursor-pointer'>{opt}</Label>
+                                        </div>
                                     ))}
-                                </SelectContent>
-                            </Select>
+                                </RadioGroup>
+                            )}
+                        />
+                        <Controller
+                            control={control}
+                            name='materialType'
+                            render={({ field }) => (
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap justify-center gap-8 py-2'>
+                                    {['BOOK', 'NON-BOOK'].map((opt) => (
+                                        <div key={opt} className='flex items-center space-x-2'>
+                                            <RadioGroupItem value={opt} id={`mat-${opt}`} />
+                                            <Label htmlFor={`mat-${opt}`} className='text-xs font-semibold cursor-pointer'>{opt}</Label>
+                                        </div>
+                                    ))}
+                                </RadioGroup>
+                            )}
+                        />
+                        <Controller
+                            control={control}
+                            name='transactionType'
+                            render={({ field }) => (
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-wrap justify-center gap-8 py-2'>
+                                    {['ISSUE', 'REFERENCE'].map((opt) => (
+                                        <div key={opt} className='flex items-center space-x-2'>
+                                            <RadioGroupItem value={opt} id={`t-${opt}`} />
+                                            <Label htmlFor={`t-${opt}`} className='text-xs font-semibold cursor-pointer'>{opt}</Label>
+                                        </div>
+                                    ))}
+                                </RadioGroup>
+                            )}
+                        />
+                    </div>
+
+                    {/* Academic Fields */}
+                    <div className='space-y-3'>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px]'>Academic Year:<span className='text-red-500'>*</span></Label>
+                            <Controller control={control} name='academicYear' render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(initialData?.yearlist) && initialData?.yearlist?.map((item: any) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px]'>Class:<span className='text-red-500'>*</span></Label>
+                            <Controller control={control} name='class' render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(initialData?.classlist) && initialData?.classlist?.map((item: any) => (
+                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px]'>Section:<span className='text-red-500'>*</span></Label>
+                            <Controller control={control} name='section' render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(initialData?.sectionlist) && initialData?.sectionlist?.map((item: any) => (
+                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmC_SectionName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+                    </div>
 
-                {/* Dates */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='text-lg'>Dates</CardTitle>
-                    </CardHeader>
-                    <CardContent className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText label='Issue Date' type='date' {...register('issueDate')} />
-                        <InputText label='Due Date' type='date' {...register('dueDate')} />
-                    </CardContent>
-                </Card>
-
-                <div className='flex justify-end gap-2'>
-                    <Button type='button' variant='outline' onClick={() => reset()}>
-                        Reset
-                    </Button>
-                    <Button type='submit' disabled={isSubmitting || issueBookMutation.isPending}>
-                        {issueBookMutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                        Issue Book
-                    </Button>
+                    {/* Book & Student Selectors */}
+                    <div className='space-y-3 mt-4'>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px] uppercase'>BARCODE:</Label>
+                            <Controller control={control} name='barcode' render={({ field }) => (
+                                <Input {...field} placeholder='Barcode Scanner' className='h-8 text-xs' />
+                            )} />
+                        </div>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px]'>Book Title:<span className='text-red-500'>*</span></Label>
+                            <Controller control={control} name='bookTitle' render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select or search Book in the list...' /></SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(initialData?.avilbooktitle) && initialData?.avilbooktitle?.map((item: any) => (
+                                            <SelectItem key={item.lmB_Id} value={item.lmB_Id.toString()}>{item.lmB_BookTitle}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[120px]'>Student Name:<span className='text-red-500'>*</span></Label>
+                            <Controller control={control} name='studentName' render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger className='flex-1 h-8 text-xs'><SelectValue placeholder='Select or search Student Name...' /></SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(initialData?.studentlist) && initialData?.studentlist?.map((item: any) => (
+                                            <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>{item.amsT_FirstName}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+                        <div className='flex items-center gap-2 pt-2'>
+                            <Controller control={control} name='bookAvailability' render={({ field }) => (
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} id='avail' />
+                            )} />
+                            <Label htmlFor='avail' className='text-xs font-semibold'>BOOK AVAILABILITY</Label>
+                        </div>
+                    </div>
                 </div>
-            </form>
-        );
-    };
+
+                {/* Right Column */}
+                <div className='space-y-6'>
+                    {/* BOOK DETAILS CARD */}
+                    <div className='border rounded-md p-4 relative pt-6 bg-slate-50/10'>
+                        <div className='absolute top-0 left-0 right-0 flex justify-center -mt-3'>
+                            <span className='bg-white px-2 text-muted-foreground text-xs font-semibold tracking-wider'>BOOK DETAILS</span>
+                        </div>
+                        
+                        <div className='grid grid-cols-2 gap-x-4 gap-y-3 text-xs font-medium text-slate-700 mt-2'>
+                            <div className='flex'><span className='w-24'>Title</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            <div className='flex'><span className='w-24'>Entry Date</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            
+                            <div className='flex'><span className='w-24'>Vol. No.</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            <div className='flex'><span className='w-24'>Class No</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            
+                            <div className='flex'><span className='w-24'>Price</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            <div className='flex'><span className='w-24'>Category Name</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            
+                            <div className='flex'><span className='w-24'>Call No</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            <div className='col-span-1'></div>
+
+                            <div className='flex'><span className='w-24'>Author's Name</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                        </div>
+                    </div>
+
+                    {/* STUDENT DETAILS CARD */}
+                    <div className='border rounded-md p-4 relative pt-10 bg-slate-50/10'>
+                        <div className='absolute top-0 left-0 right-0 flex justify-center -mt-3'>
+                            <span className='bg-white px-2 text-muted-foreground text-xs font-semibold tracking-wider'>STUDENT DETAILS</span>
+                        </div>
+                        
+                        <div className='absolute top-2 right-4 w-40'>
+                            <Input placeholder='Scan QR Code' className='h-7 text-xs text-blue-500 placeholder:text-blue-300 border-blue-200' />
+                        </div>
+
+                        <div className='flex mt-2'>
+                            <div className='flex-1 space-y-3 text-xs font-medium text-slate-700'>
+                                <div className='flex'><span className='w-28'>Student Name</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Registration No</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Admission No</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Roll No</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Class Name</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Section Name</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                                <div className='flex'><span className='w-28'>Parent's No.</span><span>:</span><span className='ml-2 font-bold'></span></div>
+                            </div>
+                            <div className='w-24 h-28 border border-dashed rounded-md flex items-center justify-center text-[10px] text-muted-foreground bg-slate-50'>
+                                Student Photo
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* Action Buttons */}
+            <div className='mt-8 flex items-center justify-center gap-4'>
+                <Button type='submit' className='h-8 px-6 py-1 text-xs min-w-[100px] bg-[#4251b1] hover:bg-[#35418e] shadow-sm rounded-sm'>
+                    <Save className='mr-1.5 h-3.5 w-3.5' /> ISSUE
+                </Button>
+                <Button type='button' onClick={() => reset()} className='h-8 px-6 py-1 text-xs min-w-[100px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'>
+                    <XCircle className='mr-1.5 h-3.5 w-3.5' /> CANCEL
+                </Button>
+                
+                <div className='flex items-center gap-2 ml-4'>
+                    <Controller control={control} name='sendPushNotification' render={({ field }) => (
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='push' />
+                    )} />
+                    <Label htmlFor='push' className='text-xs'>Send Mobile Push Notification</Label>
+                </div>
+            </div>
+        </form>
+    );
 };

@@ -77,6 +77,7 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
                         <InputText
                             label='Mode Of Payment'
                             required
+                            placeholder='Mode Of Payment'
                             id='ivrmmoD_ModeOfPayment'
                             {...register('ivrmmoD_ModeOfPayment', {
                                 validate: (value) => /^[A-Za-z0-9 ]*$/.test(value) || 'Only letters, numbers and spaces allowed'
@@ -111,6 +112,7 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
                             <InputText
                                 label='Mode Of Payment Code'
                                 required
+                                placeholder='Mode Of Payment Code'
                                 id='ivrmmoD_ModeOfPayment_Code'
                                 maxLength={1}
                                 {...register('ivrmmoD_ModeOfPayment_Code', {

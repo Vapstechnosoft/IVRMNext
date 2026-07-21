@@ -115,7 +115,7 @@ function EmployeeDetailsReportContent() {
         formatType: "Format1",
         headers: HEADER_LIST.map((h) => h.id), // Default Select All
         dateCriteria: "DOB",
-        fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Start of current month
+        fromDate: new Date(), // Start of current month
         toDate: new Date(),
         working: true,
         left: true,
@@ -146,7 +146,7 @@ function EmployeeDetailsReportContent() {
   // Queries
   const { data: onloadData, isLoading: isLoadingOnload } =
     useEmployeeDetailsReportOnload();
-  const { data: groupTypesData } = useReportGroupTypes();
+  const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
   const { mutate: searchReport, isPending: isSearching } =
     useSearchEmployeeDetailsReport();
   const { mutate: filterEmployees } = useFilterEmployeeDetails();
@@ -244,9 +244,9 @@ function EmployeeDetailsReportContent() {
   }, [onloadData]);
   // Cascading Dropdowns for Format 2
   const groupTypeIdsArray = watchedGroupType?.join(",") || "";
-  const { data: departmentsData } = useReportDepartments(groupTypeIdsArray);
+  const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIdsArray);
   const groupDepartmentIdsArray = watchedDepartment?.join(",") || "";
-  const { data: designationsData } = useReportDesignations(
+  const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(
     groupTypeIdsArray,
     groupDepartmentIdsArray,
   );
@@ -303,7 +303,7 @@ function EmployeeDetailsReportContent() {
       filterEmployees(payload, {
         onSuccess: (res: any) => {
           if (res.data) {
-            setFilteredEmployeeDropdown(res.data.employeedropdown || []);
+            setFilteredEmployeeDropdown(res.data.employeeDetails || []);
             setFilteredEmployeeTypeDropdown(
               res.data.employeeTypedropdown || [],
             );
@@ -503,11 +503,11 @@ function EmployeeDetailsReportContent() {
 
   return (
     <div className="container min-h-screen space-y-4 p-2">
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <h2 className="font-bold text-2xl tracking-tight">
           Employee Details Report
         </h2>
-      </div>
+      </div> */}
 
       <CollapsibleSection
         title="Configuration"
@@ -829,7 +829,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Group Types"
+                      placeholder={isLoadingGroupTypes ? "Loading..." : "Select Group Types"}
+                      disabled={isLoadingGroupTypes}
                     />
                   )}
                 />
@@ -851,7 +852,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Departments"
+                      placeholder={isLoadingDepartments ? "Loading..." : "Select Departments"}
+                      disabled={isLoadingDepartments || departmentsData?.data?.length == 0}
                     />
                   )}
                 />
@@ -873,7 +875,8 @@ function EmployeeDetailsReportContent() {
                       }
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Designations"
+                      placeholder={isLoadingDesignations ? "Loading..." : "Select Designations"}
+                      disabled={isLoadingDesignations || designationsData?.data?.length == 0}
                     />
                   )}
                 />
@@ -930,9 +933,7 @@ function EmployeeDetailsReportContent() {
               showSearchColumns={false}
               showExportOptions={false}
               maxSelectableRows={0}
-              manualPagination={false}
-              manualSorting={false}
-              manualFiltering={false}
+              isPaginationRequired={false}
               scrollable
             />
           </div>

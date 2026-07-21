@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import {
     useReportGroupTypes,
@@ -25,7 +26,11 @@ const MONTH_LIST = [
     { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
 ];
 
+
+
 export default function SalarySlipPage() {
+    const searchParams = useSearchParams();
+
     const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],
         department: [],
@@ -42,7 +47,9 @@ export default function SalarySlipPage() {
     });
 
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [tableResponse, setTableResponse] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<number>>(new Set());
     const [reportData, setReportData] = useState<any>(null);
     const [showReport, setShowReport] = useState(false);
     const [institutionDetails, setInstitutionDetails] = useState({
@@ -51,19 +58,22 @@ export default function SalarySlipPage() {
         logo: ''
     });
 
+    const reportRef = useRef<HTMLDivElement>(null);
+
     // Cascading Dropdown Hooks
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = filters.groupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = filters.department?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
     const { mutate: generateSlip, isPending: isGenerating } = useGenerateSalarySlip();
+
 
     useEffect(() => {
         if (onloadData?.data?.institutionDetails?.[0]) {
@@ -76,25 +86,36 @@ export default function SalarySlipPage() {
         }
     }, [onloadData]);
 
-    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
-        setFilters(newFilters);
+    useEffect(() => {
+        if (showReport && reportRef.current) {
+            reportRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    }, [showReport]);
 
+    useEffect(() => {
         if (
-            newFilters.groupType.length > 0 &&
-            newFilters.department.length > 0 &&
-            newFilters.designation.length > 0
+            filters.groupType.length > 0 &&
+            filters.department.length > 0 &&
+            filters.designation.length > 0 &&
+            filters.year &&
+            filters.month
         ) {
             filterEmployees({
                 MI_Id: 30,
                 LogInUserId: 0,
-                hreS_Year: newFilters.year,
-                hreS_Month: newFilters.month,
-                hrmgt_ids: newFilters.groupType.join(','),
-                hrmd_ids: newFilters.department.join(','),
-                hrmdes_ids: newFilters.designation.join(',')
+                hreS_Year: filters.year,
+                hreS_Month: filters.month,
+                hrmgt_ids: filters.groupType.join(','),
+                hrmd_ids: filters.department.join(','),
+                hrmdes_ids: filters.designation.join(','),
+                
             }, {
                 onSuccess: (res) => {
                     if (res.success && res.data) {
+                        console.log("response", res);
                         const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
                         const mapped = empList.map((emp: any, index: number) => ({
                             id: index + 1,
@@ -104,18 +125,28 @@ export default function SalarySlipPage() {
                             departmentId: emp.hrmD_Id || emp.HRMD_Id,
                             designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
                             HRME_Id: emp.hrmE_Id || emp.HRME_Id,
-                            isSelected: false
+                            isSelected: false,
+                            total_count: emp.total
                         }));
                         setEmployees(mapped);
+                        setTableResponse(res);
                     } else {
                         setEmployees([]);
+                        setTableResponse(null);
                     }
                 }
             });
         } else {
             setEmployees([]);
+            setTableResponse(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month]);
+
+    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
+        setFilters(newFilters);
     };
+
 
     const filteredEmployeesList = useMemo(() => {
         return employees.filter(emp => {
@@ -129,20 +160,33 @@ export default function SalarySlipPage() {
         });
     }, [employees, filters.groupType, filters.department, filters.designation, searchTerm]);
 
-    const selectedCount = filteredEmployeesList.filter(e => e.isSelected).length;
+    const selectedCount = filteredEmployeesList.filter(e => selectedEmployeeIds.has(e.id)).length;
 
-    const handleSelectAll = (checked: boolean) => {
-        setEmployees(prev => prev.map(emp => {
-            const isVisible = filteredEmployeesList.some(fe => fe.HRME_Id === emp.HRME_Id);
-            if (isVisible) {
-                return { ...emp, isSelected: checked };
-            }
-            return emp;
-        }));
+    const handleSelectAll = (checked: boolean, ids?: number[]) => {
+        setSelectedEmployeeIds(prev => {
+            const next = new Set(prev);
+            const targetIds = ids || filteredEmployeesList.map(emp => emp.id);
+            targetIds.forEach(id => {
+                if (checked) {
+                    next.add(id);
+                } else {
+                    next.delete(id);
+                }
+            });
+            return next;
+        });
     };
 
     const handleSelectEmployee = (id: number, checked: boolean) => {
-        setEmployees(prev => prev.map(emp => emp.id === id ? { ...emp, isSelected: checked } : emp));
+        setSelectedEmployeeIds(prev => {
+            const next = new Set(prev);
+            if (checked) {
+                next.add(id);
+            } else {
+                next.delete(id);
+            }
+            return next;
+        });
     };
 
     const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
@@ -162,7 +206,7 @@ export default function SalarySlipPage() {
             return;
         }
 
-        const selectedEmpIds = employees.filter(e => e.isSelected).map(e => e.HRME_Id);
+        const selectedEmpIds = employees.filter(e => selectedEmployeeIds.has(e.id)).map(e => e.HRME_Id);
         if (selectedEmpIds.length === 0) {
             toast.error('Please select at least one employee');
             return;
@@ -260,14 +304,14 @@ export default function SalarySlipPage() {
         printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
-    if (isOnloadLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-                <span className="ml-2">Loading Page...</span>
-            </div>
-        );
-    }
+    // if (isOnloadLoading) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center">
+    //             <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+    //             <span className="ml-2">Loading Page...</span>
+    //         </div>
+    //     );
+    // }
 
     const handleReset = () => {
         setFilters({
@@ -286,14 +330,15 @@ export default function SalarySlipPage() {
         });
         setEmployees([]);
         setSearchTerm('');
+        setSelectedEmployeeIds(new Set());
         toast.info('Filters have been reset');
     };
 
     return (
         <div className="container mx-auto p-4 space-y-6">
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Salary Slip</h1>
-            </div>
+            </div> */}
 
             <SalarySlipFilters
                 filters={filters}
@@ -304,8 +349,10 @@ export default function SalarySlipPage() {
                 years={yearsData?.data || []}
                 employees={employees}
                 filteredEmployees={filteredEmployeesList}
+                tableResponse={tableResponse}
                 searchTerm={searchTerm}
                 selectedCount={selectedCount}
+                selectedEmployeeIds={selectedEmployeeIds}
                 isFiltering={isFiltering}
                 isGenerating={isGenerating}
                 onFilterChange={handleFilterChange}
@@ -316,10 +363,14 @@ export default function SalarySlipPage() {
                 onGenerateSlip={handleGenerateSlip}
                 onCancel={() => { }}
                 onReset={handleReset}
+                isLoadingGroupTypes={isLoadingGroupTypes}
+                isLoadingDepartments={isLoadingDepartments}
+                isLoadingDesignations={isLoadingDesignations}
+                isLoadingYears={isLoadingYears}
             />
 
             {showReport && (
-                <div className="space-y-6">
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">

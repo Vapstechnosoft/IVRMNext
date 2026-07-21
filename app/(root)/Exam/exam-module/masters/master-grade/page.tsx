@@ -18,11 +18,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterGradePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
 
-    const { data: response, isLoading, error } = useMasterGrade(searchParams);
+    const { data: response, isLoading, error, refetchAll: refetchGrid } = useMasterGrade(searchParams);
 
     return (
         <FormProvider<IMasterGrade>>
-            <MasterGradePageContent response={response} isLoading={isLoading} error={error} />
+            <MasterGradePageContent response={response} isLoading={isLoading} error={error} refetchGrid={refetchGrid} />
         </FormProvider>
     );
 }
@@ -30,13 +30,16 @@ export default function MasterGradePage(props: { searchParams: SearchParams }) {
 function MasterGradePageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchGrid
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchGrid: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterGrade>();
+    console.log('master grade details', response);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -73,13 +76,17 @@ function MasterGradePageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections refetchGrid={refetchGrid} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({
+    refetchGrid
+}: {
+    refetchGrid: () => void;
+}) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -116,7 +123,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterGradeForm onSuccess={closeAddForm} />
+                            <AddMasterGradeForm onSuccess={closeAddForm} refetchGrid={refetchGrid} />
                         </div>
                     </CollapsibleSection>
                 </div>

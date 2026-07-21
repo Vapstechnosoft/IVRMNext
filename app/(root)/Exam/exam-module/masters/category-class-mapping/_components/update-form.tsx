@@ -166,8 +166,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 const classSections = Array.isArray(classSectionsRes)
                     ? classSectionsRes
                     : Array.isArray(classSectionsRes?.data)
-                      ? classSectionsRes.data
-                      : [];
+                        ? classSectionsRes.data
+                        : [];
 
                 // fetch category mapped sections (the server mapping for the given year+category+class)
                 const catMappedRes = await getCategoryMappedSections(selectedRow.asmaY_Id, selectedRow.emcA_Id, selectedRow.asmcL_Id);
@@ -259,8 +259,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     const classSections = Array.isArray(classSectionsRes)
                         ? classSectionsRes
                         : Array.isArray(classSectionsRes?.data)
-                          ? classSectionsRes.data
-                          : [];
+                            ? classSectionsRes.data
+                            : [];
 
                     // build section objects for form and mappingList rows
                     const _sectionOptions: SectionItem[] = classSections.map((s: any) => ({
@@ -411,6 +411,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         setMappingList((prev) => prev.filter((_, i) => i !== index));
         if (editIndex === index) setEditIndex(null);
         toast.success('Mapping removed');
+        window.location.reload();
     };
 
     // Final submit: build payload exactly as you showed
@@ -472,7 +473,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select key={`year-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -507,7 +508,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='emcA_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select key={`category-${field.value}`} value={field.value && field.value !== 0 ? String(field.value) : undefined} disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
@@ -534,7 +535,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         name='asmcL_Id'
                         render={({ field }) => (
                             <Select
-                                value={field.value ? String(field.value) : undefined}
+                                key={`class-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                 onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />

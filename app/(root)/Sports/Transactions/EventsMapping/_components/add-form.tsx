@@ -22,10 +22,13 @@ interface AddEventsMappingFormProps {
 }
 
 export default function AddEventsMappingForm({ onSuccess }: AddEventsMappingFormProps) {
-    const { loadGrid, save } = useEventMapping();
-    const { academicYear, eventsList, venuelist, sponsorList } = (loadGrid.data as any)?.data || {
-        academicYear: [], eventsList: [], venuelist: [], sponsorList: []
-    };
+    const { loadData, save } = useEventMapping();
+    const { 
+        academicYear = [], 
+        eventsList = [], 
+        venuelist = [], 
+        sponsorList = [] 
+    } = (loadData.data as any)?.data || {};
 
     const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<IEventMappingDTO>({
         resolver: zodResolver(eventMappingSchema),

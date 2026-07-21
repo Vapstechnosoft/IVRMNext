@@ -27,11 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import {
-    ThirdPartyTrasactionfeeReceiptNoflg,
-    get_Receipt_number,
-    saveorUpdateThirdPartyTrasaction
-} from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { get_Receipt_number, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 
 type FormFields = z.infer<typeof thirdPartyTransactionSchema.addOrUpdate>;
 
@@ -84,25 +80,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     const studentType = watch('studentType');
     const watchAcademicYearId = watch('academicYearId');
 
-    useEffect(() => {
-        const fetchReceiptFlag = async () => {
-            try {
-                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+    // useEffect(() => {
+    //     const fetchReceiptFlag = async () => {
+    //         try {
+    //             const res = await ThirdPartyTrasactionfeeReceiptNoflg();
 
-                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
-                if (res?.data?.length) {
-                    //setReceiptnoflgdata(res.data);
-                    setReceiptnoflgdata(true);
-                } else {
-                    setReceiptnoflgdata(false);
-                }
-            } catch (error) {
-                console.error('Error fetching receipt flag', error);
-            }
-        };
+    //             // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
+    //             if (res?.data?.length) {
+    //                 //setReceiptnoflgdata(res.data);
+    //                 setReceiptnoflgdata(true);
+    //             } else {
+    //                 setReceiptnoflgdata(false);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching receipt flag', error);
+    //         }
+    //     };
 
-        fetchReceiptFlag();
-    }, []);
+    //     fetchReceiptFlag();
+    // }, []);
 
     const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee();
 
@@ -226,8 +222,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     };
 
     const handleReset = () => {
-        reset();
-        setSelectedPaymentMode('');
+        reset({
+            studentType: 'other',
+            academicYearId: undefined,
+            studentId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined,
+            amount: undefined,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: format(new Date(), 'yyyy-MM-dd'),
+            chequeNo: '',
+            fyP_Receipt_No: ''
+        });
+
+        // clear validation errors too
+        setTimeout(() => reset(), 0);
     };
 
     return (
@@ -271,22 +284,20 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='academicYearId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'} // 👈 add this
+                                value={field.value?.toString() ?? ''}
+                                onValueChange={(value) => field.onChange(Number(value))}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    {academicYearLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
+                                    {academicYear?.data?.map((item) => (
+                                        <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                            {item.asmaY_Year}
                                         </SelectItem>
-                                    ) : (
-                                        academicYear?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))
-                                    )}
+                                    ))}
                                 </SelectContent>
                             </Select>
                         )}
@@ -362,7 +373,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='groupId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(value) => field.onChange(Number(value))}
+                                value={field.value !== undefined ? String(field.value) : ''}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Group' />
                                 </SelectTrigger>
@@ -393,7 +407,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                         name='headId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                            <Select
+                                key={field.value ?? 'empty'}
+                                onValueChange={(value) => field.onChange(Number(value))}
+                                value={field.value !== undefined ? String(field.value) : ''}>
                                 <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Head' />
                                 </SelectTrigger>
@@ -538,7 +555,12 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                 name='bankId'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                    <Select
+                                        key={field.value ?? 'empty'}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        // value={field.value?.toString()}
+                                        value={field.value !== undefined ? String(field.value) : ''}
+                                    >
                                         <SelectTrigger className='min-w-[400px]'>
                                             <SelectValue placeholder='Select Bank' />
                                         </SelectTrigger>

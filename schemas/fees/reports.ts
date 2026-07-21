@@ -744,29 +744,41 @@ export const feeUserWiseDailyCollectionReportSchema = z
         }
     });
 
-export const feeDemandRegisterReportGMVPSSchema = z.object({
-    report: z.enum(['All', 'Individual']).default('All'),
-    rpttyp: z.enum(['All', 'Individual']).default('Individual'),
-    reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
-    asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
-    asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
-    asms_Id: z.number().min(1, { message: 'Section Name is required' }),
-    groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
-    chequeDate: z.boolean().default(false),
-    acdmyr: z.boolean().default(false),
-    headwise: z.boolean().default(false),
-    paymentwise: z.boolean().default(false),
-    detailed: z.boolean().default(false),
-    grandTotal: z.boolean().default(false),
-    active: z.boolean().default(false),
-    deactive: z.boolean().default(false),
-    left: z.boolean().default(false),
-    total: z.boolean().default(false),
-    userSelection: z.boolean().default(false),
-    newAdmissionStudent: z.boolean().default(false),
-    fromDate: z.string().min(1, { message: 'From Date is required' }),
-    toDate: z.string().min(1, { message: 'To Date is required' })
-});
+export const feeDemandRegisterReportGMVPSSchema = z
+    .object({
+        report: z.enum(['All', 'Individual']).default('All'),
+        reportdate: z.enum(['As On Date', 'Between Date']).default('As On Date'),
+        asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+        asmcL_Id: z.number().min(1, { message: 'Class Name is required' }),
+        asmt_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        detailed: z.boolean().default(false),
+        grandTotal: z.boolean().default(false),
+        active: z.boolean().default(false),
+        deactive: z.boolean().default(false),
+        left: z.boolean().default(false),
+        total: z.boolean().default(false),
+        userSelection: z.boolean().default(false),
+        newAdmissionStudent: z.boolean().default(false)
+    })
+    .superRefine((data, ctx) => {
+        if (data.report === 'Individual') {
+            if (!data.asms_Id) {
+                ctx.addIssue({
+                    path: ['asms_Id'],
+                    message: 'Section Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.asmt_Id) {
+                ctx.addIssue({
+                    path: ['asmt_Id'],
+                    message: 'Student Name Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
 
 export const feeChequeBounceSchema = z.object({
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }),
@@ -776,4 +788,143 @@ export const feeChequeBounceSchema = z.object({
     FYP_ID: z.string().min(1, 'Receipt No is required'),
     FCB_DATE: z.date({ required_error: 'Date is required' }),
     FCB_Remarks: z.string().optional()
+});
+
+export const feeSummerizedReportStjamesSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    filter: z.enum(['individual', 'headwise']).default('individual'),
+    classId: z.number().optional(),
+    sectionId: z.number().optional(),
+    studentId: z.number().optional(),
+    customGroupIds: z.array(z.number()).min(1, 'Please select at least one Custom Group'),
+    feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+    termIds: z.array(z.number()).min(1, 'Please select at least one Term')
+});
+// .superRefine((data, ctx) => {
+//     if (data.classwise === true) {
+//         if (!data.classId || data.classId === 0) {
+//             ctx.addIssue({
+//                 code: z.ZodIssueCode.custom,
+//                 message: 'Class is required',
+//                 path: ['classId']
+//             });
+//         }
+//         if (!data.sectionId || data.sectionId === 0) {
+//             ctx.addIssue({
+//                 code: z.ZodIssueCode.custom,
+//                 message: 'Section is required',
+//                 path: ['sectionId']
+//             });
+//         }
+//     }
+// });
+
+export const feeCollectionReportSophiaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    classId: z.number().optional(),
+    sectionId: z.number().optional(),
+    active: z.boolean().optional(),
+    deactive: z.boolean().optional(),
+    left: z.boolean().optional()
+});
+
+export const feeReceiptDeleteReportSophiaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    fromDate: z.string().min(1, 'From Date is required'),
+    toDate: z.string().min(1, 'To Date is required')
+});
+
+export const feePortalReceiptSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    receiptId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Receipt Name is required',
+                invalid_type_error: 'Receipt Name is required'
+            })
+            .min(1, 'Receipt Name is required')
+    )
+});
+
+export const feeCollectionstatementNagarjunaSchema = z.object({
+    academicYearId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Academic Year is required',
+                invalid_type_error: 'Academic Year is required'
+            })
+            .min(1, 'Academic Year is required')
+    ),
+    organizationId: z.preprocess(
+        (val) => {
+            if (val === '' || val === undefined || val === null) return undefined;
+            const num = Number(val);
+            return Number.isNaN(num) ? undefined : num;
+        },
+        z
+            .number({
+                required_error: 'Organization Name is required',
+                invalid_type_error: 'Organization Name is required'
+            })
+            .min(1, 'Organization Name is required')
+    ),
+    radio_val: z.enum(['All', 'Branchwise/Classwise', 'Hostel', 'Transport']).default('All')
 });

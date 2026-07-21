@@ -199,13 +199,13 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
             LBTR_FineCollected: data.fineCollected
         };
 
-        //     returnBookMutation.mutate(payload, {
-        //         onSuccess: () => {
-        //             reset();
-        //             onSuccess();
-        //         }
-        //     });
-        // };
+        returnBookMutation.mutate(payload, {
+            onSuccess: () => {
+                reset();
+                onSuccess();
+            }
+        });
+    };
 
         const handleRenewal = () => {
             const data = watch();
@@ -374,7 +374,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <div>
                                         <Label>Academic Year</Label>
-                                        <Select onValueChange={(v) => setValue('ASMAY_Id', Number(v))}>
+                                        <Select onValueChange={(v) => setValue('ASMAY_Id', Number(v))} value={watchYear ? watchYear.toString() : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
@@ -390,7 +390,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                     </div>
                                     <div>
                                         <Label>Class</Label>
-                                        <Select onValueChange={(v) => setValue('ASMCL_Id', Number(v))}>
+                                        <Select onValueChange={(v) => setValue('ASMCL_Id', Number(v))} value={watchClass ? watchClass.toString() : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
@@ -406,7 +406,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                     </div>
                                     <div>
                                         <Label>Section</Label>
-                                        <Select onValueChange={(v) => setValue('ASMS_Id', Number(v))}>
+                                        <Select onValueChange={(v) => setValue('ASMS_Id', Number(v))} value={watchSection ? watchSection.toString() : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
@@ -423,7 +423,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                 </div>
                                 <div>
                                     <Label>Student Name</Label>
-                                    <Select onValueChange={(v) => setValue('AMST_Id', Number(v))}>
+                                    <Select onValueChange={(v) => setValue('AMST_Id', Number(v))} value={watchStudent ? watchStudent.toString() : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Student' />
                                         </SelectTrigger>
@@ -446,7 +446,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                     <div>
                                         <Label>Department</Label>
-                                        <Select onValueChange={(v) => setValue('HRMD_Id', Number(v))}>
+                                        <Select onValueChange={(v) => setValue('HRMD_Id', Number(v))} value={watchDept ? watchDept.toString() : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Department' />
                                             </SelectTrigger>
@@ -462,7 +462,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                     </div>
                                     <div>
                                         <Label>Designation</Label>
-                                        <Select onValueChange={(v) => setValue('HRMDES_Id', Number(v))}>
+                                        <Select onValueChange={(v) => setValue('HRMDES_Id', Number(v))} value={watchDesg ? watchDesg.toString() : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Designation' />
                                             </SelectTrigger>
@@ -479,7 +479,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                                 </div>
                                 <div>
                                     <Label>Staff Name</Label>
-                                    <Select onValueChange={(v) => setValue('HRME_Id', Number(v))}>
+                                    <Select onValueChange={(v) => setValue('HRME_Id', Number(v))} value={watchStaff ? watchStaff.toString() : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Staff' />
                                         </SelectTrigger>
@@ -607,7 +607,7 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                             />
                             <div>
                                 <Label>Book Title (Issued Books)</Label>
-                                <Select onValueChange={handleBookSelect}>
+                                <Select onValueChange={handleBookSelect} value={watch('LMB_Id')?.toString() || undefined}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Book' />
                                     </SelectTrigger>
@@ -711,5 +711,4 @@ export const ReturnForm = ({ onSuccess }: ReturnFormProps) => {
                 />
             </form>
         );
-    };
 };

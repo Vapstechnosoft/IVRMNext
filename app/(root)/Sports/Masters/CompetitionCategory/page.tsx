@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterCompetitionCategories } from '@/hooks/sports/useMasterCompetitionCategory';
+import { useMasterCompetitionCategory } from '@/hooks/sports/useMasterCompetitionCategory';
 import type { IMasterCompetitionCategory } from '@/types/sports/masters/competition-category';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCompetitionCategoryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterCompetitionCategories(searchParams);
+    const { loadData, refetchAll } = useMasterCompetitionCategory(searchParams);
 
     return (
         <FormProvider<IMasterCompetitionCategory>>
-            <MasterCompetitionCategoryPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterCompetitionCategoryPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -81,9 +86,6 @@ function MasterCompetitionCategoryPageContent({
                         columns={MasterCompetitionCategoryColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading competition categories...'

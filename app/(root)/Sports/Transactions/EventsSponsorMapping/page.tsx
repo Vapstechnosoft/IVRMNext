@@ -16,15 +16,21 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EventsSponsorMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+    const { loadData, refetchAll } = useEventsSponsor(searchParams);
+
     return (
         <FormProvider<IEventSponsorMapping>>
-            <EventsSponsorMappingPageContent searchParams={searchParams} />
+            <EventsSponsorMappingPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
 
-function EventsSponsorMappingPageContent({ searchParams }: { searchParams: any }) {
-    const { details, refetchAll } = useEventsSponsor(searchParams);
+function EventsSponsorMappingPageContent({ response, isLoading, error, refetchAll }: { response: any, isLoading: boolean, error: any, refetchAll: () => void }) {
     const {
         openAddForm,
         isAddFormOpen,
@@ -36,8 +42,8 @@ function EventsSponsorMappingPageContent({ searchParams }: { searchParams: any }
         editFormRef
     } = useFormContext<IEventSponsorMapping>();
 
-    const gridData = details.data?.data?.sponsormappingList || [];
-    const tableProps = useDataTableProps({ ...details.data, data: gridData });
+    const gridData = response?.data?.sponsormappingList || [];
+    const tableProps = useDataTableProps({ ...response, data: gridData });
 
     return (
         <div className='container mx-auto space-y-6 p-4'>
@@ -113,11 +119,8 @@ function EventsSponsorMappingPageContent({ searchParams }: { searchParams: any }
                     <GenericDataTable<IEventSponsorMapping>
                         {...tableProps}
                         columns={eventSponsorColumns}
-                        isLoading={details.isLoading}
-                        error={details.error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
+                        isLoading={isLoading}
+                        error={error}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Fetching mapping details...'

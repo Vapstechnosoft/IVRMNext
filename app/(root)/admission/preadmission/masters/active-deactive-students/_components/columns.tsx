@@ -2,8 +2,36 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Student } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
+import React, { useState, useEffect } from 'react';
+
+const RemarkInput = ({ row, table }: { row: any; table: any }) => {
+    const meta = table.options.meta as any;
+    const isSelected = row.getIsSelected();
+    const studentId = row.original.student_id;
+    const initialValue = meta?.studentData?.get(studentId)?.remark || '';
+
+    const [value, setValue] = useState(initialValue);
+
+    useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
+
+    return (
+        <input
+            type="text"
+            className="flex h-9 w-[180px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!isSelected}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={() => meta?.updateStudentData(studentId, 'remark', value)}
+            placeholder="Enter Remarks"
+        />
+    );
+};
 
 export const activedeactiveColumns: ColumnDef<Student>[] = [
     {
@@ -35,6 +63,20 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
         enableHiding: false
     },
     {
+        accessorKey: 'registration_no',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reg. No.' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('registration_no')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'admission_no',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No.' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
         accessorKey: 'student_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('student_name') ?? 'N.A'}</div>,
@@ -42,17 +84,35 @@ export const activedeactiveColumns: ColumnDef<Student>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'registration_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('registration_no')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        id: 'reason',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reason' className='font-bold text-black' />,
+        cell: ({ row, table }) => {
+            const meta = table.options.meta as any;
+            const isSelected = row.getIsSelected();
+            const studentId = row.original.student_id;
+            const value = meta?.studentData?.get(studentId)?.reason || '';
+
+            return (
+                <Select
+                    disabled={!isSelected}
+                    value={value}
+                    onValueChange={(val) => meta?.updateStudentData(studentId, 'reason', val)}
+                >
+                    <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Select Reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Fee Due">Fee Due</SelectItem>
+                        <SelectItem value="Long Absent">Long Absent</SelectItem>
+                        <SelectItem value="Medical">Medical</SelectItem>
+                    </SelectContent>
+                </Select>
+            );
+        }
     },
     {
-        accessorKey: 'admission_no',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        id: 'remarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' className='font-bold text-black' />,
+        cell: ({ row, table }) => <RemarkInput row={row} table={table} />
     }
 ];

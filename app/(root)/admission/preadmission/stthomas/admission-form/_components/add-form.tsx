@@ -154,6 +154,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_BloodGroup: '',
             amsT_MotherTongue: '',
             amsT_AadharNo: '',
+            amsT_ApparNo: '',
             amsT_BirthCertNO: '',
             amsT_BirthPlace: '',
             amsT_Nationality: 0,
@@ -336,7 +337,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         ];
 
     const allCaste = (admissionDetails as any)?.castes || (admissionDetails as any)?.allCaste || (admissionDetails as any)?.allCasteList || (admissionDetails as any)?.AllCaste || [];
-    const allState = (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || [];
+    const allState = (admissionDetails as any)?.allState || (admissionDetails as any)?.allStateList || (admissionDetails as any)?.AllState || (admissionDetails as any)?.states || [];
     const { data: concessionDropdown } = useConcessionDropdown();
     const concession = useMemo(() => ({ data: concessionDropdown?.data || (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }), [concessionDropdown, admissionDetails]);
 
@@ -354,11 +355,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const studentNationalityId = watch('amsT_Nationality');
 
     // Dynamic State Fetching Hooks
-    const { data: resStates, isLoading: resStatesLoading } = useStateDropdown(Number(conCountryId));
-    const { data: perStates, isLoading: perStatesLoading } = useStateDropdown(Number(perCountryId));
-    const { data: nationalityStates, isLoading: nationalityStatesLoading } = useStateDropdown(Number(studentNationalityId));
-    const { data: fatherStates, isLoading: fatherStatesLoading } = useStateDropdown(Number(fatherPresentCountryId));
-    const { data: motherStates, isLoading: motherStatesLoading } = useStateDropdown(Number(motherPresentCountryId));
+    // Rely exclusively on allState mapping instead of redundant state fetching
+    const resStatesLoading = false;
+    const perStatesLoading = false;
+    const nationalityStatesLoading = false;
+    const fatherStatesLoading = false;
+    const motherStatesLoading = false;
 
     // Compatibility aliases for loading states
     const referenceLoading = detailsLoading;
@@ -429,39 +431,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     }, [allCaste, casteByCategory, currentCategoryId]);
 
     const conState = useMemo(() => {
-        const states = (resStates as any)?.data as any[];
-        if (Array.isArray(states) && states.length > 0) return { data: states };
         if (!conCountryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(conCountryId)) };
-    }, [allState, conCountryId, resStates]);
+    }, [allState, conCountryId]);
 
     const perState = useMemo(() => {
-        const states = (perStates as any)?.data as any[];
-        if (Array.isArray(states) && states.length > 0) return { data: states };
         if (!perCountryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(perCountryId)) };
-    }, [allState, perCountryId, perStates]);
+    }, [allState, perCountryId]);
 
     const studentState = useMemo(() => {
-        const states = (nationalityStates as any)?.data as any[];
-        if (Array.isArray(states) && states.length > 0) return { data: states };
         if (!studentNationalityId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(studentNationalityId)) };
-    }, [allState, studentNationalityId, nationalityStates]);
+    }, [allState, studentNationalityId]);
 
     const fatherPresentState = useMemo(() => {
-        const states = (fatherStates as any)?.data as any[];
-        if (Array.isArray(states) && states.length > 0) return { data: states };
         if (!fatherPresentCountryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(fatherPresentCountryId)) };
-    }, [allState, fatherPresentCountryId, fatherStates]);
+    }, [allState, fatherPresentCountryId]);
 
     const motherPresentState = useMemo(() => {
-        const states = (motherStates as any)?.data as any[];
-        if (Array.isArray(states) && states.length > 0) return { data: states };
         if (!motherPresentCountryId) return { data: [] };
         return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(motherPresentCountryId)) };
-    }, [allState, motherPresentCountryId, motherStates]);
+    }, [allState, motherPresentCountryId]);
 
     const birthState = useMemo(() => {
         const countryId = watch('amsT_PlaceOfBirthCountry');
@@ -873,6 +865,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+                amsT_ApparNo: formData.amsT_ApparNo ?? '',
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
@@ -1188,6 +1181,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'feeConcessionType',
                     'imC_Id'
                 ];
+
+                const emailArray = getValues('adm_M_Student_EmailIdDTO');
+                if (Array.isArray(emailArray) && emailArray.length > 0) {
+                    const firstEmail = emailArray[0]?.amsT_emailId;
+                    if (firstEmail) {
+                        setValue('amsT_emailId', firstEmail);
+                    } else {
+                        setValue('amsT_emailId', ''); // clear it if empty so validation catches it
+                    }
+                }
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
                     fieldsToValidate.push('amsT_BPLCardNo');
@@ -3408,7 +3411,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     onValueChange={(value) => field.onChange(Number(value))}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder='Select category' />
+                                                                        <SelectValue placeholder='Select caste category' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {(casteCategoryData as any)?.data?.map((item: any) => (
@@ -3825,8 +3828,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     />
                                                 </div>
 
-                                                {/* Row 5: Aadhaar & Blood Group */}
-                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                {/* Row 5: Aadhaar, APAAR ID & Blood Group */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                     <InputText
                                                         label='Aadhaar No.'
                                                         id='amsT_AadharNo'
@@ -3834,6 +3837,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
                                                     />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_ApparNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='APAAR ID'
+                                                                    placeholder='Enter APAAR ID'
+                                                                    id='amsT_ApparNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ApparNo && <FormError>{errors.amsT_ApparNo.message as string}</FormError>}
+                                                    </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
                                                         <Controller
@@ -3872,11 +3893,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    {(categoryByClass as any)?.data?.studentCategory?.map((item: any) => (
+                                                                    {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || [])?.map((item: any) => (
                                                                         <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
-                                                                            {item.amC_Name}
+                                                                            {item.className || item.amC_Name || item.asmcC_CategoryName}
                                                                         </SelectItem>
-                                                                    )) || <SelectItem value='none' disabled>No categories available</SelectItem>}
+                                                                    ))}
+                                                                    {((admissionDetails as any)?.adm_m_stud_cat || (categoryByClass as any)?.data?.studentCategory || []).length === 0 && (
+                                                                        <SelectItem value='none' disabled>No categories available</SelectItem>
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
@@ -3952,7 +3976,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                     enableSearch
                                                                     disableCountryCode={false}
-                                                                    enableLongNumbers={true}
+                                                                    enableLongNumbers={false}
                                                                     isValid={true}
                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                 />
@@ -3980,12 +4004,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             <div key={field.id} className='flex w-full flex-col gap-1'>
                                                                 <div className='flex items-center gap-2'>
                                                                     <div className='flex-1'>
-                                                                        {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
+                                                                        {idx === 0 && <Label htmlFor={String(field.id)}>Email <span className='text-red-500'>*</span></Label>}
                                                                         <InputText
                                                                             {...register(fieldName)}
                                                                             id={String(field.id)}
                                                                             placeholder='Enter email'
-                                                                            error={itemError}
+                                                                            error={itemError || (idx === 0 ? errors.amsT_emailId?.message as string : undefined)}
                                                                             required
                                                                         />
                                                                     </div>
@@ -4485,6 +4509,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         id='fatherAadharNo'
                                                         placeholder='Enter Aadhaar No.'
                                                         {...register('fatherAadharNo')}
+                                                        maxLength={12}
+                                                        onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
                                                         error={errors.fatherAadharNo?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
@@ -4541,7 +4567,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputProps={{
                                                                             id: 'fatherMobileNumbers',
                                                                             name: 'fatherMobileNumbers',
-                                                                            maxLength: 25,
+                                                                            maxLength: 15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -4557,7 +4583,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -5089,7 +5115,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputProps={{
                                                                                     id: 'fatherOfficePhone',
                                                                                     name: 'fatherOfficePhone',
-                                                                                    maxLength: 25,
+                                                                                    maxLength: 15,
                                                                                     required: false,
                                                                                     style: {
                                                                                         width: '87%',
@@ -5105,7 +5131,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                 enableSearch
                                                                                 disableCountryCode={false}
-                                                                                enableLongNumbers={true}
+                                                                                enableLongNumbers={false}
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
@@ -5391,6 +5417,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         id='motherAadharNo'
                                                         placeholder='Enter Aadhaar No'
                                                         {...register('motherAadharNo')}
+                                                        maxLength={12}
+                                                        onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ''); }}
                                                         error={errors.motherAadharNo?.message}
                                                     />
 
@@ -5447,7 +5475,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputProps={{
                                                                             id: 'motherMobileNumbers',
                                                                             name: 'motherMobileNumbers',
-                                                                            maxLength: 25,
+                                                                            maxLength: 15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -5463,7 +5491,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -6004,7 +6032,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputProps={{
                                                                                     id: 'motherOfficePhone',
                                                                                     name: 'motherOfficePhone',
-                                                                                    maxLength: 25,
+                                                                                    maxLength: 15,
                                                                                     required: false,
                                                                                     style: {
                                                                                         width: '87%',
@@ -6020,7 +6048,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                 enableSearch
                                                                                 disableCountryCode={false}
-                                                                                enableLongNumbers={true}
+                                                                                enableLongNumbers={false}
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
@@ -6625,7 +6653,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                     inputProps={{
                                                                                         id: `guardianPhone_${idx}`,
                                                                                         name: `guardian.${idx}.guardianPhone`,
-                                                                                        maxLength: 25,
+                                                                                        maxLength: 15,
                                                                                         required: false,
                                                                                         style: {
                                                                                             width: '87%',
@@ -6641,7 +6669,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                     inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                     enableSearch
                                                                                     disableCountryCode={false}
-                                                                                    enableLongNumbers={true}
+                                                                                    enableLongNumbers={false}
                                                                                     isValid={true}
                                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                                 />

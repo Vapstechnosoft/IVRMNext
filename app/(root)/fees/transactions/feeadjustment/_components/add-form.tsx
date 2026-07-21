@@ -71,6 +71,11 @@ export default function AddFeeAdjustmentForm({
 
     const { data: academicYear, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
     const { data: classdata, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
+
+    // Log the error if any
+
+    console.log('Class data:', classdata);
+    console.log('Loading:', loadingClasses);
     const { data: sectiondata, isLoading: loadingSections } = useopeningSectiondropdowndatafee(
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
@@ -501,6 +506,7 @@ export default function AddFeeAdjustmentForm({
                                 </Select>
                             )}
                         />
+                        {/* Show error if any */}
                     </div>
 
                     <div className='flex items-center gap-4'>

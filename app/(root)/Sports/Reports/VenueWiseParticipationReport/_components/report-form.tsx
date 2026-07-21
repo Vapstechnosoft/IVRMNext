@@ -29,20 +29,28 @@ import * as z from "zod";
 
 const formSchema = z.object({
     Type: z.enum(["House", "CS"]),
-    ASMAY_Id: z.number().min(1, "Academic Year is required"),
+    ASMAY_Id: z.number({ required_error: "Academic Year is required" }).min(1, "Academic Year is required"),
     ASMCL_Id: z.number().optional(),
-    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })).optional(),
-    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).optional(),
-    selectedVenuelist: z.array(z.object({ spccmeV_Id: z.number() })).optional(),
-}).refine((data) => {
+    selectedSectionlist: z.array(z.object({ asmS_Id: z.number() })),
+    selectedhouselist: z.array(z.object({ spccmH_Id: z.number() })).min(1, "Select at least one house"),
+    selectedVenuelist: z.array(z.object({ spccmeV_Id: z.number() })).min(1, "Select at least one venue"),
+}).superRefine((data, ctx) => {
     if (data.Type === "CS") {
-        if (!data.ASMCL_Id) return false;
-        // if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) return false;
+        if (!data.ASMCL_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Class is required",
+                path: ["ASMCL_Id"],
+            });
+        }
+        if (!data.selectedSectionlist || data.selectedSectionlist.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Select at least one section",
+                path: ["selectedSectionlist"],
+            });
+        }
     }
-    return true;
-}, {
-    message: "Class is required for Class/Section report",
-    path: ["ASMCL_Id"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -106,7 +114,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     }, [watchedYear, watchedClass, watchedType]);
 
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit = (data: FormValues) => {
         const payload = {
             asmaY_Id: data.ASMAY_Id,
             asmcL_Id: data.ASMCL_Id || 0,
@@ -115,15 +123,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             selectedhouselist: data.selectedhouselist || [],
             selectedVenuelist: data.selectedVenuelist || []
         };
-        const reportData = await generateReport(payload);
-        if (reportData) {
-            onReportGenerated(reportData);
-            if (reportData.length > 0) {
-                toast.success('Report generated successfully');
-            } else {
-                toast.info('No records found');
-            }
-        }
+        onReportGenerated(payload);
     };
 
     // Helper for Select All

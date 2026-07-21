@@ -99,6 +99,7 @@ export default function UOMForm({ onSuccess, className = '', selectedRow }: UOMF
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='UOM Name'
+                            placeholder='Enter UOM Name'
                             required
                             id='invmuoM_UOMName'
                             {...register('invmuoM_UOMName')}
@@ -106,12 +107,14 @@ export default function UOMForm({ onSuccess, className = '', selectedRow }: UOMF
                         />
                         <InputText
                             label='Alias Name'
+                            placeholder='Enter Alias Name'
                             id='invmuoM_UOMAliasName'
                             {...register('invmuoM_UOMAliasName')}
                             error={errors.invmuoM_UOMAliasName?.message}
                         />
                         <InputText
                             label='UOM Quantity'
+                            placeholder='Enter UOM Quantity'
                             required
                             id='invmuoM_Qty'
                             maxLength={10}
@@ -195,13 +198,14 @@ export function ToggleUOMForm({ rowData, onClose }: ToggleUOMFormProps) {
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
                         variant={isActive ? 'destructive' : 'default'}
+                        className={isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

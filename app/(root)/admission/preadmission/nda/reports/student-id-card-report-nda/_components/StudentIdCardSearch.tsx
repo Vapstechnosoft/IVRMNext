@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import { Search, RotateCcw, Loader2, Users, Printer } from 'lucide-react';
 import {
   ndaIdCardFilterSchema,
@@ -127,7 +127,7 @@ export function StudentIdCardSearch({
             ASMCL_Id: Number(selectedClass),
             ASMS_Id: Number(selectedSection),
           })) as any;
-          const records = res?.getStudentList || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+          const records = res?.getStudentList || res?.studentList || res?.studentlist || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
           setStudentList(records.map((s: any) => ({ ...s, selected: true })));
         } catch (error) {
           toast.error('Failed to load students');
@@ -169,211 +169,224 @@ export function StudentIdCardSearch({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Filters Column */}
-          <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="academic_year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-black text-indigo-900/40 uppercase tracking-[0.2em] ml-1">Academic Year</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-14 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold text-slate-700">
-                        <SelectValue placeholder="Select Year" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {academicList?.map((year) => (
-                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
-                          {year.asmaY_Year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="classname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-black text-indigo-900/40 uppercase tracking-[0.2em] ml-1">Class</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={classList.length === 0}>
-                    <FormControl>
-                      <SelectTrigger className="h-14 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold text-slate-700">
-                        <SelectValue placeholder={classMutation.isPending ? "Loading..." : "Select Class"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {classList.map((cls) => (
-                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
-                          {cls.asmcL_ClassName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sectionname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-black text-indigo-900/40 uppercase tracking-[0.2em] ml-1">Section</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={sectionList.length === 0}>
-                    <FormControl>
-                      <SelectTrigger className="h-14 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold text-slate-700">
-                        <SelectValue placeholder={sectionMutation.isPending ? "Loading..." : "Select Section"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      {sectionList.map((sec) => (
-                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()} className="focus:bg-indigo-50 focus:text-indigo-700 py-3 px-4 rounded-xl mx-1 my-1">
-                          {sec.asmC_SectionName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="house"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-black text-indigo-900/40 uppercase tracking-[0.2em] ml-1">House Color</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-14 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold text-slate-700">
-                        <SelectValue placeholder="Select House" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-2xl">
-                      <SelectItem value="WHITE" className="focus:bg-slate-50 py-3">WHITE</SelectItem>
-                      <SelectItem value="YELLOW" className="focus:bg-yellow-50 focus:text-yellow-700 py-3">JULIE (YELLOW)</SelectItem>
-                      <SelectItem value="BLUE" className="focus:bg-blue-50 focus:text-blue-700 py-3">PROVIDENCE (BLUE)</SelectItem>
-                      <SelectItem value="RED" className="focus:bg-red-50 focus:text-red-700 py-3">ELTING (RED)</SelectItem>
-                      <SelectItem value="GREEN" className="focus:bg-emerald-50 focus:text-emerald-700 py-3">LISETTE (GREEN)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Student Picker Column */}
-          <div className="bg-slate-50/50 rounded-[2rem] p-8 space-y-4 ring-1 ring-slate-200 shadow-inner">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
-                  <Users className="w-5 h-5" />
-                </div>
-                <h3 className="font-black text-slate-800 tracking-tight">STUDENT SELECTOR</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="all-students"
-                  checked={studentList.length > 0 && studentList.every(s => s.selected)}
-                  onCheckedChange={toggleAllStudents}
-                  className="rounded-md border-slate-300"
+    <div className="bg-white rounded-md shadow-sm border border-slate-200">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <h2 className="text-lg font-semibold text-indigo-700 uppercase">STUDENT ID CARD DETAILS</h2>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <span className="sr-only">Toggle</span>
+          <div className="h-0.5 w-3 bg-slate-500" />
+        </Button>
+      </div>
+      <div className="p-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Filters Column */}
+              <div className="space-y-4 pt-2">
+                <FormField
+                  control={form.control}
+                  name="academic_year"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4 space-y-0">
+                      <FormLabel className="text-right text-sm font-medium text-slate-700">
+                        Academic Year :<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-white border-blue-400/50 text-slate-700 rounded shadow-none focus:ring-1 focus:ring-blue-500">
+                            <SelectValue placeholder="--Select Academic Year--" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {academicList?.map((year, index) => (
+                            <SelectItem key={`${year.asmaY_Id}-${index}`} value={year.asmaY_Id.toString()}>
+                              {year.asmaY_Year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="col-start-2" />
+                    </FormItem>
+                  )}
                 />
-                <label htmlFor="all-students" className="text-xs font-black text-slate-500 uppercase tracking-tighter cursor-pointer">
-                  Select All
-                </label>
+
+                <FormField
+                  control={form.control}
+                  name="classname"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4 space-y-0">
+                      <FormLabel className="text-right text-sm font-medium text-slate-700">
+                        Class :<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={classList.length === 0}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-white border-blue-400/50 text-slate-700 rounded shadow-none focus:ring-1 focus:ring-blue-500">
+                            <SelectValue placeholder={classMutation.isPending ? "Loading..." : "--Select Class--"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {classList.map((cls, index) => (
+                            <SelectItem key={`${cls.asmcL_Id}-${index}`} value={cls.asmcL_Id.toString()}>
+                              {cls.asmcL_ClassName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="col-start-2" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sectionname"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4 space-y-0">
+                      <FormLabel className="text-right text-sm font-medium text-slate-700">
+                        Section :<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={sectionList.length === 0}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-white border-blue-400/50 text-slate-700 rounded shadow-none focus:ring-1 focus:ring-blue-500">
+                            <SelectValue placeholder={sectionMutation.isPending ? "Loading..." : "--Select Section--"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sectionList.map((sec, index) => (
+                            <SelectItem key={`${sec.asmS_Id}-${index}`} value={sec.asmS_Id.toString()}>
+                              {sec.asmC_SectionName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="col-start-2" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="house"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-[140px_1fr] items-center gap-4 space-y-0">
+                      <FormLabel className="text-right text-sm font-medium text-slate-700">
+                        HOUSE :<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-9 bg-white border-blue-400/50 text-slate-700 rounded shadow-none focus:ring-1 focus:ring-blue-500">
+                            <SelectValue placeholder="--Select HOUSE--" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="WHITE">WHITE</SelectItem>
+                          <SelectItem value="YELLOW">JULIE (YELLOW)</SelectItem>
+                          <SelectItem value="BLUE">PROVIDENCE (BLUE)</SelectItem>
+                          <SelectItem value="RED">ELTING (RED)</SelectItem>
+                          <SelectItem value="GREEN">LISETTE (GREEN)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="col-start-2" />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
 
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Filter student name..."
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-                className="pl-12 h-12 rounded-xl border-slate-200 bg-white/80 focus:bg-white transition-all font-medium"
-              />
-            </div>
+              {/* Student Picker Column */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <input
+                    type="checkbox"
+                    id="all-students"
+                    checked={studentList.length > 0 && studentList.every(s => s.selected)}
+                    onChange={(e) => toggleAllStudents(e.target.checked)}
+                    className="h-4 w-4 rounded-sm border-slate-400 cursor-pointer"
+                  />
+                  <label htmlFor="all-students" className="text-sm font-medium text-slate-700 cursor-pointer">
+                    Student : <span className="text-red-500">*</span>
+                  </label>
+                </div>
 
-            <div className="h-64 overflow-y-auto pr-2 custom-scrollbar space-y-2">
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <div
-                    key={student.amsT_Id}
-                    className={`flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${student.selected
-                      ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm'
-                      : 'bg-white border-slate-100 hover:border-slate-300'
-                      } border`}
-                    onClick={() => toggleStudent(student.amsT_Id, !student.selected)}
-                  >
-                    <span className={`font-bold transition-colors ${student.selected ? 'text-indigo-700' : 'text-slate-600'}`}>
-                      {student.studentName}
-                    </span>
-                    <Checkbox
-                      checked={student.selected}
-                      onCheckedChange={(checked) => toggleStudent(student.amsT_Id, !!checked)}
-                      className="rounded-md"
+                <div className="border border-blue-400/50 rounded flex flex-col h-[180px] bg-white">
+                  <div className="p-2 border-b border-blue-100">
+                    <Input
+                      placeholder="search here..."
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                      className="h-8 border-slate-300 text-sm shadow-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded-sm"
                     />
                   </div>
-                ))
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-300 gap-2">
-                  <Users className="w-12 h-12 opacity-20" />
-                  <p className="font-bold text-xs uppercase tracking-widest text-slate-400">No students found</p>
+                  <div className="flex-1 overflow-y-auto p-2">
+                    {filteredStudents.length > 0 ? (
+                      <div className="space-y-1">
+                        {filteredStudents.map((student, index) => (
+                          <div
+                            key={`${student.amsT_Id}-${index}`}
+                            className="flex items-start gap-2 py-1 px-1 hover:bg-slate-50 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              id={`student-${student.amsT_Id}`}
+                              checked={student.selected}
+                              onChange={(e) => toggleStudent(student.amsT_Id, e.target.checked)}
+                              className="h-4 w-4 rounded-sm border-slate-400 mt-0.5 cursor-pointer"
+                            />
+                            <label 
+                              htmlFor={`student-${student.amsT_Id}`}
+                              className="text-sm text-slate-700 cursor-pointer flex-1 leading-tight"
+                            >
+                              {student.studentName}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                        <p className="text-xs">No students found</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-4 pt-6 pb-2 border-t border-slate-200 mt-6">
+              <Button
+                type="submit"
+                disabled={isLoading || studentMutation.isPending}
+                className="bg-[#3f51b5] hover:bg-[#303f9f] text-white px-8 rounded-sm font-medium shadow-sm transition-colors"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="mr-2 h-4 w-4" />
+                )}
+                REPORT
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleFormReset}
+                className="bg-[#ff5722] hover:bg-[#e64a19] text-white px-8 rounded-sm font-medium shadow-sm transition-colors"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                CANCEL
+              </Button>
+
+              {showPrint && (
+                <Button
+                  type="button"
+                  onClick={onPrint}
+                  className="bg-[#ff9800] hover:bg-[#f57c00] text-white px-8 rounded-sm font-medium shadow-sm transition-colors"
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  PRINT
+                </Button>
               )}
             </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center flex-wrap gap-6 pt-6 translate-y-2">
-          <Button
-            type="submit"
-            disabled={isLoading || studentMutation.isPending}
-            className="h-16 px-12 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black tracking-tighter shadow-2xl shadow-indigo-200 transform hover:scale-105 active:scale-95 transition-all text-lg"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-4 h-6 w-6 animate-spin" />
-            ) : (
-              <Search className="mr-4 h-6 w-6" />
-            )}
-            REPORT
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleFormReset}
-            className="h-16 px-12 rounded-[2rem] border-2 border-orange-100 hover:bg-orange-50 text-orange-600 font-black tracking-tighter transform hover:scale-105 active:scale-95 transition-all text-lg bg-white"
-          >
-            <RotateCcw className="mr-4 h-6 w-6" />
-            CANCEL
-          </Button>
-
-          {showPrint && (
-            <Button
-              type="button"
-              onClick={onPrint}
-              className="h-16 px-12 rounded-[2rem] bg-orange-500 hover:bg-orange-600 text-white font-black tracking-tighter shadow-2xl shadow-orange-200 transform hover:scale-105 active:scale-95 transition-all text-lg"
-            >
-              <Printer className="mr-4 h-6 w-6" />
-              PRINT
-            </Button>
-          )}
-        </div>
-      </form>
-    </Form>
+          </form>
+        </Form>
+      </div>
+    </div>
   );
 }

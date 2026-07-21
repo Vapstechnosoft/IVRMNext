@@ -10,7 +10,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type StJamesIX_XReportSchema, stJamesIX_XReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getExamsStjames,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
-export default function StJamesIX_XReportForm({
+export default function StJamesIXXReportForm({
     onSuccess
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
@@ -30,7 +30,7 @@ export default function StJamesIX_XReportForm({
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            type: 'indi',
+            reporttype: 'indi',
             displayAttendance: true
         } as any
     });
@@ -49,6 +49,7 @@ export default function StJamesIX_XReportForm({
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSection = useWatch({ control, name: 'asmS_Id' });
     const selectedExams = useWatch({ control, name: 'emE_Id' });
+    const reportType = useWatch({ control, name: 'reporttype' });
 
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
@@ -75,9 +76,6 @@ export default function StJamesIX_XReportForm({
             try {
                 setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No classes mapped to this academic year');
-                }
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
@@ -98,9 +96,6 @@ export default function StJamesIX_XReportForm({
             try {
                 setLoadingSections(true);
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No sections found');
-                }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', []);
@@ -116,13 +111,20 @@ export default function StJamesIX_XReportForm({
     // set Exams
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
+        if (reportType !== 'indi') {
+            setExams([]);
+            return;
+        }
         (async () => {
             try {
+                const payload: any = {
+                    asmaY_Id: selectedYear,
+                    asmcL_Id: selectedClass,
+                    asmS_Id: selectedSection,
+                    reporttype: 'indi'
+                };
                 setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No exams found');
-                }
+                const { data } = await getExamsStjames(payload);
                 setExams(Array.isArray(data) ? data : []);
                 setValue('emE_Id', []);
             } catch {
@@ -131,18 +133,30 @@ export default function StJamesIX_XReportForm({
                 setLoadingExams(false);
             }
         })();
-    }, [selectedYear, selectedClass, selectedSection, setValue]);
+    }, [selectedYear, selectedClass, selectedSection, reportType, setValue]);
 
     // on submit
     const onSubmit = async (data: StJamesIX_XReportSchema) => {
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const payload: any = {
             asmaY_Id: data.asmaY_Id,
+            asmaY_Year: selectedYearObj?.asmaY_Year || '',
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
-            emE_Ids: data.emE_Id.map((e: any) => e.emE_Id).join(','),
-            type: data.type,
+            reporttype: data.reporttype,
             displayAttendance: data.displayAttendance
         };
+
+        if (data.reporttype === 'indi') {
+            payload.examlist = data.emE_Id.map((e: any) => {
+                const exam = exams.find((x) => x.emE_Id === e.emE_Id);
+                return {
+                    emE_Id: e.emE_Id,
+                    emE_ExamName: exam?.emE_ExamName || ''
+                };
+            });
+        }
+
         if (onSuccess) {
             await onSuccess(payload);
         }
@@ -150,13 +164,13 @@ export default function StJamesIX_XReportForm({
 
     return (
         <div className='rounded-lg border bg-card text-card-foreground shadow-sm'>
-            <CollapsibleContent className='p-6'>
+            <CollapsibleContent className='p-6' forceMount>
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                         <div>
                             <Controller
                                 control={control}
-                                name='type'
+                                name='reporttype'
                                 render={({ field, fieldState }) => (
                                     <div className='flex h-8 flex-1 justify-center gap-2 rounded-md bg-gray-100 sm:flex-row sm:items-center '>
                                         <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-4'>
@@ -167,8 +181,8 @@ export default function StJamesIX_XReportForm({
                                                 </Label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
-                                                <RadioGroupItem value='prom' id='r2' />
-                                                <Label htmlFor='r2' className='font-normal'>
+                                                <RadioGroupItem value='groupwise' id='r3' />
+                                                <Label htmlFor='r3' className='font-normal'>
                                                     Promotion
                                                 </Label>
                                             </div>
@@ -312,77 +326,80 @@ export default function StJamesIX_XReportForm({
                             </div>
 
                             <div className='space-y-6'>
-                                <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                    <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
-                                        <Checkbox
-                                            checked={selectedExams?.length === exams.length && exams.length > 0}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setValue(
-                                                        'emE_Id',
-                                                        exams.map((e) => ({ emE_Id: e.emE_Id })),
-                                                        { shouldValidate: true }
-                                                    );
-                                                } else {
-                                                    setValue('emE_Id', [], { shouldValidate: true });
-                                                }
-                                            }}
-                                        />
-                                        Exams <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <div className='flex-1'>
-                                        <Controller
-                                            control={control}
-                                            name='emE_Id'
-                                            render={({ field, fieldState }) => (
-                                                <div className='flex flex-col gap-2'>
-                                                    <div className='flex max-h-[200px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
-                                                        {loadingExams ? (
-                                                            <span className='text-muted-foreground text-sm'>Exams are loading...</span>
-                                                        ) : exams.length === 0 ? (
-                                                            <span className='text-muted-foreground text-sm'>No Exams found</span>
-                                                        ) : (
-                                                            <div className='flex flex-col gap-3'>
-                                                                {exams.map((e) => {
-                                                                    const isChecked =
-                                                                        field.value?.some((val: any) => val.emE_Id === e.emE_Id) || false;
-                                                                    return (
-                                                                        <div key={e.emE_Id} className='flex items-center space-x-2'>
-                                                                            <Checkbox
-                                                                                id={`exam-${e.emE_Id}`}
-                                                                                checked={isChecked}
-                                                                                onCheckedChange={(checked) => {
-                                                                                    if (checked) {
-                                                                                        field.onChange([
-                                                                                            ...(field.value || []),
-                                                                                            { emE_Id: e.emE_Id }
-                                                                                        ]);
-                                                                                    } else {
-                                                                                        field.onChange(
-                                                                                            (field.value || []).filter(
-                                                                                                (val: any) => val.emE_Id !== e.emE_Id
-                                                                                            )
-                                                                                        );
-                                                                                    }
-                                                                                }}
-                                                                            />
-                                                                            <Label
-                                                                                htmlFor={`exam-${e.emE_Id}`}
-                                                                                className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                                                                {e.emE_ExamName}
-                                                                            </Label>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
+                                {reportType === 'indi' && (
+                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
+                                        <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
+                                            <Checkbox
+                                                checked={selectedExams?.length === exams.length && exams.length > 0}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setValue(
+                                                            'emE_Id',
+                                                            exams.map((e) => ({ emE_Id: e.emE_Id })),
+                                                            { shouldValidate: true }
+                                                        );
+                                                    } else {
+                                                        setValue('emE_Id', [], { shouldValidate: true });
+                                                    }
+                                                }}
+                                            />
+                                            Exams <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <div className='flex-1'>
+                                            <Controller
+                                                control={control}
+                                                name='emE_Id'
+                                                render={({ field, fieldState }) => (
+                                                    <div className='flex flex-col gap-2'>
+                                                        <div className='flex max-h-[200px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
+                                                            {loadingExams ? (
+                                                                <span className='text-muted-foreground text-sm'>Exams are loading...</span>
+                                                            ) : exams.length === 0 ? (
+                                                                <span className='text-muted-foreground text-sm'>No Exams found</span>
+                                                            ) : (
+                                                                <div className='flex flex-col gap-3'>
+                                                                    {exams.map((e) => {
+                                                                        const isChecked =
+                                                                            field.value?.some((val: any) => val.emE_Id === e.emE_Id) ||
+                                                                            false;
+                                                                        return (
+                                                                            <div key={e.emE_Id} className='flex items-center space-x-2'>
+                                                                                <Checkbox
+                                                                                    id={`exam-${e.emE_Id}`}
+                                                                                    checked={isChecked}
+                                                                                    onCheckedChange={(checked) => {
+                                                                                        if (checked) {
+                                                                                            field.onChange([
+                                                                                                ...(field.value || []),
+                                                                                                { emE_Id: e.emE_Id }
+                                                                                            ]);
+                                                                                        } else {
+                                                                                            field.onChange(
+                                                                                                (field.value || []).filter(
+                                                                                                    (val: any) => val.emE_Id !== e.emE_Id
+                                                                                                )
+                                                                                            );
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor={`exam-${e.emE_Id}`}
+                                                                                    className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                                                                    {e.emE_ExamName}
+                                                                                </Label>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                                     </div>
-                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                                </div>
-                                            )}
-                                        />
+                                                )}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
@@ -390,7 +407,7 @@ export default function StJamesIX_XReportForm({
                             <Button
                                 type='submit'
                                 isLoading={isSubmitting}
-                                disabled={isSubmitting || selectedExams?.length === 0}
+                                disabled={isSubmitting || (reportType === 'indi' && selectedExams?.length === 0)}
                                 className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>

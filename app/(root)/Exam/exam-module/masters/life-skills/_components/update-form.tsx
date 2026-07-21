@@ -88,8 +88,8 @@ export default function UpdateLifeSkillForm({ onSuccess, className = '', selecte
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Life Skill Info */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Life Skill Name' required {...register('ecS_SkillName')} error={errors.ecS_SkillName?.message} />
-                    <InputText label='Life Skill Code' required {...register('ecS_SkillCode')} error={errors.ecS_SkillCode?.message} />
+                    <InputText label='Life Skill Name' required placeholder='Enter Life Skill Name' {...register('ecS_SkillName')} error={errors.ecS_SkillName?.message} />
+                    <InputText label='Life Skill Code' required placeholder='Enter Life Skill Code' {...register('ecS_SkillCode')} error={errors.ecS_SkillCode?.message} />
                 </div>
 
                 {/* Buttons */}

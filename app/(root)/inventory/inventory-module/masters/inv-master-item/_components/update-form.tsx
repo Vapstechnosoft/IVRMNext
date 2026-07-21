@@ -76,18 +76,18 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
 
 
     useEffect(() => {
-        if (selectedRow.invmG_Id && dropdowns.get_maingroup) {
+        if (selectedRow.invmG_Id && dropdowns?.get_maingroup) {
             // Check if the current ID is directly in main group
-            const isMainGroup = dropdowns.get_maingroup.some((g: any) => g.invmG_Id === selectedRow.invmG_Id);
+            const isMainGroup = dropdowns?.get_maingroup?.some((g: any) => g.invmG_Id === selectedRow.invmG_Id);
 
             if (isMainGroup) {
                 setValue('invmG_Id', selectedRow.invmG_Id);
-            } else if (dropdowns.get_itemgroup && dropdowns.get_usergroup) {
+            } else if (dropdowns?.get_itemgroup && dropdowns?.get_usergroup) {
                 // Try to resolve from item group hierarchy
-                const currentItemGroup = dropdowns.get_itemgroup.find((g: any) => g.invmG_Id === selectedRow.invmG_Id);
+                const currentItemGroup = dropdowns?.get_itemgroup?.find((g: any) => g.invmG_Id === selectedRow.invmG_Id);
                 if (currentItemGroup) {
                     const userGroupId = currentItemGroup.invmG_ParentId;
-                    const currentUserGroup = dropdowns.get_usergroup.find((g: any) => g.invmG_Id === userGroupId);
+                    const currentUserGroup = dropdowns?.get_usergroup?.find((g: any) => g.invmG_Id === userGroupId);
                     if (currentUserGroup) {
                         setValue('invmG_Id', currentUserGroup.invmG_ParentId);
                     }
@@ -101,7 +101,8 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
             if (selectedRow.invmI_Id && selectedRow.invmI_TaxAplFlg) {
                 setIsLoadingTaxes(true);
                 const res = await getItemTax(selectedRow.invmI_Id);
-                const itemTaxes = res.get_itemTax || [];
+                const rawTaxList = (res as any).get_itemTax;
+                const itemTaxes = Array.isArray(rawTaxList) ? rawTaxList : (rawTaxList?.$values ?? []);
 
                 const selected: Record<number, boolean> = {};
                 const values: Record<number, number> = {};
@@ -134,7 +135,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
         try {
             const taxApplicable = [];
             if (data.invmI_TaxAplFlg) {
-                for (const tax of dropdowns.get_tax) {
+                for (const tax of dropdowns?.get_tax || []) {
                     if (selectedTaxes[tax.invmT_Id]) {
                         taxApplicable.push({
                             invmiT_Id: taxIds[tax.invmT_Id] || 0,
@@ -147,17 +148,18 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
 
             const payload = { ...data, tax_Applicable: taxApplicable };
             const result = await saveInvMasterItem(payload);
+            const res = result as any;
 
-            if (result.success || result.returnval === true) {
-                const msg = typeof result.message === 'string' ? result.message : (typeof result.returnval === 'string' ? result.returnval : 'Record updated successfully');
+            if (res.success || res.returnval === true) {
+                const msg = typeof res.message === 'string' ? res.message : (typeof res.returnval === 'string' ? res.returnval : 'Record updated successfully');
                 toast.success(msg);
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
-            } else if (result.returnval === 'Duplicate' || result.returnduplicatestatus === 'Duplicate') {
+            } else if (res.returnval === 'Duplicate' || res.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                const msg = typeof result.message === 'string' ? result.message : 'Failed to update record';
+                const msg = typeof res.message === 'string' ? res.message : 'Failed to update record';
                 toast.error(msg);
             }
         } catch (error: any) {
@@ -184,7 +186,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                                         <SelectValue placeholder='Select Group' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns.get_maingroup?.map((group: any) => (
+                                        {dropdowns?.get_maingroup?.map((group: any) => (
                                             <SelectItem key={group.invmG_Id} value={group.invmG_Id?.toString() || ''}>
                                                 {group.invmG_GroupName}
                                             </SelectItem>
@@ -276,7 +278,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                                         <SelectValue placeholder='Select UOM' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdowns.get_UOM?.map(uom => (
+                                        {dropdowns?.get_UOM?.map(uom => (
                                             <SelectItem key={uom.invmuoM_Id} value={uom.invmuoM_Id?.toString() || uom.invmuoM_Id || ''}>
                                                 {uom.invmuoM_UOMName}
                                             </SelectItem>
@@ -324,7 +326,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
             </div>
 
             {/* Tax Grid Section */}
-            {isTaxApplied && dropdowns.get_tax?.length > 0 && (
+            {isTaxApplied && dropdowns?.get_tax?.length > 0 && (
                 <div className='mt-8 border rounded-lg p-4 bg-muted/30'>
                     <h3 className='text-sm font-semibold mb-3'>Tax Details {isLoadingTaxes && '(Loading existing...)'}</h3>
                     <div className='max-h-[300px] overflow-auto border rounded'>
@@ -339,7 +341,7 @@ export default function UpdateInvMasterItemForm({ onSuccess, selectedRow, dropdo
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {dropdowns.get_tax.map((tax, idx) => (
+                                {dropdowns?.get_tax?.map((tax, idx) => (
                                     <TableRow key={tax.invmT_Id}>
                                         <TableCell>{idx + 1}</TableCell>
                                         <TableCell>

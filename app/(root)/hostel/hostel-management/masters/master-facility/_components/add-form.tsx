@@ -71,6 +71,9 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                             required
                             id='hlmftY_FacilityName'
                             {...register('hlmftY_FacilityName')}
+                            onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                            }}
                             error={errors.hlmftY_FacilityName?.message}
                         />
                     </div>
@@ -79,7 +82,7 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-2'>
                             <Label htmlFor='hlmftY_FacilityDesc'>
-                                Description <span className='ml-1 text-red-500'>*</span>
+                                Description
                             </Label>
                             <textarea
                                 id='hlmftY_FacilityDesc'

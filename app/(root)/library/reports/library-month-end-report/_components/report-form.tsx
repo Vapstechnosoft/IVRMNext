@@ -1,12 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLibraryMonthEndReportInitialData } from '@/hooks/library/reports/useLibraryMonthEndReport';
 import type { ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Printer, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -14,23 +15,24 @@ import * as z from 'zod';
 const formSchema = z.object({
     ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
     IVRM_Month_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Month is required')),
-    year: z.string().min(1, 'Year is required') // This refers to the specific calendar year selected
-    // iename: z.string().optional(), // Keeping it optional as it was just an input for display
+    LMRA_Id: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().optional()),
+    IE_Name: z.string().optional(),
+    year: z.string().min(1, 'Year is required')
 });
 
 interface ReportFormProps {
     onSearch: (data: ILibraryMonthEndReportRequest) => void;
+    onPrint?: () => void;
     isLoading: boolean;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
-    const { data: initialData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
-    const [yearsList, setYearsList] = useState<string[]>([]);
-
+export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) => {
+    const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
+    const initialData = (monthEndData as any)?.data || monthEndData;
+    
     const {
         control,
         handleSubmit,
-        watch,
         setValue,
         formState: { errors },
         reset
@@ -39,137 +41,164 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         defaultValues: {}
     });
 
-    const selectedAcademicYearId = watch('ASMAY_Id');
-
-    // Logic to populate Year dropdown based on Academic Year
-    useEffect(() => {
-        if (selectedAcademicYearId && initialData?.acdlist) {
-            const selectedYear = initialData.acdlist.find((y) => y.asmaY_Id === selectedAcademicYearId);
-            if (selectedYear) {
-                const yearParts = selectedYear.asmaY_Year.split('-');
-                if (yearParts.length >= 1) {
-                    const y1 = yearParts[0];
-                    const y2 = yearParts[1];
-                    // Legacy code logic: s1 = year.substring(0, 4); s2 = year.substring(year.length, 5);
-                    // But typically '2023-2024' split gives ['2023', '2024']
-                    const tempYears = [];
-                    if (y1) tempYears.push(y1);
-                    if (y2) tempYears.push(y2);
-                    setYearsList(tempYears);
-                } else {
-                    setYearsList([selectedYear.asmaY_Year]);
-                }
-            }
-        } else {
-            setYearsList([]);
-        }
-    }, [selectedAcademicYearId, initialData]);
-
     const onSubmit = (values: z.infer<typeof formSchema>) => {
-        onSearch(values);
+        onSearch({
+            ASMAY_Id: values.ASMAY_Id,
+            IVRM_Month_Id: values.IVRM_Month_Id,
+            year: values.year,
+            LMRA_Id: values.LMRA_Id,
+            IE_Name: values.IE_Name
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                {/* Academic Year Selection */}
-                <div className='space-y-2'>
-                    <Label>
-                        Academic Year <span className='text-red-500'>*</span>
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='ASMAY_Id'
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => {
-                                    field.onChange(val);
-                                    setValue('year', ''); // Reset year on academic year change
-                                }}
-                                value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Academic Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {initialData?.acdlist?.map((item) => (
-                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                            {item.asmaY_Year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.ASMAY_Id && <p className='text-red-500 text-sm'>{errors.ASMAY_Id.message}</p>}
-                </div>
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400'>
+            
+            <div className='flex justify-center mb-6'>
+                <div className='w-full max-w-2xl space-y-6'>
+                    
+                    {/* Academic Year */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            Academic Year:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='ASMAY_Id'
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => {
+                                            field.onChange(val);
+                                            setValue('year', '');
+                                        }}
+                                        value={field.value?.toString()}>
+                                        <SelectTrigger className='w-full border-muted-foreground/30'>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Array.isArray(initialData?.acdlist) &&
+                                                initialData?.acdlist?.map((item: any) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.ASMAY_Id && <p className='text-xs text-destructive mt-1'>{errors.ASMAY_Id.message}</p>}
+                        </div>
+                    </div>
 
-                {/* Month Selection */}
-                <div className='space-y-2'>
-                    <Label>
-                        Month <span className='text-red-500'>*</span>
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='IVRM_Month_Id'
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Month' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {initialData?.monthlist?.map((item) => (
-                                        <SelectItem key={item.ivrM_Month_Id} value={item.ivrM_Month_Id.toString()}>
-                                            {item.ivrM_Month_Name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.IVRM_Month_Id && <p className='text-red-500 text-sm'>{errors.IVRM_Month_Id.message}</p>}
-                </div>
+                    {/* Month */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            Month:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='IVRM_Month_Id'
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                        <SelectTrigger className='w-full border-muted-foreground/30'>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Array.isArray(initialData?.monthlist) &&
+                                                initialData?.monthlist?.map((item: any) => (
+                                                    <SelectItem key={item.ivrM_Month_Id} value={item.ivrM_Month_Id.toString()}>
+                                                        {item.ivrM_Month_Name}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.IVRM_Month_Id && <p className='text-xs text-destructive mt-1'>{errors.IVRM_Month_Id.message}</p>}
+                        </div>
+                    </div>
 
-                {/* Year Selection (Dependent) */}
-                <div className='space-y-2'>
-                    <Label>
-                        Year <span className='text-red-500'>*</span>
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='year'
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value} disabled={yearsList.length === 0}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {yearsList.map((y) => (
-                                        <SelectItem key={y} value={y}>
-                                            {y}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.year && <p className='text-red-500 text-sm'>{errors.year.message}</p>}
+                    {/* IE (Text Field) */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            IE:
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='IE_Name'
+                                render={({ field }) => (
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter IE Name'
+                                        className='w-full border-muted-foreground/30'
+                                    />
+                                )}
+                            />
+                            {errors.IE_Name && <p className='text-xs text-destructive mt-1'>{errors.IE_Name.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* Year */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right font-medium text-sm'>
+                            Year:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='year'
+                                render={({ field }) => (
+                                    <Input
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        placeholder='Enter Year (e.g. 2024)'
+                                        className='w-full border-muted-foreground/30'
+                                    />
+                                )}
+                            />
+                            {errors.year && <p className='text-xs text-destructive mt-1'>{errors.year.message}</p>}
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <div className='flex justify-center gap-2'>
-                <Button type='submit' disabled={isLoading || isInitialLoading}>
-                    {isLoading ? (
-                        <>
-                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                            Generating...
-                        </>
-                    ) : (
-                        'Report'
-                    )}
+            <hr className='my-6 border-muted-foreground/20' />
+
+            {/* Action Buttons */}
+            <div className='flex items-center justify-center gap-4'>
+                <Button
+                    type='submit'
+                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
+                    disabled={isLoading}
+                >
+                    {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
+                    REPORT
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()}>
-                    Cancel
+                <Button
+                    type='button'
+                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    onClick={() => reset()}
+                    disabled={isLoading}
+                >
+                    <X className='mr-1.5 h-3.5 w-3.5' />
+                    CANCEL
                 </Button>
+                {onPrint && (
+                    <Button
+                        type='button'
+                        className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-sm rounded-sm'
+                        onClick={onPrint}
+                        disabled={isLoading}
+                    >
+                        <Printer className='mr-1.5 h-3.5 w-3.5' />
+                        PRINT
+                    </Button>
+                )}
             </div>
         </form>
     );

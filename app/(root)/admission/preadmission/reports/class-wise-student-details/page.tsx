@@ -277,20 +277,11 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset();
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedClassItems([]);
-        setSelectedSectionItems([]);
-        tableRef.current?.resetSelection();
-        router.push(window.location.pathname, { scroll: false });
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {
@@ -434,7 +425,7 @@ export default function AdmissionReportPage(props: {
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year *</Label>
+                        <Label>Academic Year <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
@@ -458,7 +449,7 @@ export default function AdmissionReportPage(props: {
 
                     {/* Class */}
                     <div>
-                        <Label>Class *</Label>
+                        <Label>Class <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='classes'
                             control={control}
@@ -487,7 +478,7 @@ export default function AdmissionReportPage(props: {
 
                     {/* Section */}
                     <div>
-                        <Label>Section *</Label>
+                        <Label>Section <span className='text-red-600'>*</span></Label>
                         <Controller
                             name='class_section'
                             control={control}

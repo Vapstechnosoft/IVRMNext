@@ -77,6 +77,7 @@ import {
     getStudentFeeGroupMappingAcademicYearDropdown,
     getclassdropdown
 } from '@/server/fees/masters/student_fee_group_mapping';
+import { getFeeStudentAcademicYearDropdown } from '@/server/fees/reports/studentfee_pages';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
@@ -549,13 +550,13 @@ export const TERM_DROPDOWN_DATA = () => {
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA],
+            queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA_DROPDOWN],
             queryFn: async () => gettermsdropdown(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA]
+                queryKey: [FEES_QUERY_KEYS.TERM_DROP_DOWN_DATA_DROPDOWN]
             });
         }
     };
@@ -1417,6 +1418,23 @@ export const useMasterPaymentInstitutionName = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_INSTITUTION_NAME]
+            });
+        }
+    };
+};
+
+export const useFeeStudentAcademicYearDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
+            queryFn: async () => getFeeStudentAcademicYearDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN]
             });
         }
     };

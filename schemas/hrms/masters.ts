@@ -95,12 +95,23 @@ export const departmentMasterSchema = z.object({
         }
     ),
     hrmD_InternalTrainingMinimumHrs: z
-        .union([z.string(), z.number()])
-        .transform((val) => (typeof val === 'string' ? Number.parseInt(val, 10) : val))
-        .refine((val) => !Number.isNaN(val) && val >= 0, {
+        .union([
+            z.number({ invalid_type_error: 'Internal Training Minimum Hours is required', required_error: 'Internal Training Minimum Hours is required' }),
+            z.string().transform((val) => {
+                const parsed = Number.parseInt(val, 10);
+                return Number.isNaN(parsed) ? undefined : parsed;
+            })
+        ])
+        .transform((val) => val)
+        .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+            message: 'Internal Training Minimum Hours is required'
+        })
+        .refine((val) => (val as number) >= 0, {
             message: 'Internal Training Minimum Hours must be a positive number or zero'
         })
-        .optional(),
+        .refine((val) => (val as number) <= 999, {
+            message: 'Internal Training Minimum Hours must not exceed 999'
+        }),
     hrmD_Order: z.number().optional()
 });
 
@@ -506,8 +517,8 @@ export const payrollStandardSchema = z.object({
 // Group-Department-Designation Mapping Schema
 export const groupDeptDessgMappingSchema = z.object({
     hrgtddS_Id: z.number().optional(),
-    hrmgT_Id: z.number().min(1, 'Please select a group type'),
-    hrmD_Id: z.number().min(1, 'Please select a department'),
+    hrmgT_Id: z.string().min(1, 'Please select a group type'),
+    hrmD_Id: z.string().min(1, 'Please select a department'),
     hrmdeS_Id: z.number().optional(),
     designationids: z.array(z.number()).min(1, 'Please select at least one designation'),
     hrgtddS_ActiveFlg: z.boolean().default(true),

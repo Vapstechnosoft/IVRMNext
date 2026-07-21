@@ -4,11 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Loader2, Save, XCircle, Minus } from 'lucide-react';
 import { vacateRoomSchema, type VacateRoomSchema } from '@/schemas/hostel/transactions/vacate-room.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -17,6 +15,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { getDetailsOnType, saveVacate, getStudentDetail, getStaffDetail, getGuestDetail } from '@/server/hostel/hostel-management/transactions/vacate-room';
+import { DateField } from '@/components/ui/dateField';
 
 interface VacateFormProps {
     initialData: {
@@ -49,8 +48,7 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
         control,
         handleSubmit,
         reset,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = methods;
 
     const selectedType = useWatch({ control, name: 'type' });
@@ -74,7 +72,7 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
         // Fetch people based on type
         (async () => {
             const res = await getDetailsOnType(selectedType);
-            if (res && res.list) {
+            if (res?.list) {
                 setPeople(res.list);
             }
         })();
@@ -85,21 +83,21 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
         if (selectedType === 'student' && selectedAMST) {
             (async () => {
                 const res = await getStudentDetail(Number(selectedAMST));
-                if (res && res.studentdata?.[0]) {
+                if (res?.studentdata?.[0]) {
                     setDetails(res.studentdata[0]);
                 }
             })();
         } else if (selectedType === 'staff' && selectedHRME) {
             (async () => {
                 const res = await getStaffDetail(Number(selectedHRME));
-                if (res && res.staffdata?.[0]) {
+                if (res?.staffdata?.[0]) {
                     setDetails(res.staffdata[0]);
                 }
             })();
         } else if (selectedType === 'guest' && selectedHLHGSTALT) {
             (async () => {
                 const res = await getGuestDetail(Number(selectedHLHGSTALT));
-                if (res && res.guest_details?.[0]) {
+                if (res?.guest_details?.[0]) {
                     setDetails(res.guest_details[0]);
                 }
             })();
@@ -108,19 +106,18 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
 
     const onSubmit = async (data: any) => {
         try {
-            // we need to pass the correct date and remarks keys for legacy API
             const payload: any = { type: data.type };
             if (data.type === 'student') {
                 payload.AMST_Id = data.AMST_Id;
-                payload.HLHSALT_VacatedDate = data.HLHSALT_VacatedDate;
+                payload.HLHSALT_VacatedDate = data.HLHSALT_VacatedDate ? format(data.HLHSALT_VacatedDate, 'yyyy-MM-dd') : null;
                 payload.HLHSALT_VacateRemarks = data.HLHSALT_VacateRemarks;
             } else if (data.type === 'staff') {
                 payload.HRME_Id = data.HRME_Id;
-                payload.HLHSTALT_VacatedDate = data.HLHSALT_VacatedDate;
+                payload.HLHSTALT_VacatedDate = data.HLHSALT_VacatedDate ? format(data.HLHSALT_VacatedDate, 'yyyy-MM-dd') : null;
                 payload.HLHSTALT_VacateRemarks = data.HLHSALT_VacateRemarks;
             } else if (data.type === 'guest') {
                 payload.HLHGSTALT_Id = data.HLHGSTALT_Id;
-                payload.HLHGSTALT_VacatedDate = data.HLHSALT_VacatedDate;
+                payload.HLHGSTALT_VacatedDate = data.HLHSALT_VacatedDate ? format(data.HLHSALT_VacatedDate, 'yyyy-MM-dd') : null;
                 payload.HLHGSTALT_VacateRemarks = data.HLHSALT_VacateRemarks;
             }
 
@@ -130,7 +127,7 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
                 reset();
                 onSuccess?.(data.type);
             } else {
-                toast.error(String(res.message));
+                toast.error(res.message || 'Failed to update');
             }
         } catch (error) {
             console.error(error);
@@ -138,152 +135,161 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
         }
     };
 
+    const ReadOnlyField = ({ label, value }: { label: string, value: any }) => (
+        <div className="flex items-center py-1">
+            <Label className="w-40 text-left text-gray-700 font-medium">{label}</Label>
+            <span className="text-gray-500 mr-4">:</span>
+            <span className="flex-1 text-blue-900 font-semibold truncate">{value || '-'}</span>
+        </div>
+    );
+
     return (
-        <Card>
-            <CardContent>
+        <Card className="shadow-md border-t-4 border-t-[#4255a7]">
+            <CardHeader className="bg-white py-2 px-4 border-b flex flex-row items-center justify-between">
+                <CardTitle className="text-[#4255a7] text-sm font-bold uppercase">HOSTEL VACATE ROOM</CardTitle>
+                <Minus className="h-4 w-4 text-gray-400 cursor-pointer" />
+            </CardHeader>
+            <CardContent className="p-8">
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="flex justify-center pb-4 mt-4">
-                            <Controller
-                                control={control}
-                                name="type"
-                                render={({ field, fieldState }) => (
-                                    <div className="space-y-3">
+                        {/* Radio Group Header */}
+                        <div className="flex justify-center">
+                            <div className="flex items-center space-x-8 px-12 py-2 border rounded-full bg-white shadow-sm">
+                                <Controller
+                                    control={control}
+                                    name="type"
+                                    render={({ field }) => (
                                         <RadioGroup
                                             onValueChange={field.onChange}
                                             value={field.value}
-                                            className="flex gap-8 border p-4 rounded-lg bg-gray-50"
+                                            className="flex space-x-8"
                                         >
                                             <div className="flex items-center space-x-2">
                                                 <RadioGroupItem value="student" id="r1" />
-                                                <Label htmlFor="r1">Student</Label>
+                                                <Label htmlFor="r1" className="cursor-pointer text-xs font-bold uppercase">Student</Label>
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 <RadioGroupItem value="staff" id="r2" />
-                                                <Label htmlFor="r2">Staff</Label>
+                                                <Label htmlFor="r2" className="cursor-pointer text-xs font-bold uppercase">Staff</Label>
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 <RadioGroupItem value="guest" id="r3" />
-                                                <Label htmlFor="r3">Guest</Label>
+                                                <Label htmlFor="r3" className="cursor-pointer text-xs font-bold uppercase">Guest</Label>
                                             </div>
                                         </RadioGroup>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )}
-                            />
+                                    )}
+                                />
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Person Selection */}
-                            <Controller
-                                control={control}
-                                name={selectedType === 'student' ? 'AMST_Id' : (selectedType === 'staff' ? 'HRME_Id' : 'HLHGSTALT_Id')}
-                                render={({ field, fieldState }) => (
-                                    <div>
-                                        <Label className="capitalize">{selectedType} Name <span className="text-red-500">*</span></Label>
-                                        <Select
-                                            value={String(field.value || '')}
-                                            onValueChange={(v) => field.onChange(Number(v))}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={`Select ${selectedType}`} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {people?.map((p: any) => (
-                                                    <SelectItem
-                                                        key={p.amsT_Id || p.hrmE_Id || p.hlhgstalT_Id}
-                                                        value={String(p.amsT_Id || p.hrmE_Id || p.hlhgstalT_Id)}
-                                                    >
-                                                        {p.studentname || p.staffname || p.hlhgstalT_GuestName}
-                                                        {p.amsT_AdmNo ? ` : ${p.amsT_AdmNo}` : ''}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )}
-                            />
-
-                            {/* Vacate Date */}
-                            <Controller
-                                control={control}
-                                name="HLHSALT_VacatedDate"
-                                render={({ field, fieldState }) => (
-                                    <div className="flex flex-col">
-                                        <Label>Vacate Date <span className="text-red-500">*</span></Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        "w-full justify-start text-left font-normal",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value || undefined}
-                                                    onSelect={field.onChange}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )}
-                            />
+                        {/* Person Selection */}
+                        <div className="flex justify-center items-center space-x-4 max-w-2xl mx-auto py-2">
+                            <Label className="w-40 text-right font-bold whitespace-nowrap text-gray-700">
+                                {selectedType === 'student' ? 'Student' : selectedType === 'staff' ? 'Staff' : 'Guest'} Name:<span className="text-red-500">*</span>
+                            </Label>
+                            <div className="w-72">
+                                <Controller
+                                    control={control}
+                                    name={selectedType === 'student' ? 'AMST_Id' : (selectedType === 'staff' ? 'HRME_Id' : 'HLHGSTALT_Id')}
+                                    render={({ field, fieldState }) => (
+                                        <div className="w-full">
+                                            <Select
+                                                value={String(field.value || '')}
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs border-blue-200">
+                                                    <SelectValue placeholder="--Select--" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {people?.map((p: any) => (
+                                                        <SelectItem
+                                                            key={p.amsT_Id || p.hrmE_Id || p.hlhgstalT_Id}
+                                                            value={String(p.amsT_Id || p.hrmE_Id || p.hlhgstalT_Id)}
+                                                            className="text-xs"
+                                                        >
+                                                            {p.studentname || p.staffname || p.hlhgstalT_GuestName}
+                                                            {p.amsT_AdmNo ? ` : ${p.amsT_AdmNo}` : ''}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
                         </div>
 
-                        {/* Details Display */}
-                        {details && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-blue-50 border border-blue-100 text-sm">
-                                {selectedType === 'student' && (
-                                    <>
-                                        <div><strong>Class:</strong> {details.ASMCL_ClassName}</div>
-                                        <div><strong>Section:</strong> {details.ASMC_SectionName}</div>
-                                    </>
-                                )}
-                                {selectedType === 'staff' && (
-                                    <>
-                                        <div><strong>Department:</strong> {details.HRMD_DepartmentName}</div>
-                                        <div><strong>Designation:</strong> {details.HRMDES_DesignationName}</div>
-                                    </>
-                                )}
-                                <div><strong>Hostel:</strong> {details.HLMH_Name}</div>
-                                <div><strong>Room No:</strong> {details.HRMRM_RoomNo}</div>
-                                <div>
-                                    <strong>Date of Joining:</strong> {
-                                        format(new Date(details.HLHSALT_AllotmentDate || details.HLHSTALT_AllotmentDate || details.hlhgstalT_AllotmentDate), 'dd-MM-yyyy')
-                                    }
+                        {/* Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-1 max-w-5xl mx-auto border-y py-4 my-4 bg-slate-50/50 rounded-lg px-4">
+                            <ReadOnlyField 
+                                label={selectedType === 'student' ? 'Course' : selectedType === 'staff' ? 'Department' : 'Guest Type'} 
+                                value={details?.ASMCL_ClassName || details?.HRMD_DepartmentName || '-'} 
+                            />
+                            <ReadOnlyField 
+                                label={selectedType === 'student' ? 'Branch' : selectedType === 'staff' ? 'Designation' : ''} 
+                                value={details?.ASMC_SectionName || details?.HRMDES_DesignationName || ''} 
+                            />
+                            <ReadOnlyField 
+                                label="Date Of Joining" 
+                                value={details ? format(new Date(details.HLHSALT_AllotmentDate || details.HLHSTALT_AllotmentDate || details.hlhgstalT_AllotmentDate), 'dd-MM-yyyy') : '-'} 
+                            />
+                            <ReadOnlyField label="Hostel Name" value={details?.HLMH_Name} />
+                            <ReadOnlyField label="Room Name" value={details?.HRMRM_RoomNo} />
+                        </div>
+
+                        {/* Vacate Date and Remarks */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-1 max-w-5xl mx-auto">
+                            <div className="flex items-center py-1">
+                                <Label className="w-40 text-left text-gray-700 font-medium whitespace-nowrap">Vacate Date:<span className="text-red-500">*</span></Label>
+                                <span className="text-gray-500 mr-4">:</span>
+                                <div className="flex-1">
+                                    <Controller
+                                        control={control}
+                                        name="HLHSALT_VacatedDate"
+                                        render={({ field, fieldState }) => (
+                                            <DateField field={field} fieldState={fieldState} label="" placeholder="Select date..." outputFormat="date" />
+                                        )}
+                                    />
                                 </div>
                             </div>
-                        )}
 
-                        {/* Remarks */}
-                        <Controller
-                            control={control}
-                            name="HLHSALT_VacateRemarks"
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Remarks</Label>
-                                    <Textarea {...field} value={field.value || ''} placeholder="Enter Remarks" rows={2} />
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            <div className="flex items-start py-1">
+                                <Label className="w-40 text-left pt-2 text-gray-700 font-medium">Remarks</Label>
+                                <span className="text-gray-500 mr-4 pt-2">:</span>
+                                <div className="flex-1">
+                                    <Controller
+                                        control={control}
+                                        name="HLHSALT_VacateRemarks"
+                                        render={({ field, fieldState }) => (
+                                            <div className="w-full">
+                                                <Textarea {...field} value={field.value || ''} className="min-h-[60px] border-blue-100" />
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
+                                        )}
+                                    />
                                 </div>
-                            )}
-                        />
+                            </div>
+                        </div>
 
                         {/* Actions */}
-                        <div className="flex items-center justify-center gap-4 pt-4">
-                            <Button type="button" variant="outline" onClick={() => { reset(); setDetails(null); }}>Cancel</Button>
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Submit
+                        <div className="flex items-center justify-center gap-4 pt-6">
+                            <Button 
+                                type="submit" 
+                                disabled={isSubmitting} 
+                                className="w-32 bg-[#4255a7] hover:bg-[#354486] text-white rounded-md shadow-md uppercase font-bold text-xs"
+                            >
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="h-3 w-3 mr-2" />}
+                                SUBMIT
+                            </Button>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => { reset(); setDetails(null); }} 
+                                className="w-32 bg-[#ff5c33] hover:bg-[#e64d26] text-white border-none rounded-md shadow-md uppercase font-bold text-xs"
+                            >
+                                <XCircle className="h-3 w-3 mr-2" />
+                                CANCEL
                             </Button>
                         </div>
                     </form>

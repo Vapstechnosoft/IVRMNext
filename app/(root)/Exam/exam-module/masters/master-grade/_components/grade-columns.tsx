@@ -26,9 +26,10 @@ export const MasterGradeColumns: ColumnDef<IMasterGrade>[] = [
         cell: ({ row }) => <div>{row.getValue('emgR_GradeName')}</div>
     },
     {
-        accessorKey: 'emgR_MarksPerFlag',
+        id: 'emgR_MarksPerFlag',
+        accessorFn: (row) => (row.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'Percentage' : 'Marks'),
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks/Percentage Flag' />,
-        cell: ({ row }) => <div>{row.getValue('emgR_MarksPerFlag') === 'm' ? 'Marks' : 'Percentage'}</div>
+        cell: ({ row }) => <div>{row.getValue('emgR_MarksPerFlag')}</div>
     },
     {
         id: 'actions',

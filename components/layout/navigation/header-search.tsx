@@ -335,7 +335,11 @@ export function HeaderSearch() {
         const searchTerms = initialSearchTerm.toLowerCase().split(' ');
         const filteredPages = allPages.filter(item => {
             const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
-            return searchTerms.every(term => text.includes(term));
+            return searchTerms.every(term => {
+                if (text.includes(term)) return true;
+                if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                return false;
+            });
         }).slice(0, 7); // Limit suggestions
         setResults(filteredPages);
 
@@ -360,8 +364,12 @@ export function HeaderSearch() {
                             // Re-filter client pages using translated string
                             const translatedTerms = searchTerm.toLowerCase().split(' ');
                             const newFilteredPages = allPages.filter(item => {
-                                const text = `${item.title} ${item.subtitle}`.toLowerCase();
-                                return translatedTerms.every(term => text.includes(term));
+                                const text = `${item.title} ${item.subtitle} ${item.description || ''} ${item.keywords || ''}`.toLowerCase();
+                                return translatedTerms.every(term => {
+                                    if (text.includes(term)) return true;
+                                    if (term.endsWith('s') && term.length > 3 && text.includes(term.slice(0, -1))) return true;
+                                    return false;
+                                });
                             }).slice(0, 7);
                             setResults(newFilteredPages);
                         }
@@ -440,7 +448,6 @@ export function HeaderSearch() {
 
         setIsOpen(false);
         if (query.trim()) saveToHistory(query);
-        setQuery('');
         router.push(result.url);
     };
 
@@ -491,7 +498,6 @@ export function HeaderSearch() {
             const route = guessModuleRoute(dbResult.source);
             setIsOpen(false);
             if (query.trim()) saveToHistory(query);
-            setQuery('');
             router.push(route);
         }
     };
@@ -517,17 +523,33 @@ export function HeaderSearch() {
                     }}
                     onKeyDown={handleKeyDown}
                     className={cn(
-                        'pl-9 pr-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        'pl-9 transition-all focus:ring-2 focus:ring-primary/20 bg-background',
+                        query ? 'pr-20' : 'pr-12',
                         isOpen || query ? 'w-[400px]' : 'w-[300px]'
                     )}
                 />
+                {query && (
+                    <button
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setQuery('');
+                            setResults([]);
+                            setDbResults([]);
+                        }}
+                        className="absolute right-11 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full transition-all"
+                        title="Clear search"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
                 <button
                     onClick={isRecording ? stopRecording : startRecording}
                     disabled={isTranscribing}
                     className={cn(
                         "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
                         isRecording
-                            ? "bg-white shadow-[0_0_20px_rgba(139,92,246,0.3)] scale-110 z-10"
+                            ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(139,92,246,0.5)] scale-110 z-10 animate-bounce"
                             : "hover:bg-purple-50 text-muted-foreground hover:text-purple-600 group/mic"
                     )}
                     title={isRecording ? "Stop recording" : "Voice search"}
@@ -539,12 +561,7 @@ export function HeaderSearch() {
                             <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce" />
                         </div>
                     ) : isRecording ? (
-                        <div className="flex gap-1 items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-purple-dot-1" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-purple-dot-2" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-purple-dot-3" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-700 animate-purple-dot-4" />
-                        </div>
+                        <Mic className="h-5 w-5 text-white animate-pulse" />
                     ) : (
                         <Mic className="h-5 w-5 text-purple-600 transition-colors" />
                     )}
@@ -576,7 +593,7 @@ export function HeaderSearch() {
                                             e.stopPropagation();
                                             clearHistory(e);
                                         }}
-                                        className="text-xs text-blue-500 hover:text-blue-600 hover:underline px-2 py-0.5 rounded-sm hover:bg-blue-50 transition-colors"
+                                        className="text-sm font-medium text-blue-500 hover:text-blue-600 hover:underline px-2.5 py-1 rounded-md hover:bg-blue-50 transition-colors"
                                     >
                                         Clear all
                                     </button>

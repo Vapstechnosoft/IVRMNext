@@ -52,7 +52,6 @@ import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
-// mammoth will be imported dynamically to avoid build-time resolution issues
 
 
 interface ComposeTabProps {
@@ -240,20 +239,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     setXlsxPreviewData(jsonData as any[][]);
-                };
-                reader.readAsArrayBuffer(fileObj.file);
-            } else if (fileObj.name.toLowerCase().endsWith('.docx')) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const arrayBuffer = e.target?.result as ArrayBuffer;
-                    try {
-                        const mammothModule = await import('mammoth');
-                        const mammoth = mammothModule.default || mammothModule;
-                        const result = await mammoth.convertToHtml({ arrayBuffer });
-                        setDocxPreviewHtml(result.value);
-                    } catch (err) {
-                        setDocxPreviewHtml('<p className="text-red-500 font-bold">Failed to load Word document. Please download to view.</p>');
-                    }
                 };
                 reader.readAsArrayBuffer(fileObj.file);
             } else {
@@ -716,7 +701,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                     />
                                     <p className="text-sm font-bold text-muted-foreground">{previewFile.name}</p>
                                 </div>
-                            ) : previewFile.type === 'application/pdf' ? (
+                            ) : (previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.docx') || previewFile.name.toLowerCase().endsWith('.doc')) ? (
                                 <iframe
                                     src={previewFile.url}
                                     className="w-full h-full min-h-[600px] border-none rounded-lg"
@@ -749,19 +734,6 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                                 </div>
                                             )}
                                         </div>
-                                    </ScrollArea>
-                                </div>
-                            ) : docxPreviewHtml ? (
-                                <div className="w-full h-full min-h-[500px] bg-background rounded-lg border overflow-hidden flex flex-col shadow-inner">
-                                    <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Word Document Preview</span>
-                                        <Badge variant="outline" className="text-[9px] bg-blue-50 text-blue-700 border-blue-200">DOCX CONTENT</Badge>
-                                    </div>
-                                    <ScrollArea className="flex-1 w-full overflow-auto bg-white">
-                                        <div
-                                            className="p-10 prose prose-sm max-w-none prose-slate"
-                                            dangerouslySetInnerHTML={{ __html: docxPreviewHtml }}
-                                        />
                                     </ScrollArea>
                                 </div>
                             ) : previewFile.type?.startsWith('image/') ? (

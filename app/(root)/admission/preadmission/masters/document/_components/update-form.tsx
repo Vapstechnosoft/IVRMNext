@@ -85,6 +85,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         {/* Document Name */}
                         <InputText
                             label='Document Name'
+                            placeholder='Enter document name'
                             required
                             id='amsmD_DocumentName'
                             {...register('amsmD_DocumentName')}
@@ -95,8 +96,8 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         {/* Description */}
                         <InputTextarea
                             label='Description'
-                            id='amsmD_Description'
                             placeholder='Enter description'
+                            id='amsmD_Description'
                             {...register('amsmD_Description')}
                             error={errors.amsmD_Description?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -152,10 +153,10 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Document
+                            Update Document
                         </div>
                     </Button>
                 </div>

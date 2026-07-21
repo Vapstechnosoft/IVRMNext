@@ -43,7 +43,7 @@ export const masterReligionCasteCategoryColumns: ColumnDef<IMasterReligionCasteC
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterReligionCasteCategoryList }) {
-    const { openToggleForm } = useFormContext<IMasterReligionCasteCategoryList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterReligionCasteCategoryList>();
 
     const handleToggle = useCallback(
         (data: IMasterReligionCasteCategoryList) => {
@@ -52,11 +52,19 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterReligionCasteCategoryL
         [openToggleForm]
     );
 
+    const handleEdit = useCallback(
+        (data: IMasterReligionCasteCategoryList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onToggle={handleToggle}
+            onEdit={handleEdit}
             toggleConditionKey='ircC_ActiveFlg'
         />
     );

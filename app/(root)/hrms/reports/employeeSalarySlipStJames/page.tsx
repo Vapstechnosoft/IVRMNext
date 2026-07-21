@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import {
     useReportGroupTypes,
@@ -26,6 +27,7 @@ const MONTH_LIST = [
 ];
 
 export default function SalarySlipPage() {
+
     const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],
         department: [],
@@ -42,7 +44,9 @@ export default function SalarySlipPage() {
     });
 
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [tableResponse, setTableResponse] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<number>>(new Set());
     const [reportData, setReportData] = useState<any>(null);
     const [showReport, setShowReport] = useState(false);
     const [institutionDetails, setInstitutionDetails] = useState({
@@ -51,15 +55,17 @@ export default function SalarySlipPage() {
         logo: ''
     });
 
+    const reportRef = useRef<HTMLDivElement>(null);
+
     // Cascading Dropdown Hooks
-    const { data: yearsData } = useLeaveYearDropdown();
-    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = filters.groupType?.join(',') || '';
-    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = filters.department?.join(',') || '';
-    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
@@ -76,45 +82,71 @@ export default function SalarySlipPage() {
         }
     }, [onloadData]);
 
-    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
-        setFilters(newFilters);
-
-        if (
-            newFilters.groupType.length > 0 &&
-            newFilters.department.length > 0 &&
-            newFilters.designation.length > 0
-        ) {
-            filterEmployees({
-                MI_Id: 30,
-                LogInUserId: 0,
-                hreS_Year: newFilters.year,
-                hreS_Month: newFilters.month,
-                hrmgt_ids: newFilters.groupType.join(','),
-                hrmd_ids: newFilters.department.join(','),
-                hrmdes_ids: newFilters.designation.join(',')
-            }, {
-                onSuccess: (res) => {
-                    if (res.success && res.data) {
-                        const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
-                        const mapped = empList.map((emp: any, index: number) => ({
-                            id: index + 1,
-                            employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
-                            employeeName: `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ''} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ''}`.trim(),
-                            groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,
-                            departmentId: emp.hrmD_Id || emp.HRMD_Id,
-                            designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
-                            HRME_Id: emp.hrmE_Id || emp.HRME_Id,
-                            isSelected: false
-                        }));
-                        setEmployees(mapped);
-                    } else {
-                        setEmployees([]);
-                    }
-                }
+    useEffect(() => {
+        if (showReport && reportRef.current) {
+            reportRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
             });
+        }
+    }, [showReport]);
+
+
+    useEffect(() => {
+        if (
+            filters.groupType.length > 0 &&
+            filters.department.length > 0 &&
+            filters.designation.length > 0 &&
+            filters.year &&
+            filters.month
+        ) {
+            filterEmployees(
+                {
+                    MI_Id: 30,
+                    LogInUserId: 0,
+                    hreS_Year: filters.year,
+                    hreS_Month: filters.month,
+                    hrmgt_ids: filters.groupType.join(","),
+                    hrmd_ids: filters.department.join(","),
+                    hrmdes_ids: filters.designation.join(","),
+                    search: searchTerm || undefined
+                },
+                {
+                    onSuccess: (res) => {
+                        if (res.success && res.data) {
+                            const empList = Array.isArray(res.data)
+                                ? res.data
+                                : (res.data as any).data || [];
+                            const mapped = empList.map((emp: any, index: number) => ({
+                                id: index + 1,
+                                employeeCode: emp.hrmE_EmployeeCode || emp.HRME_EmployeeCode,
+                                employeeName:
+                                    `${emp.hrmE_EmployeeFirstName || emp.HRME_EmployeeFirstName} ${emp.hrmE_EmployeeMiddleName || emp.HRME_EmployeeMiddleName || ""} ${emp.hrmE_EmployeeLastName || emp.HRME_EmployeeLastName || ""}`.trim(),
+                                groupTypeId: emp.hrmgT_Id || emp.HRMGT_Id,
+                                departmentId: emp.hrmD_Id || emp.HRMD_Id,
+                                designationId: emp.hrmdeS_Id || emp.HRMDES_Id,
+                                HRME_Id: emp.hrmE_Id || emp.HRME_Id,
+                                isSelected: false,
+                                total_count: emp.total
+                            }));
+                            setEmployees(mapped);
+                            setTableResponse(res);
+                        } else {
+                            setEmployees([]);
+                            setTableResponse(null);
+                        }
+                    },
+                },
+            );
         } else {
             setEmployees([]);
+            setTableResponse(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month, searchTerm]);
+
+    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
+        setFilters(newFilters);
     };
 
     const filteredEmployeesList = useMemo(() => {
@@ -129,20 +161,33 @@ export default function SalarySlipPage() {
         });
     }, [employees, filters.groupType, filters.department, filters.designation, searchTerm]);
 
-    const selectedCount = filteredEmployeesList.filter(e => e.isSelected).length;
+    const selectedCount = filteredEmployeesList.filter(e => selectedEmployeeIds.has(e.id)).length;
 
-    const handleSelectAll = (checked: boolean) => {
-        setEmployees(prev => prev.map(emp => {
-            const isVisible = filteredEmployeesList.some(fe => fe.HRME_Id === emp.HRME_Id);
-            if (isVisible) {
-                return { ...emp, isSelected: checked };
-            }
-            return emp;
-        }));
+    const handleSelectAll = (checked: boolean, ids?: number[]) => {
+        setSelectedEmployeeIds((prev) => {
+            const next = new Set(prev);
+            const targetIds = ids || filteredEmployeesList.map((emp) => emp.id);
+            targetIds.forEach((id) => {
+                if (checked) {
+                    next.add(id);
+                } else {
+                    next.delete(id);
+                }
+            });
+            return next;
+        });
     };
 
     const handleSelectEmployee = (id: number, checked: boolean) => {
-        setEmployees(prev => prev.map(emp => emp.id === id ? { ...emp, isSelected: checked } : emp));
+        setSelectedEmployeeIds(prev => {
+            const next = new Set(prev);
+            if (checked) {
+                next.add(id);
+            } else {
+                next.delete(id);
+            }
+            return next;
+        });
     };
 
     const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
@@ -162,7 +207,7 @@ export default function SalarySlipPage() {
             return;
         }
 
-        const selectedEmpIds = employees.filter(e => e.isSelected).map(e => e.HRME_Id);
+        const selectedEmpIds = employees.filter(e => selectedEmployeeIds.has(e.id)).map(e => e.HRME_Id);
         if (selectedEmpIds.length === 0) {
             toast.error('Please select at least one employee');
             return;
@@ -178,7 +223,7 @@ export default function SalarySlipPage() {
             groupTypeIdList: filters.groupType
         }, {
             onSuccess: (res) => {
-                console.log("response salary",res)
+                console.log("response salary", res)
                 if (res.success && res.data?.salarySlipList && res.data.salarySlipList.length > 0) {
                     // Update institution details from the first slip if available
                     const firstSlip = res.data.salarySlipList[0];
@@ -213,7 +258,7 @@ export default function SalarySlipPage() {
                             dateOfJoining: empDetails?.hrmE_DOJ,
                             payLevel: empDetails?.hrmP_SalaryType || '-',
                             bankName: rawData.empSalaryDetail?.hreS_BankCode || empDetails?.hrmE_PaymentType || '-',
-                            bankAccountNo:empDetails?.hrmE_BankAccountNo || rawData.empSalaryDetail?.hreS_AccountNo || '-',
+                            bankAccountNo: empDetails?.hrmE_BankAccountNo || rawData.empSalaryDetail?.hreS_AccountNo || '-',
                             pfNo: empDetails?.hrmE_PFAccNo || '-',
                             esiNo: empDetails?.hrmE_ESIAccNo || '-',
                             uanNumber: empDetails?.hrmE_UINumber || '-',
@@ -258,17 +303,17 @@ export default function SalarySlipPage() {
         if (!reportData) return;
         const slips = Array.isArray(reportData) ? reportData : [reportData];
         const monthName = MONTH_LIST.find(m => m.id.toString() === filters.month.toString())?.name || filters.month;
-        printSalarySlips(slips, institutionDetails, monthName, filters.year,filters.options.lopDays,filters.options.leaveDetails,filters.options.panCardNo,filters.options.bankDetails);
+        printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
-    if (isOnloadLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <RotateCw className="h-8 w-8 animate-spin text-secondary" />
-                <span className="ml-2">Loading Page...</span>
-            </div>
-        );
-    }
+    // if (isOnloadLoading) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center">
+    //             <RotateCw className="h-8 w-8 animate-spin text-secondary" />
+    //             <span className="ml-2">Loading Page...</span>
+    //         </div>
+    //     );
+    // }
 
     const handleReset = () => {
         setFilters({
@@ -287,6 +332,7 @@ export default function SalarySlipPage() {
         });
         setEmployees([]);
         setSearchTerm('');
+        setSelectedEmployeeIds(new Set());
         toast.info('Filters have been reset');
     };
 
@@ -305,8 +351,10 @@ export default function SalarySlipPage() {
                 years={yearsData?.data || []}
                 employees={employees}
                 filteredEmployees={filteredEmployeesList}
+                tableResponse={tableResponse}
                 searchTerm={searchTerm}
                 selectedCount={selectedCount}
+                selectedEmployeeIds={selectedEmployeeIds}
                 isFiltering={isFiltering}
                 isGenerating={isGenerating}
                 onFilterChange={handleFilterChange}
@@ -317,10 +365,14 @@ export default function SalarySlipPage() {
                 onGenerateSlip={handleGenerateSlip}
                 onCancel={() => { }}
                 onReset={handleReset}
+                isLoadingGroupTypes={isLoadingGroupTypes}
+                isLoadingDepartments={isLoadingDepartments}
+                isLoadingDesignations={isLoadingDesignations}
+                isLoadingYears={isLoadingYears}
             />
 
             {showReport && (
-                <div className="space-y-6">
+                <div className="space-y-6" ref={reportRef}>
                     {/* Global Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm print:hidden">
                         <div className="flex items-center gap-2">

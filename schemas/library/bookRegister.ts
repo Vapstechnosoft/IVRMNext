@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createStringSchema, deleteIdSchema } from '../validationSchemas';
+import { createStringSchema, deleteIdSchema, createOptionalStringSchema } from '../validationSchemas';
 
 export const bookRegisterSchema = {
     addOrUpdate: z.object({
@@ -16,7 +16,7 @@ export const bookRegisterSchema = {
         lmB_PublishedYear: z.union([z.string(), z.number()]).refine(val => !!val, 'Published Year is required'),
         lmB_EntryDate: z.union([z.date(), z.string()]),
         mB_Call_No: z.string().optional(),
-        lmB_ISBNNo: createStringSchema('ISBN No', 1, 50),
+        lmB_ISBNNo: createOptionalStringSchema('ISBN No', 1, 50),
         lmB_ClassNo: z.string().optional(),
         lmB_VolNo: z.string().optional(),
         mB_Pages: z.coerce.number().optional(),
@@ -48,10 +48,10 @@ export const bookRegisterSchema = {
         lmB_AuthorLastName: z.string().optional(),
 
         lmbanO_AvialableStatus: z.string().min(1, 'Status is required'),
-        lRM_Id: z.number({ required_error: 'Room is required' }).min(1),
-        lSM_Id: z.number({ required_error: 'Shelf is required' }).min(1),
-        lRAM_Id: z.number({ required_error: 'Rack is required' }).min(1),
-        lmrA_Id: z.number().optional(),
+        lRM_Id: z.number().optional(),
+        lSM_Id: z.number().optional(),
+        lRAM_Id: z.number().optional(),
+        lmrA_Id: z.number({ required_error: 'Rack is required' }).min(1),
 
         lmB_Price: z.coerce.number().optional(),
         mB_Disc_Type: z.string().optional(),
@@ -71,6 +71,16 @@ export const bookRegisterSchema = {
                 })
             )
             .min(1, 'At least one accession number is required'),
+
+        attachementList: z
+            .array(
+                z.object({
+                    lmbA_Id: z.number().optional(),
+                    lmbA_FileName: z.string().optional(),
+                    lmbA_FilePath: z.string().optional()
+                })
+            )
+            .optional(),
 
         mB_ActiveFlag: z.boolean().optional(),
         lmB_StudentPhoto: z.string().optional()

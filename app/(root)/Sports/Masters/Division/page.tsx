@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterDivisionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterDivisions(searchParams);
+    const { loadData, refetchAll } = useMasterDivisions(searchParams);
 
     return (
         <FormProvider<IMasterDivision>>
-            <MasterDivisionPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterDivisionPageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -87,9 +92,6 @@ function MasterDivisionPageContent({
                         columns={MasterDivisionColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master divisions...'

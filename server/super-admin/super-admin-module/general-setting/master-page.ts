@@ -6,46 +6,54 @@ import type { IMasterPage } from '@/types/super-admin/super-admin-module/general
 import { revalidatePath } from 'next/cache';
 
 export async function saveMasterPage(data: any) {
-    const validation = masterPageSchema.safeParse(data);
+    try {
+        const validation = masterPageSchema.safeParse(data);
 
-    if (!validation.success) {
+        if (!validation.success) {
+            return {
+                success: false,
+                message: 'Validation failed',
+                errors: validation.error.flatten().fieldErrors,
+            };
+        }
+
+        const payload = {
+            createdDate: new Date().toISOString(),
+            updatedDate: new Date().toISOString(),
+            ivrmP_Id: data.ivrmP_Id ?? 0,
+            ivrmmP_PageName: data.ivrmmP_PageName,
+            ivrmP_PageDesc: data.ivrmP_PageDesc,
+            ivrmP_PageURL: data.ivrmP_PageDesc, // Using PageDesc for URL based on previous pattern
+            ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
+            ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
+            ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
+            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
+            userid: data.userid ?? 0,
+            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
+        };
+
+        const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
+
+        if (response.success) {
+            revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+            return {
+                success: true,
+                message: response.message || 'Master Page saved successfully!',
+                data: response.data,
+            };
+        }
+
         return {
             success: false,
-            message: 'Validation failed',
-            errors: validation.error.flatten().fieldErrors,
+            message: response.message || 'Failed to save master page',
         };
-    }
-
-    const payload = {
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString(),
-        ivrmP_Id: data.ivrmP_Id ?? 0,
-        ivrmmP_PageName: data.ivrmmP_PageName,
-        ivrmP_PageDesc: data.ivrmP_PageDesc,
-        ivrmP_PageURL: data.ivrmP_PageDesc, // Using PageDesc for URL based on previous pattern
-        ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
-        ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
-        ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-        ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
-        userid: data.userid ?? 0,
-        ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
-    };
-
-    const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
-
-    if (response.success) {
-        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
+    } catch (error: any) {
+        console.error("Save Error:", error);
         return {
-            success: true,
-            message: response.message || 'Master Page saved successfully!',
-            data: response.data,
+            success: false,
+            message: error?.message || 'An unexpected error occurred while saving',
         };
     }
-
-    return {
-        success: false,
-        message: response.message || 'Failed to save master page',
-    };
 }
 
 export async function getMasterPages(searchParams: any) {

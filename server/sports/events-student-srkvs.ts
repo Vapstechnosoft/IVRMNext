@@ -181,6 +181,13 @@ export async function getEventsStudentSRKVSList(): Promise<ApiResponse<IEventsSt
     try {
         const response = await api.get<any>('sports', 'EventsStudentRecord/EventsStudentGridSRKVS');
         console.log("Grid Response:", JSON.stringify(response, null, 2));
+
+        // Handle case where backend returns success:false but still provides data
+        // e.g. { success: false, message: "UOMList not found", data: [...records] }
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            return { success: true, message: "Data fetched successfully", data: response.data };
+        }
+
         if (response.success && response.data) {
             const data = Array.isArray(response.data) ? response.data : [];
             return { success: true, message: "Data fetched successfully", data: data };
@@ -241,6 +248,42 @@ export async function getEventsStudentSRKVSDetails(spccesT_Id: number): Promise<
     } catch (error) {
         console.error("Error fetching View Details:", error);
         return { success: false, message: 'Failed to fetch details', data: [] };
+    }
+}
+
+// Update View Details
+export async function updateStudentSRKVSDetails(data: any): Promise<ApiResponse<any>> {
+    try {
+        const payload = {
+            MI_Id: 0,
+            UserId: 0,
+            ASMAY_Id: 0,
+            student1: data.map((item: any) => ({
+                spccestR_Id: item.spccestR_Id || 0,
+                amsT_Id: item.amsT_Id || 0,
+                spccesT_Id: item.spccesT_Id || 0,
+                spccestR_Rank: String(item.spccestR_Rank || '0'),
+                spccestR_Points: Number(item.spccestR_Points) || 0,
+                spccestR_Value: String(item.spccestR_Value || ''),
+                spccestR_RecordBrokenFlag: item.spccestR_RecordBrokenFlag ? "true" : "false",
+                spccestR_Remarks: item.spccestR_Remarks || "",
+                spccmuoM_Id: item.spccmuoM_Id || 0,
+                spccestR_EventRecordFlg: !!item.spccestR_EventRecordFlg,
+                spccmscC_MultiAttemptFlg: !!item.spccmscC_MultiAttemptFlg,
+                MultipleBroken: []
+            }))
+        };
+
+        const response = await api.post<any>('sports', 'EventsStudentRecord/UpdateStudentSRKVS', payload);
+
+        if (response.success) {
+            return { success: true, message: response.message || 'Updated Successfully', data: response.data };
+        }
+        
+        return { success: false, message: response.message || 'Failed to update details', data: null };
+    } catch (error) {
+        console.error("Error updating View Details:", error);
+        return { success: false, message: 'An error occurred while updating', data: null };
     }
 }
 

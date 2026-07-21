@@ -47,6 +47,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsData, setDetailsData] = useState<any[]>([]);
     const [selectedGRNNo, setSelectedGRNNo] = useState('');
+    const [resetKey, setResetKey] = useState(0);
 
     const form = useForm<InvVendorPaymentSchema>({
         resolver: zodResolver(invVendorPaymentSchema),
@@ -55,7 +56,11 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             invspT_PaymentDate: new Date(),
             invspT_ModeOfPayment: '',
             invspT_Amount: 0,
-            invspT_Remarks: ''
+            invspT_Remarks: '',
+            invspT_BankName: '',
+            invspT_ChequeDDNo: '',
+            invspT_PaymentReference: '',
+            paymentArray: []
         }
     });
 
@@ -115,7 +120,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             INVMGRN_TotalBalance_New: totalBalance + amount // Balance before this trans
                         };
                     });
-                    
+
                     const paymentDateStr = initialData.invspT_PaymentDate || initialData.invspt_paymentdate;
                     const chequeDDDateStr = initialData.invspT_ChequeDDDate || initialData.invspt_chequedddate;
 
@@ -136,7 +141,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                 }
             });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, reset]);
 
     const handleSupplierChange = (supplierId: string) => {
@@ -248,6 +253,11 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
         }
     };
 
+    const handleReset = () => {
+        reset();
+        setResetKey(prev => prev + 1);
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -259,11 +269,12 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             name="invmS_Id"
                             render={({ field }) => (
                                 <Select
+                                    key={`supplier-${resetKey}`}
                                     onValueChange={(val) => handleSupplierChange(val)}
-                                    value={field.value?.toString()}
+                                    value={field.value ? field.value.toString() : undefined}
                                     disabled={!!initialData}
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn("w-full", !field.value && "text-muted-foreground")}>
                                         <SelectValue placeholder="Select Supplier" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -285,8 +296,8 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             control={control}
                             name="invspT_ModeOfPayment"
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                <Select key={`mode-${resetKey}`} onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger className={cn("w-full", !field.value && "text-muted-foreground")}>
                                         <SelectValue placeholder="Select Mode" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -372,7 +383,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             </div>
 
             {/* GRN Grid */}
-            {watchedSupplier && fields.length > 0 && (
+            {!!watchedSupplier && fields.length > 0 && (
                 <div className="border rounded-md overflow-hidden">
                     <Table>
                         <TableHeader>
@@ -475,7 +486,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             )}
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => reset()}><RotateCcw className="w-4 h-4 mr-2" /> Reset</Button>
+                <Button type="button" variant="outline" onClick={handleReset}><RotateCcw className="w-4 h-4 mr-2" /> Reset</Button>
                 <Button type="submit" disabled={saveMutation.isPending}><Save className="w-4 h-4 mr-2" /> {saveMutation.isPending ? 'Saving...' : (initialData ? 'Update Payment' : 'Save Payment')}</Button>
             </div>
 

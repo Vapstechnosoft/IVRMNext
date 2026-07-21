@@ -63,10 +63,10 @@ export default function DelteMasterConcessionForm({ rowData, onClose }: DelteMas
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                    <Button variant='secondary' onClick={closeDialog} type='button' className='bg-white text-black hover:bg-gray-100 border'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant='destructive'>
+                    <Button type='submit' isLoading={isSubmitting} className='bg-orange-500 hover:bg-orange-600 text-white'>
                         <Trash2 className='mr-2 h-4 w-4' />
                         Delete
                     </Button>

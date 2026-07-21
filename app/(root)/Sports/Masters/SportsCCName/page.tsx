@@ -17,11 +17,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function SportsCCNamePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useSportsCCNames(searchParams);
+    const { loadData, refetchAll } = useSportsCCNames(searchParams);
 
     return (
         <FormProvider<SportsCCNameDTO>>
-            <SportsCCNamePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <SportsCCNamePageContent 
+                response={loadData.data} 
+                isLoading={loadData.isPending || loadData.isFetching} 
+                error={loadData.error} 
+                refetchAll={refetchAll} 
+            />
         </FormProvider>
     );
 }
@@ -87,9 +92,6 @@ function SportsCCNamePageContent({
                     columns={MasterSportsCCNameColumns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading master sports cc names...'

@@ -1,36 +1,44 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useMasterFuelType, useMasterVehicle, useMasterVehicleType } from '@/hooks/transport/transportmodule/usemasters';
-import { saveMasterVehicle, uploadVehicleFile } from '@/server/transport/transport-module/masters/master-vehicle';
+import { uploadDocument } from '@/server/document_upload';
+import { saveMasterVehicle } from '@/server/transport/transport-module/masters/master-vehicle';
+
 import type { IMasterVehicleDocument } from '@/types/transport/transport-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Plus, Trash2, Upload } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Eye, Loader2, Minus, Plus, Upload, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const formSchema = z.object({
-    TRMV_VehicleName: z.string().min(1, 'Vehicle Name is required').regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
+    TRMV_VehicleName: z
+        .string()
+        .min(1, 'Vehicle Name is required')
+        .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMFT_Id: z.coerce.number().min(1, 'Fuel Type is required'),
     TRMVT_Id: z.coerce.number().min(1, 'Vehicle Type is required'),
-    TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required' }),
-    TRMV_VehicleNo: z.string().min(1, 'Vehicle No is required').regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
-    TRMV_ChassisNo: z.string().min(1, 'Chassis No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
-    TRMV_EngineNo: z.string().min(1, 'Engine No is required').regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
+    TRMV_PurchaseDate: z.date({ required_error: 'Date of Purchase is required', invalid_type_error: 'Date of Purchase is required' }),
+    TRMV_VehicleNo: z
+        .string()
+        .min(1, 'Vehicle No is required')
+        .regex(/^[a-zA-Z0-9\-\s]+$/, 'Invalid Vehicle No Format'),
+    TRMV_ChassisNo: z
+        .string()
+        .min(1, 'Chassis No is required')
+        .regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed')
+        .max(16, 'Chassis No cannot exceed 16 characters'),
+    TRMV_EngineNo: z
+        .string()
+        .min(1, 'Engine No is required')
+        .regex(/^[a-zA-Z0-9]+$/, 'Only Alphanumeric Allowed'),
     TRMV_PurchasedFrom: z.string().min(1, 'Purchased From is required'),
     TRMV_Cost: z.coerce.number().min(1, 'Approximate Cost is required'),
     TRMV_Capacity: z.coerce.number().min(1, 'Capacity must be valid'),
@@ -39,7 +47,10 @@ const formSchema = z.object({
     TRMV_RegistrationDate: z.date().optional(),
     TRMV_ManufacturedDate: z.date().optional(),
     TRMV_RegFCUpToDate: z.date().optional(),
-    TRMV_SWDOff: z.string().min(1, 'S/W/D Off is required'),
+    TRMV_SWDOff: z
+        .string()
+        .min(1, 'S/W/D Off is required')
+        .regex(/^[a-zA-Z0-9\s]+$/, 'Only Alphabets, Numbers and Spaces Allowed'),
     TRMV_Address: z.string().min(1, 'Address is required'),
     TRMV_OwnersName: z.string().min(1, 'Owner Name is required'),
 
@@ -58,7 +69,7 @@ const formSchema = z.object({
 
     // File Uploads
     TRMV_VehicleImage: z.string().optional(),
-    vehicleDocuments: z.array(z.any()).optional(),
+    vehicleDocuments: z.array(z.any()).optional()
 });
 
 export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
@@ -71,15 +82,15 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    const [tempDocs, setTempDocs] = useState<{ file: File, desc: string }[]>([]);
-    const [currentDocDesc, setCurrentDocDesc] = useState('');
-    const [currentDocFile, setCurrentDocFile] = useState<File | null>(null);
-
+    const [isViewing, setIsViewing] = useState(false);
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const fileInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         mode: 'onChange',
         defaultValues: {
+            TRMV_PurchaseDate: undefined as unknown as Date,
             TRMV_VehicleName: '',
             TRMFT_Id: 0,
             TRMVT_Id: 0,
@@ -105,6 +116,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
             TRMV_UnladenWeight: 0,
             TRMV_CC: '',
             TRMV_TaxUpTo: '',
+            vehicleDocuments: [{ cfilepath: '', cfilename: '', cfiledesc: '', isUploading: false }]
         }
     });
 
@@ -116,23 +128,57 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const handleAddDocument = () => {
-        if (currentDocFile && currentDocDesc) {
-            setTempDocs([...tempDocs, { file: currentDocFile, desc: currentDocDesc }]);
-            setCurrentDocFile(null);
-            setCurrentDocDesc('');
-            // Optional: reset file input value
-            const fileInput = document.getElementById('doc-upload') as HTMLInputElement;
-            if (fileInput) fileInput.value = '';
-        } else {
-            toast.error('Please select a file and enter a description');
+    const {
+        fields: fileFields,
+        append: appendFile,
+        remove: removeFile,
+        update: updateFile
+    } = useFieldArray({
+        control: form.control,
+        name: 'vehicleDocuments'
+    });
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        updateFile(index, { ...fileFields[index], isUploading: true, cfilename: file.name });
+
+        const formData = new FormData();
+        formData.append('File', file);
+
+        try {
+            const uploadRes: any = await uploadDocument(formData);
+
+            console.log('response', uploadRes);
+            let path = '';
+            if (uploadRes?.success && typeof uploadRes.data === 'string') {
+                path = uploadRes.data;
+            } else if (uploadRes?.success && Array.isArray(uploadRes.data) && uploadRes.data.length > 0) {
+                path = uploadRes.data[0].path || uploadRes.data[0];
+            } else if (typeof uploadRes === 'string') {
+                path = uploadRes;
+            } else if (uploadRes?.path) {
+                path = uploadRes.path as string;
+            } else if (Array.isArray(uploadRes) && uploadRes.length > 0 && uploadRes[0].path) {
+                path = uploadRes[0].path;
+            }
+
+            if (path) {
+                updateFile(index, { ...fileFields[index], isUploading: false, cfilename: file.name, cfilepath: path });
+            } else {
+                updateFile(index, { ...fileFields[index], isUploading: false });
+                toast.error('Failed to get file path');
+            }
+        } catch (error) {
+            updateFile(index, { ...fileFields[index], isUploading: false });
+            toast.error('Failed to upload file');
         }
     };
 
-    const handleRemoveDocument = (index: number) => {
-        const newDocs = [...tempDocs];
-        newDocs.splice(index, 1);
-        setTempDocs(newDocs);
+    const handleViewImage = (url: string) => {
+        setViewingImage(url);
+        setIsViewing(true);
     };
 
     // Fields that live on the START tab — must all be valid before proceeding
@@ -151,7 +197,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
         'TRMV_SWDOff',
         'TRMV_OwnersName',
         'TRMV_Desc',
-        'TRMV_Address',
+        'TRMV_Address'
     ];
 
     const handleNext = async () => {
@@ -165,7 +211,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     const handleTabChange = async (value: string) => {
         if (value === 'end') {
             const isValid = await form.trigger(startTabFields);
-            if (!isValid) return;   // block the switch; errors are already shown
+            if (!isValid) return; // block the switch; errors are already shown
         }
         setCurrentTab(value);
     };
@@ -178,37 +224,28 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
             if (selectedImage) {
                 const formData = new FormData();
                 formData.append('File', selectedImage);
-                const uploadRes = await uploadVehicleFile(formData);
-                if (uploadRes.success && uploadRes.data && uploadRes.data.length > 0) {
-                    vehicleImagePath = uploadRes.data[0].path;
+                const uploadRes: any = await uploadDocument(formData);
+                if (uploadRes?.success && typeof uploadRes.data === 'string') {
+                    vehicleImagePath = uploadRes.data;
+                } else if (uploadRes?.success && Array.isArray(uploadRes.data) && uploadRes.data.length > 0) {
+                    vehicleImagePath = uploadRes.data[0].path || uploadRes.data[0];
                 } else if (typeof uploadRes === 'string') {
                     vehicleImagePath = uploadRes;
-                } else if (uploadRes.path) {
+                } else if (uploadRes?.path) {
                     vehicleImagePath = uploadRes.path as string;
+                } else if (Array.isArray(uploadRes) && uploadRes.length > 0 && uploadRes[0].path) {
+                    vehicleImagePath = uploadRes[0].path;
                 }
             }
 
             // 2. Upload Documents
-            const uploadedDocs: IMasterVehicleDocument[] = [];
-            for (const doc of tempDocs) {
-                const formData = new FormData();
-                formData.append('File', doc.file);
-                const uploadRes = await uploadVehicleFile(formData);
-                let path = '';
-                if (uploadRes.success && uploadRes.data && uploadRes.data.length > 0) {
-                    path = uploadRes.data[0].path;
-                } else if (uploadRes.path) {
-                    path = uploadRes.path as string;
-                }
-
-                if (path) {
-                    uploadedDocs.push({
-                        cfilename: doc.file.name,
-                        cfiledesc: doc.desc,
-                        cfilepath: path
-                    });
-                }
-            }
+            const uploadedDocs: IMasterVehicleDocument[] = (values.vehicleDocuments || [])
+                .filter((doc) => doc.cfilepath)
+                .map((doc) => ({
+                    cfilename: doc.cfilename || '',
+                    cfiledesc: doc.cfiledesc || doc.cfilename || '',
+                    cfilepath: doc.cfilepath as string
+                }));
 
             const payload = {
                 ...values,
@@ -220,7 +257,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                 TRMV_VehicleImage: vehicleImagePath,
                 vehicleDocuments: uploadedDocs
             };
-
+            console.log('pay vehicle', payload);
             const response = await saveMasterVehicle(payload);
 
             if (response.message === 'Add') {
@@ -244,34 +281,30 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                    <TabsList className="flex w-full rounded-lg border border-border bg-muted p-1 gap-1">
+                <Tabs value={currentTab} onValueChange={handleTabChange} className='w-full'>
+                    <TabsList className='flex w-full gap-1 rounded-lg border border-border bg-muted p-1'>
                         <TabsTrigger
-                            value="start"
-                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
-                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
-                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
-                        >
+                            value='start'
+                            className='flex-1 rounded-md px-6 py-2 font-semibold text-sm transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground'>
                             START
                         </TabsTrigger>
                         <TabsTrigger
-                            value="end"
-                            className="flex-1 rounded-md px-6 py-2 text-sm font-semibold transition-all
-                                data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md
-                                data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground"
-                        >
+                            value='end'
+                            className='flex-1 rounded-md px-6 py-2 font-semibold text-sm transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:text-muted-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:bg-accent data-[state=inactive]:hover:text-accent-foreground'>
                             END
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="start" className="space-y-4 pt-4">
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <TabsContent value='start' className='space-y-4 pt-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
                                 name='TRMV_VehicleName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Vehicle Name' />
                                         </FormControl>
@@ -284,11 +317,13 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMFT_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Fuel Type <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Fuel Type <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Fuel Type" />
+                                                    <SelectValue placeholder='Select Fuel Type' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -308,11 +343,13 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMVT_Id'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle Type <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle Type <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Vehicle Type" />
+                                                    <SelectValue placeholder='Select Vehicle Type' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -332,13 +369,11 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_PurchaseDate'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Date Of Purchase <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Date Of Purchase <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <DatePicker
-                                                date={field.value}
-                                                setDate={field.onChange}
-                                                placeholder='Select Date'
-                                            />
+                                            <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -349,7 +384,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_VehicleNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Vehicle No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Vehicle No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Vehicle No' />
                                         </FormControl>
@@ -362,9 +399,11 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_ChassisNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Chassis No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Chassis No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Enter Chassis No' />
+                                            <Input {...field} placeholder='Enter Chassis No' maxLength={16} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -375,7 +414,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_EngineNo'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Engine No <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Engine No <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Engine No' />
                                         </FormControl>
@@ -388,7 +429,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_PurchasedFrom'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Purchased From <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Purchased From <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Purchased From' />
                                         </FormControl>
@@ -401,9 +444,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Capacity'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Seating <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Seating <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Capacity' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Capacity'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -414,9 +464,16 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Cost'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Approximate Cost <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Approximate Cost <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Cost' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Cost'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -427,7 +484,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_CompanyName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Company Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Company Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Company Name' />
                                         </FormControl>
@@ -440,7 +499,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_SWDOff'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>S/W/D OFF <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            S/W/D OFF <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter S/W/D OFF' />
                                         </FormControl>
@@ -453,7 +514,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_OwnersName'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Owner Name <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Owner Name <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Input {...field} placeholder='Enter Owner Name' />
                                         </FormControl>
@@ -466,7 +529,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Desc'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Description <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Textarea {...field} placeholder='Enter Description' />
                                         </FormControl>
@@ -479,7 +544,9 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 name='TRMV_Address'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Address <span className='text-red-500'>*</span></FormLabel>
+                                        <FormLabel>
+                                            Address <span className='text-red-500'>*</span>
+                                        </FormLabel>
                                         <FormControl>
                                             <Textarea {...field} placeholder='Enter Address' />
                                         </FormControl>
@@ -489,39 +556,45 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                             />
 
                             {/* Image Upload in First Tab */}
-                            <div className="col-span-1 md:col-span-2 space-y-2">
+                            <div className='col-span-1 space-y-2 md:col-span-2'>
                                 <FormLabel>Vehicle Photo</FormLabel>
-                                <div className="flex items-center gap-4">
-                                    <div className="relative h-32 w-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50">
+                                <div className='flex items-center gap-4'>
+                                    <div className='relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-300 border-dashed bg-gray-50'>
                                         {imagePreview ? (
-                                            <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                                            <img src={imagePreview} alt='Preview' className='h-full w-full object-cover' />
                                         ) : (
-                                            <Upload className="h-8 w-8 text-gray-400" />
+                                            <Upload className='h-8 w-8 text-gray-400' />
                                         )}
                                         <Input
-                                            type="file"
-                                            accept="image/*"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            type='file'
+                                            accept='image/*'
+                                            className='absolute inset-0 cursor-pointer opacity-0'
                                             onChange={handleImageChange}
-                                            id="vehicle-image-input"
+                                            id='vehicle-image-input'
                                         />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-500 mb-2">Upload vehicle photo (JPG, PNG). Max 2MB.</p>
-                                        <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('vehicle-image-input')?.click()}>
+                                    <div className='flex-1'>
+                                        <p className='mb-2 text-gray-500 text-sm'>Upload vehicle photo (JPG, PNG). Max 2MB.</p>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            size='sm'
+                                            onClick={() => document.getElementById('vehicle-image-input')?.click()}>
                                             Select Image
                                         </Button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end mt-4">
-                            <Button type="button" onClick={handleNext} className="bg-primary text-white">Next</Button>
+                        <div className='mt-4 flex justify-end'>
+                            <Button type='button' onClick={handleNext} className='bg-primary text-white'>
+                                Next
+                            </Button>
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="end" className="space-y-4 pt-4">
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <TabsContent value='end' className='space-y-4 pt-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <FormField
                                 control={form.control}
                                 name='TRMV_Model'
@@ -541,11 +614,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Registration Date</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -569,11 +638,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Manufactured Date</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -637,7 +702,12 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                     <FormItem>
                                         <FormLabel>No Of Cylinder</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter No Of Cylinder' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter No Of Cylinder'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -663,7 +733,12 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                     <FormItem>
                                         <FormLabel>Unladen Weight</FormLabel>
                                         <FormControl>
-                                            <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} placeholder='Enter Unladen Weight' />
+                                            <Input
+                                                type='number'
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                                placeholder='Enter Unladen Weight'
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -701,80 +776,180 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>REG/FC UpTo</FormLabel>
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={field.onChange}
-                                            placeholder='Select Date'
-                                        />
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Select Date' />
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
 
-
                         {/* Documents Section in End Tab */}
-                        <div className="mt-6 border-t pt-4">
-                            <h3 className="text-lg font-semibold mb-4">Transport Documents</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4 bg-gray-50 p-4 rounded-md">
-                                <div className="space-y-2">
-                                    <FormLabel>File Description</FormLabel>
-                                    <Input
-                                        value={currentDocDesc}
-                                        onChange={(e) => setCurrentDocDesc(e.target.value)}
-                                        placeholder="e.g., Insurance Policy"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <FormLabel>Select File</FormLabel>
-                                    <Input
-                                        type="file"
-                                        id="doc-upload"
-                                        onChange={(e) => setCurrentDocFile(e.target.files?.[0] || null)}
-                                        className="cursor-pointer"
-                                    />
-                                </div>
-                                <Button type="button" onClick={handleAddDocument} className="bg-secondary text-white">
-                                    <Plus className="h-4 w-4 mr-2" /> Add Document
-                                </Button>
-                            </div>
-
-                            {tempDocs.length > 0 && (
-                                <div className="border rounded-md overflow-hidden">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-gray-100">
-                                            <tr>
-                                                <th className="p-2 text-left">Document Name</th>
-                                                <th className="p-2 text-left">Description</th>
-                                                <th className="p-2 text-center">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {tempDocs.map((doc, index) => (
-                                                <tr key={index} className="border-t">
-                                                    <td className="p-2 flex items-center gap-2">
-                                                        <FileText className="h-4 w-4 text-blue-500" />
-                                                        {doc.file.name}
-                                                    </td>
-                                                    <td className="p-2">{doc.desc}</td>
-                                                    <td className="p-2 text-center">
-                                                        <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveDocument(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                                                            <Trash2 className="h-4 w-4" />
+                        <div className='mt-6 border-t pt-4'>
+                            <h3 className='mb-4 font-semibold text-lg'>Transport Documents</h3>
+                            <div className='overflow-x-auto'>
+                                <table className='w-full table-auto border-collapse border text-left text-sm'>
+                                    <thead className='bg-muted'>
+                                        <tr>
+                                            <th className='w-12 border p-2 text-center'>SL. NO</th>
+                                            <th className='border p-2 text-center'>Description</th>
+                                            <th className='border p-2 text-center'>Upload File</th>
+                                            <th className='border p-2 text-center'>File Name</th>
+                                            <th className='w-16 border p-2 text-center'>View</th>
+                                            <th className='w-16 border p-2 text-center'>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {fileFields.map((item, index) => (
+                                            <tr key={item.id} className='border-b'>
+                                                <td className='border p-2 text-center'>{index + 1}</td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfiledesc`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                placeholder='e.g., Insurance Policy'
+                                                                className='h-9 text-xs'
+                                                                value={field.value || ''}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <div className='flex justify-center'>
+                                                        <input
+                                                            ref={(el) => {
+                                                                fileInputRefs.current[index] = el;
+                                                            }}
+                                                            type='file'
+                                                            accept='image/*'
+                                                            className='hidden'
+                                                            onChange={(e) => handleFileUpload(e, index)}
+                                                        />
+                                                        <Button
+                                                            type='button'
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => fileInputRefs.current[index]?.click()}
+                                                            className='h-8'
+                                                            disabled={(item as any).isUploading}>
+                                                            {(item as any).isUploading ? (
+                                                                <>
+                                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                                    Uploading...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Upload className='mr-2 h-4 w-4' />
+                                                                    Choose File
+                                                                </>
+                                                            )}
                                                         </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                                                    </div>
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfilename`}
+                                                        render={({ field }) => (
+                                                            <Input
+                                                                {...field}
+                                                                readOnly
+                                                                disabled
+                                                                placeholder='No file chosen'
+                                                                className='h-9 bg-muted text-xs'
+                                                                value={field.value || ''}
+                                                            />
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2 text-center'>
+                                                    <Controller
+                                                        control={form.control}
+                                                        name={`vehicleDocuments.${index}.cfilepath`}
+                                                        render={({ field }) => (
+                                                            <Button
+                                                                type='button'
+                                                                variant='ghost'
+                                                                size='sm'
+                                                                onClick={() => handleViewImage(field.value || '')}
+                                                                disabled={!field.value || (item as any).isUploading}
+                                                                className={!field.value ? 'cursor-not-allowed opacity-50' : ''}>
+                                                                {(item as any).isUploading ? (
+                                                                    <Loader2 className='h-4 w-4 animate-spin text-gray-400' />
+                                                                ) : (
+                                                                    <Eye className='h-4 w-4 text-blue-600' />
+                                                                )}
+                                                            </Button>
+                                                        )}
+                                                    />
+                                                </td>
+                                                <td className='border p-2 text-center'>
+                                                    <div className='flex justify-center gap-1'>
+                                                        {fileFields.length > 1 && (
+                                                            <Button
+                                                                type='button'
+                                                                size='icon'
+                                                                variant='destructive'
+                                                                className='h-8 w-8'
+                                                                onClick={() => removeFile(index)}
+                                                                disabled={(item as any).isUploading}>
+                                                                <Minus className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
+                                                        {index === fileFields.length - 1 && (
+                                                            <Button
+                                                                type='button'
+                                                                size='icon'
+                                                                variant='outline'
+                                                                className='h-8 w-8'
+                                                                onClick={() =>
+                                                                    appendFile({
+                                                                        cfilepath: '',
+                                                                        cfilename: '',
+                                                                        cfiledesc: '',
+                                                                        isUploading: false
+                                                                    })
+                                                                }>
+                                                                <Plus className='h-4 w-4' />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                                {isViewing && viewingImage && (
+                                    <div
+                                        onClick={() => {
+                                            setIsViewing(false);
+                                            setViewingImage(null);
+                                        }}
+                                        className='fixed inset-0 z-50 flex items-center justify-center bg-black/80'>
+                                        <img src={viewingImage} alt='preview' className='max-h-[90%] max-w-[90%] rounded-lg shadow-lg' />
+                                        <Button
+                                            onClick={() => {
+                                                setIsViewing(false);
+                                                setViewingImage(null);
+                                            }}
+                                            className='absolute top-4 right-4'
+                                            variant='destructive'
+                                            size='icon'>
+                                            <X className='h-4 w-4' />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className='flex justify-between gap-2 mt-4'>
+                        <div className='mt-4 flex justify-between gap-2'>
                             <Button type='button' variant='outline' onClick={() => setCurrentTab('start')}>
                                 Previous
                             </Button>
-                            <div className="flex gap-2">
+                            <div className='flex gap-2'>
                                 <Button type='button' variant='outline' onClick={onClose}>
                                     Cancel
                                 </Button>
@@ -784,6 +959,6 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                     </TabsContent>
                 </Tabs>
             </form>
-        </Form >
+        </Form>
     );
 }

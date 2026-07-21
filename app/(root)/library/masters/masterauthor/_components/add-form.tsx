@@ -29,7 +29,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
         formState: { errors, isSubmitting }
     } = useForm<z.infer<typeof masterAuthorSchema.addOrUpdate>>({
         resolver: zodResolver(masterAuthorSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onSubmit',
         defaultValues: {
             lmaU_Id: undefined,
             lmaU_AuthorFirstName: '',
@@ -66,7 +66,19 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        reset({
+            lmaU_Id: undefined,
+            lmaU_AuthorFirstName: '',
+            lmaU_AuthorMiddleName: '',
+            lmaU_AuthorLastName: '',
+            lmaU_MobileNo: '',
+            lmaU_Address: '',
+            lmaU_EmailId: '',
+            lmaU_PhoneNo: '',
+            lmaU_ActiveFlg: false
+        });
+    };
 
     return (
         <div className={className}>
@@ -76,6 +88,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Author Name'
                             required
+                            placeholder='Enter Author Name'
                             id='lmaU_AuthorFirstName'
                             {...register('lmaU_AuthorFirstName')}
                             error={errors.lmaU_AuthorFirstName?.message}
@@ -85,6 +98,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Email Id'
                             id='lmaU_EmailId'
+                            placeholder='Enter Email Id'
                             {...register('lmaU_EmailId')}
                             error={errors.lmaU_EmailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -99,6 +113,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Mobile No'
                             id='lmaU_MobileNo'
+                            placeholder='Enter Mobile No'
                             {...register('lmaU_MobileNo')}
                             error={errors.lmaU_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -107,6 +122,7 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Author Address'
                             id='lmaU_Address'
+                            placeholder='Enter Author Address'
                             {...register('lmaU_Address')}
                             error={errors.lmaU_Address?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -120,23 +136,22 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='order-1 w-fit bg-[#4251b1] hover:bg-[#35418e] text-white transition-all duration-200 hover:scale-105'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit bg-[#ff5a30] hover:bg-[#e64d26] text-white transition-all duration-200 hover:scale-105'>
+                        Reset
                     </Button>
                 </div>
             </form>

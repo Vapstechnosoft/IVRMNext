@@ -18,15 +18,35 @@ import { toast } from 'sonner';
 export function useOralTestScheduleDetails() {
     return useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_SCHEDULE_DETAILS],
-        queryFn: () => getOralTestScheduleDetails()
+        queryFn: () => getOralTestScheduleDetails(),
+        select: (data: any) => ({
+            ...data,
+            classlist: data?.classlist || data?.admissioncatdrpall || []
+        })
     });
 }
 
-export function useClasswiseStudents(classId: number) {
+export function useClasswiseStudents(classId: number | null) {
     return useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.CLASSWISE_STUDENTS, classId],
-        queryFn: () => getClasswiseStudent(classId),
-        enabled: classId > 0
+        queryFn: () => getClasswiseStudent(classId as number),
+        enabled: classId !== null,
+        select: (data: any) => {
+            const list = data?.studentlist || data?.allname5 || [];
+            const uniqueList = Array.from(new Map(list.map((s: any) => [s.pasR_Id || s.pasrId || s.pasR_ID, s])).values());
+            return uniqueList.map((s: any, index: number) => ({
+                ...s,
+                pasR_Id: s.pasR_Id || s.pasrId || s.pasR_ID || (index + 1),
+                pasR_FirstName: s.pasR_FirstName || s.studentName || '',
+                pasR_RegistrationNo: s.pasR_RegistrationNo || s.registrationNo || '',
+                pasR_Sex: s.pasR_Sex || s.gender || '',
+                pasR_MobileNo: s.pasR_MobileNo || s.mobileNo || '',
+                pasR_emailId: s.pasR_EmailId || s.emailId || '', // Support both casings
+                asmcL_Id: s.asmcL_Id || s.classId || 0,
+                asmcL_ClassName: s.asmcL_ClassName || s.className || '',
+                classname: s.asmcL_ClassName || s.className || '', // Support both casings
+            }));
+        }
     });
 }
 

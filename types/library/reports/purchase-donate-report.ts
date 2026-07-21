@@ -3,25 +3,22 @@ export interface IPurchaseDonateReportInitialData {
 }
 
 export interface IPurchaseDonateReportRequest {
-    LBCPA_Flg: string; // Book Category: Book, Non-Book
-    Circ_Flag: string; // Purchased, Donated
+    mI_Id: number;       // always 30
+    circ_Flag: string;   // Book Category: "Book", "Non-Book"
+    lbcpA_Flg: string;  // Type: "Purchased", "Donated"
 }
 
 export interface IPurchaseDonateReportGridData {
-    lmb_BookType: string;
-    lmbano_AccessionNo: string;
-    lmb_BookTitle: string;
-    name: string; // Author Name
-    lmv_VendorName: string;
-    lmb_BillNo: string;
-    lmb_VoucherNo: string;
-    lmb_PurchaseDate: string;
-    lmb_NoOfCopies: number;
-    lmb_Price: number;
-    lmb_Discount: number;
-    lmb_NetPrice: number;
+    lmB_BookType: string;
+    lmbanO_AccessionNo: string;
+    lmB_BookTitle: string;
+    name: string;              // Author Name
+    lmV_VendorName: string;
+    lmB_PurchaseDate: string;
+    lmB_NoOfCopies: number;
+    lmB_Price: number;
+    lmB_Discount: number;
+    lmB_NetPrice: number;
 }
 
-export interface IPurchaseDonateReportResponse {
-    alldata: IPurchaseDonateReportGridData[];
-}
+export type IPurchaseDonateReportResponse = IPurchaseDonateReportGridData[];

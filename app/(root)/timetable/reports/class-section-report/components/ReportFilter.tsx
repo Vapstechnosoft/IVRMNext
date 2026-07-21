@@ -10,19 +10,19 @@ import { Loader2, RotateCcw, Search } from 'lucide-react';
 
 import { Label } from '@/components/ui/extension/field';
 import { useTimeTableAcademicYear, useTimeTableCategoryDropDownData, useTimeTableClassDropdownData } from '@/hooks/timetable/useMasters';
-import { useTimeTableCategoryDropDownClassWise, useTimeTableClassDropdown } from '@/hooks/timetable/reports';
+import { useTimeTableCategoryDropDownClassWise, useTimeTableClassDropdown, useTimeTableSectionDropdown } from '@/hooks/timetable/reports';
 
 /* -------------------- SCHEMA -------------------- */
 const schema = z.object({
-    asmay_id: z.string().min(1, 'Academic Year is required'),
     ttmC_Id: z.string().min(1, 'Category is required'),
-    asmcL_Id: z.string().min(1, 'Class is required')
+    asmcL_Id: z.string().min(1, 'Class is required'),
+    asmS_Id: z.string().min(1, 'Section is required')
 });
 
 type FormValues = z.infer<typeof schema>;
 
 interface ReportFilterProps {
-    onFetch: (data: FormValues | null) => void;
+    onFetch: (data: any | null) => void;
 }
 
 /* -------------------- COMPONENT -------------------- */
@@ -36,25 +36,27 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
-            asmay_id: '',
+            asmS_Id: '',
             ttmC_Id: '',
             asmcL_Id: ''
         }
     });
 
-    /* -------------------- MASTER DATA -------------------- */
-    const { data: ayData, isLoading: ayLoading } = useTimeTableAcademicYear();
     const { data: catData, isLoading: catLoading } = useTimeTableCategoryDropDownClassWise();
     const { data: classData, isLoading: classLoading } = useTimeTableClassDropdown();
+    const { data: sectionData, isLoading: sectionLoading } = useTimeTableSectionDropdown();
 
-    const mastersLoading = ayLoading || catLoading || classLoading;
+    const mastersLoading = catLoading || classLoading || sectionLoading;
 
-    /* -------------------- WATCH -------------------- */
-    const isFormComplete = !!watch('asmay_id') && !!watch('ttmC_Id') && !!watch('asmcL_Id');
 
-    /* -------------------- HANDLERS -------------------- */
+    const isFormComplete = !!watch('asmS_Id') && !!watch('ttmC_Id') && !!watch('asmcL_Id');
     const onSubmit = (data: FormValues) => {
-        onFetch(data); // send data to parent
+        const payload = {
+            TTMC_Id: Number(data.ttmC_Id),
+            ASMCL_Id: Number(data.asmcL_Id),
+            ASMS_Id: Number(data.asmS_Id)
+        };
+        onFetch(payload); // send data to parent
     };
 
     const handleReset = () => {
@@ -62,63 +64,33 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
         onFetch(null); // 🔥 clears grid in parent
     };
 
-    /* -------------------- UI -------------------- */
+
     return (
         <div className='mx-auto max-w-7xl space-y-4'>
             <CollapsibleSection title='Staff Replacement For Class And Section' defaultOpen>
                 <div className='rounded-xl border border-purple-100 bg-white p-6 shadow-md'>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className='grid grid-cols-1 gap-5 md:grid-cols-3'>
-                            {/* Academic Year */}
-                            <div className='space-y-1'>
-                                <Label className='font-bold text-purple-900 text-xs uppercase'>
-                                    Academic Year <span className='text-orange-500'>*</span>
-                                </Label>
-                                <Controller
-                                    name='asmay_id'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            key={field.value || 'empty'}
-                                            onValueChange={(value) => {
-                                                field.onChange(value || '');
-                                            }}
-                                            value={field.value?.toString() || undefined}
-                                        >
-                                            <SelectTrigger className={`h-9 text-sm ${errors.asmay_id ? 'border-red-500' : ''}`}>
-                                                <SelectValue placeholder={ayLoading ? 'Loading...' : 'Select Year'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {ayData?.data?.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.asmay_id && <p className='font-medium text-[10px] text-red-500'>{errors.asmay_id.message}</p>}
-                            </div>
 
                             {/* Category */}
                             <div className='space-y-1'>
                                 <Label className='font-bold text-purple-900 text-xs uppercase'>
                                     Category <span className='text-orange-500'>*</span>
                                 </Label>
+
                                 <Controller
                                     name='ttmC_Id'
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value || 'empty'}
-                                            onValueChange={(value) => {
-                                                field.onChange(value || '');
-                                            }}
-                                            value={field.value?.toString() || undefined}>
+                                            key={field.value}
+                                            onValueChange={(value) => field.onChange(value || '')}
+                                            value={field.value?.toString() || undefined}
+                                        >
                                             <SelectTrigger className={`h-9 text-sm ${errors.ttmC_Id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={catLoading ? 'Loading...' : 'Select Category'} />
                                             </SelectTrigger>
+
                                             <SelectContent>
                                                 {catData?.data?.map((c: any) => (
                                                     <SelectItem key={c.ttmC_Id} value={String(c.ttmC_Id)}>
@@ -129,7 +101,6 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                         </Select>
                                     )}
                                 />
-                                {errors.ttmC_Id && <p className='font-medium text-[10px] text-red-500'>{errors.ttmC_Id.message}</p>}
                             </div>
 
                             {/* Class */}
@@ -137,19 +108,20 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                 <Label className='font-bold text-purple-900 text-xs uppercase'>
                                     Class <span className='text-orange-500'>*</span>
                                 </Label>
+
                                 <Controller
                                     name='asmcL_Id'
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value || 'empty'}
-                                            onValueChange={(value) => {
-                                                field.onChange(value || '');
-                                            }}
-                                            value={field.value?.toString() || undefined}>
+                                            key={field.value}
+                                            onValueChange={(value) => field.onChange(value || '')}
+                                            value={field.value?.toString() || undefined}
+                                        >
                                             <SelectTrigger className={`h-9 text-sm ${errors.asmcL_Id ? 'border-red-500' : ''}`}>
                                                 <SelectValue placeholder={classLoading ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
+
                                             <SelectContent>
                                                 {classData?.data?.map((cls: any) => (
                                                     <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
@@ -160,10 +132,39 @@ export default function ReportFilter({ onFetch }: ReportFilterProps) {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmcL_Id && <p className='font-medium text-[10px] text-red-500'>{errors.asmcL_Id.message}</p>}
+                            </div>
+
+                            {/* Section ✅ FIXED ALIGNMENT */}
+                            <div className='space-y-1'>
+                                <Label className='font-bold text-purple-900 text-xs uppercase'>
+                                    Section <span className='text-orange-500'>*</span>
+                                </Label>
+
+                                <Controller
+                                    name='asmS_Id'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={(value) => field.onChange(value || '')}
+                                            value={field.value?.toString() || undefined}
+                                        >
+                                            <SelectTrigger className={`h-9 text-sm ${errors.asmS_Id ? 'border-red-500' : ''}`}>
+                                                <SelectValue placeholder={sectionLoading ? 'Loading...' : 'Select Section'} />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {sectionData?.data?.map((sec: any) => (
+                                                    <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                        {sec.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
                         </div>
-
                         {/* ACTIONS */}
                         <div className='mt-5 flex items-center gap-3 border-t pt-4'>
                             <Button

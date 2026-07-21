@@ -34,8 +34,19 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
     const itemDetailMutation = useInvOpeningBalanceItemDetails();
     const obDetailsMutation = useInvOpeningBalanceDetails();
 
-    const [stores, setStores] = useState<any[]>(initialStoreList || []);
-    const [items, setItems] = useState<any[]>(initialItemList || []);
+    const [stores, setStores] = useState<any[]>(() => {
+        const list = initialStoreList || [];
+        return list.filter((store: any, index: number, self: any[]) =>
+            index === self.findIndex((s) => s.invmsT_Id === store.invmsT_Id)
+        );
+    });
+
+    const [items, setItems] = useState<any[]>(() => {
+        const list = initialItemList || [];
+        return list.filter((item: any, index: number, self: any[]) =>
+            index === self.findIndex((t) => (t.invmI_Id || t.invmi_Id) === (item.invmI_Id || item.invmi_Id))
+        );
+    });
 
     const form = useForm<TInvOpeningBalance>({
         resolver: zodResolver(invOpeningBalanceSchema),
@@ -79,8 +90,13 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (!initialStoreList || initialStoreList.length === 0) {
             getStoresMutation.mutate(undefined, {
                 onSuccess: (res) => {
-                    if (res?.data) {
-                        setStores(res.data);
+                    const data = res?.data;
+                    if (Array.isArray(data)) {
+                        setStores(data);
+                    } else if (data?.$values) {
+                        setStores(data.$values);
+                    } else if (data?.get_Store) {
+                        setStores(Array.isArray(data.get_Store) ? data.get_Store : (data.get_Store?.$values || []));
                     }
                 }
             });
@@ -92,8 +108,22 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (watchedStoreId && watchedStoreId !== 0) {
             getItemsMutation.mutate({ INVMST_Id: watchedStoreId, INVC_LIFOFIFOFlg: 'LIFO' }, {
                 onSuccess: (res: any) => {
-                    const extractedItems = res.data || [];
-                    setItems(extractedItems);
+                    const data = res.data;
+                    let extractedItems = [];
+                    if (Array.isArray(data)) {
+                        extractedItems = data;
+                    } else if (data?.$values) {
+                        extractedItems = data.$values;
+                    } else if (data?.get_item) {
+                        extractedItems = Array.isArray(data.get_item) ? data.get_item : (data.get_item?.$values || []);
+                    }
+                    // Deduplicate items based on ID to avoid duplicate key errors in Select
+                    const uniqueItems = extractedItems.filter((item: any, index: number, self: any[]) =>
+                        index === self.findIndex((t) => (
+                            (t.invmI_Id || t.invmi_Id) === (item.invmI_Id || item.invmi_Id)
+                        ))
+                    );
+                    setItems(uniqueItems);
                 }
             });
         }
@@ -141,7 +171,16 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
         if (id) {
             itemDetailMutation.mutate({ INVMI_Id: id }, {
                 onSuccess: (res: any) => {
-                    const rawDetails = res.data || [];
+                    const data = res.data;
+                    let rawDetails = [];
+                    if (Array.isArray(data)) {
+                        rawDetails = data;
+                    } else if (data?.$values) {
+                        rawDetails = data.$values;
+                    } else if (data?.get_itemdetails) {
+                        rawDetails = Array.isArray(data.get_itemdetails) ? data.get_itemdetails : (data.get_itemdetails?.$values || []);
+                    }
+
                     if (rawDetails.length > 0) {
                         const details = rawDetails[0];
                         setValue(`transrows.${index}.invmuoM_Id`, details.invmuoM_Id);

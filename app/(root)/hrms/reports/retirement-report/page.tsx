@@ -30,6 +30,8 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const HEADER_LIST = [
   { id: "HRME_EmployeeCode", value: "Employee Code" },
@@ -117,22 +119,54 @@ const mockApiResponse = {
   ],
 };
 
-interface FilterFormValues {
-  formatType: "Format1" | "Format2";
-  headers: string[];
-  dateCriteria: "DOB" | "DOJ" | "DOL";
-  fromDate: Date | undefined;
-  toDate: Date | undefined;
-  working: boolean;
-  left: boolean;
-  allOrIndividual: "All" | "Individual";
-  typeOrEmployee: "Type" | "Employee";
-  selectedEmployeeType: string;
-  selectedEmployee: string;
-  groupType: string[];
-  department: string[];
-  designation: string[];
-}
+const filterSchema = z.object({
+  formatType: z.enum(["Format1", "Format2"]),
+  headers: z.array(z.string()),
+  dateCriteria: z.enum(["DOB", "DOJ", "DOL"]),
+  fromDate: z.date({
+    required_error: "From Date is required",
+    invalid_type_error: "Invalid Date",
+  }).optional(),
+  toDate: z.date({
+    required_error: "To Date is required",
+    invalid_type_error: "Invalid Date",
+  }).optional(),
+  working: z.boolean(),
+  left: z.boolean(),
+  allOrIndividual: z.enum(["All", "Individual"]),
+  typeOrEmployee: z.enum(["Type", "Employee"]),
+  selectedEmployeeType: z.string().optional(),
+  selectedEmployee: z.string().optional(),
+  groupType: z.array(z.string()).default([]),
+  department: z.array(z.string()).default([]),
+  designation: z.array(z.string()).default([]),
+}).superRefine((data, ctx) => {
+  if (data.formatType === "Format1") {
+    if (!data.fromDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fromDate"],
+        message: "From Date is required",
+      });
+    }
+    if (!data.toDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["toDate"],
+        message: "To Date is required",
+      });
+    }
+    if (data.fromDate && data.toDate && data.toDate < data.fromDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["toDate"],
+        message: "To Date cannot be earlier than From Date",
+      });
+    }
+  }
+});
+
+type FilterFormValues = z.infer<typeof filterSchema>;
 
 export default function RetirementReportPage() {
   return (
@@ -152,12 +186,13 @@ function RetirementReportContent() {
   const [filteredEmployeeTypeDropdown, setFilteredEmployeeTypeDropdown] =
     useState<any[]>([]);
 
-  const { control, handleSubmit, watch, reset } = useForm<FilterFormValues>({
+  const { control, handleSubmit, watch, reset, formState: { errors } } = useForm<FilterFormValues>({
+    resolver: zodResolver(filterSchema),
     defaultValues: {
       formatType: "Format1",
       headers: HEADER_LIST.map((h) => h.id), // Default Select All
       dateCriteria: "DOB",
-      fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      fromDate: new Date(),
       toDate: new Date(),
       working: false,
       left: false,
@@ -186,13 +221,13 @@ function RetirementReportContent() {
   const watchDepartment = watch("department");
   const watchDesignation = watch("designation");
 
-  const { data: masterGroupTypes } = useMasterGroupTypes();
+  const { data: masterGroupTypes, isLoading: isLoadingGroupTypes } = useMasterGroupTypes();
   const types = watchGroupType.map((id) => parseInt(id));
-  const { data: masterDepartments } = useLoginBasedDepartmentsByGroupType(types);
+  const { data: masterDepartments, isLoading: isLoadingDepartments } = useLoginBasedDepartmentsByGroupType(types);
 
   const groupTypeIds = watchGroupType?.join(",");
   const deptIds = watchDepartment?.join(",") || "";
-  const { data: masterDesignations } = useReportDesignations(groupTypeIds, deptIds);
+  const { data: masterDesignations, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
   const { mutate: getEmployeeAndType } = useEmployeeAndEmployeeType();
 
@@ -570,7 +605,6 @@ function RetirementReportContent() {
                 />
               </div>
 
-              {/* Dates */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>
@@ -583,6 +617,11 @@ function RetirementReportContent() {
                       <DatePicker date={field.value} setDate={field.onChange} />
                     )}
                   />
+                  {errors.fromDate && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {errors.fromDate.message as string}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>
@@ -592,9 +631,18 @@ function RetirementReportContent() {
                     name="toDate"
                     control={control}
                     render={({ field }) => (
-                      <DatePicker date={field.value} setDate={field.onChange} />
+                      <DatePicker 
+                        date={field.value} 
+                        setDate={field.onChange} 
+                        disabled={watchedFromDate ? { before: new Date(new Date(watchedFromDate).setHours(0, 0, 0, 0)) } : undefined} 
+                      />
                     )}
                   />
+                  {errors.toDate && (
+                    <p className="text-[0.8rem] font-medium text-destructive">
+                      {errors.toDate.message as string}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -738,7 +786,8 @@ function RetirementReportContent() {
                       options={groupTypeOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Group Types"
+                      placeholder={isLoadingGroupTypes ? 'Loading...' : 'Select Group Types'}
+                      disabled={isLoadingGroupTypes}
                     />
                   )}
                 />
@@ -755,7 +804,8 @@ function RetirementReportContent() {
                       options={departmentsOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Departments"
+                      placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
+                      disabled={isLoadingGroupTypes}
                     />
                   )}
                 />
@@ -772,7 +822,8 @@ function RetirementReportContent() {
                       options={designationsOptions}
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder="Select Designations"
+                      placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
+                      disabled={isLoadingDepartments}
                     />
                   )}
                 />
@@ -829,9 +880,6 @@ function RetirementReportContent() {
               showSearchColumns={false}
               showExportOptions={false}
               maxSelectableRows={0}
-              manualPagination={false}
-              manualSorting={false}
-              manualFiltering={false}
               scrollable
             />
           </div>

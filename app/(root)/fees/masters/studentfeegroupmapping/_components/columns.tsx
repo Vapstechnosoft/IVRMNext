@@ -75,15 +75,17 @@ function ActionButtonsCell({
 }: {
     rowData: IMasterStudentFeeGroupMappingList;
 }) {
-    const { openDeleteForm } = useFormContext<IMasterStudentFeeGroupMappingList>();
+    const { openDeleteForm, openEditForm } = useFormContext<IMasterStudentFeeGroupMappingList>();
 
     const handleDelete = useCallback((data: IMasterStudentFeeGroupMappingList) => openDeleteForm?.(data), [openDeleteForm]);
+    const handleEdit = useCallback((data: IMasterStudentFeeGroupMappingList) => openEditForm?.(data), [openEditForm]);
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ delete: true, edit: false }}
+            buttons={{ delete: true, edit: true }}
             onDelete={handleDelete}
+            onEdit={handleEdit}
             toggleConditionKey='fycC_ActiveFlag'
         />
     );

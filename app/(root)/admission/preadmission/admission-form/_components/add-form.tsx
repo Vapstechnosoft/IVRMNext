@@ -5,8 +5,7 @@ import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
-import PhoneInput from 'react-phone-input-2';
-import 'react-phone-input-2/lib/style.css';
+// import 'react-phone-input-2/lib/style.css';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
@@ -52,6 +51,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import PhoneInput from 'react-phone-input-2';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -690,10 +690,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
-                amsT_Date: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
+                amsT_Date: formData.amsT_Date
+                    ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'")
+                    : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
-                amsT_DateOfAdmission: formData.amsT_Date ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'") : new Date().toISOString(),
+                amsT_DateOfAdmission: formData.amsT_Date
+                    ? format(new Date(formData.amsT_Date), "yyyy-MM-dd'T'00:00:00.000'Z'")
+                    : new Date().toISOString(),
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
@@ -3195,6 +3199,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     render={({ field, fieldState: { error } }) => (
                                                         <div className='flex flex-col space-y-2'>
                                                             <Select
+                                                                key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
@@ -3783,6 +3788,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
+                                                            maxLength={12}
+                                                            minLength={12}
                                                         />
                                                     )}
                                                 />

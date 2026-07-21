@@ -84,7 +84,8 @@ export default function AddScheduleReportForm({
             };
 
             if (onFilterChange) {
-                const selectedSchedule = (scheduleList?.writentestlist || []).find((s: any) => s.disid.toString() === data.disid);
+                const displaySchedules = Array.isArray(scheduleList) ? scheduleList : (scheduleList?.writentestlist || []);
+                const selectedSchedule = (displaySchedules || []).find((s: any) => s.disid.toString() === data.disid);
                 onFilterChange({
                     ...payload,
                     schedulename: selectedSchedule?.disname || '',
@@ -123,10 +124,10 @@ export default function AddScheduleReportForm({
             </div>
 
             {/* Filter Section with Grey Background */}
-            <div className='p-4 bg-slate-50 border border-slate-200 rounded-sm space-y-4'>
-                {/* Row 1 */}
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-center'>
-                    <div className='flex items-center gap-4 border border-slate-300 p-2 rounded-sm bg-white'>
+            <div className='p-4 bg-white border border-slate-200 rounded-sm space-y-4'>
+                {/* Row 1: Year Selection & Academic Year */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 items-center'>
+                    <div className='flex items-center justify-center gap-6 border border-slate-200 p-2 rounded-sm bg-white min-h-[42px]'>
                         <Controller
                             name='yearwiseorbtwdates'
                             control={control}
@@ -134,25 +135,91 @@ export default function AddScheduleReportForm({
                                 <RadioGroup
                                     value={field.value}
                                     onValueChange={field.onChange}
-                                    className='flex items-center gap-4'>
+                                    className='flex items-center gap-6'>
                                     <div className='flex items-center gap-2'>
                                         <RadioGroupItem value='yearwise' id='yearwise' />
-                                        <Label htmlFor='yearwise' className='font-medium text-xs whitespace-nowrap'>Year Wise <span className='text-red-500'>*</span></Label>
+                                        <Label htmlFor='yearwise' className='font-bold text-[11px] uppercase'>Year Wise <span className='text-red-500'>*</span></Label>
                                     </div>
                                     <div className='flex items-center gap-2'>
                                         <RadioGroupItem value='btwdates' id='btwdates' />
-                                        <Label htmlFor='btwdates' className='font-medium text-xs whitespace-nowrap'>Between Dates <span className='text-red-500'>*</span></Label>
+                                        <Label htmlFor='btwdates' className='font-bold text-[11px] uppercase'>Between Dates <span className='text-red-500'>*</span></Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
                     </div>
 
-                    <div className='flex items-center gap-2 border border-slate-300 p-2 rounded-sm bg-white'>
-                        <Label className='font-medium text-xs whitespace-nowrap'>Academic Year: <span className='text-red-500'>*</span></Label>
-                        {watchYearwise === 'yearwise' ? (
+                    <div className='grid grid-cols-12 items-center gap-2 px-2'>
+                        <Label className='col-span-4 font-bold text-[11px] uppercase text-right'>Academic Year : <span className='text-red-500'>*</span></Label>
+                        <div className='col-span-8'>
+                            {watchYearwise === 'yearwise' ? (
+                                <Controller
+                                    name='asmaY_Id'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                            <SelectTrigger className='h-8 text-xs'>
+                                                <SelectValue placeholder='Select' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {(initialDetails?.year || []).map((year: any) => (
+                                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className='text-xs'>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            ) : (
+                                <div className='flex items-center gap-1'>
+                                    <Controller
+                                        name='from_date'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant='outline' className='h-8 px-2 text-[10px] w-full flex justify-between font-normal'>
+                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From Date'}
+                                                        <CalendarIcon className="h-3 w-3 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align="start">
+                                                    <CalendarYear mode='single' selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d?.toISOString())} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        )}
+                                    />
+                                    <Controller
+                                        name='to_date'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant='outline' className='h-8 px-2 text-[10px] w-full flex justify-between font-normal'>
+                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To Date'}
+                                                        <CalendarIcon className="h-3 w-3 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align="start">
+                                                    <CalendarYear mode='single' selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d?.toISOString())} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 2: Class & Test Type */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 items-center'>
+                    <div className='grid grid-cols-12 items-center gap-2 px-2'>
+                        <Label className='col-span-4 font-bold text-[11px] uppercase text-right'>Class : <span className='text-red-500'>*</span></Label>
+                        <div className='col-span-8'>
                             <Controller
-                                name='asmaY_Id'
+                                name='asmcL_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
@@ -160,154 +227,94 @@ export default function AddScheduleReportForm({
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(initialDetails?.year || []).map((year: any) => (
-                                                <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()} className='text-xs'>
-                                                    {year.asmaY_Year}
+                                            <SelectItem value='0' className='text-xs'>All</SelectItem>
+                                            {(initialDetails?.classname || []).map((cls: any) => (
+                                                <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className='text-xs'>
+                                                    {cls.asmcL_ClassName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                        ) : (
-                            <div className='flex items-center gap-1'>
-                                <Controller
-                                    name='from_date'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant='outline' className='h-8 px-2 text-[10px] min-w-[80px]'>
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0'>
-                                                <CalendarYear mode='single' selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d?.toISOString())} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                />
-                                <Controller
-                                    name='to_date'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant='outline' className='h-8 px-2 text-[10px] min-w-[80px]'>
-                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0'>
-                                                <CalendarYear mode='single' selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d?.toISOString())} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Row 2 */}
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 items-center'>
-                    <div className='flex items-center gap-2 border border-slate-300 p-2 rounded-sm bg-white'>
-                        <Label className='font-medium text-xs whitespace-nowrap'>Class: <span className='text-red-500'>*</span></Label>
-                        <Controller
-                            name='asmcL_Id'
-                            control={control}
-                            render={({ field }) => (
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <SelectTrigger className='h-8 text-xs'>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='0' className='text-xs'>All</SelectItem>
-                                        {(initialDetails?.classname || []).map((cls: any) => (
-                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()} className='text-xs'>
-                                                {cls.asmcL_ClassName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
+                        </div>
                     </div>
 
-                    <div className='flex items-center gap-4 border border-slate-300 p-2 rounded-sm bg-white overflow-x-auto'>
+                    <div className='flex items-center justify-center gap-4 border border-slate-200 p-2 rounded-sm bg-white min-h-[42px]'>
                         <Controller
                             name='oralwrittenschedule'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-3'>
+                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-4'>
                                     <div className='flex items-center gap-1'>
                                         <RadioGroupItem value='oral' id='oral' className='h-3 w-3' />
-                                        <Label htmlFor='oral' className='text-[10px] whitespace-nowrap'>Oral Test <span className='text-red-500'>*</span></Label>
+                                        <Label htmlFor='oral' className='text-[10px] font-bold uppercase whitespace-nowrap'>Oral Test <span className='text-red-500'>*</span></Label>
                                     </div>
                                     <div className='flex items-center gap-1'>
                                         <RadioGroupItem value='written' id='written' className='h-3 w-3' />
-                                        <Label htmlFor='written' className='text-[10px] whitespace-nowrap'>Written Test <span className='text-red-500'>*</span></Label>
+                                        <Label htmlFor='written' className='text-[10px] font-bold uppercase whitespace-nowrap'>Written Test <span className='text-red-500'>*</span></Label>
                                     </div>
                                     <div className='flex items-center gap-1'>
                                         <RadioGroupItem value='statusschedule' id='statusschedule' className='h-3 w-3' />
-                                        <Label htmlFor='statusschedule' className='text-[10px] whitespace-nowrap'>IntimationSchedule <span className='text-red-500'>*</span></Label>
+                                        <Label htmlFor='statusschedule' className='text-[10px] font-bold uppercase whitespace-nowrap'>IntimationSchedule <span className='text-red-500'>*</span></Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
                     </div>
                 </div>
-            </div>
 
-            {/* Hidden logic for secondary fields */}
-            {(watchYearwise === 'yearwise' && !!watchAsmayId) && (
-                <div className='flex gap-4 justify-end items-center px-4 py-1'>
-                     <div className='flex items-center gap-2'>
-                        <Label className='text-[10px] text-slate-400'>Time Format:</Label>
+                {/* Row 3: Time Format & Schedule Name */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 items-center'>
+                    <div className='flex items-center justify-center gap-6 border border-slate-200 p-2 rounded-sm bg-white min-h-[42px]'>
                         <Controller
                             name='hrsrt'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-2'>
-                                    <div className='flex items-center gap-1'>
-                                        <RadioGroupItem value='12hrrt' id='12hr' className='h-2 w-2' />
-                                        <Label htmlFor='12hr' className='text-[9px]'>12H</Label>
+                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-6'>
+                                    <div className='flex items-center gap-2'>
+                                        <RadioGroupItem value='12hrrt' id='12hr' className='h-3 w-3' />
+                                        <Label htmlFor='12hr' className='text-[10px] font-bold uppercase'>12 Hours Format</Label>
                                     </div>
-                                    <div className='flex items-center gap-1'>
-                                        <RadioGroupItem value='24hrrt' id='24hr' className='h-2 w-2' />
-                                        <Label htmlFor='24hr' className='text-[9px]'>24H</Label>
+                                    <div className='flex items-center gap-2'>
+                                        <RadioGroupItem value='24hrrt' id='24hr' className='h-3 w-3' />
+                                        <Label htmlFor='24hr' className='text-[10px] font-bold uppercase'>24 Hours Format</Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
-                     </div>
-                     <div className='flex items-center gap-2'>
-                        <Label className='text-[10px] text-slate-400'>Schedule:</Label>
-                        <Controller
-                            name='disid'
-                            control={control}
-                            render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value || ''}>
-                                    <SelectTrigger className='h-6 text-[10px] w-[140px]'>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {(scheduleList?.writentestlist || []).map((s: any) => (
-                                            <SelectItem key={s.disid} value={s.disid.toString()} className='text-[10px]'>
-                                                {s.disname}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                     </div>
-                </div>
-            )}
+                    </div>
 
-            <div className='flex justify-center gap-2 pt-2'>
+                    <div className='grid grid-cols-12 items-center gap-2 px-2'>
+                        <Label className='col-span-4 font-bold text-[11px] uppercase text-right'>Schedule Name : <span className='text-red-500'>*</span></Label>
+                        <div className='col-span-8'>
+                            <Controller
+                                name='disid'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={watchYearwise !== 'yearwise' || !watchAsmayId}>
+                                        <SelectTrigger className='h-8 text-xs'>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {((Array.isArray(scheduleList) ? scheduleList : scheduleList?.writentestlist) || []).map((s: any) => (
+                                                <SelectItem key={s.disid} value={s.disid.toString()} className='text-xs'>
+                                                    {s.disname}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className='flex justify-center gap-2 pt-4'>
                 <Button 
                     type='submit' 
-                    className='h-8 px-6 bg-[#3f51b5] hover:bg-[#303f9f] text-white text-xs font-bold uppercase rounded-sm shadow-sm' 
+                    className='h-9 px-8 bg-[#3f51b5] hover:bg-[#303f9f] text-white text-xs font-bold uppercase rounded-sm shadow-md transition-all active:scale-95' 
                     disabled={isSubmitting}
                 >
                     REPORT
@@ -315,7 +322,7 @@ export default function AddScheduleReportForm({
                 <Button 
                     type='button' 
                     onClick={handleReset}
-                    className='h-8 px-6 bg-[#ff5722] hover:bg-[#e64a19] text-white text-xs font-bold uppercase rounded-sm shadow-sm'
+                    className='h-9 px-8 bg-[#ff5722] hover:bg-[#e64a19] text-white text-xs font-bold uppercase rounded-sm shadow-md transition-all active:scale-95'
                 >
                     CANCEL
                 </Button>

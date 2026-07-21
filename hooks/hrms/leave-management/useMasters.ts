@@ -22,7 +22,6 @@ import {
     updateMasterLeaveOrder as updateMasterLeaveOrderAPI
 } from '@/server/hrms/leave-management/masters/master-leave';
 import { getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
-import { getTimetableData } from '@/server/timetable/transactions/staff-replacement-in-unallocated-period';
 import type { ApiSearchparams } from '@/types';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
 import type { MasterLeaveGetResponseData, MasterLeaveListItem, MasterLeaveSaveRequest, MasterLeaveDTOO } from '@/types/hrms/leave-management/master-leave';
@@ -139,7 +138,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE, searchParams],
+            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE, 'list', searchParams ?? {}],
             queryFn: async () => {
                 try {
                     // Call API with search parameters
@@ -150,6 +149,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                     // Extract list from response
                     let leaveList: MasterLeave[] = [];
                     const data = response.data;
+                    let leaveOrderList: any[] = [];
 
                     if (data) {
                         // Case 1: data is directly an array (New GET API)
@@ -160,8 +160,12 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                         }
                         // Case 2: data is an object with list fields (Wrapper API)
                         else if (typeof data === 'object') {
-                            const dataObj = data as MasterLeaveGetResponseData;
-                            const possibleLists = [dataObj.GridviewDetails, dataObj.leavelistedit, dataObj.leaveData];
+                            const dataObj = data as any;
+                            const possibleLists = [dataObj.list, dataObj.GridviewDetails, dataObj.leavelistedit, dataObj.leaveData];
+
+                            if (dataObj.leaveOrderList) {
+                                leaveOrderList = dataObj.leaveOrderList;
+                            }
 
                             for (const list of possibleLists) {
                                 if (list && Array.isArray(list)) {
@@ -182,6 +186,7 @@ export function useMasterLeave(searchParams?: ApiSearchparams) {
                     return {
                         success: true,
                         data: leaveList,
+                        leaveOrderList: leaveOrderList,
                         total: response.total || leaveList.length,
                         page: response.page || 1,
                         page_Size: response.page_Size || 10,
@@ -450,8 +455,7 @@ export function useMasterLeaveYear() {
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
-            // queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
+            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'list'],
             queryFn: async () => {
                 try {
                     const response = await getMasterLeaveYear();
@@ -633,7 +637,7 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
  */
 export function useInstitutionsByLoginBased() {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, 'institutions'],
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS, 'institutions'],
         queryFn: async () => {
             const response = await getInstitutionsByLoginBased();
             if (!response.success) {
@@ -648,7 +652,7 @@ export function useLeaveAuthorization(searchParams?: ApiSearchparams & { MI_Id?:
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, searchParams ?? {}],
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS, 'list', searchParams ?? {}],
             queryFn: async () => {
                 try {
                     // Call API with search params for pagination and filtering
@@ -711,7 +715,7 @@ export function useLeaveAuthorization(searchParams?: ApiSearchparams & { MI_Id?:
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION]
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS]
             });
         }
     };
@@ -723,7 +727,7 @@ export function useLeaveAuthorizationDropdowns() {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, 'dropdowns'],
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS, 'dropdowns'],
             queryFn: async () => {
                 try {
                     const dropdowns = await getLeaveAuthorizationDropdowns({
@@ -744,7 +748,7 @@ export function useLeaveAuthorizationDropdowns() {
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, 'dropdowns']
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS, 'dropdowns']
             });
         }
     };
@@ -755,7 +759,7 @@ export function useLeaveAuthorizationDropdowns() {
  */
 export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, 'edit', HRLAON_Id],
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS, 'edit', HRLAON_Id],
         queryFn: async () => {
             if (!HRLAON_Id) {
                 throw new Error('HRLAON_Id is required');
@@ -775,7 +779,7 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
                 }
                 return {
                     success: true,
-                    data: mappedData,
+                    data: apiData,
                     message: response.message || 'Leave authorization fetched successfully'
                 };
             } catch (error: any) {
@@ -900,7 +904,7 @@ export function useSaveLeaveAuthorization() {
                 // Invalidate all queries starting with LEAVE_AUTHORIZATION key
                 // This will include queries with specific MI_Id params
                 queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION]
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS]
                 });
             } else {
                 toast.error(response.message);
@@ -954,7 +958,7 @@ export function useUpdateLeaveAuthorization() {
             if (response.success) {
                 toast.success(response.message);
                 queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION]
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS]
                 });
             } else {
                 toast.error(response.message);
@@ -990,7 +994,7 @@ export function useDeleteLeaveAuthorization() {
             if (response.success) {
                 toast.success(response.message);
                 queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION]
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATIONS]
                 });
             } else {
                 toast.error(response.message);
@@ -1085,7 +1089,7 @@ export function useLeaveConfiguration() {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CONFIGURATION],
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CONFIGURATION, 'detail'],
             queryFn: async () => {
                 try {
                     const response = await getLeaveConfiguration();

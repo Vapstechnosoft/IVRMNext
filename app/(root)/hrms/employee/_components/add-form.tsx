@@ -1954,7 +1954,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => setCurrentStep(step.id)}
                                                     disabled={isSubmittingAny || isDisabled}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -4285,8 +4284,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
                                                                                     <Label>
-                                                                    Course <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                        Course <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>
@@ -4405,8 +4404,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>
-                                                                    Country <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                    Country <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(value) => {
                                                                                         field.onChange(value);
@@ -4496,8 +4495,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>
-                                                                    CGPA Or Percentage <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                    CGPA Or Percentage <span className='text-red-500'>*</span>
+                                                                                </Label>
                                                                                 <Select
                                                                                     onValueChange={(val) => {
                                                                                         field.onChange(val);
@@ -4601,8 +4600,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             return (
                                                                                 <div className='flex flex-col gap-1.5'>
                                                                                     <Label>
-                                                                    Area Of Specialization <span className='text-red-500'>*</span>
-                                                                </Label>
+                                                                                        Area Of Specialization <span className='text-red-500'>*</span>
+                                                                                    </Label>
                                                                                     <Select
                                                                                         onValueChange={field.onChange}
                                                                                         value={field.value || ''}>

@@ -12,9 +12,10 @@ import { z } from 'zod';
 
 interface AddInvMasterTaxFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 type FormFields = z.infer<typeof invMasterTaxSchema.addOrUpdate>;
-export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormProps) {
+export default function AddInvMasterTaxForm({ onSuccess, onCancel }: AddInvMasterTaxFormProps) {
     const { refetchAll } = useInvMasterTax();
     const {
         control,
@@ -69,6 +70,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
             <div className='flex flex-col gap-4'>
                 <InputText
                     label='Tax Name'
+                    placeholder='Enter Tax Name'
                     required
                     id='INVMT_TaxName'
                     {...register('INVMT_TaxName')}
@@ -77,6 +79,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
 
                 <InputText
                     label='Alias Name'
+                    placeholder='Enter Alias Name'
                     id='INVMT_TaxAliasName'
                     {...register('INVMT_TaxAliasName')}
                     error={errors.INVMT_TaxAliasName?.message}
@@ -84,6 +87,9 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
             </div>
 
             <div className='flex justify-end gap-2 pt-4'>
+                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>

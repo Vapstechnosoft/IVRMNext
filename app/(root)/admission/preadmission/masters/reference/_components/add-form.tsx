@@ -67,6 +67,7 @@ export default function AddMasterReferenceForm({ onSuccess, className = '' }: Ad
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
                             label='Reference Name'
+                            placeholder='Enter Reference Name'
                             required
                             id='pamR_ReferenceName'
                             {...register('pamR_ReferenceName')}
@@ -76,9 +77,9 @@ export default function AddMasterReferenceForm({ onSuccess, className = '' }: Ad
 
                         <InputTextarea
                             label='Description'
+                            placeholder='Enter Description'
                             required
                             id='pamR_ReferenceDesc'
-                            placeholder='Enter description'
                             {...register('pamR_ReferenceDesc')}
                             error={errors.pamR_ReferenceDesc?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
