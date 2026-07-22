@@ -52,9 +52,18 @@ function MasterSectionPageContent({
     // Client-side filtering to support searching numeric columns without backend errors
     const searchQuery = searchParams?.search_query?.toString().toLowerCase() || '';
     
-    let filteredResponse = response;
-    if (searchQuery && response && response.data) {
-        const dataArray = Array.isArray(response.data) ? response.data : [];
+    // Normalize response so that data is always an array
+    let normalizedResponse = response;
+    if (response && response.data && !Array.isArray(response.data)) {
+        normalizedResponse = {
+            ...response,
+            data: response.data.list || []
+        };
+    }
+
+    let filteredResponse = normalizedResponse;
+    if (searchQuery && normalizedResponse && normalizedResponse.data) {
+        const dataArray = normalizedResponse.data;
         const filteredData = dataArray.filter((item: any) => {
             return (
                 String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
@@ -64,12 +73,12 @@ function MasterSectionPageContent({
             );
         });
         filteredResponse = {
-            ...response,
+            ...normalizedResponse,
             data: filteredData,
             total: filteredData.length
         };
-    } else if (searchQuery && Array.isArray(response)) {
-        filteredResponse = response.filter((item: any) => {
+    } else if (searchQuery && Array.isArray(normalizedResponse)) {
+        filteredResponse = normalizedResponse.filter((item: any) => {
             return (
                 String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
                 String(item.asmC_SectionName || '').toLowerCase().includes(searchQuery) ||

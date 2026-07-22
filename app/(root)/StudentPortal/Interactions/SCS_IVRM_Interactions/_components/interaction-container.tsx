@@ -14,7 +14,7 @@ import { Loader2, Inbox, Send } from 'lucide-react';
 interface InteractionContainerProps {
     initialData: IInteractionsInitialData;
 }
-
+export const dynamic = 'force-dynamic';
 export function InteractionContainer({ initialData }: InteractionContainerProps) {
     const [activeTab, setActiveTab] = useState('inbox');
     const [interactionsData, setInteractionsData] = useState(initialData);

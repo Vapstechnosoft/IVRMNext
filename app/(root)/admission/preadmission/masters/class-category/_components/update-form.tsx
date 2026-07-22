@@ -10,7 +10,7 @@ import { addMasterClassCategory } from '@/server/admission/preadmission/masters/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -24,6 +24,7 @@ interface UpdateMasterClassCategoryFormProps {
 }
 
 export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: UpdateMasterClassCategoryFormProps) {
+    const [clearKey, setClearKey] = useState(0);
     const { refetchAll } = useMasterClassCategory();
     const { data: sections } = useMasterSectionDropdown();
     const { data: academicYears } = useAcademicYearDropdown();
@@ -276,8 +277,9 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                             <FormItem>
                                 <FormLabel>Category</FormLabel>
                                 <Select
+                                    key={`category-${clearKey}`}
                                     onValueChange={(value) => field.onChange(Number(value))}
-                                    value={String(field.value ?? '')}
+                                    value={field.value ? String(field.value) : undefined}
                                 >
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
@@ -370,7 +372,10 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                         size='sm'
                         variant='outline'
                         className='min-w-[100px]'
-                        onClick={() => window.location.reload()}>
+                        onClick={() => {
+                            form.reset();
+                            setClearKey(prev => prev + 1);
+                        }}>
                         Clear
                     </Button>
                 </div>

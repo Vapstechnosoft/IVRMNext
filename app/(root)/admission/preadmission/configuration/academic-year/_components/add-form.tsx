@@ -106,8 +106,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
         }
     }, [academicFromYear, academicToYear, setValue]);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (data) => {
         try {
+            const sanitizeDate = (val: any) => (val && val !== '' ? val : null);
+            const formatTimeWithSeconds = (timeStr: string | null | undefined) => {
+                if (!timeStr) return null;
+                const parts = timeStr.split(':');
+                if (parts.length === 2) {
+                    return `${timeStr}:00`;
+                }
+                return timeStr;
+            };
+
             const payload = {
                 ASMAY_Id: 0,
                 MI_Id: Number(data.mI_Id),
@@ -116,8 +126,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,
                 ASMAY_PreAdm_T_Date: data.asmaY_PreAdm_T_Date,
-                ASMAY_PreAdm_F_Time: data.asmaY_PreAdm_F_Time || null,
-                ASMAY_PreAdm_T_Time: data.asmaY_PreAdm_T_Time || null,
+                ASMAY_PreAdm_F_Time: formatTimeWithSeconds(data.asmaY_PreAdm_F_Time),
+                asmaY_PreAdm_F_Time: formatTimeWithSeconds(data.asmaY_PreAdm_F_Time),
+                ASMAY_PreAdm_T_Time: formatTimeWithSeconds(data.asmaY_PreAdm_T_Time),
+                asmaY_PreAdm_T_Time: formatTimeWithSeconds(data.asmaY_PreAdm_T_Time),
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: 1,
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
@@ -125,14 +137,22 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_ReggularFlg: Boolean(data.asmaY_ReggularFlg),
                 ASMAY_NewFlg: Boolean(data.asmaY_NewFlg),
                 ASMAY_NewAdmissionFlg: Boolean(data.asmaY_NewAdmissionFlg),
-                ASMAY_TransportSDate: data.asmaY_TransportSDate,
-                ASMAY_TransportEDate: data.asmaY_TransportEDate,
-                ASMAY_ReferenceDate: data.asmaY_ReferenceDate,
+                
+                ASMAY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
+                asmaY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
+                ASMAY_TransportEDate: sanitizeDate(data.asmaY_TransportEDate),
+                asmaY_TransportEDate: sanitizeDate(data.asmaY_TransportEDate),
+                ASMAY_ReferenceDate: sanitizeDate(data.asmaY_ReferenceDate),
+                asmaY_ReferenceDate: sanitizeDate(data.asmaY_ReferenceDate),
                 ASMAY_AcademicYearCode: data.asmaY_AcademicYearCode,
-                ASMAY_AdvanceFeeDate: data.asmaY_AdvanceFeeDate,
-                ASMAY_RegularFeeFDate: data.asmaY_RegularFeeFDate,
-                ASMAY_RegularFeeTDate: data.asmaY_RegularFeeTDate,
-                ASMAY_ArrearFeeDate: data.asmaY_ArrearFeeDate
+                ASMAY_AdvanceFeeDate: sanitizeDate(data.asmaY_AdvanceFeeDate),
+                asmaY_AdvanceFeeDate: sanitizeDate(data.asmaY_AdvanceFeeDate),
+                ASMAY_RegularFeeFDate: sanitizeDate(data.asmaY_RegularFeeFDate),
+                asmaY_RegularFeeFDate: sanitizeDate(data.asmaY_RegularFeeFDate),
+                ASMAY_RegularFeeTDate: sanitizeDate(data.asmaY_RegularFeeTDate),
+                asmaY_RegularFeeTDate: sanitizeDate(data.asmaY_RegularFeeTDate),
+                ASMAY_ArrearFeeDate: sanitizeDate(data.asmaY_ArrearFeeDate),
+                asmaY_ArrearFeeDate: sanitizeDate(data.asmaY_ArrearFeeDate)
             };
 
             const response = await addOrUpdatePreAdmissionYear(payload);
@@ -146,7 +166,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 toast.error(response.message || 'Failed to save academic year.');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An unexpected error occurred.');
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred.');
         }
     };
 

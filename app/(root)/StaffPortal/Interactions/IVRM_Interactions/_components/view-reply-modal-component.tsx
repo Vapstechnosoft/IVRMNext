@@ -14,11 +14,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { 
-    Send, 
-    Paperclip, 
-    Loader2, 
-    User, 
+import {
+    Send,
+    Paperclip,
+    Loader2,
+    User,
     FileText,
     FileImage,
     Video,
@@ -46,7 +46,7 @@ interface ViewReplyModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id }: ViewReplyModalProps) {
     const [thread, setThread] = useState<any[]>([]);
     const [replyVisible, setReplyVisible] = useState(false);
@@ -66,9 +66,9 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 // Handle different backend response structures (viewmessage vs replylist)
                 const threadData = res.data.viewmessage?.length ? res.data.viewmessage : (res.data.replylist || []);
                 setThread(threadData);
-                
+
                 // Parity logic: if data was loaded successfully, reply should be visible 
-                setReplyVisible(true); 
+                setReplyVisible(true);
             }
         } catch (error) {
             console.error('Failed to load thread:', error);
@@ -126,7 +126,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
             setIsSubmitting(false);
         }
     };
-    
+
     const handleDeleteReply = async (id: number) => {
         if (!confirm('Are you sure you want to delete this reply?')) return;
         try {
@@ -145,7 +145,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
     const handleFileView = (url: string) => {
         if (!url) return;
         const ext = url?.split('.').pop()?.toLowerCase();
-        
+
         if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext || '')) {
             window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
         } else {
@@ -191,15 +191,15 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 <DialogHeader className="p-8 border-b bg-primary/[0.03] space-y-4">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-3">
-                             <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                                 <MessageSquare className="h-6 w-6" />
-                             </div>
-                             <DialogTitle className="text-2xl font-black tracking-tight leading-none">
+                            </div>
+                            <DialogTitle className="text-2xl font-black tracking-tight leading-none">
                                 {message.ISMINT_Subject}
                             </DialogTitle>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap ml-12">
-                             <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest bg-background/50 border-primary/20 text-primary">
+                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest bg-background/50 border-primary/20 text-primary">
                                 ID: {message.ISMINT_InteractionId}
                             </Badge>
                             {message.Classname && (
@@ -249,7 +249,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                     </td>
                                                     <td className="px-4 py-4 border-r border-slate-100 text-center">
                                                         {(item.ISTINT_Attachment || item.ISMINT_Attachment) && (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => {
                                                                     const url = item.ISTINT_Attachment || item.ISMINT_Attachment;
                                                                     const ext = url?.split('.').pop()?.toLowerCase();
@@ -273,7 +273,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                     </td>
                                                     <td className="px-4 py-4 text-center">
                                                         {isMyReply && (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleDeleteReply(item.ISTINT_Id)}
                                                                 className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                                 title="Delete Reply"
@@ -297,10 +297,10 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                         <div className="flex flex-col gap-4">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between ml-1">
-                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary leading-none">Draft Reply</Label>
-                                     <ChevronDown className="h-3 w-3 text-muted-foreground opacity-50" />
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary leading-none">Draft Reply</Label>
+                                    <ChevronDown className="h-3 w-3 text-muted-foreground opacity-50" />
                                 </div>
-                                <Textarea 
+                                <Textarea
                                     placeholder="Type your message here..."
                                     className="min-h-[120px] resize-none bg-background border-2 rounded-2xl p-4 font-medium focus-visible:ring-primary/20 placeholder:opacity-50"
                                     value={replyText}
@@ -315,7 +315,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                             <div key={i} className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-sm border border-slate-200">
                                                 <span className="text-[11px] font-bold text-slate-600 truncate max-w-[150px]">{f.name}</span>
                                                 <div className="flex items-center gap-1 border-l border-slate-300 pl-2 ml-1">
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             if (f.file) {
                                                                 const ext = f.name.split('.').pop()?.toLowerCase();
@@ -337,7 +337,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                     >
                                                         View
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             if (f.file) {
                                                                 const url = URL.createObjectURL(f.file);
@@ -354,9 +354,9 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                                     >
                                                         Download
                                                     </button>
-                                                    <X 
-                                                        className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700 ml-1" 
-                                                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))} 
+                                                    <X
+                                                        className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700 ml-1"
+                                                        onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}
                                                     />
                                                 </div>
                                             </div>
@@ -368,8 +368,8 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                                         <Input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleFileChange} />
                                     </Button>
                                 </div>
-                                <Button 
-                                    className="min-w-[120px] h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all" 
+                                <Button
+                                    className="min-w-[120px] h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all"
                                     onClick={handleSendReply}
                                     disabled={isSubmitting || !replyText.trim()}
                                 >
@@ -389,31 +389,31 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id 
                 <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none flex flex-col items-center">
                     <div className="relative group w-full flex flex-col items-center gap-6">
                         <div className="relative rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md p-1 shadow-2xl flex flex-col items-center w-full max-w-3xl">
-                             {previewUrl && (
+                            {previewUrl && (
                                 previewUrl.toLowerCase().endsWith('.pdf') ? (
-                                    <iframe 
-                                        src={`${previewUrl}#toolbar=0`} 
+                                    <iframe
+                                        src={`${previewUrl}#toolbar=0`}
                                         className="w-full h-[70vh] rounded-xl border-none shadow-inner bg-white"
                                         title="PDF Preview"
                                     />
                                 ) : (
-                                    <img 
-                                        src={previewUrl} 
-                                        alt="Preview" 
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
                                         className="max-h-[70vh] w-auto rounded-xl object-contain shadow-inner"
                                     />
                                 )
-                             )}
+                            )}
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button 
+                            <Button
                                 onClick={() => previewUrl && handleDownload(previewUrl)}
                                 className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8 rounded-full font-black uppercase tracking-widest gap-3 h-12 shadow-xl"
                             >
                                 <Download className="h-5 w-5" />
                                 Download File
                             </Button>
-                            <Button 
+                            <Button
                                 onClick={() => setPreviewUrl(null)}
                                 className="bg-red-500/80 hover:bg-red-500 text-white px-8 rounded-full font-black uppercase tracking-widest h-12 shadow-xl"
                             >

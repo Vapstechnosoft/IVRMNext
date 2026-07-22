@@ -28,7 +28,7 @@ interface FeedbackModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, userhrmE_Id }: FeedbackModalProps) {
     const [responses, setResponses] = useState<Record<number, { optionId: number; remarks: string }>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +72,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
 
         setIsSubmitting(true);
         try {
-            const res = await saveFeedback({ 
+            const res = await saveFeedback({
                 savemodulefeedback: feedbackArray,
                 Flag: roleFlg,
                 HRME_Id: userhrmE_Id
@@ -129,12 +129,12 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                                 </div>
 
                                 <div className="ml-9">
-                                    <RadioGroup 
+                                    <RadioGroup
                                         className="grid grid-cols-2 gap-3"
                                         onValueChange={(val) => handleOptionSelect(q.fmqE_Id, Number(val))}
                                     >
                                         {q.feedbackoptiondata.map((opt) => (
-                                            <Label 
+                                            <Label
                                                 key={opt.fmoP_Id}
                                                 className={cn(
                                                     "flex cursor-pointer items-center gap-3 rounded-xl border-2 p-4 transition-all hover:bg-accent/50",
@@ -149,7 +149,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
 
                                     <div className="mt-4 space-y-2">
                                         <Label className="text-xs font-bold text-muted-foreground uppercase ml-1">Additional Remarks</Label>
-                                        <Textarea 
+                                        <Textarea
                                             placeholder="Tell us more (optional)..."
                                             className="resize-none bg-muted/20 focus-visible:ring-primary/20"
                                             onBlur={(e) => handleRemarksChange(q.fmqE_Id, e.target.value)}
@@ -170,8 +170,8 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                             <Button variant="ghost" onClick={onClose} className="font-bold">
                                 Skip for now
                             </Button>
-                            <Button 
-                                className="min-w-[140px] font-bold shadow-lg shadow-primary/20" 
+                            <Button
+                                className="min-w-[140px] font-bold shadow-lg shadow-primary/20"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
                             >
