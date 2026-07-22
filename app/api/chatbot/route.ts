@@ -44,12 +44,12 @@ async function getNavigationContext() {
         };
 
         traverse(modulesResponse.data, []);
-        
+
         // Truncate to avoid exceeding LLM token limits (Groq has ~8k token limit for this model, so max ~20000 chars)
         if (contextText.length > 20000) {
             contextText = contextText.substring(0, 20000) + "\n...[List truncated for size]";
         }
-        
+
         return contextText;
     } catch (error) {
         console.error("Error generating navigation context:", error);
