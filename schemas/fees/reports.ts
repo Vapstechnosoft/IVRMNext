@@ -928,3 +928,15 @@ export const feeCollectionstatementNagarjunaSchema = z.object({
     ),
     radio_val: z.enum(['All', 'Branchwise/Classwise', 'Hostel', 'Transport']).default('All')
 });
+
+export const feeMonthlyCollectionReportSchema = z.object({
+    viewMode: z.enum(['All', 'Individual']).default('Individual'),
+    amstId: z.number({ message: 'Student Name is required' }),
+    academicYearId: z.number({ message: 'Academic Year is required' }),
+    ischeckdate: z.boolean().optional(),
+    customGroupIds: z.array(z.number()).min(1, 'Please select at least one Custom Group'),
+    feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+    termIds: z.array(z.number()).min(1, 'Please select at least one Term'),
+    fromDate: z.string().min(1, { message: 'From Date is required' }),
+    toDate: z.string().min(1, { message: 'To Date is required' })
+});
