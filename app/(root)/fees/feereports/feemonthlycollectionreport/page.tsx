@@ -10,7 +10,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { feeMonthlyCollectionReportSchema } from '@/schemas/fees/reports';
 import { getMonthlyFeeCollectionReport } from '@/server/fees/reports/fee_DefaulterReport';
@@ -18,20 +17,11 @@ import { getStudentdetails } from '@/server/fees/trasactions/waived_off';
 import type { IFeeCustomGroupDropdownList, IFeeGroupDropdownList, IFeeTermDropdownList } from '@/types/fees/reports/reports';
 import type { feeTransactionWaivedOffStudentDetails } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import {
-    exportToExcelforFeeClassWise,
-    exportToExcelforFeeGroupWise,
-    exportToExcelforFeeHeadWise,
-    exportToExcelforFeeInstallmentWise,
-    exportToExcelforFeeStudentorStaffWise,
-    exportToExcelforFeeStudentorStaffWiseofBalance,
-    printTable
-} from './_components/columns';
+import { exportToExcelforFeeGroupWise, printTable } from './_components/columns';
 
 type FormFields = z.infer<typeof feeMonthlyCollectionReportSchema>;
 
@@ -47,30 +37,28 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-interface IStudentFeeDefaulterReport {
+interface IMonthlyCollectionReport {
     id: number;
     amsT_Id: number;
-    totalBalance: number;
+    admNo: string;
+    regno: string;
     studentName: string;
-    amsT_AdmNo: string;
-    classSection: string;
-    amsT_MobileNo: string;
-    amsT_FatherName: string;
-    amsT_emailId: string;
-    fmT_Name: string;
-    fmG_GroupName: string;
-    fmH_FeeName: string;
-    asmcL_ClassName: string;
-    amsT_Route: string;
-    fine_Amount: number;
-    admno: string;
-    feeName: string;
-    className: string;
-    sectionName: string;
-    fatherName: string;
-    mobileNo: string;
-    email: string;
-    tobepaid: number;
+    aaa: number;
+    aa: string;
+    receiptDetails: string;
+    jan: number;
+    feb: number;
+    mar: number;
+    apr: number;
+    may: number;
+    jun: number;
+    jul: number;
+    aug: number;
+    sep: number;
+    oct: number;
+    nov: number;
+    dec: number;
+    total: number;
     [key: string]: any;
 }
 const today = new Date().toISOString().split('T')[0];
@@ -110,24 +98,22 @@ export default function FeeDefaulterReport() {
     const [feeGroups, setFeeGroups] = useState<IFeeGroupDropdownList[]>([]);
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
-    const [reportData, setReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [studentreportData, setstudentReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [studentGroupreportData, setstudentGroupReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [studentHeadreportData, setstudentHeadReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [studentClassreportData, setstudentClassReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [balancereportData, setBalanceReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [dynamicFeeNames, setDynamicFeeNames] = useState<string[]>([]);
+    const [_reportData, setReportData] = useState<IMonthlyCollectionReport[]>([]);
+    const [studentreportData, setstudentReportData] = useState<IMonthlyCollectionReport[]>([]);
+    const [_headersName, setHeadersName] = useState<any[]>([]);
     const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [search, setSearch] = useState('');
-    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | 'fmH_FeeName' | 'totalBalance' | 'asmcL_ClassName' | null>(null);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [studentDetails, setStudentDetails] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
     const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
     const [studentDetailsError, setStudentDetailsError] = useState<any>(null);
     const { data: academicData, error: academicError } = useAcademicYearDropdown();
     const academicYearId = watch('academicYearId');
+    const fromDate = watch('fromDate');
+    const toDate = watch('toDate');
+    const feeGroupIds = watch('feeGroupIds');
+    const termIds = watch('termIds');
     const fetchStudentDetails = async () => {
         if (!academicYearId) return;
         try {
@@ -185,483 +171,79 @@ export default function FeeDefaulterReport() {
         else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
     }, [customGroupResponse, customGroupError]);
 
-    const [communicationMethods, setCommunicationMethods] = useState({
-        email: false,
-        sms: false,
-        notification: false,
-        whatsapp: false
-    });
-
-    const [emailTemplate, setEmailTemplate] = useState('');
-    const [showemailContent, setshowEmailContent] = useState(false);
-    const [showNotificationModal, setShowNotificationModal] = useState(false);
-    const [showSMSModal, setShowSMSModal] = useState(false);
-
-    const [sortConfig, setSortConfig] = useState<{
-        key: keyof (typeof studentreportData)[0];
-        direction: 'asc' | 'desc';
-    } | null>(null);
-
-    const handleSortfull = (key: keyof (typeof studentreportData)[0]) => {
-        let direction: 'asc' | 'desc' = 'asc';
-
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-
-        setSortConfig({ key, direction });
-    };
-
-    const sortedData = useMemo(() => {
-        if (!sortConfig) return studentreportData;
-
-        return [...studentreportData].sort((a, b) => {
-            const aValue = a[sortConfig.key];
-            const bValue = b[sortConfig.key];
-
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return 1;
-            if (bValue == null) return -1;
-
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                return sortConfig.direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-            }
-
-            if (typeof aValue === 'number' && typeof bValue === 'number') {
-                return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-            }
-
-            return 0;
-        });
-    }, [studentreportData, sortConfig]);
-
-    const filteredStudentData = useMemo(() => {
-        if (!search.trim()) return studentreportData;
-        const searchTerm = search.toLowerCase().trim();
-        return studentreportData.filter((student) => {
-            return (
-                student.studentName.toLowerCase().includes(searchTerm) ||
-                student.amsT_AdmNo.toLowerCase().includes(searchTerm) ||
-                student.classSection.toLowerCase().includes(searchTerm) ||
-                student.amsT_FatherName.toLowerCase().includes(searchTerm) ||
-                student.amsT_MobileNo.includes(searchTerm) ||
-                student.amsT_emailId.toLowerCase().includes(searchTerm) ||
-                student.amsT_Route.toLowerCase().includes(searchTerm) ||
-                student.totalBalance.toString().includes(searchTerm)
-            );
-        });
-    }, [studentreportData, search]);
-
-    const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
-        setCommunicationMethods((prev) => ({
-            ...prev,
-            [method]: !prev[method]
-        }));
-    };
-
-    const handleRequestCommunication = () => {
-        if (communicationMethods.email) {
-            setshowEmailContent(true);
-        } else if (communicationMethods.notification) {
-            setShowNotificationModal(true);
-        } else if (communicationMethods.sms) {
-            setShowSMSModal(true);
-        }
-    };
-
-    const handleSendEmail = () => {
-        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.amsT_Id));
-
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one student');
-            return;
-        }
-        toast.success(`Email sent to ${selectedStudents.length} student(s)`);
-    };
-
-    const calculateTotals = () => {
-        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.amsT_Id));
-
-        return {
-            count: selectedStudents.length,
-            totalBalance: selectedStudents.reduce((sum, student) => sum + student.totalBalance, 0)
-        };
-    };
-
-    const filteredData = useMemo(() => {
-        let rows = [...reportData];
-
-        if (search) {
-            rows = rows.filter(
-                (r) => r.fmG_GroupName.toLowerCase().includes(search.toLowerCase()) || r.totalBalance.toString().includes(search)
-            );
-        }
-
-        if (sortKey) {
-            rows.sort((a: any, b: any) => {
-                const valA = a[sortKey];
-                const valB = b[sortKey];
-
-                if (typeof valA === 'string') {
-                    return sortOrder === 'asc' ? valA.localeCompare(valB as string) : (valB as string).localeCompare(valA);
-                }
-
-                return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
-            });
-        }
-
-        return rows;
-    }, [reportData, search, sortKey, sortOrder]);
-
-    const handleSort = (key: 'feeGroup' | 'totalDue' | 'fmH_FeeName' | 'totalBalance' | 'asmcL_ClassName') => {
-        if (sortKey === key) {
-            setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-        } else {
-            setSortKey(key);
-            setSortOrder('asc');
-        }
-    };
-
-    const toggleRow = (id: number) => {
-        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    };
-
-    const toggleAll = () => {
-        if (selectedIds.length === studentGroupreportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(studentGroupreportData.map((row) => row.id));
-        }
-    };
-
-    const toggleAllstudents = () => {
-        if (selectedIds.length === studentreportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(studentreportData.map((r) => r.id));
-        }
-    };
-
-    const toggleAllBalance = () => {
-        if (selectedIds.length === balancereportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(balancereportData.map((r) => r.id));
-        }
-    };
-    const totalBalance = filteredData.reduce((sum, r) => sum + r.totalBalance, 0);
-    const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalBalance, 0);
-
+    const totalBalanceJan = studentreportData.reduce((sum, r) => sum + r.jan, 0);
+    const totalBalanceFeb = studentreportData.reduce((sum, r) => sum + r.feb, 0);
+    const totalBalanceMarch = studentreportData.reduce((sum, r) => sum + r.mar, 0);
+    const totalBalanceApr = studentreportData.reduce((sum, r) => sum + r.apr, 0);
+    const totalBalanceMay = studentreportData.reduce((sum, r) => sum + r.may, 0);
+    const totalBalanceJun = studentreportData.reduce((sum, r) => sum + r.jun, 0);
+    const totalBalanceJuly = studentreportData.reduce((sum, r) => sum + r.jul, 0);
+    const totalBalanceAug = studentreportData.reduce((sum, r) => sum + r.aug, 0);
+    const totalBalanceSep = studentreportData.reduce((sum, r) => sum + r.sep, 0);
+    const totalBalanceOct = studentreportData.reduce((sum, r) => sum + r.oct, 0);
+    const totalBalanceNov = studentreportData.reduce((sum, r) => sum + r.nov, 0);
+    const totalBalanceDec = studentreportData.reduce((sum, r) => sum + r.dec, 0);
+    const totalBalance = studentreportData.reduce((sum, r) => sum + r.total, 0);
     const handleExportExcelforFeeGroupWise = () => {
-        const rowsToExport = studentGroupreportData.filter((r) => selectedIds.includes(r.id));
-
-        if (!rowsToExport || rowsToExport.length === 0) {
-            toast.error('No data selected to export');
-            return;
-        }
-
-        exportToExcelforFeeGroupWise(rowsToExport, 'Defaulter_Report');
-    };
-    const handleExportExcelforFeeHeadWise = () => {
-        const rowsToExport = studentHeadreportData.filter((r) => selectedIds.includes(r.id));
-
-        if (!rowsToExport || rowsToExport.length === 0) {
-            toast.error('No data selected to export');
-            return;
-        }
-
-        exportToExcelforFeeHeadWise(rowsToExport, 'Defaulter_Report');
-    };
-
-    const handleExportExcelforFeeClassWise = () => {
-        const rowsToExport = studentClassreportData.filter((r) => selectedIds.includes(r.id));
-
-        if (!rowsToExport || rowsToExport.length === 0) {
-            toast.error('No data selected to export');
-            return;
-        }
-
-        exportToExcelforFeeClassWise(rowsToExport, 'Defaulter_Report');
+        exportToExcelforFeeGroupWise(studentreportData, 'Monthly_Collection_Report');
     };
 
     const handlePrintforFeeGroupWise = () => {
-        const rowsToPrint = studentGroupreportData.filter((row) => selectedIds.includes(row.id));
-
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = ['Sl.No', 'Fee Group', 'Balance Amount'];
-
-        const printableRows = rowsToPrint.map((row, index) => ({
-            'Sl.No': index + 1,
-            'Fee Group': row.fmG_GroupName,
-            'Balance Amount': `₹${row.totalBalance}`
-        }));
-
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
-        const sumRow = {
-            'Sl.No': '',
-            'Fee Group': 'Total',
-            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
-        };
-
-        printTable(columnHeaders, printableRows, sumRow);
-    };
-
-    const handlePrintforFeeHeadWise = () => {
-        const rowsToPrint = studentHeadreportData.filter((row) => selectedIds.includes(row.id));
-
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = ['Sl.No', 'Fee Head', 'Balance Amount'];
-
-        const printableRows = rowsToPrint.map((row, index) => ({
-            'Sl.No': index + 1,
-            'Fee Head': row.fmH_FeeName,
-            'Balance Amount': `₹${row.totalBalance}`
-        }));
-
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
-        const sumRow = {
-            'Sl.No': '',
-            'Fee Head': 'Total',
-            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
-        };
-
-        printTable(columnHeaders, printableRows, sumRow);
-    };
-
-    const handlePrintforFeeClassWise = () => {
-        const rowsToPrint = studentClassreportData.filter((row) => selectedIds.includes(row.id));
-
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = ['Sl.No', 'Class Name', 'Balance Amount'];
-
-        const printableRows = rowsToPrint.map((row, index) => ({
-            'Sl.No': index + 1,
-            'Class Name': row.asmcL_ClassName,
-            'Balance Amount': `₹${row.totalBalance}`
-        }));
-
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
-        const sumRow = {
-            'Sl.No': '',
-            'Class Name': 'Total',
-            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
-        };
-
-        printTable(columnHeaders, printableRows, sumRow);
-    };
-
-    const handleExportExcelforFeeInstallmentWise = () => {
-        const rowsToExport = studentreportData.filter((r) => selectedIds.includes(r.id));
-
-        if (!rowsToExport || rowsToExport.length === 0) {
-            toast.error('No data selected to export');
-            return;
-        }
-
-        exportToExcelforFeeInstallmentWise(rowsToExport, 'Defaulter_Report');
-    };
-
-    const handlePrintforFeeInstallmentWise = () => {
-        const rowsToPrint = studentreportData.filter((row) => selectedIds.includes(row.id));
-
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = [
-            'Sl.No',
-            'Name',
-            'Admission No',
-            'Class & Section',
-            'Father Name',
-            'Mobile Number',
-            'Email ID',
-            'Term',
-            'Balance Amount'
+        const months = [
+            { key: 'jan', display: 'January 2026' },
+            { key: 'feb', display: 'February 2026' },
+            { key: 'mar', display: 'March 2026' },
+            { key: 'apr', display: 'April 2026' },
+            { key: 'may', display: 'May 2026' },
+            { key: 'jun', display: 'June 2026' },
+            { key: 'jul', display: 'July 2026' },
+            { key: 'aug', display: 'August 2026' },
+            { key: 'sep', display: 'September 2026' },
+            { key: 'oct', display: 'October 2026' },
+            { key: 'nov', display: 'November 2026' },
+            { key: 'dec', display: 'December 2026' }
         ];
 
-        const printableRows = rowsToPrint.map((row, index) => ({
-            'Sl.No': index + 1,
-            Name: row.studentName,
-            'Admission No': row.amsT_AdmNo,
-            'Class & Section': row.classSection,
-            'Father Name': row.amsT_FatherName,
-            'Mobile Number': row.amsT_MobileNo,
-            'Email ID': row.amsT_emailId,
-            Term: row.fmT_Name,
-            'Balance Amount': row.totalBalance
-        }));
+        const columnHeaders = ['Sl.No', 'AdmoNo', 'Student Name', 'Receipt Details', ...months.map((m) => m.display), 'Total'];
 
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
-        const sumRow = {
-            'Sl.No': '',
-            Name: 'Total',
-            'Admission No': '',
-            'Class & Section': '',
-            'Father Name': '',
-            'Mobile Number': '',
-            'Email ID': '',
-            Term: '',
-            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
-        };
-
-        printTable(columnHeaders, printableRows, sumRow);
-    };
-
-    const handleExportExcelforFeeStudentorStaffWise = () => {
-        const rowsToExport = studentreportData.filter((r) => selectedIds.includes(r.id));
-
-        if (!rowsToExport || rowsToExport.length === 0) {
-            toast.error('No data selected to export');
-            return;
-        }
-
-        exportToExcelforFeeStudentorStaffWise(rowsToExport, 'Defaulter_Report');
-    };
-
-    const handlePrintforFeeStudentorStaffWise = () => {
-        const rowsToPrint = studentreportData.filter((row) => selectedIds.includes(row.id));
-
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = [
-            'Sl.No',
-            'Name',
-            'Admission No',
-            'Class & Section',
-            'Father Name',
-            'Mobile Number',
-            'Email ID',
-            'Route',
-            'Balance Amount'
-        ];
-
-        const printableRows = rowsToPrint.map((row, index) => ({
-            'Sl.No': index + 1,
-            Name: row.studentName,
-            'Admission No': row.amsT_AdmNo,
-            'Class & Section': row.classSection,
-            'Father Name': row.amsT_FatherName,
-            'Mobile Number': row.amsT_MobileNo,
-            'Email ID': row.amsT_emailId,
-            Route: row.amsT_Route,
-            'Balance Amount': row.totalBalance
-        }));
-
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
-        const sumRow = {
-            'Sl.No': '',
-            Name: 'Total',
-            'Admission No': '',
-            'Class & Section': '',
-            'Father Name': '',
-            'Mobile Number': '',
-            'Email ID': '',
-            Route: '',
-            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
-        };
-
-        printTable(columnHeaders, printableRows, sumRow);
-    };
-    const HandleexportToExcelforFeeStudentorStaffWiseofBalance = () => {
-        const rowsToPrint = balancereportData.filter((row) => selectedIds.includes(row.id));
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-        const fileName = `Fee_Defaulter_Report__${new Date().toISOString().split('T')[0]}`;
-        exportToExcelforFeeStudentorStaffWiseofBalance(rowsToPrint, fileName, dynamicFeeNames);
-    };
-
-    const handlePrintforFeeStudentorStaffWiseofBalance = () => {
-        const rowsToPrint = balancereportData.filter((row) => selectedIds.includes(row.id));
-        if (!rowsToPrint || rowsToPrint.length === 0) {
-            toast.error('No data selected to print');
-            return;
-        }
-
-        const columnHeaders = [
-            'Sl.No',
-            'Name',
-            'Admission No',
-            'Class',
-            'Section',
-            'Father Name',
-            'Mobile Number',
-            'Email ID',
-            ...dynamicFeeNames,
-            'Total Balance'
-        ];
-
-        const tableRows = rowsToPrint.map((row, index) => {
-            const rowData: Record<string, any> = {
+        const printableRows = studentreportData.map((row, index) => {
+            const rowData: any = {
                 'Sl.No': index + 1,
-                Name: row.studentName,
-                'Admission No': row.admno,
-                Class: row.className,
-                Section: row.sectionName,
-                'Father Name': row.fatherName,
-                'Mobile Number': row.mobileNo,
-                'Email ID': row.email
+                AdmoNo: row.admNo || '',
+                'Student Name': row.studentName || '',
+                'Receipt Details': row.receiptDetails || ''
             };
 
-            dynamicFeeNames.forEach((feeName) => {
-                const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
-                const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
-                rowData[feeName] = feeAmount.toLocaleString('en-IN');
+            months.forEach((month) => {
+                rowData[month.display] = `₹${(Number.parseFloat(row[month.key]) || 0).toLocaleString('en-IN')}`;
             });
 
-            rowData['Total Balance'] = (row.tobepaid || 0).toLocaleString('en-IN');
-
+            // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+            rowData['Total'] = `₹${(Number.parseFloat(row.total.toString()) || 0).toLocaleString('en-IN')}`;
             return rowData;
         });
-        const sumRow: Record<string, any> = {
-            'Sl.No': 'Total',
-            Name: '',
-            'Admission No': '',
-            Class: '',
-            Section: '',
-            'Father Name': '',
-            'Mobile Number': '',
-            'Email ID': ''
+
+        const sumRow: any = {
+            'Sl.No': '',
+            AdmoNo: '',
+            'Student Name': 'Total',
+            'Receipt Details': ''
         };
 
-        dynamicFeeNames.forEach((feeName) => {
-            const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
-            const totalFee = rowsToPrint.reduce((sum, row) => {
-                const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
-                return sum + feeAmount;
-            }, 0);
-            sumRow[feeName] = totalFee.toLocaleString('en-IN');
+        months.forEach((month) => {
+            const total = studentreportData.reduce((sum, r) => sum + (Number.parseFloat(r[month.key]) || 0), 0);
+            sumRow[month.display] = `₹${total.toLocaleString('en-IN')}`;
         });
 
-        const totalBalance = rowsToPrint.reduce((sum, row) => sum + (row.tobepaid || 0), 0);
-        sumRow['Total Balance'] = totalBalance.toLocaleString('en-IN');
+        const grandTotal = studentreportData.reduce((sum, r) => sum + (Number.parseFloat(r.total.toString()) || 0), 0);
+        // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+        sumRow['Total'] = `₹${grandTotal.toLocaleString('en-IN')}`;
 
-        printTable(columnHeaders, tableRows, sumRow);
+        printTable(columnHeaders, printableRows, sumRow);
     };
 
     useEffect(() => {
         setReportData([]);
-        setstudentGroupReportData([]);
-        setstudentHeadReportData([]);
-        setstudentClassReportData([]);
         setSelectedIds([]);
         setShowReport(false);
     }, [filters.academicYearId, filters.customGroupIds, filters.termIds, filters.feeGroupIds]);
@@ -671,101 +253,58 @@ export default function FeeDefaulterReport() {
         setShowReport(false);
         setReportData([]);
         setstudentReportData([]);
-        setstudentGroupReportData([]);
-        setstudentHeadReportData([]);
-        setstudentClassReportData([]);
 
         try {
-            const payload: any = {};
-            // if (filters.viewMode === 'year') {
-            //     payload = {
-            //         ASMAY_Id: academicYearId,
-            //         radioval: breakdown,
-            //         reporttype: filters.viewMode,
-            //         active: active,
-            //         deactive: deactive,
-            //         left: left,
-            //         FMG_Ids: feeGroupIds || [],
-            //         FMT_Ids: termIds || [],
-            //         TRMR_Ids: routeIds || [],
-            //         term_group: term_group,
-            //         Balance_1: blc_new,
-            //         FMG_Id: feeGroupIds && feeGroupIds.length > 0 ? feeGroupIds[0] : 0,
-            //         FMGG_Id: customGroupIds && customGroupIds.length > 0 ? customGroupIds[0] : 0,
-            //         FMT_Id: termIds && termIds.length > 0 ? termIds[0] : 0,
-            //         customflag: customGroupIds.length > 0 ? 'true' : ' ',
-            //         groupflag: feeGroupIds.length > 0 ? 'true' : ' ',
-            //         ASMCL_Id: asmcL_Id,
-            //         AMSC_Id: asmC_Id,
-            //         yearid: 0,
-            //         Select_Button: filters.userType,
-            //         studenttype: 'active'
-            //     };
-            // } else if (filters.viewMode === 'date') {
-            //     payload = {
-            //         ASMAY_Id: academicYearId,
-            //         radioval: breakdown,
-            //         reporttype: filters.viewMode,
-            //         active: active,
-            //         deactive: deactive,
-            //         left: left,
-            //         FMG_Ids: feeGroupIds || [],
-            //         FMT_Ids: termIds || [],
-            //         TRMR_Ids: routeIds || [],
-            //         Balance_1: blc_new,
-            //         From_Date: filters.dueDate,
-            //         duedate: filters.dueDateType,
-            //         ASMCL_Id: asmcL_Id,
-            //         AMSC_Id: asmC_Id,
-            //         term_group: term_group,
-            //         Select_Button: filters.userType,
-            //         yearid: 0,
-            //         studenttype: 'active'
-            //     };
-            // }
-
-            console.log('Payload for Fee Defaulter Report:', JSON.stringify(payload));
+            let payload: any = {};
+            payload = {
+                asmaY_Id: academicYearId,
+                fromdate: fromDate,
+                todate: toDate,
+                allorindivflag: filters.viewMode,
+                idamstid: '',
+                fmG_Ids: feeGroupIds || [],
+                fmT_Ids: termIds || [],
+                term_group: 'T',
+                studenttype: filters.filter,
+                chequedate: filters.ischeckdate === true ? 1 : 0
+            };
 
             const reportArray = await getMonthlyFeeCollectionReport(payload);
-            const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
-            const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;
-            const BalanceGroupDataArray = (reportArray as any)?.data?.list;
-            const studentHeadArray = (reportArray as any)?.data?.list?.headalldata;
-            const studentClassArray = (reportArray as any)?.data?.list?.classalldata;
+            const allGridHeaders = (reportArray as any)?.data?.alldatagridreportheads;
+            const studentGroupDataArray = (reportArray as any)?.data?.alldatagridreport;
 
             let hasData = false;
-            if (studentDataArray != null) {
-                if (studentDataArray && Array.isArray(studentDataArray)) {
-                    const studentData = JSON.parse(JSON.stringify(studentDataArray));
-                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+            if (studentGroupDataArray != null) {
+                if (studentGroupDataArray && Array.isArray(studentGroupDataArray)) {
+                    const studentData = JSON.parse(JSON.stringify(studentGroupDataArray));
+                    const mapApiToReportRows = (apiData: any[]): IMonthlyCollectionReport[] => {
                         return apiData.map((item, index) => ({
                             id: index + 1,
-                            amsT_AdmNo: item.amsT_AdmNo,
-                            amsT_emailId: item.amsT_emailId,
-                            amsT_FatherName: item.amsT_FatherName,
                             amsT_Id: item.amsT_Id,
-                            amsT_MobileNo: item.amsT_MobileNo,
-                            amsT_Route: item.amsT_Route,
-                            asmcL_ClassName: item.asmcL_ClassName,
-                            classSection: item.classSection,
-                            fmG_GroupName: item.fmG_GroupName,
-                            fmH_FeeName: item.fmH_FeeName,
-                            fmT_Name: item.fmT_Name,
+                            admNo: item.admNo,
+                            regno: item.regno,
                             studentName: item.studentName,
-                            totalBalance: item.totalBalance,
-                            fine_Amount: item.fine_Amount,
-                            admno: item.admno,
-                            feeName: item.feeName,
-                            className: item.className,
-                            sectionName: item.sectionName,
-                            fatherName: item.fatherName,
-                            mobileNo: item.mobileNo,
-                            email: item.email,
-                            tobepaid: item.tobepaid
+                            aaa: item.aaa,
+                            aa: item.aa,
+                            receiptDetails: item.receiptDetails,
+                            jan: item.jan,
+                            feb: item.feb,
+                            mar: item.mar,
+                            apr: item.apr,
+                            may: item.may,
+                            jun: item.jun,
+                            jul: item.jul,
+                            aug: item.aug,
+                            sep: item.sep,
+                            oct: item.oct,
+                            nov: item.nov,
+                            dec: item.dec,
+                            total: item.total
                         }));
                     };
                     const data = mapApiToReportRows(studentData);
                     setstudentReportData(data);
+                    setHeadersName(allGridHeaders);
                     toast.success(reportArray.message);
                     if (studentData.length > 0) {
                         hasData = true;
@@ -775,255 +314,9 @@ export default function FeeDefaulterReport() {
                     setstudentReportData([]);
                 }
             }
-            if (studentGroupDataArray != null) {
-                if (studentGroupDataArray && Array.isArray(studentGroupDataArray)) {
-                    const studentGroupData = JSON.parse(JSON.stringify(studentGroupDataArray));
-                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
-                        return apiData.map((item, index) => ({
-                            id: index + 1,
-                            amsT_AdmNo: item.amsT_AdmNo,
-                            amsT_emailId: item.amsT_emailId,
-                            amsT_FatherName: item.amsT_FatherName,
-                            amsT_Id: item.amsT_Id,
-                            amsT_MobileNo: item.amsT_MobileNo,
-                            amsT_Route: item.amsT_Route,
-                            asmcL_ClassName: item.asmcL_ClassName,
-                            classSection: item.classSection,
-                            fmG_GroupName: item.fmG_GroupName,
-                            fmH_FeeName: item.fmH_FeeName,
-                            fmT_Name: item.fmT_Name,
-                            studentName: item.studentName,
-                            totalBalance: item.totalBalance,
-                            fine_Amount: item.fine_Amount,
-                            admno: item.admno,
-                            feeName: item.feeName,
-                            className: item.className,
-                            sectionName: item.sectionName,
-                            fatherName: item.fatherName,
-                            mobileNo: item.mobileNo,
-                            email: item.email,
-                            tobepaid: item.tobepaid
-                        }));
-                    };
-                    const data = mapApiToReportRows(studentGroupData);
-                    setstudentGroupReportData(data);
-                    toast.success(reportArray.message);
-                    if (studentGroupData.length > 0) {
-                        hasData = true;
-                    }
-                } else {
-                    toast.info('No group data found!');
-                    setstudentGroupReportData([]);
-                }
-            }
-            if (studentHeadArray != null) {
-                if (studentHeadArray && Array.isArray(studentHeadArray)) {
-                    const studentHeadData = JSON.parse(JSON.stringify(studentHeadArray));
-                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
-                        return apiData.map((item, index) => ({
-                            id: index + 1,
-                            amsT_AdmNo: item.amsT_AdmNo,
-                            amsT_emailId: item.amsT_emailId,
-                            amsT_FatherName: item.amsT_FatherName,
-                            amsT_Id: item.amsT_Id,
-                            amsT_MobileNo: item.amsT_MobileNo,
-                            amsT_Route: item.amsT_Route,
-                            asmcL_ClassName: item.asmcL_ClassName,
-                            classSection: item.classSection,
-                            fmG_GroupName: item.fmG_GroupName,
-                            fmH_FeeName: item.fmH_FeeName,
-                            fmT_Name: item.fmT_Name,
-                            studentName: item.studentName,
-                            totalBalance: item.totalBalance,
-                            fine_Amount: item.fine_Amount,
-                            admno: item.admno,
-                            feeName: item.feeName,
-                            className: item.className,
-                            sectionName: item.sectionName,
-                            fatherName: item.fatherName,
-                            mobileNo: item.mobileNo,
-                            email: item.email,
-                            tobepaid: item.tobepaid
-                        }));
-                    };
-                    const data = mapApiToReportRows(studentHeadData);
-                    setstudentHeadReportData(data);
-                    toast.success(reportArray.message);
-                    if (studentHeadData.length > 0) {
-                        hasData = true;
-                    }
-                } else {
-                    toast.info('No group data found!');
-                    setstudentGroupReportData([]);
-                }
-            }
-
-            if (studentClassArray != null) {
-                if (studentClassArray && Array.isArray(studentClassArray)) {
-                    const studentClassData = JSON.parse(JSON.stringify(studentClassArray));
-                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
-                        return apiData.map((item, index) => ({
-                            id: index + 1,
-                            amsT_AdmNo: item.amsT_AdmNo,
-                            amsT_emailId: item.amsT_emailId,
-                            amsT_FatherName: item.amsT_FatherName,
-                            amsT_Id: item.amsT_Id,
-                            amsT_MobileNo: item.amsT_MobileNo,
-                            amsT_Route: item.amsT_Route,
-                            asmcL_ClassName: item.asmcL_ClassName,
-                            classSection: item.classSection,
-                            fmG_GroupName: item.fmG_GroupName,
-                            fmH_FeeName: item.fmH_FeeName,
-                            fmT_Name: item.fmT_Name,
-                            studentName: item.studentName,
-                            totalBalance: item.totalBalance,
-                            fine_Amount: item.fine_Amount,
-                            admno: item.admno,
-                            feeName: item.feeName,
-                            className: item.className,
-                            sectionName: item.sectionName,
-                            fatherName: item.fatherName,
-                            mobileNo: item.mobileNo,
-                            email: item.email,
-                            tobepaid: item.tobepaid
-                        }));
-                    };
-                    const data = mapApiToReportRows(studentClassData);
-                    setstudentClassReportData(data);
-                    toast.success(reportArray.message);
-                    if (studentClassData.length > 0) {
-                        hasData = true;
-                    }
-                } else {
-                    toast.info('No group data found!');
-                    setstudentClassReportData([]);
-                }
-            }
-
-            if (BalanceGroupDataArray != null) {
-                if (BalanceGroupDataArray && Array.isArray(BalanceGroupDataArray)) {
-                    const balanceData: any[] = JSON.parse(JSON.stringify(BalanceGroupDataArray));
-                    // Group data by student and collect unique fee names
-                    const studentMap = new Map<number, any>();
-                    const allFeeNames = new Set<string>(); // To collect all unique fee names
-                    balanceData.forEach((item: any) => {
-                        const key = item.amsT_Id; // Unique student identifier
-                        const feeName = item.feeName?.trim();
-                        // Add fee name to set
-                        allFeeNames.add(feeName);
-                        if (!studentMap.has(key)) {
-                            studentMap.set(key, {
-                                id: key,
-                                amsT_AdmNo: item.amsT_AdmNo,
-                                amsT_emailId: item.amsT_emailId,
-                                amsT_FatherName: item.amsT_FatherName,
-                                amsT_Id: item.amsT_Id,
-                                amsT_MobileNo: item.amsT_MobileNo,
-                                amsT_Route: item.amsT_Route,
-                                asmcL_ClassName: item.asmcL_ClassName,
-                                classSection: item.classSection,
-                                fmG_GroupName: item.fmG_GroupName,
-                                fmT_Name: item.fmT_Name || '',
-                                fmH_FeeName: item.fmH_FeeName || '',
-                                feeName: item.feeName || '',
-                                studentName: item.studentName,
-                                totalBalance: 0,
-                                fine_Amount: item.fine_Amount || 0,
-                                admno: item.admno,
-                                className: item.className,
-                                sectionName: item.sectionName,
-                                fatherName: item.fatherName,
-                                mobileNo: item.mobileNo,
-                                email: item.email,
-                                tobepaid: 0,
-                                feeCategories: {}
-                            });
-                        }
-                        const student = studentMap.get(key);
-                        // Add fees to appropriate category
-                        if (!student.feeCategories[feeName]) {
-                            student.feeCategories[feeName] = 0;
-                        }
-                        student.feeCategories[feeName] += Number(item.tobepaid) || 0;
-                        // Update total balance - fix the reduce type issue
-                        student.tobepaid = Object.values(student.feeCategories).reduce(
-                            (sum: number, fee: unknown) => sum + (Number(fee) || 0),
-                            0
-                        );
-                        student.totalBalance = student.tobepaid;
-                    });
-
-                    // Convert map to array and map to desired format
-                    const groupedData = Array.from(studentMap.values());
-                    const feeNamesArray = Array.from(allFeeNames); // Get array of all fee names
-
-                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
-                        return apiData.map((item, index) => {
-                            // Create the base object matching the interface
-                            const reportObj: IStudentFeeDefaulterReport = {
-                                id: index + 1,
-                                amsT_Id: item.amsT_Id,
-                                totalBalance: item.totalBalance,
-                                studentName: item.studentName,
-                                amsT_AdmNo: item.amsT_AdmNo,
-                                classSection: item.classSection,
-                                amsT_MobileNo: item.amsT_MobileNo,
-                                amsT_FatherName: item.amsT_FatherName,
-                                amsT_emailId: item.amsT_emailId,
-                                fmT_Name: item.fmT_Name || '',
-                                fmG_GroupName: item.fmG_GroupName,
-                                fmH_FeeName: item.fmH_FeeName || '',
-                                asmcL_ClassName: item.asmcL_ClassName,
-                                amsT_Route: item.amsT_Route,
-                                fine_Amount: item.fine_Amount,
-                                admno: item.admno,
-                                feeName: item.feeName || '',
-                                className: item.className,
-                                sectionName: item.sectionName,
-                                fatherName: item.fatherName,
-                                mobileNo: item.mobileNo,
-                                email: item.email,
-                                tobepaid: item.tobepaid
-                            };
-
-                            // Add dynamic fee properties as additional properties (TypeScript will allow this with type assertion)
-                            const dynamicFeeProps: Record<string, any> = {};
-                            Object.entries(item.feeCategories || {}).forEach(([key, value]) => {
-                                const propName = key.toLowerCase().replace(/\s+/g, '_');
-                                dynamicFeeProps[propName] = value;
-                            });
-                            return {
-                                ...reportObj,
-                                ...dynamicFeeProps,
-                                // Include feeCategories as an extra property if needed for rendering
-                                feeCategories: item.feeCategories
-                            } as IStudentFeeDefaulterReport & Record<string, any>;
-                        });
-                    };
-
-                    const data = mapApiToReportRows(groupedData);
-                    setBalanceReportData(data as IStudentFeeDefaulterReport[]);
-                    // Also store the dynamic fee names for table header generation
-                    setDynamicFeeNames(feeNamesArray);
-
-                    toast.success(reportArray.message);
-                    if (balanceData.length > 0) {
-                        hasData = true;
-                    }
-                } else {
-                    toast.info('No student data found!');
-                    setBalanceReportData([]);
-                    setDynamicFeeNames([]);
-                }
-            }
 
             if (hasData) {
-                const combinedData = [
-                    ...(studentDataArray || []),
-                    ...(studentGroupDataArray || []),
-                    ...(studentHeadArray || []),
-                    ...(studentClassArray || [])
-                ];
+                const combinedData = [...(studentGroupDataArray || [])];
                 setReportData(combinedData);
                 setShowReport(true);
             } else {
@@ -1565,529 +858,167 @@ export default function FeeDefaulterReport() {
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
-                                    {showReport &&
-                                        (studentreportData.length > 0 ||
-                                            studentGroupreportData.length > 0 ||
-                                            studentHeadreportData.length > 0 ||
-                                            studentClassreportData.length > 0 ||
-                                            balancereportData.length > 0) && (
-                                            <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                                {/* Loading State */}
-                                                {reportLoading ? (
-                                                    <div className='p-24 text-center'>
-                                                        <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                        <p className='mt-6 text-lg text-muted-foreground'>
-                                                            Generating report, please wait...
-                                                        </p>
-                                                    </div>
-                                                ) : (
-                                                    /* Table Inside CollapsibleSection */
-                                                    <CollapsibleSection
-                                                        defaultOpen={true}
-                                                        variant='default'
-                                                        size='lg'
-                                                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                        <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                            <div className='mb-6 text-center'>
-                                                                <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
+                                    {showReport && studentreportData.length > 0 && (
+                                        <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
+                                            {/* Loading State */}
+                                            {reportLoading ? (
+                                                <div className='p-24 text-center'>
+                                                    <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                    <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
+                                                </div>
+                                            ) : (
+                                                /* Table Inside CollapsibleSection */
+                                                <CollapsibleSection
+                                                    defaultOpen={true}
+                                                    variant='default'
+                                                    size='lg'
+                                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                        <div className='mb-6 text-center'>
+                                                            <h2 className='font-bold text-2xl text-primary'>
+                                                                Fee Monthly Collection Extract Register Report
+                                                            </h2>
+                                                        </div>
+                                                        {studentreportData.length > 0 && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforFeeGroupWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforFeeGroupWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
                                                             </div>
-                                                            {studentGroupreportData.length > 0 && (
-                                                                <div className='flex gap-3'>
-                                                                    <div className='mb-4 flex justify-end gap-2'>
-                                                                        <Button
-                                                                            size='sm'
-                                                                            className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handleExportExcelforFeeGroupWise}>
-                                                                            Export Excel
-                                                                        </Button>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        {/* Table */}
+                                                        {studentreportData.length > 0 && (
+                                                            <div className='overflow-x-auto border'>
+                                                                <table className='w-full table-auto border-collapse'>
+                                                                    <thead className='bg-primary text-white'>
+                                                                        <tr>
+                                                                            <th className='p-2 text-center'>Sl No</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>AdmoNo</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>Student Name</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>
+                                                                                Receipt Details
+                                                                            </th>
+                                                                            <th className='cursor-pointer p-2 text-center'>January2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>February2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>March2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>April2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>May2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>June2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>July2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>August2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>
+                                                                                September2026
+                                                                            </th>
+                                                                            <th className='cursor-pointer p-2 text-center'>October2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>November2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>December2026</th>
+                                                                            <th className='cursor-pointer p-2 text-center'>Total</th>
+                                                                        </tr>
+                                                                    </thead>
 
-                                                                        <Button
-                                                                            size='sm'
-                                                                            variant='outline'
-                                                                            className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handlePrintforFeeGroupWise}>
-                                                                            Print
-                                                                        </Button>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-
-                                                            {/* <div className="flex gap-3">
-                              <div className="mb-4 flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  className="h-8 w-auto px-3 text-xs"
-                                  onClick={handleExportExcelforFeeGroupWise}
-                                >
-                                  Export Excel
-                                </Button>
-
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-auto px-3 text-xs"
-                                  onClick={handlePrintforFeeGroupWise}
-                                >
-                                  Print
-                                </Button>
-                              </div>
-                            </div> */}
-                                                            {selectedIds.length > 0 && (
-                                                                <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
-                                                                    {/* Checkboxes Section */}
-                                                                    <div className='mb-3'>
-                                                                        <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
-                                                                            <span>Please Select Check Box For:</span>
-                                                                            <div className='ml-2 flex items-center gap-4'>
-                                                                                {['email', 'sms', 'notification', 'whatsapp'].map(
-                                                                                    (method) => (
-                                                                                        <div
-                                                                                            key={method}
-                                                                                            className='flex items-center gap-1.5'>
-                                                                                            <Checkbox
-                                                                                                id={`${method}-checkbox`}
-                                                                                                checked={
-                                                                                                    communicationMethods[
-                                                                                                        method as keyof typeof communicationMethods
-                                                                                                    ]
-                                                                                                }
-                                                                                                onCheckedChange={() =>
-                                                                                                    toggleCommunicationMethod(
-                                                                                                        method as keyof typeof communicationMethods
-                                                                                                    )
-                                                                                                }
-                                                                                                className='h-4 w-4'
-                                                                                            />
-                                                                                            <Label
-                                                                                                htmlFor={`${method}-checkbox`}
-                                                                                                className='cursor-pointer text-sm uppercase'>
-                                                                                                {method === 'whatsapp'
-                                                                                                    ? 'WhatsApp'
-                                                                                                    : method}
-                                                                                            </Label>
-                                                                                        </div>
-                                                                                    )
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Show REQUEST button only if exactly ONE communication method is selected */}
-                                                                    {(communicationMethods.email ||
-                                                                        communicationMethods.sms ||
-                                                                        communicationMethods.notification) &&
-                                                                        !(communicationMethods.email && communicationMethods.sms) &&
-                                                                        !(
-                                                                            communicationMethods.email && communicationMethods.notification
-                                                                        ) &&
-                                                                        !(
-                                                                            communicationMethods.sms && communicationMethods.notification
-                                                                        ) && (
-                                                                            <div className='mt-3 flex justify-end'>
-                                                                                <Button
-                                                                                    size='sm'
-                                                                                    className='h-8 px-6 text-xs'
-                                                                                    onClick={handleRequestCommunication}
-                                                                                    disabled={selectedIds.length === 0}>
-                                                                                    REQUEST
-                                                                                </Button>
-                                                                            </div>
-                                                                        )}
-
-                                                                    {/* Show error if multiple methods are selected */}
-                                                                    {(communicationMethods.email && communicationMethods.sms) ||
-                                                                    (communicationMethods.email && communicationMethods.notification) ||
-                                                                    (communicationMethods.sms && communicationMethods.notification) ? (
-                                                                        <div className='mt-2 text-center text-red-500 text-sm'>
-                                                                            Please select only one communication method
-                                                                        </div>
-                                                                    ) : null}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            {/* Search */}
-                                                            <input
-                                                                value={search}
-                                                                onChange={(e) => setSearch(e.target.value)}
-                                                                placeholder='Search...'
-                                                                className='w-72 rounded border px-3 py-2'
-                                                            />
-
-                                                            {/* Table */}
-                                                            {studentGroupreportData.length > 0 && (
-                                                                <div className='overflow-x-auto border'>
-                                                                    <table className='w-full table-auto border-collapse'>
-                                                                        <thead className='bg-primary text-white'>
-                                                                            <tr>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={
-                                                                                            selectedIds.length === filteredData.length &&
-                                                                                            filteredData.length > 0
-                                                                                        }
-                                                                                        indeterminate={
-                                                                                            selectedIds.length > 0 &&
-                                                                                            selectedIds.length < filteredData.length
-                                                                                        }
-                                                                                        onCheckedChange={toggleAll}
-                                                                                    />
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>Sl No</th>
-                                                                                <th
-                                                                                    className='cursor-pointer p-2 text-center'
-                                                                                    onClick={() => handleSort('feeGroup')}>
-                                                                                    Group Name{' '}
-                                                                                    {sortKey === 'feeGroup' &&
-                                                                                        (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                                </th>
-                                                                                <th
-                                                                                    className='cursor-pointer p-2 text-center'
-                                                                                    onClick={() => handleSort('totalDue')}>
-                                                                                    Balance Amount{' '}
-                                                                                    {sortKey === 'totalDue' &&
-                                                                                        (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                                </th>
-                                                                            </tr>
-                                                                        </thead>
-
-                                                                        <tbody>
-                                                                            {studentGroupreportData.map((row, index) => (
-                                                                                <tr key={row.id} className='border-b'>
-                                                                                    <td className='p-2 text-center'>
-                                                                                        <Checkbox
-                                                                                            checked={selectedIds.includes(row.id)}
-                                                                                            onCheckedChange={() => toggleRow(row.id)}
-                                                                                        />
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center font-medium'>
-                                                                                        {index + 1}
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center font-medium'>
-                                                                                        {row.fmG_GroupName}
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center font-bold'>
-                                                                                        ₹{row.totalBalance.toLocaleString('en-IN')}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            ))}
-
-                                                                            {/* Total */}
-                                                                            <tr className='bg-gray-100 font-bold'>
-                                                                                <td />
-                                                                                <td />
-                                                                                <td className='p-2 text-center'>Total</td>
-                                                                                <td className='p-2 text-center'>
-                                                                                    ₹{totalBalance.toLocaleString('en-IN')}
+                                                                    <tbody>
+                                                                        {studentreportData.map((row, index) => (
+                                                                            <tr key={row.id} className='border-b'>
+                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
+                                                                                <td className='p-2 text-center font-medium'>{row.admNo}</td>
+                                                                                <td className='p-2 text-center font-bold'>
+                                                                                    {row.studentName}
                                                                                 </td>
-                                                                            </tr>
-
-                                                                            {/* Selected Total */}
-                                                                            <tr className='bg-gray-200 font-bold'>
-                                                                                <td />
-                                                                                <td />
-                                                                                <td className='p-2 text-center'>Selected Balance</td>
-                                                                                <td className='p-2 text-center'>
-                                                                                    ₹{selectedBalance.toLocaleString('en-IN')}
+                                                                                <td className='p-2 text-center font-bold'>
+                                                                                    {row.receiptDetails}
                                                                                 </td>
+                                                                                <td className='p-2 text-center font-bold'>{row.jan}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.feb}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.mar}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.apr}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.may}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.jun}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.jul}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.aug}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.sep}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.oct}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.nov}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.dec}</td>
+                                                                                <td className='p-2 text-center font-bold'>{row.total}</td>
                                                                             </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </CollapsibleSection>
-                                                )}
-                                            </div>
-                                        )}
+                                                                        ))}
+
+                                                                        {/* Total */}
+                                                                        <tr className='bg-gray-100 font-bold'>
+                                                                            <td />
+                                                                            <td />
+                                                                            <td />
+
+                                                                            <td className='p-2 text-center'>Total</td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceJan.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceFeb.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceMarch.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceApr.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceMay.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceJun.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceJuly.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceAug.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceSep.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceOct.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceNov.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalanceDec.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalance.toLocaleString('en-IN') || 0}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </CollapsibleSection>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </Card>
                 </div>
-
-                {/* Email Configuration Modal */}
-                <Dialog open={showemailContent === true} onOpenChange={setshowEmailContent}>
-                    <DialogContent className='max-h-[90vh] max-w-6xl overflow-y-auto p-0'>
-                        <DialogHeader className='items-center border-b p-6 text-center'>
-                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
-                            <p className='mt-1 font-medium text-sm'>NOTE : Email Will Trigger For The Same</p>
-                        </DialogHeader>
-                        <div className='overflow-hidden rounded-lg border'>
-                            <table className='w-full'>
-                                <thead>
-                                    <tr className='border-b bg-gray-50'>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
-                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
-                                        .map((student, index) => (
-                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
-                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
-                                                <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className='space-y-6 p-6'>
-                            <div className='space-y-4'>
-                                {/* Email Template Selection */}
-                                <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>Email Template:*</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='-Select-' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
-                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
-                                                <SelectItem value='custom'>Custom Template</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                {/* Email Content Title */}
-                                <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>Email Content:</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <div className='text-gray-600 text-sm'>Sub:</div>
-                                        {/* You would add the email subject input/field here */}
-                                        {/* Example: <Input placeholder="Enter email subject" /> */}
-                                    </div>
-                                </div>
-                                {/* Template Preview */}
-                                <div className='flex items-center gap-3'>
-                                    <div className='flex-1'>
-                                        <div className='rounded-lg border p-4'>
-                                            <div className='mb-3 flex items-center gap-2'>
-                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
-                                                <button
-                                                    type='button'
-                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'>
-                                                    <Eye className='h-4 w-4' />
-                                                    <span>Preview</span>
-                                                </button>
-                                            </div>
-                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
-                                                <p className='text-gray-700'>Thank You</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-                {/* Notification Configuration Modal */}
-                <Dialog open={showNotificationModal === true} onOpenChange={setShowNotificationModal}>
-                    <DialogContent className='max-h-[90vh] max-w-6xl overflow-y-auto p-0'>
-                        <DialogHeader className='items-center border-b p-6 text-center'>
-                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
-                            <p className='mt-1 font-medium text-sm'>NOTE : Notification Will Trigger For The Same</p>
-                        </DialogHeader>
-                        <div className='overflow-hidden rounded-lg border'>
-                            <table className='w-full'>
-                                <thead>
-                                    <tr className='border-b bg-gray-50'>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
-                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
-                                        .map((student, index) => (
-                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
-                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
-                                                <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className='space-y-6 p-6'>
-                            <div className='space-y-4'>
-                                {/* Email Template Selection */}
-                                <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>Template:*</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='-Select-' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
-                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
-                                                <SelectItem value='custom'>Custom Template</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                {/* <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>Email Content:</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <div className='text-gray-600 text-sm'>Sub:</div>
-                                      
-                                    </div>
-                                </div>
-                              
-                                <div className='flex items-center gap-3'>
-                                    <div className='flex-1'>
-                                        <div className='rounded-lg border p-4'>
-                                            <div className='mb-3 flex items-center gap-2'>
-                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
-                                                <button
-                                                    type="button"
-                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'
-                                                >
-                                                    <Eye className='h-4 w-4' />
-                                                    <span>Preview</span>
-                                                </button>
-                                            </div>
-                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
-                                                <p className='text-gray-700'>Thank You</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> */}
-                            </div>
-                            {/* Action Buttons */}
-                        </div>
-                    </DialogContent>
-                </Dialog>
-
-                {/* SMS Configuration Modal */}
-                <Dialog open={showSMSModal === true} onOpenChange={setShowSMSModal}>
-                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
-                        <DialogHeader className='items-center border-b p-6 text-center'>
-                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
-                            <p className='mt-1 font-medium text-sm'>NOTE : SMS Will Trigger For The Same</p>
-                        </DialogHeader>
-                        <div className='overflow-hidden rounded-lg border'>
-                            <table className='w-full'>
-                                <thead>
-                                    <tr className='border-b bg-gray-50'>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
-                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
-                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
-                                        .map((student, index) => (
-                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
-                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
-                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
-                                                <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className='space-y-6 p-6'>
-                            <div className='space-y-4'>
-                                {/* Email Template Selection */}
-                                <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>Email Template:*</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='-Select-' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
-                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
-                                                <SelectItem value='custom'>Custom Template</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                {/* Email Content Title */}
-                                <div className='flex items-center justify-center gap-3'>
-                                    <Label className='whitespace-nowrap font-semibold'>SMS Content:</Label>
-                                    <div className='max-w-md flex-1'>
-                                        <div className='text-gray-600 text-sm'>Sub:</div>
-                                        {/* You would add the email subject input/field here */}
-                                        {/* Example: <Input placeholder="Enter email subject" /> */}
-                                    </div>
-                                </div>
-                                {/* Template Preview */}
-                                {/* <div className='flex items-center gap-3'>
-                                    <div className='flex-1'>
-                                        <div className='rounded-lg border p-4'>
-                                            <div className='mb-3 flex items-center gap-2'>
-                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
-                                                <button
-                                                    type="button"
-                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'
-                                                >
-                                                    <Eye className='h-4 w-4' />
-                                                    <span>Preview</span>
-                                                </button>
-                                            </div>
-                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
-                                                <p className='text-gray-700'>Thank You</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> */}
-                            </div>
-                            {/* Action Buttons */}
-                        </div>
-                    </DialogContent>
-                </Dialog>
             </form>
         </div>
     );

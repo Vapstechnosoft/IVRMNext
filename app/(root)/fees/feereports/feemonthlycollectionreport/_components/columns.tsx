@@ -205,16 +205,84 @@ export function exportToExcel(rows: any[], fileName: string) {
 
 export function exportToExcelforFeeGroupWise(rows: any[], fileName: string) {
     if (!rows || rows.length === 0) return;
+
     const dataForExcel = rows.map((row, index) => ({
         'Sl No': index + 1,
-        'Group Name': row.fmG_GroupName,
-        'Balance Amount': `${row.totalBalance?.toLocaleString('en-IN') || '0'}`
+        AdmoNo: row.admNo || '',
+        'Student Name': row.studentName || '',
+        'Receipt Details': row.receiptDetails || '',
+        'January 2026': row.jan || 0,
+        'February 2026': row.feb || 0,
+        'March 2026': row.mar || 0,
+        'April 2026': row.apr || 0,
+        'May 2026': row.may || 0,
+        'June 2026': row.jun || 0,
+        'July 2026': row.jul || 0,
+        'August 2026': row.aug || 0,
+        'September 2026': row.sep || 0,
+        'October 2026': row.oct || 0,
+        'November 2026': row.nov || 0,
+        'December 2026': row.dec || 0,
+        Total: row.total || 0
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
-    const workbook = XLSX.utils.book_new();
+    const totals: any = {
+        'Sl No': '',
+        AdmoNo: '',
+        'Student Name': '',
+        'Receipt Details': 'TOTAL'
+    };
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    const monthMapping = {
+        'January 2026': 'jan',
+        'February 2026': 'feb',
+        'March 2026': 'mar',
+        'April 2026': 'apr',
+        'May 2026': 'may',
+        'June 2026': 'jun',
+        'July 2026': 'jul',
+        'August 2026': 'aug',
+        'September 2026': 'sep',
+        'October 2026': 'oct',
+        'November 2026': 'nov',
+        'December 2026': 'dec'
+    };
+
+    Object.keys(monthMapping).forEach((displayMonth) => {
+        const propertyName = monthMapping[displayMonth as keyof typeof monthMapping];
+        totals[displayMonth] = rows.reduce((sum, row) => {
+            const value = Number.parseFloat(row[propertyName]) || 0;
+            return sum + value;
+        }, 0);
+    });
+
+    // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+    totals['Total'] = rows.reduce((sum, row) => sum + (Number.parseFloat(row.total) || 0), 0);
+    dataForExcel.push(totals);
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const colWidths = [
+        { wch: 8 }, // Sl No
+        { wch: 15 }, // AdmoNo
+        { wch: 25 }, // Student Name
+        { wch: 20 }, // Receipt Details
+        { wch: 15 }, // Jan
+        { wch: 15 }, // Feb
+        { wch: 15 }, // Mar
+        { wch: 15 }, // Apr
+        { wch: 15 }, // May
+        { wch: 15 }, // Jun
+        { wch: 15 }, // Jul
+        { wch: 15 }, // Aug
+        { wch: 15 }, // Sep
+        { wch: 15 }, // Oct
+        { wch: 15 }, // Nov
+        { wch: 15 }, // Dec
+        { wch: 15 } // Total
+    ];
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Report');
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
