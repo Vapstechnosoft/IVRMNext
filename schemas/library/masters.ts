@@ -60,9 +60,11 @@ export const masterVendorSchema = {
             .email('Invalid email address'),
 
         lmV_PhoneNo: z
-            .string({ required_error: 'Phone Number is required' })
+            .string()
             .trim()
-            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
+            .optional()
+            .nullable()
+            .or(z.literal(''))
     }),
 
     delete: z.object({
