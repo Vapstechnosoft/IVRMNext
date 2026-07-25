@@ -20,5 +20,5 @@ export async function getMasterBoardDetails(id: number) {
 }
 
 export async function deleteMasterBoard(id: number) {
-    return await api.post<any>('admission', `/MasterBoardandSchoolType/deleterec?IVRMMB_Id=${id}`, {});
+    return await api.post<any>('admission', `/MasterBoardandSchoolType/deleterec?IVRMMB_Id=${id}`);
 }

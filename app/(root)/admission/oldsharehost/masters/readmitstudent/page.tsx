@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 import {
     useReadmitStudentDetails,
@@ -42,6 +44,7 @@ export default function ReadmitStudentPage() {
     const [oldStudentList, setOldStudentList] = useState<any[]>([]);
     const [newStudentList, setNewStudentList] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [readmittedStudents, setReadmittedStudents] = useState<any[]>([]);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -134,11 +137,26 @@ export default function ReadmitStudentPage() {
             };
 
             const res = await saveMutation.mutateAsync(payload);
-            if (res?.data?.returnval) {
-                toast.success('Record Saved Successfully');
-                handleClear();
+            if (res?.success) {
+                toast.success(res.message || 'Record Saved Successfully');
+                if (res?.data?.studentlist) {
+                    setReadmittedStudents(res.data.studentlist);
+                }
+
+                form.reset({
+                    AMAY_ID_OLD: '',
+                    ASMCL_Id: '',
+                    ASMS_Id: '',
+                    AMST_Id: '',
+                    AMAY_Id_New: '',
+                    ASMCL_Id_New: '',
+                    ASMS_Id_New: '',
+                    AMST_Id_New: ''
+                });
+                setOldStudentList([]);
+                setNewStudentList([]);
             } else {
-                toast.error('Record Failed To Save');
+                toast.error(res?.message || 'Record Failed To Save');
             }
         } catch (error) {
             toast.error('Failed to save record');
@@ -148,23 +166,53 @@ export default function ReadmitStudentPage() {
     };
 
     const handleClear = () => {
-        form.reset({
-            AMAY_ID_OLD: '',
-            ASMCL_Id: '',
-            ASMS_Id: '',
-            AMST_Id: '',
-            AMAY_Id_New: '',
-            ASMCL_Id_New: '',
-            ASMS_Id_New: '',
-            AMST_Id_New: ''
-        });
-        setOldStudentList([]);
-        setNewStudentList([]);
+        window.location.reload();
     };
 
     const yearList = initialData?.data?.yearList || [];
     const classList = initialData?.data?.classList || [];
     const sectionList = initialData?.data?.sectionList || [];
+
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'asmaY_Id_OLd',
+            header: () => <div className="text-center font-bold text-black">Left Academic Year ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('asmaY_Id_OLd')}</div>,
+        },
+        {
+            accessorKey: 'asmcL_Id_Old',
+            header: () => <div className="text-center font-bold text-black">Class Admitted ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('asmcL_Id_Old')}</div>,
+        },
+        {
+            accessorKey: 'amsT_Id_OLd',
+            header: () => <div className="text-center font-bold text-black">Left Student ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('amsT_Id_OLd')}</div>,
+        },
+        {
+            accessorKey: 'asmaY_Id_New',
+            header: () => <div className="text-center font-bold text-black">New Academic Year ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('asmaY_Id_New')}</div>,
+        },
+        {
+            accessorKey: 'asmcL_Id_New',
+            header: () => <div className="text-center font-bold text-black">New Class ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('asmcL_Id_New')}</div>,
+        },
+        {
+            accessorKey: 'amsT_Id_New',
+            header: () => <div className="text-center font-bold text-black">New Student ID</div>,
+            cell: ({ row }) => <div className="text-center">{row.getValue('amsT_Id_New')}</div>,
+        },
+        {
+            accessorKey: 'createdDate',
+            header: () => <div className="text-center font-bold text-black">Created Date</div>,
+            cell: ({ row }) => {
+                const date = row.getValue('createdDate') as string;
+                return <div className="text-center">{date ? new Date(date).toLocaleDateString() : ''}</div>;
+            },
+        }
+    ];
 
     return (
         <div className="min-h-screen p-4 space-y-6 bg-gray-50">
@@ -399,6 +447,26 @@ export default function ReadmitStudentPage() {
                     </form>
                 )}
             </CollapsibleSection>
+
+            {/* {readmittedStudents.length > 0 && (
+                <CollapsibleSection
+                    title={<span className="font-bold absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">Readmitted Students List</span>}
+                    headerClassName="relative"
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg'
+                >
+                    <div className='p-4'>
+                        <GenericDataTable
+                            data={readmittedStudents}
+                            columns={columns}
+                            isLoading={false}
+                            totalItems={readmittedStudents.length}
+                        />
+                    </div>
+                </CollapsibleSection>
+            )} */}
         </div>
     );
 }

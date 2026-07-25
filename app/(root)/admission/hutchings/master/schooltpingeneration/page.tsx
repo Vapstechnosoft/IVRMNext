@@ -40,7 +40,7 @@ export default function SchoolTpinGeneration() {
 
     // Fetch initial details (Academic Years)
     const { data: initialDetails, isLoading: isInitialLoading } = useSchoolTpinGenerationInitialDetails();
-    const academicYears: any[] = Array.isArray(initialDetails?.getyearlist) ? initialDetails.getyearlist : [];
+    const academicYears: any[] = Array.isArray(initialDetails?.data) ? initialDetails.data : (Array.isArray(initialDetails?.getyearlist) ? initialDetails.getyearlist : []);
 
     const searchMutation = useSearchSchoolTpinGenerationMutation();
     const generateMutation = useGenerateSchoolTpinMutation();
@@ -62,8 +62,21 @@ export default function SchoolTpinGeneration() {
             { ASMAY_Id: Number(data.ASMAY_Id) },
             {
                 onSuccess: (res: any) => {
-                    const notGen = res?.gettpinnotgeneratedliststudent || [];
-                    const gen = res?.gettpingeneratedliststudent || [];
+                    let notGen: any[] = [];
+                    let gen: any[] = [];
+                    const responseData = res?.data || res;
+                    
+                    if (responseData?.studentList || responseData?.studentList1) {
+                        const allStudents = [
+                            ...(responseData.studentList || []),
+                            ...(responseData.studentList1 || [])
+                        ];
+                        notGen = allStudents.filter((s: any) => !s.tpin);
+                        gen = allStudents.filter((s: any) => s.tpin);
+                    } else {
+                        notGen = responseData?.gettpinnotgeneratedliststudent || [];
+                        gen = responseData?.gettpingeneratedliststudent || [];
+                    }
                     
                     setNotGeneratedList(notGen);
                     setGeneratedList(gen);
@@ -103,13 +116,13 @@ export default function SchoolTpinGeneration() {
             { ASMAY_Id: Number(asmayId) },
             {
                 onSuccess: (res: any) => {
-                    if (res?.returnval === true) {
-                        toast.success('Tpin Number Generated Successfully');
+                    if (res?.success === true || res?.returnval === true) {
+                        toast.success(res?.message || 'Tpin Number Generated Successfully');
                         setIsNotGeneratedModalOpen(false);
                         // Re-fetch data
                         onSubmit(form.getValues());
                     } else {
-                        toast.error('Failed to Generate Tpin Number');
+                        toast.error(res?.message || 'Failed to Generate Tpin Number');
                     }
                 },
                 onError: () => {
@@ -126,61 +139,70 @@ export default function SchoolTpinGeneration() {
 
     const mainColumns = [
         {
-            header: 'SL.No.',
-            cell: (info: any) => info.row.index + 1,
+            id: 'slno',
+            header: () => <div className="font-bold text-black text-center">SL.No.</div>,
+            cell: (info: any) => <div className="text-center">{info.row.index + 1}</div>,
         },
-        { accessorKey: 'year', header: 'Year' },
+        { 
+            accessorKey: 'year', 
+            header: () => <div className="font-bold text-black text-center">Year</div>,
+            cell: (info: any) => <div className="text-center">{info.getValue()}</div>
+        },
         {
             id: 'generated',
-            header: 'Tpin Generated Students List',
+            header: () => <div className="font-bold text-black text-center">Tpin Generated Students List</div>,
             cell: (info: any) => {
                 const list = info.row.original.genereatedlist;
                 if (list && list.length > 0) {
                     return (
-                        <Button
-                            variant="link"
-                            className="text-blue-600 p-0 h-auto"
-                            onClick={() => setIsGeneratedModalOpen(true)}
-                        >
-                            View Details <Eye className="ml-1 h-4 w-4" />
-                        </Button>
+                        <div className="text-center">
+                            <Button
+                                variant="link"
+                                className="text-blue-600 p-0 h-auto"
+                                onClick={() => setIsGeneratedModalOpen(true)}
+                            >
+                                View Details <Eye className="ml-1 h-4 w-4" />
+                            </Button>
+                        </div>
                     );
                 }
-                return 'No Students';
+                return <div className="text-center">No Students</div>;
             }
         },
         {
             id: 'notGenerated',
-            header: 'Tpin Not Generated Students List',
+            header: () => <div className="font-bold text-black text-center">Tpin Not Generated Students List</div>,
             cell: (info: any) => {
                 const list = info.row.original.notgeneratedlist;
                 if (list && list.length > 0) {
                     return (
-                        <Button
-                            variant="link"
-                            className="text-blue-600 p-0 h-auto"
-                            onClick={() => setIsNotGeneratedModalOpen(true)}
-                        >
-                            View Details <Eye className="ml-1 h-4 w-4" />
-                        </Button>
+                        <div className="text-center">
+                            <Button
+                                variant="link"
+                                className="text-blue-600 p-0 h-auto"
+                                onClick={() => setIsNotGeneratedModalOpen(true)}
+                            >
+                                View Details <Eye className="ml-1 h-4 w-4" />
+                            </Button>
+                        </div>
                     );
                 }
-                return 'No Students';
+                return <div className="text-center">No Students</div>;
             }
         }
     ];
 
     const studentColumns = [
-        { header: 'SLNO', cell: (info: any) => info.row.index + 1 },
-        { accessorKey: 'studentname', header: 'Student Name' },
-        { accessorKey: 'admno', header: 'Admno' },
-        { accessorKey: 'classname', header: 'Class' },
-        { accessorKey: 'sectionname', header: 'Section' },
+        { id: 'slno', header: () => <div className="font-bold text-black text-center">SLNO</div>, cell: (info: any) => <div className="text-center">{info.row.index + 1}</div> },
+        { accessorKey: 'studentname', header: () => <div className="font-bold text-black text-center">Student Name</div>, cell: (info: any) => <div className="text-center">{info.getValue()}</div> },
+        { accessorKey: 'admno', header: () => <div className="font-bold text-black text-center">Admno</div>, cell: (info: any) => <div className="text-center">{info.getValue()}</div> },
+        { accessorKey: 'classname', header: () => <div className="font-bold text-black text-center">Class</div>, cell: (info: any) => <div className="text-center">{info.getValue()}</div> },
+        { accessorKey: 'sectionname', header: () => <div className="font-bold text-black text-center">Section</div>, cell: (info: any) => <div className="text-center">{info.getValue()}</div> },
     ];
 
     const generatedStudentColumns = [
         ...studentColumns,
-        { accessorKey: 'tpin', header: 'Tpin' },
+        { accessorKey: 'tpin', header: () => <div className="font-bold text-black text-center">Tpin</div>, cell: (info: any) => <div className="text-center">{info.getValue()}</div> },
     ];
 
     return (
@@ -194,42 +216,44 @@ export default function SchoolTpinGeneration() {
                         variant="outline"
                         className="shadow-lg"
                     >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-white">
-                            <FormField
-                                control={form.control}
-                                name="ASMAY_Id"
-                                render={({ field }) => (
-                                    <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                        <FormLabel className="text-sm font-bold m-0 pt-2 text-right">
-                                            Academic Year:<span className="text-red-500">*</span>
-                                        </FormLabel>
-                                        <div className="space-y-1">
-                                            <Select
-                                                onValueChange={(val) => {
-                                                    field.onChange(val);
-                                                    setReportData([]); // clear grid on change
-                                                }}
-                                                value={field.value}
-                                                disabled={isInitialLoading}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Select Academic Year" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {(Array.isArray(academicYears) ? academicYears : []).map((item: any) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </div>
-                                    </FormItem>
-                                )}
-                            />
+                        <div className="flex flex-col items-center justify-center gap-8 p-6 bg-white max-w-2xl mx-auto">
+                            <div className="w-full max-w-md">
+                                <FormField
+                                    control={form.control}
+                                    name="ASMAY_Id"
+                                    render={({ field }) => (
+                                        <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
+                                            <FormLabel className="text-sm font-bold m-0 text-right">
+                                                Academic Year:<span className="text-red-500">*</span>
+                                            </FormLabel>
+                                            <div className="space-y-1">
+                                                <Select
+                                                    onValueChange={(val) => {
+                                                        field.onChange(val);
+                                                        setReportData([]); // clear grid on change
+                                                    }}
+                                                    value={field.value}
+                                                    disabled={isInitialLoading}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-8">
+                                                            <SelectValue placeholder="Select Academic Year" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {(Array.isArray(academicYears) ? academicYears : []).map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </div>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
                             <div className="flex flex-wrap items-center justify-center gap-4">
                                 <Button

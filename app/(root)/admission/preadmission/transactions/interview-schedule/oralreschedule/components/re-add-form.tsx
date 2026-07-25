@@ -374,18 +374,18 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
 
         saveSchedule(payload, {
             onSuccess: (res: any) => {
-                if (res?.success || res?.message === "ReSchedule Saved Successfully") {
-                    Swal.fire({
-                        title: res?.message || 'ReSchedule Saved Successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#3085d6',
-                    }).then(() => {
-                        onSuccess();
-                    });
-                } else {
-                    toast.error(res?.message || 'Failed to save schedule');
+                if (res?.returnval === false) {
+                    // Handled by mutation hook's toast
+                    return;
                 }
+                Swal.fire({
+                    title: res?.message || 'ReSchedule Saved Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3085d6',
+                }).then(() => {
+                    onSuccess();
+                });
             },
             onError: (error: any) => {
                 toast.error(error?.message || 'Failed to save schedule');

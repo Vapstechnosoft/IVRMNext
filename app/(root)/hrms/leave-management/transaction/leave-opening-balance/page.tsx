@@ -8,7 +8,7 @@ import { useLeaveOpeningBalanceGrid, useSaveLeaveOpeningBalance, useDeleteLeaveO
 import { useReportDepartments, useReportDesignations, useReportGroupTypes, usePeriodLeaveReportEmployees } from '@/hooks/hrms/useReports';
 // import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters'; // Removed
 import { Plus, X } from 'lucide-react';
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { type LeaveOpeningBalance, getLeaveOpeningBalanceColumns } from './_components/columns';
 import { LeaveOpeningBalanceForm, type LeaveOpeningBalanceFormData } from './_components/leave-opening-balance-form';
@@ -96,6 +96,14 @@ function LeaveOpeningBalancePageContent({
     const { data: employeesData, isLoading: isLoadingEmployees } = usePeriodLeaveReportEmployees(selectedDeptIds, selectedDesignationIds);
     const { data: leaveOBResponse, isLoading: isLoadingLeaveTypes } = useGetLeaveOB();
 
+    const formRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isAddFormOpen) {
+            formRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [isAddFormOpen]);
+
     // --- Mapped Data ---
     const types = useMemo(() => {
         return (groupTypesData?.data || []).map((item: any) => ({
@@ -132,7 +140,7 @@ function LeaveOpeningBalancePageContent({
 
             return {
                 id: Number(id),
-                employeeCode: item.HRME_EmployeeCode || item.hrmE_EmployeeCode || item.employeeCode || '',
+                employeeCode: id,
                 employeeName: fullName || item.value || item.employeeName || 'Unknown'
             };
         }).filter((i: any) => i !== null) as { id: number; employeeCode: string; employeeName: string }[];
@@ -275,11 +283,12 @@ function LeaveOpeningBalancePageContent({
                 </CollapsibleSection>
 
                 {/* Forms - Rendered conditionally by FormProvider state */}
-                <FormSections
-                    types={types}
-                    departments={departments}
-                    designations={designations}
-                    employees={employees}
+                <div ref={formRef}>
+                    <FormSections
+                        types={types}
+                        departments={departments}
+                        designations={designations}
+                        employees={employees}
                     leaveTypes={leaveTypes}
                     isLoadingTypes={isLoadingTypes}
                     isLoadingDepartments={isLoadingDepartments}
@@ -288,6 +297,7 @@ function LeaveOpeningBalancePageContent({
                     onFilterChange={handleFilterChange}
                     onSubmit={handleFormSubmit}
                 />
+                </div>
             </div>
         </div>
     );

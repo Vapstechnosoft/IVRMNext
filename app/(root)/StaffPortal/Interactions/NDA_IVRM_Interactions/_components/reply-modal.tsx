@@ -52,7 +52,7 @@ interface ViewReplyModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function ViewReplyModal({ isOpen, onClose, message, roleFlg, userhrmE_Id }: ViewReplyModalProps) {
     const [thread, setThread] = useState<any[]>([]);
     const [replyText, setReplyText] = useState('');

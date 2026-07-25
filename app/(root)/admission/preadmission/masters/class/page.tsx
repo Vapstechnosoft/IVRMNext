@@ -41,12 +41,16 @@ function MasterClassPageContent({
     searchParams: any;
 }) {
     const { openAddForm, openEditForm, isEditFormOpen } = useFormContext<IMasterClassList>();
-    const tableProps = useDataTableProps(response);
+    const tableProps = useDataTableProps({
+        ...response,
+        data: response?.data?.list ? response.data.list : (Array.isArray(response?.data) ? response.data : [])
+    });
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     useEffect(() => {
-        if (!isLoading && response?.data && searchParams?.asmcl_id) {
-            const record = response.data.find((r: IMasterClassList) => String(r.asmcL_Id) === String(searchParams.asmcl_id));
+        const dataList = response?.data?.list ? response.data.list : (Array.isArray(response?.data) ? response.data : []);
+        if (!isLoading && dataList.length > 0 && searchParams?.asmcl_id) {
+            const record = dataList.find((r: IMasterClassList) => String(r.asmcL_Id) === String(searchParams.asmcl_id));
             if (record && !isEditFormOpen) {
                 openEditForm(record);
             }

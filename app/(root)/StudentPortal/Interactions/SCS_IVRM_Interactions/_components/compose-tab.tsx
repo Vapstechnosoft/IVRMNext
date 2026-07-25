@@ -9,21 +9,21 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-    Send, 
-    X, 
-    Plus, 
-    Paperclip, 
-    Loader2, 
-    User, 
-    Users, 
+import {
+    Send,
+    X,
+    Plus,
+    Paperclip,
+    Loader2,
+    User,
+    Users,
     Search
 } from 'lucide-react';
-import { 
-    getRecipientsByRole, 
-    getSectionsForInteraction, 
+import {
+    getRecipientsByRole,
+    getSectionsForInteraction,
     getStudentsForInteraction,
-    saveInteraction 
+    saveInteraction
 } from '@/server/staff-portal/interactions';
 import type { IInteractionsInitialData, IRecipient, ISaveInteractionRequest } from '@/types/staff-portal/interactions';
 import { toast } from 'sonner';
@@ -35,24 +35,24 @@ interface ComposeTabProps {
     onCancel: () => void;
     onSuccess: () => void;
 }
-
+export const dynamic = 'force-dynamic';
 export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps) {
     const [userFlag, setUserFlag] = useState<string>('');
     const [recipients, setRecipients] = useState<IRecipient[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<IRecipient[]>([]);
-    
+
     const [selectedClass, setSelectedClass] = useState<string>('');
     const [selectedSection, setSelectedSection] = useState<string>('');
     const [selectedRecipientId, setSelectedRecipientId] = useState<string>('');
     const [selectedGroupItems, setSelectedGroupItems] = useState<number[]>([]);
-    
+
     const [subject, setSubject] = useState('');
     const [message, setMessage] = useState('');
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-    
+
     const [files, setFiles] = useState<{ name: string; file: File | null; path?: string }[]>([{ name: '', file: null }]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -67,7 +67,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 const res = await getRecipientsByRole(roleFlg, userFlag, Number(selectedYear));
                 if (res.success && res.data) {
                     let detailList = (res.data as any).getdetails || (Array.isArray(res.data) ? res.data : []);
-                    
+
                     const rawData = (res.data as any).data || res.data;
                     if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].IVRM_Interaction_filter) {
                         try {
@@ -114,7 +114,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         setSelectedClass(classId);
         setSelectedSection('');
         setStudents([]);
-        
+
         setIsLoadingDetails(true);
         try {
             const res = await getSectionsForInteraction(Number(classId), 0, roleFlg);
@@ -136,7 +136,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             const res = await getStudentsForInteraction(Number(selectedClass), Number(sectionId));
             if (res.success && res.data) {
                 const studentList = res.data.get_student || [];
-                
+
                 // Deduplicate students
                 const uniqueStudents: any[] = [];
                 const seenStudentIds = new Set();
@@ -148,7 +148,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         uniqueStudents.push(s);
                     }
                 });
-                
+
                 setStudents(uniqueStudents);
             }
         } catch (error) {
@@ -160,7 +160,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            const allIds = userFlag === 'student' 
+            const allIds = userFlag === 'student'
                 ? students.map(s => s.AMST_Id!).filter(Boolean)
                 : recipients.map(r => r.HRME_Id!).filter(Boolean);
             setSelectedGroupItems(allIds);
@@ -170,7 +170,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     };
 
     const toggleItemSelection = (id: number) => {
-        setSelectedGroupItems(prev => 
+        setSelectedGroupItems(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
@@ -242,11 +242,11 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         }
     };
 
-    const filteredRecipients = recipients.filter(r => 
+    const filteredRecipients = recipients.filter(r =>
         (r.EmpName || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -256,24 +256,24 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 <div className="flex flex-col gap-6 rounded-lg border bg-card/10 p-6">
                     <div className="space-y-4">
                         <div className="space-y-4">
-                        <Label className="text-base font-semibold">Academic Year</Label>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Academic Year" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {data.allacademicyear?.filter(year => year.asmaY_Id).map((year) => (
-                                    <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                        {year.asmaY_Year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                            <Label className="text-base font-semibold">Academic Year</Label>
+                            <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Academic Year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {data.allacademicyear?.filter(year => year.asmaY_Id).map((year) => (
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    <Label className="text-base font-semibold mt-4">User Type</Label>
-                        <RadioGroup 
-                            value={userFlag} 
+                        <Label className="text-base font-semibold mt-4">User Type</Label>
+                        <RadioGroup
+                            value={userFlag}
                             onValueChange={setUserFlag}
                             className="grid grid-cols-2 gap-4"
                         >
@@ -324,8 +324,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Section</Label>
-                                    <Select 
-                                        value={selectedSection} 
+                                    <Select
+                                        value={selectedSection}
                                         onValueChange={handleSectionChange}
                                         disabled={!selectedClass}
                                     >
@@ -360,33 +360,33 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                                        <Input 
-                                            placeholder="Search..." 
-                                            className="h-8 pl-8 text-xs" 
+                                        <Input
+                                            placeholder="Search..."
+                                            className="h-8 pl-8 text-xs"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Checkbox 
-                                            id="select-all-scs" 
-                                            onCheckedChange={handleSelectAll} 
+                                        <Checkbox
+                                            id="select-all-scs"
+                                            onCheckedChange={handleSelectAll}
                                             checked={
-                                                (userFlag === 'student' ? students : recipients).length > 0 && 
+                                                (userFlag === 'student' ? students : recipients).length > 0 &&
                                                 selectedGroupItems.length === (userFlag === 'student' ? students : recipients).length
                                             }
                                         />
                                         <Label htmlFor="select-all-scs" className="text-xs">All</Label>
                                     </div>
                                 </div>
-                                
+
                                 <ScrollArea className="h-[250px] pr-4">
                                     <div className="grid gap-2">
                                         {(userFlag === 'student' ? filteredStudents : filteredRecipients).map((item) => {
                                             const id = userFlag === 'student' ? item.AMST_Id! : item.HRME_Id!;
                                             const name = userFlag === 'student' ? item.studentName : item.EmpName;
                                             return (
-                                                <div 
+                                                <div
                                                     key={id}
                                                     className={cn(
                                                         "flex items-center gap-3 rounded-md border p-2 transition-colors hover:bg-accent/50",
@@ -446,16 +446,16 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label>Subject <span className="text-destructive">*</span></Label>
-                            <Input 
-                                placeholder="Message Subject" 
+                            <Input
+                                placeholder="Message Subject"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
                             />
                         </div>
                         <div className="space-y-2">
                             <Label>Message <span className="text-destructive">*</span></Label>
-                            <Textarea 
-                                placeholder="Write your message here..." 
+                            <Textarea
+                                placeholder="Write your message here..."
                                 className="min-h-[150px] resize-none"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
@@ -476,8 +476,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             <span className="truncate max-w-[200px]">
                                                 {file.name || 'No file selected'}
                                             </span>
-                                            <Input 
-                                                type="file" 
+                                            <Input
+                                                type="file"
                                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                                 onChange={(e) => handleFileChange(idx, e)}
                                             />
@@ -485,9 +485,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </div>
                                     </div>
                                     {files.length > 1 && (
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
                                             className="h-10 w-10 text-destructive"
                                             onClick={() => removeFile(idx)}
                                         >
@@ -495,9 +495,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </Button>
                                     )}
                                     {idx === files.length - 1 && (
-                                        <Button 
-                                            variant="outline" 
-                                            size="icon" 
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
                                             className="h-10 w-10"
                                             onClick={addNewFile}
                                         >
@@ -515,9 +515,9 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 <Button variant="ghost" onClick={onCancel} disabled={isSubmitting}>
                     Cancel
                 </Button>
-                <Button 
-                    className="min-w-[150px]" 
-                    onClick={handleSubmit} 
+                <Button
+                    className="min-w-[150px]"
+                    onClick={handleSubmit}
                     disabled={isSubmitting || !userFlag}
                 >
                     {isSubmitting ? (

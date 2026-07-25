@@ -132,7 +132,7 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                     });
                 }
                 if (watchedStuFlag === 'CS') {
-                    sectionListMutation.mutate(data, {
+                    sectionListMutation.mutate(watchedClassId, {
                         onSuccess: (res) => {
                             const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_sectionlist || []);
                             setSectionList(data);
@@ -231,7 +231,13 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                         invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo,
                         invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? 0
                     }));
-                    setItemsList(normalizedItems);
+                    
+                    // Deduplicate items to prevent duplicate Select values
+                    const uniqueItems = Array.from(
+                        new Map(normalizedItems.map((item: any) => [item.invmI_Id, item])).values()
+                    );
+                    
+                    setItemsList(uniqueItems);
                 }
             });
         }
@@ -302,7 +308,7 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
 
                 // Fetch sections for both C (if implied?) or definitely for CS
                 if (watchedStuFlag === 'CS') {
-                    sectionListMutation.mutate(data, {
+                    sectionListMutation.mutate(watchedClassId, {
                         onSuccess: (res) => {
                             // Check for flat data array or nested property
                             const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_sectionlist || []);
@@ -463,7 +469,34 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
     };
 
     const onSubmit = (data: InvTSalesSchema) => {
-        saveMutation.mutate(data, {
+        const payload: any = {
+            ...data,
+            invmsL_SalesDate: format(data.invmsL_SalesDate, 'yyyy-MM-dd'),
+            student_flag: data.stu_Flag,
+            saleItem: data.SaleItem.map((item: any) => ({
+                invmI_Id: item.invmI_Id,
+                invmuoM_Id: item.invmuoM_Id,
+                invtsL_BatchNo: item.invtsL_BatchNo,
+                invtsL_SalesQty: item.invtsL_SalesQty,
+                invtsL_SalesPrice: item.invtsL_SalesPrice,
+                invtsL_DiscountAmt: item.invtsL_DiscountAmt,
+                invtsL_TaxAmt: item.invtsL_TaxAmt,
+                invtsL_Amount: item.invtsL_Amount,
+                saleItemTax: item.SalesItemTax || []
+            })),
+            studentlist: data.invmsL_StuOtherFlg === 'Student' ? [
+                {
+                    amsT_Id: data.amsT_Id || 0,
+                    asmcL_Id: data.asmcL_Id || 0,
+                    asmS_Id: data.asmS_Id || 0
+                }
+            ] : []
+        };
+        
+        delete payload.SaleItem;
+        delete payload.stu_Flag;
+
+        saveMutation.mutate(payload, {
             onSuccess: (res) => {
                 if (res.success) {
                     reset();
@@ -582,9 +615,18 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                                         }} value={field.value?.toString()}>
                                             <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
                                             <SelectContent>
-                                                {studentClsSec.map((s: any, index: number) => (
-                                                    <SelectItem key={`stu-ind-${s.amsT_Id}-${index}`} value={s.amsT_Id.toString()}>{s.studentname}</SelectItem>
-                                                ))}
+                                                {Array.from(
+                                                    new Map(
+                                                        studentClsSec
+                                                            .filter((s: any) => s.amsT_Id || s.AMST_Id)
+                                                            .map((s: any) => [s.amsT_Id || s.AMST_Id, s])
+                                                    ).values()
+                                                ).map((s: any, index: number) => {
+                                                    const id = s.amsT_Id || s.AMST_Id;
+                                                    return (
+                                                        <SelectItem key={`stu-ind-${id}-${index}`} value={id.toString()}>{s.studentname}</SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -605,10 +647,15 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                                     <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
                                                     <SelectContent>
-                                                        {studentClsSec.map((s: any, index: number) => {
+                                                        {Array.from(
+                                                            new Map(
+                                                                studentClsSec
+                                                                    .filter((s: any) => s.asmcL_Id || s.ASMCL_Id)
+                                                                    .map((s: any) => [s.asmcL_Id || s.ASMCL_Id, s])
+                                                            ).values()
+                                                        ).map((s: any, index: number) => {
                                                             const id = s.asmcL_Id || s.ASMCL_Id;
                                                             const name = s.asmcL_ClassName || s.ASMCL_ClassName;
-                                                            if (!id) return null;
                                                             return (
                                                                 <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>{name}</SelectItem>
                                                             );

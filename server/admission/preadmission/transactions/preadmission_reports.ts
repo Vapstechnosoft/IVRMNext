@@ -7,7 +7,7 @@ export async function getPreadmissionStatusCountReport(data?: any) {
     const url = '/preadmission_reports/preadmission_status_count_report';
 
     if (data) {
-        return await api.post<IPreadmissionStatusCountReport>('preadmission', url, data);
+        return await api.get<IPreadmissionStatusCountReport>('preadmission', url, data);
     }
     return await api.get<IPreadmissionStatusCountReport>('preadmission', url);
 }

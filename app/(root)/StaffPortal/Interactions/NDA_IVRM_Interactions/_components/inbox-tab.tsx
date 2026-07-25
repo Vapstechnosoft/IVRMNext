@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-    Inbox, 
-    RefreshCcw, 
-    User, 
-    Users, 
-    MessageSquare, 
-    Send, 
+import {
+    Inbox,
+    RefreshCcw,
+    User,
+    Users,
+    MessageSquare,
+    Send,
     Search,
     ChevronDown,
     ChevronUp,
@@ -37,7 +37,7 @@ interface InboxTabProps {
     onRefresh: () => void;
     roleFlg: string;
 }
-
+export const dynamic = 'force-dynamic';
 export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
@@ -51,7 +51,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const messages = rawMessages.reduce((acc: IMessage[], curr: IMessage) => {
         // Find existing interaction in our accumulator
         const existingIndex = acc.findIndex(m => m.ISMINT_Id === curr.ISMINT_Id);
-        
+
         if (existingIndex === -1) {
             // New interaction, add it
             acc.push(curr);
@@ -60,7 +60,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
             // Replace existing if current ISTINT_Id is newer
             const existingId = acc[existingIndex].ISTINT_Id || 0;
             const currentId = curr.ISTINT_Id || 0;
-            
+
             if (currentId > existingId) {
                 acc[existingIndex] = curr;
             }
@@ -73,7 +73,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
         return flag ? flag.ISTINT_ReadFlg === 1 : msg.ISTINT_ReadFlg === 1;
     };
 
-    const filteredMessages = messages.filter(msg => 
+    const filteredMessages = messages.filter(msg =>
         (msg.ISMINT_Subject?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (msg.Sender?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (msg.Receiver?.toLowerCase() || '').includes(searchTerm.toLowerCase())
@@ -82,7 +82,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
     const toggleExpand = async (msg: IMessage) => {
         const id = msg.ISTINT_Id;
         const isRead = isMessageRead(msg);
-        
+
         if (expandedIds.includes(id)) {
             setExpandedIds(expandedIds.filter(i => i !== id));
         } else {
@@ -103,7 +103,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
 
     const handleDelete = async (msg: IMessage) => {
         if (!confirm('Are you sure you want to delete this interaction?')) return;
-        
+
         try {
             const res = await deleteInteraction({ ISMINT_Id: msg.ISMINT_Id, ISTINT_Id: msg.ISTINT_Id });
             if (res.success) {
@@ -129,7 +129,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                         <h2 className="text-[12px] font-black uppercase tracking-wider text-[#1e40af]">
-                            MESSAGE INBOX 
+                            MESSAGE INBOX
                         </h2>
                         <span className="flex h-5 px-1.5 min-w-[20px] items-center justify-center rounded-full bg-[#1e40af] text-[9px] font-black text-white">
                             {messages.length}
@@ -147,7 +147,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                        <input 
+                        <input
                             className="h-9 w-[180px] rounded-none border bg-white pl-9 pr-3 text-[11px] font-bold focus:ring-1 focus:ring-[#1e40af]/20 transition-all"
                             placeholder="Search messages..."
                             value={searchTerm}
@@ -170,14 +170,14 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                         const isComposedByMe = msg.ISMINT_ComposedById === data.userhrmE_Id;
 
                         return (
-                            <div 
+                            <div
                                 key={msg.ISTINT_Id}
                                 className={cn(
                                     "group flex flex-col border-b last:border-b-0 transition-colors cursor-pointer",
                                     isRead ? "bg-white" : "bg-blue-50/20"
                                 )}
                             >
-                                <div 
+                                <div
                                     className="flex items-center p-2.5 gap-4 hover:bg-slate-50 relative"
                                     onClick={() => toggleExpand(msg)}
                                 >
@@ -185,7 +185,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                                     <div className="flex shrink-0 items-center justify-center h-6 w-6 rounded-sm bg-[#16a34a]">
                                         <User className="h-3.5 w-3.5 text-white" />
                                     </div>
-                                    
+
                                     {/* Middle Subject */}
                                     <div className="flex-1 min-w-0">
                                         <h3 className={cn(
@@ -221,7 +221,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                                             {msg.ISTINT_Interaction || msg.ISMINT_Interaction}
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     openReply(msg);
@@ -231,7 +231,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
                                                 <MessageSquare className="h-3 w-3" />
                                                 View & Reply
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDelete(msg);
@@ -251,7 +251,7 @@ export function InboxTab({ data, onRefresh, roleFlg }: InboxTabProps) {
             </div>
 
             {showReplyModal && selectedMessage && (
-                <ViewReplyModal 
+                <ViewReplyModal
                     isOpen={showReplyModal}
                     onClose={() => {
                         setShowReplyModal(false);

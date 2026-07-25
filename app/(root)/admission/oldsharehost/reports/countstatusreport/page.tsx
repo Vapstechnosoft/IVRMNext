@@ -97,8 +97,8 @@ export default function CountStatusReportPage() {
             
             // Format Admission Status Chart Data
             const admData = newuser.map(item => ({
-                name: item.PAMST_Status,
-                count: item.Data_count
+                name: item.status_cursor || item.PAMST_Status,
+                count: item.aps_cursor ? (isNaN(Number(item.aps_cursor)) ? 0 : Number(item.aps_cursor)) : item.Data_count
             }));
             setAdminChartData(admData);
 
