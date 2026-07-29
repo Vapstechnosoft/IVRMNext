@@ -32,7 +32,7 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
     const saveMutation = useMutation({
         mutationFn: saveInvTSalesDetails,
         onSuccess: (response) => {
-            if (response.success) {
+            if (response.success || response.returnval || (response.message && response.message.toLowerCase().includes('success'))) {
                 toast.success(response.message || 'Record saved successfully');
                 queryClient.invalidateQueries({ queryKey: [INV_T_SALES_QUERY_KEY] });
             } else {
