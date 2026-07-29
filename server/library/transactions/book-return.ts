@@ -28,7 +28,7 @@ export async function getBookTransactionDetails(data: {
     ASMS_Id?: number;
 }) {
     const url = `BookTransaction/Get_Student_Details1`;
-    return await api.get<IBookTransactionInitialData>('library', url);
+    return await api.post<IBookTransactionInitialData>('library', url, data);
 }
 
 // Issue a book
