@@ -480,6 +480,14 @@ export const examModule: IUserAccessibleModules = {
                             url: '/Exam/exam-module/reports/TBSchoolPrimary',
                             title: 'TBSchoolPrimary',
                             description: 'View TBSchoolPrimary Report'
+                        },
+                        {
+                            id: 90,
+                            name: 'HHS Progress Card Preparatory',
+                            icon: 'BookOpen',
+                            url: '/Exam/exam-module/reports/Hutching/HHSReport_Preparatory',
+                            title: 'HHS Progress Card Preparatory',
+                            description: 'View HHS Progress Card Preparatory Details'
                         }
                     ]
                 }

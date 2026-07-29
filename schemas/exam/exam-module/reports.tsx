@@ -834,6 +834,17 @@ export const rainbowProgressCardReportSchema = z.object({
 
 export type RainbowProgressCardReportSchema = z.infer<typeof rainbowProgressCardReportSchema>;
 
+export const hhsReportPreparatorySchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReportPreparatorySchema = z.infer<typeof hhsReportPreparatorySchema>;
+
 export const gmvpsPromotionReportCardSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
