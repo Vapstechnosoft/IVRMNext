@@ -89,7 +89,14 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
     };
 
     const saveCart = async () => {
-        if (!selectedModuleId || cartPages.length === 0) return;
+        if (!selectedModuleId) {
+            toast.error("Please select a module from the dropdown before saving.");
+            return;
+        }
+        if (cartPages.length === 0) {
+            toast.warning("Please select at least one page to map.");
+            return;
+        }
 
         setIsLoading(true);
         const payload = {

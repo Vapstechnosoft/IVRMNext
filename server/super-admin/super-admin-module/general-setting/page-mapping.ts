@@ -44,11 +44,11 @@ export async function getAvailablePages(searchParams: any) {
         // Handle the specific response structure
         if (response.success && Array.isArray(response.data)) {
             const mappedData = response.data.map((item: any) => ({
-                ivrmP_Id: item.ivrmP_Id,
-                // Map ivrmmP_PageName to ivrmP_PageName for frontend consistency
-                ivrmP_PageName: item.ivrmmP_PageName,
+                ivrmP_Id: item.IVRMP_Id ?? item.ivrmP_Id,
+                // Map IVRMMP_PageName or ivrmmP_PageName to ivrmP_PageName for frontend consistency
+                ivrmP_PageName: item.IVRMMP_PageName ?? item.ivrmmP_PageName ?? item.IVRMP_PageName ?? item.ivrmP_PageName,
                 // Include other fields if needed, e.g. ivrmP_PageDisplayName if available, else use PageName
-                ivrmP_PageDisplayName: item.ivrmmP_PageName
+                ivrmP_PageDisplayName: item.IVRMP_PageDisplayName ?? item.ivrmP_PageDisplayName ?? item.IVRMMP_PageName ?? item.ivrmmP_PageName
             }));
 
             return {
@@ -99,17 +99,14 @@ export async function savePageMapping(data: any) {
     }
 
     const payload = {
-        ivrmmP_Id: 0,
-        ivrmM_Id: data.ivrmM_Id,
-        ivrmmP_PageName: "string", // Placeholder as per request
-        ivrmM_ModuleName: "string", // Placeholder as per request
-        createdDate: new Date().toISOString(),
+        IVRMMP_Id: 0,
+        IVRMM_Id: data.ivrmM_Id,
         savetmpdata: data.pages.map((p: any) => ({
-            ivrmP_Id: p.ivrmP_Id
+            IVRMP_Id: p.ivrmP_Id
         }))
     };
 
-    const response = await api.post<any>('sadmin', 'MasterPageModuleMappingFacade', payload);
+    const response = await api.post<any>('sadmin', 'MasterPageModuleMappingFacade/master_module_map_save/1241', payload);
 
     if (response.success) {
         return { success: true, message: 'Mapping saved successfully' };

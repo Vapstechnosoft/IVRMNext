@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { usePageMapping } from './mapping-context';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
-import { useQueryState, parseAsInteger } from 'nuqs';
+import { getAvailablePages, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 
@@ -13,39 +13,66 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 export default function AvailableGrid() {
-    const { selectedModuleId, addToCart, cartPages, saveCart } = usePageMapping();
+    const { selectedModuleId, addToCart, cartPages, removeFromCart, saveCart } = usePageMapping();
     const [data, setData] = useState<IPageMappingData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
 
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const fetchData = useCallback(async () => {
-        if (!selectedModuleId) {
-            setData([]);
-            setTotalItems(0);
-            return;
-        }
         setIsLoading(true);
-        const searchParams = { page, page_size: pageSize, ivrmM_Id: selectedModuleId };
         try {
-            const res = await getAvailablePages(searchParams);
-            if (res.success) {
-                setData(res.data || []);
-                setTotalItems(res.total || 0);
+            if (!selectedModuleId) {
+                const res = await getSavedMappings({});
+                if (res.success) {
+                    const mappedData = (res.data || []).map((item: any) => ({
+                        ivrmP_Id: item.ivrmP_Id,
+                        ivrmP_PageName: item.ivrmmP_PageName,
+                    }));
+                    setData(mappedData);
+                } else {
+                    setData([]);
+                }
+            } else {
+                const searchParams = { ivrmM_Id: selectedModuleId };
+                const res = await getAvailablePages(searchParams);
+                if (res.success) {
+                    setData(res.data || []);
+                } else {
+                    setData([]);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch master pages', error);
         } finally {
             setIsLoading(false);
         }
-    }, [page, pageSize, selectedModuleId]);
+    }, [selectedModuleId]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const handleToggle = (page: IPageMappingData) => {
-        addToCart([page]);
+    const filteredData = useMemo(() => {
+        if (!searchQuery) return data;
+        const lowerQuery = searchQuery.toLowerCase();
+        return data.filter(item => item.ivrmP_PageName?.toLowerCase().includes(lowerQuery));
+    }, [data, searchQuery]);
+
+    const paginatedData = useMemo(() => {
+        const startIndex = (page - 1) * pageSize;
+        return filteredData.slice(startIndex, startIndex + pageSize);
+    }, [filteredData, page, pageSize]);
+
+    const currentTotalItems = filteredData.length;
+
+    const handleToggle = (page: IPageMappingData, checked: boolean | 'indeterminate') => {
+        if (checked === true) {
+            addToCart([page]);
+        } else {
+            removeFromCart([page.ivrmP_Id]);
+        }
     };
 
     const isChecked = (id: number) => {
@@ -76,7 +103,7 @@ export default function AvailableGrid() {
                         <div className="flex justify-center">
                             <Checkbox
                                 checked={checked}
-                                onCheckedChange={() => handleToggle(row.original)}
+                                onCheckedChange={(checked) => handleToggle(row.original, checked)}
                                 aria-label="Select row"
                             />
                         </div>
@@ -88,7 +115,8 @@ export default function AvailableGrid() {
         [cartPages]
     );
 
-    if (!selectedModuleId) return null;
+    // Always render the grid, even if no module is selected
+    // if (!selectedModuleId) return null;
 
     return (
         <div className="border rounded-md shadow-sm bg-white h-full flex flex-col">
@@ -98,11 +126,11 @@ export default function AvailableGrid() {
 
             <div className="flex-1 overflow-auto p-2">
                 <GenericDataTable
-                    data={data}
+                    data={paginatedData}
                     columns={columns}
                     isLoading={isLoading}
                     isPaginationRequired={true}
-                    totalItems={totalItems}
+                    totalItems={currentTotalItems}
                 />
             </div>
         </div>

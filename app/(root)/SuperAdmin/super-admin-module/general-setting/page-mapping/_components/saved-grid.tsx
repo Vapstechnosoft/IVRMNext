@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { getSavedMappings, deletePageMapping } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
-import { useQueryState, parseAsInteger } from 'nuqs';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 import Swal from 'sweetalert2';
@@ -22,24 +22,41 @@ export default function SavedGrid() {
 
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
-        const searchParams = { page, page_size: pageSize, ivrmM_Id: selectedModuleId || 0 };
+        // Fetch all data for the module once, bypassing server-side pagination/search for speed
+        const searchParams = { ivrmM_Id: selectedModuleId || 0 };
         try {
             const res = await getSavedMappings(searchParams);
             if (res.success) {
                 setData(res.data || []);
-                setTotalItems(res.total || 0);
             }
         } catch (error) {
             console.error('Failed to fetch saved mappings', error);
         } finally {
             setIsLoading(false);
         }
-    }, [page, pageSize, selectedModuleId]);
+    }, [selectedModuleId]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    const filteredData = useMemo(() => {
+        if (!searchQuery) return data;
+        const lowerQuery = searchQuery.toLowerCase();
+        return data.filter(item => 
+            item.ivrmM_ModuleName?.toLowerCase().includes(lowerQuery) ||
+            item.ivrmmP_PageName?.toLowerCase().includes(lowerQuery)
+        );
+    }, [data, searchQuery]);
+
+    const paginatedData = useMemo(() => {
+        const startIndex = (page - 1) * pageSize;
+        return filteredData.slice(startIndex, startIndex + pageSize);
+    }, [filteredData, page, pageSize]);
+
+    const currentTotalItems = filteredData.length;
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -114,11 +131,11 @@ export default function SavedGrid() {
 
             <div className="flex-1 overflow-auto p-2">
                 <GenericDataTable
-                    data={data}
+                    data={paginatedData}
                     columns={columns}
                     isLoading={isLoading}
                     isPaginationRequired={true}
-                    totalItems={totalItems}
+                    totalItems={currentTotalItems}
                 />
             </div>
         </div>
