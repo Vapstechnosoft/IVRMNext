@@ -2736,14 +2736,14 @@ export async function getUserAccessibleModules() {
                                             title: 'ExamTimeTableTransactionSettings',
                                             description: 'Manage Exam Time Table Transaction Settings'
                                         },
-                                        {
-                                            id: 98,
-                                            name: 'Baldwin Exam TT Trans Settings',
-                                            icon: 'CalendarClock',
-                                            url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
-                                            title: 'Baldwin Exam Time Table Settings',
-                                            description: 'Manage Baldwin Exam Time Table Settings'
-                                        },
+                                        // {
+                                        //     id: 98,
+                                        //     name: 'Baldwin Exam TT Trans Settings',
+                                        //     icon: 'CalendarClock',
+                                        //     url: '/Exam/exam-module/exam-mapping/ExamTTTransSettings',
+                                        //     title: 'Baldwin Exam Time Table Settings',
+                                        //     description: 'Manage Baldwin Exam Time Table Settings'
+                                        // },
                                         {
                                             id: 99,
                                             name: 'Amrutha Bharathi Exam TT Trans Settings',
@@ -2942,194 +2942,194 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 2000,
-                                    name: 'Baldwin',
-                                    icon: 'Building2',
-                                    pages: [
-                                        // Baldwin boys high school
-                                        {
-                                            id: 1,
-                                            name: 'BaldwinFinalPromReportBBHS',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
-                                            title: 'BaldwinFinalPromReportBBHS',
-                                            description: 'BaldwinFinalPromReportBBHS'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
-                                            title: 'Baldwin BBHSPromotionReportStdIX_20_21',
-                                            description: 'Baldwin BBHSPromotionReportStdIX_20_21'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Baldwin BBIIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
-                                            title: 'Baldwin BBIIReport',
-                                            description: 'Baldwin BBII Progress Card'
-                                        },
-                                        // Baldwin Girls High School
-                                        {
-                                            id: 4,
-                                            name: 'HallTicketReport',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
-                                            title: 'HallTicketReport',
-                                            description: 'Generate Hall Ticket Report for students'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'MultipleExamProgressCardReport2',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
-                                            title: 'MultipleExamProgressCardReport2',
-                                            description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
-                                        },
-                                        // Baldwin Co Eduction School
-                                        {
-                                            id: 6,
-                                            name: 'Baldwin BCOEDIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
-                                            title: 'Baldwin BCOEDIReport',
-                                            description: 'Baldwin BCOEDIReport'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Baldwin BCOEDIIReport',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
-                                            title: 'Baldwin BCOEDIIReport',
-                                            description: 'Baldwin BCOEDIIReport'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'BCEHS BaldwinFinalPromReport',
-                                            icon: 'Report',
-                                            url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
-                                            title: 'BCEHS BaldwinFinalPromReport',
-                                            description: 'Generate BCEHS Final Promotion Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Baldwin PromotionReportIX',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
-                                            title: 'Baldwin PromotionReportIX',
-                                            description: 'Baldwin Promotion Report IX'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2008,
-                                    name: 'Calcatta',
-                                    icon: 'Building2',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Calcutta HallTicketReport',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/hall-ticket-report',
-                                            title: 'Calcutta Hall Ticket Report',
-                                            description: 'Calcutta Hall Ticket Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: ' Report Card I to V Half Yearly',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
-                                            title: ' Report Card I to V Half Yearly',
-                                            description: ' Report Card I to V Half Yearly'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Final Report Card VI-VIII',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
-                                            title: 'Final Report Card VI-VIII',
-                                            description: 'Final Report Card VI-VIII'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Report Card VI to XII Half Yearly',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
-                                            title: 'Report Card VI to XII Half Yearly',
-                                            description: 'Report Card VI to XII Half Yearly'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Final Report Card IX-XII',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
-                                            title: 'Final Report Card IX-XII',
-                                            description: 'Final Report Card IX-XII'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Final Report Card I-V',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
-                                            title: 'Final Report Card I-V',
-                                            description: 'Final Report Card I-V'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Multiple Exam Cumulative Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
-                                            title: 'Multiple Exam Cumulative Report',
-                                            description: 'Multiple Exam Cumulative Report'
-                                        },
+                                // {
+                                //     id: 2000,
+                                //     name: 'Baldwin',
+                                //     icon: 'Building2',
+                                //     pages: [
+                                //         // Baldwin boys high school
+                                //         {
+                                //             id: 1,
+                                //             name: 'BaldwinFinalPromReportBBHS',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/Baldwin_Final_P_Report_BBHS',
+                                //             title: 'BaldwinFinalPromReportBBHS',
+                                //             description: 'BaldwinFinalPromReportBBHS'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Baldwin BBHSPromotionReportStdIX_20_21',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/PromotionReportStdIX_20_21',
+                                //             title: 'Baldwin BBHSPromotionReportStdIX_20_21',
+                                //             description: 'Baldwin BBHSPromotionReportStdIX_20_21'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Baldwin BBIIReport',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/BBIIReport',
+                                //             title: 'Baldwin BBIIReport',
+                                //             description: 'Baldwin BBII Progress Card'
+                                //         },
+                                //         // Baldwin Girls High School
+                                //         {
+                                //             id: 4,
+                                //             name: 'HallTicketReport',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Baldwin/hall-ticket-report',
+                                //             title: 'HallTicketReport',
+                                //             description: 'Generate Hall Ticket Report for students'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'MultipleExamProgressCardReport2',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/MultipleExamProgressCardReport2',
+                                //             title: 'MultipleExamProgressCardReport2',
+                                //             description: 'Generate MultipleExamProgressCardReport2 for Baldwin'
+                                //         },
+                                //         // Baldwin Co Eduction School
+                                //         {
+                                //             id: 6,
+                                //             name: 'Baldwin BCOEDIReport',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/BCOEDIReport',
+                                //             title: 'Baldwin BCOEDIReport',
+                                //             description: 'Baldwin BCOEDIReport'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'Baldwin BCOEDIIReport',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/BCOEDIIReport',
+                                //             title: 'Baldwin BCOEDIIReport',
+                                //             description: 'Baldwin BCOEDIIReport'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'BCEHS BaldwinFinalPromReport',
+                                //             icon: 'Report',
+                                //             url: '/Exam/exam-module/reports/Baldwin/bcehs-final-promotion-report',
+                                //             title: 'BCEHS BaldwinFinalPromReport',
+                                //             description: 'Generate BCEHS Final Promotion Report'
+                                //         },
+                                //         {
+                                //             id: 9,
+                                //             name: 'Baldwin PromotionReportIX',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Baldwin/PromotionReportIX',
+                                //             title: 'Baldwin PromotionReportIX',
+                                //             description: 'Baldwin Promotion Report IX'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 2008,
+                                //     name: 'Calcatta',
+                                //     icon: 'Building2',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Calcutta HallTicketReport',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/hall-ticket-report',
+                                //             title: 'Calcutta Hall Ticket Report',
+                                //             description: 'Calcutta Hall Ticket Report'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: ' Report Card I to V Half Yearly',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IV',
+                                //             title: ' Report Card I to V Half Yearly',
+                                //             description: ' Report Card I to V Half Yearly'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Final Report Card VI-VIII',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_V',
+                                //             title: 'Final Report Card VI-VIII',
+                                //             description: 'Final Report Card VI-VIII'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Report Card VI to XII Half Yearly',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_IX',
+                                //             title: 'Report Card VI to XII Half Yearly',
+                                //             description: 'Report Card VI to XII Half Yearly'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Final Report Card IX-XII',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportIX_X',
+                                //             title: 'Final Report Card IX-XII',
+                                //             description: 'Final Report Card IX-XII'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Final Report Card I-V',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/Calcutta_PromotionReportI_X',
+                                //             title: 'Final Report Card I-V',
+                                //             description: 'Final Report Card I-V'
+                                //         },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Multiple Exam Cumulative Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/Calcatta/MultipleExamCumulativeReportCalcutta',
+                                //             title: 'Multiple Exam Cumulative Report',
+                                //             description: 'Multiple Exam Cumulative Report'
+                                //         },
 
-                                        // HALL TICKET REPORTS
+                                //         // HALL TICKET REPORTS
 
-                                        {
-                                            id: 200,
-                                            name: 'VVS Exam Hallticket',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/vvs-exam-hallticket',
-                                            title: 'VVS Exam Hallticket',
-                                            description: 'VVS Exam Hallticket'
-                                        },
-                                        {
-                                            id: 201,
-                                            name: 'RRPS Exam Hallticket',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/rrps-exam-hallticket',
-                                            title: 'RRPS Exam Hallticket',
-                                            description: 'RRPS Exam Hallticket'
-                                        },
-                                        {
-                                            id: 202,
-                                            name: 'Carmel Exam Hallticket',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/cramel-exam-hallticket',
-                                            title: 'Carmel Exam Hallticket',
-                                            description: 'Carmel Exam Hallticket'
-                                        },
-                                        {
-                                            id: 204,
-                                            name: 'UKPS Exam Hallticket',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/ukps-exam-hallticket',
-                                            title: 'UKPS Exam Hallticket',
-                                            description: 'UKPS Exam Hallticket'
-                                        },
-                                        {
-                                            id: 205,
-                                            name: 'Baldwin Exam Hallticket',
-                                            icon: 'Ticket',
-                                            url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
-                                            title: 'Baldwin Exam Hallticket',
-                                            description: 'Baldwin Exam Hallticket'
-                                        }
-                                    ]
-                                },
+                                //         {
+                                //             id: 200,
+                                //             name: 'VVS Exam Hallticket',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/vvs-exam-hallticket',
+                                //             title: 'VVS Exam Hallticket',
+                                //             description: 'VVS Exam Hallticket'
+                                //         },
+                                //         {
+                                //             id: 201,
+                                //             name: 'RRPS Exam Hallticket',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/rrps-exam-hallticket',
+                                //             title: 'RRPS Exam Hallticket',
+                                //             description: 'RRPS Exam Hallticket'
+                                //         },
+                                //         {
+                                //             id: 202,
+                                //             name: 'Carmel Exam Hallticket',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/cramel-exam-hallticket',
+                                //             title: 'Carmel Exam Hallticket',
+                                //             description: 'Carmel Exam Hallticket'
+                                //         },
+                                //         {
+                                //             id: 204,
+                                //             name: 'UKPS Exam Hallticket',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/ukps-exam-hallticket',
+                                //             title: 'UKPS Exam Hallticket',
+                                //             description: 'UKPS Exam Hallticket'
+                                //         },
+                                //         {
+                                //             id: 205,
+                                //             name: 'Baldwin Exam Hallticket',
+                                //             icon: 'Ticket',
+                                //             url: '/Exam/exam-module/reports/Calcatta/baldwin-exam-hallticket',
+                                //             title: 'Baldwin Exam Hallticket',
+                                //             description: 'Baldwin Exam Hallticket'
+                                //         }
+                                //     ]
+                                // },
                                 {
                                     id: 2011,
                                     name: 'Chinmaya',
@@ -3192,77 +3192,77 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 2001,
-                                    name: 'StThomos',
-                                    icon: 'Building2',
-                                    pages: [
-                                        {
-                                            id: 82,
-                                            name: 'Tabulation Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
-                                            title: 'Tabulation Report',
-                                            description: 'View Tabulation Report'
-                                        },
-                                        {
-                                            id: 21004,
-                                            name: 'StThomos_Report Card IX',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/Report_Card_IX',
-                                            title: 'StThomos_Report Card IX',
-                                            description: 'StThomos_Report Card IX'
-                                        },
-                                        {
-                                            id: 21005,
-                                            name: 'StThomos_Report Card VI-VIII',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/Report_Card_VI_VIII',
-                                            title: 'StThomos_Report Card VI-VIII',
-                                            description: 'StThomos_Report Card VI-VIII'
-                                        },
-                                        {
-                                            id: 21006,
-                                            name: 'StThomos_Report Card X',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/Report_Card_X',
-                                            title: 'StThomos_Report Card X',
-                                            description: 'StThomos_Report Card X'
-                                        },
-                                        {
-                                            id: 21007,
-                                            name: 'StThomos_Report Card X-XII',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/Report_Card_X_XII',
-                                            title: 'StThomos_Report Card X-XII',
-                                            description: 'StThomos_Report Card X-XII'
-                                        },
-                                        {
-                                            id: 21008,
-                                            name: 'StThomos_Juniors Progress Card Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/juniors-progress-card-report',
-                                            title: 'StThomos_Juniors Progress Card Report',
-                                            description: 'StThomos_Juniors Progress Card Report'
-                                        },
-                                        {
-                                            id: 21009,
-                                            name: 'StThomos_Promotion Cumulative Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/promotion-cumulative-report',
-                                            title: 'StThomos_Promotion Cumulative Report',
-                                            description: 'StThomos_Promotion Cumulative Report'
-                                        },
-                                        {
-                                            id: 21010,
-                                            name: 'StThomos_Promotion Details Report',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
-                                            title: 'StThomos_Promotion Details Report',
-                                            description: 'StThomos_Promotion Details Report'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 2001,
+                                //     name: 'StThomos',
+                                //     icon: 'Building2',
+                                //     pages: [
+                                //         {
+                                //             id: 82,
+                                //             name: 'Tabulation Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
+                                //             title: 'Tabulation Report',
+                                //             description: 'View Tabulation Report'
+                                //         },
+                                //         {
+                                //             id: 21004,
+                                //             name: 'StThomos_Report Card IX',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/Report_Card_IX',
+                                //             title: 'StThomos_Report Card IX',
+                                //             description: 'StThomos_Report Card IX'
+                                //         },
+                                //         {
+                                //             id: 21005,
+                                //             name: 'StThomos_Report Card VI-VIII',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/Report_Card_VI_VIII',
+                                //             title: 'StThomos_Report Card VI-VIII',
+                                //             description: 'StThomos_Report Card VI-VIII'
+                                //         },
+                                //         {
+                                //             id: 21006,
+                                //             name: 'StThomos_Report Card X',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/Report_Card_X',
+                                //             title: 'StThomos_Report Card X',
+                                //             description: 'StThomos_Report Card X'
+                                //         },
+                                //         {
+                                //             id: 21007,
+                                //             name: 'StThomos_Report Card X-XII',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/Report_Card_X_XII',
+                                //             title: 'StThomos_Report Card X-XII',
+                                //             description: 'StThomos_Report Card X-XII'
+                                //         },
+                                //         {
+                                //             id: 21008,
+                                //             name: 'StThomos_Juniors Progress Card Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/juniors-progress-card-report',
+                                //             title: 'StThomos_Juniors Progress Card Report',
+                                //             description: 'StThomos_Juniors Progress Card Report'
+                                //         },
+                                //         {
+                                //             id: 21009,
+                                //             name: 'StThomos_Promotion Cumulative Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/promotion-cumulative-report',
+                                //             title: 'StThomos_Promotion Cumulative Report',
+                                //             description: 'StThomos_Promotion Cumulative Report'
+                                //         },
+                                //         {
+                                //             id: 21010,
+                                //             name: 'StThomos_Promotion Details Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/StThomos/promotion-details-report',
+                                //             title: 'StThomos_Promotion Details Report',
+                                //             description: 'StThomos_Promotion Details Report'
+                                //         }
+                                //     ]
+                                // },
                                 {
                                     id: 2002,
                                     name: 'Stella',
