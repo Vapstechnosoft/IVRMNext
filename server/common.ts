@@ -740,232 +740,232 @@ export async function getUserAccessibleModules() {
                             name: 'Client Specific Reports',
                             icon: 'Settings',
                             sub_menu: [
-                                {
-                                    id: 11,
-                                    name: 'Calcutta Boys School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 60,
-                                            name: 'CBS Bonafied Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_Bonafied_Cert',
-                                            title: 'CBS Bonafied Certificate',
-                                            description: 'CBS Bonafied Certificate'
-                                        },
-                                        {
-                                            id: 61,
-                                            name: 'CBS Bonafied Certificate CEA',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_CEA_Cert',
-                                            title: 'CBS Bonafied Certificate CEA',
-                                            description: 'CBS Bonafied Certificate CEA'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Download Student Photos',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/DownloadStudentPhotos',
-                                            title: 'Download Student Photos',
-                                            description: 'Download Student Photos'
-                                        },
-                                        {
-                                            id: 64,
-                                            name: 'CBS No Objection Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
-                                            title: 'CBS No Objection Certificate',
-                                            description: 'CBS No Objection Certificate'
-                                        },
-                                        {
-                                            id: 65,
-                                            name: 'CBS Student TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/cbs-Student-Tc',
-                                            title: 'CBS Student TC',
-                                            description: 'CBS Student TC'
-                                        },
-                                        {
-                                            id: 66,
-                                            name: 'CBS Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/cbs-Study-Certificate',
-                                            title: 'CBS Study Certificate',
-                                            description: 'CBS Study Certificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 9,
-                                    name: 'New Shared Host',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Master Category',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/masters/ttcategory',
-                                            title: 'Master Category',
-                                            description: 'Master Category'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Overall Daily Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
-                                            title: 'Overall Daily Attendance Report',
-                                            description: 'Overall Daily Attendance Report'
-                                        },
+                                // {
+                                //     id: 11,
+                                //     name: 'Calcutta Boys School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 60,
+                                //             name: 'CBS Bonafied Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/CBS_Bonafied_Cert',
+                                //             title: 'CBS Bonafied Certificate',
+                                //             description: 'CBS Bonafied Certificate'
+                                //         },
+                                //         {
+                                //             id: 61,
+                                //             name: 'CBS Bonafied Certificate CEA',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/CBS_CEA_Cert',
+                                //             title: 'CBS Bonafied Certificate CEA',
+                                //             description: 'CBS Bonafied Certificate CEA'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'Download Student Photos',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/DownloadStudentPhotos',
+                                //             title: 'Download Student Photos',
+                                //             description: 'Download Student Photos'
+                                //         },
+                                //         {
+                                //             id: 64,
+                                //             name: 'CBS No Objection Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/CBS_NoObjection_Cert',
+                                //             title: 'CBS No Objection Certificate',
+                                //             description: 'CBS No Objection Certificate'
+                                //         },
+                                //         {
+                                //             id: 65,
+                                //             name: 'CBS Student TC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/cbs-Student-Tc',
+                                //             title: 'CBS Student TC',
+                                //             description: 'CBS Student TC'
+                                //         },
+                                //         {
+                                //             id: 66,
+                                //             name: 'CBS Study Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/cbs-Study-Certificate',
+                                //             title: 'CBS Study Certificate',
+                                //             description: 'CBS Study Certificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 9,
+                                //     name: 'New Shared Host',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Master Category',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/masters/ttcategory',
+                                //             title: 'Master Category',
+                                //             description: 'Master Category'
+                                //         },
+                                //         {
+                                //             id: 12,
+                                //             name: 'Overall Daily Attendance Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                //             title: 'Overall Daily Attendance Report',
+                                //             description: 'Overall Daily Attendance Report'
+                                //         },
 
-                                        {
-                                            id: 53,
-                                            name: 'Student Birthday Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-birthday-report',
-                                            title: 'Student Birthday Report',
-                                            description: 'Student Birthday Report'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: '100% Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/100attendance-report',
-                                            title: '100% Attendance Report',
-                                            description: '100% Attendance Report'
-                                        },
+                                //         {
+                                //             id: 53,
+                                //             name: 'Student Birthday Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/student-birthday-report',
+                                //             title: 'Student Birthday Report',
+                                //             description: 'Student Birthday Report'
+                                //         },
+                                //         {
+                                //             id: 54,
+                                //             name: '100% Attendance Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/100attendance-report',
+                                //             title: '100% Attendance Report',
+                                //             description: '100% Attendance Report'
+                                //         },
 
-                                        {
-                                            id: 56,
-                                            name: 'Study Certificate GMVPS Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/study-certificate-gmvps-report',
-                                            title: 'Study Certificate GMVPS Report',
-                                            description: 'Study Certificate GMVPS Report'
-                                        },
+                                //         {
+                                //             id: 56,
+                                //             name: 'Study Certificate GMVPS Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/study-certificate-gmvps-report',
+                                //             title: 'Study Certificate GMVPS Report',
+                                //             description: 'Study Certificate GMVPS Report'
+                                //         },
 
-                                        {
-                                            id: 67,
-                                            name: 'GM Custom Tc',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/custom-tc',
-                                            title: 'GM Custom Tc',
-                                            description: 'GM Custom Tc'
-                                        },
+                                //         {
+                                //             id: 67,
+                                //             name: 'GM Custom Tc',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/custom-tc',
+                                //             title: 'GM Custom Tc',
+                                //             description: 'GM Custom Tc'
+                                //         },
 
-                                        {
-                                            id: 68,
-                                            name: 'Little Anns Certificate For Appreciation',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-for-appreciation',
-                                            title: 'Little Anns Certificate  For Appreciation',
-                                            description: 'Little Anns Certificate  For Appreciation'
-                                        },
-                                        {
-                                            id: 69,
-                                            name: 'Little Anns Certificate Of Promotion',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-of-promotion',
-                                            title: 'Little Anns Certificate Of Promotion',
-                                            description: 'Little Anns Certificate Of Promotion'
-                                        },
-                                        {
-                                            id: 70,
-                                            name: 'St.Anns Certificate For Appreciation',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-appreciation',
-                                            title: 'St.Anns Certificate For Appreciation',
-                                            description: 'St.Anns Certificate For Appreciation'
-                                        },
-                                        {
-                                            id: 71,
-                                            name: 'St.Anns Certificate For Merit',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-merit',
-                                            title: 'St.Anns Certificate For Merit',
-                                            description: 'St.Anns Certificate For Merit'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'Nagarjuna Tc custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/tc-custom-report-nagarjuna',
-                                            title: 'Nagarjuna Tc custom Report',
-                                            description: 'Nagarjuna Tc custom Report'
-                                        },
-                                        {
-                                            id: 73,
-                                            name: 'Tun Bridge Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/Tun-Bridge-Study-Certificate',
-                                            title: 'Tun Bridge Study Certificate',
-                                            description: 'Tun Bridge Study Certificate'
-                                        },
-                                        {
-                                            id: 74,
-                                            name: 'TunBridge',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/TunBridge',
-                                            title: 'TunBridge',
-                                            description: 'TunBridge'
-                                        },
-                                        {
-                                            id: 75,
-                                            name: 'ST ANNS TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/st-anns-tc-custom-report',
-                                            title: 'ST ANNS TC Custom Report',
-                                            description: 'ST ANNS TC Custom Report'
-                                        },
-                                        {
-                                            id: 76,
-                                            name: 'Smartcarddetails',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/newsharedhost/reports/Smartcarddetails',
-                                            title: 'Smartcarddetails',
-                                            description: 'Smartcarddetails'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 10,
-                                    name: 'stjames',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 55,
-                                            name: 'St.James TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjames-tc-customreport',
-                                            title: 'St.James TC Custom Report',
-                                            description: 'St.James TC Custom Report'
-                                        },
+                                //         {
+                                //             id: 68,
+                                //             name: 'Little Anns Certificate For Appreciation',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-for-appreciation',
+                                //             title: 'Little Anns Certificate  For Appreciation',
+                                //             description: 'Little Anns Certificate  For Appreciation'
+                                //         },
+                                //         {
+                                //             id: 69,
+                                //             name: 'Little Anns Certificate Of Promotion',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/little-anns-certificate-of-promotion',
+                                //             title: 'Little Anns Certificate Of Promotion',
+                                //             description: 'Little Anns Certificate Of Promotion'
+                                //         },
+                                //         {
+                                //             id: 70,
+                                //             name: 'St.Anns Certificate For Appreciation',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-appreciation',
+                                //             title: 'St.Anns Certificate For Appreciation',
+                                //             description: 'St.Anns Certificate For Appreciation'
+                                //         },
+                                //         {
+                                //             id: 71,
+                                //             name: 'St.Anns Certificate For Merit',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/st-anns-certificate-for-merit',
+                                //             title: 'St.Anns Certificate For Merit',
+                                //             description: 'St.Anns Certificate For Merit'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'Nagarjuna Tc custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/tc-custom-report-nagarjuna',
+                                //             title: 'Nagarjuna Tc custom Report',
+                                //             description: 'Nagarjuna Tc custom Report'
+                                //         },
+                                //         {
+                                //             id: 73,
+                                //             name: 'Tun Bridge Study Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/Tun-Bridge-Study-Certificate',
+                                //             title: 'Tun Bridge Study Certificate',
+                                //             description: 'Tun Bridge Study Certificate'
+                                //         },
+                                //         {
+                                //             id: 74,
+                                //             name: 'TunBridge',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/TunBridge',
+                                //             title: 'TunBridge',
+                                //             description: 'TunBridge'
+                                //         },
+                                //         {
+                                //             id: 75,
+                                //             name: 'ST ANNS TC Custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/st-anns-tc-custom-report',
+                                //             title: 'ST ANNS TC Custom Report',
+                                //             description: 'ST ANNS TC Custom Report'
+                                //         },
+                                //         {
+                                //             id: 76,
+                                //             name: 'Smartcarddetails',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/newsharedhost/reports/Smartcarddetails',
+                                //             title: 'Smartcarddetails',
+                                //             description: 'Smartcarddetails'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 10,
+                                //     name: 'stjames',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 55,
+                                //             name: 'St.James TC Custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/stjames-tc-customreport',
+                                //             title: 'St.James TC Custom Report',
+                                //             description: 'St.James TC Custom Report'
+                                //         },
 
-                                        {
-                                            id: 57,
-                                            name: 'St.James Bonafied Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesbonafiedreport',
-                                            title: 'St.James Bonafied Report',
-                                            description: 'St.James Bonafied Report'
-                                        },
-                                        {
-                                            id: 58,
-                                            name: 'St.James Migration Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjamesmigrationcertificate',
-                                            title: 'St.James Migration Report',
-                                            description: 'St.James Migration Report'
-                                        },
-                                        {
-                                            id: 59,
-                                            name: 'St.James Character Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/stjcharactercertificate',
-                                            title: 'St.James Character Report',
-                                            description: 'St.James Character Report'
-                                        }
-                                    ]
-                                },
+                                //         {
+                                //             id: 57,
+                                //             name: 'St.James Bonafied Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/stjamesbonafiedreport',
+                                //             title: 'St.James Bonafied Report',
+                                //             description: 'St.James Bonafied Report'
+                                //         },
+                                //         {
+                                //             id: 58,
+                                //             name: 'St.James Migration Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/stjamesmigrationcertificate',
+                                //             title: 'St.James Migration Report',
+                                //             description: 'St.James Migration Report'
+                                //         },
+                                //         {
+                                //             id: 59,
+                                //             name: 'St.James Character Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/stjcharactercertificate',
+                                //             title: 'St.James Character Report',
+                                //             description: 'St.James Character Report'
+                                //         }
+                                //     ]
+                                // },
                                 {
                                     id: 13,
                                     name: 'NDA',
@@ -1076,589 +1076,589 @@ export async function getUserAccessibleModules() {
                                             description: 'Mobile App Download Report'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 14,
-                                    name: 'Baldwin',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'BBHS Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/bbhs-study-certificate',
-                                            title: 'BBHS Study Certificate',
-                                            description: 'BBHS Study Certificate'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'BBHS Student Custom TC',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/bbhs-student-tc-report-custom',
-                                            title: 'BBHS Student Custom TC',
-                                            description: 'BBHS Student Custom TC'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'BCEH Study Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/BCEH-Study-Certificate',
-                                            title: 'BCEH Study Certificate',
-                                            description: 'BCEH Study Certificate'
-                                        },
-
-                                        {
-                                            id: 65,
-                                            name: 'Student tc custom report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report-custom',
-                                            title: 'Student tc custom report',
-                                            description: 'Student tc custom report'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 15,
-                                    name: 'Sophia',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 590,
-                                            name: 'Smart Card Details',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
-                                            title: 'Smartcarddetails',
-                                            description: 'Smartcarddetails'
-                                        },
-                                        {
-                                            id: 591,
-                                            name: 'Import',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/masters/import',
-                                            title: 'Import',
-                                            description: 'Import'
-                                        },
-                                        {
-                                            id: 592,
-                                            name: 'Master Activities',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/masters/Sophia/MasterActivities',
-                                            title: 'Master Activities',
-                                            description: 'Master Activities'
-                                        },
-
-                                        {
-                                            id: 594,
-                                            name: 'CategoryWise Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
-                                            title: 'CategoryWise Attendance',
-                                            description: 'CategoryWise Attendance'
-                                        },
-                                        {
-                                            id: 595,
-                                            name: 'ClassWise Daily Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
-                                            title: 'ClassWise Daily Attendance',
-                                            description: 'ClassWise Daily Attendance'
-                                        },
-                                        {
-                                            id: 599,
-                                            name: 'Sophia study certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
-                                            title: 'Sophia study certificate',
-                                            description: 'Sophia study certificate'
-                                        },
-                                        {
-                                            id: 6000,
-                                            name: 'SophiaRegistrationXI',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistrationXI',
-                                            title: 'SophiaRegistrationXI',
-                                            description: 'SophiaRegistrationXI'
-                                        },
-                                        {
-                                            id: 6001,
-                                            name: 'SophiaRegistration',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/SophiaRegistration',
-                                            title: 'SophiaRegistration',
-                                            description: 'SophiaRegistration'
-                                        },
-                                        {
-                                            id: 601,
-                                            name: 'OverallDailyAttendanceReport',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
-                                            title: 'OverallDailyAttendanceReport',
-                                            description: 'OverallDailyAttendanceReport'
-                                        },
-                                        {
-                                            id: 602,
-                                            name: 'Studenttcapply',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/Studenttcapply',
-                                            title: 'Studenttcapply',
-                                            description: 'Studenttcapply'
-                                        },
-
-                                        {
-                                            id: 603,
-                                            name: 'StudentTcApproval',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/StudentTcApproval',
-                                            title: 'StudentTcApproval',
-                                            description: 'StudentTcApproval'
-                                        },
-                                        {
-                                            id: 609,
-                                            name: 'StudentTcCancel',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/studentTCCancel',
-                                            title: 'StudentTcCancel',
-                                            description: 'StudentTcCancel'
-                                        },
-                                        {
-                                            id: 6099,
-                                            name: 'MasterQuestionBank',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/transaction/MasterQuestionBank',
-                                            title: 'MasterQuestionBank',
-                                            description: 'MasterQuestionBank'
-                                        },
-
-                                        {
-                                            id: 604,
-                                            name: 'SophiaMultiTransferCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
-                                            title: 'SophiaMultiTransferCertificate',
-                                            description: 'SophiaMultiTransferCertificate'
-                                        },
-                                        {
-                                            id: 606,
-                                            name: 'SophiaStudentParticulars',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaStudentParticulars',
-                                            title: 'SophiaStudentParticulars',
-                                            description: 'SophiaStudentParticulars'
-                                        },
-                                        {
-                                            id: 607,
-                                            name: 'Sophia Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificate',
-                                            title: 'SophiaTransferCertificate',
-                                            description: 'SophiaTransferCertificate'
-                                        },
-                                        {
-                                            id: 608,
-                                            name: 'Sophia Transfer Certificate New',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/reports/SophiaTransferCertificateNew',
-                                            title: 'SophiaTransferCertificateNew',
-                                            description: 'SophiaTransferCertificateNew'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 16,
-                                    name: 'St. Thomas Church School',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 61,
-                                            name: 'St. Thomas Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/admission-form',
-                                            title: 'St. Thomas Admission Form',
-                                            description: 'St. Thomas Admission Form'
-                                        },
-                                        {
-                                            id: 161,
-                                            name: 'STTHOMAS Application Form',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
-                                            title: 'STTHOMAS Application Form',
-                                            description: 'STTHOMAS Application Form'
-                                        },
-                                        {
-                                            id: 62,
-                                            name: 'Total Strength',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/STCS/total-strength',
-                                            title: 'Total Strength',
-                                            description: 'Total Strength'
-                                        },
-                                        {
-                                            id: 63,
-                                            name: 'St. Thomas TC Custom Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
-                                            title: 'St. Thomas TC Custom Report',
-                                            description: 'St. Thomas TC Custom Report'
-                                        }
-                                    ]
-                                },
-
-                                {
-                                    id: 17,
-                                    name: 'Samartha',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'SamarthaBonafideCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaBonafideCertificate',
-                                            title: 'Samartha Bonafide Certificate',
-                                            description: 'Samartha Bonafide Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'SamarthaTC',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/SamarthaTC',
-                                            title: 'SamarthaTC',
-                                            description: 'SamarthaTC'
-                                        },
-                                        {
-                                            id: 73,
-                                            name: 'OverAllViewReportt',
-                                            icon: 'Settings',
-                                            url: '/admission/samartha/reports/Over-All-View-Reportt',
-                                            title: 'OverAllViewReportt',
-                                            description: 'OverAllViewReportt'
-                                        }
-                                    ]
-                                },
-
-                                {
-                                    id: 18,
-                                    name: 'Danvantari Phisiotheraphy',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 71,
-                                            name: 'DCPS Bonified Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
-                                            title: 'DCPS Bonified Certificate',
-                                            description: 'Bonified Certificate'
-                                        },
-                                        {
-                                            id: 72,
-                                            name: 'DCPS Transfer Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
-                                            title: 'DCPS Transfer Certificate',
-                                            description: 'DCPS Transfer Certificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 19,
-                                    name: 'SRKVS',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'SRKVS Student Address Book',
-                                            icon: 'Settings',
-                                            url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
-                                            title: 'SRKVSStudentAddressBook',
-                                            description: 'SRKVSStudentAddressBook'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 20,
-                                    name: 'St. Peters School Durgapur',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'Employee IDcard Report STpeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
-                                            title: 'EmployeeIDcardReportSTpeter',
-                                            description: 'EmployeeIDcardReportSTpeter'
-                                        },
-
-                                        {
-                                            id: 75,
-                                            name: 'Student IDcard Report STPeter',
-                                            icon: 'Settings',
-                                            url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
-                                            title: 'StudentIDcardReportSTPeter',
-                                            description: 'StudentIDcardReportSTPeter'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 21,
-                                    name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 74,
-                                            name: 'GDARSStudyCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
-                                            title: 'GDARSStudyCertificate',
-                                            description: 'GDARSStudyCertificate'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 22,
-                                    name: 'SMS degree college',
-                                    icon: 'Settings',
-                                    pages: [
-                                        //Need to create UI
-                                        // {
-                                        //     id: 74,
-                                        //     name: 'SMSCollegeStudentTc',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
-                                        //     title: 'SMSCollegeStudentTc',
-                                        //     description: 'SMSCollegeStudentTc'
-                                        // },
-
-                                        {
-                                            id: 75,
-                                            name: 'SMSCConductCertificate',
-                                            icon: 'Settings',
-                                            url: '/admission/sms/reports/SMSCConductCertificate',
-                                            title: 'SMSCConductCertificate',
-                                            description: 'SMSCConductCertificate'
-                                        }
-                                    ]
-                                },
-
-                                {
-                                    id: 24,
-                                    name: 'BURNPUR SCHOOL',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 76,
-                                            name: 'BRS TC Certificate',
-                                            icon: 'Settings',
-                                            url: '/admission/burnpur/reports/brs-tc-certificate',
-                                            title: 'BRS TC Certificate',
-                                            description: 'BRS TC Certificate'
-                                        },
-                                        {
-                                            id: 77,
-                                            name: 'BRS Admission Form',
-                                            icon: 'Settings',
-                                            url: '/admission/burnpur/transactions/application-form',
-                                            title: 'BRS Admission Form',
-                                            description: 'BRS Admission Form'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 25,
-                                    name: 'Local ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        // {
-                                        //     id: 77,
-                                        //     name: 'SVP Class Wise Student Details',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/localsharehost/reports/svp-class-wise-student-details',
-                                        //     title: 'SVP Class Wise Student Details',
-                                        //     description: 'SVP Class Wise Student Details'
-                                        // },
-                                        {
-                                            id: 595,
-                                            name: 'ClassWise Daily Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
-                                            title: 'ClassWise Daily Attendance',
-                                            description: 'ClassWise Daily Attendance'
-                                        },
-                                        {
-                                            id: 591,
-                                            name: 'Import',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/masters/import',
-                                            title: 'Import',
-                                            description: 'Import'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 26,
-                                    name: 'Old ShareHost',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 78,
-                                            name: 'Admission Procedure',
-                                            icon: 'Settings',
-                                            url: '/admission/oldsharehost/reports/admission-procedure',
-                                            title: 'Admission Procedure',
-                                            description: 'Admission Procedure'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: '100% Attendance Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/100attendance-report',
-                                            title: '100% Attendance Report',
-                                            description: '100% Attendance Report'
-                                        },
-                                        {
-                                            id: 595,
-                                            name: 'ClassWise Daily Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
-                                            title: 'ClassWise Daily Attendance',
-                                            description: 'ClassWise Daily Attendance'
-                                        },
-                                        {
-                                            id: 594,
-                                            name: 'CategoryWise Attendance',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
-                                            title: 'CategoryWise Attendance',
-                                            description: 'CategoryWise Attendance'
-                                        },
-                                        {
-                                            id: 591,
-                                            name: 'Import',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/masters/import',
-                                            title: 'Import',
-                                            description: 'Import'
-                                        },
-                                        {
-                                            id: 65,
-                                            name: 'Student tc custom report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-tc-report-custom',
-                                            title: 'Student tc custom report',
-                                            description: 'Student tc custom report'
-                                        }
-                                    ]
-                                },
-
-                                {
-                                    id: 14,
-                                    name: 'Hutchings',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 591,
-                                            name: 'Import',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/sophia/masters/import',
-                                            title: 'Import',
-                                            description: 'Import'
-                                        },
-                                        {
-                                            id: 69,
-                                            name: 'Mobile App Download Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/nda/reports/mobile-app-download-report',
-                                            title: 'Mobile App Download Report',
-                                            description: 'Mobile App Download Report'
-                                        }
-                                        // {
-                                        //     id: 62,
-                                        //     name: 'NDA Student TC',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/transactions/nda-student-tc',
-                                        //     title: 'NDA Student TC',
-                                        //     description: 'NDA Student TC'
-                                        // },
-                                        // {
-                                        //     id: 63,
-                                        //     name: 'NDA Student Profile Update',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
-                                        //     title: 'NDA Student Profile Update',
-                                        //     description: 'NDA Student Profile Update'
-                                        // },
-                                        // {
-                                        //     id: 64,
-                                        //     name: 'Notredame Custom TC Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/notredame-custom-tc-report',
-                                        //     title: 'Notredame Custom TC Report',
-                                        //     description: 'Notredame Custom TC Report'
-                                        // },
-                                        // {
-                                        //     id: 66,
-                                        //     name: 'NDA Student Id Card Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/student-id-card-report-nda',
-                                        //     title: 'NDA Student Id Card Report',
-                                        //     description: 'NDA Student Id Card Report'
-                                        // },
-                                        // {
-                                        //     id: 65,
-                                        //     name: 'NDA Student Photo Approval',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/masters/nda-student-photo-approval',
-                                        //     title: 'NDA Student Photo Approval',
-                                        //     description: 'NDA Student Photo Approval'
-                                        // },
-                                        // {
-                                        //     id: 67,
-                                        //     name: 'NDA Student Profile Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
-                                        //     title: 'NDA Student Profile Report',
-                                        //     description: 'NDA Student Profile Report'
-                                        // },
-                                        // {
-                                        //     id: 601,
-                                        //     name: 'OverallDailyAttendanceReport',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
-                                        //     title: 'OverallDailyAttendanceReport',
-                                        //     description: 'OverallDailyAttendanceReport'
-                                        // },
-                                        // {
-                                        //     id: 595,
-                                        //     name: 'ClassWise Daily Attendance',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
-                                        //     title: 'ClassWise Daily Attendance',
-                                        //     description: 'ClassWise Daily Attendance'
-                                        // },
-                                        // {
-                                        //     id: 590,
-                                        //     name: 'Smart Card Details',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
-                                        //     title: 'Smartcarddetails',
-                                        //     description: 'Smartcarddetails'
-                                        // },
-                                        // {
-                                        //     id: 68,
-                                        //     name: 'NDA Study Certificate',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/nda-study-certificate',
-                                        //     title: 'NDA Study Certificate',
-                                        //     description: 'NDA Study Certificate'
-                                        // },
-                                        // {
-                                        //     id: 69,
-                                        //     name: 'Mobile App Download Report',
-                                        //     icon: 'Settings',
-                                        //     url: '/admission/preadmission/nda/reports/mobile-app-download-report',
-                                        //     title: 'Mobile App Download Report',
-                                        //     description: 'Mobile App Download Report'
-                                        // }
-                                    ]
                                 }
+                                // {
+                                //     id: 14,
+                                //     name: 'Baldwin',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 61,
+                                //             name: 'BBHS Study Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/bbhs-study-certificate',
+                                //             title: 'BBHS Study Certificate',
+                                //             description: 'BBHS Study Certificate'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'BBHS Student Custom TC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/bbhs-student-tc-report-custom',
+                                //             title: 'BBHS Student Custom TC',
+                                //             description: 'BBHS Student Custom TC'
+                                //         },
+                                //         {
+                                //             id: 63,
+                                //             name: 'BCEH Study Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/BCEH-Study-Certificate',
+                                //             title: 'BCEH Study Certificate',
+                                //             description: 'BCEH Study Certificate'
+                                //         },
+
+                                //         {
+                                //             id: 65,
+                                //             name: 'Student tc custom report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/student-tc-report-custom',
+                                //             title: 'Student tc custom report',
+                                //             description: 'Student tc custom report'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 15,
+                                //     name: 'Sophia',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 590,
+                                //             name: 'Smart Card Details',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                //             title: 'Smartcarddetails',
+                                //             description: 'Smartcarddetails'
+                                //         },
+                                //         {
+                                //             id: 591,
+                                //             name: 'Import',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/masters/import',
+                                //             title: 'Import',
+                                //             description: 'Import'
+                                //         },
+                                //         {
+                                //             id: 592,
+                                //             name: 'Master Activities',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/masters/Sophia/MasterActivities',
+                                //             title: 'Master Activities',
+                                //             description: 'Master Activities'
+                                //         },
+
+                                //         {
+                                //             id: 594,
+                                //             name: 'CategoryWise Attendance',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                                //             title: 'CategoryWise Attendance',
+                                //             description: 'CategoryWise Attendance'
+                                //         },
+                                //         {
+                                //             id: 595,
+                                //             name: 'ClassWise Daily Attendance',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                //             title: 'ClassWise Daily Attendance',
+                                //             description: 'ClassWise Daily Attendance'
+                                //         },
+                                //         {
+                                //             id: 599,
+                                //             name: 'Sophia study certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/SophiaStudyCertificate',
+                                //             title: 'Sophia study certificate',
+                                //             description: 'Sophia study certificate'
+                                //         },
+                                //         {
+                                //             id: 6000,
+                                //             name: 'SophiaRegistrationXI',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/SophiaRegistrationXI',
+                                //             title: 'SophiaRegistrationXI',
+                                //             description: 'SophiaRegistrationXI'
+                                //         },
+                                //         {
+                                //             id: 6001,
+                                //             name: 'SophiaRegistration',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/SophiaRegistration',
+                                //             title: 'SophiaRegistration',
+                                //             description: 'SophiaRegistration'
+                                //         },
+                                //         {
+                                //             id: 601,
+                                //             name: 'OverallDailyAttendanceReport',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                //             title: 'OverallDailyAttendanceReport',
+                                //             description: 'OverallDailyAttendanceReport'
+                                //         },
+                                //         {
+                                //             id: 602,
+                                //             name: 'Studenttcapply',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/Studenttcapply',
+                                //             title: 'Studenttcapply',
+                                //             description: 'Studenttcapply'
+                                //         },
+
+                                //         {
+                                //             id: 603,
+                                //             name: 'StudentTcApproval',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/StudentTcApproval',
+                                //             title: 'StudentTcApproval',
+                                //             description: 'StudentTcApproval'
+                                //         },
+                                //         {
+                                //             id: 609,
+                                //             name: 'StudentTcCancel',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/studentTCCancel',
+                                //             title: 'StudentTcCancel',
+                                //             description: 'StudentTcCancel'
+                                //         },
+                                //         {
+                                //             id: 6099,
+                                //             name: 'MasterQuestionBank',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/transaction/MasterQuestionBank',
+                                //             title: 'MasterQuestionBank',
+                                //             description: 'MasterQuestionBank'
+                                //         },
+
+                                //         {
+                                //             id: 604,
+                                //             name: 'SophiaMultiTransferCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/SophiaMultiTransferCertificate',
+                                //             title: 'SophiaMultiTransferCertificate',
+                                //             description: 'SophiaMultiTransferCertificate'
+                                //         },
+                                //         {
+                                //             id: 606,
+                                //             name: 'SophiaStudentParticulars',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/SophiaStudentParticulars',
+                                //             title: 'SophiaStudentParticulars',
+                                //             description: 'SophiaStudentParticulars'
+                                //         },
+                                //         {
+                                //             id: 607,
+                                //             name: 'Sophia Transfer Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/SophiaTransferCertificate',
+                                //             title: 'SophiaTransferCertificate',
+                                //             description: 'SophiaTransferCertificate'
+                                //         },
+                                //         {
+                                //             id: 608,
+                                //             name: 'Sophia Transfer Certificate New',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/reports/SophiaTransferCertificateNew',
+                                //             title: 'SophiaTransferCertificateNew',
+                                //             description: 'SophiaTransferCertificateNew'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 16,
+                                //     name: 'St. Thomas Church School',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 61,
+                                //             name: 'St. Thomas Admission Form',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/admission-form',
+                                //             title: 'St. Thomas Admission Form',
+                                //             description: 'St. Thomas Admission Form'
+                                //         },
+                                //         {
+                                //             id: 161,
+                                //             name: 'STTHOMAS Application Form',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/Preadmission-form/stthomas',
+                                //             title: 'STTHOMAS Application Form',
+                                //             description: 'STTHOMAS Application Form'
+                                //         },
+                                //         {
+                                //             id: 62,
+                                //             name: 'Total Strength',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/STCS/total-strength',
+                                //             title: 'Total Strength',
+                                //             description: 'Total Strength'
+                                //         },
+                                //         {
+                                //             id: 63,
+                                //             name: 'St. Thomas TC Custom Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/stthomas/reports/stthomas-tc-custom-report',
+                                //             title: 'St. Thomas TC Custom Report',
+                                //             description: 'St. Thomas TC Custom Report'
+                                //         }
+                                //     ]
+                                // },
+
+                                // {
+                                //     id: 17,
+                                //     name: 'Samartha',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'SamarthaBonafideCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaBonafideCertificate',
+                                //             title: 'Samartha Bonafide Certificate',
+                                //             description: 'Samartha Bonafide Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'SamarthaTC',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/SamarthaTC',
+                                //             title: 'SamarthaTC',
+                                //             description: 'SamarthaTC'
+                                //         },
+                                //         {
+                                //             id: 73,
+                                //             name: 'OverAllViewReportt',
+                                //             icon: 'Settings',
+                                //             url: '/admission/samartha/reports/Over-All-View-Reportt',
+                                //             title: 'OverAllViewReportt',
+                                //             description: 'OverAllViewReportt'
+                                //         }
+                                //     ]
+                                // },
+
+                                // {
+                                //     id: 18,
+                                //     name: 'Danvantari Phisiotheraphy',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 71,
+                                //             name: 'DCPS Bonified Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_BonifiedCertificate',
+                                //             title: 'DCPS Bonified Certificate',
+                                //             description: 'Bonified Certificate'
+                                //         },
+                                //         {
+                                //             id: 72,
+                                //             name: 'DCPS Transfer Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/Danvantari/reports/DCPS_TransferCertificate',
+                                //             title: 'DCPS Transfer Certificate',
+                                //             description: 'DCPS Transfer Certificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 19,
+                                //     name: 'SRKVS',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'SRKVS Student Address Book',
+                                //             icon: 'Settings',
+                                //             url: '/admission/srkvs/reports/SRKVSStudentAddressBook',
+                                //             title: 'SRKVSStudentAddressBook',
+                                //             description: 'SRKVSStudentAddressBook'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 20,
+                                //     name: 'St. Peters School Durgapur',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'Employee IDcard Report STpeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/EmployeeIDcardReportSTpeter',
+                                //             title: 'EmployeeIDcardReportSTpeter',
+                                //             description: 'EmployeeIDcardReportSTpeter'
+                                //         },
+
+                                //         {
+                                //             id: 75,
+                                //             name: 'Student IDcard Report STPeter',
+                                //             icon: 'Settings',
+                                //             url: '/admission/stpeter/reports/StudentIDcardReportSTPeter',
+                                //             title: 'StudentIDcardReportSTPeter',
+                                //             description: 'StudentIDcardReportSTPeter'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 21,
+                                //     name: 'GNANA DEEPA ACADEMY RESIDENTIAL SCHOOL',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 74,
+                                //             name: 'GDARSStudyCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/gnanadeepa/reports/GDARSStudyCertificate',
+                                //             title: 'GDARSStudyCertificate',
+                                //             description: 'GDARSStudyCertificate'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 22,
+                                //     name: 'SMS degree college',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         //Need to create UI
+                                //         // {
+                                //         //     id: 74,
+                                //         //     name: 'SMSCollegeStudentTc',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/sms/transaction/SMSCollegeStudentTc',
+                                //         //     title: 'SMSCollegeStudentTc',
+                                //         //     description: 'SMSCollegeStudentTc'
+                                //         // },
+
+                                //         {
+                                //             id: 75,
+                                //             name: 'SMSCConductCertificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/sms/reports/SMSCConductCertificate',
+                                //             title: 'SMSCConductCertificate',
+                                //             description: 'SMSCConductCertificate'
+                                //         }
+                                //     ]
+                                // },
+
+                                // {
+                                //     id: 24,
+                                //     name: 'BURNPUR SCHOOL',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 76,
+                                //             name: 'BRS TC Certificate',
+                                //             icon: 'Settings',
+                                //             url: '/admission/burnpur/reports/brs-tc-certificate',
+                                //             title: 'BRS TC Certificate',
+                                //             description: 'BRS TC Certificate'
+                                //         },
+                                //         {
+                                //             id: 77,
+                                //             name: 'BRS Admission Form',
+                                //             icon: 'Settings',
+                                //             url: '/admission/burnpur/transactions/application-form',
+                                //             title: 'BRS Admission Form',
+                                //             description: 'BRS Admission Form'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 25,
+                                //     name: 'Local ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         // {
+                                //         //     id: 77,
+                                //         //     name: 'SVP Class Wise Student Details',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/localsharehost/reports/svp-class-wise-student-details',
+                                //         //     title: 'SVP Class Wise Student Details',
+                                //         //     description: 'SVP Class Wise Student Details'
+                                //         // },
+                                //         {
+                                //             id: 595,
+                                //             name: 'ClassWise Daily Attendance',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                //             title: 'ClassWise Daily Attendance',
+                                //             description: 'ClassWise Daily Attendance'
+                                //         },
+                                //         {
+                                //             id: 591,
+                                //             name: 'Import',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/masters/import',
+                                //             title: 'Import',
+                                //             description: 'Import'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 26,
+                                //     name: 'Old ShareHost',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 78,
+                                //             name: 'Admission Procedure',
+                                //             icon: 'Settings',
+                                //             url: '/admission/oldsharehost/reports/admission-procedure',
+                                //             title: 'Admission Procedure',
+                                //             description: 'Admission Procedure'
+                                //         },
+                                //         {
+                                //             id: 54,
+                                //             name: '100% Attendance Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/100attendance-report',
+                                //             title: '100% Attendance Report',
+                                //             description: '100% Attendance Report'
+                                //         },
+                                //         {
+                                //             id: 595,
+                                //             name: 'ClassWise Daily Attendance',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                //             title: 'ClassWise Daily Attendance',
+                                //             description: 'ClassWise Daily Attendance'
+                                //         },
+                                //         {
+                                //             id: 594,
+                                //             name: 'CategoryWise Attendance',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/Sophia/CategoryWiseAttendance',
+                                //             title: 'CategoryWise Attendance',
+                                //             description: 'CategoryWise Attendance'
+                                //         },
+                                //         {
+                                //             id: 591,
+                                //             name: 'Import',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/masters/import',
+                                //             title: 'Import',
+                                //             description: 'Import'
+                                //         },
+                                //         {
+                                //             id: 65,
+                                //             name: 'Student tc custom report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/reports/student-tc-report-custom',
+                                //             title: 'Student tc custom report',
+                                //             description: 'Student tc custom report'
+                                //         }
+                                //     ]
+                                // },
+
+                                // {
+                                //     id: 14,
+                                //     name: 'Hutchings',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 591,
+                                //             name: 'Import',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/sophia/masters/import',
+                                //             title: 'Import',
+                                //             description: 'Import'
+                                //         },
+                                //         {
+                                //             id: 69,
+                                //             name: 'Mobile App Download Report',
+                                //             icon: 'Settings',
+                                //             url: '/admission/preadmission/nda/reports/mobile-app-download-report',
+                                //             title: 'Mobile App Download Report',
+                                //             description: 'Mobile App Download Report'
+                                //         }
+                                //         // {
+                                //         //     id: 62,
+                                //         //     name: 'NDA Student TC',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/transactions/nda-student-tc',
+                                //         //     title: 'NDA Student TC',
+                                //         //     description: 'NDA Student TC'
+                                //         // },
+                                //         // {
+                                //         //     id: 63,
+                                //         //     name: 'NDA Student Profile Update',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                //         //     title: 'NDA Student Profile Update',
+                                //         //     description: 'NDA Student Profile Update'
+                                //         // },
+                                //         // {
+                                //         //     id: 64,
+                                //         //     name: 'Notredame Custom TC Report',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/notredame-custom-tc-report',
+                                //         //     title: 'Notredame Custom TC Report',
+                                //         //     description: 'Notredame Custom TC Report'
+                                //         // },
+                                //         // {
+                                //         //     id: 66,
+                                //         //     name: 'NDA Student Id Card Report',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/student-id-card-report-nda',
+                                //         //     title: 'NDA Student Id Card Report',
+                                //         //     description: 'NDA Student Id Card Report'
+                                //         // },
+                                //         // {
+                                //         //     id: 65,
+                                //         //     name: 'NDA Student Photo Approval',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/masters/nda-student-photo-approval',
+                                //         //     title: 'NDA Student Photo Approval',
+                                //         //     description: 'NDA Student Photo Approval'
+                                //         // },
+                                //         // {
+                                //         //     id: 67,
+                                //         //     name: 'NDA Student Profile Report',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/nda-student-profile-report',
+                                //         //     title: 'NDA Student Profile Report',
+                                //         //     description: 'NDA Student Profile Report'
+                                //         // },
+                                //         // {
+                                //         //     id: 601,
+                                //         //     name: 'OverallDailyAttendanceReport',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/sophia/reports/OverallDailyAttendanceReport',
+                                //         //     title: 'OverallDailyAttendanceReport',
+                                //         //     description: 'OverallDailyAttendanceReport'
+                                //         // },
+                                //         // {
+                                //         //     id: 595,
+                                //         //     name: 'ClassWise Daily Attendance',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/reports/Sophia/ClassWiseDailyAttendance',
+                                //         //     title: 'ClassWise Daily Attendance',
+                                //         //     description: 'ClassWise Daily Attendance'
+                                //         // },
+                                //         // {
+                                //         //     id: 590,
+                                //         //     name: 'Smart Card Details',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/reports/Sophia/Smartcarddetails',
+                                //         //     title: 'Smartcarddetails',
+                                //         //     description: 'Smartcarddetails'
+                                //         // },
+                                //         // {
+                                //         //     id: 68,
+                                //         //     name: 'NDA Study Certificate',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/nda-study-certificate',
+                                //         //     title: 'NDA Study Certificate',
+                                //         //     description: 'NDA Study Certificate'
+                                //         // },
+                                //         // {
+                                //         //     id: 69,
+                                //         //     name: 'Mobile App Download Report',
+                                //         //     icon: 'Settings',
+                                //         //     url: '/admission/preadmission/nda/reports/mobile-app-download-report',
+                                //         //     title: 'Mobile App Download Report',
+                                //         //     description: 'Mobile App Download Report'
+                                //         // }
+                                //     ]
+                                // }
                             ]
                         }
                     ]
@@ -2213,230 +2213,231 @@ export async function getUserAccessibleModules() {
                                     name: 'Fee Reports',
                                     icon: 'Settings',
                                     pages: [
-                                        {
-                                            id: 601,
-                                            name: 'Fee ClassWise Due List Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeclasswiseduelistreportsophia',
-                                            title: 'Fee ClassWise Due List Report Sophia',
-                                            description: 'Fee ClassWise Due List Report Sophia'
-                                        },
-                                        {
-                                            id: 602,
-                                            name: 'Fee Item Wise Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeitemwisereportsophia',
-                                            title: 'Fee Item Wise Report Sophia',
-                                            description: 'Fee Item Wise Report Sophia'
-                                        },
-                                        {
-                                            id: 603,
-                                            name: 'Fee Student and Account Wise Report Sophia',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feestudentandaccountwisereportsophia',
-                                            title: 'Fee Student and Account Wise Report Sophia',
-                                            description: 'Fee Student and Account Wise Report Sophia'
-                                        },
-                                        {
-                                            id: 604,
-                                            name: 'Fee Collection Report VVVS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feecollectionreportvvvs',
-                                            title: 'Fee Collection Report VVVS',
-                                            description: 'Fee Collection Report VVVS'
-                                        },
-                                        {
-                                            id: 605,
-                                            name: 'Fee IT Report UK Public School',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feeitreportukschool',
-                                            title: 'Fee IT Report UK Public School',
-                                            description: 'Fee IT Report UK Public School'
-                                        },
-                                        {
-                                            id: 606,
-                                            name: 'Fee Refund Report GMVPS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feerefundreportgmvps',
-                                            title: 'Fee Refund Report GMVPS',
-                                            description: 'Fee Refund Report GMVPS'
-                                        },
-                                        {
-                                            id: 607,
-                                            name: 'Fee Defaulter Report STTHOMAS',
-                                            icon: 'Settings',
-                                            url: '/fees/feereports/feedefaulterreportstthomas',
-                                            title: 'Fee Defaulter Report STTHOMAS',
-                                            description: 'Fee Defaulter Report STTHOMAS'
-                                        },
-                                        {
-                                            id: 519,
-                                            name: 'Fee Transaction STTHOMAS',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feetransactionstthomas',
-                                            title: 'Fee Transaction STTHOMAS',
-                                            description: 'Fee Transaction STTHOMAS'
-                                        },
-                                        {
-                                            id: 55555,
-                                            name: 'Fee Amount Entry STTHOMAS',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feeamountentrystthomas',
-                                            title: 'Fee Amount Entry STTHOMAS',
-                                            description: 'Manage Fee Amount Entry Details STTHOMAS'
-                                        },
-                                        {
-                                            id: 519,
-                                            name: 'Fee Head Wise Report Calcaltta',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/headwisereport',
-                                            title: 'Fee Head Wise Report Calcaltta',
-                                            description: 'Fee Head Wise Report Calcaltta'
-                                        },
-                                        {
-                                            id: 507,
-                                            name: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/masters/StudentFeeGroupMappingVishwa',
-                                            title: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
-                                            description: 'Manage Master Student Fee Group Mapping Details'
-                                        },
-                                        {
-                                            id: 10028,
-                                            name: 'Fee IncomeTax Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feeIncomeTax_Report',
-                                            title: 'Fee IncomeTax Report',
-                                            description: 'Manage Fee IncomeTax Report Details'
-                                        },
-                                        {
-                                            id: 10029,
-                                            name: 'Fee User Wise Daily Collection Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
-                                            title: 'Fee User Wise Daily Collection Report',
-                                            description: 'Manage Fee User Wise Daily Collection Report Details'
-                                        },
-                                        {
-                                            id: 399,
-                                            name: 'Fee Cheque Bounce',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feeChequeBounce',
-                                            title: 'Fee Cheque Bounce',
-                                            description: 'Manage Fee Cheque Bounce Details'
-                                        },
-                                        {
-                                            id: 519,
-                                            name: 'Third Party TransactionGM',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/thirdPartyTransactionGM',
-                                            title: 'Third Party TransactionGM',
-                                            description: 'Manage Third Party TransactionGM'
-                                        },
-                                        {
-                                            id: 520,
-                                            name: 'Fee Transaction Vishwadarshana Society',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feetransactionvishwa',
-                                            title: 'Fee Transaction Vishwadarshana Society',
-                                            description: 'Manage Fee Transaction Vishwadarshana Society'
-                                        },
-                                        {
-                                            id: 521,
-                                            name: 'Fee Receipt Import ST THOMAS',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feesreceiptimportstthomas',
-                                            title: 'Fee Receipt Import ST THOMAS',
-                                            description: 'Manage Fee Receipt Import ST THOMAS'
-                                        },
-                                        {
-                                            id: 522,
-                                            name: 'Fee Trail Audit Report ST JAMES',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feetrailauditreport',
-                                            title: 'Fee Trail Audit Report ST JAMES',
-                                            description: 'Manage Fee Trail Audit Report ST JAMES'
-                                        },
+                                        // {
+                                        //     id: 601,
+                                        //     name: 'Fee ClassWise Due List Report Sophia',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feeclasswiseduelistreportsophia',
+                                        //     title: 'Fee ClassWise Due List Report Sophia',
+                                        //     description: 'Fee ClassWise Due List Report Sophia'
+                                        // },
+                                        // {
+                                        //     id: 602,
+                                        //     name: 'Fee Item Wise Report Sophia',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feeitemwisereportsophia',
+                                        //     title: 'Fee Item Wise Report Sophia',
+                                        //     description: 'Fee Item Wise Report Sophia'
+                                        // },
+                                        // {
+                                        //     id: 603,
+                                        //     name: 'Fee Student and Account Wise Report Sophia',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feestudentandaccountwisereportsophia',
+                                        //     title: 'Fee Student and Account Wise Report Sophia',
+                                        //     description: 'Fee Student and Account Wise Report Sophia'
+                                        // },
+                                        // {
+                                        //     id: 604,
+                                        //     name: 'Fee Collection Report VVVS',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feecollectionreportvvvs',
+                                        //     title: 'Fee Collection Report VVVS',
+                                        //     description: 'Fee Collection Report VVVS'
+                                        // },
+                                        // {
+                                        //     id: 605,
+                                        //     name: 'Fee IT Report UK Public School',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feeitreportukschool',
+                                        //     title: 'Fee IT Report UK Public School',
+                                        //     description: 'Fee IT Report UK Public School'
+                                        // },
+                                        // {
+                                        //     id: 606,
+                                        //     name: 'Fee Refund Report GMVPS',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feerefundreportgmvps',
+                                        //     title: 'Fee Refund Report GMVPS',
+                                        //     description: 'Fee Refund Report GMVPS'
+                                        // },
+                                        // {
+                                        //     id: 607,
+                                        //     name: 'Fee Defaulter Report STTHOMAS',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/feereports/feedefaulterreportstthomas',
+                                        //     title: 'Fee Defaulter Report STTHOMAS',
+                                        //     description: 'Fee Defaulter Report STTHOMAS'
+                                        // },
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Transaction STTHOMAS',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionstthomas',
+                                        //     title: 'Fee Transaction STTHOMAS',
+                                        //     description: 'Fee Transaction STTHOMAS'
+                                        // },
+                                        // {
+                                        //     id: 55555,
+                                        //     name: 'Fee Amount Entry STTHOMAS',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeamountentrystthomas',
+                                        //     title: 'Fee Amount Entry STTHOMAS',
+                                        //     description: 'Manage Fee Amount Entry Details STTHOMAS'
+                                        // },
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Head Wise Report Calcaltta',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/headwisereport',
+                                        //     title: 'Fee Head Wise Report Calcaltta',
+                                        //     description: 'Fee Head Wise Report Calcaltta'
+                                        // },
+                                        // {
+                                        //     id: 507,
+                                        //     name: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/masters/StudentFeeGroupMappingVishwa',
+                                        //     title: 'Master Student Fee Group Mapping (Vishwadarshana Society)',
+                                        //     description: 'Manage Master Student Fee Group Mapping Details'
+                                        // },
+                                        // {
+                                        //     id: 10028,
+                                        //     name: 'Fee IncomeTax Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feeIncomeTax_Report',
+                                        //     title: 'Fee IncomeTax Report',
+                                        //     description: 'Manage Fee IncomeTax Report Details'
+                                        // },
+                                        // {
+                                        //     id: 10029,
+                                        //     name: 'Fee User Wise Daily Collection Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/FeeUserWiseDailyCollectionReport',
+                                        //     title: 'Fee User Wise Daily Collection Report',
+                                        //     description: 'Manage Fee User Wise Daily Collection Report Details'
+                                        // },
+                                        // {
+                                        //     id: 399,
+                                        //     name: 'Fee Cheque Bounce',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeChequeBounce',
+                                        //     title: 'Fee Cheque Bounce',
+                                        //     description: 'Manage Fee Cheque Bounce Details'
+                                        // },
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Third Party TransactionGM',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/thirdPartyTransactionGM',
+                                        //     title: 'Third Party TransactionGM',
+                                        //     description: 'Manage Third Party TransactionGM'
+                                        // },
+                                        // {
+                                        //     id: 520,
+                                        //     name: 'Fee Transaction Vishwadarshana Society',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionvishwa',
+                                        //     title: 'Fee Transaction Vishwadarshana Society',
+                                        //     description: 'Manage Fee Transaction Vishwadarshana Society'
+                                        // },
+                                        // {
+                                        //     id: 521,
+                                        //     name: 'Fee Receipt Import ST THOMAS',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feesreceiptimportstthomas',
+                                        //     title: 'Fee Receipt Import ST THOMAS',
+                                        //     description: 'Manage Fee Receipt Import ST THOMAS'
+                                        // },
+                                        // {
+                                        //     id: 522,
+                                        //     name: 'Fee Trail Audit Report ST JAMES',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feetrailauditreport',
+                                        //     title: 'Fee Trail Audit Report ST JAMES',
+                                        //     description: 'Manage Fee Trail Audit Report ST JAMES'
+                                        // },
                                         {
                                             id: 524,
-                                            name: 'Fee Demand Register Report GMVPS',
+                                            name: 'Fee Demand Register Report ',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedemandregisterreportgmvps',
-                                            title: 'Fee Demand Register Report GMVPS',
+                                            title: 'Fee Demand Register Report',
                                             description: 'Manage Fee Demand Register Report GMVPS'
-                                        },
-                                        {
-                                            id: 525,
-                                            name: 'Fee Summarized Report ST JAMES',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feesummerizedreportstjames',
-                                            title: 'Fee Summarized Report ST JAMES',
-                                            description: 'Manage Fee Summarized Report ST JAMES'
-                                        },
-                                        {
-                                            id: 526,
-                                            name: 'Fee Waivedoff Sophia',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/waivedoff',
-                                            title: 'Fee Waivedoff Sophia',
-                                            description: 'Manage Fee Waivedoff Sophia'
-                                        },
-                                        {
-                                            id: 527,
-                                            name: 'Fee PreAdmission Transaction ST Marys',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/feepreadmissionstmarys',
-                                            title: 'Fee PreAdmission Transaction ST Marys',
-                                            description: 'Manage Fee PreAdmission Transaction ST Marys'
-                                        },
-                                        {
-                                            id: 529,
-                                            name: 'Fee Collection Sophia',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feecollectionreportsophia',
-                                            title: 'Fee Collection Sophia',
-                                            description: 'Manage Fee Collection Sophia'
-                                        },
-                                        {
-                                            id: 530,
-                                            name: 'Fee Receipt Delete Report Samartha',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feereceiptdeletereportsamartha',
-                                            title: 'Fee Receipt Delete Report Samartha',
-                                            description: 'Manage Fee Receipt Delete Report Samartha'
-                                        },
-                                        {
-                                            id: 531,
-                                            name: 'Fee Collection Statement Report Nagarjuna',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feecollectionstatementreportnagarjuna',
-                                            title: 'Fee Collection Statement Report Nagarjuna',
-                                            description: 'Manage Fee Collection Statement Report Nagarjuna'
-                                        },
-                                        {
-                                            id: 530,
-                                            name: 'Daily Fee Collection Report St Marys',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/dailyfeeCollectionreportstmarys',
-                                            title: 'Daily Fee Collection Report St Marys',
-                                            description: 'Manage Daily Fee Collection Report St Marys'
-                                        },
-                                        {
-                                            id: 530,
-                                            name: 'College Fee Transaction',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/transactions/collegefeetransaction',
-                                            title: 'College Fee Transaction',
-                                            description: 'College Fee Transaction'
-                                        },
-                                        {
-                                            id: 532,
-                                            name: 'Fee Third Party Report',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/fees/feereports/feethirdpartyreport',
-                                            title: 'Fee Third Party Report',
-                                            description: 'Fee Third Party Report'
                                         }
+                                        // ,
+                                        // {
+                                        //     id: 525,
+                                        //     name: 'Fee Summarized Report ST JAMES',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feesummerizedreportstjames',
+                                        //     title: 'Fee Summarized Report ST JAMES',
+                                        //     description: 'Manage Fee Summarized Report ST JAMES'
+                                        // },
+                                        // {
+                                        //     id: 526,
+                                        //     name: 'Fee Waivedoff Sophia',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/waivedoff',
+                                        //     title: 'Fee Waivedoff Sophia',
+                                        //     description: 'Manage Fee Waivedoff Sophia'
+                                        // },
+                                        // {
+                                        //     id: 527,
+                                        //     name: 'Fee PreAdmission Transaction ST Marys',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feepreadmissionstmarys',
+                                        //     title: 'Fee PreAdmission Transaction ST Marys',
+                                        //     description: 'Manage Fee PreAdmission Transaction ST Marys'
+                                        // },
+                                        // {
+                                        //     id: 529,
+                                        //     name: 'Fee Collection Sophia',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feecollectionreportsophia',
+                                        //     title: 'Fee Collection Sophia',
+                                        //     description: 'Manage Fee Collection Sophia'
+                                        // },
+                                        // {
+                                        //     id: 530,
+                                        //     name: 'Fee Receipt Delete Report Samartha',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feereceiptdeletereportsamartha',
+                                        //     title: 'Fee Receipt Delete Report Samartha',
+                                        //     description: 'Manage Fee Receipt Delete Report Samartha'
+                                        // },
+                                        // {
+                                        //     id: 531,
+                                        //     name: 'Fee Collection Statement Report Nagarjuna',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feecollectionstatementreportnagarjuna',
+                                        //     title: 'Fee Collection Statement Report Nagarjuna',
+                                        //     description: 'Manage Fee Collection Statement Report Nagarjuna'
+                                        // },
+                                        // {
+                                        //     id: 530,
+                                        //     name: 'Daily Fee Collection Report St Marys',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/dailyfeeCollectionreportstmarys',
+                                        //     title: 'Daily Fee Collection Report St Marys',
+                                        //     description: 'Manage Daily Fee Collection Report St Marys'
+                                        // },
+                                        // {
+                                        //     id: 530,
+                                        //     name: 'College Fee Transaction',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/collegefeetransaction',
+                                        //     title: 'College Fee Transaction',
+                                        //     description: 'College Fee Transaction'
+                                        // },
+                                        // {
+                                        //     id: 532,
+                                        //     name: 'Fee Third Party Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feethirdpartyreport',
+                                        //     title: 'Fee Third Party Report',
+                                        //     description: 'Fee Third Party Report'
+                                        // }
                                     ]
                                 }
                             ]
@@ -2600,15 +2601,16 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/life-skills-area',
                                             title: 'Life Skills Area',
                                             description: 'Manage Life Skills Area Details'
-                                        },
-                                        {
-                                            id: 204,
-                                            name: 'Baldwin Master Time Table Session',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/exam-tt-session-master',
-                                            title: 'Baldwin Master Time Table Session',
-                                            description: 'Manage Baldwin Master Time Table Session Details'
                                         }
+                                        // ,
+                                        // {
+                                        //     id: 204,
+                                        //     name: 'Baldwin Master Time Table Session',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/masters/exam-tt-session-master',
+                                        //     title: 'Baldwin Master Time Table Session',
+                                        //     description: 'Manage Baldwin Master Time Table Session Details'
+                                        // }
                                     ]
                                 },
                                 {
@@ -4610,30 +4612,30 @@ export async function getUserAccessibleModules() {
                                             title: 'Salary Increment Report',
                                             description: 'Salary Increment Report'
                                         },
-                                        {
-                                            id: 26,
-                                            name: 'Form 5 stop Pension ST James Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/PFForm5stopPensionSTJamesReport',
-                                            title: 'Form 5 stop Pension ST James Report',
-                                            description: 'Provident Fund Form 5'
-                                        },
-                                        {
-                                            id: 27,
-                                            name: 'Employee Salary Slip ST James Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/employeeSalarySlipStJames',
-                                            title: 'Employee Salary Slip ST James Report',
-                                            description: 'Employee Salary Slips'
-                                        },
-                                        {
-                                            id: 28,
-                                            name: 'Employee Salary Slip Calcutta Boys Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/CBSSalarySlip',
-                                            title: 'Employee Salary Slip Calcutta Boys Report',
-                                            description: 'Employee Salary Slips'
-                                        },
+                                        // {
+                                        //     id: 26,
+                                        //     name: 'Form 5 stop Pension ST James Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/PFForm5stopPensionSTJamesReport',
+                                        //     title: 'Form 5 stop Pension ST James Report',
+                                        //     description: 'Provident Fund Form 5'
+                                        // },
+                                        // {
+                                        //     id: 27,
+                                        //     name: 'Employee Salary Slip ST James Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/employeeSalarySlipStJames',
+                                        //     title: 'Employee Salary Slip ST James Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
+                                        // {
+                                        //     id: 28,
+                                        //     name: 'Employee Salary Slip Calcutta Boys Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/CBSSalarySlip',
+                                        //     title: 'Employee Salary Slip Calcutta Boys Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
                                         {
                                             id: 29,
                                             name: 'Employee Contribution Report',
@@ -4642,30 +4644,30 @@ export async function getUserAccessibleModules() {
                                             title: 'Employee Contribution Report',
                                             description: 'Manage Employee Contribution Report'
                                         },
-                                        {
-                                            id: 30,
-                                            name: 'PS7 Form Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS7FromReportStJames',
-                                            title: 'PS7 Form Report',
-                                            description: 'Manage PS7 Form Report'
-                                        },
-                                        {
-                                            id: 31,
-                                            name: 'MONTH WISE REPORT(st.james)',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS8_MonthWiseReportStjames',
-                                            title: 'PS8 Month Wise Report',
-                                            description: 'Manage Month Wise Report (st.james)'
-                                        },
-                                        {
-                                            id: 32,
-                                            name: 'PS8 Form Report(st.james)',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/PS8_ReportStjames',
-                                            title: 'PS8 Form Report',
-                                            description: 'Manage PS8 Form Report (st.james)'
-                                        },
+                                        // {
+                                        //     id: 30,
+                                        //     name: 'PS7 Form Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS7FromReportStJames',
+                                        //     title: 'PS7 Form Report',
+                                        //     description: 'Manage PS7 Form Report'
+                                        // },
+                                        // {
+                                        //     id: 31,
+                                        //     name: 'MONTH WISE REPORT(st.james)',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_MonthWiseReportStjames',
+                                        //     title: 'PS8 Month Wise Report',
+                                        //     description: 'Manage Month Wise Report (st.james)'
+                                        // },
+                                        // {
+                                        //     id: 32,
+                                        //     name: 'PS8 Form Report(st.james)',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/PS8_ReportStjames',
+                                        //     title: 'PS8 Form Report',
+                                        //     description: 'Manage PS8 Form Report (st.james)'
+                                        // },
                                         {
                                             id: 33,
                                             name: 'VPF YEARLY REPORT',
@@ -4698,22 +4700,22 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Yearly Report',
                                             description: 'Manage PF Yearly Report'
                                         },
-                                        {
-                                            id: 37,
-                                            name: 'Employee Salary Slip SRKVS Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/employeeSalarySlipSRKVS',
-                                            title: 'Employee Salary Slip SRKVS Report',
-                                            description: 'Employee Salary Slips'
-                                        },
-                                        {
-                                            id: 38,
-                                            name: 'Employee Salary Slip St Mary Report',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/EmployeeSalarySlipStMary',
-                                            title: 'Employee Salary Slip St Mary Report',
-                                            description: 'Employee Salary Slips'
-                                        },
+                                        // {
+                                        //     id: 37,
+                                        //     name: 'Employee Salary Slip SRKVS Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/employeeSalarySlipSRKVS',
+                                        //     title: 'Employee Salary Slip SRKVS Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
+                                        // {
+                                        //     id: 38,
+                                        //     name: 'Employee Salary Slip St Mary Report',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/EmployeeSalarySlipStMary',
+                                        //     title: 'Employee Salary Slip St Mary Report',
+                                        //     description: 'Employee Salary Slips'
+                                        // },
                                         {
                                             id: 39,
                                             name: 'Employee Salary Statement',
@@ -4734,176 +4736,176 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        {
-                            id: 2,
-                            name: 'Recruitment',
-                            icon: 'UserPlus',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Job',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/masters/master-job',
-                                            title: 'Master Job',
-                                            description: 'Manage Job Positions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/hrms/recruitment/masters/master-location',
-                                            title: 'Master Location',
-                                            description: 'Manage Locations'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Position',
-                                            icon: 'Target',
-                                            url: '/hrms/recruitment/masters/master-position',
-                                            title: 'Master Position',
-                                            description: 'Manage Positions'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Position Type',
-                                            icon: 'Tag',
-                                            url: '/hrms/recruitment/masters/master-positionType',
-                                            title: 'Master Position Type',
-                                            description: 'Manage Position Types'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Priority',
-                                            icon: 'Flag',
-                                            url: '/hrms/recruitment/masters/master-priority',
-                                            title: 'Master Priority',
-                                            description: 'Manage Priority Levels'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Candidate',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/recruitment/transaction/add-candidate',
-                                            title: 'Add Candidate',
-                                            description: 'Add New Candidates'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Add Candidate Interview',
-                                            icon: 'Calendar',
-                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                            title: 'Add Candidate Interview',
-                                            description: 'Add Candidate Interview'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Candidate Interview List',
-                                            icon: 'List',
-                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                            title: 'Candidate Interview List',
-                                            description: 'View All Candidate Interviews'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Interviewer Feedback',
-                                            icon: 'MessageSquare',
-                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                            title: 'Interviewer Feedback',
-                                            description: 'Manage Interviewer Feedback'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Job List',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/transaction/job-list',
-                                            title: 'Job List',
-                                            description: 'View All Jobs'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Job Posting List',
-                                            icon: 'FileText',
-                                            url: '/hrms/recruitment/transaction/job-posting-list',
-                                            title: 'Job Posting List',
-                                            description: 'View All Job Postings'
-                                        }
-                                        // {
-                                        //     id: 7,
-                                        //     name: 'VMS Job',
-                                        //     icon: 'Briefcase',
-                                        //     url: '/hrms/recruitment/transaction/VMSJobList',
-                                        //     title: 'VMS Job',
-                                        //     description: 'View All VMS Job'
-                                        // }
-                                    ]
-                                }
-                                // {
-                                //     id: 3,
-                                //     name: 'MRF Approval',
-                                //     icon: 'CheckSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'MRF Requisition Form',
-                                //             icon: 'FileCheck',
-                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                //             title: 'MRF Requisition Form',
-                                //             description: 'Approve MRF Requests'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 4,
-                                //     name: 'Feedback',
-                                //     icon: 'MessageSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Feedback',
-                                //             icon: 'Star',
-                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                                //             title: 'Candidate Feedback',
-                                //             description: 'Record Candidate Feedback'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 5,
-                                //     name: 'Reports',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Report',
-                                //             icon: 'Users',
-                                //             url: '/hrms/recruitment/reports/candidate-report',
-                                //             title: 'Candidate Report',
-                                //             description: 'Candidate Summary Report'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Interview Report',
-                                //             icon: 'ClipboardList',
-                                //             url: '/hrms/recruitment/reports/interview-report',
-                                //             title: 'Interview Report',
-                                //             description: 'Interview Summary Report'
-                                //         }
-                                //     ]
-                                // }
-                            ]
-                        },
+                        // {
+                        //     id: 2,
+                        //     name: 'Recruitment',
+                        //     icon: 'UserPlus',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Job',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/masters/master-job',
+                        //                     title: 'Master Job',
+                        //                     description: 'Manage Job Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Master Location',
+                        //                     icon: 'MapPin',
+                        //                     url: '/hrms/recruitment/masters/master-location',
+                        //                     title: 'Master Location',
+                        //                     description: 'Manage Locations'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Master Position',
+                        //                     icon: 'Target',
+                        //                     url: '/hrms/recruitment/masters/master-position',
+                        //                     title: 'Master Position',
+                        //                     description: 'Manage Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Position Type',
+                        //                     icon: 'Tag',
+                        //                     url: '/hrms/recruitment/masters/master-positionType',
+                        //                     title: 'Master Position Type',
+                        //                     description: 'Manage Position Types'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Master Priority',
+                        //                     icon: 'Flag',
+                        //                     url: '/hrms/recruitment/masters/master-priority',
+                        //                     title: 'Master Priority',
+                        //                     description: 'Manage Priority Levels'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transactions',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Add Candidate',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate',
+                        //                     title: 'Add Candidate',
+                        //                     description: 'Add New Candidates'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Add Candidate Interview',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //                     title: 'Add Candidate Interview',
+                        //                     description: 'Add Candidate Interview'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Candidate Interview List',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //                     title: 'Candidate Interview List',
+                        //                     description: 'View All Candidate Interviews'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Interviewer Feedback',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //                     title: 'Interviewer Feedback',
+                        //                     description: 'Manage Interviewer Feedback'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Job List',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/transaction/job-list',
+                        //                     title: 'Job List',
+                        //                     description: 'View All Jobs'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Job Posting List',
+                        //                     icon: 'FileText',
+                        //                     url: '/hrms/recruitment/transaction/job-posting-list',
+                        //                     title: 'Job Posting List',
+                        //                     description: 'View All Job Postings'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 7,
+                        //                 //     name: 'VMS Job',
+                        //                 //     icon: 'Briefcase',
+                        //                 //     url: '/hrms/recruitment/transaction/VMSJobList',
+                        //                 //     title: 'VMS Job',
+                        //                 //     description: 'View All VMS Job'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //         // {
+                        //         //     id: 3,
+                        //         //     name: 'MRF Approval',
+                        //         //     icon: 'CheckSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'MRF Requisition Form',
+                        //         //             icon: 'FileCheck',
+                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //         //             title: 'MRF Requisition Form',
+                        //         //             description: 'Approve MRF Requests'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 4,
+                        //         //     name: 'Feedback',
+                        //         //     icon: 'MessageSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Feedback',
+                        //         //             icon: 'Star',
+                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //         //             title: 'Candidate Feedback',
+                        //         //             description: 'Record Candidate Feedback'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 5,
+                        //         //     name: 'Reports',
+                        //         //     icon: 'FileText',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Report',
+                        //         //             icon: 'Users',
+                        //         //             url: '/hrms/recruitment/reports/candidate-report',
+                        //         //             title: 'Candidate Report',
+                        //         //             description: 'Candidate Summary Report'
+                        //         //         },
+                        //         //         {
+                        //         //             id: 2,
+                        //         //             name: 'Interview Report',
+                        //         //             icon: 'ClipboardList',
+                        //         //             url: '/hrms/recruitment/reports/interview-report',
+                        //         //             title: 'Interview Report',
+                        //         //             description: 'Interview Summary Report'
+                        //         //         }
+                        //         //     ]
+                        //         // }
+                        //     ]
+                        // },
                         {
                             id: 404,
                             name: 'Attendance Management',
