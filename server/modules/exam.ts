@@ -472,6 +472,14 @@ export const examModule: IUserAccessibleModules = {
                             url: '/Exam/exam-module/reports/Report_Card_X',
                             title: 'Report Card_X',
                             description: 'Report Card_X'
+                        },
+                        {
+                            id: 89,
+                            name: 'TBSchoolPrimary',
+                            icon: 'BookOpen',
+                            url: '/Exam/exam-module/reports/TBSchoolPrimary',
+                            title: 'TBSchoolPrimary',
+                            description: 'View TBSchoolPrimary Report'
                         }
                     ]
                 }

@@ -338,7 +338,7 @@ function CumulativeSalaryReportContent() {
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears} key = {field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
@@ -363,7 +363,9 @@ function CumulativeSalaryReportContent() {
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}
+                                    key = {field.value}
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Month'} />
                                         </SelectTrigger>

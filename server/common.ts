@@ -464,6 +464,232 @@ export async function getUserAccessibleModules() {
     try {
         const session = await auth(); // Still useful for logging or future role checks
 
+        if (session?.role?.toUpperCase() === 'SUPER ADMIN' || session?.role?.toUpperCase() === 'SUPERADMIN') {
+            return {
+                success: true,
+                message: 'Data fetched successfully!!',
+                data: [
+                    {
+                        id: 13,
+                        name: 'Super Admin',
+                        icon: 'Settings',
+                        menu: [
+                            {
+                                id: 1,
+                                name: 'Super Admin Module',
+                                icon: 'Settings',
+                                sub_menu: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Trust',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'Master Trust',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                                title: 'Master Trust',
+                                                description: 'Manage Master Trust Details'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Institution',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'Master Institution',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                                title: 'Master Institution',
+                                                description: 'Manage Master Institution'
+                                            },
+                                            {
+                                                id: 2,
+                                                name: 'Institution Subscription',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                                title: 'Institution Subscription',
+                                                description: 'Manage Institution Subscription'
+                                            },
+                                            {
+                                                id: 3,
+                                                name: 'Auto Mapping',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                                title: 'Auto Mapping',
+                                                description: 'Manage Institution Auto Mapping'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        id: 3,
+                                        name: 'General Setting',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'General Setting Wizard',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                                title: 'General Setting Wizard',
+                                                description: 'General Setting Wizard'
+                                            },
+                                            {
+                                                id: 2,
+                                                name: 'Modules',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                                title: 'Modules',
+                                                description: 'Manage Master Modules'
+                                            },
+                                            {
+                                                id: 7,
+                                                name: 'Master Page',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                                title: 'Master Page',
+                                                description: 'Manage Master Page'
+                                            },
+                                            {
+                                                id: 8,
+                                                name: 'Page Mapping',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                                title: 'Page Mapping',
+                                                description: 'Map Pages to Modules'
+                                            },
+                                            {
+                                                id: 9,
+                                                name: 'Master Role',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                                title: 'Master Role',
+                                                description: 'Manage Master Role'
+                                            },
+                                            {
+                                                id: 10,
+                                                name: 'Master Role Type',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                                title: 'Master Role Type',
+                                                description: 'Manage Master Role Type'
+                                            },
+                                            {
+                                                id: 11,
+                                                name: 'Privileges',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                                title: 'Privileges',
+                                                description: 'Privileges'
+                                            },
+                                            {
+                                                id: 3,
+                                                name: 'Master Main Menu',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                                title: 'Master Main Menu',
+                                                description: 'Manage Master Main Menu'
+                                            },
+                                            {
+                                                id: 4,
+                                                name: 'Master Sub Menu',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                                title: 'Master Sub Menu',
+                                                description: 'Manage Master Sub Menu'
+                                            },
+                                            {
+                                                id: 5,
+                                                name: 'Master Menu Page Mapping',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                                title: 'Master Menu Page Mapping',
+                                                description: 'Manage Master Menu Page Mapping'
+                                            },
+                                            {
+                                                id: 6,
+                                                name: 'Master School Type',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                                title: 'Master School Type',
+                                                description: 'Manage Master School Type'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Configuration Setting',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'Institution Module Page',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                                title: 'Institution Module Page',
+                                                description: 'Master Institution Role and Module Mapping'
+                                            },
+                                            {
+                                                id: 2,
+                                                name: 'Master Main Menu INS',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                                title: 'Master Main Menu INS',
+                                                description: 'Master Main Menu Institution Mapping'
+                                            },
+                                            {
+                                                id: 3,
+                                                name: 'Master Sub Menu INS',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                                title: 'Master Sub Menu INS',
+                                                description: 'Master Sub Menu Institution Mapping'
+                                            },
+                                            {
+                                                id: 4,
+                                                name: 'Master Menu Page Mapping Institutionwise',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                                title: 'Master Menu Page Mapping Institutionwise',
+                                                description: 'Master Menu Page Mapping Institutionwise'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        id: 5,
+                                        name: 'Mobile Configuration',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'Mobile Master Page',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                                title: 'Mobile Master Page',
+                                                description: 'Mobile Master Page'
+                                            },
+                                            {
+                                                id: 40011,
+                                                name: 'Cumulative Subject',
+                                                icon: 'BarChart3',
+                                                url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                                title: 'Cumulative Subject',
+                                                description: 'View Cumulative Subject Details'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            } as any;
+        }
+
         // Fetch data from APIs
         const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
             api.get<any>('preadmission', '/configuration/get_main_module_list'),
@@ -471,13 +697,25 @@ export async function getUserAccessibleModules() {
             api.get<any>('preadmission', '/configuration/get_page_list')
         ]);
 
-        const mainModules = mainModulesRes.data || [];
-        const subModules = subModulesRes.data || [];
-        const pages = pageListRes.data || [];
+        // Safe extraction helper to handle raw arrays, wrapped objects, or $values metadata
+        const extractArray = (res: any): any[] => {
+            if (!res) return [];
+            if (Array.isArray(res)) return res;
+            if (res.data) {
+                if (Array.isArray(res.data)) return res.data;
+                if (res.data.$values && Array.isArray(res.data.$values)) return res.data.$values;
+            }
+            if (res.$values && Array.isArray(res.$values)) return res.$values;
+            return [];
+        };
 
-        // console.log('main Modules', mainModules);
-        // console.log('subModules', subModules);
-        // console.log('pages', pages);
+        const mainModules = extractArray(mainModulesRes);
+        const subModules = extractArray(subModulesRes);
+        const pages = extractArray(pageListRes);
+
+        console.info('main Modules', mainModules);
+        console.info('subModules', subModules);
+        console.info('pages', pages);
 
         // Build maps for quick lookup
         const subByParent = new Map<number, any[]>();
@@ -507,7 +745,8 @@ export async function getUserAccessibleModules() {
                     description: page.ivrmmP_PageName
                 });
             }
-        });
+        }
+        );
 
         // Sort helper
         const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
@@ -626,8 +865,11 @@ export async function getUserAccessibleModules() {
         return {
             success: true,
             message: 'Data fetched successfully!!',
-            data: topModules
-        } as ApiResponse<IUserAccessibleModules[]>;
+            data: topModules,
+            mainModules,
+            subModules,
+            pages
+        } as any;
     } catch (error) {
         console.error('Error fetching user accessible modules:', error);
         return {

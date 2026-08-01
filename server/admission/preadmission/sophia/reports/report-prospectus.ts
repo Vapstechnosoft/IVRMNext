@@ -4,7 +4,7 @@ import { api } from '@/lib/apiService';
 
 export async function getReportProspectusInitialData() {
   try {
-    const response = await api.get<any>('preadmission', '/ReportProspectus/get_intial_data/2');
+    const response = await api.get<any>('preadmission', '/ReportProspectus/GetIntial_data');
     return response.data || response;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to fetch initial data');
@@ -13,7 +13,9 @@ export async function getReportProspectusInitialData() {
 
 export async function getReportProspectusDetails(data: any) {
   try {
-    const response = await api.post<any>('preadmission', '/ReportProspectus/Getdetails', data);
+    const { From_Date, To_Date, ASMAY_Id } = data;
+    const url = `/ReportProspectus/Getdetails?From_Date=${From_Date || ''}&To_Date=${To_Date || ''}&ASMAY_Id=${ASMAY_Id || 0}`;
+    const response = await api.post<any>('preadmission', url);
     return response.data || response;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to fetch prospectus details');

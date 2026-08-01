@@ -6,10 +6,10 @@ import {
     generateCasteBirthQRCode
 } from '@/server/admission/preadmission/newsharedhost/reports/caste-birth-certificate';
 
-export function useCasteBirthCertificateInitialData(pageId: number) {
+export function useCasteBirthCertificateInitialData() {
     return useQuery({
-        queryKey: ['casteBirthCertificateInitialData', pageId],
-        queryFn: () => getCasteBirthCertificateInitialData(pageId),
+        queryKey: ['casteBirthCertificateInitialData'],
+        queryFn: () => getCasteBirthCertificateInitialData(),
     });
 }
 

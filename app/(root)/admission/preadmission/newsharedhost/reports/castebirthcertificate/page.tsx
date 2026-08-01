@@ -4,19 +4,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
-import { Printer, X, FileText } from 'lucide-react';
+import { Printer, X, FileText, Search, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from "@/lib/utils";
 
 import {
     useCasteBirthCertificateInitialData,
@@ -29,13 +31,30 @@ const formSchema = z.object({
     allOrIndi: z.enum(['A', 'I']),
     studentStatus: z.enum(['S', 'L', 'D']),
     certificateType: z.string().min(1, 'Please select certificate type'),
-    academicYear: z.string().min(1, 'Academic Year is required'),
+    academicYear: z.string().min(1, 'Please select Academic Year'),
     classId: z.string().optional(),
     sectionId: z.string().optional(),
     issueDate: z.date({ required_error: 'Date is required' }),
-    studentId: z.string().min(1, 'Student is required'),
+    studentId: z.string().min(1, 'Please select Student'),
     addressType: z.enum(['address_per', 'address_con']),
     parentNameType: z.enum(['0', '1', '2']),
+}).superRefine((data, ctx) => {
+    if (data.allOrIndi === 'I') {
+        if (!data.classId) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select Class',
+                path: ['classId']
+            });
+        }
+        if (!data.sectionId) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select Section',
+                path: ['sectionId']
+            });
+        }
+    }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,15 +64,25 @@ export default function CasteBirthCertificate() {
     const [studentList, setStudentList] = useState<any[]>([]);
     const [certificateData, setCertificateData] = useState<any>(null);
     const [showCertificate, setShowCertificate] = useState(false);
-    
+
     // Default config values
     const [isBoysSchool, setIsBoysSchool] = useState(false);
     const [isGirlsSchool, setIsGirlsSchool] = useState(false);
     const [isCoEdSchool, setIsCoEdSchool] = useState(false);
     const [isCommon, setIsCommon] = useState(true);
     const [showFatherMotherRadio, setShowFatherMotherRadio] = useState(false);
-    
-    const { data: initialData, isLoading: isInitialLoading } = useCasteBirthCertificateInitialData(1);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [studentOpen, setStudentOpen] = useState(false);
+    const [selectedStudentData, setSelectedStudentData] = useState<any>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const { data: initialData, isLoading: isInitialLoading } = useCasteBirthCertificateInitialData();
     const searchStudentMutation = useSearchCasteBirthStudentMutation();
     const reportMutation = useCasteBirthStudentReportMutation();
     const qrCodeMutation = useGenerateCasteBirthQRCodeMutation();
@@ -61,7 +90,7 @@ export default function CasteBirthCertificate() {
     const academicYears: any[] = Array.isArray(initialData?.data?.allAcademicYear) ? initialData.data.allAcademicYear : [];
     const classes: any[] = Array.isArray(initialData?.data?.allclasslist) ? initialData.data.allclasslist : [];
     const sections: any[] = Array.isArray(initialData?.data?.allsectionlist) ? initialData.data.allsectionlist : [];
-    
+
     useEffect(() => {
         const masterCompany: any = initialData?.data?.masterCompany;
         if (masterCompany && masterCompany.length > 0 && masterCompany[0]?.mI_Id === 6) {
@@ -94,7 +123,7 @@ export default function CasteBirthCertificate() {
     const sectionId = form.watch('sectionId');
     const addressType = form.watch('addressType');
     const parentNameType = form.watch('parentNameType');
-    
+
     // Disable class/section validation if 'A' is selected
     useEffect(() => {
         if (allOrIndi === 'A') {
@@ -103,13 +132,15 @@ export default function CasteBirthCertificate() {
         }
     }, [allOrIndi, form]);
 
-    // Handle student search logic
     const handleSearchStudent = (searchQuery: string) => {
-        if (searchQuery.length < 2) return;
-        
+        if (searchQuery.length < 2) {
+            setStudentList([]);
+            return;
+        }
+
         let searchClassId = 0;
         let searchSectionId = 0;
-        
+
         if (allOrIndi === 'I') {
             searchClassId = Number(classId) || 0;
             searchSectionId = Number(sectionId) || 0;
@@ -136,13 +167,17 @@ export default function CasteBirthCertificate() {
         });
     };
 
+    useEffect(() => {
+        handleSearchStudent(debouncedSearch);
+    }, [debouncedSearch, allOrIndi, studentStatus, academicYear, classId, sectionId]);
+
     const onSubmit = (values: FormValues) => {
         const reqData = {
             ASMAY_Id: Number(values.academicYear) || 0,
             ASMCL_Id: Number(values.classId) || 0,
             ASMC_Id: Number(values.sectionId) || 0,
             AMST_Id: Number(values.studentId),
-            ASCISS_CertificateFlg: "SC"
+            save_flag: true
         };
 
         reportMutation.mutate(reqData, {
@@ -151,31 +186,43 @@ export default function CasteBirthCertificate() {
                 if (responseData?.studentlist && responseData.studentlist.length > 0) {
                     const student = responseData.studentlist[0];
                     const miId = parseInt(responseData.masterCompany?.[0]?.mI_Id || '0');
-                    
+
                     setIsCoEdSchool(miId === 5);
                     setIsGirlsSchool(miId === 4);
                     setIsBoysSchool(miId === 6);
                     setIsCommon(miId !== 4 && miId !== 5 && miId !== 6);
 
-                    let fatherNameStr = student.fatherName;
+                    let fatherNameStr = student.fathername || student.fatherName || '';
+                    let motherNameStr = student.mothername || student.motherName || '';
+
                     if (miId === 6) {
-                        if (values.parentNameType === '0') fatherNameStr = `Mr. ${student.fatherName}`;
-                        else if (values.parentNameType === '1') fatherNameStr = `Mrs. ${student.mothername}`;
-                        else if (values.parentNameType === '2') fatherNameStr = `Mr. ${student.fatherName} And Mrs. ${student.mothername}`;
+                        if (values.parentNameType === '0') fatherNameStr = `Mr. ${fatherNameStr}`;
+                        else if (values.parentNameType === '1') fatherNameStr = `Mrs. ${motherNameStr}`;
+                        else if (values.parentNameType === '2') fatherNameStr = `Mr. ${fatherNameStr} And Mrs. ${motherNameStr}`;
                     }
+
+                    const selectedYearName = academicYears.find((yr: any) => yr.asmaY_Id.toString() === values.academicYear)?.asmaY_Year || '';
+                    const sex = (student.AMST_Sex || student.amsT_Sex || '').toLowerCase();
 
                     setCertificateData({
                         ...student,
+                        studentnam: student.amsT_FirstName || student.studentnam,
+                        admno: student.amsT_AdmNo || student.admno,
+                        class: student.joinedclass || student.class,
+                        acadamicyear: selectedYearName,
                         issueDate: values.issueDate,
                         fatherNameFormatted: fatherNameStr,
-                        genderTitle: student.AMST_Sex?.toLowerCase() === 'male' ? 'Kumar' : 'Kumari',
-                        relationTitle: student.AMST_Sex?.toLowerCase() === 'male' ? 'S/O' : 'D/O',
-                        genderPronoun: student.AMST_Sex?.toLowerCase() === 'male' ? 'He' : 'She',
-                        principalSign: responseData.principalsign?.[0]?.ivrmgC_PrincipalSign || ''
+                        genderTitle: sex === 'male' ? 'Kumar' : 'Kumari',
+                        relationTitle: sex === 'male' ? 'S/O' : 'D/O',
+                        genderPronoun: sex === 'male' ? 'He' : 'She',
+                        principalSign: responseData.principalsign?.[0]?.ivrmgC_PrincipalSign || '',
+                        principalName: responseData.principalsign?.[0]?.emp_Name || responseData.principalsign?.[0]?.ivrmgC_PrincipalName || '',
+                        MI_Logo: responseData.logo?.[0]?.logo || student.MI_Logo || '',
+                        masterCompany: responseData.masterCompany?.[0] || {}
                     });
 
                     setShowCertificate(true);
-                    
+
                     // Generate QR Code as well
                     const qrData = {
                         ASMAY_Id: reqData.ASMAY_Id,
@@ -200,42 +247,143 @@ export default function CasteBirthCertificate() {
     };
 
     const handleClear = () => {
-        form.reset();
-        setShowCertificate(false);
-        setCertificateData(null);
-        setStudentList([]);
+        window.location.reload();
     };
 
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: 'Caste_Birth_Certificate',
-    });
+    const handlePrint = () => {
+        const innerContents = printRef.current?.innerHTML;
+        if (!innerContents) return;
+
+        const popupWindow = window.open("", "_blank");
+        if (popupWindow) {
+            popupWindow.document.open();
+            popupWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Caste/Birth Certificate</title>
+                        <style>
+                            @page { size: A4; margin: 0; }
+                            html, body { background: #fff; margin: 0; padding: 0; font-family: 'Times New Roman', serif; }
+                            .print-container {
+                                width: 210mm;
+                                height: 297mm;
+                                padding: 24mm 20mm 25mm 20mm;
+                                margin: auto;
+                                border: 8px double #000;
+                                box-sizing: border-box;
+                                position: relative;
+                            }
+                            .u-long, .u-mid {
+                                display: inline-block;
+                                border-bottom: 1px dotted #000;
+                                text-align: center;
+                                padding: 0 4px;
+                            }
+                            .u-long { min-width: 300px; }
+                            .u-mid { min-width: 150px; }
+                            .certificate-title {
+                                font-size: 26px; font-weight: bold; text-decoration: underline; text-align: center; margin-top: 15px;
+                            }
+                            .header-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1rem; }
+                            .header-logo { height: auto; width: 100%; max-width: 600px; max-height: 150px; object-fit: contain; margin-bottom: 0.5rem; }
+                            .header-text-container { text-align: center; }
+                            .header-school-name { color: #2563eb; font-weight: bold; font-size: 1.5rem; margin-bottom: 0.25rem; }
+                            .header-address { font-size: 0.875rem; margin: 0; }
+                            .certificate-header img { width: 100%; max-width: 520px; }
+                            hr { border: 1px solid #000; width: 100%; margin: 10px 0; }
+                            .certificate-body { font-size: 20px; line-height: 34px; margin-top: 10px; }
+                            .certificate-footer { display: flex; justify-content: space-between; font-size: 18px; margin-top: 50px; }
+                            .principal-sign { text-align: center; font-weight: bold; }
+                            .principal-sign div { border-top: 1px solid #000; padding-top: 5px; width: 220px; }
+                            .text-center { text-align: center; }
+                            .text-left { text-align: left; }
+                            .text-right { text-align: right; }
+                            .font-bold { font-weight: bold; }
+                            .text-2xl { font-size: 1.5rem; }
+                            .text-lg { font-size: 1.125rem; }
+                            .underline { text-decoration: underline; }
+                            .inline-block { display: inline-block; }
+                            .border-b { border-bottom: 2px solid #000; }
+                            .border-dotted { border-bottom-style: dotted; border-top: none; border-left: none; border-right: none; }
+                            .border-black { border-bottom-color: #000; }
+                            .min-w-\\[80px\\] { min-width: 80px; }
+                            .min-w-\\[100px\\] { min-width: 100px; }
+                            .min-w-\\[120px\\] { min-width: 120px; }
+                            .min-w-\\[150px\\] { min-width: 150px; }
+                            .min-w-\\[200px\\] { min-width: 200px; }
+                            .min-w-\\[250px\\] { min-width: 250px; }
+                            .min-w-\\[300px\\] { min-width: 300px; }
+                            .min-w-\\[350px\\] { min-width: 350px; }
+                            .min-w-\\[400px\\] { min-width: 400px; }
+                            .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+                            .px-4 { padding-left: 1rem; padding-right: 1rem; }
+                            .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+                            .mt-8 { margin-top: 2rem; }
+                            .mt-10 { margin-top: 2.5rem; }
+                            .mt-12 { margin-top: 3rem; }
+                            .mt-16 { margin-top: 4rem; }
+                            .mb-2 { margin-bottom: 0.5rem; }
+                            .mb-4 { margin-bottom: 1rem; }
+                            .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+                            .flex { display: flex; }
+                            .flex-col { flex-direction: column; }
+                            .items-center { align-items: center; }
+                            .items-start { align-items: flex-start; }
+                            .items-end { align-items: flex-end; }
+                            .justify-center { justify-content: center; }
+                            .justify-between { justify-content: space-between; }
+                            .space-y-4 > * + * { margin-top: 1rem; }
+                            .w-full { width: 100%; }
+                            .max-w-lg { max-width: 32rem; }
+                            .max-w-2xl { max-width: 42rem; }
+                            .max-h-36 { max-height: 9rem; }
+                            .object-contain { object-fit: contain; }
+                            .uppercase { text-transform: uppercase; }
+                            .text-sm { font-size: 0.875rem; }
+                            .max-w-lg { max-width: 32rem; }
+                            .mx-auto { margin-left: auto; margin-right: auto; }
+                            .leading-loose { line-height: 2; }
+                            .text-justify { text-align: justify; }
+                            .border-t-2 { border-top-width: 2px; }
+                            .border-8 { border-width: 8px; }
+                            .border-double { border-style: double; }
+                            .p-8 { padding: 2rem; }
+                        </style>
+                    </head>
+                    <body onload="window.print()" onfocus="window.setTimeout(function() { window.close(); }, 100);">
+                        ${innerContents}
+                    </body>
+                </html>
+            `);
+            popupWindow.document.close();
+        }
+    };
 
     return (
         <div className="min-h-screen p-4 space-y-6">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <CollapsibleSection title="Caste/Birth Certificate Report" defaultOpen={true} className="shadow-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-white">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-white">
                             {/* Radio Groups */}
                             <FormField
                                 control={form.control}
                                 name="allOrIndi"
                                 render={({ field }) => (
-                                    <FormItem className="space-y-3">
+                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
                                                 defaultValue={field.value}
-                                                className="flex flex-row space-x-4"
+                                                className="flex flex-row space-x-6"
                                             >
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="A" /></FormControl>
-                                                    <FormLabel className="font-normal">All</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">All</FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="I" /></FormControl>
-                                                    <FormLabel className="font-normal">Individual</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">Individual</FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -247,7 +395,7 @@ export default function CasteBirthCertificate() {
                                 control={form.control}
                                 name="studentStatus"
                                 render={({ field }) => (
-                                    <FormItem className="space-y-3">
+                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
@@ -256,15 +404,15 @@ export default function CasteBirthCertificate() {
                                             >
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="S" /></FormControl>
-                                                    <FormLabel className="font-normal">Studying</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">Studying</FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="L" /></FormControl>
-                                                    <FormLabel className="font-normal">Left</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">Left</FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="D" /></FormControl>
-                                                    <FormLabel className="font-normal">Deactive</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">Deactive</FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -276,12 +424,12 @@ export default function CasteBirthCertificate() {
                                 control={form.control}
                                 name="certificateType"
                                 render={({ field }) => (
-                                    <FormItem className="flex items-center space-x-2">
+                                    <FormItem className="border rounded-md p-2 flex items-center justify-center">
                                         <FormControl>
                                             <RadioGroup onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl><RadioGroupItem value="0" /></FormControl>
-                                                    <FormLabel className="font-normal">Caste/Birth Certificate</FormLabel>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer">Caste/Birth Certificate</FormLabel>
                                                 </FormItem>
                                             </RadioGroup>
                                         </FormControl>
@@ -380,22 +528,72 @@ export default function CasteBirthCertificate() {
                                     render={({ field }) => (
                                         <FormItem className="grid grid-cols-[120px_1fr] items-center gap-4">
                                             <FormLabel className="text-right">Student:<span className="text-red-500">*</span></FormLabel>
-                                            <div className="relative">
-                                                <Input 
-                                                    placeholder="Search Student..." 
-                                                    onChange={(e) => handleSearchStudent(e.target.value)}
-                                                    className="mb-2"
-                                                />
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select Student" /></SelectTrigger></FormControl>
-                                                    <SelectContent>
-                                                        {studentList.map((stud: any) => (
-                                                            <SelectItem key={stud.amsT_Id} value={stud.amsT_Id.toString()}>
-                                                                {stud.amsT_FirstName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
+                                            <div className="w-full">
+                                                <Popover open={studentOpen} onOpenChange={setStudentOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            className={cn(
+                                                                "w-full justify-between p-2 border rounded-md font-normal bg-white h-auto",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            <span className="truncate pr-2">
+                                                                {field.value && selectedStudentData
+                                                                    ? `${selectedStudentData.amsT_FirstName} ${selectedStudentData.amsT_MiddleName || ''} ${selectedStudentData.amsT_LastName || ''}`
+                                                                    : "--Select Student--"}
+                                                            </span>
+                                                            <div className="flex items-center shrink-0">
+                                                                {field.value && (
+                                                                    <X
+                                                                        className="h-4 w-4 mr-1 opacity-50 hover:opacity-100 cursor-pointer"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            field.onChange("");
+                                                                            setSelectedStudentData(null);
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                                <Search className="h-4 w-4 opacity-50" />
+                                                            </div>
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[400px] p-0" align="start">
+                                                        <Command shouldFilter={false}>
+                                                            <CommandInput
+                                                                placeholder="Type to search (min 2 chars)..."
+                                                                className="h-9"
+                                                                onValueChange={setSearchTerm}
+                                                                value={searchTerm}
+                                                            />
+                                                            <CommandList>
+                                                                <CommandEmpty>No student found.</CommandEmpty>
+                                                                <CommandGroup className="max-h-64 overflow-y-auto">
+                                                                    {studentList.map((s: any) => (
+                                                                        <CommandItem
+                                                                            key={s.amsT_Id}
+                                                                            value={s.amsT_Id.toString()}
+                                                                            onSelect={() => {
+                                                                                field.onChange(s.amsT_Id.toString());
+                                                                                setSelectedStudentData(s);
+                                                                                setStudentOpen(false);
+                                                                                setSearchTerm("");
+                                                                            }}
+                                                                        >
+                                                                            <div className="flex flex-col py-1">
+                                                                                <span className="font-semibold text-indigo-900">
+                                                                                    {s.amsT_FirstName} {s.amsT_MiddleName || ''} {s.amsT_LastName || ''}
+                                                                                </span>
+                                                                            </div>
+                                                                            {field.value === s.amsT_Id.toString() && <Check className="ml-auto h-4 w-4 text-indigo-600" />}
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
                                             </div>
                                             <FormMessage className="col-start-2" />
                                         </FormItem>
@@ -451,15 +649,15 @@ export default function CasteBirthCertificate() {
                                 )}
                             </div>
                         </div>
-                        <div className="p-4 text-center space-x-4 bg-white border-t">
-                            <Button type="submit" disabled={reportMutation.isPending} className="bg-blue-600 hover:bg-blue-700">
-                                <FileText className="mr-2 h-4 w-4" /> Report
+                        <div className="p-4 flex items-center justify-center space-x-3 bg-white border-t">
+                            <Button type="submit" disabled={reportMutation.isPending} className="w-auto px-6 bg-[#3f51b5] hover:bg-[#303f9f] text-white">
+                                <FileText className="mr-2 h-4 w-4" /> REPORT
                             </Button>
-                            <Button type="button" onClick={handleClear} variant="destructive">
-                                <X className="mr-2 h-4 w-4" /> Cancel
+                            <Button type="button" onClick={handleClear} variant="destructive" className="w-auto px-6 bg-[#ff5722] hover:bg-[#e64a19] text-white">
+                                <X className="mr-2 h-4 w-4" /> CANCEL
                             </Button>
-                            <Button type="button" onClick={handlePrint} disabled={!showCertificate} className="bg-gray-600 hover:bg-gray-700">
-                                <Printer className="mr-2 h-4 w-4" /> Print
+                            <Button type="button" onClick={handlePrint} disabled={!showCertificate} className="w-auto px-6 bg-[#e0e0e0] hover:bg-[#d5d5d5] text-gray-700">
+                                <Printer className="mr-2 h-4 w-4 text-gray-600" /> PRINT
                             </Button>
                         </div>
                     </CollapsibleSection>
@@ -492,6 +690,11 @@ export default function CasteBirthCertificate() {
                                 }
                                 .u-long { min-width: 300px; }
                                 .u-mid { min-width: 150px; }
+                                .header-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1rem; }
+                                .header-logo { height: auto; width: 100%; max-width: 600px; max-height: 150px; object-fit: contain; margin-bottom: 0.5rem; }
+                                .header-text-container { text-align: center; }
+                                .header-school-name { color: #2563eb; font-weight: bold; font-size: 1.5rem; margin-bottom: 0.25rem; }
+                                .header-address { font-size: 0.875rem; margin: 0; }
                                 .certificate-title {
                                     font-size: 26px; font-weight: bold; text-decoration: underline; text-align: center; margin-top: 15px;
                                 }
@@ -504,71 +707,72 @@ export default function CasteBirthCertificate() {
                             `}
                         </style>
                         <div className="print-container border-8 border-double border-black p-8 font-serif" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                            <div className="text-center">
+                            <div className="header-container flex flex-col items-center justify-center mb-4">
                                 {certificateData.MI_Logo && (
-                                    <img src={certificateData.MI_Logo} alt="Institution Logo" className="w-full max-w-lg mx-auto" />
+                                    <img src={certificateData.MI_Logo} alt="Institution Logo" className="header-logo w-full max-w-2xl max-h-36 object-contain mb-2" />
                                 )}
-                                <hr className="border-black border-t-2 my-4" />
+                                {certificateData.masterCompany && (
+                                    <div className="header-text-container text-center">
+                                        <p className="header-address text-sm">
+                                            {certificateData.masterCompany.mI_Address1 ? `${certificateData.masterCompany.mI_Address1}, ` : ''}
+                                            {certificateData.masterCompany.mI_Address2 ? `${certificateData.masterCompany.mI_Address2}, ` : ''}
+                                            {certificateData.masterCompany.mI_Address3 ? `${certificateData.masterCompany.mI_Address3}` : ''}
+                                            {certificateData.masterCompany.mI_Pincode ? `-${certificateData.masterCompany.mI_Pincode}` : ''}
+                                        </p>
+                                        {certificateData.masterCompany.mI_Email && <p className="header-address text-sm">Email: {certificateData.masterCompany.mI_Email}</p>}
+                                    </div>
+                                )}
+                            </div>
+                            <hr className="border-black border-t-2 my-4" />
+                            <div className="text-center">
                                 <div className="text-2xl font-bold underline my-4">CASTE / BIRTH CERTIFICATE</div>
                             </div>
-                            
-                            <div className="text-lg leading-loose text-justify mt-8">
-                                <p>
-                                    I, <span className="inline-block border-b border-dotted border-black min-w-[200px] text-center px-2">MAHADEVI P BHAT</span>
-                                    Principal of <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2">VISHWADARSHANA CENTRAL SCHOOL</span>
-                                </p>
-                                <p>
-                                    I, do hereby certify that <span className="inline-block border-b border-dotted border-black min-w-[400px] text-center px-2 font-bold">{certificateData.studentnam}</span>
-                                    {certificateData.relationTitle}
-                                </p>
-                                <p>
-                                    <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2">{certificateData.fatherNameFormatted}</span>
+
+                            <div className="text-lg leading-loose mt-8 px-4">
+
+                                <div className="mt-4">
+                                    I, do hereby certify that <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2 font-bold uppercase">{certificateData.studentnam}</span>
+                                    {certificateData.relationTitle} <span className="inline-block border-b border-dotted border-black min-w-[250px] text-center px-2 uppercase">{certificateData.fatherNameFormatted}</span>
                                     is a student of our institute. {certificateData.genderPronoun} is studying
-                                </p>
-                                <p>
-                                    in class <span className="inline-block border-b border-dotted border-black min-w-[100px] text-center px-2">{certificateData.class}</span>
-                                    in <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">{certificateData.acadamicyear}</span> the academic year
-                                    with Admission Number
-                                </p>
-                                <p>
-                                    <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">{certificateData.admno}</span>
-                                    & Enrollment Number
-                                    <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">{certificateData.RegistrationNo}</span>.
-                                </p>
-                                <br />
-                                <p>
-                                    I declare that {certificateData.genderPronoun} belongs to the
-                                    <span className="inline-block border-b border-dotted border-black min-w-[250px] text-center px-2 font-bold">{certificateData.caste_name}</span> caste belonging to
-                                </p>
-                                <p>
+                                    in class <span className="inline-block border-b border-dotted border-black min-w-[80px] text-center px-2 font-bold">{certificateData.class}</span>
+                                    in <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">{certificateData.acadamicyear}</span> the academic year
+                                    with Admission Number <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">{certificateData.admno}</span>
+                                    & Enrollment Number <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">{certificateData.RegistrationNo}</span>.
+                                </div>
+                                <div className="mt-8">
+                                    I declare that {certificateData.genderPronoun} belongs that
+                                    <span className="inline-block border-b border-dotted border-black min-w-[200px] text-center px-2 font-bold">{certificateData.caste_name}</span> caste belonging to
                                     <span className="inline-block border-b border-dotted border-black min-w-[200px] text-center px-2 font-bold">{certificateData.CategoryName}</span> category as per school register.
                                     {certificateData.genderPronoun === 'He' ? 'His' : 'Her'} date of birth is
-                                </p>
-                                <p>
-                                    <span className="inline-block border-b border-dotted border-black min-w-[150px] text-center px-2">
+                                    <span className="inline-block border-b border-dotted border-black min-w-[120px] text-center px-2">
                                         {certificateData.dob ? format(new Date(certificateData.dob), 'dd-MM-yyyy') : ''}
                                     </span>
                                     (In words)
-                                    <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2">{certificateData.dobwords}</span>.
-                                </p>
+                                    <span className="inline-block border-b border-dotted border-black min-w-[300px] text-center px-2 uppercase">{certificateData.dobwords}</span>.
+                                </div>
                             </div>
 
-                            <div className="flex justify-between items-end mt-16 text-lg">
-                                <div>
-                                    <p><strong>Date:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2">{certificateData.issueDate ? format(certificateData.issueDate, 'dd-MM-yyyy') : format(new Date(), 'dd-MM-yyyy')}</span></p>
-                                    <p className="mt-4"><strong>Place:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2">{certificateData.area}</span></p>
+                            <div className="flex justify-between items-start mt-16 text-lg px-4">
+                                <div className="space-y-4">
+                                    <div>
+                                        <strong>Date:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2 text-center">{certificateData.issueDate ? format(certificateData.issueDate, 'dd-MM-yyyy') : format(new Date(), 'dd-MM-yyyy')}</span>
+                                    </div>
+                                    <div>
+                                        <strong>Place:</strong> <span className="inline-block border-b border-dotted border-black min-w-[150px] px-2 text-center">{certificateData.area}</span>
+                                    </div>
                                 </div>
-                                <div className="text-center font-bold">
-                                    <div className="border-t border-black pt-2 w-56 text-center">Principal Signature</div>
+                                <div className="flex flex-col items-end">
+                                    <div style={{ borderBottom: '2px solid black', width: '250px', marginBottom: '4px' }}></div>
+                                    <div style={{ width: '250px', textAlign: 'center', fontWeight: 'bold' }}>Principal Signature</div>
+
+                                    <div className="mt-12">
+                                        <strong>Full Name:</strong> <span className="inline-block border-b border-dotted border-black min-w-[200px] px-2 text-center uppercase">{certificateData.principalName || ''}</span>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div className="text-center text-lg mt-8 ml-auto w-1/2">
-                                <p><strong>Full Name:</strong> <span className="inline-block border-b border-dotted border-black min-w-[200px] px-2">MAHADEVI P BHAT</span></p>
-                            </div>
-                            
-                            <div className="text-center text-lg mt-12">
-                                ..............................Thanking you...................................
+
+                            <div className="text-center text-lg mt-10 mb-4">
+                                <span className="inline-block border-b border-dotted border-black min-w-[200px]"></span> Thanking you <span className="inline-block border-b border-dotted border-black min-w-[200px]"></span>
                             </div>
                         </div>
                     </div>

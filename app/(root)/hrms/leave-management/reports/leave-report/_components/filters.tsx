@@ -1,4 +1,5 @@
 'use client';
+import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -150,7 +151,6 @@ export function LeaveReportFilters({
                         {errors.selectedDesignations && <p className='text-red-500 text-xs'>{errors.selectedDesignations}</p>}
                     </div>
                 </div>
-                {/* Employee Section - Hide when Employee Leave Balance is checked */}
                 {showEmployeeSection && (
                     <>
                         {/* Individual/All Selection */}
@@ -216,55 +216,58 @@ export function LeaveReportFilters({
                                 {errors.selectedEmployeeId && <p className='text-red-500 text-xs'>{errors.selectedEmployeeId}</p>}
                             </div>
                         )}
+                        {/* Filter Fields */}
+                        <div className='grid grid-cols-1 items-start gap-4 md:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='leave-select' className='font-medium text-sm'>
+                                    Leave <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select value={filters.leave} onValueChange={(value) => onFilterChange('leave', value)}>
+                                    <SelectTrigger
+                                        id='leave-select'
+                                        className={!filters.leave || filters.leave.length === 0 ? ' font-medium text-gray-500' : ''}>
+                                        <SelectValue placeholder={isLoadingLeaves ? 'Loading...' : 'Please select'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='999'>All</SelectItem>
+                                        {(leaves || []).map((l: any) => (
+                                            <SelectItem key={l.id} value={String(l.id)}>
+                                                {l.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.leave && <p className='text-red-500 text-xs'>{errors.leave}</p>}
+                            </div>
+                            <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='from-date-input' className='font-medium text-sm'>
+                                        From Date <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <DatePicker
+                                        date={filters.fromDate ? parse(filters.fromDate, 'yyyy-MM-dd', new Date()) : undefined}
+                                        setDate={(date) => onFilterChange('fromDate', date ? format(date, 'yyyy-MM-dd') : '')}
+                                        placeholder='Select from date'
+                                    />
+                                    {errors.fromDate && <p className='text-red-500 text-xs'>{errors.fromDate}</p>}
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='to-date-input' className='font-medium text-sm'>
+                                        To Date <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <DatePicker
+                                        date={filters.toDate ? parse(filters.toDate, 'yyyy-MM-dd', new Date()) : undefined}
+                                        setDate={(date) => onFilterChange('toDate', date ? format(date, 'yyyy-MM-dd') : '')}
+                                        placeholder='Select to date'
+                                    />
+                                    {errors.toDate && <p className='text-red-500 text-xs'>{errors.toDate}</p>}
+                                </div>
+                            </div>
+                        </div>
                     </>
                 )}
-                {/* Filter Fields */}
-                <div className='grid grid-cols-1 items-start gap-4 md:grid-cols-3'>
-                    <div className='space-y-2'>
-                        <Label htmlFor='leave-select' className='font-medium text-sm'>
-                            Leave <span className='text-red-500'>*</span>
-                        </Label>
-                        <Select value={filters.leave} onValueChange={(value) => onFilterChange('leave', value)}>
-                            <SelectTrigger
-                                id='leave-select'
-                                className={!filters.leave || filters.leave.length === 0 ? ' font-medium text-gray-500' : ''}>
-                                <SelectValue placeholder={isLoadingLeaves ? 'Loading...' : 'Please select'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {/* <SelectItem value='All'>All</SelectItem> */}
-                                {(leaves || []).map((l: any) => (
-                                    <SelectItem key={l.id} value={String(l.id)}>
-                                        {l.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.leave && <p className='text-red-500 text-xs'>{errors.leave}</p>}
-                    </div>
-                    <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
-                        <div className='space-y-2'>
-                            <Label htmlFor='from-date-input' className='font-medium text-sm'>
-                                From Date <span className='text-red-500'>*</span>
-                            </Label>
-                            <DatePicker
-                                date={filters.fromDate ? new Date(filters.fromDate) : undefined}
-                                setDate={(date) => onFilterChange('fromDate', date ? date.toISOString().split('T')[0] : '')}
-                                placeholder='Select from date'
-                            />
-                            {errors.fromDate && <p className='text-red-500 text-xs'>{errors.fromDate}</p>}
-                        </div>
-                        <div className='space-y-2'>
-                            <Label htmlFor='to-date-input' className='font-medium text-sm'>
-                                To Date <span className='text-red-500'>*</span>
-                            </Label>
-                            <DatePicker
-                                date={filters.toDate ? new Date(filters.toDate) : undefined}
-                                setDate={(date) => onFilterChange('toDate', date ? date.toISOString().split('T')[0] : '')}
-                                placeholder='Select to date'
-                            />
-                            {errors.toDate && <p className='text-red-500 text-xs'>{errors.toDate}</p>}
-                        </div>
-                    </div>
+                
+                <div className='grid grid-cols-1 items-start gap-4 md:grid-cols-3 mt-4'>
                     {/* Employee Leave Balance Checkbox */}
                     <div className='flex items-center gap-2 md:col-span-3'>
                         <Checkbox

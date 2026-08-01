@@ -9,8 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { 
+import {
   getPreUserInitialData,
+  getPreUserDetails,
   createPreUser,
   activateDeactivatePreUsers,
   sendSmsToPreUsers,
@@ -19,6 +20,7 @@ import {
 import { format } from "date-fns";
 import { Check, X, FileSpreadsheet, Printer, MessageSquare, Mail, ToggleLeft, ToggleRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const formSchema = z.object({
   Name: z.string().min(1, "Enter the field Name").regex(/^[a-zA-Z\s]*$/, "The field contains only alphabets").max(60),
@@ -33,7 +35,8 @@ export default function PreusercreatePage() {
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [selectAll, setSelectAll] = useState(false);
-  
+  const [institutionLogo, setInstitutionLogo] = useState<string>("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,33 +51,30 @@ export default function PreusercreatePage() {
     loadInitialData();
   }, []);
 
-  useEffect(() => {
-    if (searchValue) {
-      const lowercasedSearch = searchValue.toLowerCase();
-      const filtered = reportDetails.filter((item) => 
-        (item.User_Name && item.User_Name.toLowerCase().includes(lowercasedSearch)) ||
-        (item.Email_Id && item.Email_Id.toLowerCase().includes(lowercasedSearch)) ||
-        (item.Mob_No && item.Mob_No.toString().includes(lowercasedSearch)) ||
-        (item.Name && item.Name.toLowerCase().includes(lowercasedSearch)) ||
-        (item.Created_Date && format(new Date(item.Created_Date), "dd-MM-yyyy").includes(lowercasedSearch))
-      );
-      setFilteredDetails(filtered);
-    } else {
-      setFilteredDetails(reportDetails);
-    }
-  }, [searchValue, reportDetails]);
-
-  const loadInitialData = async () => {
+  const fetchGridData = async () => {
     try {
-      const res = await getPreUserInitialData(2); // MI_Id = 2 as per original code
-      if (res?.success && res.data.searchstudentDetails) {
-        setReportDetails(res.data.searchstudentDetails);
-        setFilteredDetails(res.data.searchstudentDetails);
+      const res = await getPreUserDetails();
+      if (res?.success) {
+        if (res.data.searchstudentDetails) {
+          setReportDetails(res.data.searchstudentDetails);
+          setFilteredDetails(res.data.searchstudentDetails);
+        }
+        if (res.data.logo && res.data.logo.length > 0) {
+          setInstitutionLogo(res.data.logo[0].logo);
+        }
       } else {
         setReportDetails([]);
         setFilteredDetails([]);
-        toast.info("No Records Found");
       }
+    } catch (error) {
+      toast.error("Failed to fetch user details");
+    }
+  };
+
+  const loadInitialData = async () => {
+    try {
+      const res = await getPreUserInitialData();
+      await fetchGridData();
     } catch (error) {
       toast.error("Failed to load initial data");
     }
@@ -82,38 +82,59 @@ export default function PreusercreatePage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const formData = new FormData();
-      formData.append("Name", values.Name);
-      formData.append("Email_id", values.Email_id);
-      formData.append("Mobileno", values.Mobileno);
-      formData.append("Username", values.Username);
-      formData.append("Password", "Password@123");
-      formData.append("Otpmobl", "false");
-      formData.append("Otpemail", "false");
-      formData.append("Special", "Special");
-      formData.append("onlinepreadminfilepath", "");
+      const payload = {
+        name: values.Name,
+        email_id: values.Email_id,
+        mobileno: values.Mobileno,
+        username: values.Username,
+        password: "Password@123",
+        admission: "",
+        onlinepreadminfilepath: "",
+        Special: "Special",
+        alumni: "",
+        admittedyer: null,
+        leftyear: null,
+        classidadmitted: null,
+        leftclassid: null,
+        courseadmittted: null,
+        courseleft: null,
+        branchadmittted: null,
+        branchleft: null,
+        semadmittted: null,
+        semleft: null
+      };
 
-      const res = await createPreUser(formData);
+      const res = await createPreUser(payload);
 
-      const resData: any = res;
-
-      if (resData?.data === "created" || resData === "created") {
-        toast.success("Account created successfully");
+      if (res?.success) {
+        const successMessage = res.data?.message || res.message || "Account created successfully";
+        toast.success(successMessage);
         form.reset();
         loadInitialData();
-      } else if (typeof resData?.data === "string" && resData.data !== "created") {
-        toast.error(resData.data);
-        loadInitialData();
-      } else if (typeof resData === "string" && resData !== "created") {
-        toast.error(resData);
-        loadInitialData();
       } else {
-        toast.error("Failed To Create User");
+        const errorMessage = res.data?.message || res?.message || "Failed To Create User";
+        toast.error(errorMessage);
       }
     } catch (error) {
       toast.error("An error occurred");
     }
   };
+
+  useEffect(() => {
+    if (searchValue) {
+      const lowercasedSearch = searchValue.toLowerCase();
+      const filtered = reportDetails.filter((item) =>
+        (item.user_name && item.user_name.toLowerCase().includes(lowercasedSearch)) ||
+        (item.email_id && item.email_id.toLowerCase().includes(lowercasedSearch)) ||
+        (item.mob_no && item.mob_no.toString().includes(lowercasedSearch)) ||
+        (item.name && item.name.toLowerCase().includes(lowercasedSearch)) ||
+        (item.created_date && format(new Date(item.created_date), "dd-MM-yyyy").includes(lowercasedSearch))
+      );
+      setFilteredDetails(filtered);
+    } else {
+      setFilteredDetails(reportDetails);
+    }
+  }, [searchValue, reportDetails]);
 
   const onClear = () => {
     form.reset();
@@ -135,7 +156,7 @@ export default function PreusercreatePage() {
     if (checked) {
       setSelectedUsers((prev) => [...prev, user]);
     } else {
-      setSelectedUsers((prev) => prev.filter((item) => item.Id !== user.Id));
+      setSelectedUsers((prev) => prev.filter((item) => item.id !== user.id));
     }
   };
 
@@ -193,12 +214,35 @@ export default function PreusercreatePage() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedUsers.length === 0) {
       toast.warning("Please select records to be Exported");
       return;
     }
-    toast.info("Exporting functionality not yet fully implemented on client.");
+
+    try {
+      const XLSX = await import("xlsx");
+      
+      const exportData = selectedUsers.map((user, index) => ({
+        "SL.NO.": index + 1,
+        "Name": user.name || "",
+        "User Name": user.user_name || "",
+        "EMAIL-ID": user.email_id || "",
+        "Mobile Number": user.mob_no || "",
+        "DATE": user.created_date ? format(new Date(user.created_date), "dd-MM-yyyy") : "",
+        "Status": user.activeflag || ""
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Preadmission Users");
+      XLSX.writeFile(workbook, "Preadmission_Users_List.xlsx");
+      
+      toast.success("Data exported successfully!");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export data to Excel");
+    }
   };
 
   const handlePrint = () => {
@@ -206,9 +250,10 @@ export default function PreusercreatePage() {
       toast.warning("Please select Records to be Printed");
       return;
     }
-    
+
     let printContents = `
       <div style="text-align: center; margin-bottom: 20px;">
+        ${institutionLogo ? `<img src="${institutionLogo}" alt="Institution Logo" style="max-height: 100px; margin-bottom: 10px;" />` : ""}
         <h3><u>PREADMISSION USERS LIST</u></h3>
       </div>
       <table style="width: 100%; border-collapse: collapse;" border="1">
@@ -229,11 +274,11 @@ export default function PreusercreatePage() {
       printContents += `
         <tr>
           <td style="padding: 8px; text-align: center;">${index + 1}</td>
-          <td style="padding: 8px;">${user.Name || ''}</td>
-          <td style="padding: 8px;">${user.User_Name || ''}</td>
-          <td style="padding: 8px;">${user.Email_Id || ''}</td>
-          <td style="padding: 8px;">${user.Mob_No || ''}</td>
-          <td style="padding: 8px; text-align: center;">${user.Created_Date ? format(new Date(user.Created_Date), 'dd-MM-yyyy') : ''}</td>
+          <td style="padding: 8px;">${user.name || ''}</td>
+          <td style="padding: 8px;">${user.user_name || ''}</td>
+          <td style="padding: 8px;">${user.email_id || ''}</td>
+          <td style="padding: 8px;">${user.mob_no || ''}</td>
+          <td style="padding: 8px; text-align: center;">${user.created_date ? format(new Date(user.created_date), 'dd-MM-yyyy') : ''}</td>
         </tr>
       `;
     });
@@ -263,77 +308,75 @@ export default function PreusercreatePage() {
     <div className="container mx-auto p-4 space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle>Preadmission User Creation</CardTitle>
+          <Card className="border-t-4 border-t-blue-500 shadow-md">
+            <CardHeader className="border-b bg-gray-50/50 pb-4">
+              <CardTitle className="text-blue-800 text-sm font-bold uppercase">Preadmission User Creation</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-12">
-              <div className="space-y-4">
+            <CardContent className="pt-6">
+              <div className="max-w-3xl mx-auto space-y-4">
                 <FormField
                   control={form.control}
                   name="Name"
                   render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 gap-2 items-center">
-                      <FormLabel className="font-semibold text-muted-foreground m-0">Name of User <span className="text-destructive">*</span></FormLabel>
-                      <FormControl className="col-span-2">
+                    <FormItem className="grid grid-cols-4 gap-4 items-center">
+                      <FormLabel className="font-semibold text-sm m-0 text-right">Name of User:<span className="text-destructive">*</span></FormLabel>
+                      <FormControl className="col-span-3">
                         <Input {...field} placeholder="Enter Name Of The User" maxLength={60} />
                       </FormControl>
-                      <div className="col-span-3"><FormMessage /></div>
+                      <div className="col-span-4"><FormMessage /></div>
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="Mobileno"
                   render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 gap-2 items-center">
-                      <FormLabel className="font-semibold text-muted-foreground m-0">Mobile Number <span className="text-destructive">*</span></FormLabel>
-                      <FormControl className="col-span-2">
+                    <FormItem className="grid grid-cols-4 gap-4 items-center">
+                      <FormLabel className="font-semibold text-sm m-0 text-right">Mobile Number:<span className="text-destructive">*</span></FormLabel>
+                      <FormControl className="col-span-3">
                         <Input {...field} placeholder="Enter Mobile Number" maxLength={10} />
                       </FormControl>
-                      <div className="col-span-3"><FormMessage /></div>
+                      <div className="col-span-4"><FormMessage /></div>
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="Email_id"
                   render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 gap-2 items-center">
-                      <FormLabel className="font-semibold text-muted-foreground m-0">Email -Id <span className="text-destructive">*</span></FormLabel>
-                      <FormControl className="col-span-2">
+                    <FormItem className="grid grid-cols-4 gap-4 items-center">
+                      <FormLabel className="font-semibold text-sm m-0 text-right">Email -Id:<span className="text-destructive">*</span></FormLabel>
+                      <FormControl className="col-span-3">
                         <Input {...field} placeholder="Enter Email Id" type="email" />
                       </FormControl>
-                      <div className="col-span-3"><FormMessage /></div>
+                      <div className="col-span-4"><FormMessage /></div>
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="Username"
                   render={({ field }) => (
-                    <FormItem className="grid grid-cols-3 gap-2 items-center">
-                      <FormLabel className="font-semibold text-muted-foreground m-0">User Name <span className="text-destructive">*</span></FormLabel>
-                      <FormControl className="col-span-2">
+                    <FormItem className="grid grid-cols-4 gap-4 items-center">
+                      <FormLabel className="font-semibold text-sm m-0 text-right">User Name:<span className="text-destructive">*</span></FormLabel>
+                      <FormControl className="col-span-3">
                         <Input {...field} placeholder="Enter The UserName" maxLength={60} />
                       </FormControl>
-                      <div className="col-span-3"><FormMessage /></div>
+                      <div className="col-span-4"><FormMessage /></div>
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className="md:col-span-2 flex justify-center gap-4 mt-4 border-t pt-4">
-                <Button type="submit" className="w-40">
-                  <Check className="mr-2 h-4 w-4" /> Create User
+              <div className="flex justify-center gap-4 mt-8">
+                <Button type="submit" className="bg-[#3f51b5] hover:bg-[#303f9f] text-white w-40">
+                  <Check className="mr-2 h-4 w-4" /> CREATE USER
                 </Button>
-                <Button type="button" variant="destructive" className="w-32" onClick={onClear}>
-                  <X className="mr-2 h-4 w-4" /> Clear
+                <Button type="button" variant="destructive" className="bg-[#ff5722] hover:bg-[#e64a19] text-white w-32" onClick={onClear}>
+                  CLEAR
                 </Button>
               </div>
             </CardContent>
@@ -342,36 +385,36 @@ export default function PreusercreatePage() {
       </Form>
 
       {reportDetails.length > 0 && (
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle>Preadmission Users List</CardTitle>
+        <Card className="border-t-4 border-t-blue-500 shadow-md mt-6">
+          <CardHeader className="border-b bg-gray-50/50 pb-4">
+            <CardTitle className="text-blue-800 text-sm font-bold uppercase">Preadmission Users List</CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="font-medium">
-                Total Grid Records : <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">{reportDetails.length}</span>
+            <div className="flex justify-between items-center mb-4">
+              <div className="font-semibold text-sm">
+                Total Grid Records : <span className="bg-gray-500 text-white px-2 py-1 rounded-md">{reportDetails.length}</span>
               </div>
-              {searchValue && (
-                <div className="font-medium">
-                  Total Records Searched : <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">{filteredDetails.length}</span>
+              <div className="flex items-center">
+                <div className="relative">
+                  <Input
+                    placeholder="search here..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    className="w-64 pl-8"
+                  />
+                  <div className="absolute left-2 top-2.5 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                  </div>
                 </div>
-              )}
-              <div className="ml-auto">
-                <Input 
-                  placeholder="search here..." 
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="max-w-sm"
-                />
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse border">
-                <thead className="text-xs uppercase bg-muted/50">
+                <thead className="text-xs uppercase bg-[#005c97] text-white">
                   <tr>
                     <th className="border p-2 text-center">
-                      <Checkbox 
+                      <Checkbox
                         checked={selectAll}
                         onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                       />
@@ -387,24 +430,24 @@ export default function PreusercreatePage() {
                 </thead>
                 <tbody>
                   {filteredDetails.map((user, index) => {
-                    const isSelected = selectedUsers.some(item => item.Id === user.Id) || selectedUsers.includes(user);
+                    const isSelected = selectedUsers.some(item => item.id === user.id) || selectedUsers.includes(user);
                     return (
                       <tr key={index} className="border-b hover:bg-muted/20 transition-colors">
                         <td className="border p-2 text-center">
-                          <Checkbox 
+                          <Checkbox
                             checked={isSelected}
                             onCheckedChange={(checked) => handleSelectUser(checked as boolean, user)}
                           />
                         </td>
                         <td className="border p-2 text-center">{index + 1}</td>
-                        <td className="border p-2">{user.Name}</td>
-                        <td className="border p-2">{user.User_Name}</td>
-                        <td className="border p-2 break-all">{user.Email_Id}</td>
-                        <td className="border p-2">{user.Mob_No}</td>
+                        <td className="border p-2">{user.name}</td>
+                        <td className="border p-2">{user.user_name}</td>
+                        <td className="border p-2 break-all">{user.email_id}</td>
+                        <td className="border p-2">{user.mob_no}</td>
                         <td className="border p-2 text-center">
-                          {user.Created_Date ? format(new Date(user.Created_Date), "dd-MM-yyyy") : ""}
+                          {user.created_date ? format(new Date(user.created_date), "dd-MM-yyyy") : ""}
                         </td>
-                        <td className="border p-2 text-center">{user.Activeflag}</td>
+                        <td className="border p-2 text-center">{user.activeflag}</td>
                       </tr>
                     );
                   })}
@@ -418,7 +461,7 @@ export default function PreusercreatePage() {
                 </tbody>
               </table>
             </div>
-            
+
             {filteredDetails.length > 0 && (
               <div className="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t">
                 <Button type="button" variant="outline" className="bg-blue-50 text-blue-600 hover:bg-blue-100" onClick={handleExport}>

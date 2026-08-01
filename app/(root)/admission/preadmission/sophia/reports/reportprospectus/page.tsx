@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Search, X, FileSpreadsheet, Printer } from 'lucide-react';
+import { CalendarIcon, Search, X, FileSpreadsheet, Printer, MessageSquare, Mail } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import * as XLSX from 'xlsx';
 
@@ -66,6 +66,7 @@ export default function ReportProspectusPage() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all');
   
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -90,14 +91,16 @@ export default function ReportProspectusPage() {
       payload.To_Date = '';
     } else {
       payload.ASMAY_Id = 0;
-      payload.From_Date = values.FromDate?.toISOString();
-      payload.To_Date = values.ToDate?.toISOString();
+      payload.From_Date = values.FromDate ? format(values.FromDate, 'yyyy-MM-dd') : '';
+      payload.To_Date = values.ToDate ? format(values.ToDate, 'yyyy-MM-dd') : '';
     }
 
     try {
       const result = await getDetailsMutation.mutateAsync(payload);
-      if (result && result.searchstudentDetails && result.searchstudentDetails.length > 0) {
-        setReportData(result.searchstudentDetails);
+      const studentDetails = result?.data?.searchstudentDetails || result?.searchstudentDetails;
+      
+      if (studentDetails && studentDetails.length > 0) {
+        setReportData(studentDetails);
         setSelectedIds(new Set()); // Reset selections
       } else {
         setReportData([]);
@@ -113,11 +116,97 @@ export default function ReportProspectusPage() {
     setReportData([]);
     setSelectedIds(new Set());
     setSearchTerm('');
+    setSearchType('all');
+  };
+
+  const handleBackendSearch = async () => {
+    const values = form.getValues();
+    let asmaY_Id = 0;
+    let from_Date = '';
+    let to_Date = '';
+
+    if (values.yearwiseorbtwdates === 'yearwise') {
+      asmaY_Id = parseInt(values.ASMAY || '0', 10);
+    } else {
+      from_Date = values.FromDate ? format(values.FromDate, 'yyyy-MM-dd') : '';
+      to_Date = values.ToDate ? format(values.ToDate, 'yyyy-MM-dd') : '';
+    }
+
+    const payload = {
+      asmaY_Id,
+      from_Date,
+      to_Date,
+      searchType,
+      searchString: searchType === 'all' ? '' : searchTerm
+    };
+
+    try {
+      const result = await searchMutation.mutateAsync(payload);
+      const studentDetails = result?.data?.searchstudentDetails || result?.searchstudentDetails;
+      if (studentDetails && studentDetails.length > 0) {
+        setReportData(studentDetails);
+        setSelectedIds(new Set());
+      } else {
+        setReportData([]);
+        toast.error('No Records Found');
+      }
+    } catch (error) {
+      toast.error('Error searching records');
+    }
+  };
+
+  const handleSendSms = async () => {
+    if (selectedData.length === 0) {
+      toast.warning('Please select records to send SMS');
+      return;
+    }
+    
+    const payload = {
+      smsMailStudentDetails: selectedData.map(user => ({
+        id: user.pasP_Id || 0,
+        pasE_MobileNo: user.pasP_MobileNo || 0
+      }))
+    };
+
+    try {
+      const result = await sendSmsMutation.mutateAsync(payload);
+      if (result?.success || result?.message?.toLowerCase().includes('success')) {
+        toast.success(result?.message || 'SMS sent successfully');
+      } else {
+        toast.error(result?.message || 'Failed to send SMS');
+      }
+    } catch (error) {
+      toast.error('Error sending SMS');
+    }
+  };
+
+  const handleSendMail = async () => {
+    if (selectedData.length === 0) {
+      toast.warning('Please select records to send Email');
+      return;
+    }
+    
+    const payload = {
+      smsMailStudentDetails: selectedData.map(user => ({
+        pasE_emailid: user.pasP_emailid || ''
+      }))
+    };
+
+    try {
+      const result = await sendMailMutation.mutateAsync(payload);
+      if (result?.success || result?.message?.toLowerCase().includes('success')) {
+        toast.success(result?.message || 'Email sent successfully');
+      } else {
+        toast.error(result?.message || 'Failed to send Email');
+      }
+    } catch (error) {
+      toast.error('Error sending Email');
+    }
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredData.map((item, index) => index)));
+      setSelectedIds(new Set(reportData.map((item, index) => index)));
     } else {
       setSelectedIds(new Set());
     }
@@ -133,22 +222,7 @@ export default function ReportProspectusPage() {
     setSelectedIds(newSelected);
   };
 
-  const filteredData = reportData.filter((item) => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      item.pasP_FirstName?.toLowerCase().includes(searchLower) ||
-      item.pasP_MiddleName?.toLowerCase().includes(searchLower) ||
-      item.pasP_LastName?.toLowerCase().includes(searchLower) ||
-      item.pasP_emailid?.toLowerCase().includes(searchLower) ||
-      item.pasP_MobileNo?.toString().includes(searchLower) ||
-      item.pasP_Phone?.toString().includes(searchLower) ||
-      item.state?.toLowerCase().includes(searchLower) ||
-      item.pasP_ProspectusNo?.toLowerCase().includes(searchLower)
-    );
-  });
-
-  const selectedData = filteredData.filter((_, index) => selectedIds.has(index));
+  const selectedData = reportData.filter((_, index) => selectedIds.has(index));
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -241,7 +315,7 @@ export default function ReportProspectusPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {initialData?.fillyear?.map((year: any) => (
+                            {(initialData?.data?.fillyear || initialData?.fillyear)?.map((year: any) => (
                               <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                 {year.asmaY_Year}
                               </SelectItem>
@@ -353,6 +427,12 @@ export default function ReportProspectusPage() {
                 </Button>
                 {reportData.length > 0 && (
                   <>
+                    <Button type="button" variant="secondary" onClick={handleSendSms} disabled={sendSmsMutation.isPending}>
+                      <MessageSquare className="mr-2 h-4 w-4" /> Send SMS
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={handleSendMail} disabled={sendMailMutation.isPending}>
+                      <Mail className="mr-2 h-4 w-4" /> Send Mail
+                    </Button>
                     <Button type="button" variant="secondary" onClick={exportToExcel}>
                       <FileSpreadsheet className="mr-2 h-4 w-4" /> Export to Excel
                     </Button>
@@ -371,14 +451,33 @@ export default function ReportProspectusPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Prospectus Report Details</CardTitle>
-            <div className="flex space-x-4">
-              <div className="text-sm font-medium">Total Records: <span className="text-muted-foreground">{filteredData.length}</span></div>
+            <div className="flex items-center space-x-2">
+              <div className="text-sm font-medium mr-4">Total Records: <span className="text-muted-foreground">{reportData.length}</span></div>
+              <Select value={searchType} onValueChange={setSearchType}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Search By" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="first_name">First Name</SelectItem>
+                  <SelectItem value="middle_name">Middle Name</SelectItem>
+                  <SelectItem value="last_name">Last Name</SelectItem>
+                  <SelectItem value="email_id">Email ID</SelectItem>
+                  <SelectItem value="mobile_no">Mobile No.</SelectItem>
+                  <SelectItem value="phone_no">Phone No.</SelectItem>
+                  <SelectItem value="date_search">Date</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-xs"
+                className="w-[150px]"
+                disabled={searchType === 'all'}
               />
+              <Button type="button" onClick={handleBackendSearch} disabled={searchMutation.isPending}>
+                Filter
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -388,7 +487,7 @@ export default function ReportProspectusPage() {
                   <TableRow>
                     <TableHead className="w-[50px]">
                       <Checkbox
-                        checked={filteredData.length > 0 && selectedIds.size === filteredData.length}
+                        checked={reportData.length > 0 && selectedIds.size === reportData.length}
                         onCheckedChange={handleSelectAll}
                         aria-label="Select all"
                       />
@@ -406,7 +505,7 @@ export default function ReportProspectusPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredData.map((user, index) => (
+                  {reportData.map((user, index) => (
                     <TableRow key={index}>
                       <TableCell>
                         <Checkbox
@@ -426,7 +525,7 @@ export default function ReportProspectusPage() {
                       <TableCell>{user.pasP_ProspectusNo}</TableCell>
                     </TableRow>
                   ))}
-                  {filteredData.length === 0 && (
+                  {reportData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={11} className="h-24 text-center">
                         No results.

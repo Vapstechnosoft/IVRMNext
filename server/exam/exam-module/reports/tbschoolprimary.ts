@@ -1,4 +1,5 @@
 'use server';
+
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 

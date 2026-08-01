@@ -51,7 +51,11 @@ function MasterCastePageContent({
     onRefresh: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterCasteList>();
-    const tableProps = useDataTableProps(response);
+    const transformedResponse = response ? {
+        ...response,
+        data: response.data?.casteList || response.data || []
+    } : response;
+    const tableProps = useDataTableProps(transformedResponse);
 
     return (
         <div className='min-h-screen'>

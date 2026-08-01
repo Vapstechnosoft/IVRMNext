@@ -6,6 +6,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,8 +14,10 @@ import { useGetLoginPrivilegeEmployees, useLoginPrivileges } from '@/hooks/admis
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
+import { parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { loginPrivilegeColumns } from './_components/columns';
 import DeleteLoginPrivilegeForm from './_components/delete-form';
 
@@ -46,6 +49,25 @@ function LoginPrivilegePageContent() {
     const [showMapping, setShowMapping] = useState(false);
     const [classSectionList, setMappingClassSections] = useState<any[]>([]);
     const [subjects, setMappingSubjects] = useState<any[]>([]);
+
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withDefault('')
+    );
+
+    const filteredTableData = useMemo(() => {
+        if (!searchQuery || !tableData) return tableData || [];
+        const lowerQuery = searchQuery.toLowerCase();
+        
+        const searchableKeys = ['asmaY_Year', 'userName', 'asmcL_ClassName', 'asmC_SectionName', 'pamS_SubjectName'];
+        
+        return tableData.filter((item: any) => {
+            return searchableKeys.some((key) => {
+                const val = item[key];
+                return val !== null && val !== undefined && String(val).toLowerCase().includes(lowerQuery);
+            });
+        });
+    }, [tableData, searchQuery]);
 
     useEffect(() => {
         try {
@@ -107,8 +129,8 @@ function LoginPrivilegePageContent() {
     }, [initialData, selectedStaffId]);
 
     const tableProps = {
-        data: tableData || [],
-        totalItems: totalItems || 0,
+        data: filteredTableData || [],
+        totalItems: filteredTableData.length || 0,
         isLoading,
         error: null,
         success: true
@@ -213,6 +235,12 @@ function PrivilegeForm({
 
     // Temporary list for Type 1 (Subject Teacher)
     const [selectedcls_sec_subs, setSelectedClsSecSubs] = useState<any[]>([]);
+
+    // Search states for mapping boxes
+    const [csSearch1, setCsSearch1] = useState('');
+    const [subSearch, setSubSearch] = useState('');
+    const [csSearchAvail, setCsSearchAvail] = useState('');
+    const [csSearchSel, setCsSearchSel] = useState('');
 
     useEffect(() => {
         const loadEditData = async () => {
@@ -608,8 +636,11 @@ function PrivilegeForm({
                                         <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
                                             Class-Section:<span className='text-red-400'>*</span>
                                         </div>
+                                        <div className="p-1 border-b">
+                                            <Input placeholder="Search Class-Section..." value={csSearch1} onChange={(e) => setCsSearch1(e.target.value)} className="h-8 text-sm" />
+                                        </div>
                                         <ScrollArea className='h-[250px] bg-background p-2'>
-                                            {classSectionList.map((item) => (
+                                            {classSectionList.filter(item => item.label.toLowerCase().includes(csSearch1.toLowerCase())).map((item) => (
                                                 <div
                                                     key={item.id}
                                                     className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
@@ -636,8 +667,11 @@ function PrivilegeForm({
                                         <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
                                             Subject:<span className='text-red-400'>*</span>
                                         </div>
+                                        <div className="p-1 border-b">
+                                            <Input placeholder="Search Subject..." value={subSearch} onChange={(e) => setSubSearch(e.target.value)} className="h-8 text-sm" />
+                                        </div>
                                         <ScrollArea className='h-[250px] bg-background p-2'>
-                                            {subjects.map((sub: any) => (
+                                            {subjects.filter((sub: any) => sub.ismS_SubjectName.toLowerCase().includes(subSearch.toLowerCase())).map((sub: any) => (
                                                 <div
                                                     key={sub.ismS_Id}
                                                     className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
@@ -727,9 +761,12 @@ function PrivilegeForm({
                                     <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>
                                         Class-Section<span className='text-red-400 ml-1'>*</span>
                                     </div>
+                                    <div className="p-1 border-b">
+                                        <Input placeholder="Search Available Sections..." value={csSearchAvail} onChange={(e) => setCsSearchAvail(e.target.value)} className="h-8 text-sm" />
+                                    </div>
                                     <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
-                                            .filter((x) => !selectedClassSections.includes(x.id))
+                                            .filter((x) => !selectedClassSections.includes(x.id) && x.label.toLowerCase().includes(csSearchAvail.toLowerCase()))
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
@@ -755,9 +792,12 @@ function PrivilegeForm({
                                 {/* Selected Box */}
                                 <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
                                     <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>Class-Section</div>
+                                    <div className="p-1 border-b">
+                                        <Input placeholder="Search Selected Sections..." value={csSearchSel} onChange={(e) => setCsSearchSel(e.target.value)} className="h-8 text-sm" />
+                                    </div>
                                     <ScrollArea className='h-[300px] p-2'>
                                         {classSectionList
-                                            .filter((x) => selectedClassSections.includes(x.id))
+                                            .filter((x) => selectedClassSections.includes(x.id) && x.label.toLowerCase().includes(csSearchSel.toLowerCase()))
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
