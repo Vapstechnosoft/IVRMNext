@@ -4,7 +4,7 @@ import { api } from '@/lib/apiService';
 
 export async function getSamarthaProgressCardReport(data: any) {
     try {
-        const url = '/JSHSExamReportsFacade/nds_6_8_report';
+        const url = '/JSHSExamReports/nds_9_report';
         const payload = {
             ASMAY_Id: data.asmaY_Id,
             ASMCL_Id: data.asmcL_Id,

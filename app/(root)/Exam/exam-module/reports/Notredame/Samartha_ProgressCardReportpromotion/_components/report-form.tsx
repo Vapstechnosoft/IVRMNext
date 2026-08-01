@@ -47,14 +47,7 @@ interface Props {
 
 export default function ReportForm({ onSuccess }: Props) {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    const rawYears = (academicData as any)?.data || (Array.isArray(academicData) ? academicData : []);
-    const years = (Array.isArray(rawYears) && rawYears.length > 0)
-        ? rawYears
-        : [
-            { asmaY_Id: 1, asmaY_Year: '2025-2026' },
-            { asmaY_Id: 2, asmaY_Year: '2024-2025' }
-          ];
-
+    const years = (academicData as any)?.data || [];
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
@@ -78,32 +71,8 @@ export default function ReportForm({ onSuccess }: Props) {
         setClasses([]);
         setSections([]);
         setStudents([]);
-        try {
-            const res = await getClassDropDownByAcademicYearlist(value);
-            const raw = res?.data || res;
-            const list = Array.isArray(raw) ? raw : [];
-            if (list.length > 0) {
-                setClasses(list);
-            } else {
-                setClasses([
-                    { asmcL_Id: 1, asmcL_ClassName: 'III' },
-                    { asmcL_Id: 2, asmcL_ClassName: 'IV' },
-                    { asmcL_Id: 3, asmcL_ClassName: 'V' },
-                    { asmcL_Id: 4, asmcL_ClassName: 'VI' },
-                    { asmcL_Id: 5, asmcL_ClassName: 'VII' },
-                    { asmcL_Id: 6, asmcL_ClassName: 'VIII' }
-                ]);
-            }
-        } catch {
-            setClasses([
-                { asmcL_Id: 1, asmcL_ClassName: 'III' },
-                { asmcL_Id: 2, asmcL_ClassName: 'IV' },
-                { asmcL_Id: 3, asmcL_ClassName: 'V' },
-                { asmcL_Id: 4, asmcL_ClassName: 'VI' },
-                { asmcL_Id: 5, asmcL_ClassName: 'VII' },
-                { asmcL_Id: 6, asmcL_ClassName: 'VIII' }
-            ]);
-        }
+        const res = await getClassDropDownByAcademicYearlist(value);
+        if (res.success) setClasses(res.data || []);
     };
 
     const onClassChange = async (value: number) => {
@@ -111,63 +80,30 @@ export default function ReportForm({ onSuccess }: Props) {
         form.setValue('studentList', []);
         setSections([]);
         setStudents([]);
-        try {
-            const res = await getSectionsDropDownByAcademicYearandClasslist(form.getValues('asmaY_Id'), value);
-            const raw = res?.data || res;
-            const list = Array.isArray(raw) ? raw : [];
-            if (list.length > 0) {
-                setSections(list);
-            } else {
-                setSections([
-                    { asmS_Id: 1, asmC_SectionName: 'A' },
-                    { asmS_Id: 2, asmC_SectionName: 'B' }
-                ]);
-            }
-        } catch {
-            setSections([
-                { asmS_Id: 1, asmC_SectionName: 'A' },
-                { asmS_Id: 2, asmC_SectionName: 'B' }
-            ]);
-        }
+        const res = await getSectionsDropDownByAcademicYearandClasslist(form.getValues('asmaY_Id'), value);
+        if (res.success) setSections(res.data || []);
     };
 
     const onSectionChange = async (value: number) => {
         form.setValue('studentList', []);
         setStudents([]);
-        try {
-            const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
-                form.getValues('asmaY_Id'),
-                form.getValues('asmcL_Id'),
-                value
-            );
-            const rawList = res?.data || res;
+        const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+            form.getValues('asmaY_Id'),
+            form.getValues('asmcL_Id'),
+            value
+        );
+        if (res.success) {
+            const rawList = res.data || [];
             const list = Array.isArray(rawList) ? rawList : [];
-            if (list.length > 0) {
-                const mappedList = list.map((s: any) => ({
-                    amsT_Id: s.amsT_Id ?? s.AMST_Id,
-                    studentname: s.studentName ||
-                        s.studentname ||
-                        `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                }));
-                setStudents(mappedList);
-                form.setValue('studentList', mappedList.map((s: any) => ({ amsT_Id: s.amsT_Id })));
-            } else {
-                const defaultList = [
-                    { amsT_Id: 1, studentname: 'ANGELINA ANAND PEDAPUDI : 1494' },
-                    { amsT_Id: 2, studentname: 'Asiya Khanam : 6491' },
-                    { amsT_Id: 3, studentname: 'Abdul Muhaimin : 7227' }
-                ];
-                setStudents(defaultList);
-                form.setValue('studentList', defaultList.map(s => ({ amsT_Id: s.amsT_Id })));
-            }
-        } catch {
-            const defaultList = [
-                { amsT_Id: 1, studentname: 'ANGELINA ANAND PEDAPUDI : 1494' },
-                { amsT_Id: 2, studentname: 'Asiya Khanam : 6491' },
-                { amsT_Id: 3, studentname: 'Abdul Muhaimin : 7227' }
-            ];
-            setStudents(defaultList);
-            form.setValue('studentList', defaultList.map(s => ({ amsT_Id: s.amsT_Id })));
+            const mappedList = list.map((s: any) => ({
+                amsT_Id: s.amsT_Id ?? s.AMST_Id,
+                studentname: s.studentName ||
+                    s.studentname ||
+                    `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+            }));
+            setStudents(mappedList);
+            // Default select all
+            form.setValue('studentList', mappedList.map((s: any) => ({ amsT_Id: s.amsT_Id })));
         }
     };
 
@@ -244,7 +180,7 @@ export default function ReportForm({ onSuccess }: Props) {
                 admno:       'ADM' + (1000 + i),
                 AMST_APAARId: 'APAAR' + (5000 + i),
                 AMST_PENNo:   'PEN' + (9000 + i),
-                AMST_Photoname: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMTIwIDE0MCI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNmM2Y0ZjYiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0gMjAgMTI1IEMgMjAgODUsIDEwMCA4NSwgMTAwIDEyNSBaIiBmaWxsPSIjOWNhM2FmIi8+PHRleHQgeD0iNjAiIHk9IjEzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGI1NTYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+U1RVREVOVCBQSE9UTzwvdGV4dD48L3N2Zz4=',
+                AMST_Photoname: '',
             }));
 
             const mockAllMarks = selectedStudentObjs.flatMap(s => buildMockMarks(s.amsT_Id));
@@ -280,12 +216,9 @@ export default function ReportForm({ onSuccess }: Props) {
                 present_attendence:             mockPresent,
             };
 
-            const resObj = response as any;
-            const realData = (resObj?.data?.getstudentdetails?.length > 0)
-                ? resObj.data
-                : (resObj?.getstudentdetails?.length > 0 ? resObj : null);
-
-            const finalData = realData || mockData;
+            const finalData = (response?.success && response.data?.getstudentdetails?.length > 0)
+                ? response.data
+                : mockData;
 
             onSuccess(finalData);
             toast.success('Report generated successfully');
