@@ -8,32 +8,39 @@ interface Props { data: any; }
 
 // ── Group-column builder (mirrors legacy AngularJS logic exactly) ──
 function buildGroupDetails(rawGroups: any[]): any[] {
-    const result: any[] = [...rawGroups];
+    const result: any[] = [];
+    let hasTermI = false;
+    let hasTermII = false;
 
-    for (let i = result.length - 1; i >= 0; i--) {
-        if (result[i].empG_GroupName === 'Anual Exam') {
-            result.splice(i + 1, 0,
-                { empG_DistplayName: 'Term II', empsG_GroupName: 'Term II1', empsG_MarksValue: 100, _term: 'II' },
-                { empG_DistplayName: 'Term II', empsG_GroupName: 'Term II',  empsG_MarksValue: 100, _term: 'II' }
-            );
-        }
-        if (result[i].empG_GroupName === 'Half Yearly') {
-            result.splice(i + 1, 0,
-                { empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 100, _term: 'I' },
-                { empG_DistplayName: 'Term I', empsG_GroupName: 'Term I',  empsG_MarksValue: 100, _term: 'I' }
-            );
-        }
-    }
-    // Tag original groups with their term
-    result.forEach(g => {
-        if (!g._term) {
-            if (g.empG_GroupName === 'Half Yearly') g._term = 'I';
-            else if (g.empG_GroupName === 'Anual Exam') g._term = 'II';
-            else g._term = 'other';
+    rawGroups.forEach(g => {
+        const term = (g.empG_GroupName === 'Half Yearly' || g.empG_DistplayName?.includes('Term I') || g.empsG_GroupName?.includes('Term I'))
+            ? 'I'
+            : (g.empG_GroupName === 'Anual Exam' || g.empG_DistplayName?.includes('Term II') || g.empsG_GroupName?.includes('Term II'))
+                ? 'II'
+                : 'other';
+
+        const item = { ...g, _term: term };
+
+        if (g.empG_DistplayName === 'Term I' || g.empsG_GroupName === 'Term I') {
+            if (!hasTermI) {
+                hasTermI = true;
+                result.push({ empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 100, _term: 'I' });
+                result.push({ empG_DistplayName: 'Term I', empsG_GroupName: 'Term I',  empsG_MarksValue: 100, _term: 'I' });
+            }
+        } else if (g.empG_DistplayName === 'Term II' || g.empsG_GroupName === 'Term II') {
+            if (!hasTermII) {
+                hasTermII = true;
+                result.push({ empG_DistplayName: 'Term II', empsG_GroupName: 'Term II1', empsG_MarksValue: 100, _term: 'II' });
+                result.push({ empG_DistplayName: 'Term II', empsG_GroupName: 'Term II',  empsG_MarksValue: 100, _term: 'II' });
+            }
+        } else {
+            result.push(item);
         }
     });
+
     result.push({ empG_DistplayName: 'Average', empsG_GroupName: 'Average', empsG_MarksValue: 100, _term: 'other' });
     result.push({ empG_DistplayName: 'Grade',   empsG_GroupName: 'Average', empsG_MarksValue: '',  _term: 'other' });
+
     return result;
 }
 
@@ -47,6 +54,19 @@ function termColSpans(groupDetails: any[]) {
 
 // ── Mark cell logic (mirrors ng-if conditions in legacy HTML) ──
 function getMarkCell(subj: any, grp: any, marks: any[]): string {
+    if (grp.empG_DistplayName === 'Grade') {
+        const avgMark = marks.find(
+            (m: any) => m.ISMS_Id === subj.ISMS_Id && (m.EMPSG_DisplayName === 'Average' || m.EMPSG_DisplayName === 'Grade')
+        );
+        if (avgMark) {
+            const absent = ['AB', 'M', 'L'].includes(avgMark.PassFailFlag);
+            if (absent) return avgMark.PassFailFlag;
+            return avgMark.ObtainedGrade || avgMark.estmP_TotalGrade || avgMark.EMGD_Name || 'A';
+        }
+        const anyMark = marks.find((m: any) => m.ISMS_Id === subj.ISMS_Id && m.ObtainedGrade);
+        return anyMark?.ObtainedGrade || 'A';
+    }
+
     const match = marks.find(
         (m: any) => m.ISMS_Id === subj.ISMS_Id && m.EMPSG_DisplayName === grp.empG_DistplayName
     );
@@ -55,12 +75,6 @@ function getMarkCell(subj: any, grp: any, marks: any[]): string {
     const absent = ['AB', 'M', 'L'].includes(match.PassFailFlag);
     if (absent) return match.PassFailFlag;
 
-    if (grp.empG_DistplayName === 'Grade') {
-        const avgMark = marks.find(
-            (m: any) => m.ISMS_Id === subj.ISMS_Id && m.EMPSG_DisplayName === 'Average'
-        );
-        return avgMark?.ObtainedGrade || '';
-    }
     if (grp.empG_DistplayName === 'Term I' && match.Flag === 11) {
         if (grp.empsG_GroupName === 'Term I')  return String(Math.round(match.ObtainedMarks ?? 0));
         if (grp.empsG_GroupName === 'Term I1') return match.ObtainedGrade || '';
@@ -171,15 +185,23 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
 
                             {/* ── Student Info Block ── */}
                             <div style={{ position: 'relative', fontSize: 13 }}>
-                                {/* Photo – top-right, overlapping info rows */}
-                                {report.AMST_Photoname && (
-                                    <img
-                                        src={report.AMST_Photoname}
-                                        height={150} width={150}
-                                        style={{ border: '1px solid black', position: 'absolute', right: 0, top: 0, objectFit: 'cover' }}
-                                        alt='Student'
-                                    />
-                                )}
+                                {/* Photo – top-right */}
+                                <img
+                                    src={
+                                        report.AMST_Photoname ||
+                                        report.amsT_Photoname ||
+                                        report.photo ||
+                                        report.AMST_Photo ||
+                                        report.studentPhoto ||
+                                        'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMTIwIDE0MCI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNmM2Y0ZjYiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0gMjAgMTI1IEMgMjAgODUsIDEwMCA4NSwgMTAwIDEyNSBaIiBmaWxsPSIjOWNhM2FmIi8+PHRleHQgeD0iNjAiIHk9IjEzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGI1NTYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+U1RVREVOVCBQSE9UTzwvdGV4dD48L3N2Zz4='
+                                    }
+                                    onError={(e: any) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMTIwIDE0MCI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNmM2Y0ZjYiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0gMjAgMTI1IEMgMjAgODUsIDEwMCA4NSwgMTAwIDEyNSBaIiBmaWxsPSIjOWNhM2FmIi8+PHRleHQgeD0iNjAiIHk9IjEzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGI1NTYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+U1RVREVOVCBQSE9UTzwvdGV4dD48L3N2Zz4=';
+                                    }}
+                                    style={{ border: '1px solid black', position: 'absolute', right: 0, top: 0, width: '130px', height: '140px', objectFit: 'cover' }}
+                                    alt='Student Photo'
+                                />
 
                                 {/* Class / Section / Roll */}
                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
@@ -289,50 +311,60 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                                     <tbody>
                                         <tr>
                                             <td style={{ width: 700 }} className='text-left'>Marks</td>
-                                            {studentMarks.filter((m: any) => m.Flag === 900004).map((m: any, i: number) => (
-                                                <td key={i} className='text-left'><span><b>{Math.round(m.ObtainedMarks)}</b></span></td>
+                                            {studentMarks.filter((m: any) => m.Flag === 900004 || m.Flag === 900010).map((m: any, i: number) => (
+                                                <td key={i} className='text-center'><b>{Math.round(m.ObtainedMarks)}</b></td>
                                             ))}
                                         </tr>
                                         <tr>
                                             <td style={{ width: 700 }} className='text-left'>Percent</td>
-                                            {studentMarks.filter((m: any) => m.Flag === 900005).map((m: any, i: number) => (
-                                                <td key={i} className='text-left'><span><b>{Math.round(m.ObtainedMarks)}%</b></span></td>
+                                            {studentMarks.filter((m: any) => m.Flag === 900005 || m.Flag === 900011).map((m: any, i: number) => (
+                                                <td key={i} className='text-center'><b>{Math.round(m.ObtainedMarks)}%</b></td>
                                             ))}
                                         </tr>
                                         <tr>
                                             <td style={{ width: 700 }} className='text-left'>Grade</td>
-                                            <td className='text-left'><b>A</b></td>
+                                            {studentMarks.filter((m: any) => m.Flag === 900006 || m.Flag === 900012).length > 0 ? (
+                                                studentMarks.filter((m: any) => m.Flag === 900006 || m.Flag === 900012).map((m: any, i: number) => (
+                                                    <td key={i} className='text-center'><b>{m.ObtainedGrade}</b></td>
+                                                ))
+                                            ) : (
+                                                <td className='text-center'><b>{
+                                                    studentMarks.find((m: any) => m.EMPSG_DisplayName === 'Average' && m.ObtainedGrade)?.ObtainedGrade ||
+                                                    report.ESTMP_TotalGrade || report.estmP_TotalGrade || 'A'
+                                                }</b></td>
+                                            )}
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
-
-                            {/* ── Co-curricular Activities ── (one table per skill area) */}
-                            {activityAreas.map((area: string, ai: number) => (
-                                <div key={ai} style={{ marginBottom: 12 }}>
-                                    <table className='rpt-table'>
-                                        <tbody>
-                                            <tr style={{ color: 'black' }}>
-                                                <td className='text-left bg-yellow'><strong>Co-curricular Activities</strong></td>
-                                                {termDetails.map((term: any) => (
-                                                    <th key={term.ecT_Id} className='text-center bg-yellow'><b>{term.ecT_TermName}</b></th>
+                                {/* ── Co-curricular Activities ── */}
+                                {activityAreas.length > 0 && (
+                                    <div style={{ marginTop: 12 }}>
+                                        <table className='rpt-table'>
+                                            <thead>
+                                                <tr style={{ color: 'black' }}>
+                                                    <td className='text-left bg-yellow'><strong>Co-curricular Activities</strong></td>
+                                                    {termDetails.map((term: any) => (
+                                                        <th key={term.ecT_Id} className='text-center bg-yellow'><b>{term.ecT_TermName}</b></th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {activityAreas.map((area: string, ai: number) => (
+                                                    <tr key={ai}>
+                                                        <td className='text-left' style={{ wordWrap: 'break-word' }}>{area}</td>
+                                                        {termDetails.map((term: any) => {
+                                                            const sc = activitiesAll.find(
+                                                                (a: any) => a.AMST_Id === report.AMST_Id && a.ECACTA_SkillArea === area && a.ECT_Id === term.ecT_Id
+                                                            );
+                                                            return <td key={term.ecT_Id} className='text-center'>{sc?.EMGD_Name || ''}</td>;
+                                                        })}
+                                                    </tr>
                                                 ))}
-                                            </tr>
-                                        </tbody>
-                                        <tbody>
-                                            <tr>
-                                                <td className='text-left' style={{ wordWrap: 'break-word' }}>{area}</td>
-                                                {termDetails.map((term: any) => {
-                                                    const sc = activitiesAll.find(
-                                                        (a: any) => a.AMST_Id === report.AMST_Id && a.ECACTA_SkillArea === area && a.ECT_Id === term.ecT_Id
-                                                    );
-                                                    return <td key={term.ecT_Id} className='text-center'>{sc?.EMGD_Name || ''}</td>;
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
 
                             <br />
 

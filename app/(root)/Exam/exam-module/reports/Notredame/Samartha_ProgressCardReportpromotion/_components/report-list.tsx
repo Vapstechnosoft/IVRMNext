@@ -8,32 +8,39 @@ interface Props { data: any; }
 
 // ── Group-column builder (mirrors legacy AngularJS logic exactly) ──
 function buildGroupDetails(rawGroups: any[]): any[] {
-    const result: any[] = [...rawGroups];
+    const result: any[] = [];
+    let hasTermI = false;
+    let hasTermII = false;
 
-    for (let i = result.length - 1; i >= 0; i--) {
-        if (result[i].empG_GroupName === 'Anual Exam') {
-            result.splice(i + 1, 0,
-                { empG_DistplayName: 'Term II', empsG_GroupName: 'Term II1', empsG_MarksValue: 100, _term: 'II' },
-                { empG_DistplayName: 'Term II', empsG_GroupName: 'Term II',  empsG_MarksValue: 100, _term: 'II' }
-            );
-        }
-        if (result[i].empG_GroupName === 'Half Yearly') {
-            result.splice(i + 1, 0,
-                { empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 100, _term: 'I' },
-                { empG_DistplayName: 'Term I', empsG_GroupName: 'Term I',  empsG_MarksValue: 100, _term: 'I' }
-            );
-        }
-    }
-    // Tag original groups with their term
-    result.forEach(g => {
-        if (!g._term) {
-            if (g.empG_GroupName === 'Half Yearly') g._term = 'I';
-            else if (g.empG_GroupName === 'Anual Exam') g._term = 'II';
-            else g._term = 'other';
+    rawGroups.forEach(g => {
+        const term = (g.empG_GroupName === 'Half Yearly' || g.empG_DistplayName?.includes('Term I') || g.empsG_GroupName?.includes('Term I'))
+            ? 'I'
+            : (g.empG_GroupName === 'Anual Exam' || g.empG_DistplayName?.includes('Term II') || g.empsG_GroupName?.includes('Term II'))
+                ? 'II'
+                : 'other';
+
+        const item = { ...g, _term: term };
+
+        if (g.empG_DistplayName === 'Term I' || g.empsG_GroupName === 'Term I') {
+            if (!hasTermI) {
+                hasTermI = true;
+                result.push({ empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 100, _term: 'I' });
+                result.push({ empG_DistplayName: 'Term I', empsG_GroupName: 'Term I',  empsG_MarksValue: 100, _term: 'I' });
+            }
+        } else if (g.empG_DistplayName === 'Term II' || g.empsG_GroupName === 'Term II') {
+            if (!hasTermII) {
+                hasTermII = true;
+                result.push({ empG_DistplayName: 'Term II', empsG_GroupName: 'Term II1', empsG_MarksValue: 100, _term: 'II' });
+                result.push({ empG_DistplayName: 'Term II', empsG_GroupName: 'Term II',  empsG_MarksValue: 100, _term: 'II' });
+            }
+        } else {
+            result.push(item);
         }
     });
+
     result.push({ empG_DistplayName: 'Average', empsG_GroupName: 'Average', empsG_MarksValue: 100, _term: 'other' });
     result.push({ empG_DistplayName: 'Grade',   empsG_GroupName: 'Average', empsG_MarksValue: '',  _term: 'other' });
+
     return result;
 }
 
@@ -47,6 +54,19 @@ function termColSpans(groupDetails: any[]) {
 
 // ── Mark cell logic (mirrors ng-if conditions in legacy HTML) ──
 function getMarkCell(subj: any, grp: any, marks: any[]): string {
+    if (grp.empG_DistplayName === 'Grade') {
+        const avgMark = marks.find(
+            (m: any) => m.ISMS_Id === subj.ISMS_Id && (m.EMPSG_DisplayName === 'Average' || m.EMPSG_DisplayName === 'Grade')
+        );
+        if (avgMark) {
+            const absent = ['AB', 'M', 'L'].includes(avgMark.PassFailFlag);
+            if (absent) return avgMark.PassFailFlag;
+            return avgMark.ObtainedGrade || avgMark.estmP_TotalGrade || avgMark.EMGD_Name || 'A';
+        }
+        const anyMark = marks.find((m: any) => m.ISMS_Id === subj.ISMS_Id && m.ObtainedGrade);
+        return anyMark?.ObtainedGrade || 'A';
+    }
+
     const match = marks.find(
         (m: any) => m.ISMS_Id === subj.ISMS_Id && m.EMPSG_DisplayName === grp.empG_DistplayName
     );
@@ -55,12 +75,6 @@ function getMarkCell(subj: any, grp: any, marks: any[]): string {
     const absent = ['AB', 'M', 'L'].includes(match.PassFailFlag);
     if (absent) return match.PassFailFlag;
 
-    if (grp.empG_DistplayName === 'Grade') {
-        const avgMark = marks.find(
-            (m: any) => m.ISMS_Id === subj.ISMS_Id && m.EMPSG_DisplayName === 'Average'
-        );
-        return avgMark?.ObtainedGrade || '';
-    }
     if (grp.empG_DistplayName === 'Term I' && match.Flag === 11) {
         if (grp.empsG_GroupName === 'Term I')  return String(Math.round(match.ObtainedMarks ?? 0));
         if (grp.empsG_GroupName === 'Term I1') return match.ObtainedGrade || '';
@@ -229,14 +243,23 @@ export default function SamarthaProgressCardReportPromotionView({ data }: Props)
                                 </div>
 
                                 {/* Column 3 (Photo) */}
-                                <div style={{ flex: 0.5, textAlign: 'center' }}>
-                                    {report.AMST_Photoname && (
-                                        <img
-                                            src={report.AMST_Photoname}
-                                            style={{ width: '120px', height: '140px', border: '2px solid #555', borderRadius: '8px', objectFit: 'cover' }}
-                                            alt='Student'
-                                        />
-                                    )}
+                                <div style={{ flex: 0.5, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <img
+                                        src={
+                                            report.AMST_Photoname ||
+                                            report.amsT_Photoname ||
+                                            report.photo ||
+                                            report.AMST_Photo ||
+                                            report.studentPhoto ||
+                                            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMTIwIDE0MCI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNmM2Y0ZjYiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0gMjAgMTI1IEMgMjAgODUsIDEwMCA4NSwgMTAwIDEyNSBaIiBmaWxsPSIjOWNhM2FmIi8+PHRleHQgeD0iNjAiIHk9IjEzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGI1NTYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+U1RVREVOVCBQSE9UTzwvdGV4dD48L3N2Zz4='
+                                        }
+                                        onError={(e: any) => {
+                                            e.target.onerror = null;
+                                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMTIwIDE0MCI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiNmM2Y0ZjYiIHN0cm9rZT0iIzMzMzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0gMjAgMTI1IEMgMjAgODUsIDEwMCA4NSwgMTAwIDEyNSBaIiBmaWxsPSIjOWNhM2FmIi8+PHRleHQgeD0iNjAiIHk9IjEzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGI1NTYzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+U1RVREVOVCBQSE9UTzwvdGV4dD48L3N2Zz4=';
+                                        }}
+                                        style={{ width: '120px', height: '140px', border: '1px solid #000', objectFit: 'cover' }}
+                                        alt='Student Photo'
+                                    />
                                 </div>
                             </div>
 
@@ -339,12 +362,13 @@ export default function SamarthaProgressCardReportPromotionView({ data }: Props)
                             </div>
 
                             {/* ── Co-curricular Activities ── */}
-                            {activityGroups.map((group: any, gi: number) => {
-                                const groupSkills = activitiesAll.filter((a: any) => a.AMST_Id === report.AMST_Id && a.ECACT_Id === group.ECACT_Id);
-                                const uniqueSkillAreas = Array.from(new Set(groupSkills.map(s => s.ECACTA_SkillArea)));
+                            {(() => {
+                                const studentActivities = activitiesAll.filter((a: any) => a.AMST_Id === report.AMST_Id);
+                                const uniqueSkillAreas = Array.from(new Set(studentActivities.map((s: any) => s.ECACTA_SkillArea))).filter(Boolean);
+                                if (uniqueSkillAreas.length === 0) return null;
 
                                 return (
-                                    <div key={gi} style={{ marginBottom: 12 }}>
+                                    <div style={{ marginBottom: 12 }}>
                                         <table className='rpt-table'>
                                             <thead>
                                                 <tr style={{ color: 'black' }}>
@@ -359,7 +383,7 @@ export default function SamarthaProgressCardReportPromotionView({ data }: Props)
                                                     <tr key={ai}>
                                                         <td className='text-left'>{area}</td>
                                                         {termDetails.map((term: any) => {
-                                                            const match = groupSkills.find(s => s.ECACTA_SkillArea === area && s.ECT_Id === term.ecT_Id);
+                                                            const match = studentActivities.find((s: any) => s.ECACTA_SkillArea === area && s.ECT_Id === term.ecT_Id);
                                                             return (
                                                                 <td key={term.ecT_Id} className='text-center'>
                                                                     {match ? (isAI(area) ? match.ECSACTT_Score : match.EMGD_Name) : ''}
@@ -372,7 +396,7 @@ export default function SamarthaProgressCardReportPromotionView({ data }: Props)
                                         </table>
                                     </div>
                                 );
-                            })}
+                            })()}
 
                             <br />
 

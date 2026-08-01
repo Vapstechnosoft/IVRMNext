@@ -968,3 +968,24 @@ export const finalPromReportChinmayI_IXSchema = z.object({
     reopen_date: z.string().min(1, 'Reopen Date is required'),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
+
+export const tbs_reportIXtoXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+});
+
+export type TBSReportIXtoXSchema = z.infer<typeof tbs_reportIXtoXSchema>;
+
+export const multipleProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedExams: z.array(z.string()).min(1, 'Select at least one exam'),
+    showAttendance: z.boolean().default(true),
+});
+
+export type MultipleProgressCardReportSchema = z.infer<typeof multipleProgressCardReportSchema>;
+
+
