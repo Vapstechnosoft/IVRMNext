@@ -72,6 +72,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
         // Filter out duplicates
         const newPages = pagesToAdd.filter(p => !cartPages.some(cp => cp.ivrmP_Id === p.ivrmP_Id));
         setCartPages(prev => [...prev, ...newPages]);
+        console.log("cartPages : ", cartPages);
         // Ideally remove from available? Or just keep? 
         // Logic: Move from Available to Cart usually visually removes from Available.
         setAvailablePages(prev => prev.filter(p => !newPages.some(np => np.ivrmP_Id === p.ivrmP_Id)));
@@ -103,6 +104,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
             ivrmM_Id: selectedModuleId,
             pages: cartPages
         };
+        console.log('mapping page to module payload', payload);
         const res = await savePageMapping(payload);
         if (res.success) {
             toast.success(res.message);

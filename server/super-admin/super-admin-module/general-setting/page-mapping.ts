@@ -98,17 +98,20 @@ export async function savePageMapping(data: any) {
         return { success: false, message: 'Validation failed' };
     }
 
+    const ivrmmpId = data.ivrmmP_Id ?? data.IVRMMP_Id ?? 0;
+
     const payload = {
-        IVRMMP_Id: 0,
+        IVRMMP_Id: ivrmmpId,
         IVRMM_Id: data.ivrmM_Id,
         savetmpdata: data.pages.map((p: any) => ({
             IVRMP_Id: p.ivrmP_Id
         }))
     };
 
-    const response = await api.post<any>('sadmin', 'MasterPageModuleMappingFacade/master_module_map_save/1241', payload);
+    const response = await api.post<any>('sadmin', `MasterPageModuleMappingFacade/master_module_map_save/${ivrmmpId}`, payload);
 
     if (response.success) {
+        revalidatePath('/SuperAdmin/super-admin-module/general-setting/page-mapping');
         return { success: true, message: 'Mapping saved successfully' };
     }
     return { success: false, message: response.message || 'Failed to save' };

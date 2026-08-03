@@ -66,10 +66,10 @@ export async function getMainMenuDropdown(mi_id: number, ivrmm_id: number) {
     }
 }
 
-export async function getSubMenuDropdown(mi_id: number, ivrmmm_id: number) {
+export async function getSubMenuDropdown(mi_id: number, ivrmm_id: number) {
     try {
         // ivrmmm_id here is the Main Menu ID
-        const url = `${FACADE}/get_submenu_drop_down/${mi_id}/${ivrmmm_id}`;
+        const url = `${FACADE}/get_submenu_drop_down/${mi_id}/${ivrmm_id}`;
 
         const response = await api.get<SubMenuDTO[]>(API_KEY, url);
 

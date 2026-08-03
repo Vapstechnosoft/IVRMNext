@@ -15,16 +15,24 @@ export async function getOnLoadData(searchParams: any) {
         const response = await api.get<any>('sadmin', url);
 
         if (response.success && response.data) {
-            const records = response.data.records || [];
+            const rawData = response.data;
+            const records = Array.isArray(rawData)
+                ? rawData
+                : (rawData.records || rawData.GridDetails || rawData.grid1 || []);
+
+            const mappedRecords = records.map((item: any) => ({
+                ...item,
+                ivrmmmpM_Id: item.ivrmmmpM_Id ?? item.IVRMMMPM_Id ?? item.ivrmMMPM_Id ?? item.id ?? 0,
+                submenuname: item.submenuname ?? item.IVRMMM_MenuName ?? item.ivrmmM_MenuName ?? item.subMenuName ?? item.IVRMMS_SubMenuName ?? '',
+                modulename: item.modulename ?? item.IVRMM_ModuleName ?? item.ivrmM_ModuleName ?? item.moduleName ?? '',
+                pagename: item.pagename ?? item.IVRMP_PageName ?? item.ivrmP_PageName ?? item.pageName ?? item.ivrmmP_PageName ?? ''
+            }));
+
             return {
                 success: true,
                 message: response.message,
-                data: {
-                    GridDetails: records,
-                    modulename: [],
-                    pages: []
-                },
-                total: response.total || records.length,
+                data: mappedRecords,
+                total: response.total ?? response.data?.total ?? records.length,
                 page: response.page || page,
                 pageSize: response.page_size || pageSize
             };
@@ -33,7 +41,7 @@ export async function getOnLoadData(searchParams: any) {
         return {
             success: false,
             message: response.message || "Failed to fetch data",
-            data: { GridDetails: [], modulename: [], pages: [] },
+            data: [],
             total: 0
         };
     } catch (error) {
@@ -41,7 +49,7 @@ export async function getOnLoadData(searchParams: any) {
         return {
             success: false,
             message: "Failed to fetch data",
-            data: { GridDetails: [], modulename: [], pages: [] },
+            data: [],
             total: 0
         };
     }

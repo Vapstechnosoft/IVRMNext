@@ -75,7 +75,7 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
     useEffect(() => {
         if (Number(selectedSubMenuId) > 0) {
             setIsLoading(true);
-            getMasterPagesOnChangeSubMenu(Number(selectedSubMenuId)).then(res => {
+            getMasterPagesOnChangeSubMenu(Number(selectedModuleId)).then(res => {
                 if (res.success && res.data) {
                     setMasterPages(res.data);
                 } else {

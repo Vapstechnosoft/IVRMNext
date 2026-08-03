@@ -62,11 +62,12 @@ function MasterMenuPageMappingPageContent() {
 
         Promise.all([gridPromise, modulePromise]).then(([gridRes, moduleRes]) => {
             if (gridRes.success) {
-                setData(gridRes.data.GridDetails || []);
-                // If API returns pages in onload, keep it, else it might be another call. 
-                // User only gave Module Dropdown API.
-                setPages(gridRes.data.pages || []);
-                setTotalItems(gridRes.total || 0);
+                const listData = Array.isArray(gridRes.data)
+                    ? gridRes.data
+                    : (gridRes.data?.GridDetails || gridRes.data?.records || []);
+                setData(listData);
+                setPages(gridRes.data?.pages || []);
+                setTotalItems(gridRes.total || listData.length);
             }
 
             if (moduleRes.success) {
