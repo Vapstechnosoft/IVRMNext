@@ -29,6 +29,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
     }
 
     const { getgroupdetails = [], groupwiseexamlist = [], studentdetails = [] } = data;
+    const EMPG_GroupName = data.EMPG_GroupName || data.empG_GroupName || '';
 
     // Helper to format Date
     const formatDate = (date: any) => {
@@ -803,6 +804,24 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                                     const att = findAverageAttendance();
                                                     return att ? <span>{att.TOTALAttendancePercentage ?? att.percentage}%</span> : '-';
                                                 })()}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Suggestion Box */}
+                            <div className="pt-2">
+                                <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                    <tbody>
+                                        <tr>
+                                            <th className="border border-black bg-[#d1d5db] p-2 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                {EMPG_GroupName || 'SEMESTER 1'}
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black p-2 text-left font-semibold font-sans min-h-[40px] uppercase">
+                                                Suggestion : {student.suggestions?.[0] || ''}
                                             </td>
                                         </tr>
                                     </tbody>

@@ -9,7 +9,7 @@ import { addOrUpdateMasterClassYearlyCategory, getGroupListCategory } from '@/se
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 type FormFields = {
@@ -37,6 +37,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         reset,
         setValue,
         watch,
+        control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassYearlyCategorySchema.addOrUpdate),
@@ -48,8 +49,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         }
     });
 
-    const academicYear = watch('academicYear');
-    const classCategory = watch('classCategory');
+    // const academicYear = watch('academicYear');
+    // const classCategory = watch('classCategory');
     const classesValue = watch('classes');
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -80,8 +81,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             setAcademicYearOptions([]);
         }
     }, [academicData, academicError]);
-
     useEffect(() => {
+        const academicYear = watch('academicYear');
         if (!academicYear) {
             setClassCategoryOptions([]);
             setValue('classCategory', '', { shouldValidate: true });
@@ -105,9 +106,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         } else {
             setClassCategoryOptions([]);
         }
-    }, [academicYear, categoryData, categoryError, setValue]);
+    }, [watch('academicYear'), categoryData, categoryError, setValue]);
 
     useEffect(() => {
+        const academicYear = watch('academicYear');
+        const classCategory = watch('classCategory');
         const fetchClasses = async () => {
             if (!academicYear || !classCategory) {
                 setClassOptions([]);
@@ -131,9 +134,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 setClassOptions([]);
             }
         };
-
         fetchClasses();
-    }, [academicYear, classCategory]);
+    }, [watch('academicYear'), watch('classCategory')]);
 
     const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -193,7 +195,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            academicYear: '',
+            classCategory: '',
+            classes: []
+        });
         setSelectedClasses([]);
         setSearchTerm('');
         setClassCategoryOptions([]);
@@ -212,7 +218,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         {/* Academic Year */}
                         <div>
-                            <Label htmlFor='academicYear'>
+                            {/* <Label htmlFor='academicYear'>
                                 Academic Year <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Select
@@ -231,19 +237,43 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
+                            <Label className='min-w-[150px] text-right'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='academicYear'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        key={field.value ?? 'empty'}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value !== undefined ? String(field.value) : ''}>
+                                        <SelectTrigger className='min-w-[400px]'>
+                                            <SelectValue placeholder='Select Academic Year' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {academicYearOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
                         </div>
 
                         {/* Class Category */}
                         <div>
-                            <Label htmlFor='classCategory'>
+                            {/* <Label htmlFor='classCategory'>
                                 Class Category <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Select
                                 onValueChange={(value) => setValue('classCategory', value, { shouldValidate: true })}
                                 value={classCategory}
-                                disabled={!academicYear || isLoadingDropdowns}>
+                                disabled={!watch('academicYear') || isLoadingDropdowns}>
                                 <SelectTrigger
                                     id='classCategory'
                                     className={`transition-colors ${errors.classCategory ? 'border-red-500' : ''}`}>
@@ -256,7 +286,31 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
+                            <Label className='min-w-[150px] text-right'>
+                                Class Category <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='classCategory'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        key={field.value ?? 'empty'}
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value !== undefined ? String(field.value) : ''}>
+                                        <SelectTrigger className='min-w-[400px]'>
+                                            <SelectValue placeholder='Select Class Category' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {classCategoryOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {hasSubmitted && errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
                         </div>
 
@@ -272,7 +326,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    disabled={!academicYear}
+                                    disabled={!watch('academicYear')}
                                 />
                                 <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
                                     {filteredClassOptions.length > 0 ? (
@@ -292,7 +346,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         ))
                                     ) : (
                                         <span className='text-gray-400 text-sm'>
-                                            {academicYear ? 'No classes found' : 'Select Academic Year first'}
+                                            {watch('academicYear') ? 'No classes found' : 'Select Academic Year first'}
                                         </span>
                                     )}
                                 </div>
@@ -315,7 +369,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isLoadingDropdowns || !academicYear || !classCategory || selectedClasses.length === 0}
+                        disabled={
+                            isSubmitting ||
+                            isLoadingDropdowns ||
+                            !watch('academicYear') ||
+                            !watch('classCategory') ||
+                            selectedClasses.length === 0
+                        }
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />

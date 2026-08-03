@@ -1,6 +1,4 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBookRegister, useBookRegisterInitialData } from '@/hooks/library/useBookRegister';
 import { bookRegisterSchema } from '@/schemas/library/bookRegister';
@@ -20,59 +18,63 @@ function normalizeBookData(data: any): BookRegisterPayload {
     return {
         lmB_Id: data.lmB_Id || data.LMB_Id || data.lmb_Id ? Number(data.lmB_Id || data.LMB_Id || data.lmb_Id) : undefined,
         mI_Id: data.mI_Id || data.MI_Id ? Number(data.mI_Id || data.MI_Id) : undefined,
-        lmB_BookTitle: data.lmB_BookTitle || data.LMB_BookTitle || "",
-        mB_Subtitle: data.mB_Subtitle || data.MB_Subtitle || "",
+        lmB_BookTitle: data.lmB_BookTitle || data.LMB_BookTitle || '',
+        mB_Subtitle: data.mB_Subtitle || data.MB_Subtitle || '',
         lmC_Id: Number(data.lmC_Id || data.LMC_Id || data.lmc_Id || 0),
-        lmB_BookType: data.lmB_BookType || data.LMB_BookType || "",
+        lmB_BookType: data.lmB_BookType || data.LMB_BookType || '',
         lmS_Id: Number(data.lmS_Id || data.LMS_Id || data.lms_Id || 0),
         lmD_Id: Number(data.lmD_Id || data.LMD_Id || data.lmd_Id || 0),
-        binding_Type: data.binding_Type || data.Binding_Type || "",
-        lmB_Edition: data.lmB_Edition || data.LMB_Edition || "",
-        lmB_PublishedYear: data.lmB_PublishedYear || data.LMB_PublishedYear || "",
+        binding_Type: data.binding_Type || data.Binding_Type || '',
+        lmB_Edition: data.lmB_Edition || data.LMB_Edition || '',
+        lmB_PublishedYear: data.lmB_PublishedYear || data.LMB_PublishedYear || '',
         lmB_EntryDate: data.lmB_EntryDate || data.LMB_EntryDate ? new Date(data.lmB_EntryDate || data.LMB_EntryDate) : new Date(),
-        mB_Call_No: data.mB_Call_No || data.MB_Call_No || "",
-        lmB_ISBNNo: data.lmB_ISBNNo || data.LMB_ISBNNo || "",
-        lmB_ClassNo: data.lmB_ClassNo || data.LMB_ClassNo || "",
-        lmB_VolNo: data.lmB_VolNo || data.LMB_VolNo || "",
+        mB_Call_No: data.mB_Call_No || data.MB_Call_No || '',
+        lmB_ISBNNo: data.lmB_ISBNNo || data.LMB_ISBNNo || '',
+        lmB_ClassNo: data.lmB_ClassNo || data.LMB_ClassNo || '',
+        lmB_VolNo: data.lmB_VolNo || data.LMB_VolNo || '',
         mB_Pages: data.mB_Pages || data.MB_Pages ? Number(data.mB_Pages || data.MB_Pages) : undefined,
-        invoice_No: data.invoice_No || data.Invoice_No || "",
-        lmBkf_KeyFactor: data.lmBkf_KeyFactor || data.LMBKF_KeyFactor || "",
+        invoice_No: data.invoice_No || data.Invoice_No || '',
+        lmBkf_KeyFactor: data.lmBkf_KeyFactor || data.LMBKF_KeyFactor || '',
         lmBkf_PageNo: data.lmBkf_PageNo || data.LMBKF_PageNo ? Number(data.lmBkf_PageNo || data.LMBKF_PageNo) : undefined,
-        lmB_BookNo: data.lmB_BookNo || data.LMB_BookNo || "",
+        lmB_BookNo: data.lmB_BookNo || data.LMB_BookNo || '',
         lmAL_Id: Number(data.lmAL_Id || data.lmaL_Id || data.LMAL_Id || data.lmal_Id || 0),
 
         purchase_Date: data.purchase_Date || data.Purchase_Date ? new Date(data.purchase_Date || data.Purchase_Date) : new Date(),
         lmL_Id: Number(data.lmL_Id || data.LML_Id || data.lml_Id || 0),
-        lmB_BillNo: data.lmB_BillNo || data.LMB_BillNo || "",
-        voucher_No: data.voucher_No || data.Voucher_No || "",
-        lmB_PurOrDonated: (data.lmB_PurOrDonated === 'Purchased' || data.LMB_PurOrDonated === 'Purchased') ? 'P' :
-                          (data.lmB_PurOrDonated === 'Donated' || data.LMB_PurOrDonated === 'Donated') ? 'D' :
-                          (data.lmB_PurOrDonated === 'Specimen' || data.LMB_PurOrDonated === 'Specimen') ? 'S' :
-                          data.lmB_PurOrDonated || data.LMB_PurOrDonated || "P",
-        donor_Id: data.donor_Id || data.Donor_Id || "",
-        lmB_DonorAddress: data.lmB_DonorAddress || data.LMB_DonorAddress || "",
-        currencyType: data.currencyType || data.CurrencyType || "INR",
-        source_Type: data.source_Type || data.Source_Type || "",
+        lmB_BillNo: data.lmB_BillNo || data.LMB_BillNo || '',
+        voucher_No: data.voucher_No || data.Voucher_No || '',
+        lmB_PurOrDonated:
+            data.lmB_PurOrDonated === 'Purchased' || data.LMB_PurOrDonated === 'Purchased'
+                ? 'P'
+                : data.lmB_PurOrDonated === 'Donated' || data.LMB_PurOrDonated === 'Donated'
+                  ? 'D'
+                  : data.lmB_PurOrDonated === 'Specimen' || data.LMB_PurOrDonated === 'Specimen'
+                    ? 'S'
+                    : data.lmB_PurOrDonated || data.LMB_PurOrDonated || 'P',
+        donor_Id: data.donor_Id || data.Donor_Id || '',
+        lmB_DonorAddress: data.lmB_DonorAddress || data.LMB_DonorAddress || '',
+        currencyType: data.currencyType || data.CurrencyType || 'INR',
+        source_Type: data.source_Type || data.Source_Type || '',
         lmV_Id: Number(data.lmV_Id || data.LMV_Id || data.lmv_Id || 0),
-        mB_Keywords: data.mB_Keywords || data.MB_Keywords || "",
+        mB_Keywords: data.mB_Keywords || data.MB_Keywords || '',
         lmP_Id: Number(data.lmP_Id || data.LMP_Id || data.lmp_Id || 0),
-        mB_Remarks: data.mB_Remarks || data.MB_Remarks || "",
-        bibliography_Page: data.bibliography_Page || data.Bibliography_Page || "",
-        index_Page: data.index_Page || data.Index_Page || "",
+        mB_Remarks: data.mB_Remarks || data.MB_Remarks || '',
+        bibliography_Page: data.bibliography_Page ?? data.Bibliography_Page ?? '',
+        index_Page: data.index_Page ?? data.Index_Page ?? '',
 
         lmAU_Id: Number(data.lmAU_Id || data.LMAU_Id || data.lmau_Id || 0),
-        lmB_AuthorFirstName: data.lmB_AuthorFirstName || data.LMB_AuthorFirstName || "",
-        lmB_AuthorMiddleName: data.lmB_AuthorMiddleName || data.LMB_AuthorMiddleName || "",
-        lmB_AuthorLastName: data.lmB_AuthorLastName || data.LMB_AuthorLastName || "",
+        lmB_AuthorFirstName: data.lmB_AuthorFirstName || data.LMB_AuthorFirstName || '',
+        lmB_AuthorMiddleName: data.lmB_AuthorMiddleName || data.LMB_AuthorMiddleName || '',
+        lmB_AuthorLastName: data.lmB_AuthorLastName || data.LMB_AuthorLastName || '',
 
-        lmbanO_AvialableStatus: data.lmbanO_AvialableStatus || data.LMBANO_AvialableStatus || "Available",
+        lmbanO_AvialableStatus: data.lmbanO_AvialableStatus || data.LMBANO_AvialableStatus || 'Available',
         lRM_Id: Number(data.lRM_Id || data.LRM_Id || data.lrm_Id || 0),
         lSM_Id: Number(data.lSM_Id || data.LSM_Id || data.lsm_Id || 0),
         lRAM_Id: Number(data.lRAM_Id || data.LRAM_Id || data.lram_Id || 0),
         lmrA_Id: Number(data.lmrA_Id || data.LMRA_Id || data.lmra_Id || 0),
 
         lmB_Price: data.lmB_Price || data.LMB_Price ? Number(data.lmB_Price || data.LMB_Price) : undefined,
-        mB_Disc_Type: data.mB_Disc_Type || data.MB_Disc_Type || "",
+        mB_Disc_Type: data.mB_Disc_Type || data.MB_Disc_Type || '',
         mB_Discountper: data.mB_Discountper || data.MB_Discountper ? Number(data.mB_Discountper || data.MB_Discountper) : undefined,
         mB_Discount: data.mB_Discount || data.MB_Discount ? Number(data.mB_Discount || data.MB_Discount) : undefined,
         lmB_NetPrice: data.lmB_NetPrice || data.LMB_NetPrice ? Number(data.lmB_NetPrice || data.LMB_NetPrice) : undefined,
@@ -80,24 +82,24 @@ function normalizeBookData(data: any): BookRegisterPayload {
         with_Accessories: !!(data.with_Accessories || data.With_Accessories),
         lmaC_Id: Number(data.lmaC_Id || data.LMAC_Id || data.lmac_Id || 0),
         mB_ActiveFlag: data.mB_ActiveFlag !== undefined ? !!data.mB_ActiveFlag : !!data.MB_ActiveFlag,
-        lmB_StudentPhoto: data.lmB_StudentPhoto || data.Book_Image || "",
+        lmB_StudentPhoto: data.lmB_StudentPhoto || data.Book_Image || '',
 
-        accessionList: Array.isArray(data.accessionList) 
-            ? data.accessionList 
+        accessionList: Array.isArray(data.accessionList)
+            ? data.accessionList
             : Array.isArray(data.accessionlist)
-            ? data.accessionlist
-            : [
-                {
-                    lmbanO_Id: data.lmbanO_Id || data.LMBANO_Id || data.lmbanO_ID || data.lmbanO_id || undefined,
-                    lmbanO_No: data.lmbanO_AccessionNo || data.lmbanO_No || data.LMBANO_AccessionNo || data.LMBANO_No || '',
-                    lmbanO_AvialableStatus: data.lmbanO_AvialableStatus || data.LMBANO_AvialableStatus || 'Available'
-                }
-              ],
+              ? data.accessionlist
+              : [
+                    {
+                        lmbanO_Id: data.lmbanO_Id || data.LMBANO_Id || data.lmbanO_ID || data.lmbanO_id || undefined,
+                        lmbanO_No: data.lmbanO_AccessionNo || data.lmbanO_No || data.LMBANO_AccessionNo || data.LMBANO_No || '',
+                        lmbanO_AvialableStatus: data.lmbanO_AvialableStatus || data.LMBANO_AvialableStatus || 'Available'
+                    }
+                ],
         attachementList: Array.isArray(data.attachementList)
             ? data.attachementList
             : Array.isArray(data.attachementlist)
-            ? data.attachementlist
-            : [{ lmbA_FileName: '', lmbA_FilePath: '' }]
+              ? data.attachementlist
+              : [{ lmbA_FileName: '', lmbA_FilePath: '' }]
     };
 }
 
@@ -108,16 +110,18 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
 
     const form = useForm<BookRegisterPayload>({
         resolver: zodResolver(bookRegisterSchema.addOrUpdate),
-        defaultValues: initialData ? normalizeBookData(initialData) : {
-            lmB_BookTitle: '',
-            lmB_BookType: '',
-            lmB_EntryDate: new Date(),
-            purchase_Date: new Date(),
-            lmbanO_AvialableStatus: 'Available',
-            with_Accessories: false,
-            accessionList: [{ lmbanO_No: '' }],
-            attachementList: [{ lmbA_FileName: '', lmbA_FilePath: '' }]
-        }
+        defaultValues: initialData
+            ? normalizeBookData(initialData)
+            : {
+                  lmB_BookTitle: '',
+                  lmB_BookType: '',
+                  lmB_EntryDate: new Date(),
+                  purchase_Date: new Date(),
+                  lmbanO_AvialableStatus: 'Available',
+                  with_Accessories: false,
+                  accessionList: [{ lmbanO_No: '' }],
+                  attachementList: [{ lmbA_FileName: '', lmbA_FilePath: '' }]
+              }
     });
 
     useEffect(() => {
@@ -127,7 +131,7 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
     }, [initialData, form]);
 
     const onSubmit = (data: BookRegisterPayload) => {
-        const cleanedAttachments = data.attachementList?.filter(item => !!item.lmbA_FilePath) || [];
+        const cleanedAttachments = data.attachementList?.filter((item) => !!item.lmbA_FilePath) || [];
         const payload = {
             ...data,
             attachementList: cleanedAttachments
@@ -184,7 +188,11 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
                 onSuccess: (res) => {
                     if (res.success) {
                         toast.success(res.message || 'Book details saved successfully');
-                        const savedBookId = (res as any).data?.bookDetails?.lmB_Id || (res as any).data?.bookDetails?.LMB_Id || (res as any).data?.lmB_Id || (res as any).data?.LMB_Id;
+                        const savedBookId =
+                            (res as any).data?.bookDetails?.lmB_Id ||
+                            (res as any).data?.bookDetails?.LMB_Id ||
+                            (res as any).data?.lmB_Id ||
+                            (res as any).data?.LMB_Id;
                         if (savedBookId) {
                             form.setValue('lmB_Id', Number(savedBookId));
                         }
@@ -284,6 +292,7 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
                                 onPrevious={handlePrevious}
                                 onCancel={() => onSuccess()}
                                 onClear={handleClear}
+                                isSaving={saveTable2Mutation.isPending}
                             />
                         </TabsContent>
                         <TabsContent value='authorDetails'>

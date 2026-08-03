@@ -118,7 +118,7 @@ export default function SalaryApprovalPage() {
 
         console.log("payload", payload)
 
-        searchMutation.mutate(payload, {
+        searchMutation.mutate(payload as any, {
             onSuccess: (response) => {
                 console.log("📡 [API RESPONSE] Salary Approval Search Response:", response);
                 const employeeList = response.data || [];

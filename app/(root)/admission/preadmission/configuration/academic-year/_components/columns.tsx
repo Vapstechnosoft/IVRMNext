@@ -4,6 +4,8 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { getPreAdmissionYearEditData } from '@/server/admission/preadmission/configuration/academic_year_master';
 
 const formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
@@ -104,8 +106,19 @@ function ActionButtonsCell({
     const { openEditForm, openToggleForm } = useFormContext<IMasterAcademicYearMasterList>();
 
     const handleEdit = useCallback(
-        (data: IMasterAcademicYearMasterList) => {
-            openEditForm(data);
+        async (data: IMasterAcademicYearMasterList) => {
+            try {
+                const response = (await getPreAdmissionYearEditData(data.asmaY_Id)) as any;
+                if (response.success && response.data?.geteditdetails?.length > 0) {
+                    openEditForm(response.data.geteditdetails[0]);
+                } else if (response.success === false && response.message) {
+                    toast.error(response.message);
+                } else {
+                    openEditForm(data);
+                }
+            } catch (error: any) {
+                toast.error(typeof error === 'string' ? error : error?.message || 'Failed to fetch details');
+            }
         },
         [openEditForm]
     );

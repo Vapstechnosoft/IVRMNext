@@ -383,6 +383,17 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                         }
 
                         if (examId === 9800000) {
+                            if (isGradeOnly) {
+                                if (!mr) return '-';
+                                return mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
+                            }
+                            if (mr) {
+                                const oVal = mr.ObtainedMarks ?? mr.obtainedMarks;
+                                if (oVal !== undefined && oVal !== null && oVal !== '') {
+                                    const maxVal = mr.maxmarks ?? mr.maxMarks ?? mr.max_marks;
+                                    return isSE && maxVal ? `${oVal} / ${maxVal}` : oVal;
+                                }
+                            }
                             const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
                             const isGrouped = subj.GropuFlag === 1 || subj.GropuFlag === '1' || subj.GropuFlag === true || subj.GropuFlag === 'true' ||
                                 subj.gropuFlag === 1 || subj.gropuFlag === '1' || subj.gropuFlag === true || subj.gropuFlag === 'true';
@@ -392,10 +403,6 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 if (tot.obtained === null) return '';
                                 if (tot.obtained.toString() === 'AB') return 'AB';
                                 return isSE ? `${tot.obtained} / ${tot.max}` : tot.obtained;
-                            }
-                            if (isGradeOnly) {
-                                if (!mr) return '-';
-                                return mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
                             }
                             const semTotal = getSubjectSemesterTotal(subj, grpName);
                             if (semTotal.obtained === null) return '';
@@ -409,17 +416,25 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 if (!mr) return '-';
                                 return mr.ESTMPPS_ObtainedGrade ?? mr.estmppS_ObtainedGrade ?? mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
                             }
+                            if (mr) {
+                                const hVal = mr.ESTMPPS_ClassHighest ?? mr.estmppS_ClassHighest;
+                                if (hVal !== undefined && hVal !== null && hVal !== '') {
+                                    return hVal;
+                                }
+                            }
 
                             // Use examwisetotal prop to get highest value
                             if (student.examwisetotal && Array.isArray(student.examwisetotal)) {
                                 const highestRec = student.examwisetotal.find((rec: any) => {
-                                    const recSubjId = rec.ismS_Id;
+                                    const recSubjId = rec.ismS_Id ?? rec.ISMS_Id;
                                     const recExamId = rec.emE_Id ?? rec.EME_Id;
-                                    const recGrpName = rec.empsG_GroupName ?? '';
-                                    return Number(recSubjId) === Number(subjId) && Number(recExamId) === 98000012 && matchTermName(recGrpName, grpName);
+                                    const recGrpName = rec.empsG_GroupName ?? rec.EMPSG_GroupName ?? '';
+                                    return Number(recSubjId) === Number(subjId) &&
+                                        (Number(recExamId) === 98000012 || Number(recExamId) === 9800000) &&
+                                        (!recGrpName || matchTermName(recGrpName, grpName));
                                 });
                                 if (highestRec) {
-                                    const hVal = highestRec.estmppS_ClassHighest;
+                                    const hVal = highestRec.estmppS_ClassHighest ?? highestRec.ESTMPPS_ClassHighest;
                                     if (hVal !== undefined && hVal !== null && !isNaN(Number(hVal))) {
                                         return Number(hVal);
                                     }
@@ -605,6 +620,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                     </tr>
                                 </tbody>
                             </table>
+
 
                             {/* Suggestion Box */}
                             <table className='mb-2 w-full border-collapse border-[1.5px] border-black text-[12px] font-bold'>

@@ -10,14 +10,27 @@ interface LetterTemplateProps {
 
 export function TeachingStaffOfferLetter({ details, formData, setValue }: LetterTemplateProps) {
     if (!details || !details.employeeSalaryslipDetails) return null;
-
+    console.log("letter details", details);
+    console.log("formData", formData);
     const { employeeSalaryslipDetails, institutiondetails } = details;
-    const { currentEmployeeDetails, designationName: apiDesignation } = employeeSalaryslipDetails;
+    const { currentEmployeeDetails, designationName: apiDesignation, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_DOI, hrmeR_DOR, hrmE_DOJ, hrmeR_Current_Date, staffLevel, startingBasic, staffDesignation } = formData;
 
     const designationName = staffDesignation || apiDesignation;
 
     const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+
+    let displayName = fullName
+
+    if (gender === 'MALE' || gender === 'male') {
+        displayName = `Mr. ${fullName}`;
+    } else if (gender === 'FEMALE' || gender === 'female') {
+        if (maritalStatus === 'SINGLE' || maritalStatus === 'Single') {
+            displayName = `Ms. ${fullName}`;
+        } else {
+            displayName = `Mrs. ${fullName}`;
+        }
+    }
 
     // The JSON shows logo might be in salaryDetails
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
@@ -33,7 +46,7 @@ export function TeachingStaffOfferLetter({ details, formData, setValue }: Letter
 
             <div className="flex justify-between mb-8">
                 <div className="space-y-1">
-                    <p className="font-bold">{fullName},</p>
+                    <p className="font-bold">{displayName},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p>
@@ -45,7 +58,7 @@ export function TeachingStaffOfferLetter({ details, formData, setValue }: Letter
 
             <h3 className="text-center font-bold underline mb-6">OFFER LETTER</h3>
 
-            <p className="mb-4">Dear {fullName},</p>
+            <p className="mb-4">Dear {displayName},</p>
 
             <p className="mb-4 text-justify">
                 Further to your interview held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, I am pleased to inform you that you have been selected for appointment as {designationName} in this School w.e.f <span className="font-bold">{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.

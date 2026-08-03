@@ -44,10 +44,13 @@ export default function CountStatusReport() {
 
         getReportData(payload, {
             onSuccess: (res: any) => {
-                if (res?.countreportstatus?.length > 0 || res?.applicationstatus?.length > 0) {
-                    setAdmissionData(res.countreportstatus || []);
+                const countReportStatus = res?.data?.countreportstatus || res?.countreportstatus || [];
+                const applicationStatus = res?.data?.applicationstatus || res?.applicationstatus || [];
+
+                if (countReportStatus.length > 0 || applicationStatus.length > 0) {
+                    setAdmissionData(countReportStatus);
                     
-                    const mappedAppStatus = (res.applicationstatus || []).map((item: any) => {
+                    const mappedAppStatus = applicationStatus.map((item: any) => {
                         let statusName = '';
                         if (item.PASRAPS_ID === 787926) statusName = 'APP WAITING';
                         else if (item.PASRAPS_ID === 787927) statusName = 'APP REJECTED';

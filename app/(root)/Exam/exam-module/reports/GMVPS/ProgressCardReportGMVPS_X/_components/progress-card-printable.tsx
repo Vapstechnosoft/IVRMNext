@@ -26,12 +26,15 @@ function PerformanceChart({ studentId, saveList, extraData, onChartReady }: {
         const ctx = canvasRef.current.getContext('2d');
         if (!ctx) return;
 
-        const studentMarks = saveList.filter(m => m.amsT_Id === studentId && m.eyceS_AplResultFlg === true);
+        const studentMarks = saveList.filter(m => 
+            (m.amsT_Id ?? m.AMST_Id ?? m.studentId) === studentId && 
+            (m.eyceS_AplResultFlg === true || m.eyceS_AplResultFlg === 'true')
+        );
         if (studentMarks.length === 0) return;
 
-        const labels = studentMarks.map(m => m.ismS_SubjectName);
-        const studentScores = studentMarks.map(m => m.estmpS_ObtainedMarks);
-        const classAverages = studentMarks.map(m => m.estmpS_ClassAverage);
+        const labels = studentMarks.map(m => m.ismS_SubjectName || m.ISMS_SubjectName || m.subjectName);
+        const studentScores = studentMarks.map(m => m.estmpS_ObtainedMarks ?? m.obtainedMarks ?? m.ObtainedMarks ?? 0);
+        const classAverages = studentMarks.map(m => m.estmpS_ClassAverage ?? m.classAverage ?? m.class_average ?? m.classAverageMarks ?? 0);
 
         const loadChart = async () => {
             const ChartJS = (await import('chart.js/auto')).default;
@@ -94,7 +97,7 @@ function PerformanceChart({ studentId, saveList, extraData, onChartReady }: {
     }, [studentId, saveList, extraData, onChartReady]);
 
     return (
-        <div style={{ width: '500px', height: '300px', margin: '0 auto' }}>
+        <div className="chart-container-screen" style={{ width: '500px', height: '300px', margin: '0 auto' }}>
             <canvas ref={canvasRef} id={`pieChart${studentId}`} />
         </div>
     );
@@ -152,43 +155,78 @@ export default function ProgressCardPrintView({
                 .margin-top-100 { margin-top: 100px; }
 
                 @media print {
-                    @page {
-                        size: A4 portrait;
-                        margin: 10mm 12mm !important;
-                    }
-                    body * { 
-                        visibility: hidden !important; 
-                    }
-                    #print-area, #print-area * { 
-                        visibility: visible !important; 
-                    }
-                    #print-area { 
-                        position: absolute !important; 
-                        left: 0 !important; 
-                        top: 0 !important; 
-                        width: 100% !important; 
-                        background: white !important;
-                    }
+                    /* Completely hide non-printed elements so they occupy 0px space */
+                    header, footer, nav, form, section:has(form),
+                    [class*="navigation"], [class*="navbar"], [class*="footer"], 
+                    [class*="stability"], [class*="chatbot"], [class*="Toaster"],
                     .no-print { 
                         display: none !important; 
                     }
+                    
+                    body { 
+                        background: white !important; 
+                        -webkit-print-color-adjust: exact;
+                        visibility: hidden !important;
+                    }
+                    
+                    /* Reset flex and layout wrapper margins/paddings on print */
+                    html, body, main, 
+                    body :has(#print-area),
+                    div[class*="flex"], 
+                    div[class*="min-h-screen"],
+                    .flex-1 {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        position: static !important;
+                        overflow: visible !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        box-shadow: none !important;
+                        transform: none !important;
+                        gap: 0 !important;
+                    }
+                    
+                    #print-area,
+                    #print-area * {
+                        visibility: visible !important;
+                    }
+                    
+                    #print-area {
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+                    
                     .page-break { 
                         page-break-before: always !important; 
+                        break-before: page !important;
                     }
-                    canvas { display: none !important; }
+                    
+                    @page { 
+                        size: A4 portrait; 
+                        margin: 15mm 10mm 15mm 10mm; 
+                    }
+                    canvas, .chart-container-screen { display: none !important; }
                     .print-chart-image { display: block !important; }
                 }
             `}</style>
 
             <div id="print-area" className="gmvps-report">
                 {reportData.map((report, idx) => {
-                    const studentMarks = saveList.filter(m => m.amsT_Id === report.amsT_Id && m.eyceS_AplResultFlg === true);
-                    const healthData = (extraData.exammastername || []).find((h: any) => h.AMST_Id === report.amsT_Id);
-                    const workAttend = (extraData.work_attendence || []).find((a: any) => a.AMST_Id === report.amsT_Id);
-                    const presentAttend = (extraData.present_attendence || []).find((a: any) => a.AMST_Id === report.amsT_Id);
+                    const studentID = report.amsT_Id ?? report.AMST_Id ?? report.studentId;
+                    const studentMarks = saveList.filter(m => 
+                        (m.amsT_Id ?? m.AMST_Id ?? m.studentId) === studentID && 
+                        (m.eyceS_AplResultFlg === true || m.eyceS_AplResultFlg === 'true')
+                    );
+                    const healthData = (extraData.exammastername || []).find((h: any) => (h.AMST_Id ?? h.amsT_Id ?? h.studentId) === studentID);
+                    const workAttend = (extraData.work_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId) === studentID);
+                    const presentAttend = (extraData.present_attendence || []).find((a: any) => (a.AMST_Id ?? a.amsT_Id ?? a.studentId) === studentID);
 
                     return (
-                        <div key={report.amsT_Id} className={idx > 0 ? "page-break" : ""}>
+                        <div key={studentID} className={idx > 0 ? "page-break" : ""}>
                             {/* Header Image */}
                             <div className="text-center">
                                 <img
@@ -204,37 +242,37 @@ export default function ProgressCardPrintView({
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Name</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{report.amsT_FirstName}</div>
+                                        <div className="font-bold">{report.amsT_FirstName || report.studentName || report.studentname}</div>
                                     </div>
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Admission No</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{report.amsT_AdmNo}</div>
+                                        <div className="font-bold">{report.amsT_AdmNo || report.admissionNo || report.admNo || report.admno}</div>
                                     </div>
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Class & Section</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{report.asmcL_ClassName} - {report.asmC_SectionName}</div>
+                                        <div className="font-bold">{report.asmcL_ClassName || report.className || ''} - {report.asmC_SectionName || report.sectionName || ''}</div>
                                     </div>
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Date of Birth</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{formatDate(report.amsT_DOB)}</div>
+                                        <div className="font-bold">{formatDate(report.amsT_DOB || report.dob)}</div>
                                     </div>
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Mother's Name</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{report.amsT_MotherName}</div>
+                                        <div className="font-bold">{report.amsT_MotherName || report.motherName || report.mothername}</div>
                                     </div>
                                     <div className="flex py-1">
                                         <div style={{ width: '150px' }} className="font-bold">Father's Name</div>
                                         <div style={{ width: '20px' }}>:</div>
-                                        <div className="font-bold">{report.amsT_FatherName}</div>
+                                        <div className="font-bold">{report.amsT_FatherName || report.fatherName || report.fathername}</div>
                                     </div>
                                 </div>
                                 <div style={{ flex: 1 }} className="text-right">
                                     <img
-                                        src={report.amsT_Photoname || "/placeholder-user.png"}
+                                        src={report.amsT_Photoname || report.photo || "/placeholder-user.png"}
                                         alt="Student"
                                         style={{ width: '140px', height: '140px', border: '1px solid #ddd' }}
                                     />
@@ -265,22 +303,22 @@ export default function ProgressCardPrintView({
                                     </thead>
                                     <tbody>
                                         {studentMarks.map((mark, mIdx) => (
-                                            <tr key={mark.ismS_Id}>
+                                            <tr key={mark.ismS_Id ?? mark.ISMS_Id ?? mIdx}>
                                                 <td>{mIdx + 1}</td>
-                                                <td colSpan={2} className="text-left font-bold">{mark.ismS_SubjectName}</td>
-                                                <td>{mark.estmpS_MaxMarks}</td>
+                                                <td colSpan={2} className="text-left font-bold">{mark.ismS_SubjectName ?? mark.subjectName ?? mark.ISMS_SubjectName}</td>
+                                                <td>{mark.maxMarks ?? mark.MaxMarks ?? mark.estmpS_MaxMarks ?? mark.Max_Marks ?? 0}</td>
                                                 <td>
-                                                    {mark.estmpS_PassFailFlg === 'AB' ? (
-                                                        mark.ismS_SubjectCode === 'SE' ? '-' : 'AB'
+                                                    {mark.passFailFlag === 'AB' || mark.PassFailFlag === 'AB' || mark.estmpS_PassFailFlg === 'AB' ? (
+                                                        (mark.ismS_SubjectCode || mark.subjectCode || '') === 'SE' ? '-' : 'AB'
                                                     ) : (
-                                                        mark.eyceS_MarksDisplayFlg ? mark.estmpS_ObtainedMarks : '-'
+                                                        mark.obtainedMarks ?? mark.ObtainedMarks ?? mark.estmpS_ObtainedMarks ?? '-'
                                                     )}
                                                 </td>
                                                 <td>
-                                                    {mark.estmpS_PassFailFlg === 'AB' ? (
-                                                        mark.eyceS_MarksDisplayFlg ? 'AB' : '-'
+                                                    {mark.passFailFlag === 'AB' || mark.PassFailFlag === 'AB' || mark.estmpS_PassFailFlg === 'AB' ? (
+                                                        'AB'
                                                     ) : (
-                                                        mark.estmpS_ObtainedGrade || '-'
+                                                        mark.obtainedGrade ?? mark.ObtainedGrade ?? mark.estmpS_ObtainedGrade ?? mark.grade ?? '-'
                                                     )}
                                                 </td>
                                             </tr>
@@ -328,15 +366,15 @@ export default function ProgressCardPrintView({
                                 <div className="text-center margin-top-10">
                                     <div className="inline-block">
                                         <PerformanceChart
-                                            studentId={report.amsT_Id}
+                                            studentId={studentID}
                                             saveList={saveList}
                                             extraData={extraData}
                                             onChartReady={handleChartReady}
                                         />
-                                        {chartImages[report.amsT_Id] && (
+                                        {chartImages[studentID] && (
                                             <img
                                                 className="print-chart-image"
-                                                src={chartImages[report.amsT_Id]}
+                                                src={chartImages[studentID]}
                                                 alt="Chart"
                                                 style={{ display: 'none', width: '500px', height: '300px', margin: '0 auto', objectFit: 'contain' }}
                                             />
@@ -362,7 +400,7 @@ export default function ProgressCardPrintView({
                                             </thead>
                                             <tbody>
                                                 {(extraData.getstudentwiseactiviteslist || [])
-                                                    .filter((g: any) => g.AMST_Id === report.amsT_Id && acti.ECACT_Id === g.ECACT_Id)
+                                                    .filter((g: any) => (g.AMST_Id ?? g.amsT_Id ?? g.studentId) === studentID && acti.ECACT_Id === g.ECACT_Id)
                                                     .map((grade: any, gIdx: number) => (
                                                         <tr key={gIdx}>
                                                             <td className="text-left font-bold">{grade.ECACTA_SkillArea}</td>
@@ -389,16 +427,16 @@ export default function ProgressCardPrintView({
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{healthData?.SPCCSHW_Height || '-'}</td>
-                                                <td>{healthData?.SPCCSHW_Weight || '-'}</td>
-                                                <td>{healthData?.AMST_BloodGroup || '-'}</td>
-                                                <td>{healthData?.HMDNHY_DentalHygiene || '-'}</td>
-                                                <td>{healthData?.HMVSN_VisionHygiene || '-'}</td>
+                                                <td>{healthData?.SPCCSHW_Height ?? report.height ?? report.SPCCSHW_Height ?? '-'}</td>
+                                                <td>{healthData?.SPCCSHW_Weight ?? report.weight ?? report.SPCCSHW_Weight ?? '-'}</td>
+                                                <td>{healthData?.AMST_BloodGroup ?? report.bloodGroup ?? report.bloodgroup ?? report.AMST_BloodGroup ?? '-'}</td>
+                                                <td>{healthData?.HMDNHY_DentalHygiene ?? report.dentalHygiene ?? report.dentalhygiene ?? report.HMDNHY_DentalHygiene ?? '-'}</td>
+                                                <td>{healthData?.HMVSN_VisionHygiene ?? report.visionHygiene ?? report.visionhygiene ?? report.HMVSN_VisionHygiene ?? '-'}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-
+ 
                                 {/* Attendance Details */}
                                 <div className="margin-top-15">
                                     <h4 className="text-center font-bold"><u>ATTENDANCE DETAILS</u></h4>
@@ -406,9 +444,9 @@ export default function ProgressCardPrintView({
                                         <tbody>
                                             <tr>
                                                 <td style={{ backgroundColor: '#BABABA', width: '25%' }} className="font-bold">Total number of<br />working days</td>
-                                                <td style={{ width: '8%' }} className="font-bold">{workAttend?.TotalSchoolDays || ''}</td>
+                                                <td style={{ width: '8%' }} className="font-bold">{workAttend?.TotalSchoolDays ?? presentAttend?.totalSchoolDays ?? workAttend?.totalSchoolDays ?? workAttend?.TotalWorkingDays ?? ''}</td>
                                                 <td style={{ backgroundColor: '#BABABA', width: '25%' }} className="font-bold">Number of days<br />attended</td>
-                                                <td style={{ width: '8%' }} className="font-bold">{presentAttend?.TotalPresentDays || ''}</td>
+                                                <td style={{ width: '8%' }} className="font-bold">{presentAttend?.TotalPresentDays ?? presentAttend?.totalWorkingDays ?? presentAttend?.totalPresentDays ?? ''}</td>
                                                 <td style={{ backgroundColor: '#BABABA', width: '25%' }} className="font-bold">Attendance<br />Percentage</td>
                                                 <td style={{ width: '9%' }} className="font-bold">{presentAttend?.Total_Percentage || ''}</td>
                                             </tr>
@@ -429,10 +467,17 @@ export default function ProgressCardPrintView({
                                     <div className="text-right" style={{ width: '150px' }}></div>
                                 </div>
                                 <div className="flex justify-between margin-top-10 font-bold" style={{ padding: '0 15px' }}>
-                                    <div className="text-left" style={{ width: '200px' }}>Principal’s Signature</div>
-                                    <div className="text-center" style={{ width: '200px' }}>Institution Seal</div>
-                                    <div className="text-right" style={{ width: '200px' }}>Class Teacher’s Signature</div>
-                                </div>
+                                     <div className="text-left" style={{ width: '200px' }}>Principal’s Signature</div>
+                                     <div className="text-center" style={{ width: '200px' }}>Institution Seal</div>
+                                     <div className="text-right" style={{ width: '200px' }}>
+                                         {extraData.classTeachers?.[idx]?.hrmE_EmployeeFirstName && (
+                                             <p className="italic font-bold underline mb-1 uppercase text-center">
+                                                 {extraData.classTeachers[idx].hrmE_EmployeeFirstName}
+                                             </p>
+                                         )}
+                                         <p className="text-center">Class Teacher’s Signature</p>
+                                     </div>
+                                 </div>
                             </div>
                         </div>
                     );

@@ -31,27 +31,19 @@ export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => voi
     });
 
     useEffect(() => {
-        if (selectedRow) {
-            form.reset({
-                ivrmmB_Id: selectedRow.ivrmmB_Id,
-                ivrmmB_Name: selectedRow.ivrmmB_Name,
-                ivrmmB_Description: selectedRow.ivrmmB_Description,
-            });
-        } else {
-            form.reset({
-                ivrmmB_Id: 0,
-                ivrmmB_Name: '',
-                ivrmmB_Description: '',
-            });
-        }
-    }, [selectedRow, form]);
+        form.reset({
+            ivrmmB_Id: 0,
+            ivrmmB_Name: '',
+            ivrmmB_Description: '',
+        });
+    }, [form]);
 
     const onSubmit = async (values: MasterBoardFormValues) => {
         setIsSaving(true);
         try {
             const response = await saveMasterBoard(values);
-            if (response.success || response.returnval === 'Add' || response.returnval === 'Update') {
-                toast.success(response.returnval === 'Add' ? 'Record Saved Successfully' : 'Record Updated Successfully');
+            if (response.success || response.returnval === 'Add') {
+                toast.success('Record Saved Successfully');
                 onSuccess();
             } else if (response.returnval === 'Duplicate') {
                 toast.error('Master Board Already Exists');
@@ -79,7 +71,16 @@ export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => voi
                                     Board Name <span className="text-destructive">*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Enter Board Name" maxLength={50} {...field} />
+                                    <Input 
+                                        placeholder="Enter Board Name" 
+                                        maxLength={50} 
+                                        onPaste={(e) => e.preventDefault()}
+                                        {...field} 
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            field.onChange(val);
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -96,7 +97,17 @@ export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => voi
                                     Board Description <span className="text-destructive">*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Enter Board Description" maxLength={100} {...field} rows={3} />
+                                    <Textarea 
+                                        placeholder="Enter Board Description" 
+                                        maxLength={100} 
+                                        rows={3} 
+                                        onPaste={(e) => e.preventDefault()}
+                                        {...field} 
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            field.onChange(val);
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -105,13 +116,13 @@ export default function AddMasterBoardForm({ onSuccess }: { onSuccess: () => voi
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-center items-center gap-4 mt-6">
-                    <Button type="submit" disabled={isSaving || !form.formState.isDirty} className="min-w-24">
-                        {isSaving ? <Spinner className="mr-2" /> : <Save className="mr-2 h-4 w-4" />}
-                        {selectedRow ? 'Update' : 'Save'}
+                <div className="flex justify-start items-center gap-4 mt-6 border-t pt-4">
+                    <Button type="button" variant="outline" onClick={() => window.location.reload()} disabled={isSaving} className="min-w-24 font-semibold shadow-sm hover:bg-slate-50">
+                        Reset
                     </Button>
-                    <Button type="button" variant="outline" onClick={closeAddForm} disabled={isSaving} className="min-w-24 text-destructive border-destructive hover:bg-destructive/10">
-                        <X className="mr-2 h-4 w-4" /> Cancel
+                    <Button type="submit" disabled={isSaving || !form.formState.isDirty} className="min-w-24 bg-[#ff6b35] hover:bg-[#e05b25] text-white border-0 shadow-sm font-semibold">
+                        {isSaving ? <Spinner className="mr-2 h-4 w-4 text-white" /> : <Save className="mr-2 h-4 w-4" />}
+                        Save Master Board
                     </Button>
                 </div>
             </form>
