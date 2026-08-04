@@ -23,7 +23,16 @@ const labelVariants = cva([
     'group-data-[invalid]:text-foreground'
 ]);
 
-const Label = ({ className, ...props }: AriaLabelProps) => <AriaLabel className={cn(labelVariants(), className)} {...props} />;
+interface LabelProps extends AriaLabelProps {
+    isRequired?: boolean;
+}
+
+const Label = ({ className, isRequired, children, ...props }: LabelProps) => (
+    <AriaLabel className={cn(labelVariants(), className)} {...props}>
+        {children}
+        {isRequired && <span className="text-destructive ml-1">*</span>}
+    </AriaLabel>
+);
 
 function FormDescription({ className, ...props }: AriaTextProps) {
     return <AriaText className={cn('text-[0.8rem] text-muted-foreground', className)} {...props} slot='description' />;
