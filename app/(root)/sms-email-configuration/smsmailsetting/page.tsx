@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { AddForm } from "./add-form";
 import { ListGrid } from "./list-grid";
 import {
@@ -10,12 +10,34 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQueryState, parseAsString } from "nuqs";
+import { tableSearchVariables } from "@/lib/data-table.config";
 
 export default function SmsMailSettingPage() {
   const { data: initialData, isLoading } = useSmsMailSettingData();
   const getDetailsMutation = useGetSmsMailSettingDetails();
   const [editData, setEditData] = useState<any>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [searchQuery] = useQueryState(
+    tableSearchVariables.search,
+    parseAsString.withDefault("")
+  );
+
+  const rawData = (initialData?.data?.emailSmsSettingList as any[]) || [];
+
+  const filteredData = useMemo(() => {
+    if (!searchQuery) return rawData;
+    const lowerQuery = searchQuery.toLowerCase();
+    const searchableKeys = ["iseS_Template_Name", "iseS_SMSMessage", "iseS_Mail_Message"];
+
+    return rawData.filter((item) => {
+      return searchableKeys.some((key) => {
+        const val = item[key];
+        return val !== null && val !== undefined && String(val).toLowerCase().includes(lowerQuery);
+      });
+    });
+  }, [rawData, searchQuery]);
 
   const handleEdit = (record: any) => {
     setIsFormOpen(true);
@@ -60,7 +82,7 @@ export default function SmsMailSettingPage() {
         </CardHeader>
         <CardContent className="pt-6">
           <ListGrid 
-            data={(initialData?.data?.emailSmsSettingList as any[]) || []} 
+            data={filteredData} 
             onEdit={handleEdit} 
           />
         </CardContent>
