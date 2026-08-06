@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import FinalNdasReportForm from './_components/final-ndas-report-form';
 import FinalNdasReportDisplay from './_components/final-ndas-report-display';
-import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
+import { getNDS9Report } from '@/server/exam/exam-module/reports/NDSS/FinalNdasReportCard';
 
 export default function FinalNdasReportCardPage() {
     const [reportData, setReportData] = useState<any>(null);
