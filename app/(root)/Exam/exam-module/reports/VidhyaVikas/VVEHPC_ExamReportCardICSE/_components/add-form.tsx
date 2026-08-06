@@ -8,6 +8,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { vvehpc_examreportcardSchema } from '@/schemas/exam/exam-module/reports';
+
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
@@ -35,7 +36,6 @@ export default function ProgressCardReportForm({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            // mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
@@ -51,10 +51,10 @@ export default function ProgressCardReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
+    const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null; amsT_FatherName?: string | null; amsT_DOB?: string | null; amaY_RollNo?: number | null }[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
-    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
@@ -66,37 +66,51 @@ export default function ProgressCardReportForm({
     const [loadingExams, setLoadingExams] = useState(false);
     const [_loadingStudents, setLoadingStudents] = useState(false);
 
+    // Store selected display names directly to avoid find() returning undefined
+    const [selectedClassNameState, setSelectedClassNameState] = useState<string>('');
+    const [selectedSectionNameState, setSelectedSectionNameState] = useState<string>('');
+    const [selectedExamNameState, setSelectedExamNameState] = useState<string>('');
+    const [selectedYearNameState, setSelectedYearNameState] = useState<string>('');
+
     const hasStudentsSelected = Array.isArray(studentList) && studentList.length > 0;
 
+    // Academic Year (GET /fee_class_category/academicyearlist via useAcademicYearDropdown)
     useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error loading academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data) {
-            const formatted = academicData.data.map((i: any) => ({
-                asmaY_Id: i.asmaY_Id ?? 0,
-                asmaY_Year: i.asmaY_Year ?? ''
+        if (academicData) {
+            const rawList: any[] = Array.isArray(academicData)
+                ? academicData
+                : Array.isArray(academicData?.data)
+                ? academicData.data
+                : Array.isArray(academicData?.academicyearlist)
+                ? academicData.academicyearlist
+                : [];
+            const formatted = rawList.map((i: any) => ({
+                asmaY_Id: i.asmaY_Id ?? i.ASMAY_Id ?? 0,
+                asmaY_Year: i.asmaY_Year ?? i.ASMAY_Year ?? ''
             }));
             setAcademicYears(formatted);
         }
-    }, [academicData, academicError]);
+    }, [academicData]);
 
+    // Class (GET /exam_master_category/class_drop_down_by_academic_year_list/{asmaY_Id})
     useEffect(() => {
         if (!selectedYear) return;
         (async () => {
             try {
                 setLoadingClasses(true);
-                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No classes mapped to this academic year');
-                }
-                setClasses(Array.isArray(data) ? data : []);
+                const res: any = await getClassDropDownByAcademicYearlist(selectedYear);
+                const rawList = Array.isArray(res) ? res : res?.data || res?.classlist || [];
+                setClasses(rawList.map((c: any) => ({
+                    asmcL_Id: c.asmcL_Id ?? c.ASMCL_Id ?? 0,
+                    asmcL_ClassName: c.asmcL_ClassName ?? c.ASMCL_ClassName ?? ''
+                })));
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
-            } catch {
+            } catch (err) {
+                console.error('Error loading classes:', err);
                 toast.error('Failed to load classes');
             } finally {
                 setLoadingClasses(false);
@@ -104,21 +118,24 @@ export default function ProgressCardReportForm({
         })();
     }, [selectedYear, setValue]);
 
+    // Section (GET /exam_master_category/sections_drop_down_by_class_list/{asmcL_Id}/{asmaY_Id})
     useEffect(() => {
         if (!selectedYear || !selectedClass) return;
         (async () => {
             try {
                 setLoadingSections(true);
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No sections found');
-                }
-                setSections(Array.isArray(data) ? data : []);
+                const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                const rawList = Array.isArray(res) ? res : res?.data || res?.sectionlist || [];
+                setSections(rawList.map((s: any) => ({
+                    asmS_Id: s.asmS_Id ?? s.ASMS_Id ?? 0,
+                    asmC_SectionName: s.asmC_SectionName ?? s.ASMC_SectionName ?? ''
+                })));
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
-            } catch {
+            } catch (err) {
+                console.error('Error loading sections:', err);
                 toast.error('Failed to load sections');
             } finally {
                 setLoadingSections(false);
@@ -126,52 +143,45 @@ export default function ProgressCardReportForm({
         })();
     }, [selectedYear, selectedClass, setValue]);
 
+    // Exam & Students (GET /exam_master/... & GET /exam_master_category/students_drop_down_by_year_class_section_list...)
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
                 setLoadingStudents(true);
-                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
-                    selectedYear,
-                    selectedClass,
-                    selectedSection
-                );
-                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
-                if (valid.length === 0) {
-                    toast.info('No students found');
-                }
+                setLoadingExams(true);
 
-                const mappedStudents = valid.map((s) => ({
-                    amsT_Id: s.amsT_Id,
-                    amsT_AdmNo: s.amsT_AdmNo,
-                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-                }));
+                const [studRes, examRes]: [any, any] = await Promise.all([
+                    getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection).catch(() => null),
+                    getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection).catch(() => null)
+                ]);
 
-                setStudents(mappedStudents);
+                // Students List
+                const studList = Array.isArray(studRes) ? studRes : studRes?.data || studRes?.studentlist || [];
+                const validStudents = studList.filter((s: any) => !!(s?.amsT_Id || s?.AMST_Id));
+                setStudents(validStudents.map((s: any) => ({
+                    amsT_Id: s.amsT_Id ?? s.AMST_Id,
+                    amsT_AdmNo: s.amsT_AdmNo ?? s.AMST_AdmNo,
+                    studentName: s.studentName || s.studentname || `${s.amsT_FirstName || s.AMST_FirstName || ''} ${s.amsT_MiddleName || s.AMST_MiddleName || ''} ${s.amsT_LastName || s.AMST_LastName || ''}`.trim(),
+                    amsT_FatherName: s.amsT_FatherName ?? s.AMST_FatherName ?? s.fatherName ?? null,
+                    amsT_DOB: s.amsT_DOB ?? s.AMST_DOB ?? null,
+                    amaY_RollNo: s.amaY_RollNo ?? s.AMAY_RollNo ?? null
+                })));
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
-            } catch {
-                toast.error('Failed to load students');
+
+                // Exams List
+                const examList = Array.isArray(examRes) ? examRes : examRes?.data || examRes?.examlist || [];
+                setExams(examList.map((e: any) => ({
+                    emE_Id: e.emE_Id ?? e.EME_Id ?? 0,
+                    emE_ExamName: e.emE_ExamName ?? e.EME_ExamName ?? ''
+                })));
+                setValue('emE_Id', 0);
+            } catch (err) {
+                console.error('Error loading exams and students:', err);
+                toast.error('Failed to load filter options');
             } finally {
                 setLoadingStudents(false);
-            }
-        })();
-    }, [selectedYear, selectedClass, selectedSection, setValue]);
-
-    useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection) return;
-        (async () => {
-            try {
-                setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                if (!data || (Array.isArray(data) && data.length === 0)) {
-                    toast.info('No exams found');
-                }
-                setExams(Array.isArray(data) ? data : []);
-                setValue('emE_Id', 0);
-            } catch {
-                toast.error('Failed to load exams');
-            } finally {
                 setLoadingExams(false);
             }
         })();
@@ -183,17 +193,49 @@ export default function ProgressCardReportForm({
             return;
         }
 
+        // Prefer stored display names (set on dropdown change) over find() lookup
+        const selectedClassObj = classes.find((c) => c.asmcL_Id === data.asmcL_Id);
+        const selectedSectionObj = sections.find((s) => s.asmS_Id === data.asmS_Id);
+        const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
+
+        const resolvedClassName = selectedClassNameState || selectedClassObj?.asmcL_ClassName || '';
+        const resolvedSectionName = selectedSectionNameState || selectedSectionObj?.asmC_SectionName || '';
+        const resolvedExamName = selectedExamNameState || selectedExamObj?.emE_ExamName || '';
+        const resolvedYearName = selectedYearNameState || selectedYearObj?.asmaY_Year || '';
+
         const currentDateTime = new Date().toISOString();
+        const studentArr = data.studentList.map((s) => ({
+            amsT_Id: s.amsT_Id,
+            AMST_Id: s.amsT_Id,
+            studentName: s.studentName,
+            amsT_AdmNo: s.amsT_AdmNo,
+            amsT_FatherName: (s as any).amsT_FatherName ?? null,
+            amsT_DOB: (s as any).amsT_DOB ?? null,
+            amaY_RollNo: (s as any).amaY_RollNo ?? null
+        }));
         const payload: any = {
-            // mI_Id: 30,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
+            ASMAY_Id: data.asmaY_Id,
+            ASMCL_Id: data.asmcL_Id,
+            ASMS_Id: data.asmS_Id,
+            EME_Id: data.emE_Id,
+            selectedClassName: resolvedClassName,
+            selectedSectionName: resolvedSectionName,
+            selectedExamName: resolvedExamName,
+            selectedYearName: resolvedYearName,
+            selectedStudents: data.studentList,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
+            temp_Amstids: studentArr,
+            Temp_AmstIds: studentArr,
+            studentlist: studentArr,
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
+        console.log('[VVEHPC ICSE] Payload class/section:', resolvedClassName, '/', resolvedSectionName);
         if (onSuccess) {
             await onSuccess(payload);
         }
@@ -232,7 +274,11 @@ export default function ProgressCardReportForm({
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    onValueChange={(v) => {
+                                                        field.onChange(Number(v));
+                                                        const yr = academicYears.find((y) => String(y.asmaY_Id) === v);
+                                                        setSelectedYearNameState(yr?.asmaY_Year || '');
+                                                    }}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Academic Year' />
@@ -272,7 +318,12 @@ export default function ProgressCardReportForm({
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    onValueChange={(v) => {
+                                                        field.onChange(Number(v));
+                                                        const cls = classes.find((c) => String(c.asmcL_Id) === v);
+                                                        setSelectedClassNameState(cls?.asmcL_ClassName || '');
+                                                        setSelectedSectionNameState('');
+                                                    }}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Class' />
@@ -312,7 +363,11 @@ export default function ProgressCardReportForm({
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    onValueChange={(v) => {
+                                                        field.onChange(Number(v));
+                                                        const sec = sections.find((s) => String(s.asmS_Id) === v);
+                                                        setSelectedSectionNameState(sec?.asmC_SectionName || '');
+                                                    }}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Section' />
@@ -352,7 +407,11 @@ export default function ProgressCardReportForm({
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
-                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    onValueChange={(v) => {
+                                                        field.onChange(Number(v));
+                                                        const exam = exams.find((e) => String(e.emE_Id) === v);
+                                                        setSelectedExamNameState(exam?.emE_ExamName || '');
+                                                    }}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Exam' />

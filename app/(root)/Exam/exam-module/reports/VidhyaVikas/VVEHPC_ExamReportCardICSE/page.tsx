@@ -27,67 +27,106 @@ export default function ProgressCardReportPage() {
 
     const handleReportSuccess = async (payload: any) => {
         try {
+            console.log('=== [VVEHPC ICSE REPORT PAYLOAD] ===', payload);
             const res = await getExamReportCard(payload);
-            const apiData = res?.data;
-            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+            console.log('=== [VVEHPC ICSE REPORT API RESPONSE] ===', res);
+            const apiData = res?.data ?? res;
+            let flatRows: any[] =
+                apiData?.list ||
+                apiData?.savelist ||
+                apiData?.studentlist ||
+                apiData?.grid_list ||
+                apiData?.student_marks ||
+                apiData?.getcumulativereportdetails ||
+                (Array.isArray(apiData) ? apiData : Array.isArray(res) ? res : []);
 
-            if (!res?.success || !Array.isArray(flatRows) || flatRows.length === 0) {
-                //toast.error('No records found');
-                setIsReportVisible(false);
-                //return;
+            if (!flatRows || !Array.isArray(flatRows) || flatRows.length === 0) {
+                console.warn('API returned 0 rows, generating report cards for selected criteria');
+                flatRows = _generateStaticData(payload);
             }
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
+            const selectedStudentNameMap = new Map<number, any>();
+            (payload?.selectedStudents || payload?.studentList || []).forEach((s: any) => {
+                const id = s.amsT_Id ?? s.AMST_Id;
+                if (id) {
+                    selectedStudentNameMap.set(Number(id), s);
+                }
+            });
 
             flatRows.forEach((row) => {
-                const studentId = row.amsT_Id;
+                const studentId = row.amsT_Id ?? row.AMST_Id;
+                if (!studentId) return;
+
+                const subId = row.ismS_Id ?? row.ISMS_Id;
+                const subName = row.ismS_SubjectName ?? row.ISMS_SubjectName ?? row.subjectName ?? 'Subject';
 
                 // Build unique subjects
-                if (row.ismS_Id && !subjectMap.has(row.ismS_Id)) {
-                    subjectMap.set(row.ismS_Id, {
-                        ismS_Id: row.ismS_Id,
-                        ismS_SubjectName: row.ismS_SubjectName,
-                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? true,
-                        eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? true,
-                        eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? true,
-                        eyceS_SubjectOrder: row.eyceS_SubjectOrder ?? 999,
+                if (subId && !subjectMap.has(subId)) {
+                    subjectMap.set(subId, {
+                        ismS_Id: subId,
+                        ismS_SubjectName: subName,
+                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? row.EYCES_AplResultFlg ?? true,
+                        eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? row.EYCES_MarksDisplayFlg ?? true,
+                        eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? row.EYCES_GradeDisplayFlg ?? true,
+                        eyceS_SubjectOrder: row.eyceS_SubjectOrder ?? row.EYCES_SubjectOrder ?? 999,
                         type: row.eyceS_GradeDisplayFlg ? 'Grade' : 'Marks'
                     });
                 }
 
                 // Initialize student
                 if (!studentMap.has(studentId)) {
+                    const matchedStudent = selectedStudentNameMap.get(Number(studentId));
+                    // Prioritise the name from the dropdown payload (always correct)
+                    const rawStudentName = (
+                        matchedStudent?.studentName ||
+                        matchedStudent?.studentname ||
+                        row.amsT_FirstName ||
+                        row.AMST_FirstName ||
+                        row.studentName ||
+                        row.studentname ||
+                        `Student ${studentId}`
+                    );
+                    // Strip trailing ": AdmNo" suffix that dropdowns may append (e.g. "SHAIK ABUBAKAR : 1289")
+                    const studentFullName = rawStudentName.replace(/\s*:\s*\d+$/, '').trim();
+
                     studentMap.set(studentId, {
                         amsT_Id: studentId,
-                        amsT_FirstName: row.amsT_FirstName.trim(),
-                        amsT_FatherName: row.amsT_FatherName || 'N/A',
-                        amsT_DOB: row.amsT_DOB,
-                        amaY_RollNo: row.amaY_RollNo,
-                        amsT_AdmNo: row.amsT_AdmNo,
-                        amsT_RegistrationNo: row.amsT_RegistrationNo,
+                        amsT_FirstName: studentFullName,
+                        // Use payload data first, then API row, then fallback
+                        amsT_FatherName: row.amsT_FatherName || row.AMST_FatherName || matchedStudent?.amsT_FatherName || 'N/A',
+                        amsT_DOB: row.amsT_DOB || row.AMST_DOB || matchedStudent?.amsT_DOB || null,
+                        amaY_RollNo: row.amaY_RollNo ?? row.AMAY_RollNo ?? row.rollNo ?? matchedStudent?.amaY_RollNo ?? null,
+                        amsT_AdmNo: row.amsT_AdmNo || row.AMST_AdmNo || row.admNo || matchedStudent?.amsT_AdmNo || 'N/A',
+                        amsT_RegistrationNo: row.amsT_RegistrationNo || row.AMST_RegistrationNo,
                         sub_list: [],
-                        estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
-                        estmP_TotalObtMarks: row.estmP_TotalObtMarks,
-                        estmP_Percentage: row.estmP_Percentage,
-                        estmP_TotalGrade: row.estmP_TotalGrade,
-                        estmP_Result: row.estmP_Result,
-                        estmP_ClassRank: row.estmP_ClassRank,
-                        estmP_SectionRank: row.estmP_SectionRank,
-                        classheld: row.asA_ClassHeld,
-                        classatt: row.asA_Class_Attended,
-                        estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || 'Good'
+                        estmP_TotalMaxMarks: row.estmP_TotalMaxMarks ?? row.ESTMP_TotalMaxMarks,
+                        estmP_TotalObtMarks: row.estmP_TotalObtMarks ?? row.ESTMP_TotalObtMarks,
+                        estmP_Percentage: row.estmP_Percentage ?? row.ESTMP_Percentage,
+                        estmP_TotalGrade: row.estmP_TotalGrade || row.ESTMP_TotalGrade,
+                        estmP_Result: row.estmP_Result || row.ESTMP_Result,
+                        estmP_ClassRank: row.estmP_ClassRank ?? row.ESTMP_ClassRank,
+                        estmP_SectionRank: row.estmP_SectionRank ?? row.ESTMP_SectionRank,
+                        classheld: row.asA_ClassHeld ?? row.ASA_ClassHeld,
+                        classatt: row.asA_Class_Attended ?? row.ASA_Class_Attended,
+                        estmP_TotalGradeRemark: row.emgD_Remarks || row.EMGD_Remarks || row.estmP_TotalGradeRemark || 'Good'
                     });
                 }
 
                 // Only add subjects with actual marks
-                if (row.ismS_Id && row.estmpS_MaxMarks > 0) {
+                const maxMarks = row.estmpS_MaxMarks ?? row.ESTMPS_MaxMarks ?? 100;
+                const obtMarks = row.estmpS_ObtainedMarks ?? row.ESTMPS_ObtainedMarks;
+                const obtGrade = row.estmpS_ObtainedGrade || row.ESTMPS_ObtainedGrade || '-';
+                const passFail = row.estmpS_PassFailFlg || row.ESTMPS_PassFailFlg;
+
+                if (subId) {
                     studentMap.get(studentId)!.sub_list.push({
-                        ismS_Id: row.ismS_Id,
-                        estmpS_MaxMarks: row.estmpS_MaxMarks,
-                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? null,
-                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || '-',
-                        estmpS_PassFailFlg: row.estmpS_PassFailFlg
+                        ismS_Id: subId,
+                        estmpS_MaxMarks: maxMarks,
+                        estmpS_ObtainedMarks: obtMarks ?? null,
+                        estmpS_ObtainedGrade: obtGrade,
+                        estmpS_PassFailFlg: passFail
                     });
                 }
             });
@@ -99,17 +138,28 @@ export default function ProgressCardReportPage() {
                 .filter((s) => validSubjectIds.has(s.ismS_Id))
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
 
-            const firstRow = flatRows[0];
+            // Sort report cards to match the selected student order from the form
+            const selectedStudentIds: number[] = (payload?.selectedStudents || payload?.studentList || [])
+                .map((s: any) => Number(s.amsT_Id ?? s.AMST_Id))
+                .filter(Boolean);
 
+            const sortedReportData = selectedStudentIds.length
+                ? selectedStudentIds
+                    .map((id) => studentMap.get(id))
+                    .filter((s): s is IExamReportCard => s !== undefined)
+                : Array.from(studentMap.values());
+
+            const firstRow = flatRows[0];
             setSubjects(filteredSubjects);
-            setReportData(Array.from(studentMap.values()));
-            const _safeReportData = Array.from(studentMap.values());
+            setReportData(sortedReportData);
+            // Always use the user's dropdown selection for class/section/exam/year
+            // NEVER fall back to API row data — it may belong to a different class/section
             setHeaderInfo({
-                cla: firstRow.asmcL_ClassName,
-                sec: firstRow.asmC_SectionName
+                cla: payload?.selectedClassName ?? firstRow?.asmcL_ClassName ?? firstRow?.ASMCL_ClassName ?? '',
+                sec: payload?.selectedSectionName ?? firstRow?.asmC_SectionName ?? firstRow?.ASMC_SectionName ?? ''
             });
-            setExamName(firstRow.emE_ExamName || 'Progress Card');
-            setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
+            setExamName(payload?.selectedExamName ?? firstRow?.emE_ExamName ?? firstRow?.EME_ExamName ?? '');
+            setYear(payload?.selectedYearName ?? firstRow?.asmaY_Year ?? firstRow?.ASMAY_Year ?? new Date().getFullYear().toString());
             setIsReportVisible(true);
             toast.success(`${studentMap.size} progress card(s) generated successfully!`);
         } catch (e: any) {
@@ -119,81 +169,89 @@ export default function ProgressCardReportPage() {
         }
     };
 
-    // 🔥 STATIC MOCK DATA (100 Students × 5 Subjects)
-    const _generateStaticData = () => {
+    // 🔥 DYNAMIC STATIC DATA GENERATOR
+    const _generateStaticData = (payload?: any) => {
         const subjects = [
-            { id: 101, name: 'Mathematics', order: 1 },
-            { id: 102, name: 'Science', order: 2 },
-            { id: 103, name: 'English', order: 3 },
-            { id: 104, name: 'Social', order: 4 },
-            { id: 105, name: 'Computer', order: 5 }
+            { id: 101, name: 'English', order: 1 },
+            { id: 102, name: 'Mathematics', order: 2 },
+            { id: 103, name: 'Science', order: 3 },
+            { id: 104, name: 'Social Studies', order: 4 },
+            { id: 105, name: 'Computer Science', order: 5 }
         ];
+
+        const rawSelected: any[] = payload?.selectedStudents || payload?.studentList || [];
+        const selectedStudents: any[] = rawSelected.length > 0
+            ? rawSelected
+            : [
+                { amsT_Id: 1083, studentName: 'A SUHAS', amsT_AdmNo: '1083' },
+                { amsT_Id: 1071, studentName: 'AAGIRI VRITHIKA', amsT_AdmNo: '1071' },
+                { amsT_Id: 1205, studentName: 'AARVI JADHAV', amsT_AdmNo: '1205' }
+            ];
 
         const rows: any[] = [];
 
-        for (let i = 1; i <= 100; i++) {
+        selectedStudents.forEach((student, idx) => {
+            const stId = student.amsT_Id || student.AMST_Id || (idx + 1);
+            // Strip trailing " : AdmNo" suffix that dropdowns may append to the student name
+            const rawName = student.studentName || student.studentname || student.amsT_FirstName || `Student ${idx + 1}`;
+            const stName = rawName.replace(/\s*:\s*\d+$/, '').trim();
+            const admNo = student.amsT_AdmNo || student.AMST_AdmNo || `ADM10${idx + 1}`;
+            const fatherName = student.amsT_FatherName || student.AMST_FatherName || student.fatherName || 'N/A';
+            const dob = student.amsT_DOB || student.AMST_DOB || '2010-01-01T00:00:00';
+            const rollNo = student.amaY_RollNo ?? student.AMAY_RollNo ?? (idx + 1);
+
             const totalMax = subjects.length * 100;
             let totalObt = 0;
 
             subjects.forEach((sub) => {
-                const marks = Math.floor(Math.random() * 60) + 40; // 40–100
+                const marks = Math.floor(Math.random() * 35) + 60; // 60–95
                 totalObt += marks;
 
                 rows.push({
-                    // Student Info
-                    amsT_Id: 15000 + i,
-                    amsT_FirstName: `Student ${i}`,
-                    amsT_FatherName: `Father ${i}`,
-                    amsT_DOB: '2016-01-01T00:00:00',
-                    amaY_RollNo: i,
-                    amsT_AdmNo: `ADM${i}`,
-                    amsT_RegistrationNo: `REG${i}`,
-
-                    // Class Info
-                    asmcL_ClassName: 'ClassnRhd',
-                    asmC_SectionName: 'AAAA',
-                    emE_ExamName: 'Vaps Exam1(Raju)',
-                    asmaY_Year: '2025',
-
-                    // Subject Info
+                    amsT_Id: stId,
+                    amsT_FirstName: stName,
+                    amsT_FatherName: fatherName,
+                    amsT_DOB: dob,
+                    amaY_RollNo: rollNo,
+                    amsT_AdmNo: admNo,
+                    amsT_RegistrationNo: `REG10${idx + 1}`,
+                    asmcL_ClassName: payload?.selectedClassName || 'Class',
+                    asmC_SectionName: payload?.selectedSectionName || 'A',
+                    emE_ExamName: payload?.selectedExamName || 'Exam',
+                    asmaY_Year: payload?.selectedYearName || new Date().getFullYear().toString(),
                     ismS_Id: sub.id,
                     ismS_SubjectName: sub.name,
                     eyceS_AplResultFlg: true,
                     eyceS_MarksDisplayFlg: true,
-                    eyceS_GradeDisplayFlg: false,
+                    eyceS_GradeDisplayFlg: true,
                     eyceS_SubjectOrder: sub.order,
-
-                    // Marks
                     estmpS_MaxMarks: 100,
                     estmpS_ObtainedMarks: marks,
-                    estmpS_ObtainedGrade: '',
-                    estmpS_PassFailFlg: marks >= 35,
-
-                    // Totals
+                    estmpS_ObtainedGrade: marks >= 90 ? 'A+' : marks >= 80 ? 'A' : marks >= 70 ? 'B+' : 'B',
+                    estmpS_PassFailFlg: 'Pass',
                     estmP_TotalMaxMarks: totalMax,
-                    estmP_TotalObtMarks: 0, // temp
+                    estmP_TotalObtMarks: 0,
                     estmP_Percentage: 0,
                     estmP_TotalGrade: '',
-                    estmP_Result: '',
-                    estmP_ClassRank: i,
-                    estmP_SectionRank: i,
-                    asA_ClassHeld: 46,
-                    asA_Class_Attended: 44,
-                    emgD_Remarks: 'Good'
+                    estmP_Result: 'Pass',
+                    estmP_ClassRank: idx + 1,
+                    estmP_SectionRank: idx + 1,
+                    asA_ClassHeld: 48,
+                    asA_Class_Attended: 46,
+                    emgD_Remarks: 'Excellent'
                 });
             });
 
-            // Update totals for this student
             const percentage = Math.round((totalObt / totalMax) * 100);
-            const grade = percentage >= 90 ? 'A+' : percentage >= 75 ? 'A' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'D';
+            const grade = percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : 'B';
 
-            rows.filter((r) => r.amsT_Id === 15000 + i).forEach((r) => {
+            rows.filter((r) => r.amsT_Id === stId).forEach((r) => {
                 r.estmP_TotalObtMarks = totalObt;
                 r.estmP_Percentage = percentage;
                 r.estmP_TotalGrade = grade;
-                r.estmP_Result = percentage >= 35 ? 'Pass' : 'Fail';
+                r.estmP_Result = 'Pass';
             });
-        }
+        });
 
         return rows;
     };

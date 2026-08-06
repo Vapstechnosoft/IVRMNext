@@ -29,12 +29,17 @@ export default function ProgressCardReportPage() {
         try {
             const res = await getExamReportCard(payload);
             const apiData = res?.data;
-            const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+            const flatRows: any[] =
+                apiData?.list ||
+                apiData?.savelist ||
+                apiData?.studentlist ||
+                apiData?.grid_list ||
+                (Array.isArray(apiData) ? apiData : Array.isArray(res) ? res : []);
 
-            if (!res?.success || !Array.isArray(flatRows) || flatRows.length === 0) {
-                //toast.error('No records found');
+            if (!flatRows || !Array.isArray(flatRows) || flatRows.length === 0) {
+                toast.error('No records found for the selected criteria');
                 setIsReportVisible(false);
-                //return;
+                return;
             }
 
             const studentMap = new Map<number, IExamReportCard>();
@@ -42,6 +47,7 @@ export default function ProgressCardReportPage() {
 
             flatRows.forEach((row) => {
                 const studentId = row.amsT_Id;
+                if (!studentId) return;
 
                 // Build unique subjects
                 if (row.ismS_Id && !subjectMap.has(row.ismS_Id)) {
@@ -60,7 +66,7 @@ export default function ProgressCardReportPage() {
                 if (!studentMap.has(studentId)) {
                     studentMap.set(studentId, {
                         amsT_Id: studentId,
-                        amsT_FirstName: row.amsT_FirstName.trim(),
+                        amsT_FirstName: (row.amsT_FirstName || '').trim(),
                         amsT_FatherName: row.amsT_FatherName || 'N/A',
                         amsT_DOB: row.amsT_DOB,
                         amaY_RollNo: row.amaY_RollNo,
@@ -100,16 +106,20 @@ export default function ProgressCardReportPage() {
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
 
             const firstRow = flatRows[0];
+            if (!firstRow) {
+                toast.error('No records found for the selected criteria');
+                setIsReportVisible(false);
+                return;
+            }
 
             setSubjects(filteredSubjects);
             setReportData(Array.from(studentMap.values()));
-            const _safeReportData = Array.from(studentMap.values());
             setHeaderInfo({
-                cla: firstRow.asmcL_ClassName,
-                sec: firstRow.asmC_SectionName
+                cla: payload?.selectedClassName || firstRow?.asmcL_ClassName || '',
+                sec: payload?.selectedSectionName || firstRow?.asmC_SectionName || ''
             });
-            setExamName(firstRow.emE_ExamName || 'Progress Card');
-            setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
+            setExamName(payload?.selectedExamName || firstRow?.emE_ExamName || 'Progress Card');
+            setYear(payload?.selectedYearName || firstRow?.asmaY_Year || new Date().getFullYear().toString());
             setIsReportVisible(true);
             toast.success(`${studentMap.size} progress card(s) generated successfully!`);
         } catch (e: any) {
