@@ -43,6 +43,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
+import { tableSearchVariables } from "@/lib/data-table.config";
 
 const formSchema = z.object({
   ismhtmL_Id: z.number().default(0),
@@ -82,7 +84,37 @@ export default function MasterHTMLTemplates() {
   const parameterlist = initData?.parameterlist || [];
   const parameters = initData?.parms || [];
 
-  const filteredParameters = parameters.filter((item) =>
+  const [searchQuery] = useQueryState(
+    tableSearchVariables.search,
+    parseAsString.withDefault("")
+  );
+  
+  const [currentPage] = useQueryState(
+    tableSearchVariables.page,
+    parseAsInteger.withDefault(1)
+  );
+
+  const [pageSize] = useQueryState(
+    tableSearchVariables.page_size,
+    parseAsInteger.withDefault(10)
+  );
+
+  const filteredData = React.useMemo(() => {
+    if (!searchQuery) return parameterlist;
+    const lowerQuery = searchQuery.toLowerCase();
+    return parameterlist.filter(
+      (item: any) =>
+        item.ismhtmL_HTMLName?.toLowerCase().includes(lowerQuery) ||
+        item.ismhtmL_HTMLTemplate?.toLowerCase().includes(lowerQuery)
+    );
+  }, [parameterlist, searchQuery]);
+
+  const paginatedData = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredData.slice(startIndex, startIndex + pageSize);
+  }, [filteredData, currentPage, pageSize]);
+
+  const filteredParameters = parameters.filter((item: any) =>
     item.ismP_NAME.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -193,7 +225,7 @@ export default function MasterHTMLTemplates() {
     {
       id: "slno",
       header: () => <div className="text-center">SL NO</div>,
-      cell: ({ row }) => <div className="text-center">{row.index + 1}</div>,
+      cell: ({ row }) => <div className="text-center">{(currentPage - 1) * pageSize + row.index + 1}</div>,
     },
     {
       accessorKey: "ismhtmL_HTMLName",
@@ -411,8 +443,8 @@ export default function MasterHTMLTemplates() {
           <CardContent className="pt-6">
             <DataTable
               columns={columns as any}
-              data={parameterlist}
-              totalItems={parameterlist.length}
+              data={paginatedData}
+              totalItems={filteredData.length}
             />
           </CardContent>
         </Card>

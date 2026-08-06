@@ -195,8 +195,13 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       form.setValue("ISES_SMSActiveFlag", setting.iseS_SMSActiveFlag);
       form.setValue("ISES_EnableSMSCCFlg", setting.iseS_EnableSMSCCFlg);
       
-      if (editData.mobilenolist && editData.mobilenolist.length > 0) {
-        form.setValue("mobile_list_dto", editData.mobilenolist.map(m => ({ hrmemnO_MobileNo: m })));
+      if (setting.iseS_SMSCCMobileNo) {
+        const mobiles = setting.iseS_SMSCCMobileNo.split(',').filter(Boolean);
+        if (mobiles.length > 0) {
+          form.setValue("mobile_list_dto", mobiles.map((m: string) => ({ hrmemnO_MobileNo: m })));
+        }
+      } else {
+        form.setValue("mobile_list_dto", [{ hrmemnO_MobileNo: "" }]);
       }
 
       form.setValue("ISMHTML_Id", editData.ismhtmL_Id || 0);
@@ -209,13 +214,23 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
       }
       
       form.setValue("ISES_EnableMailCCFlg", setting.iseS_EnableMailCCFlg);
-      if (editData.emailistmcc && editData.emailistmcc.length > 0) {
-        form.setValue("email_list_dto", editData.emailistmcc.map(e => ({ hrmeM_EmailId: e })));
+      if (setting.iseS_MailCCId) {
+        const emails = setting.iseS_MailCCId.split(',').filter(Boolean);
+        if (emails.length > 0) {
+          form.setValue("email_list_dto", emails.map((e: string) => ({ hrmeM_EmailId: e })));
+        }
+      } else {
+        form.setValue("email_list_dto", [{ hrmeM_EmailId: "" }]);
       }
 
       form.setValue("ISES_EnableMailBCCFlg", setting.iseS_EnableMailBCCFlg);
-      if (editData.emailistbcc && editData.emailistbcc.length > 0) {
-        form.setValue("email_list_dtocc", editData.emailistbcc.map(e => ({ hrmeM_EmailId: e })));
+      if (setting.iseS_MailBCCId) {
+        const bcc = setting.iseS_MailBCCId.split(',').filter(Boolean);
+        if (bcc.length > 0) {
+          form.setValue("email_list_dtocc", bcc.map((e: string) => ({ hrmeM_EmailId: e })));
+        }
+      } else {
+        form.setValue("email_list_dtocc", [{ hrmeM_EmailId: "" }]);
       }
 
       form.setValue("ISES_IVRSTextMsg", setting.iseS_IVRSTextMsg || "");
@@ -236,7 +251,7 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
   }, [editData, initialData, form]);
 
   const institutionModuleList = (initialData?.institutionModuleList as any[]) || [];
-  const institutionPageLists = ((modulePageData as any)?.data as any[]) || ((modulePageData as any)?.institutionPageList as any[]) || (initialData?.institutionPageList as any[]) || [];
+  const institutionPageLists = ((modulePageData as any)?.data as any[]) || ((modulePageData as any)?.institutionPageList as any[]) || ((editData as any)?.institutionPageList as any[]) || (initialData?.institutionPageList as any[]) || [];
   const pageWiseHeaderList = ((headerDataResponse as any)?.data as any[]) || ((headerDataResponse as any)?.pageWiseHeaderList as any[]) || ((editData as any)?.pageWiseHeaderList as any[]) || [];
   const parameters = ((parameterData as any)?.data as any[]) || ((parameterData as any)?.parameterList as any[]) || ((editData as any)?.parameterList as any[]) || [];
   const emailTemplates = (initialData?.emailtemplatelist as any[]) || [];

@@ -845,6 +845,17 @@ export const hhsReportPreparatorySchema = z.object({
 
 export type HHSReportPreparatorySchema = z.infer<typeof hhsReportPreparatorySchema>;
 
+export const hhsIIVReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSIIVReportSchema = z.infer<typeof hhsIIVReportSchema>;
+
 export const gmvpsPromotionReportCardSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
@@ -1000,3 +1011,13 @@ export const multipleProgressCardReportSchema = z.object({
 export type MultipleProgressCardReportSchema = z.infer<typeof multipleProgressCardReportSchema>;
 
 
+export const hhsReport5to7Schema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student Name is required'),
+    EMGR_Id: z.string().min(1, 'Grade is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReport5to7Schema = z.infer<typeof hhsReport5to7Schema>;

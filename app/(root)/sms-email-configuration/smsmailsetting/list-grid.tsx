@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { SmsEmailSettingList } from "@/types/sms-email-configuration/sms-mail-setting";
@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Swal from "sweetalert2";
+import { useQueryState, parseAsInteger } from "nuqs";
+import { tableSearchVariables } from "@/lib/data-table.config";
 
 interface ListGridProps {
   data: SmsEmailSettingList[];
@@ -25,6 +27,21 @@ interface ListGridProps {
 }
 
 export function ListGrid({ data, onEdit }: ListGridProps) {
+  const [currentPage] = useQueryState(
+    tableSearchVariables.page,
+    parseAsInteger.withDefault(1)
+  );
+  
+  const [pageSize] = useQueryState(
+    tableSearchVariables.page_size,
+    parseAsInteger.withDefault(10)
+  );
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return data.slice(startIndex, startIndex + pageSize);
+  }, [data, currentPage, pageSize]);
+
   const toggleSmsMutation = useToggleSmsActive();
   const toggleEmailMutation = useToggleEmailActive();
   const viewTemplateMutation = useViewEmailTemplate();
@@ -75,7 +92,7 @@ export function ListGrid({ data, onEdit }: ListGridProps) {
     {
       id: "sl_no",
       header: () => <div className="text-center">SL NO</div>,
-      cell: ({ row }) => <div className="text-center">{row.index + 1}</div>,
+      cell: ({ row }) => <div className="text-center">{(currentPage - 1) * pageSize + row.index + 1}</div>,
     },
     {
       accessorKey: "iseS_Template_Name",
@@ -176,8 +193,9 @@ export function ListGrid({ data, onEdit }: ListGridProps) {
     <>
       <DataTable
         columns={columns as any}
-        data={data}
+        data={paginatedData}
         totalItems={data.length}
+        getRowId={(row) => String(row.iseS_Id)}
       />
 
       <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>

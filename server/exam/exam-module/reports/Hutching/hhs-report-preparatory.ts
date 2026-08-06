@@ -43,13 +43,13 @@ export async function getAttendanceBySection(data: { ASMCL_Id: number; ASMAY_Id:
 /**
  * Get primary report card details.
  */
-export async function getPrimarySaveDetails(data: {
-    AMST_Id: number;
-    ASMAY_Id: number;
-    ASMCL_Id: number;
-    ASMS_Id: number;
-    EMGR_Id: number;
-}) {
-    const url = '/HutchingReports/Get_primary_savedetails';
-    return await api.post<any>('exam', url, data);
+export async function getPrimarySaveDetails(data: any) {
+    try {
+        const url = '/HutchingReports/Get_primary_savedetails';
+        const response = await api.post<any>('exam', url, data);
+        return response;
+    } catch (error) {
+        console.error('getPrimarySaveDetails error:', error);
+        return { success: false, message: error instanceof Error ? error.message : String(error) };
+    }
 }
