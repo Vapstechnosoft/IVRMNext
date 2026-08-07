@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { usePageMapping } from './mapping-context';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { getAvailablePages, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
+import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
 import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
-import { useMemo } from 'react';
 
 export default function AvailableGrid() {
-    const { selectedModuleId, addToCart, cartPages, removeFromCart, saveCart } = usePageMapping();
+    const { selectedModuleId, addToCart, cartPages, removeFromCart } = usePageMapping();
     const [data, setData] = useState<IPageMappingData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
@@ -23,27 +22,19 @@ export default function AvailableGrid() {
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const fetchData = useCallback(async () => {
+        if (!selectedModuleId) {
+            setData([]);
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
         try {
-            if (!selectedModuleId) {
-                const res = await getSavedMappings({});
-                if (res.success) {
-                    const mappedData = (res.data || []).map((item: any) => ({
-                        ivrmP_Id: item.ivrmP_Id,
-                        ivrmP_PageName: item.ivrmmP_PageName,
-                    }));
-                    setData(mappedData);
-                } else {
-                    setData([]);
-                }
+            const searchParams = { ivrmM_Id: selectedModuleId };
+            const res = await getAvailablePages(searchParams);
+            if (res.success) {
+                setData(res.data || []);
             } else {
-                const searchParams = { ivrmM_Id: selectedModuleId };
-                const res = await getAvailablePages(searchParams);
-                if (res.success) {
-                    setData(res.data || []);
-                } else {
-                    setData([]);
-                }
+                setData([]);
             }
         } catch (error) {
             console.error('Failed to fetch master pages', error);
@@ -115,8 +106,7 @@ export default function AvailableGrid() {
         [cartPages]
     );
 
-    // Always render the grid, even if no module is selected
-    // if (!selectedModuleId) return null;
+    if (!selectedModuleId) return null;
 
     return (
         <div className="border rounded-md shadow-sm bg-white h-full flex flex-col">
@@ -126,13 +116,14 @@ export default function AvailableGrid() {
 
             <div className="flex-1 overflow-auto p-2">
                 <GenericDataTable
-                    data={paginatedData}
+                    data={data}
                     columns={columns}
                     isLoading={isLoading}
                     isPaginationRequired={true}
-                    totalItems={currentTotalItems}
+                    totalItems={totalItems}
                 />
             </div>
         </div>
     );
 }
+
