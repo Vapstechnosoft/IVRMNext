@@ -144,6 +144,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isAppNoEnabled, setIsAppNoEnabled] = useState(false);
     const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
 
     const handleImagePreview = (url: string) => {
@@ -1439,14 +1440,21 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                                                         <div className='flex flex-col'>
                                                             <div className='flex items-center gap-2'>
-                                                                <input type='checkbox' id='admcheck' name='admcheck' />
+                                                                <input 
+                                                                    type='checkbox' 
+                                                                    id='admcheck' 
+                                                                    name='admcheck'
+                                                                    checked={isAppNoEnabled}
+                                                                    onChange={(e) => setIsAppNoEnabled(e.target.checked)} 
+                                                                />
                                                                 <Label htmlFor='admcheck'>Application No.</Label>
                                                                 <input
                                                                     type='text'
                                                                     id='appNo'
                                                                     name='appNo'
                                                                     placeholder='Enter Application No.'
-                                                                    className='rounded-md border px-3 py-2'
+                                                                    className='rounded-md border px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-50'
+                                                                    disabled={!isAppNoEnabled}
                                                                 />
                                                             </div>
                                                         </div>

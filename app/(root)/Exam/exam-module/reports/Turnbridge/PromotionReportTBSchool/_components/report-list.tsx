@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
-import { getMockTBSReportData } from './mock-data';
 
 interface ReportListProps {
     data: any;
@@ -14,77 +13,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         window.print();
     };
 
-    let reportData = (data && data.studentdetails && data.studentdetails.length > 0) ? data : getMockTBSReportData();
+    const rawData = data?.data || data || {};
 
-    // If using mock data and we have selected students in params, update the mock data to reflect them
-    if ((!data || !data.studentdetails || data.studentdetails.length === 0) && params?.selectedStudentDetails?.length > 0) {
-        const mockBase = getMockTBSReportData();
-        const newStudentDetails = params.selectedStudentDetails.map((s: any, idx: number) => ({
-            AMST_Id: s.amsT_Id,
-            studentname: s.studentname,
-            classname: params.classname || 'Class 5',
-            sectionname: params.sectionname || 'A',
-            admno: `ADM${100 + idx}`,
-            asmaY_Year: params.academicYearName || '2024-2025',
-            TOTALAttendancePercentage: '95.0'
-        }));
-        
-        // Map subjects and marks for each selected student
-        const newSubjects: any[] = [];
-        const newMarks: any[] = [];
-        const newExamMarks: any[] = [];
-        const newTermWise: any[] = [];
-        const newAttendance: any[] = [];
-        const newRemarks: any[] = [];
-        const newPromoRemarks: any[] = [];
+    const rawStudentDetails = getArray(rawData, ['getstudentdetails', 'studentdetails', 'studentlist', 'getstudentlist']);
 
-        newStudentDetails.forEach((std: any) => {
-            // English, Math, Science, Social Studies, Hindi
-            [101, 102, 103, 104, 105].forEach((id, sidx) => {
-                const subNames = ['English', 'Mathematics', 'Science', 'Social Studies', 'Hindi'];
-                newSubjects.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, ISMS_SubjectName: subNames[sidx], EYCES_MarksDisplayFlg: true, GropuFlag: 0 });
-                
-                // T1 marks
-                newMarks.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, EME_Id: 1, EMPSG_DisplayName: 'T1', ObtainedMarks: 80 + (std.AMST_Id % 10), EYCES_MarksDisplayFlg: true, PassFailFlag: 'P' });
-                // T2 marks
-                newMarks.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, EME_Id: 2, EMPSG_DisplayName: 'T2', ObtainedMarks: 82 + (std.AMST_Id % 10), EYCES_MarksDisplayFlg: true, PassFailFlag: 'P' });
-            });
-
-            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 1, EMPSG_DisplayName: 'T1', ObtainedMarks: 410, TotalMarks: 500, TotalPercentage: '82.0' });
-            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 2, EMPSG_DisplayName: 'T2', ObtainedMarks: 425, TotalMarks: 500, TotalPercentage: '85.0' });
-            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 9800000, EMPSG_DisplayName: 'T1', ObtainedMarks: 410, TotalMarks: 500, TotalPercentage: '82.0' });
-
-            newTermWise.push({ AMST_Id: std.AMST_Id, ESTMPP_TotalObtMarks: 835, ESTMPP_TotalMaxMarks: 1000, ESTMPP_Percentage: '83.5' });
-            
-            newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 1, EMPSG_DisplayName: 'T1', TOTALAttendancePercentage: 94, TOTALPRESENTDAYS: 47, TOTALWORKINGDAYS: 50 });
-            newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 2, EMPSG_DisplayName: 'T2', TOTALAttendancePercentage: 96, TOTALPRESENTDAYS: 48, TOTALWORKINGDAYS: 50 });
-
-            newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 1', ESTMP_ClassRank: 1, EMER_Remarks: 'Excellent effort.' });
-            newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 2', ESTMP_ClassRank: 1, EMER_Remarks: 'Consistent performance.' });
-            
-            newPromoRemarks.push({ amsT_Id: std.AMST_Id, eprD_ClassPromoted: params.classname || '6', eprD_Remarks: 'Promoted' });
-        });
-
-        reportData = {
-            ...mockBase,
-            studentdetails: newStudentDetails,
-            getstudentwisesubjectlist: newSubjects,
-            getstudentmarksdetails: newMarks,
-            getstudent_examwisemarks: newExamMarks,
-            getstudentwisetermwisedetails: newTermWise,
-            getstudentwiseattendancedetails: newAttendance,
-            examwiseremarks: newRemarks,
-            getpromotionremarksdetails: newPromoRemarks
-        };
-    }
-
-    if (!reportData || !reportData.studentdetails || reportData.studentdetails.length === 0) {
+    if (!rawStudentDetails || rawStudentDetails.length === 0) {
         return (
             <div className='flex h-40 items-center justify-center rounded-lg border bg-card text-muted-foreground'>
-                No data available to display.
+                No report data found for the selected criteria.
             </div>
         );
     }
+
+
 
     const {
         studentdetails,
@@ -97,7 +38,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         getgroupdetails,
         getgroupexamdetails,
         getstudent_examwisemarks,
-    } = reportData;
+    } = rawData;
 
     // Build groupwiseexamlist (mirrors AngularJS controller logic)
     const groupwiseexamlist: any[] = [];

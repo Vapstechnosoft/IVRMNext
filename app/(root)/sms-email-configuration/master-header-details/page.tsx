@@ -41,6 +41,8 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Swal from "sweetalert2";
 import { useForm as useHookForm } from "react-hook-form";
+import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
+import { tableSearchVariables } from "@/lib/data-table.config";
 
 const formSchema = z.object({
   IVRMHE_Id: z.number().default(0),
@@ -78,6 +80,37 @@ export default function MasterHeaderDetails() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [searchQuery] = useQueryState(
+    tableSearchVariables.search,
+    parseAsString.withDefault("")
+  );
+  
+  const [currentPage] = useQueryState(
+    tableSearchVariables.page,
+    parseAsInteger.withDefault(1)
+  );
+
+  const [pageSize] = useQueryState(
+    tableSearchVariables.page_size,
+    parseAsInteger.withDefault(10)
+  );
+
+  const filteredData = React.useMemo(() => {
+    if (!searchQuery) return headerdata;
+    const lowerQuery = searchQuery.toLowerCase();
+    return headerdata.filter(
+      (item) =>
+        item.ivrmhE_Name?.toLowerCase().includes(lowerQuery) ||
+        item.ivrmM_ModuleName?.toLowerCase().includes(lowerQuery) ||
+        item.ivrmmP_PageName?.toLowerCase().includes(lowerQuery)
+    );
+  }, [headerdata, searchQuery]);
+
+  const paginatedData = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredData.slice(startIndex, startIndex + pageSize);
+  }, [filteredData, currentPage, pageSize]);
 
   const filteredParameterList = parameterlist.filter((item) =>
     item.ismP_NAME.toLowerCase().includes(searchTerm.toLowerCase())
@@ -157,7 +190,7 @@ export default function MasterHeaderDetails() {
   const columns: ColumnDef<HeaderData>[] = [
     {
       header: "SL NO",
-      cell: ({ row }) => row.index + 1,
+      cell: ({ row }) => (currentPage - 1) * pageSize + row.index + 1,
     },
     {
       accessorKey: "ivrmhE_Name",
@@ -405,8 +438,8 @@ export default function MasterHeaderDetails() {
         <CardContent className="pt-6">
           <DataTable
             columns={columns as any}
-            data={headerdata}
-            totalItems={headerdata.length}
+            data={paginatedData}
+            totalItems={filteredData.length}
           />
         </CardContent>
       </Card>

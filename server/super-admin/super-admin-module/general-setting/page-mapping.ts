@@ -1,10 +1,10 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { pageMappingSchema } from '@/schemas/super-admin/super-admin-module/general-setting/page-mapping';
-import { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
-import { revalidatePath } from 'next/cache';
 import { getSearchParamsUrl } from '@/lib/apiService';
+import { pageMappingSchema } from '@/schemas/super-admin/super-admin-module/general-setting/page-mapping';
+import type { IModuleDropdown, IPageMappingData, ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { revalidatePath } from 'next/cache';
 
 export async function getModulesForDropdown() {
     const url = 'MasterSubMenuFacade/get_module_drop_down';
@@ -22,7 +22,7 @@ export async function getModulesForDropdown() {
             };
         }
     } catch (error) {
-        console.error("Error fetching modules", error);
+        console.error('Error fetching modules', error);
     }
 
     return { success: false, data: [] };
@@ -33,7 +33,7 @@ export async function getAvailablePages(searchParams: any) {
     // URL: MasterPageModuleMappingFacade/get_master_page_details_onchange_of_modulename
     // Accepts query params: ivrmM_Id, page, page_size
 
-    // We construct query from searchParams. 
+    // We construct query from searchParams.
     // searchParams usually comes from nuqs as object { page: 1, page_size: 10, ivrmM_Id: 123 }
 
     const query = getSearchParamsUrl(searchParams);
@@ -48,7 +48,8 @@ export async function getAvailablePages(searchParams: any) {
                 // Map IVRMMP_PageName or ivrmmP_PageName to ivrmP_PageName for frontend consistency
                 ivrmP_PageName: item.IVRMMP_PageName ?? item.ivrmmP_PageName ?? item.IVRMP_PageName ?? item.ivrmP_PageName,
                 // Include other fields if needed, e.g. ivrmP_PageDisplayName if available, else use PageName
-                ivrmP_PageDisplayName: item.IVRMP_PageDisplayName ?? item.ivrmP_PageDisplayName ?? item.IVRMMP_PageName ?? item.ivrmmP_PageName
+                ivrmP_PageDisplayName:
+                    item.IVRMP_PageDisplayName ?? item.ivrmP_PageDisplayName ?? item.IVRMMP_PageName ?? item.ivrmmP_PageName
             }));
 
             return {
@@ -60,7 +61,7 @@ export async function getAvailablePages(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching available pages", error);
+        console.error('Error fetching available pages', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }
@@ -77,7 +78,7 @@ export async function getSavedMappings(searchParams: any) {
         const response = await api.get<any>('sadmin', url);
         if (response.success && response.data) {
             // Check if data is directly array or paginated object
-            const dataList = Array.isArray(response.data) ? response.data : (response.data.savedMappings || []);
+            const dataList = Array.isArray(response.data) ? response.data : response.data.savedMappings || [];
             return {
                 success: true,
                 data: dataList as ISavedMapping[],
@@ -87,7 +88,7 @@ export async function getSavedMappings(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching saved mappings", error);
+        console.error('Error fetching saved mappings', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }
@@ -118,10 +119,10 @@ export async function savePageMapping(data: any) {
 }
 
 export async function deletePageMapping(id: number) {
-    console.log("deletePageMapping called with ID:", id);
+    console.log('deletePageMapping called with ID:', id);
     // Assuming delete endpoint on the same facade
     const response = await api.delete<any>('sadmin', `MasterPageModuleMappingFacade/delete_master_page/${id}`);
-    console.log("deletePageMapping response:", response);
+    console.log('deletePageMapping response:', response);
     if (response.success) {
         return { success: true, message: 'Deleted successfully' };
     }
@@ -153,7 +154,7 @@ export async function getSavedPagesMappingList(searchParams: any) {
             };
         }
     } catch (error) {
-        console.error("Error fetching saved pages list", error);
+        console.error('Error fetching saved pages list', error);
     }
     return { success: false, data: [], total: 0, page: 0, page_size: 0 };
 }

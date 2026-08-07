@@ -6,8 +6,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { getAvailablePages } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
 import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
-
+import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -43,12 +42,14 @@ export default function AvailableGrid() {
         }
     }, [selectedModuleId]);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const filteredData = useMemo(() => {
         if (!searchQuery) return data;
         const lowerQuery = searchQuery.toLowerCase();
-        return data.filter(item => item.ivrmP_PageName?.toLowerCase().includes(lowerQuery));
+        return data.filter((item) => item.ivrmP_PageName?.toLowerCase().includes(lowerQuery));
     }, [data, searchQuery]);
 
     const paginatedData = useMemo(() => {
@@ -67,7 +68,7 @@ export default function AvailableGrid() {
     };
 
     const isChecked = (id: number) => {
-        return cartPages.some(p => p.ivrmP_Id === id);
+        return cartPages.some((p) => p.ivrmP_Id === id);
     };
 
     const columns = useMemo<ColumnDef<IPageMappingData>[]>(
@@ -79,11 +80,11 @@ export default function AvailableGrid() {
                     const { pagination } = table.getState();
                     return pagination.pageIndex * pagination.pageSize + row.index + 1;
                 },
-                enableSorting: false,
+                enableSorting: false
             },
             {
                 accessorKey: 'ivrmP_PageName',
-                header: 'Page Name',
+                header: 'Page Name'
             },
             {
                 id: 'actions',
@@ -91,16 +92,16 @@ export default function AvailableGrid() {
                 cell: ({ row }) => {
                     const checked = isChecked(row.original.ivrmP_Id);
                     return (
-                        <div className="flex justify-center">
+                        <div className='flex justify-center'>
                             <Checkbox
                                 checked={checked}
                                 onCheckedChange={(checked) => handleToggle(row.original, checked)}
-                                aria-label="Select row"
+                                aria-label='Select row'
                             />
                         </div>
                     );
                 },
-                enableSorting: false,
+                enableSorting: false
             }
         ],
         [cartPages]
@@ -109,12 +110,12 @@ export default function AvailableGrid() {
     if (!selectedModuleId) return null;
 
     return (
-        <div className="border rounded-md shadow-sm bg-white h-full flex flex-col">
-            <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
-                <h3 className="font-semibold text-lg">Master Pages</h3>
+        <div className='flex h-full flex-col rounded-md border bg-white shadow-sm'>
+            <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
+                <h3 className='font-semibold text-lg'>Master Pages</h3>
             </div>
 
-            <div className="flex-1 overflow-auto p-2">
+            <div className='flex-1 overflow-auto p-2'>
                 <GenericDataTable
                     data={data}
                     columns={columns}

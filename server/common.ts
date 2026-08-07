@@ -713,9 +713,9 @@ export async function getUserAccessibleModules() {
         const subModules = extractArray(subModulesRes);
         const pages = extractArray(pageListRes);
 
-        console.info('main Modules', mainModules);
-        console.info('subModules', subModules);
-        console.info('pages', pages);
+        // console.info('main Modules', mainModules);
+        // console.info('subModules', subModules);
+        // console.info('pages', pages);
 
         // Build maps for quick lookup
         const subByParent = new Map<number, any[]>();
