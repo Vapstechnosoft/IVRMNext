@@ -28,19 +28,22 @@ export default function AvailableGrid() {
         }
         setIsLoading(true);
         try {
-            const searchParams = { ivrmM_Id: selectedModuleId };
+            const searchParams = { ivrmM_Id: selectedModuleId, page, page_size: pageSize, search_query: searchQuery };
             const res = await getAvailablePages(searchParams);
+            console.log('available pages', res);
             if (res.success) {
                 setData(res.data || []);
+                setTotalItems(res.total || 0);
             } else {
                 setData([]);
+                setTotalItems(0);
             }
         } catch (error) {
             console.error('Failed to fetch master pages', error);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedModuleId]);
+    }, [selectedModuleId, page, pageSize, searchQuery]);
 
     useEffect(() => {
         fetchData();
