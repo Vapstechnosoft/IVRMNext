@@ -101,6 +101,8 @@ export interface SmsMailSettingDetailsResponse {
   emailistbcc: string[];
   rolelist: RoleList[];
   editfiles: MateralDocument[];
+  institutionPageList?: InstitutionPage[];
+  templname?: string;
 }
 
 export interface SmsMailSettingSavePayload {
@@ -111,6 +113,7 @@ export interface SmsMailSettingSavePayload {
   ISES_SMSMessage: string;
   ISES_SMSActiveFlag: boolean;
   ISES_MailSubject: string;
+  ISES_MailHTMLTemplate?: string;
   ISES_MailFooter: string;
   ISES_MailActiveFlag: boolean;
   ISES_EnableSMSCCFlg: boolean;

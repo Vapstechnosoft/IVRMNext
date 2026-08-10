@@ -102,7 +102,6 @@ export default function MasterHeaderDetails() {
     return headerdata.filter(
       (item) =>
         item.ivrmhE_Name?.toLowerCase().includes(lowerQuery) ||
-        item.ivrmM_ModuleName?.toLowerCase().includes(lowerQuery) ||
         item.ivrmmP_PageName?.toLowerCase().includes(lowerQuery)
     );
   }, [headerdata, searchQuery]);
