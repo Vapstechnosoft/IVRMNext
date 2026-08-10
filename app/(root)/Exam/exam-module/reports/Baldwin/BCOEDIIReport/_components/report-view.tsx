@@ -53,7 +53,7 @@ export default function BCOEDIIReportView({
 
     const getAttendance = (list: any[], studentId: any) => {
         if (!list || !Array.isArray(list)) return {};
-        return list.find(a => Number(a.studentId) === Number(studentId)) || {};
+        return list.find(a => Number(a.studentId ?? a.amsT_Id ?? a.AMST_Id ?? a.amst_Id ?? a.AMST_ID) === Number(studentId)) || {};
     };
 
     const calculateGrandTotalMin = (subList: any[]) => {

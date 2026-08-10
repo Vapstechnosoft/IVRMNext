@@ -179,6 +179,7 @@ export default function BCOEDIIReportForm({
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
+            AMST_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
             toDate: currentDateTime,
             asmaY_Year: yearName,

@@ -82,8 +82,8 @@ export default function SelectionForm() {
     // Load Sub Menus when Main Menu changes
     useEffect(() => {
         const loadSubMenus = async () => {
-            if (selectedMI_Id && selectedIVRMMMI_Id) {
-                const response = await getSubMenuDropdown(Number.parseInt(selectedMI_Id), Number.parseInt(selectedIVRMMMI_Id));
+            if (selectedMI_Id && selectedIVRMM_Id) {
+                const response = await getSubMenuDropdown(Number.parseInt(selectedMI_Id), Number.parseInt(selectedIVRMM_Id));
                 if (response.success && response.data?.subMenuList) {
                     setSubMenus(response.data.subMenuList);
                 } else {
