@@ -71,11 +71,16 @@ export function ReportForm({
         if (academicError) {
             toast.error(academicError.message || 'Error loading academic years');
             setAcademicYears([]);
-        } else if (academicData?.data) {
+        } else if (academicData) {
+            const raw = Array.isArray(academicData.data)
+                ? academicData.data
+                : Array.isArray(academicData)
+                  ? academicData
+                  : (academicData as any)?.yearlist || (academicData as any)?.data?.yearlist || [];
             setAcademicYears(
-                academicData.data.map((i: any) => ({
-                    asmaY_Id: i.asmaY_Id ?? 0,
-                    asmaY_Year: i.asmaY_Year ?? ''
+                raw.map((i: any) => ({
+                    asmaY_Id: i.asmaY_Id ?? i.ASMAY_Id ?? i.id ?? 0,
+                    asmaY_Year: i.asmaY_Year ?? i.ASMAY_Year ?? i.year ?? ''
                 }))
             );
         }

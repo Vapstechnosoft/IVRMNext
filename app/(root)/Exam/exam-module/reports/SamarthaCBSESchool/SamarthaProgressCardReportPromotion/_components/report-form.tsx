@@ -34,7 +34,17 @@ interface Props {
 
 export default function ReportForm({ onSuccess }: Props) {
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    const years = (academicData as any)?.data || [];
+
+    const rawYears = Array.isArray((academicData as any)?.data)
+        ? (academicData as any).data
+        : Array.isArray(academicData)
+          ? academicData
+          : (academicData as any)?.data?.yearlist || (academicData as any)?.yearlist || [];
+
+    const years = rawYears.map((y: any) => ({
+        asmaY_Id: y.asmaY_Id ?? y.ASMAY_Id ?? y.id ?? 0,
+        asmaY_Year: y.asmaY_Year ?? y.ASMAY_Year ?? y.year ?? ''
+    }));
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
