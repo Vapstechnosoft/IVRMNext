@@ -108,8 +108,8 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                         {/* School Header Image */}
                         <div className='mb-4 text-center'>
                             <Image
-                                src='https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'
-                                alt='Vidya Vikas School Header'
+                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
+                                alt={institution?.mI_Name || 'School Header'}
                                 width={800}
                                 height={200}
                                 className='inline-block border border-black'

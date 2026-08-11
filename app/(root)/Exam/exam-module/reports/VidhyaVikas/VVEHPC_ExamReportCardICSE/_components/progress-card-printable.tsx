@@ -51,8 +51,8 @@ export default function ProgressCardPrintView({ reportData, institution, subject
                         {/* School Header */}
                         <div className='mb-4 text-center'>
                             <Image
-                                src='https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'
-                                alt='Vidya Vikas School Logo'
+                                src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
+                                alt={institution?.mI_Name || 'School Logo'}
                                 width={800}
                                 height={180}
                                 className='inline-block border border-black'
