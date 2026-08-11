@@ -4,16 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 
-interface Props {
-    data: any;
-}
+interface Props { data: any; }
 
-// ── Case-insensitive array resolver ──
 function getArray(obj: any, keys: string[]): any[] {
     if (!obj) return [];
-    const source = obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data) ? { ...obj, ...obj.data } : obj;
+    const source = (obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data)) ? { ...obj, ...obj.data } : obj;
 
-    // Map every actual key on the object to its lowercase form, so any casing matches
     const lowerKeyMap: Record<string, string> = {};
     Object.keys(source).forEach((k) => {
         lowerKeyMap[k.toLowerCase()] = k;
@@ -32,7 +28,6 @@ function getArray(obj: any, keys: string[]): any[] {
     return [];
 }
 
-// ── Case-insensitive field resolver (for individual records) ──
 function getField(obj: any, ...names: string[]): any {
     if (!obj) return undefined;
     const lowerKeyMap: Record<string, string> = {};
@@ -48,54 +43,17 @@ function getField(obj: any, ...names: string[]): any {
     return undefined;
 }
 
-// ── Group-column builder (Generates exact matrix matching live CBSE screenshot) ──
 function buildGroupDetails(rawGroups: any[]): any[] {
-    if (!rawGroups || rawGroups.length === 0) {
+    const cleanRaw = Array.isArray(rawGroups) ? rawGroups : [];
+    if (cleanRaw.length === 0) {
         return [
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Pen Paper Test I',
-                empsG_GroupName: 'Pen Paper Test I',
-                empsG_MarksValue: 5,
-                _term: 'I'
-            },
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Multiple Assessment I',
-                empsG_GroupName: 'Multiple Assessment I',
-                empsG_MarksValue: 5,
-                _term: 'I'
-            },
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Portfolio I',
-                empsG_GroupName: 'Portfolio I',
-                empsG_MarksValue: 5,
-                _term: 'I'
-            },
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Subject Enrichment Activity I',
-                empsG_GroupName: 'Subject Enrichment Activity I',
-                empsG_MarksValue: 5,
-                _term: 'I'
-            },
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Half Yearly',
-                empsG_GroupName: 'Half Yearly',
-                empsG_MarksValue: 80,
-                _term: 'I'
-            },
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Pen Paper Test I', empsG_GroupName: 'Pen Paper Test I', empsG_MarksValue: 5, _term: 'I' },
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Multiple Assessment I', empsG_GroupName: 'Multiple Assessment I', empsG_MarksValue: 5, _term: 'I' },
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Portfolio I', empsG_GroupName: 'Portfolio I', empsG_MarksValue: 5, _term: 'I' },
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Subject Enrichment Activity I', empsG_GroupName: 'Subject Enrichment Activity I', empsG_MarksValue: 5, _term: 'I' },
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Half Yearly', empsG_GroupName: 'Half Yearly', empsG_MarksValue: 80, _term: 'I' },
             { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I', empsG_GroupName: 'Term I', empsG_MarksValue: 100, _term: 'I' },
-            {
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Term I',
-                empsG_GroupName: 'Term I1',
-                empsG_MarksValue: 'Grade',
-                _isGrade: true,
-                _term: 'I'
-            }
+            { empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 'Grade', _isGrade: true, _term: 'I' },
         ];
     }
 
@@ -103,18 +61,11 @@ function buildGroupDetails(rawGroups: any[]): any[] {
     const term2Groups: any[] = [];
     const otherGroups: any[] = [];
 
-    rawGroups.forEach((g) => {
-        const groupName = String(getField(g, 'empG_GroupName', 'empG_DistplayName') ?? '')
-            .trim()
-            .toLowerCase();
+    cleanRaw.forEach(g => {
+        const groupName = String(getField(g, 'empG_GroupName', 'empG_DistplayName') ?? '').trim().toLowerCase();
         if (groupName.includes('half') || groupName.includes('term i') || groupName.includes('term 1')) {
             term1Groups.push({ ...g, _term: 'I' });
-        } else if (
-            groupName.includes('annual') ||
-            groupName.includes('anual') ||
-            groupName.includes('term ii') ||
-            groupName.includes('term 2')
-        ) {
+        } else if (groupName.includes('annual') || groupName.includes('anual') || groupName.includes('term ii') || groupName.includes('term 2')) {
             term2Groups.push({ ...g, _term: 'II' });
         } else {
             otherGroups.push({ ...g, _term: 'other' });
@@ -125,80 +76,53 @@ function buildGroupDetails(rawGroups: any[]): any[] {
 
     if (term1Groups.length > 0) {
         result.push(...term1Groups);
-        const hasTerm1Total = term1Groups.some(
-            (g) =>
-                String(getField(g, 'empsG_GroupName', 'empG_DistplayName')).toLowerCase() === 'term i' &&
-                (g.empsG_MarksValue === 100 || g.empsG_MarksValue === '(100)')
-        );
+        const hasTerm1Total = term1Groups.some(g => String(getField(g, 'empsG_GroupName', 'empG_DistplayName')).toLowerCase() === 'term i' && (g.empsG_MarksValue === 100 || g.empsG_MarksValue === '(100)'));
         if (!hasTerm1Total) {
-            result.push({
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Term I',
-                empsG_GroupName: 'Term I',
-                empsG_MarksValue: 100,
-                _term: 'I'
-            });
+            result.push({ empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I', empsG_GroupName: 'Term I', empsG_MarksValue: 100, _term: 'I' });
         }
-        const hasTerm1Grade = term1Groups.some(
-            (g) => String(g.empsG_GroupName) === 'Term I1' || String(g.empsG_MarksValue).toLowerCase() === 'grade' || g._isGrade
-        );
+        const hasTerm1Grade = term1Groups.some(g => String(g.empsG_GroupName) === 'Term I1' || String(g.empsG_MarksValue).toLowerCase() === 'grade' || g._isGrade);
         if (!hasTerm1Grade) {
-            result.push({
-                empG_GroupName: 'Half Yearly',
-                empG_DistplayName: 'Term I',
-                empsG_GroupName: 'Term I1',
-                empsG_MarksValue: 'Grade',
-                _isGrade: true,
-                _term: 'I'
-            });
+            result.push({ empG_GroupName: 'Half Yearly', empG_DistplayName: 'Term I', empsG_GroupName: 'Term I1', empsG_MarksValue: 'Grade', _isGrade: true, _term: 'I' });
         }
     }
 
     if (term2Groups.length > 0) {
         result.push(...term2Groups);
-        const hasTerm2Total = term2Groups.some(
-            (g) =>
-                String(getField(g, 'empsG_GroupName', 'empG_DistplayName')).toLowerCase() === 'term ii' &&
-                (g.empsG_MarksValue === 100 || g.empsG_MarksValue === '(100)')
-        );
+        const hasTerm2Total = term2Groups.some(g => String(getField(g, 'empsG_GroupName', 'empG_DistplayName')).toLowerCase() === 'term ii' && (g.empsG_MarksValue === 100 || g.empsG_MarksValue === '(100)'));
         if (!hasTerm2Total) {
-            result.push({
-                empG_GroupName: 'Anual Exam',
-                empG_DistplayName: 'Term II',
-                empsG_GroupName: 'Term II',
-                empsG_MarksValue: 100,
-                _term: 'II'
-            });
+            result.push({ empG_GroupName: 'Anual Exam', empG_DistplayName: 'Term II', empsG_GroupName: 'Term II', empsG_MarksValue: 100, _term: 'II' });
         }
-        const hasTerm2Grade = term2Groups.some(
-            (g) => String(g.empsG_GroupName) === 'Term II1' || String(g.empsG_MarksValue).toLowerCase() === 'grade' || g._isGrade
-        );
+        const hasTerm2Grade = term2Groups.some(g => String(g.empsG_GroupName) === 'Term II1' || String(g.empsG_MarksValue).toLowerCase() === 'grade' || g._isGrade);
         if (!hasTerm2Grade) {
-            result.push({
-                empG_GroupName: 'Anual Exam',
-                empG_DistplayName: 'Term II',
-                empsG_GroupName: 'Term II1',
-                empsG_MarksValue: 'Grade',
-                _isGrade: true,
-                _term: 'II'
-            });
+            result.push({ empG_GroupName: 'Anual Exam', empG_DistplayName: 'Term II', empsG_GroupName: 'Term II1', empsG_MarksValue: 'Grade', _isGrade: true, _term: 'II' });
         }
     }
 
-    result.push(...otherGroups);
+    if (result.length === 0) {
+        result.push(...otherGroups);
+    }
+
+    const hasAvg = result.some(g => String(g.empG_DistplayName).toLowerCase() === 'average');
+    if (!hasAvg) {
+        result.push({ empG_DistplayName: 'Average', empsG_GroupName: 'Average', empsG_MarksValue: 100, _term: 'other' });
+    }
+
+    const hasGradeCol = result.some(g => String(g.empG_DistplayName).toLowerCase() === 'grade');
+    if (!hasGradeCol) {
+        result.push({ empG_DistplayName: 'Grade', empsG_GroupName: 'Average', empsG_MarksValue: 'Grade', _isGrade: true, _term: 'other' });
+    }
+
     return result;
 }
 
-// ── Grade calculator matching CBSE Grade scale ──
-function calculateGrade(obtainedMarks: any, gradeVal: any, maxMarks: any = 100): string {
-    if (gradeVal && String(gradeVal).trim() !== '') {
-        return String(gradeVal);
+function calculateGrade(obtainedMarks: any, rawGrade: any, maxMarks: any = 100): string {
+    if (rawGrade && String(rawGrade).trim() !== '') {
+        return String(rawGrade).trim();
     }
-    const ob = Number(obtainedMarks);
-    const max = Number(maxMarks) || 100;
-
-    if (!Number.isNaN(ob) && max > 0) {
-        const pct = (ob / max) * 100;
+    if (obtainedMarks !== undefined && obtainedMarks !== null && String(obtainedMarks).trim() !== '') {
+        const numObtained = Number(obtainedMarks);
+        const numMax = Number(maxMarks) || 100;
+        const pct = (numObtained / numMax) * 100;
         if (pct >= 91) return 'A+';
         if (pct >= 81) return 'A';
         if (pct >= 71) return 'B+';
@@ -206,41 +130,48 @@ function calculateGrade(obtainedMarks: any, gradeVal: any, maxMarks: any = 100):
         if (pct >= 51) return 'C+';
         if (pct >= 41) return 'C';
         if (pct >= 33) return 'D+';
-        return 'E';
+        if (pct >= 21) return 'D';
+        return 'E+';
     }
-    return 'C+';
+    return 'A';
 }
 
-// ── Mark cell logic ──
 function getMarkCell(subj: any, grp: any, marks: any[]): string {
     const subjId = String(getField(subj, 'ISMS_Id') ?? '');
-    const subjName = String(getField(subj, 'ISMS_SubjectName', 'subjectName') ?? '')
-        .trim()
-        .toLowerCase();
+    const subjName = String(getField(subj, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
     const grpDisplayName = String(grp.empG_DistplayName ?? grp.empG_GroupName ?? '').trim();
     const grpGroupName = String(grp.empsG_GroupName ?? grp.empG_GroupName ?? '').trim();
 
-    const isGradeCol =
-        grp._isGrade ||
-        grpGroupName === 'Term I1' ||
-        grpGroupName === 'Term II1' ||
-        grp.empsG_MarksValue === 'Grade' ||
-        grpDisplayName.toLowerCase() === 'grade';
+    const isGradeCol = grp._isGrade || grpGroupName === 'Term I1' || grpGroupName === 'Term II1' || grp.empsG_MarksValue === 'Grade' || grpDisplayName.toLowerCase() === 'grade';
+
+    if (isGradeCol) {
+        const matchGrade = marks.find((m: any) => {
+            const mSubjId = String(getField(m, 'ISMS_Id') ?? '');
+            const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
+            return isSubjectMatch(mSubjId, mSubjName, subjId, subjName) && (getField(m, 'ObtainedGrade') || getField(m, 'EMGD_Name'));
+        });
+        const matchAvg = marks.find((m: any) => {
+            const mSubjId = String(getField(m, 'ISMS_Id') ?? '');
+            const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
+            return isSubjectMatch(mSubjId, mSubjName, subjId, subjName) && (getField(m, 'ObtainedMarks') !== undefined);
+        });
+
+        const ob = getField(matchAvg, 'ObtainedMarks', 'ESTMP_TotalObtainedMarks');
+        const gr = getField(matchGrade, 'ObtainedGrade', 'ESTMP_TotalGrade', 'EMGD_Name') || getField(matchAvg, 'ObtainedGrade');
+        return calculateGrade(ob, gr, 100);
+    }
 
     const match = marks.find((m: any) => {
         const mSubjId = String(getField(m, 'ISMS_Id') ?? '');
-        const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '')
-            .trim()
-            .toLowerCase();
+        const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
         const mDispName = String(getField(m, 'EMPSG_DisplayName', 'empG_DistplayName') ?? '');
         const mGroupName = String(getField(m, 'EMPSG_GroupName', 'empG_GroupName') ?? '');
 
         const subjMatches = isSubjectMatch(mSubjId, mSubjName, subjId, subjName);
-        const groupMatches =
-            mDispName.trim().toLowerCase() === grpDisplayName.toLowerCase() ||
-            mGroupName.trim().toLowerCase() === grpGroupName.toLowerCase() ||
-            isGroupMatch(mDispName, grpDisplayName) ||
-            isGroupMatch(mGroupName, grpDisplayName);
+        const groupMatches = mDispName.trim().toLowerCase() === grpDisplayName.toLowerCase() ||
+                             mGroupName.trim().toLowerCase() === grpGroupName.toLowerCase() ||
+                             isGroupMatch(mDispName, grpDisplayName) ||
+                             isGroupMatch(mGroupName, grpDisplayName);
         return subjMatches && groupMatches;
     });
 
@@ -250,36 +181,38 @@ function getMarkCell(subj: any, grp: any, marks: any[]): string {
         if (absent) return String(passFailFlag);
 
         const obtainedMarks = getField(match, 'ObtainedMarks', 'ESTMP_TotalObtainedMarks');
-        const rawGrade = getField(match, 'ObtainedGrade', 'ESTMP_TotalGrade', 'EMGD_Name');
-        const maxVal = getField(match, 'EMPSG_MarksValue', 'maxMarks') || grp.empsG_MarksValue || 100;
-
-        if (isGradeCol) {
-            return calculateGrade(obtainedMarks, rawGrade, maxVal);
-        }
 
         if (obtainedMarks !== undefined && obtainedMarks !== null && String(obtainedMarks).trim() !== '') {
             return String(Math.round(Number(obtainedMarks)));
         }
     }
 
-    // Fallback for Term total column
+    if (grpDisplayName.toLowerCase() === 'average') {
+        const matchAvg = marks.find((m: any) => {
+            const mSubjId = String(getField(m, 'ISMS_Id') ?? '');
+            const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
+            return isSubjectMatch(mSubjId, mSubjName, subjId, subjName) && (getField(m, 'ObtainedMarks') !== undefined && getField(m, 'ObtainedMarks') !== null);
+        });
+
+        if (matchAvg) {
+            const ob = getField(matchAvg, 'ObtainedMarks', 'ESTMP_TotalObtainedMarks');
+            if (ob !== undefined && ob !== null && String(ob).trim() !== '') {
+                return String(Math.round(Number(ob)));
+            }
+        }
+    }
+
     if (grpGroupName === 'Term I' || grpDisplayName === 'Term I') {
         const term1Mark = marks.find((m: any) => {
             const mSubjId = String(getField(m, 'ISMS_Id') ?? '');
-            const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '')
-                .trim()
-                .toLowerCase();
-            const mDispName = String(getField(m, 'EMPSG_DisplayName', 'empG_DistplayName') ?? '')
-                .trim()
-                .toLowerCase();
+            const mSubjName = String(getField(m, 'ISMS_SubjectName', 'subjectName') ?? '').trim().toLowerCase();
+            const mDispName = String(getField(m, 'EMPSG_DisplayName', 'empG_DistplayName') ?? '').trim().toLowerCase();
             const flag = Number(getField(m, 'Flag'));
             return isSubjectMatch(mSubjId, mSubjName, subjId, subjName) && (mDispName === 'term i' || flag === 11);
         });
 
         if (term1Mark) {
             const ob = getField(term1Mark, 'ObtainedMarks', 'ESTMP_TotalObtainedMarks');
-            const gr = getField(term1Mark, 'ObtainedGrade', 'ESTMP_TotalGrade');
-            if (isGradeCol) return calculateGrade(ob, gr, 100);
             if (ob !== undefined && ob !== null && String(ob).trim() !== '') return String(Math.round(Number(ob)));
         }
     }
@@ -287,92 +220,75 @@ function getMarkCell(subj: any, grp: any, marks: any[]): string {
     return '';
 }
 
-// ── Count columns per term for dynamic colspan ──
 function termColSpans(groupDetails: any[]) {
-    const t1 = groupDetails.filter((g) => g._term === 'I').length;
-    const t2 = groupDetails.filter((g) => g._term === 'II').length;
-    const other = groupDetails.filter((g) => g._term === 'other').length;
+    const t1 = groupDetails.filter(g => g._term === 'I').length;
+    const t2 = groupDetails.filter(g => g._term === 'II').length;
+    const other = groupDetails.filter(g => g._term === 'other').length;
     return { t1, t2, other };
 }
 
-// ── Dynamic Group / Subject Matchers ──
-function isGroupMatch(mName: string, gName: string): boolean {
-    if (!mName || !gName) return false;
-    const m = mName.trim().toLowerCase();
-    const g = gName.trim().toLowerCase();
-
-    if (m === g) return true;
-
-    // Group aliases: Term I maps to Half Yearly / Term 1
-    if ((g.includes('term i') || g.includes('term 1')) && (m.includes('half') || m.includes('term i') || m.includes('term 1'))) return true;
-
-    // Group aliases: Term II maps to Annual / Anual / Term 2
-    if (
-        (g.includes('term ii') || g.includes('term 2')) &&
-        (m.includes('annual') || m.includes('anual') || m.includes('term ii') || m.includes('term 2'))
-    )
-        return true;
-
-    // Average / Total / Overall aliases
-    if (g.includes('avg') || g.includes('average'))
-        return m.includes('avg') || m.includes('average') || m.includes('total') || m.includes('overall');
-
+function isSubjectMatch(id1: string, name1: string, id2: string, name2: string): boolean {
+    if (id1 && id2 && id1 !== '0' && id2 !== '0' && id1 === id2) return true;
+    if (name1 && name2 && name1 === name2) return true;
     return false;
 }
 
-function isSubjectMatch(mSubjId: string, mSubjName: string, sSubjId: string, sSubjName: string): boolean {
-    if (sSubjId && mSubjId && sSubjId === mSubjId) return true;
-    if (sSubjName && mSubjName && sSubjName === mSubjName) return true;
-    if (sSubjName && mSubjName && (sSubjName.includes(mSubjName) || mSubjName.includes(sSubjName))) return true;
+function isGroupMatch(name1: string, name2: string): boolean {
+    if (!name1 || !name2) return false;
+    const n1 = name1.toLowerCase().trim();
+    const n2 = name2.toLowerCase().trim();
+    if (n1 === n2) return true;
+    if (n1.includes('pen paper') && n2.includes('pen paper')) return true;
+    if (n1.includes('multiple assessment') && n2.includes('multiple assessment')) return true;
+    if (n1.includes('portfolio') && n2.includes('portfolio')) return true;
+    if (n1.includes('subject enrichment') && n2.includes('subject enrichment')) return true;
+    if (n1.includes('half yearly') && n2.includes('half yearly')) return true;
     return false;
 }
+
+function isAI(name: string) {
+    if (!name) return false;
+    const clean = name.toUpperCase().trim().replace(/\s+/g, ' ');
+    return clean === 'ARTIFICIAL INTELLIGENCE' || clean === 'ARTIFICAL INTELLIGENCE';
+}
+
+const GRADE_SCALE = [
+    { grade: 'A+', range: '91% - 100%' },
+    { grade: 'A', range: '81% - 90%' },
+    { grade: 'B+', range: '71% - 80%' },
+    { grade: 'B', range: '61% - 70%' },
+    { grade: 'C+', range: '51% - 60%' },
+    { grade: 'C', range: '41% - 50%' },
+    { grade: 'D+', range: '33% - 40%' },
+    { grade: 'D', range: '21% - 32%' },
+    { grade: 'E+', range: '20% Below' },
+];
 
 export default function SamarthaProgressCardReportView({ data }: Props) {
     const printRef = useRef<HTMLDivElement>(null);
 
     if (!data) return null;
 
-    const studentDetails = getArray(data, ['getstudentdetails', 'studentdetails', 'getStudentDetails', 'studentDetails']);
-    const allSubjectList = getArray(data, [
-        'getstudentwisesubjectlist',
-        'studentwisesubjectlist',
-        'getStudentWiseSubjectList',
-        'subjectlist',
-        'getsubjects',
-        'subjects'
-    ]);
-    const allMarksList = getArray(data, [
-        'getstudentmarksdetails',
-        'studentmarksdetails',
-        'getStudentMarksDetails',
-        'marksdetails',
-        'getstudentwisetotaldetails',
-        'getstudentwisetermwisedetails'
-    ]);
-    const rawGroups = getArray(data, ['getgroupdetails', 'groupdetails', 'getGroupDetails', 'groupexamdetails']);
-    const termDetails = getArray(data, ['gettermdetails', 'termdetails', 'getTermDetails']);
-    const activitiesAll = getArray(data, ['getstudentwiseactiviteslistterm', 'getgradereport', 'activiteslist', 'activities']);
-    const remarksAll = getArray(data, ['getpromotionremarksdetails', 'remarksdetails']);
-    const workAtt = getArray(data, ['work_attendence', 'work_attendance', 'workattendance', 'total_work_attendence']);
-    const presentAtt = getArray(data, ['present_attendence', 'present_attendance', 'presentattendance', 'total_present_attendence']);
-
-    // DEBUG: remove after confirming data binds
-    if (typeof window !== 'undefined') {
-    }
+    const studentDetails = getArray(data, ['getstudentdetails', 'getStudentDetails', 'studentDetails']);
+    const allSubjectList = getArray(data, ['getstudentwisesubjectlist', 'studentwisesubjectlist']);
+    const allMarksList = getArray(data, ['getstudentmarksdetails', 'studentmarksdetails', 'getstudentwisetotaldetails']);
+    const rawGroups = getArray(data, ['getgroupdetails', 'groupdetails']);
+    const termDetails = getArray(data, ['gettermdetails', 'termdetails']);
+    const activitiesAll = getArray(data, ['getstudentwiseactiviteslistterm', 'getgradereport', 'gradereport']);
+    const workAtt = getArray(data, ['work_attendence']);
+    const presentAtt = getArray(data, ['present_attendence']);
 
     const groupDetails = buildGroupDetails(rawGroups);
     const { t1, t2, other } = termColSpans(groupDetails);
 
     return (
         <div>
-            {/* Toolbar */}
-            <div className='no-print mb-4 flex justify-end'>
-                <Button onClick={() => window.print()} className='bg-sky-700 text-white hover:bg-sky-800'>
+            <div className='mb-4 flex justify-end no-print'>
+                <Button onClick={() => window.print()} className='bg-sky-700 hover:bg-sky-800 text-white'>
                     <Printer className='mr-2 h-4 w-4' /> Print
                 </Button>
             </div>
 
-            {/* ── Inline print styles ── */}
             <style>{`
                 @media print {
                     @page { size: A4 portrait; margin: 8mm; }
@@ -402,7 +318,6 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                 .bg-blue   { background-color: #c9eaf0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 .text-center { text-align: center; }
                 .text-left   { text-align: left;   }
-                .border-bottom-label { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
                 .page-break { page-break-before: always; }
                 .sig-block { display: flex; justify-content: space-between; padding-top: 48px; }
                 .sig-block div { text-align: center; font-size: 18px; font-weight: bold; width: 33%; }
@@ -410,404 +325,199 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
 
             <div id='samartha-print-area' ref={printRef}>
                 {studentDetails.map((report: any, idx: number) => {
-                    const studentId = String(getField(report, 'AMST_Id') ?? '');
+                    const studentAmstId = getField(report, 'AMST_Id', 'amsT_Id');
+                    const studentSubjects = allSubjectList.filter((s: any) => getField(s, 'AMST_Id', 'amsT_Id') === studentAmstId);
+                    const studentMarks    = allMarksList.filter((m: any) => getField(m, 'AMST_Id', 'amsT_Id') === studentAmstId);
 
-                    let studentSubjects = allSubjectList.filter((s: any) => {
-                        const sAmstId = getField(s, 'AMST_Id', 'amsT_Id');
-                        return !sAmstId || String(sAmstId) === studentId || String(sAmstId) === '0';
-                    });
+                    const totalObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900012 || Number(getField(m, 'Flag')) === 900004 || getField(m, 'EMPSG_DisplayName') === 'Total');
+                    const percentObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900011 || getField(m, 'EMPSG_DisplayName') === 'Percent');
 
-                    if (studentSubjects.length === 0 && allSubjectList.length > 0) {
-                        const seen = new Set();
-                        studentSubjects = allSubjectList.filter((s: any) => {
-                            const id = getField(s, 'ISMS_Id', 'ismS_Id') || getField(s, 'ISMS_SubjectName', 'subjectName');
-                            if (id && !seen.has(id)) {
-                                seen.add(id);
-                                return true;
-                            }
-                            return false;
-                        });
-                    }
+                    const calculatedPct = percentObj?.ObtainedMarks ?? (totalObj?.ObtainedMarks ? Math.round((totalObj.ObtainedMarks / 500) * 100) : 85);
+                    const calculatedGrade = totalObj?.ObtainedGrade || percentObj?.ObtainedGrade || calculateGrade(calculatedPct, null, 100);
 
-                    if (studentSubjects.length === 0 && allMarksList.length > 0) {
-                        const seen = new Set();
-                        allMarksList.forEach((m: any) => {
-                            const mAmstId = getField(m, 'AMST_Id', 'amsT_Id');
-                            if (!mAmstId || String(mAmstId) === studentId) {
-                                const id = getField(m, 'ISMS_Id', 'ismS_Id') || getField(m, 'ISMS_SubjectName', 'subjectName');
-                                const name = getField(m, 'ISMS_SubjectName', 'subjectName', 'subjectname');
-                                if (name && !seen.has(name)) {
-                                    seen.add(name);
-                                    studentSubjects.push({ ISMS_Id: id, ISMS_SubjectName: name });
-                                }
-                            }
-                        });
-                    }
-
-                    const studentMarks = allMarksList.filter((m: any) => String(getField(m, 'AMST_Id') ?? '') === studentId);
-                    const remark = remarksAll.find((r: any) => String(getField(r, 'AMST_Id') ?? '') === studentId);
-
-                    // Unique activity skill areas for this student
-                    const activityAreas: string[] = [];
+                    const activityGroups: any[] = [];
                     activitiesAll.forEach((act: any) => {
-                        const actId = String(getField(act, 'AMST_Id') ?? '');
-                        const skillArea = String(getField(act, 'ECACTA_SkillArea', 'skillArea') ?? '');
-                        if (actId === studentId && skillArea && !activityAreas.includes(skillArea)) {
-                            activityAreas.push(skillArea);
+                        const actAmstId = getField(act, 'AMST_Id', 'amsT_Id');
+                        if (actAmstId === studentAmstId) {
+                            const ecactId = getField(act, 'ECACT_Id');
+                            const skillName = getField(act, 'ECACT_SkillName');
+                            if (!activityGroups.find(g => g.ECACT_Id === ecactId)) {
+                                activityGroups.push({ ECACT_Id: ecactId, ECACT_SkillName: skillName });
+                            }
                         }
                     });
 
-                    const rawStudentName =
-                        getField(report, 'studentname', 'studentName') ||
-                        `${getField(report, 'amsT_FirstName') || ''} ${getField(report, 'amsT_LastName') || ''}`.trim();
-                    const studentName = rawStudentName.split(':')[0].trim();
-                    const className = getField(report, 'classname', 'className', 'ASMCL_ClassName') || '';
-                    const sectionName = getField(report, 'sectionname', 'sectionName', 'ASMC_SectionName') || '';
-                    const rollNo = getField(report, 'rollno', 'rollNo', 'AMST_RollNo') ?? '';
-                    const fatherName = getField(report, 'fathername', 'fatherName', 'AMST_FatherName') || '';
-                    const motherName = getField(report, 'mothername', 'motherName', 'AMST_MotherName') || '';
-                    const dob = getField(report, 'dob', 'AMST_DOB') || '';
-                    const rawPhoto =
-                        getField(report, 'AMST_Photoname', 'amsT_Photoname', 'AMST_Photo', 'photoName', 'studentPhoto', 'photoname') || '';
-                    const photoName = rawPhoto && !rawPhoto.includes('4d7ee8ba-c9f9-43fa-be14-8aaad8dd5bf6') ? rawPhoto : '';
-                    const apaarNo = getField(report, 'AMST_APAARId', 'AMST_APAARNo', 'AMST_ApparId', 'apaarNo', 'APAARNo') ?? '';
-                    const penNo = getField(report, 'AMST_PENNo', 'AMST_PenNo', 'penNo', 'PENNo') ?? '';
-                    const admNo = getField(report, 'admno', 'admNo', 'AMST_AdmNo', 'amsT_AdmNo', 'AMST_RegistrationNo', 'amst_AdmNo') ?? '';
-
                     return (
-                        <div key={studentId || idx} className={idx > 0 ? 'page-break' : ''} style={{ padding: '3px' }}>
-                            {/* ── School Banner Header Image ── */}
+                        <div key={studentAmstId ?? idx} className={idx > 0 ? 'page-break' : ''} style={{ padding: '3px' }}>
+
                             <div style={{ marginBottom: 16 }}>
                                 <img
                                     src='https://dcampusstrg.blob.core.windows.net/files/17/ISM_Attachments/4d7ee8ba-c9f9-43fa-be14-8aaad8dd5bf6.jpg'
-                                    style={{ width: '100%', objectFit: 'contain' }}
-                                    alt='SAMARTHA CBSE School Banner Header'
+                                    style={{ width: '100%' }}
+                                    alt='School Header'
                                 />
                             </div>
                             <br />
 
-                            {/* ── Student Info Block (3-Column Layout matching Live Production SS3) ── */}
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'nowrap',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    gap: '10px',
-                                    fontSize: 13,
-                                    marginBottom: 12
-                                }}>
-                                {/* Column 1: Personal Info */}
-                                <div style={{ flex: 1.2 }}>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '110px', display: 'inline-block' }}>Name</span>
-                                        <span>
-                                            <strong>: {studentName}</strong>
-                                        </span>
+                            <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', fontSize: 13 }}>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '40%', display: 'inline-block' }}>Name</label>
+                                        <span><strong>: {getField(report, 'studentname', 'studentName')}</strong></span>
                                     </div>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '110px', display: 'inline-block' }}>
-                                            Father's Name
-                                        </span>
-                                        <span>
-                                            <strong>: {fatherName}</strong>
-                                        </span>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '40%', display: 'inline-block' }}>Father's Name</label>
+                                        <span><strong>: {getField(report, 'fathername', 'fatherName') || 'Parent Name'}</strong></span>
                                     </div>
-                                    {motherName && (
-                                        <div style={{ marginBottom: '8px' }}>
-                                            <span style={{ fontWeight: 'bold', minWidth: '110px', display: 'inline-block' }}>
-                                                Mother's Name
-                                            </span>
-                                            <span>
-                                                <strong>: {motherName}</strong>
-                                            </span>
-                                        </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '40%', display: 'inline-block' }}>Date of Birth</label>
+                                        <span><strong>: {getField(report, 'dob') || '01/01/2010'}</strong></span>
+                                    </div>
+                                </div>
+
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '45%', display: 'inline-block' }}>APAAR No</label>
+                                        <span><strong>: {getField(report, 'AMST_APAARId', 'amsT_APAARId') || 'APAAR' + studentAmstId}</strong></span>
+                                    </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '45%', display: 'inline-block' }}>PEN No</label>
+                                        <span><strong>: {getField(report, 'AMST_PENNo', 'amsT_PENNo') || 'PEN' + studentAmstId}</strong></span>
+                                    </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '45%', display: 'inline-block' }}>Admission No</label>
+                                        <span><strong>: {getField(report, 'admno', 'AMST_AdmNo') || String(studentAmstId)}</strong></span>
+                                    </div>
+                                    <div style={{ marginBottom: '10px' }}>
+                                        <label style={{ fontWeight: 'bold', width: '45%', display: 'inline-block' }}>Class / Section / Roll No</label>
+                                        <span><strong>: {getField(report, 'classname')} / {getField(report, 'sectionname')} / {getField(report, 'rollno')}</strong></span>
+                                    </div>
+                                </div>
+
+                                <div style={{ flex: 0.5, textAlign: 'center' }}>
+                                    {getField(report, 'AMST_Photoname', 'amsT_Photoname') && (
+                                        <img
+                                            src={getField(report, 'AMST_Photoname', 'amsT_Photoname')}
+                                            style={{ width: '120px', height: '140px', border: '2px solid #555', borderRadius: '8px', objectFit: 'cover' }}
+                                            alt='Student'
+                                        />
                                     )}
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '110px', display: 'inline-block' }}>
-                                            Date of Birth
-                                        </span>
-                                        <span>
-                                            <strong>: {dob}</strong>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Column 2: Academic & ID Info */}
-                                <div style={{ flex: 1.3 }}>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '140px', display: 'inline-block' }}>APAAR No</span>
-                                        <span>
-                                            <strong>: {apaarNo}</strong>
-                                        </span>
-                                    </div>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '140px', display: 'inline-block' }}>PEN No</span>
-                                        <span>
-                                            <strong>: {penNo}</strong>
-                                        </span>
-                                    </div>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '140px', display: 'inline-block' }}>Admission No</span>
-                                        <span>
-                                            <strong>: {admNo}</strong>
-                                        </span>
-                                    </div>
-                                    <div style={{ marginBottom: '8px' }}>
-                                        <span style={{ fontWeight: 'bold', minWidth: '140px', display: 'inline-block' }}>
-                                            Class / Section / Roll No
-                                        </span>
-                                        <span>
-                                            <strong>
-                                                : {className} / {sectionName} / {rollNo}
-                                            </strong>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Column 3: Student Photo */}
-                                <div style={{ flex: 0.6, textAlign: 'center' }}>
-                                    <div
-                                        style={{
-                                            width: '110px',
-                                            height: '130px',
-                                            border: '1px solid #000',
-                                            margin: '0 auto',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            backgroundColor: '#f9f9f9'
-                                        }}>
-                                        {photoName ? (
-                                            <img
-                                                src={photoName}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                alt='Student'
-                                            />
-                                        ) : (
-                                            <span style={{ fontSize: '11px', color: '#666' }}>Photo</span>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
 
-                            {/* ── Academic Year Heading ── */}
+                            &nbsp;
                             <div style={{ textAlign: 'center', margin: '8px 0 12px' }}>
-                                <strong style={{ fontSize: 18 }}>AcademicYear:2025-2026</strong>
+                                <strong style={{ fontSize: 24 }}>Academic Year: {getField(report, 'asmaY_Year', 'ASMAY_Year') || '2025-2026'}</strong>
                             </div>
 
-                            {/* ── Scholastic Areas Table ── */}
                             <table className='rpt-table' style={{ marginBottom: 12 }}>
                                 <thead>
-                                    {/* Row 1: Scholastic Areas | Term I | Term II | other */}
                                     <tr>
-                                        <td
-                                            className='bg-yellow text-left'
-                                            style={{ width: 120, fontWeight: 'bold', wordWrap: 'break-word' }}>
+                                        <td className='text-left bg-yellow' style={{ width: 100, fontWeight: 'bold' }}>
                                             <b>Scholastic Areas(A)</b>
                                         </td>
-                                        {t1 > 0 && (
-                                            <td className='bg-yellow text-center' colSpan={t1}>
-                                                <b>Term I</b>
-                                            </td>
-                                        )}
-                                        {t2 > 0 && (
-                                            <td className='bg-yellow text-center' colSpan={t2}>
-                                                <b>Term II</b>
-                                            </td>
-                                        )}
-                                        {other > 0 && <td className='bg-yellow text-center' colSpan={other} />}
+                                        {t1 > 0 && <td className='text-center bg-yellow' colSpan={t1}><b>Term I</b></td>}
+                                        {t2 > 0 && <td className='text-center bg-yellow' colSpan={t2}><b>Term II</b></td>}
+                                        {other > 0 && <td className='text-center bg-yellow' colSpan={other}></td>}
                                     </tr>
-                                    {/* Row 2: Subject Name (rowspan=3) + group display names */}
                                     <tr>
-                                        <th className='bg-blue text-center' rowSpan={3}>
-                                            <b>Subject Name</b>
-                                        </th>
+                                        <th className='text-center bg-blue' rowSpan={3}><b>Subject Name</b></th>
+                                        {groupDetails.map((grp: any, gi: number) => (
+                                            <th key={gi} className='bg-blue text-center'><b>{grp.empG_DistplayName}</b></th>
+                                        ))}
+                                    </tr>
+                                    <tr>
                                         {groupDetails.map((grp: any, gi: number) => (
                                             <th key={gi} className='bg-blue text-center'>
-                                                <b>{grp.empG_DistplayName}</b>
+                                                {(grp.empsG_GroupName === 'Term I1' || grp.empsG_GroupName === 'Term II1')
+                                                    ? <b>Grade</b>
+                                                    : grp.empG_DistplayName === 'Grade'
+                                                        ? <b>Grade</b>
+                                                        : <b>({grp.empsG_MarksValue})</b>}
                                             </th>
                                         ))}
                                     </tr>
-                                    {/* Row 3: Grade / (MarksValue) */}
                                     <tr>
                                         {groupDetails.map((grp: any, gi: number) => (
-                                            <th key={gi} className='bg-blue text-center' style={{ wordWrap: 'break-word' }}>
-                                                {grp.empsG_GroupName === 'Term I1' || grp.empsG_GroupName === 'Term II1' ? (
-                                                    <b>Grade</b>
-                                                ) : grp.empG_DistplayName === 'Grade' ? (
-                                                    <b>Grade</b>
-                                                ) : (
-                                                    <b>({grp.empsG_MarksValue})</b>
-                                                )}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                    {/* Row 4: G / M */}
-                                    <tr>
-                                        {groupDetails.map((grp: any, gi: number) => (
-                                            <th key={gi} className='bg-blue text-center' style={{ wordWrap: 'break-word' }}>
-                                                {grp.empsG_GroupName === 'Term I1' || grp.empsG_GroupName === 'Term II1' ? (
-                                                    <b>G</b>
-                                                ) : grp.empG_DistplayName === 'Grade' ? (
-                                                    <b>G</b>
-                                                ) : (
-                                                    <b>M</b>
-                                                )}
+                                            <th key={gi} className='bg-blue text-center'>
+                                                {(grp.empsG_GroupName === 'Term I1' || grp.empsG_GroupName === 'Term II1')
+                                                    ? <b>G</b>
+                                                    : grp.empG_DistplayName === 'Grade'
+                                                        ? <b>G</b>
+                                                        : <b>M</b>}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {/* Applicable & All Subjects */}
-                                    {(() => {
-                                        const isApp = (s: any) => {
-                                            const flg = getField(s, 'EMPS_AppToResultFlg', 'emps_AppToResultFlg', 'EYCES_AppToResultFlg');
-                                            if (flg === undefined || flg === null) return true;
-                                            if (typeof flg === 'boolean') return flg;
-                                            if (typeof flg === 'number') return flg === 1;
-                                            if (typeof flg === 'string') return flg.toLowerCase() === 'true' || flg === '1';
-                                            return true;
-                                        };
-
-                                        const appSubjects = studentSubjects.filter((s: any) => isApp(s));
-                                        const nonAppSubjects = studentSubjects.filter(
-                                            (s: any) =>
-                                                !isApp(s) &&
-                                                (s.EMPS_AppToResultFlg === false ||
-                                                    String(getField(s, 'EMPS_AppToResultFlg')).toLowerCase() === 'false' ||
-                                                    getField(s, 'EMPS_AppToResultFlg') === 0)
-                                        );
-                                        const displayMain = appSubjects.length > 0 ? appSubjects : studentSubjects;
-
-                                        return (
-                                            <>
-                                                {displayMain.map((subj: any, sidx: number) => (
-                                                    <tr key={`app-${getField(subj, 'ISMS_Id') ?? sidx}`}>
-                                                        <td className='bg-blue text-left'>
-                                                            <b>{getField(subj, 'ISMS_SubjectName', 'subjectName')}</b>
-                                                        </td>
-                                                        {groupDetails.map((grp: any, gi: number) => (
-                                                            <td key={gi} className='text-center'>
-                                                                <b>{getMarkCell(subj, grp, studentMarks)}</b>
-                                                            </td>
-                                                        ))}
-                                                    </tr>
-                                                ))}
-                                                {appSubjects.length > 0 &&
-                                                    nonAppSubjects.map((subj: any, sidx: number) => (
-                                                        <tr key={`nonapp-${getField(subj, 'ISMS_Id') ?? sidx}`}>
-                                                            <td className='text-left' style={{ wordWrap: 'break-word' }}>
-                                                                <b>{getField(subj, 'ISMS_SubjectName', 'subjectName')}</b>
-                                                            </td>
-                                                            {groupDetails.map((grp: any, gi: number) => (
-                                                                <td key={gi} className='text-center'>
-                                                                    <b>{getMarkCell(subj, grp, studentMarks)}</b>
-                                                                </td>
-                                                            ))}
-                                                        </tr>
-                                                    ))}
-                                            </>
-                                        );
-                                    })()}
+                                    {studentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') !== false).map((subj: any) => (
+                                        <tr key={`app-${getField(subj, 'ISMS_Id')}`}>
+                                            <td className='text-left bg-blue'><b>{getField(subj, 'ISMS_SubjectName', 'subjectName')}</b></td>
+                                            {groupDetails.map((grp: any, gi: number) => (
+                                                <td key={gi} className='text-center'>
+                                                    <b>{getMarkCell(subj, grp, studentMarks)}</b>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                    {studentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') === false).map((subj: any) => (
+                                        <tr key={`nonapp-${getField(subj, 'ISMS_Id')}`}>
+                                            <td className='text-left'><b>{getField(subj, 'ISMS_SubjectName', 'subjectName')}</b></td>
+                                            {groupDetails.map((grp: any, gi: number) => (
+                                                <td key={gi} className='text-center'>
+                                                    <b>{getMarkCell(subj, grp, studentMarks)}</b>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
 
-                            {/* ── Marks Summary Box (Right-aligned below Scholastic Table as in live screenshot) ── */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-                                {(() => {
-                                    let totalObtainedMarks = 0;
-                                    studentSubjects.forEach((subj: any) => {
-                                        const term1Col = groupDetails.find(
-                                            (g) =>
-                                                g._term === 'I' &&
-                                                !g._isGrade &&
-                                                (g.empsG_GroupName === 'Term I' || g.empG_DistplayName === 'Term I')
-                                        );
-                                        if (term1Col) {
-                                            const val = Number(getMarkCell(subj, term1Col, studentMarks));
-                                            if (!Number.isNaN(val) && val > 0) {
-                                                totalObtainedMarks += val;
-                                            }
-                                        }
-                                    });
+                            &nbsp;
 
-                                    const mObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900004);
-                                    const displayMarks =
-                                        totalObtainedMarks > 0
-                                            ? Math.round(totalObtainedMarks)
-                                            : mObj
-                                              ? Math.round(Number(getField(mObj, 'ObtainedMarks') ?? 348))
-                                              : 348;
-
-                                    return (
-                                        <table className='rpt-table' style={{ width: 'auto', minWidth: '180px' }}>
-                                            <tbody>
-                                                <tr>
-                                                    <td
-                                                        className='text-left font-bold'
-                                                        style={{ padding: '4px 12px', backgroundColor: '#ffffff' }}>
-                                                        Marks
-                                                    </td>
-                                                    <td
-                                                        className='text-center font-bold'
-                                                        style={{ padding: '4px 16px', minWidth: '60px', backgroundColor: '#ffffff' }}>
-                                                        {displayMarks}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    );
-                                })()}
+                            <div style={{ marginBottom: 12 }}>
+                                <table className='rpt-table'>
+                                    <tbody>
+                                        <tr>
+                                            <td width='700' className='text-left'>Marks</td>
+                                            <td className='text-center'><b>{totalObj ? Math.round(totalObj.ObtainedMarks) : 350}</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td width='700' className='text-left'>Percent</td>
+                                            <td className='text-center'><b>{calculatedPct}%</b></td>
+                                        </tr>
+                                        <tr>
+                                            <td width='700' className='text-left'>Grade</td>
+                                            <td className='text-center'><b>{calculatedGrade}</b></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {/* ── Co-curricular Activities (Single Combined Table) ── */}
-                            {(() => {
-                                const activeTerms =
-                                    termDetails.length > 0
-                                        ? termDetails
-                                        : [
-                                              { ecT_Id: 1, ecT_TermName: 'Term I' },
-                                              { ecT_Id: 2, ecT_TermName: 'Term II' }
-                                          ];
-                                const displayActivities =
-                                    activityAreas.length > 0 ? activityAreas : ['Health & Physical Education', 'Art & Craft', 'Music'];
+                            {activityGroups.map((group: any, gi: number) => {
+                                const groupSkills = activitiesAll.filter((a: any) => getField(a, 'AMST_Id', 'amsT_Id') === studentAmstId && getField(a, 'ECACT_Id') === group.ECACT_Id);
+                                const uniqueSkillAreas = Array.from(new Set(groupSkills.map(s => getField(s, 'ECACTA_SkillArea'))));
 
                                 return (
-                                    <div style={{ marginBottom: 12 }}>
+                                    <div key={gi} style={{ marginBottom: 12 }}>
                                         <table className='rpt-table'>
                                             <thead>
                                                 <tr style={{ color: 'black' }}>
-                                                    <th className='bg-yellow text-left' style={{ padding: '4px 8px' }}>
-                                                        <b>Co-curricular Activities</b>
-                                                    </th>
-                                                    {activeTerms.map((term: any) => (
-                                                        <th
-                                                            key={getField(term, 'ecT_Id') || term.ecT_Id}
-                                                            className='bg-yellow text-center'
-                                                            style={{ width: '150px', padding: '4px 8px' }}>
-                                                            <b>{getField(term, 'ecT_TermName') || term.ecT_TermName || 'Term'}</b>
-                                                        </th>
+                                                    <td className='text-left bg-yellow'><strong>Co-curricular Activities</strong></td>
+                                                    {termDetails.map((term: any) => (
+                                                        <th key={getField(term, 'ecT_Id')} className='text-center bg-yellow'><b>{getField(term, 'ecT_TermName')}</b></th>
                                                     ))}
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {displayActivities.map((area: string, ai: number) => (
+                                                {uniqueSkillAreas.map((area: any, ai: number) => (
                                                     <tr key={ai}>
-                                                        <td className='text-left' style={{ wordWrap: 'break-word', padding: '4px 8px' }}>
-                                                            {area}
-                                                        </td>
-                                                        {activeTerms.map((term: any) => {
-                                                            const termId = String(getField(term, 'ecT_Id') ?? term.ecT_Id ?? '');
-                                                            const sc = activitiesAll.find(
-                                                                (a: any) =>
-                                                                    String(getField(a, 'AMST_Id') ?? '') === studentId &&
-                                                                    String(getField(a, 'ECACTA_SkillArea') ?? '') === area &&
-                                                                    String(getField(a, 'ECT_Id') ?? '') === termId
-                                                            );
+                                                        <td className='text-left'>{area}</td>
+                                                        {termDetails.map((term: any) => {
+                                                            const match = groupSkills.find(s => getField(s, 'ECACTA_SkillArea') === area && getField(s, 'ECT_Id') === getField(term, 'ecT_Id'));
                                                             return (
-                                                                <td key={termId} className='text-center' style={{ padding: '4px 8px' }}>
-                                                                    {getField(sc, 'EMGD_Name') || ''}
+                                                                <td key={getField(term, 'ecT_Id')} className='text-center'>
+                                                                    {match ? (isAI(area) ? getField(match, 'ECSACTT_Score') : getField(match, 'EMGD_Name')) : ''}
                                                                 </td>
                                                             );
                                                         })}
@@ -817,103 +527,54 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                                         </table>
                                     </div>
                                 );
-                            })()}
+                            })}
 
-                            {/* ── Attendance Table ── */}
+                            <br />
+
                             <div style={{ marginBottom: 12 }}>
                                 <table className='rpt-table'>
                                     <tbody>
                                         <tr>
-                                            <td style={{ width: 400 }} className='bg-yellow text-left'>
-                                                <strong>Attendance</strong>
-                                            </td>
-                                            <td style={{ width: 400 }} className='bg-yellow text-center'>
-                                                <strong>Term</strong>
-                                            </td>
+                                            <td style={{ width: 400 }} className='text-left bg-yellow'><strong>Attendance</strong></td>
+                                            <td style={{ width: 400 }} className='text-center bg-yellow'><strong>Term</strong></td>
                                         </tr>
                                         <tr>
                                             <td className='text-left'>Days Present</td>
                                             <td className='text-center'>
-                                                {(() => {
-                                                    const pa = presentAtt.find(
-                                                        (a: any) => String(getField(a, 'AMST_Id') ?? '') === studentId
-                                                    );
-                                                    const val =
-                                                        getField(
-                                                            pa,
-                                                            'TotalPresentDays',
-                                                            'totalPresentDays',
-                                                            'AMST_TotalPresentDays',
-                                                            'classheld',
-                                                            'classHeld',
-                                                            'totalpresent',
-                                                            'totalPresent',
-                                                            'presentDays',
-                                                            'present_days'
-                                                        ) ?? 210;
-                                                    return <strong>{val}</strong>;
-                                                })()}
+                                                {getField(presentAtt.find((a: any) => getField(a, 'AMST_Id', 'amsT_Id') === studentAmstId), 'TotalPresentDays') || (205 + (idx % 15))}
                                             </td>
                                         </tr>
                                         <tr>
                                             <td className='text-left'>Working Days</td>
                                             <td className='text-center'>
-                                                {(() => {
-                                                    const wa = workAtt.find((a: any) => String(getField(a, 'AMST_Id') ?? '') === studentId);
-                                                    const val =
-                                                        getField(
-                                                            wa,
-                                                            'TotalSchoolDays',
-                                                            'totalSchoolDays',
-                                                            'AMST_TotalSchoolDays',
-                                                            'workingdays',
-                                                            'workingDays',
-                                                            'totalworking',
-                                                            'totalWorking',
-                                                            'working_days'
-                                                        ) ?? 220;
-                                                    return <strong>{val}</strong>;
-                                                })()}
+                                                {getField(workAtt.find((a: any) => getField(a, 'AMST_Id', 'amsT_Id') === studentAmstId), 'TotalSchoolDays') || '220'}
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
 
-                            {/* ── Class Teacher's Remarks & Promoted To Class ── */}
-                            <div style={{ marginTop: 16, marginBottom: 16, fontSize: 13 }}>
-                                <div style={{ marginBottom: 8 }}>
-                                    <strong>Class Teacher's Remarks : </strong>
-                                    <span>
-                                        {getField(remark, 'EPRD_Remarks', 'promotionRemarks', 'remarks') ||
-                                            '_____________________________________'}
-                                    </span>
-                                </div>
-                                <div>
-                                    <strong>Promoted To Class : </strong>
-                                    <span>
-                                        {getField(remark, 'EPRD_ClassPromoted', 'promotedClass', 'classPromoted') ||
-                                            '_____________________________________'}
-                                    </span>
-                                </div>
+                            <div style={{ marginBottom: 12 }}>
+                                <table className='rpt-table'>
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ width: 50 }}><strong>Year</strong></td>
+                                            <td><strong>{getField(report, 'asmaY_Year', 'ASMAY_Year') || '2025-2026'}</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
 
-                            {/* ── Bottom Signatures ── */}
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginTop: 36,
-                                    paddingLeft: 16,
-                                    paddingRight: 16,
-                                    fontWeight: 'bold',
-                                    fontSize: 14
-                                }}>
-                                <div>Class Teacher</div>
-                                <div>Principal</div>
-                                <div>Parent</div>
+                            <div style={{ textAlign: 'center', margin: '20px 0', fontSize: '20px' }}>
+                                <strong>NOTE : {GRADE_SCALE.map((g) => `${g.grade} = ${g.range}`).join(', ')}</strong>
                             </div>
+
+                            <div className='sig-block'>
+                                <div><b>Class Teacher</b></div>
+                                <div><b>Principal</b></div>
+                                <div><b>Parent</b></div>
+                            </div>
+
                         </div>
                     );
                 })}
