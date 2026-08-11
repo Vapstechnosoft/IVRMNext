@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { IPrivilegeData } from '@/types/super-admin/super-admin-module/general-setting/privileges';
 import { Trash2 } from 'lucide-react';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -36,6 +35,9 @@ export function PrivilegesGrid({ data, onChange, onDelete, title, isCart }: Priv
         item.ivrmmP_PageName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const isAllChecked = (field: keyof IPrivilegeData) =>
+        data.length > 0 && data.every(item => Boolean(item[field]));
+
     return (
         <div className="border rounded-md shadow-sm bg-white mb-4">
             <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
@@ -57,11 +59,61 @@ export function PrivilegesGrid({ data, onChange, onDelete, title, isCart }: Priv
                         <tr>
                             <th className="px-4 py-3">SL.NO</th>
                             <th className="px-4 py-3">Page Name</th>
-                            <th className="px-4 py-3 text-center">Add</th>
-                            <th className="px-4 py-3 text-center">Delete</th>
-                            <th className="px-4 py-3 text-center">Update</th>
-                            <th className="px-4 py-3 text-center">Process</th>
-                            <th className="px-4 py-3 text-center">Report</th>
+                            <th className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                    <span>Add</span>
+                                    {isCart && (
+                                        <Checkbox
+                                            checked={isAllChecked('ivrmrP_AddFlag')}
+                                            onCheckedChange={(c) => toggleAll('ivrmrP_AddFlag', c as boolean)}
+                                        />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                    <span>Delete</span>
+                                    {isCart && (
+                                        <Checkbox
+                                            checked={isAllChecked('ivrmrP_DeleteFlag')}
+                                            onCheckedChange={(c) => toggleAll('ivrmrP_DeleteFlag', c as boolean)}
+                                        />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                    <span>Update</span>
+                                    {isCart && (
+                                        <Checkbox
+                                            checked={isAllChecked('ivrmrP_UpdateFlag')}
+                                            onCheckedChange={(c) => toggleAll('ivrmrP_UpdateFlag', c as boolean)}
+                                        />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                    <span>Process</span>
+                                    {isCart && (
+                                        <Checkbox
+                                            checked={isAllChecked('ivrmrP_ProcessFlag')}
+                                            onCheckedChange={(c) => toggleAll('ivrmrP_ProcessFlag', c as boolean)}
+                                        />
+                                    )}
+                                </div>
+                            </th>
+                            <th className="px-4 py-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                    <span>Report</span>
+                                    {isCart && (
+                                        <Checkbox
+                                            checked={isAllChecked('ivrmrP_ReportFlag')}
+                                            onCheckedChange={(c) => toggleAll('ivrmrP_ReportFlag', c as boolean)}
+                                        />
+                                    )}
+                                </div>
+                            </th>
                             {isCart && <th className="px-4 py-3 text-center">Action</th>}
                         </tr>
                     </thead>
