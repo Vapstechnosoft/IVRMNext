@@ -24,11 +24,7 @@ export const oralTestScheduleColumns: ColumnDef<IOralTestSchedule>[] = [
     {
         id: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title="SL.NO" />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            return pageIndex * pageSize + row.index + 1;
-        },
+        cell: ({ row }) => row.index + 1,
     },
     {
         accessorKey: 'paotS_ScheduleName',
