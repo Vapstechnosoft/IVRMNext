@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
+// import { GenericDataTable, useDataTableProps } from './_components/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
@@ -13,6 +13,7 @@ import { columns } from './_components/columns';
 import ReorderCourseForm from './_components/reorder-form';
 import ToggleMasterCourseForm from './_components/toggle-form';
 import UpdateCourseForm from './_components/update-form';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -74,15 +75,14 @@ function MasterCoursePageContent({
                     <GenericDataTable<IMasterCourseList>
                         {...tableProps}
                         columns={columns}
-                        getRowId={(row) => row.hrmC_Id.toString()}
                         isLoading={isLoading}
-                        isSearchRequired={false}
                         error={error}
                         showViewOptions={false}
-                        loadingMessage='Loading courses...'
-                        noDataTitle='No Courses Found'
-                        noDataDescription='Get started by creating your first course'
-                        errorTitle='Error Loading Courses'
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading departments...'
+                        noDataTitle='No Departments Found'
+                        noDataDescription='Get started by creating your first department'
+                        errorTitle='Error Loading Departments'
                     />
                 </CollapsibleSection>
 

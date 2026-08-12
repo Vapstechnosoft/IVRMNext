@@ -11,11 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { 
-    Send, 
-    Paperclip, 
-    Loader2, 
-    User, 
+import {
+    Send,
+    Paperclip,
+    Loader2,
+    User,
     FileText,
     FileImage,
     Video,
@@ -36,7 +36,7 @@ interface ViewReplyModalProps {
     roleFlg: string;
     interactionsData: any;
 }
-
+export const dynamic = 'force-dynamic';
 export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactionsData }: ViewReplyModalProps) {
     const [thread, setThread] = useState<any[]>([]);
     const [replyVisible, setReplyVisible] = useState(false);
@@ -51,9 +51,9 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
             const res = await fetchThread(message.ISMINT_Id);
             if (res.success && res.data) {
                 setThread(res.data.viewmessage || []);
-                
+
                 // SCS specific reply logic (simplified parity)
-                setReplyVisible(true); 
+                setReplyVisible(true);
             }
         } catch (error) {
             console.error('Failed to load thread:', error);
@@ -103,7 +103,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
     const handleFileView = (url: string) => {
         if (!url) return;
         const ext = url.split('.').pop()?.toLowerCase();
-        
+
         if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext || '')) {
             window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
         } else {
@@ -191,7 +191,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                                             </td>
                                             <td className="px-4 py-4 border-r border-slate-100 text-center">
                                                 {message.ISMINT_Attachment && (
-                                                    <button 
+                                                    <button
                                                         onClick={() => setPreviewUrl(message.ISMINT_Attachment!)}
                                                         className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
                                                     >
@@ -216,7 +216,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                                                 </td>
                                                 <td className="px-4 py-4 border-r border-slate-100 text-center">
                                                     {item.ISTINT_Attachment && (
-                                                        <button 
+                                                        <button
                                                             onClick={() => setPreviewUrl(item.ISTINT_Attachment)}
                                                             className="inline-flex p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
                                                         >
@@ -242,7 +242,7 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                 {replyVisible && (
                     <div className="p-6 border-t bg-muted/10 space-y-4">
                         <div className="flex flex-col gap-3">
-                            <Textarea 
+                            <Textarea
                                 placeholder="Write a reply..."
                                 className="min-h-[100px] resize-none focus-visible:ring-primary/20"
                                 value={replyText}
@@ -256,8 +256,8 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                                         Attach File
                                     </Button>
                                 </div>
-                                <Button 
-                                    className="min-w-[120px] h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all" 
+                                <Button
+                                    className="min-w-[120px] h-10 px-6 rounded-md bg-[#1e40af] hover:bg-[#1e3a8a] text-white font-black text-xs uppercase tracking-widest shadow-md transition-all"
                                     onClick={handleSendReply}
                                     disabled={isSubmitting || !replyText.trim()}
                                 >
@@ -277,23 +277,23 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
                 <DialogContent className="max-w-4xl p-0 bg-transparent border-none shadow-none flex flex-col items-center">
                     <div className="relative group w-full flex flex-col items-center gap-6">
                         <div className="relative rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md p-1 shadow-2xl">
-                             {previewUrl && (
-                                <img 
-                                    src={previewUrl} 
-                                    alt="Preview" 
+                            {previewUrl && (
+                                <img
+                                    src={previewUrl}
+                                    alt="Preview"
                                     className="max-h-[70vh] w-auto rounded-xl object-contain shadow-inner"
                                 />
-                             )}
+                            )}
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button 
+                            <Button
                                 onClick={() => previewUrl && handleDownload(previewUrl)}
                                 className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md px-8 rounded-full font-black uppercase tracking-widest gap-3 h-12 shadow-xl"
                             >
                                 <Download className="h-5 w-5" />
                                 Download Image
                             </Button>
-                            <Button 
+                            <Button
                                 onClick={() => setPreviewUrl(null)}
                                 className="bg-red-500/80 hover:bg-red-500 text-white px-8 rounded-full font-black uppercase tracking-widest h-12 shadow-xl"
                             >
@@ -308,20 +308,20 @@ export function ViewReplyModal({ isOpen, onClose, message, roleFlg, interactions
 }
 
 function MessageSquareIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  )
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+    )
 }

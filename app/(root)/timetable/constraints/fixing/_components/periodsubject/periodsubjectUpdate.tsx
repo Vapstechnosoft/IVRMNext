@@ -477,7 +477,7 @@ export default function PeriodSubjectUpdate({
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>Academic Year <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
@@ -505,7 +505,7 @@ export default function PeriodSubjectUpdate({
                         name='ttmP_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>Period <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => field.onChange(Number(v))}
@@ -536,7 +536,7 @@ export default function PeriodSubjectUpdate({
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Subject</FormLabel>
+                                <FormLabel>Subject <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleSubjectChange(Number(v))}
@@ -587,7 +587,7 @@ export default function PeriodSubjectUpdate({
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
+                                <FormLabel>Class <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedClass?.toString() || 'empty'}
                                     onValueChange={(v) => handleClassChange(Number(v))}
@@ -612,7 +612,7 @@ export default function PeriodSubjectUpdate({
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
+                                <FormLabel>Section <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedSection?.toString() || 'empty'}
                                     onValueChange={(v) => handleSectionChange(Number(v))}
@@ -633,7 +633,7 @@ export default function PeriodSubjectUpdate({
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Staff</FormLabel>
+                                <FormLabel>Staff <span className='text-red-500'>*</span></FormLabel>
                                 <Select
                                     key={selectedStaff?.toString() || 'empty'}
                                     onValueChange={(v) => setSelectedStaff(Number(v))}
@@ -654,7 +654,7 @@ export default function PeriodSubjectUpdate({
                                 </Select>
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>No Of Days</FormLabel>
+                                <FormLabel>No Of Days <span className='text-red-500'>*</span></FormLabel>
                                 <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
                             </div>
                         </div>
@@ -677,3 +677,4 @@ export default function PeriodSubjectUpdate({
         </Form>
     );
 }
+

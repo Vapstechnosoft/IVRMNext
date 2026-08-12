@@ -90,9 +90,9 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
 
     const deactiveProductMutation = useMutation({
         mutationFn: deactiveInvMasterProduct,
-        onSuccess: (res: any) => {
+        onSuccess: (res: any, variables: any) => {
             if (res.returnval || res.success) {
-                toast.success('Record Status Updated Successfully');
+                toast.success(variables.INVMP_ActiveFlg ? 'Deactivated successfully' : 'Activated successfully');
                 refreshAll();
             } else {
                 toast.error(res.message || 'Failed to update record status');
@@ -102,9 +102,9 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
 
     const deactiveProductQtyMutation = useMutation({
         mutationFn: deactiveInvMasterProductQty,
-        onSuccess: (res: any) => {
+        onSuccess: (res: any, variables: any) => {
             if (res.returnval || res.success) {
-                toast.success('Record Status Updated Successfully');
+                toast.success(variables.INVMPI_ActiveFlg ? 'Deactivated successfully' : 'Activated successfully');
                 refreshAll();
             } else {
                 toast.error(res.message || 'Failed to update record status');
@@ -119,9 +119,10 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
 
     const deactiveProductTaxMutation = useMutation({
         mutationFn: deactiveInvMasterProductTax,
-        onSuccess: (res: any) => {
+        onSuccess: (res: any, variables: any) => {
             if (res.returnval === true) {
-                toast.success('Record Status Updated Successfully');
+                const isActive = variables.INVMPT_ActiveFlg ?? variables.invmpT_ActiveFlg ?? variables.active;
+                toast.success(isActive ? 'Deactivated successfully' : (isActive === false ? 'Activated successfully' : 'Record Status Updated Successfully'));
             } else {
                 toast.error('Failed to update record status');
             }

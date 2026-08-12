@@ -54,7 +54,15 @@ export const useUserAccessibleModules = () => {
     return {
         ...useQuery({
             queryKey: [QUERY_KEYS.USER_ACCESSIBLE_MODULES],
-            queryFn: async () => getUserAccessibleModules(),
+            queryFn: async () => {
+                const res = await getUserAccessibleModules();
+                if (res) {
+                    console.info('main Modules', (res as any).mainModules);
+                    console.info('subModules', (res as any).subModules);
+                    console.info('pages', (res as any).pages);
+                }
+                return res;
+            },
             staleTime: 0,
             gcTime: 30 * 60 * 1000, // 30 minutes cache
             refetchOnWindowFocus: true,

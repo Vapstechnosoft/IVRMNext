@@ -5,6 +5,7 @@ import { DateField } from '@/components/ui/dateField';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { format } from 'date-fns';
 import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import type { IMasterLeaveYearList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +31,7 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
         handleSubmit,
         control,
         reset,
+        setValue,
         trigger,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
@@ -47,6 +49,11 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
         name: 'hrmlY_ToDate'
     });
 
+    const leaveYear = useWatch({
+        control,
+        name: 'hrmlY_LeaveYear'
+    });
+
     useEffect(() => {
         if (row) {
             reset({
@@ -57,6 +64,25 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
             });
         }
     }, [row, reset]);
+
+    useEffect(() => {
+        // Only automatically populate if the user types a new valid year.
+        // It won't overwrite the initial row data because the initial set is done via reset(), 
+        // and if it's the exact same year, it may re-set the same dates or we can just let it run.
+        if (leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear))) {
+            const year = parseInt(leaveYear, 10);
+            const fromD = new Date(year, 0, 1);
+            fromD.setHours(12, 0, 0, 0); // avoid timezone shifts
+            const toD = new Date(year, 11, 31);
+            toD.setHours(12, 0, 0, 0);
+
+            // only set it if it's changing the value, to avoid marking as dirty unnecessarily,
+            // though setValue should be okay. 
+            // We'll just run it as requested.
+            setValue('hrmlY_FromDate', fromD.toISOString(), { shouldValidate: true });
+            setValue('hrmlY_ToDate', toD.toISOString(), { shouldValidate: true });
+        }
+    }, [leaveYear, setValue]);
 
     useEffect(() => {
         if (fromDate) {
@@ -75,8 +101,8 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
             const payload = {
                 hrmlY_Id: data.hrmlY_Id,
                 hrmlY_LeaveYear: data.hrmlY_LeaveYear?.trim() || '',
-                hrmlY_FromDate: data.hrmlY_FromDate,
-                hrmlY_ToDate: data.hrmlY_ToDate,
+                hrmlY_FromDate: data.hrmlY_FromDate ? format(new Date(data.hrmlY_FromDate), 'yyyy-MM-dd') : null,
+                hrmlY_ToDate: data.hrmlY_ToDate ? format(new Date(data.hrmlY_ToDate), 'yyyy-MM-dd') : null,
                 hrmlY_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLeaveYear(payload);
@@ -96,6 +122,10 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
     const handleReset = () => {
         reset();
     };
+
+    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? parseInt(leaveYear, 10) : undefined;
+    const minYearDate = yearLimit ? new Date(yearLimit, 0, 1) : undefined;
+    const maxYearDate = yearLimit ? new Date(yearLimit, 11, 31) : undefined;
 
     return (
         <div className={className}>
@@ -118,9 +148,25 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
                         <Controller
                             name='hrmlY_FromDate'
                             control={control}
-                            render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Pick from date' />
-                            )}
+                            render={({ field, fieldState }) => {
+                                const toDateObj = toDate ? new Date(toDate) : undefined;
+                                const maxAllowedDate = toDateObj || maxYearDate;
+                                const restrictedToName = toDateObj ? 'To Date' : 'Leave Year End Date';
+
+                                return (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='From Date'
+                                        placeholder='Pick from date'
+                                        required
+                                        fromDate={minYearDate}
+                                        restricted_fromfieldName='Leave Year Start Date'
+                                        toDate={maxAllowedDate}
+                                        restricted_tofieldName={restrictedToName}
+                                    />
+                                );
+                            }}
                         />
 
                         <Controller
@@ -128,13 +174,20 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
                             control={control}
                             render={({ field, fieldState }) => {
                                 const fromDateObj = fromDate ? new Date(fromDate) : undefined;
+                                const minAllowedDate = fromDateObj || minYearDate;
+                                const restrictedFromName = fromDateObj ? 'From Date' : 'Leave Year Start Date';
+
                                 return (
                                     <DateField
                                         field={field}
                                         fieldState={fieldState}
                                         label='To Date'
                                         placeholder='Pick to date'
-                                        fromDate={fromDateObj}
+                                        required
+                                        fromDate={minAllowedDate}
+                                        restricted_fromfieldName={restrictedFromName}
+                                        toDate={maxYearDate}
+                                        restricted_tofieldName='Leave Year End Date'
                                     />
                                 );
                             }}
@@ -157,10 +210,10 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Leave Year
+                            Update Leave Year
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

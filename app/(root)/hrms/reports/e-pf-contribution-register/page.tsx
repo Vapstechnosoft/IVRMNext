@@ -341,9 +341,9 @@ function EmployeeContributionContent() {
                         <div className='space-y-2'>
                             <Label>Month <span className='text-destructive'>*</span></Label>
                             <Controller name='month' control={control} key={resetKey} render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isYearsLoading}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Month" />
+                                        <SelectValue placeholder={isYearsLoading ? 'Loading...' : 'Select Month'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {MONTH_LIST.map((m: any) => (

@@ -10,6 +10,7 @@ import { use } from 'react';
 import AddMasterLeaveForm from './_components/add-form';
 import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
 import UpdateMasterLeaveForm from './_components/update-form';
+import ReorderMasterLeaveForm from './_components/reorder-form';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 
@@ -35,7 +36,7 @@ export default function MasterLeavePage(_props: { searchParams: SearchParams }) 
     }), [params]);
 
     const { data: response, isLoading, error } = useMasterLeave(normalizedParams);
-
+    console.log("leave respone",response);
     return (
         <FormProvider<MasterLeave>>
             <MasterLeavePageContent response={response} isLoading={isLoading} error={error} />
@@ -84,6 +85,9 @@ function MasterLeavePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end mb-4'>
+                        <ReorderMasterLeaveForm />
+                    </div>
                     <GenericDataTable<MasterLeave>
                         {...tableProps}
                         columns={columns}

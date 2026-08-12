@@ -35,6 +35,7 @@ export default function ElectiveReportGridView({ students, groupList, showMobile
                         <tr className=' bg-gray-200 font-bold text-black'>
                             <th className='border border-gray-400 px-4 py-3 text-center'>SL.No</th>
                             <th className='border border-gray-400 px-6 py-3 text-left'>Student Name</th>
+                            <th className='border border-gray-400 px-4 py-3 text-center'>Admission No</th>
                             {showMobile && <th className='border border-gray-400 px-4 py-3'>Mobile No</th>}
                             {showEmail && <th className='border border-gray-400 px-4 py-3'>Email-Id</th>}
                             <th className='border border-gray-400 px-4 py-3'>Class</th>
@@ -58,7 +59,7 @@ export default function ElectiveReportGridView({ students, groupList, showMobile
                         {students.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={6 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
+                                    colSpan={7 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
                                     className='py-12 text-center text-gray-500 text-lg'>
                                     No students found for the selected criteria
                                 </td>
@@ -70,6 +71,7 @@ export default function ElectiveReportGridView({ students, groupList, showMobile
                                     <td className='border border-gray-400 px-6 py-2 text-left font-semibold text-gray-800'>
                                         {stud.amsT_FirstName}
                                     </td>
+                                    <td className='border border-gray-400 px-4 py-2 text-center'>{stud.amsT_AdmNo || '-'}</td>
                                     {showMobile && (
                                         <td className='border border-gray-400 px-4 py-2 text-center'>{stud.amsT_MobileNo || '-'}</td>
                                     )}

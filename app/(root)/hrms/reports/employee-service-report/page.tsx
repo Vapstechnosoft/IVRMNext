@@ -35,6 +35,7 @@ export default function SalaryCertificatePage() {
     const [reportData, setReportData] = useState<any>(null);
     const [currentDate, setCurrentDate] = useState<string>('');
     const [fullName, setFullName] = useState<string>('');
+    const [resetKey, setResetKey] = useState<number>(0);
 
 
     const {
@@ -197,6 +198,7 @@ export default function SalaryCertificatePage() {
             mockLetter: '3'
         });
         setReportData(null);
+        setResetKey((prev) => prev + 1);
         toast.info('Form has been reset');
     };
     const handlePrint = () => {
@@ -235,7 +237,7 @@ export default function SalaryCertificatePage() {
     const totalDeductions = calculateTotalDeductions();
     const netSalary = calculateNetSalary();
 
-    const certificateHandler = () =>{}
+    const certificateHandler = () => { }
 
     return (
         <div className='min-h-screen p-8'>
@@ -255,6 +257,7 @@ export default function SalaryCertificatePage() {
                                             Group Type: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
+                                        key={resetKey}
                                             name='groupType'
                                             control={control}
                                             render={({ field }) => (
@@ -282,6 +285,7 @@ export default function SalaryCertificatePage() {
                                             Department: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
+                                        key={resetKey}
                                             name='department'
                                             control={control}
                                             render={({ field }) => (
@@ -306,6 +310,7 @@ export default function SalaryCertificatePage() {
                                             Designation: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
+                                        key={resetKey}
                                             name='designation'
                                             control={control}
                                             render={({ field }) => (
@@ -331,6 +336,7 @@ export default function SalaryCertificatePage() {
                                             Employee: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
+                                        key={resetKey}
                                             name='employee'
                                             control={control}
                                             render={({ field }) => (

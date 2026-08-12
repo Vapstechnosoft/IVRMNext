@@ -46,6 +46,11 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate),
+        defaultValues: {
+            hrmgT_Id: '',
+            hrmD_Id: '',
+            designationids: []
+        },
         mode: 'onChange'
     });
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -53,8 +58,8 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
             // Construct API request body matching Swagger spec
             const requestBody = {
                 hrgtddS_Id: 0,
-                hrmgT_Id: data.hrmgT_Id,
-                hrmD_Id: data.hrmD_Id,
+                hrmgT_Id: Number(data.hrmgT_Id),
+                hrmD_Id: Number(data.hrmD_Id),
                 hrmdeS_Ids: data.designationids || []
             };
             saveMapping(requestBody, {
@@ -101,11 +106,11 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                             <Label htmlFor='hrmgT_Id'>
                                 Group Type <span className='text-destructive'>*</span>
                             </Label>
-                            <Controller
+                                <Controller
                                 name='hrmgT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(Number(value))}>
+                                    <Select key={field.value ? 'has-value' : 'empty'} value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmgT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select group type' />
                                         </SelectTrigger>
@@ -139,7 +144,7 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                 name='hrmD_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(Number(value))}>
+                                    <Select key={field.value ? 'has-value' : 'empty'} value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value)}>
                                         <SelectTrigger id='hrmD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select department' />
                                         </SelectTrigger>
@@ -179,7 +184,13 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                             options={designationOptions}
                                             defaultValue={stringValues}
                                             onValueChange={(values) => {
-                                                field.onChange(values.map((v) => Number(v)));
+                                                const currentStringValues = field.value?.map((id) => id.toString()) || [];
+                                                if (
+                                                    values.length !== currentStringValues.length ||
+                                                    !values.every((v) => currentStringValues.includes(v))
+                                                ) {
+                                                    field.onChange(values.map((v) => Number(v)));
+                                                }
                                             }}
                                             placeholder='Select designations'
                                             maxCount={3}

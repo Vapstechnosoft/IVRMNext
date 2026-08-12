@@ -144,13 +144,16 @@ export const AddForm = ({ onReportGenerated, onReset }: AddFormProps) => {
                 sectionname
             };
 
-            if (response?.success && response.data && response.data.getstudentdetails?.length > 0) {
-                onReportGenerated(response.data, extraParams);
+            const resData = response?.data || response;
+            const studentList = resData?.getstudentdetails || resData?.studentdetails || [];
+            const hasStudents = Array.isArray(studentList) && studentList.length > 0;
+
+            onReportGenerated(resData, extraParams);
+
+            if (hasStudents) {
                 toast.success('Report generated successfully');
             } else {
-                // Triggering mock data fallback in ReportList by passing an empty object
-                onReportGenerated({}, extraParams);
-                toast.success('Report generated successfully');
+                toast.error('No report data found for the selected criteria');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Failed to generate report');

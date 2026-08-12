@@ -215,6 +215,7 @@ export default function MasterUpdateRollNumberPage(props: {
             if (response.success) {
                 toast.success(response.message || 'Roll numbers updated successfully!');
                 handleReset();
+                window.location.reload();
             } else {
                 toast.error(response.message);
             }

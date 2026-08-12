@@ -46,8 +46,8 @@ export async function getInvTGRNItemTax(invtgrN_Id: number) {
 }
 
 export async function getInvTGRNItemDetails(invmgrN_Id: number) {
-    const url = `/INV_T_GRNFacade/get_GRNitemDetails`;
-    return await api.post<any>('inventory', url, { INVMGRN_Id: invmgrN_Id });
+    const url = `/INV_T_GRNFacade/get_GRNitemDetails?id=${invmgrN_Id}`;
+    return await api.get<any>('inventory', url);
 }
 
 export async function getInvTGRNEditDetails(invmgrN_Id: number) {

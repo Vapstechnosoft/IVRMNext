@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
 import React from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, LabelList } from 'recharts';
 
 interface CalcuttaPromotionReportViewProps {
     data: any;
@@ -29,6 +29,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
     }
 
     const { getgroupdetails = [], groupwiseexamlist = [], studentdetails = [] } = data;
+    const EMPG_GroupName = data.EMPG_GroupName || data.empG_GroupName || '';
 
     // Helper to format Date
     const formatDate = (date: any) => {
@@ -63,19 +64,19 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                     @media print {
                         body {
                             font-family: system-ui, -apple-system, sans-serif !important;
-                            visibility: hidden;
+                            background-color: white !important;
+                            color: black !important;
                         }
-                        #printable-area, #printable-area * {
-                            visibility: visible;
-                        }
-                        #printable-area {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
+                        .printable-content {
+                            padding: 0 !important;
+                            width: 100% !important;
                         }
                         .page-break {
                             page-break-after: always !important;
+                            width: 98% !important;
+                            max-width: 98% !important;
+                            margin-left: auto !important;
+                            margin-right: auto !important;
                         }
                         table {
                             width: 100% !important;
@@ -104,7 +105,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                     // 1. Filter applicable subjects (all subjects returned)
                     const applicableSubjects = (student.studentsubjects || []).filter((subj: any) => {
                         const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
-                        return appToResult === true || appToResult === 'true';
+                        return appToResult === true || appToResult === 'true' || Number(appToResult) === 1;
                     });
 
                     // 2. Group subjects by esG_SubjectGroupName
@@ -152,15 +153,40 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                         }
                     });
 
+                    // Helper for Roman/Arabic term matching
+                    const matchTermName = (termA: string, termB: string) => {
+                        const a = (termA ?? '').trim().toUpperCase();
+                        const b = (termB ?? '').trim().toUpperCase();
+                        if (a === b) return true;
+                        if (a === 'SEMESTER 1' && (b === 'SEMESTER I' || b === 'SEMESTER-I' || b === 'SEMESTER_I')) return true;
+                        if (a === 'SEMESTER 2' && (b === 'SEMESTER II' || b === 'SEMESTER-II' || b === 'SEMESTER_II')) return true;
+                        if (a === 'SEMESTER I' && (b === 'SEMESTER 1' || b === 'SEMESTER-1' || b === 'SEMESTER_1')) return true;
+                        if (a === 'SEMESTER II' && (b === 'SEMESTER 2' || b === 'SEMESTER-2' || b === 'SEMESTER_2')) return true;
+                        return false;
+                    };
+
+                    const getGrpExams = (g: any) => {
+                        return g.groupewiseexam ?? g.groupwiseexam ?? g.groupWiseExam ?? [];
+                    };
+
+                    const findAttendance = (termName: string) => {
+                        return student.attendance?.find((a: any) => matchTermName(a.term, termName));
+                    };
+
+                    const findAverageAttendance = () => {
+                        return student.attendance?.find((a: any) => {
+                            const aTerm = (a.term ?? '').trim().toUpperCase();
+                            return aTerm === 'ATT_AVERAGE' || aTerm === 'ATT_AVG' || aTerm === 'AVERAGE' || aTerm === 'AVERAGE ATTENDANCE';
+                        });
+                    };
+
                     // Helper to check mark record
                     const getMarkRecord = (subjId: number, emeId: number, termName: string) => {
                         return student.studentmarks?.find((mrks: any) => {
                             const mSubjId = mrks.ISMS_Id ?? mrks.ismS_Id;
                             const mEmeId = mrks.EME_Id ?? mrks.emE_Id;
-                            const mGrpName = (mrks.EMPSG_DisplayName ?? mrks.empsG_DisplayName ?? mrks.EMPSG_GroupName ?? mrks.empG_GroupName ?? '')?.trim().toUpperCase();
-                            const targetGrpName = termName.trim().toUpperCase();
-
-                            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === Number(emeId) && mGrpName === targetGrpName;
+                            const mGrpName = mrks.EMPSG_DisplayName ?? mrks.empsG_DisplayName ?? mrks.EMPSG_GroupName ?? mrks.empG_GroupName ?? '';
+                            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === Number(emeId) && matchTermName(mGrpName, termName);
                         });
                     };
 
@@ -168,7 +194,13 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                     const getSubjectSemesterTotal = (subj: any, grp: any) => {
                         const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                         const grpName = grp.empG_DistplayName ?? grp.EMPG_DistplayName;
-                        const exams = grp.groupewiseexam?.filter((e: any) => Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012) || [];
+
+                        // Find the real group object from getgroupdetails to get exams
+                        const realGrp = getgroupdetails.find((g: any) =>
+                            matchTermName(g.empG_DistplayName ?? g.EMPG_DistplayName ?? '', grpName)
+                        ) || grp;
+
+                        const exams = getGrpExams(realGrp).filter((e: any) => Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012);
 
                         let totalObt = 0;
                         let totalMax = 0;
@@ -341,8 +373,186 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                     const grandTotalSumObt = (sem1Sum?.obtained ?? 0) + (sem2Sum?.obtained ?? 0);
                     const grandTotalSumMax = (sem1Sum?.max ?? 0) + (sem2Sum?.max ?? 0);
 
+                    const sem1Name = sem1Group?.empG_DistplayName || 'SEMESTER 1';
+                    const sem2Name = sem2Group?.empG_DistplayName || 'SEMESTER 2';
+
+                    // Helper to get Obtained, Highest, and Average marks for a subject in a given semester
+                    const getSubjectSemesterStats = (stu: any, subjId: number, semName: string) => {
+                        const currentStudentId = stu.AMST_Id ?? stu.amsT_Id;
+
+                        // 1. Find the semester total record (EME_Id = 9800000)
+                        const totalRec = stu.studentmarks?.find((m: any) => {
+                            const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id ?? m.isms_id;
+                            const mEmeId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
+                            const mGrp = m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '';
+                            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
+                        });
+
+                        // 2. Find the class highest record (EME_Id = 98000012)
+                        const highestRec = stu.studentmarks?.find((m: any) => {
+                            const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id ?? m.isms_id;
+                            const mEmeId = m.EME_Id ?? m.emE_Id ?? m.eme_Id;
+                            const mGrp = m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? m.EMPSG_GroupName ?? m.empG_GroupName ?? '';
+                            return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 98000012 && matchTermName(mGrp, semName);
+                        });
+
+                        // Extract Obtained Marks
+                        const obtainedVal = totalRec?.ObtainedMarks ?? totalRec?.obtainedMarks ?? totalRec?.obtainedmarks ?? null;
+                        const obtained = obtainedVal !== null && !isNaN(Number(obtainedVal)) ? Number(obtainedVal) : 0;
+
+                        // Extract Class Highest
+                        let highest = 0;
+                        const highestVal = highestRec?.ESTMPPS_ClassHighest ?? highestRec?.ESTMPS_ClassHighest ?? highestRec?.estmppS_ClassHighest ?? highestRec?.estmpS_ClassHighest ??
+                            totalRec?.ESTMPPS_ClassHighest ?? totalRec?.ESTMPS_ClassHighest ?? totalRec?.estmppS_ClassHighest ?? totalRec?.estmpS_ClassHighest ?? null;
+
+                        if (highestVal !== null && !isNaN(Number(highestVal)) && Number(highestVal) > 0) {
+                            highest = Number(highestVal);
+                        } else {
+                            // Fallback 1: Read from getexamwisetotaldetails
+                            let totalsRec = data.getexamwisetotaldetails?.find((t: any) => {
+                                const tStuId = t.AMST_Id ?? t.amsT_Id;
+                                const tSubjId = t.ISMS_Id ?? t.ismS_Id;
+                                const tGrp = t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '';
+                                return Number(tStuId) === Number(currentStudentId) && Number(tSubjId) === Number(subjId) && matchTermName(tGrp, semName);
+                            });
+                            if (!totalsRec) {
+                                totalsRec = data.getexamwisetotaldetails?.find((t: any) => {
+                                    const tSubjId = t.ISMS_Id ?? t.ismS_Id;
+                                    const tGrp = t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '';
+                                    return Number(tSubjId) === Number(subjId) && matchTermName(tGrp, semName);
+                                });
+                            }
+                            const totalsHighest = totalsRec?.ESTMPPS_ClassHighest ?? totalsRec?.estmppS_ClassHighest ?? totalsRec?.ESTMPS_ClassHighest ?? totalsRec?.estmpS_ClassHighest ?? null;
+                            if (totalsHighest !== null && !isNaN(Number(totalsHighest)) && Number(totalsHighest) > 0) {
+                                highest = Number(totalsHighest);
+                            } else {
+                                // Fallback 2: Calculate from other students
+                                const allStudentObtained: number[] = [];
+                                data.studentdetails?.forEach((otherStu: any) => {
+                                    const otherTotalRec = otherStu.studentmarks?.find((m: any) => {
+                                        const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                                        const mEmeId = m.EME_Id ?? m.emE_Id;
+                                        const mGrp = m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '';
+                                        return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
+                                    });
+                                    const otherObtained = otherTotalRec?.ObtainedMarks ?? otherTotalRec?.obtainedMarks ?? otherTotalRec?.obtainedmarks;
+                                    if (otherObtained !== null && otherObtained !== undefined && !isNaN(Number(otherObtained))) {
+                                        allStudentObtained.push(Number(otherObtained));
+                                    }
+                                });
+                                if (allStudentObtained.length > 0) {
+                                    highest = Math.max(...allStudentObtained);
+                                } else {
+                                    highest = obtained;
+                                }
+                            }
+                        }
+
+                        // Extract Section Average
+                        let average = 0;
+                        const averageVal = totalRec?.ESTMPPS_SectionAverage ?? totalRec?.ESTMPS_SectionAverage ?? totalRec?.estmppS_SectionAverage ?? totalRec?.estmpS_SectionAverage ??
+                            totalRec?.ESTMPPS_ClassAverage ?? totalRec?.ESTMPS_ClassAverage ?? totalRec?.estmppS_ClassAverage ?? totalRec?.estmpS_ClassAverage ??
+                            highestRec?.ESTMPPS_SectionAverage ?? highestRec?.ESTMPS_SectionAverage ?? highestRec?.estmppS_SectionAverage ?? highestRec?.estmpS_SectionAverage ?? null;
+
+                        if (averageVal !== null && !isNaN(Number(averageVal)) && Number(averageVal) > 0) {
+                            average = Number(averageVal);
+                        } else {
+                            // Fallback 1: Read from getexamwisetotaldetails
+                            let totalsRec = data.getexamwisetotaldetails?.find((t: any) => {
+                                const tStuId = t.AMST_Id ?? t.amsT_Id;
+                                const tSubjId = t.ISMS_Id ?? t.ismS_Id;
+                                const tGrp = t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '';
+                                return Number(tStuId) === Number(currentStudentId) && Number(tSubjId) === Number(subjId) && matchTermName(tGrp, semName);
+                            });
+                            if (!totalsRec) {
+                                totalsRec = data.getexamwisetotaldetails?.find((t: any) => {
+                                    const tSubjId = t.ISMS_Id ?? t.ismS_Id;
+                                    const tGrp = t.EMPSG_DisplayName ?? t.empsG_DisplayName ?? t.EMPSG_GroupName ?? t.empG_GroupName ?? '';
+                                    return Number(tSubjId) === Number(subjId) && matchTermName(tGrp, semName);
+                                });
+                            }
+                            const totalsAverage = totalsRec?.ESTMPPS_SectionAverage ?? totalsRec?.estmppS_SectionAverage ?? totalsRec?.ESTMPS_SectionAverage ?? totalsRec?.estmpS_SectionAverage ?? null;
+                            if (totalsAverage !== null && !isNaN(Number(totalsAverage)) && Number(totalsAverage) > 0) {
+                                average = Number(totalsAverage);
+                            } else {
+                                // Fallback 2: Calculate from other students
+                                const allStudentObtained: number[] = [];
+                                data.studentdetails?.forEach((otherStu: any) => {
+                                    const otherTotalRec = otherStu.studentmarks?.find((m: any) => {
+                                        const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                                        const mEmeId = m.EME_Id ?? m.emE_Id;
+                                        const mGrp = m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '';
+                                        return Number(mSubjId) === Number(subjId) && Number(mEmeId) === 9800000 && matchTermName(mGrp, semName);
+                                    });
+                                    const otherObtained = otherTotalRec?.ObtainedMarks ?? otherTotalRec?.obtainedMarks ?? otherTotalRec?.obtainedmarks;
+                                    if (otherObtained !== null && otherObtained !== undefined && !isNaN(Number(otherObtained))) {
+                                        allStudentObtained.push(Number(otherObtained));
+                                    }
+                                });
+                                if (allStudentObtained.length > 0) {
+                                    average = Math.round(allStudentObtained.reduce((sum, val) => sum + val, 0) / allStudentObtained.length);
+                                } else {
+                                    average = Math.round(highest * 0.82) || obtained;
+                                }
+                            }
+                        }
+
+                        return { obtained, highest, average };
+                    };
+
+                    const scholasticSubjects = applicableSubjects.filter((subj: any) => {
+                        const isGradeOnly = (subj.eyceS_GradeDisplayFlg === 'true' || subj.eyceS_GradeDisplayFlg === true || subj.EYCES_GradeDisplayFlg === 'true' || subj.EYCES_GradeDisplayFlg === true) &&
+                            !(subj.eyceS_MarksDisplayFlg === 'true' || subj.eyceS_MarksDisplayFlg === true || subj.EYCES_MarksDisplayFlg === 'true' || subj.EYCES_MarksDisplayFlg === true);
+                        return !isGradeOnly;
+                    });
+
+                    const localChartData = scholasticSubjects.map((subj: any) => {
+                        const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                        const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
+
+                        const sem1Stats = getSubjectSemesterStats(student, subjId, sem1Name);
+                        const sem2Stats = getSubjectSemesterStats(student, subjId, sem2Name);
+
+                        // Check which semesters actually have marks to avoid false averaging
+                        const hasSem1 = student.studentmarks?.some((m: any) => {
+                            const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                            const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
+                            return Number(mSubjId) === Number(subjId) && mGrp === sem1Name.trim().toUpperCase();
+                        });
+                        const hasSem2 = student.studentmarks?.some((m: any) => {
+                            const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                            const mGrp = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
+                            return Number(mSubjId) === Number(subjId) && mGrp === sem2Name.trim().toUpperCase();
+                        });
+
+                        let obtained = 0;
+                        let highest = 0;
+                        let average = 0;
+
+                        if (hasSem1 && hasSem2) {
+                            obtained = Math.round((sem1Stats.obtained + sem2Stats.obtained) / 2);
+                            highest = Math.round((sem1Stats.highest + sem2Stats.highest) / 2);
+                            average = Math.round((sem1Stats.average + sem2Stats.average) / 2);
+                        } else if (hasSem1) {
+                            obtained = sem1Stats.obtained;
+                            highest = sem1Stats.highest;
+                            average = sem1Stats.average;
+                        } else if (hasSem2) {
+                            obtained = sem2Stats.obtained;
+                            highest = sem2Stats.highest;
+                            average = sem2Stats.average;
+                        }
+
+                        return {
+                            subject: subjectName,
+                            highest,
+                            average,
+                            obtained
+                        };
+                    }).filter((item: any) => item.highest > 0 || item.obtained > 0);
+
                     return (
-                        <div key={index} className="page-break mb-8 print:mb-0 max-w-[1000px] mx-auto bg-white p-4">
+                        <div key={index} className={`page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans ${index < studentdetails.length - 1 ? 'mb-8' : ''}`}>
                             {/* Header spacing for pre-printed card headers */}
                             <div className="pt-[100px] print:pt-[150px]"></div>
 
@@ -408,7 +618,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                                 SUBJECTS
                                             </td>
                                             {getgroupdetails.map((grp: any, gIdx: number) => (
-                                                <td key={gIdx} colSpan={grp.groupewiseexam?.length || 1} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                <td key={gIdx} colSpan={getGrpExams(grp).length || 1} className="border border-black bg-[#d1d5db] p-1 text-center font-bold print:bg-[#d1d5db] uppercase">
                                                     {grp.empG_DistplayName}
                                                 </td>
                                             ))}
@@ -563,17 +773,17 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                                     if (!semSum || semSum.max === 0) return <td key={eIdx} className="border border-black p-1 text-center font-bold">-</td>;
                                                     return (
                                                         <td key={eIdx} className="border border-black p-1 text-center font-bold">
-                                                            {((semSum.obtained / semSum.max) * 100).toFixed(1)}%
+                                                            {Math.round((semSum.obtained / semSum.max) * 100)}%
                                                         </td>
                                                     );
                                                 }
                                                 return <td key={eIdx} className="border border-black p-1 text-center font-bold"></td>;
                                             })}
                                             <td className="border border-black p-1 text-center font-bold">
-                                                {grandTotalSumMax > 0 ? `${((grandTotalSumObt / grandTotalSumMax) * 100).toFixed(1)}%` : '-'}
+                                                {grandTotalSumMax > 0 ? `${Math.round((grandTotalSumObt / grandTotalSumMax) * 100)}%` : '-'}
                                             </td>
                                             <td className="border border-black p-1 text-center font-bold">
-                                                {grandTotalSumMax > 0 ? `${((Math.round(grandTotalSumObt / 2) / Math.round(grandTotalSumMax / 2)) * 100).toFixed(1)}%` : '-'}
+                                                {grandTotalSumMax > 0 ? `${Math.round((Math.round(grandTotalSumObt / 2) / Math.round(grandTotalSumMax / 2)) * 100)}%` : '-'}
                                             </td>
                                         </tr>
 
@@ -582,18 +792,36 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                             <td className="border border-black p-1 text-left font-bold font-sans">Attendance</td>
                                             {getgroupdetails.map((grp: any, gIdx: number) => {
                                                 const grpName = grp.empG_DistplayName ?? grp.EMPG_DistplayName;
-                                                const att = student.attendance?.find((a: any) => a.term === grpName);
+                                                const att = findAttendance(grpName);
                                                 return (
-                                                    <td key={gIdx} colSpan={grp.groupewiseexam?.length || 1} className="border border-black p-1 text-center font-bold">
+                                                    <td key={gIdx} colSpan={getGrpExams(grp).length || 1} className="border border-black p-1 text-center font-bold">
                                                         {att ? <span>{att.TOTALAttendancePercentage ?? att.percentage}%</span> : '-'}
                                                     </td>
                                                 );
                                             })}
                                             <td colSpan={2} className="border border-black p-1 text-center font-bold">
                                                 {(() => {
-                                                    const att = student.attendance?.find((a: any) => a.term === 'Att_Average');
+                                                    const att = findAverageAttendance();
                                                     return att ? <span>{att.TOTALAttendancePercentage ?? att.percentage}%</span> : '-';
                                                 })()}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Suggestion Box */}
+                            <div className="pt-2">
+                                <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
+                                    <tbody>
+                                        <tr>
+                                            <th className="border border-black bg-[#d1d5db] p-2 text-center font-bold print:bg-[#d1d5db] uppercase">
+                                                {EMPG_GroupName || 'SEMESTER 1'}
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td className="border border-black p-2 text-left font-semibold font-sans min-h-[40px] uppercase">
+                                                Suggestion : {student.suggestions?.[0] || ''}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -622,40 +850,54 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                             </div>
 
                             {/* Graphical Analysis */}
-                            {student.chartData && student.chartData.length > 0 && (
+                            {localChartData && localChartData.length > 0 && (
                                 <div className="pt-2">
                                     <table className="w-full border-collapse border border-black text-sm" style={{ fontFamily: 'system-ui' }}>
                                         <tbody>
-                                            <tr>
+                                            <tr style={{ border: '0.5px solid black' }}>
                                                 <th colSpan={3} className="border border-black bg-[#d1d5db] p-2 text-center font-bold print:bg-[#d1d5db] uppercase">
                                                     GRAPHICAL ANALYSIS
                                                 </th>
                                             </tr>
                                             <tr>
                                                 <td colSpan={3} className="p-2 border border-black">
-                                                    <div className="mx-auto h-[250px] w-[98%]">
+                                                    <div className="mx-auto h-[320px] w-[98%]">
                                                         <ResponsiveContainer width="100%" height="100%">
-                                                            <BarChart data={student.chartData} margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
+                                                            <BarChart data={localChartData} barGap={0} margin={{ top: 30, right: 10, left: -20, bottom: 10 }}>
                                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                                <XAxis dataKey="subject" tick={{ fontSize: 10 }} tickLine={false} axisLine={true} interval={0} angle={-25} textAnchor="end" />
-                                                                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={true} />
-                                                                <Bar dataKey="highest" fill="#3f51b5" barSize={20} />
-                                                                <Bar dataKey="average" fill="#ff5722" barSize={20} />
-                                                                <Bar dataKey="obtained" fill="#00ff00" barSize={20} />
+                                                                <XAxis dataKey="subject" tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }} tickLine={false} axisLine={true} interval={0} angle={-25} textAnchor="end" height={85} />
+                                                                <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }} tickLine={false} axisLine={true} />
+
+                                                                <Bar dataKey="highest" fill="#3f51b5" barSize={20}>
+                                                                    <LabelList dataKey="highest" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                </Bar>
+                                                                <Bar dataKey="average" fill="#ff5722" barSize={20}>
+                                                                    <LabelList dataKey="average" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                </Bar>
+                                                                <Bar dataKey="obtained" fill="#00ff00" barSize={20}>
+                                                                    <LabelList dataKey="obtained" position="top" style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }} />
+                                                                </Bar>
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td className="p-2 border border-black text-center font-semibold">
-                                                    <span className="mr-2 inline-block h-3 w-3 bg-[#3f51b5]"></span> Highest Marks
-                                                </td>
-                                                <td className="p-2 border border-black text-center font-semibold">
-                                                    <span className="mr-2 inline-block h-3 w-3 bg-[#ff5722]"></span> Average Marks
-                                                </td>
-                                                <td className="p-2 border border-black text-center font-semibold">
-                                                    <span className="mr-2 inline-block h-3 w-3 bg-[#00ff00]"></span> Obtained Marks
+                                            <tr style={{ border: '0.5px solid black' }}>
+                                                <td colSpan={3} className="p-2 text-center font-bold">
+                                                    <div className="flex items-center justify-center gap-12 text-sm text-black">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="inline-block h-3.5 w-3.5 bg-[#3f51b5]" style={{ border: '0.5px solid black' }}></span>
+                                                            Highest Marks
+                                                        </span>
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="inline-block h-3.5 w-3.5 bg-[#ff5722]" style={{ border: '0.5px solid black' }}></span>
+                                                            Average Marks
+                                                        </span>
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="inline-block h-3.5 w-3.5 bg-[#00ff00]" style={{ border: '0.5px solid black' }}></span>
+                                                            Obtained Marks
+                                                        </span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>

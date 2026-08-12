@@ -262,9 +262,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMAY_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${academicYears.length}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -293,9 +293,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EMCA_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${categories.length}-${loadingCategories}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
@@ -334,9 +334,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMCL_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${classes.length}-${loadingClasses}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
@@ -376,9 +376,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMS_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${sections.length}-${loadingSections}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value !== undefined ? String(field.value) : undefined}
+                                        value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Section' />
@@ -419,9 +419,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EME_Id'
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value}
+                                        key={`${field.value}-${exams.length}-${loadingExams}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}>
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Exam' />
                                         </SelectTrigger>
@@ -457,7 +457,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 control={control}
                                 name='percent'
                                 render={({ field }) => (
-                                    <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                                    <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Percentage' />
                                         </SelectTrigger>

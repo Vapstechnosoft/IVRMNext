@@ -14,8 +14,14 @@ import { format } from 'date-fns';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    lmaL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-    asmaY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+    lmaL_Id: z.coerce.number({ 
+        required_error: 'Select Library', 
+        invalid_type_error: 'Select Library' 
+    }).min(1, 'Select Library'),
+    asmaY_Id: z.coerce.number({ 
+        required_error: 'Select Academic Year', 
+        invalid_type_error: 'Select Academic Year' 
+    }).min(1, 'Select Academic Year'),
     statuscount: z.boolean().default(false),
     issue_Date: z.date({ required_error: 'From Date is required' }),
     issueToDate: z.date({ required_error: 'To Date is required' }),

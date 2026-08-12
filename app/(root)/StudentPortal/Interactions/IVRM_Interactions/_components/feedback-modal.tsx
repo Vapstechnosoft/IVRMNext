@@ -28,7 +28,7 @@ interface FeedbackModalProps {
     roleFlg: string;
     userhrmE_Id: number;
 }
-
+export const dynamic = 'force-dynamic';
 export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, userhrmE_Id }: FeedbackModalProps) {
     const [responses, setResponses] = useState<Record<number, { optionId: number; remarks: string }>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +72,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
 
         setIsSubmitting(true);
         try {
-            const res = await saveFeedback({ 
+            const res = await saveFeedback({
                 savemodulefeedback: feedbackArray,
                 Flag: roleFlg,
                 HRME_Id: userhrmE_Id
@@ -130,17 +130,17 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                                 </div>
 
                                 <div className="ml-12">
-                                    <RadioGroup 
+                                    <RadioGroup
                                         className="grid grid-cols-2 gap-4"
                                         onValueChange={(val) => handleOptionSelect(q.fmqE_Id, Number(val))}
                                     >
                                         {q.feedbackoptiondata.map((opt, oIdx) => (
-                                            <Label 
+                                            <Label
                                                 key={`${opt.fmoP_Id || 'opt'}-${oIdx}`}
                                                 className={cn(
                                                     "flex cursor-pointer items-center gap-4 rounded-2xl border-2 p-5 transition-all duration-300",
-                                                    responses[q.fmqE_Id]?.optionId === opt.fmoP_Id 
-                                                        ? "border-primary bg-primary/[0.03] shadow-lg shadow-primary/5 ring-4 ring-primary/5" 
+                                                    responses[q.fmqE_Id]?.optionId === opt.fmoP_Id
+                                                        ? "border-primary bg-primary/[0.03] shadow-lg shadow-primary/5 ring-4 ring-primary/5"
                                                         : "border-muted-foreground/10 bg-transparent hover:border-primary/30 hover:bg-muted/50"
                                                 )}
                                             >
@@ -152,7 +152,7 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
 
                                     <div className="mt-8 space-y-3">
                                         <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 opacity-70 italic">Additional Commentary</Label>
-                                        <Textarea 
+                                        <Textarea
                                             placeholder="We'd love to hear more details..."
                                             className="min-h-[100px] resize-none bg-muted/20 border-2 rounded-2xl px-5 py-4 font-medium focus-visible:ring-primary/20 placeholder:opacity-40"
                                             onBlur={(e) => handleRemarksChange(q.fmqE_Id, e.target.value)}
@@ -173,8 +173,8 @@ export function FeedbackModal({ isOpen, onClose, questions, options, roleFlg, us
                             <Button variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-muted-foreground hover:text-foreground h-14 px-8">
                                 Maybe Later
                             </Button>
-                            <Button 
-                                className="min-w-[180px] h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]" 
+                            <Button
+                                className="min-w-[180px] h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
                             >

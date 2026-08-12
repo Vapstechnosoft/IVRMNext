@@ -173,6 +173,7 @@ function ExamStandardPageContent({
                     <ExamStandardForm
                         control={control}
                         watch={watch}
+                        reset={reset}
                         handleSubmit={handleSubmit}
                         onSubmit={onSubmit}
                         formState={formState}

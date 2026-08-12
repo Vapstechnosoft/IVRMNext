@@ -74,7 +74,7 @@ function CumulativeSalaryReportContent() {
     const watchedDesignation = watch('designation');
 
     // Queries
-    const { data: yearsData, isPending: isLoadingYears } = useLeaveYearDropdown();
+    const { data: yearsData, isLoading: isLoadingYears } = useLeaveYearDropdown();
 
     const handlePrint = () => {
         if (!reportData) {
@@ -140,15 +140,15 @@ function CumulativeSalaryReportContent() {
 
         exportToExcel('CumulativeSalaryReport', JSON.stringify(safeColumns), JSON.stringify(processedContent));
     };
-    const { data: groupTypesData, isPending: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
 
     const groupTypeIds = watchedGroupType?.join(',') || '';
-    const { data: departmentsData, isPending: isLoadingDepartments } = useReportDepartments(groupTypeIds);
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
     const deptIds = watchedDepartment?.join(',') || '';
-    const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
-    const { mutate: generateReport, isPending } = useCumulativeSalaryReport();
+    const { mutate: generateReport, isPending: reportLoading } = useCumulativeSalaryReport();
 
     const onSubmit = (data: FilterFormValues) => {
         console.log('onSubmit', data);
@@ -158,8 +158,8 @@ function CumulativeSalaryReportContent() {
         }
 
         const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
-        
-        const yearString = data.year; 
+
+        const yearString = data.year;
         const monthName = data.month;
 
         console.log('yearString', yearString);
@@ -170,6 +170,8 @@ function CumulativeSalaryReportContent() {
                 hreS_Year: yearString,
                 hreS_Month: monthName,
                 hrmdeS_IdList: data.designation.map(Number),
+                hrmD_IdList: data.department.map(Number),
+                groupTypeIdList:data.groupType.map(Number),
                 hrmdeS_Ids: 'string'
             },
             {
@@ -336,7 +338,7 @@ function CumulativeSalaryReportContent() {
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears} key = {field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
@@ -361,9 +363,11 @@ function CumulativeSalaryReportContent() {
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}
+                                    key = {field.value}
+                                    >
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Month' />
+                                            <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Month'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MONTH_LIST.map((m) => (
@@ -459,13 +463,13 @@ function CumulativeSalaryReportContent() {
                             type='button'
                             variant='outline'
                             onClick={handleCancel}
-                            disabled={isPending}
+                            disabled={reportLoading}
                             className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button type='submit' disabled={isPending} className='w-32 transition-all rounded-xl'>
-                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                        <Button type='submit' disabled={reportLoading} className='w-32 transition-all rounded-xl'>
+                            {reportLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>
                     </div>
@@ -497,7 +501,7 @@ function CumulativeSalaryReportContent() {
                             isPaginationRequired={false}
                             isSearchRequired={false}
                             showSearchColumns={false}
-                            isLoading={isPending}
+                            isLoading={reportLoading}
                         />
                     </div>
                 </CollapsibleSection>

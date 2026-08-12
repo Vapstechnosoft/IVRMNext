@@ -721,7 +721,7 @@ export default function LateLeavePage() {
                 </div>
             )} */}
 
-            {reportData.length > 0 ? (
+            {reportData.length > 0 && (
                 <CollapsibleSection
                     title="Leave Transfer Report"
                     defaultOpen={true}
@@ -738,11 +738,12 @@ export default function LateLeavePage() {
                         />
                     </div>
                 </CollapsibleSection>
-            ) :
-                <div className="flex items-center flex-col justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
-                    <span className="ml-2 text-slate-500">Loading applied leave report...</span>
-                </div>
+            )
+            // ) :
+            //     <div className="flex items-center flex-col justify-center h-64">
+            //         <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+            //         <span className="ml-2 text-slate-500">Loading applied leave report...</span>
+            //     </div>
             }
             {/* Delete Confirmation Modal */}
             {isDeleteModalOpen && itemToDelete && (

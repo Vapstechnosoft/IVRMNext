@@ -495,7 +495,8 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_MONTH_REPORT: 'attendance_employee_month_report',
     // Leave Management Masters
     MASTER_LEAVE: 'leave_master_leave',
-    LEAVE_AUTHORIZATION: 'leave_leave_authorization',
+    LEAVE_AUTHORIZATIONS: 'leave_leave_authorization',
+    LEAVE_GETAUTHERIZATION: 'leave_get_authorization',
     // Leave Management Reports
     LEAVE_REPORT: 'leave_leave_report',
     OVERALL_REPORT: 'leave_overall_report',
@@ -672,3 +673,4 @@ export const RECRUITMENT_QUERY_KEYS = {
     CANDIDATE_DROPDOWN: 'candidate_dropdown',
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
+export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };
