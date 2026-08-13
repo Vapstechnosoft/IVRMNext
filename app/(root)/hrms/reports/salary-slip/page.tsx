@@ -9,15 +9,17 @@ import {
     useReportDesignations,
     useSalarySlipOnload,
     useFilterEmployeesByYearMonth,
-    useGenerateSalarySlip
+    useGenerateSalarySlip,
+    useSendSalarySlipEmailSMS
 } from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
 import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 import { SalarySlipTemplate } from './_components/salary-slip-template';
-import { printSalarySlips } from './_components/print-utils';
+import { printSalarySlips, generateSalarySlipHtml } from './_components/print-utils';
 import type { EmployeeSalarySlipDisplay } from './_components/columns';
 import { Loader2, Printer, Mail, MessageSquare, X, ArrowLeft, MessageCircle, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FaWhatsapp } from "react-icons/fa";
 
 const MONTH_LIST = [
     { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
@@ -73,6 +75,7 @@ export default function SalarySlipPage() {
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
     const { mutate: generateSlip, isPending: isGenerating } = useGenerateSalarySlip();
+    const { mutate: sendSalarySlipEmailSMSWhatsApp, isPending: isSending } = useSendSalarySlipEmailSMS();
 
 
     useEffect(() => {
@@ -304,6 +307,59 @@ export default function SalarySlipPage() {
         printSalarySlips(slips, institutionDetails, monthName, filters.year, filters.options.lopDays, filters.options.leaveDetails, filters.options.panCardNo, filters.options.bankDetails);
     };
 
+    const handleWhatsApp = () => {
+        if (!reportData) return;
+        const slips = Array.isArray(reportData) ? reportData : [reportData];
+        const monthName = MONTH_LIST.find(m => m.id.toString() === filters.month.toString())?.name || filters.month;
+
+        const tmplt: any[] = [];
+        const emp_ids: number[] = [];
+
+        slips.forEach(slip => {
+            // Find original employee to get their HRME_Id
+            const matchedEmp = employees.find(e => e.employeeCode === slip.employeeCode);
+            if (matchedEmp) {
+                emp_ids.push(matchedEmp.HRME_Id);
+                const htmlTemplate = generateSalarySlipHtml(
+                    slip,
+                    institutionDetails,
+                    monthName,
+                    filters.year,
+                    filters.options.lopDays,
+                    filters.options.leaveDetails,
+                    filters.options.panCardNo,
+                    filters.options.bankDetails
+                );
+                tmplt.push({
+                    hrmE_EmployeeCode: matchedEmp.employeeCode,
+                    TemplateString: htmlTemplate
+                });
+            }
+        });
+
+        if (emp_ids.length === 0) {
+            toast.error('Could not find matching employees to send WhatsApp.');
+            return;
+        }
+
+        const data = {
+            EmailSMS: "WhatsApp",
+            empid: emp_ids,
+            Template: tmplt,
+            HRES_Month: filters.month
+        };
+
+        sendSalarySlipEmailSMSWhatsApp(data, {
+            onSuccess: (res) => {
+                if (res.success) {
+                    toast.success('Successfully sent WhatsApp messages');
+                } else {
+                    toast.error(res.message || 'Failed to send WhatsApp messages');
+                }
+            }
+        });
+    };
+
     // if (isOnloadLoading) {
     //     return (
     //         <div className="flex h-screen items-center justify-center">
@@ -380,6 +436,11 @@ export default function SalarySlipPage() {
                             <Button variant="outline" onClick={() => setShowReport(false)}>
                                 <X className="h-4 w-4 mr-2" />
                                 CANCEL
+                            </Button>
+
+                            <Button variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800 border-green-200" onClick={handleWhatsApp} disabled={isSending}>
+                                {isSending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FaWhatsapp className="h-4 w-4 mr-2" />}
+                                WHATSAPP
                             </Button>
 
                             <Button variant="default" onClick={handlePrint}>

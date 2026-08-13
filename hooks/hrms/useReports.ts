@@ -90,7 +90,8 @@ import {
 import {
     getSalarySlipOnload,
     filterEmployeesByYearMonth,
-    generateSalarySlip
+    generateSalarySlip,
+    sendSalarySlipEmailSMSWhatsApp
 } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
 import {
     getYearWiseSalaryDetails,
@@ -469,6 +470,18 @@ export function useGenerateSalarySlip() {
         mutationFn: (data: SalarySlipGenerateRequest) => generateSalarySlip(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to generate salary slip');
+        }
+    });
+}
+
+/**
+ * Hook for Sending Salary Slip via Email/SMS/WhatsApp
+ */
+export function useSendSalarySlipEmailSMS() {
+    return useMutation({
+        mutationFn: (data: any) => sendSalarySlipEmailSMSWhatsApp(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to send salary slip');
         }
     });
 }
@@ -860,4 +873,4 @@ export function useLeaveReport() {
             toast.error(error.message || 'Failed to fetch Leave Report');
         }
     });
-}
+}
