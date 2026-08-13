@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
-import { getMockTBSPrimaryData } from './mock-data';
 
 
 /**
@@ -23,28 +22,22 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         window.print();
     };
 
-    // Fallback to mock data if no real data is provided
-    let activeData = (data && data.getstudentdetails && data.getstudentdetails.length > 0) ? data : getMockTBSPrimaryData();
-
-    // If using mock data (Demo Mode), update the student names to match the user's selection
-    if ((!data || !data.getstudentdetails || data.getstudentdetails.length === 0) && params.selectedStudentsDetails?.length > 0) {
-        const mockTemplate = activeData.getstudentdetails[0]; // Use first mock student as template
-        activeData = {
-            ...activeData,
-            getstudentdetails: params.selectedStudentsDetails.map((s: any, i: number) => ({
-                ...mockTemplate,
-                AMST_Id: s.amsT_Id,
-                studentname: s.studentName,
-                admno: `TBS/2024/${100 + i}`,
-            }))
-        };
-    }
+    const rawData = data?.data || data || {};
 
     const {
         getstudentdetails = [],
-        uniqueSubjects = [],
-        getstudentwisesubjectlist = []
-    } = activeData;
+        getstudentwisesubjectlist = [],
+        getstudentwiseattendancedetails = [],
+        uniqueSubjects = []
+    } = rawData;
+
+    if (!getstudentdetails || getstudentdetails.length === 0) {
+        return (
+            <div className='flex h-40 items-center justify-center rounded-lg border bg-card text-muted-foreground'>
+                No report data found for the selected criteria.
+            </div>
+        );
+    }
 
     const reportMode = params.reportMode || 'report';
 

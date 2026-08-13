@@ -118,8 +118,8 @@ class ApiService {
                 }
             };
 
-            // Add SSL bypass for localhost in development mode
-            if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+            // Add SSL bypass for localhost in development/local mode
+            if (isLocalhost && typeof window === 'undefined') {
                 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
@@ -224,6 +224,10 @@ class ApiService {
             if (dataStr && dataStr !== '{}' && dataStr.length < 300) {
                 return `API Error: ${dataStr}`;
             }
+        }
+
+        if (typeof error === 'string') {
+            return error;
         }
 
         return error?.response?.data?.message || error?.message || 'An unknown error occurred.';

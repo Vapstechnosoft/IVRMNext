@@ -39,65 +39,73 @@ export default function BCOEDIIReportPage() {
                 const studentMap = new Map<number, any>();
 
                 flatRows.forEach((row: any) => {
-                    const studentId = row.amsT_Id;
+                    const studentId = row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
+                    if (!studentId) return;
+
                     if (!studentMap.has(studentId)) {
                         studentMap.set(studentId, {
                             student_id: studentId,
-                            amsT_FirstName: row.amsT_FirstName,
-                            amsT_DOB: row.amsT_DOB,
-                            amsT_AdmNo: row.amsT_AdmNo,
-                            amaY_RollNo: row.amaY_RollNo,
-                            asmcL_ClassName: row.asmcL_ClassName,
-                            asmC_SectionName: row.asmC_SectionName,
-                            estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
-                            estmP_TotalObtMarks: row.estmP_TotalObtMarks,
-                            estmP_Percentage: row.estmP_Percentage,
-                            estmP_TotalGrade: row.estmP_TotalGrade,
-                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark,
-                            estmP_SectionRank: row.estmP_SectionRank,
-                            classheld: row.classheld || row.asA_ClassHeld,
-                            classatt: row.classatt || row.asA_Class_Attended,
+                            amsT_FirstName: row.amsT_FirstName || row.AMST_FirstName || row.studentName || '',
+                            amsT_DOB: row.amsT_DOB || row.AMST_DOB || '',
+                            amsT_AdmNo: row.amsT_AdmNo || row.AMST_AdmNo || '',
+                            amaY_RollNo: row.amaY_RollNo || row.AMAY_RollNo || '',
+                            asmcL_ClassName: row.asmcL_ClassName || row.ASMCL_ClassName || '',
+                            asmC_SectionName: row.asmC_SectionName || row.ASMC_SectionName || '',
+                            estmP_TotalMaxMarks: row.estmP_TotalMaxMarks ?? row.ESTMP_TotalMaxMarks,
+                            estmP_TotalObtMarks: row.estmP_TotalObtMarks ?? row.ESTMP_TotalObtMarks,
+                            estmP_Percentage: row.estmP_Percentage ?? row.ESTMP_Percentage,
+                            estmP_TotalGrade: row.estmP_TotalGrade || row.ESTMP_TotalGrade,
+                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark || row.ESTMP_TotalGradeRemark,
+                            estmP_SectionRank: row.estmP_SectionRank || row.ESTMP_SectionRank,
+                            classheld: row.classheld || row.asA_ClassHeld || row.ASA_ClassHeld,
+                            classatt: row.classatt || row.asA_Class_Attended || row.ASA_Class_Attended,
                             sub_list: []
                         });
                     } else {
                         const existing = studentMap.get(studentId);
-                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
-                            existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
+                        const remark = row.estmP_TotalGradeRemark || row.ESTMP_TotalGradeRemark;
+                        if (remark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                            existing.estmP_TotalGradeRemark = remark;
                         }
-                        if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
-                            existing.estmP_TotalMaxMarks = row.estmP_TotalMaxMarks;
+                        const maxMarks = row.estmP_TotalMaxMarks ?? row.ESTMP_TotalMaxMarks;
+                        if (maxMarks && !existing.estmP_TotalMaxMarks) {
+                            existing.estmP_TotalMaxMarks = maxMarks;
                         }
-                        if (row.estmP_TotalObtMarks && !existing.estmP_TotalObtMarks) {
-                            existing.estmP_TotalObtMarks = row.estmP_TotalObtMarks;
+                        const obtMarks = row.estmP_TotalObtMarks ?? row.ESTMP_TotalObtMarks;
+                        if (obtMarks && !existing.estmP_TotalObtMarks) {
+                            existing.estmP_TotalObtMarks = obtMarks;
                         }
-                        if (row.estmP_Percentage && !existing.estmP_Percentage) {
-                            existing.estmP_Percentage = row.estmP_Percentage;
+                        const pct = row.estmP_Percentage ?? row.ESTMP_Percentage;
+                        if (pct && !existing.estmP_Percentage) {
+                            existing.estmP_Percentage = pct;
                         }
-                        if (row.estmP_TotalGrade && !existing.estmP_TotalGrade) {
-                            existing.estmP_TotalGrade = row.estmP_TotalGrade;
+                        const grade = row.estmP_TotalGrade || row.ESTMP_TotalGrade;
+                        if (grade && !existing.estmP_TotalGrade) {
+                            existing.estmP_TotalGrade = grade;
                         }
-                        if (row.estmP_SectionRank && !existing.estmP_SectionRank) {
-                            existing.estmP_SectionRank = row.estmP_SectionRank;
+                        const rank = row.estmP_SectionRank || row.ESTMP_SectionRank;
+                        if (rank && !existing.estmP_SectionRank) {
+                            existing.estmP_SectionRank = rank;
                         }
                     }
 
                     const student = studentMap.get(studentId);
                     student.sub_list.push({
-                        ismS_Id: row.ismS_Id,
-                        ismS_SubjectName: row.ismS_SubjectName,
-                        emgR_Id: row.emgR_Id,
-                        eyceS_MarksEntryMax: row.eyceS_MarksEntryMax,
-                        eyceS_MaxMarks: row.eyceS_MaxMarks,
-                        eyceS_MinMarks: row.eyceS_MinMarks,
-                        estM_Marks: row.estM_Marks,
-                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks,
-                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade,
-                        estmpS_Percentage: row.estmpS_Percentage,
-                        estmpS_PassFailFlg: row.estmpS_PassFailFlg,
-                        eyceS_AplResultFlg: row.eyceS_AplResultFlg,
-                        EYCES_GradeDisplayFlg: row.eyceS_GradeDisplayFlg || row.EYCES_GradeDisplayFlg,
-                        EYCES_MarksDisplayFlg: row.eyceS_MarksDisplayFlg || row.EYCES_MarksDisplayFlg,
-                        emgD_Remarks: row.emgD_Remarks
+                        ismS_Id: row.ismS_Id ?? row.ISMS_Id ?? row.ISMS_ID,
+                        ismS_SubjectName: row.ismS_SubjectName || row.ISMS_SubjectName,
+                        emgR_Id: row.emgR_Id ?? row.EMGR_Id ?? row.EMGR_ID,
+                        eyceS_MarksEntryMax: row.eyceS_MarksEntryMax ?? row.EYCES_MarksEntryMax,
+                        eyceS_MaxMarks: row.eyceS_MaxMarks ?? row.EYCES_MaxMarks,
+                        eyceS_MinMarks: row.eyceS_MinMarks ?? row.EYCES_MinMarks,
+                        estM_Marks: row.estM_Marks ?? row.ESTM_Marks,
+                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? row.ESTMPS_ObtainedMarks,
+                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || row.ESTMPS_ObtainedGrade,
+                        estmpS_Percentage: row.estmpS_Percentage ?? row.ESTMPS_Percentage,
+                        estmpS_PassFailFlg: row.estmpS_PassFailFlg || row.ESTMPS_PassFailFlg,
+                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? row.EYCES_AplResultFlg,
+                        EYCES_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? row.EYCES_GradeDisplayFlg,
+                        EYCES_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? row.EYCES_MarksDisplayFlg,
+                        emgD_Remarks: row.emgD_Remarks || row.EMGD_Remarks
                     });
                 });
 
