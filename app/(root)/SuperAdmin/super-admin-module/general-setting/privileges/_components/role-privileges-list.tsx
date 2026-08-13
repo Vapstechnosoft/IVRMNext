@@ -89,7 +89,9 @@ export function RolePrivilegesList({ data, onDelete, isLoading = true, totalItem
                     data={data}
                     isLoading={isLoading}
                     totalItems={totalItems}
+                    isSearchRequired={false}
                     isPaginationRequired={true}
+                    onPageChange={pagination?.onPageChange}
                 />
             </div>
         </div>

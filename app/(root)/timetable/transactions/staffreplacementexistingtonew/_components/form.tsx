@@ -15,11 +15,12 @@ import {
     type StaffReplacementExistingToNewValues
 } from '@/schemas/timetable/transactions';
 
+import { useState } from 'react';
 import {
-    useSaveStaffReplacementExistingToNew,
     useSectionDropdown,
     useStaffReplacementExistingToNewMasters
 } from '@/hooks/timetable/useTransactions';
+import { saveStaffReplacementExistingToNew } from '@/server/timetable/transactions/staffreplacementexistingtonew';
 
 
 const extractList = (data: any, preferredKey?: string) => {
@@ -61,8 +62,7 @@ interface StaffReplacementFormProps {
 export default function StaffReplacementExistingToNewForm({ onFetch }: StaffReplacementFormProps) {
     const { data: masters } = useStaffReplacementExistingToNewMasters();
     console.log('masters', masters);
-    const { mutate: saveReplacement, isPending: saving } = useSaveStaffReplacementExistingToNew();
-    console.log('masters', saveReplacement);
+    const [isReplacing, setIsReplacing] = useState(false);
 
     const {
         control,
@@ -93,22 +93,31 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
     const onSubmit = async (data: StaffReplacementExistingToNewValues) => {
         try {
-            saveReplacement(data, {
-                onSuccess: (response: any) => {
-                    if (response?.success === true || response?.returnval === true) {
-                        toast.success(response?.message);
-                        reset();
-                        onFetch?.(data);
-                    } else {
-                        toast.error(response?.message);
-                    }
-                },
-                onError: (error: any) => {
-                    toast.error(error.message);
-                }
-            });
+            setIsReplacing(true);
+            const payload = {
+                ttmC_Id: Number(data.ttmC_Id),
+                asmcL_Id: Number(data.asmcL_Id || 0),
+                asms_Id: Number(data.asms_Id || 0),
+                hrmE_Id_From: Number(data.hrmE_Id_From),
+                hrmE_Id_To: Number(data.hrmE_Id_To),
+                ismS_Id: Number(data.ismS_Id || 0)
+            };
+            console.log('payload', JSON.stringify(payload));
+            const response = await saveStaffReplacementExistingToNew(payload);
+            console.log('response', response);
+
+            const resData = response?.data || response;
+            if (resData?.returnval === true || resData?.success === true || response?.success === true) {
+                toast.success(response?.message || "Staff replacement saved successfully!");
+                reset();
+                onFetch?.(data);
+            } else {
+                toast.error(response?.message || "Failed to save staff replacement.");
+            }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || "An error occurred while saving the replacement.");
+        } finally {
+            setIsReplacing(false);
         }
     };
     const handleReset = () => {
@@ -223,12 +232,12 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
                     </div>
 
                     <div className='flex items-center justify-center gap-4 border-t pt-4'>
-                        <Button type='submit' className='flex min-w-[120px] items-center gap-2 font-semibold'>
-                            <Search className='h-4 w-4' />
+                        <Button type='submit' disabled={isReplacing} className='flex min-w-[120px] items-center gap-2 font-semibold'>
+                            {isReplacing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <Search className='h-4 w-4' />}
                             Replace
                         </Button>
 
-                        <Button type='button' variant='outline' onClick={handleReset} className='min-w-[120px]'>
+                        <Button type='button' variant='outline' onClick={handleReset} disabled={isReplacing} className='min-w-[120px]'>
                             <RotateCcw className='mr-2 h-4 w-4' />
                             Reset
                         </Button>
