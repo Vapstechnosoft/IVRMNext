@@ -32,31 +32,33 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterAuthorSchema.addOrUpdate),
-        mode: 'onSubmit'
+        mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
+            const authorId = row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
             reset({
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName || '',
-                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName || '',
-                lmaU_AuthorLastName: row.lmaU_AuthorLastName || '',
-                lmaU_MobileNo: row.lmaU_MobileNo || '',
-                lmaU_Address: row.lmaU_Address || '',
-                lmaU_EmailId: row.lmaU_EmailId || '',
-                lmaU_PhoneNo: row.lmaU_PhoneNo || '',
-                lmaU_ActiveFlg: row.lmaU_ActiveFlg
+                lmaU_Id: Number(authorId),
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName ?? (row as any).LMAU_AuthorFirstName ?? '',
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName ?? (row as any).LMAU_AuthorMiddleName ?? '',
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName ?? (row as any).LMAU_AuthorLastName ?? '',
+                lmaU_MobileNo: row.lmaU_MobileNo ?? (row as any).LMAU_MobileNo ?? '',
+                lmaU_Address: row.lmaU_Address ?? (row as any).LMAU_Address ?? '',
+                lmaU_EmailId: row.lmaU_EmailId ?? (row as any).LMAU_EmailId ?? (row as any).lmaU_EmailID ?? (row as any).LMAU_EmailID ?? '',
+                lmaU_PhoneNo: row.lmaU_PhoneNo ?? (row as any).LMAU_PhoneNo ?? '',
+                lmaU_ActiveFlg: row.lmaU_ActiveFlg ?? (row as any).LMAU_ActiveFlg ?? true
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const authorId = data.lmaU_Id ?? row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
             const payload = {
                 ...data,
-                mI_Id: row.mI_Id || 30,
-                lmaU_Id: row.lmaU_Id
+                lmaU_Id: Number(authorId),
+                mI_Id: row.mI_Id || (row as any).MI_Id || 30
             };
 
             const response = await addOrUpdateMasterAuthor(payload);
@@ -75,16 +77,17 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
 
     const handleReset = () => {
         if (row) {
+            const authorId = row.lmaU_Id ?? (row as any).LMAU_Id ?? (row as any).lmaU_ID ?? 0;
             reset({
-                lmaU_Id: row.lmaU_Id,
-                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName || '',
-                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName || '',
-                lmaU_AuthorLastName: row.lmaU_AuthorLastName || '',
-                lmaU_MobileNo: row.lmaU_MobileNo || '',
-                lmaU_Address: row.lmaU_Address || '',
-                lmaU_EmailId: row.lmaU_EmailId || '',
-                lmaU_PhoneNo: row.lmaU_PhoneNo || '',
-                lmaU_ActiveFlg: row.lmaU_ActiveFlg
+                lmaU_Id: Number(authorId),
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName ?? (row as any).LMAU_AuthorFirstName ?? '',
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName ?? (row as any).LMAU_AuthorMiddleName ?? '',
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName ?? (row as any).LMAU_AuthorLastName ?? '',
+                lmaU_MobileNo: row.lmaU_MobileNo ?? (row as any).LMAU_MobileNo ?? '',
+                lmaU_Address: row.lmaU_Address ?? (row as any).LMAU_Address ?? '',
+                lmaU_EmailId: row.lmaU_EmailId ?? (row as any).LMAU_EmailId ?? (row as any).lmaU_EmailID ?? (row as any).LMAU_EmailID ?? '',
+                lmaU_PhoneNo: row.lmaU_PhoneNo ?? (row as any).LMAU_PhoneNo ?? '',
+                lmaU_ActiveFlg: row.lmaU_ActiveFlg ?? (row as any).LMAU_ActiveFlg ?? true
             });
         }
     };
@@ -122,7 +125,16 @@ export default function UpdateMasterAuthorForm({ onSuccess, className = '', sele
                         <InputText
                             label='Mobile No'
                             id='lmaU_MobileNo'
-                            placeholder='Enter Mobile No'
+                            placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmaU_MobileNo')}
                             error={errors.lmaU_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
