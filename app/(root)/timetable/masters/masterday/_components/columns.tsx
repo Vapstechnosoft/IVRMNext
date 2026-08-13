@@ -33,6 +33,13 @@ export const masterDayColumns: ColumnDef<IMasterDayList>[] = [
         enableSorting: true,
         enableHiding: true
     },
+    {
+        accessorKey: 'order_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('order_Id')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
 
     {
         id: 'actions',

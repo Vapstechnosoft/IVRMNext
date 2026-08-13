@@ -6,7 +6,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCountryDropdown, useStateDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
+import { useCountryDropdown, useStateDropdown, useTrustNameDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import { institutionMasterSchema } from '@/schemas/super-admin/super-admin-module/institution/master-institution';
 import type { ICountryDropdown, IStateDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -118,6 +118,9 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
     const { data: stateResponse, isLoading: isStatesLoading } = useStateDropdown(countryId);
     const stateList = (stateResponse?.data || []) as IStateDropdown[];
 
+    const { data: trustNameResponse, isLoading: isTrustNamesLoading } = useTrustNameDropdown();
+    const trustNameList = (trustNameResponse?.data || []) as any[];
+
     // Reset state when country changes
     useEffect(() => {
         if (countryId) {
@@ -152,7 +155,30 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
                     {/* LEFT COLUMN */}
                     <div className='space-y-4'>
                         <div className='space-y-1'>
-                            <InputText label='Trust Name' required {...register('mO_Id')} error={errors.mO_Id?.message} />
+                            <Label>
+                                Trust Name <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                control={control}
+                                name='mO_Id'
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value ? String(field.value) : undefined}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={isTrustNamesLoading ? 'Loading trusts...' : 'Select Trust'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {trustNameList.map((t) => (
+                                                <SelectItem key={t.mO_Id} value={String(t.mO_Id)}>
+                                                    {t.mO_Name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            <FormError>{errors.mO_Id?.message}</FormError>
                         </div>
 
                         <div className='space-y-1'>

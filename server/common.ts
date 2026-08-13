@@ -681,6 +681,21 @@ export async function getUserAccessibleModules() {
                                                 description: 'View Cumulative Subject Details'
                                             }
                                         ]
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'User Creation',
+                                        icon: 'Settings',
+                                        pages: [
+                                            {
+                                                id: 1,
+                                                name: 'Staff User Creation',
+                                                icon: 'Settings',
+                                                url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                                title: 'Staff User Creation',
+                                                description: 'Staff User Creation'
+                                            }
+                                        ]
                                     }
                                 ]
                             }
