@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
 import type { IInstitutionItem, IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { Suspense } from 'react';
 import AddAcademicYearMasterForm from './_components/add-form';
 import { masterAcademicYearColumns } from './_components/columns';
 import ReorderAcademicYearForm from './_components/reorder-form';
@@ -15,18 +15,20 @@ import TogglePreAdmissionAcademicYearForm from './_components/toggle-form';
 import UpdateMasterAcademicYearForm from './_components/update-form';
 import ViewDetailsForm from './_components/view-details-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterAcademicYearPage() {
+    return (
+        <Suspense fallback={<div className='flex min-h-screen items-center justify-center'>Loading page...</div>}>
+            <MasterAcademicYearPageContentWrapper />
+        </Suspense>
+    );
+}
 
-export default function MasterAcademicYearPage(props: {
-    searchParams: SearchParams;
-}) {
-    const searchParams = use(props.searchParams);
-
+function MasterAcademicYearPageContentWrapper() {
     const {
         data: academicYearResponse,
         isLoading: isLoadingAcademicYear,
         error: academicYearError
-    } = usePreAdmissionAcademicYear(searchParams);
+    } = usePreAdmissionAcademicYear();
 
     return (
         <FormProvider<IMasterAcademicYearMasterList>>
@@ -46,11 +48,14 @@ function MasterAcademicYearPageContent({
 }) {
     const { openAddForm } = useFormContext<IMasterAcademicYearMasterList>();
 
-    // The API returns: { success, data: { paginatedList, totalRecords, institutionList, ... } }
+    // The API returns: { success, data: list, total: totalRecords, page, page_size }
     const nestedData = response?.data;
-    const tableData: IMasterAcademicYearMasterList[] = nestedData?.paginatedList ?? [];
-    const totalItems: number = nestedData?.totalRecords ?? 0;
-    const institutionList: IInstitutionItem[] = nestedData?.institutionList ?? [];
+    const tableData: IMasterAcademicYearMasterList[] =
+        Array.isArray(nestedData)
+            ? nestedData
+            : (nestedData?.paginatedList ?? nestedData?.academicList ?? []);
+    const totalItems: number = response?.total ?? nestedData?.totalRecords ?? nestedData?.total ?? tableData.length;
+    const institutionList: IInstitutionItem[] = nestedData?.institutionList ?? response?.institutionList ?? [];
 
     return (
         <div className='min-h-screen'>

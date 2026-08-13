@@ -5,9 +5,32 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterAcademicYearMasterList, IMasterSetOrderList } from '@/types/admission/preadmission/configaration';
 
 export async function getPreAdmissionYear(searchParams?: ApiSearchparams) {
+    const sortColumnMap: Record<string, string> = {
+        asmaY_Id: 'ASMAY_Id',
+        id: 'ASMAY_Id',
+        asmaY_Year: 'ASMAY_Year',
+        asmaY_From_Date: 'ASMAY_From_Date',
+        asmaY_To_Date: 'ASMAY_To_Date',
+        asmaY_Cut_Of_Date: 'ASMAY_Cut_Of_Date',
+        asmaY_Order: 'ASMAY_Order',
+        mI_Name: 'Institution_name',
+        institution_name: 'Institution_name',
+        Institution_name: 'Institution_name',
+        asmaY_Pre_ActiveFlag: 'ASMAY_Pre_ActiveFlag'
+    };
+
+    const mappedSearchParams = searchParams
+        ? {
+              ...searchParams,
+              sort_column: searchParams.sort_column
+                  ? sortColumnMap[searchParams.sort_column] || searchParams.sort_column
+                  : searchParams.sort_column
+          }
+        : {};
+
     const urlParams = getSearchParamsUrl(
-        searchParams ?? {},
-        'asmaY_Year,asmaY_AcademicYearCode,asmaY_Order,asmaY_From_Date,asmaY_Cut_Of_Date,asmaY_To_Date'
+        mappedSearchParams,
+        'ASMAY_Year,ASMAY_AcademicYearCode,ASMAY_Order,ASMAY_From_Date,ASMAY_Cut_Of_Date,ASMAY_To_Date,Institution_name'
     );
     const url = `/configuration/academic_year?${urlParams}`;
     return await api.get<IMasterAcademicYearMasterList[]>('preadmission', url);
