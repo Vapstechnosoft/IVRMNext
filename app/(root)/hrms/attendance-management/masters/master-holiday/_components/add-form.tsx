@@ -429,7 +429,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
                                                     </TableCell>
                                                     <TableCell>{item.dayname}</TableCell>
                                                     <TableCell>
-                                                        {item.date ? new Date(item.date).toLocaleDateString('en-GB') : '-'}
+                                                        {item.date ?? '-'}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

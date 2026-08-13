@@ -114,7 +114,7 @@ export default function SalarySlipPage() {
                 hrmgt_ids: filters.groupType.join(','),
                 hrmd_ids: filters.department.join(','),
                 hrmdes_ids: filters.designation.join(','),
-                
+
             }, {
                 onSuccess: (res) => {
                     if (res.success && res.data) {
@@ -334,6 +334,7 @@ export default function SalarySlipPage() {
                     hrmE_EmployeeCode: matchedEmp.employeeCode,
                     TemplateString: htmlTemplate
                 });
+                console.log("templates", tmplt)
             }
         });
 
@@ -348,6 +349,8 @@ export default function SalarySlipPage() {
             Template: tmplt,
             HRES_Month: filters.month
         };
+
+        console.log("data:", data);
 
         sendSalarySlipEmailSMSWhatsApp(data, {
             onSuccess: (res) => {
