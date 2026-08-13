@@ -204,8 +204,9 @@ export const masterClassSchema = {
 
 export const masterClassYearlyCategorySchema = {
     addOrUpdate: z.object({
-        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
-        classCategory: z.string().min(1, { message: 'Class Category is required' }),
+        // academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        academicYear: z.number({ message: 'Academic Year is required' }),
+        classCategory: z.number({ message: 'Class Category is required' }),
         classes: z.array(z.string()).min(1, { message: 'At least one class is required' })
     }),
     delete: z.object({
