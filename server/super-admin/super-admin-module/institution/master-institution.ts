@@ -55,3 +55,16 @@ export async function getInstitutionDropdown() {
         throw error;
     }
 }
+
+export async function getTrustNameDropdown() {
+    const url = `/OrganisationFacade/get_on_load_details`;
+    try {
+        const response = await api.get<any>(
+            'sadmin',
+            url
+        );
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
